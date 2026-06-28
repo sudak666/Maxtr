@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Графік змін та Фінанси: Максим Pro</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06050a">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+
+<script>
+  // Реєстрація сервіс-воркера для автономної роботи
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker успішно зареєстровано!', reg.scope))
+        .catch(err => console.log('Помилка реєстрації Service Worker:', err));
+    });
+  }
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&family=JetBrains+Mono:wght=400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-main: #06050a;
+    --bg-card: #0d0b14;
+    --bg-input: #141122;
+    --border: #201c33;
+    --text: #e2dfeb;
+    --text-muted: #645e7a;
+    --purple: #8b5cf6;
+    --purple-light: #a78bfa;
+    --orange: #f59e0b;
+    --blue: #3b82f6;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+  }
+
+  body {
+    background: var(--bg-main);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 30px 20px;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Навігація між вкладками */
+  .nav-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .nav-btn {
+    flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 700;
+    color: var(--text-muted); background: transparent; border: none; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn.active { background: var(--purple); color: #fff; }
+
+  header {
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--purple); margin-bottom: 4px;
+  }
+  h1 { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+  
+  .sync-panel {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-sync {
+    background: #141122; color: #fff; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-sync:hover { background: var(--purple); border-color: var(--purple-light); }
+  #import-file { display: none; }
+
+  /* Панель статистики */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+  .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: #fff; }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Спеціальні картки для гаманців */
+  .wallet-card { border-left: 4px solid var(--purple); }
+  .wallet-pumb { border-left: 4px solid #f93822; }
+
+  /* Інструменти автоматизації */
+  .tools-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .tools-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--purple-light); width: 100%; margin-bottom: -4px;}
+  .tool-select { background: var(--bg-input); color: #fff; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none;}
+  .btn-tool { background: #221c38; color: var(--purple-light); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-tool:hover { background: var(--purple); color: #fff; }
+  .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.2); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+
+  /* Календар */
+  .calendar-wrapper {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  .controls-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .select-group { display: flex; gap: 8px; }
+  select, input[type="text"], input[type="number"], input[type="date"] {
+    background: var(--bg-input); border: 1px solid var(--border);
+    color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; outline: none; cursor: pointer; width: 100%;
+  }
+  .select-group select { width: auto; }
+  select:focus, input:focus { border-color: var(--purple); }
+
+  .legend {
+    display: flex; gap: 12px 18px; font-size: 11.5px; margin-bottom: 20px; flex-wrap: wrap;
+    background: rgba(255,255,255,0.01); padding: 12px; border-radius: 10px; border: 1px dashed var(--border);
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .color-dot { width: 14px; height: 14px; border-radius: 4px; }
+
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .weekday-label { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding: 4px 0; }
+  
+  .day-cell {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px;
+    min-height: 85px; padding: 6px; cursor: pointer; display: flex; flex-direction: column;
+    justify-content: flex-start; gap: 4px; transition: all 0.15s; user-select: none;
+    overflow: hidden; position: relative;
+  }
+  .day-cell:hover { border-color: var(--purple-light); background: #181528; }
+  .day-cell.empty { background: transparent; border: none; cursor: default; min-height: auto; }
+  
+  .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+  .day-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text-muted); }
+  
+  .today-tag { font-size: 8px; font-weight: 800; text-transform: uppercase; color: var(--purple-light); background: rgba(139, 92, 246, 0.15); padding: 1px 4px; border-radius: 4px; }
+  .day-cell.today { border: 1px solid var(--purple); box-shadow: inset 0 0 8px rgba(139, 92, 246, 0.15); background: #0c0a14; }
+  .day-cell.today .day-num { color: #fff; font-weight: 800; }
+
+  .day-info-container { display: flex; flex-direction: column; gap: 3px; align-items: stretch; width: 100%; }
+  .mini-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 4px; border-radius: 4px; text-align: center; line-height: 1.1; word-break: break-word; color: #fff; }
+  .badge-day { background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #93c5fd; }
+  .badge-day1900 { background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.6); color: #34d399; }
+  .badge-night { background: rgba(139, 92, 246, 0.25); border: 1px solid rgba(139, 92, 246, 0.6); color: #c084fc; }
+  .badge-night_half1 { background: rgba(236, 72, 153, 0.25); border: 1px solid rgba(236, 72, 153, 0.6); color: #f472b6; }
+  .badge-night_half2 { background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.6); color: #22d3ee; }
+  .badge-vacation { background: rgba(245, 158, 11, 0.25); border: 1px solid rgba(245, 158, 11, 0.6); color: #fbbf24; }
+
+  .has-shifts { background: rgba(255, 255, 255, 0.02); border-color: #312b47; }
+  .has-shifts .day-num { color: #fff; }
+
+  /* СТИЛІ ФІНАНСОВОГО ТРЕКЕРА */
+  .finance-panel { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start; }
+  .finance-form { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; border-radius: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .finance-form h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+  
+  .type-toggle { display: flex; gap: 6px; background: var(--bg-input); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+  .type-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; color: var(--text-muted); background: transparent; transition: all 0.2s; }
+  .type-btn.active.inc { background: var(--green); color: #fff; }
+  .type-btn.active.exp { background: var(--red); color: #fff; }
+  .type-btn.active.trn { background: var(--blue); color: #fff; }
+
+  .finance-history { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; border-radius: 16px; min-height: 400px; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .history-header h2 { font-size: 18px; font-weight: 700; color: #fff; }
+  
+  .transaction-list { display: flex; flex-direction: column; gap: 8px; max-height: 450px; overflow-y: auto; }
+  .transaction-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px;
+  }
+  .tx-info { display: flex; flex-direction: column; gap: 2px; }
+  .tx-category { font-size: 13px; font-weight: 700; color: #fff; }
+  .tx-meta { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .tx-wallet-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 6px; }
+  .tag-wallet-main { background: rgba(139, 92, 246, 0.15); color: var(--purple-light); border: 1px solid rgba(139, 92, 246, 0.3); }
+  .tag-wallet-pumb { background: rgba(249, 56, 34, 0.15); color: #ff6b5b; border: 1px solid rgba(249, 56, 34, 0.3); }
+  .tag-wallet-cash { background: rgba(245, 158, 11, 0.15); color: var(--orange); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+  .tx-amount-side { display: flex; align-items: center; gap: 12px; }
+  .tx-amount { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+  .tx-amount.income { color: var(--green); }
+  .tx-amount.expense { color: var(--red); }
+  .tx-amount.transfer { color: var(--blue); }
+  .btn-del-tx { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 4px; }
+  .btn-del-tx:hover { color: var(--red); }
+
+  /* МОДАЛЬНЕ ВІКНО */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+    display: none; justify-content: center; align-items: center; z-index: 2000;
+  }
+  .modal-card {
+    background: #110e1c; border: 1px solid var(--purple); border-radius: 16px;
+    padding: 24px; width: 90%; max-width: 380px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  }
+  .modal-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; text-align: center; }
+  .modal-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  
+  .checkbox-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg-input); cursor: pointer; user-select: none;
+    transition: border-color 0.15s;
+  }
+  .checkbox-row:hover { border-color: var(--purple-light); }
+  .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--purple); cursor: pointer; }
+  .checkbox-label { display: flex; flex-direction: column; gap: 2px; color: #fff; font-size: 13px; font-weight: 600; }
+  .checkbox-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+  .conflict-warning {
+    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5; font-size: 11.5px; padding: 10px; border-radius: 8px; margin-bottom: 16px;
+    display: none; text-align: center; font-weight: 500;
+  }
+
+  .modal-actions { display: flex; gap: 8px; }
+  .btn-modal-save {
+    flex: 1; background: var(--purple); color: #fff; border: none;
+    padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background 0.15s; text-align: center;
+  }
+  .btn-modal-save:hover { background: #7c3aed; }
+  .btn-modal-close {
+    flex: 1; background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+    padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .btn-modal-close:hover { border-color: var(--text-muted); color: #fff; }
+
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(40px);
+    background: #141122; border: 1px solid var(--purple); color: #fff;
+    padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 9999;
+    opacity: 0; visibility: hidden; transition: all 0.3s;
+  }
+  #toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+  @media(max-width: 768px) {
+    body { padding: 14px 8px; }
+    .calendar-wrapper { padding: 12px; }
+    .calendar-grid { gap: 4px; }
+    .day-cell { padding: 4px; min-height: 75px; gap: 2px; border-radius: 6px; }
+    .day-num { font-size: 11px; }
+    .mini-badge { font-size: 8px; padding: 1px 2px; border-radius: 3px; letter-spacing: -0.02em; }
+    .tools-panel { gap: 8px; padding: 12px; }
+    .tool-select, .btn-tool { font-size: 11px; padding: 6px 10px; flex: 1; text-align: center;}
+    .finance-panel { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <button id="nav-shifts" class="nav-btn active" onclick="switchTab('shifts')">🗓️ Графік змін</button>
+    <button id="nav-finance" class="nav-btn" onclick="switchTab('finance')">💰 Финанси та гаманці</button>
+  </div>
+
+  <div id="tab-content-shifts">
+    <header>
+      <div>
+        <div class="label">Особистий робочий календар</div>
+        <h1>Робочі зміни Максима</h1>
+      </div>
+      <div class="sync-panel">
+        <button class="btn-sync" onclick="exportBackup()">Експорт бекапу</button>
+        <button class="btn-sync" onclick="document.getElementById('import-file').click()">Імпорт бекапу</button>
+        <input type="file" id="import-file" accept=".json" onchange="importBackup(this)">
+        
+        <div style="width: 1px; height: 22px; background: var(--border); margin: 0 4px;"></div>
+        <button id="btn-g-auth" class="btn-sync" onclick="handleAuthClick()" style="border-color: rgba(139, 92, 246, 0.5);">🔑 Google Диск</button>
+        <button id="btn-g-save" class="btn-sync" onclick="saveToGoogleDrive()" style="display: none; border-color: var(--green);">☁️ Зберегти на Диск</button>
+        <button id="btn-g-load" class="btn-sync" onclick="loadFromGoogleDrive()" style="display: none; border-color: var(--blue);">☁️ Завантажити з Диска</button>
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card" style="border-color: rgba(16, 185, 129, 0.4); grid-column: span 2;">
+        <div class="stat-label">💰 Фінансовий підсумок місяця</div>
+        <div class="stat-val" id="total-salary" style="color: var(--green); font-size: 24px;">0 грн</div>
+      </div>
+      <div class="stat-card" style="border-color: rgba(139, 92, 246, 0.4);">
+        <div class="stat-label">⏱️ Всього годин</div>
+        <div class="stat-val" id="total-hours" style="color: #fff;">0 год</div>
+        <div class="stat-sub" id="night-hours">З них нічних: 0 год</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">☀️ День (1000)</div>
+        <div class="stat-val" id="count-day" style="color: var(--blue);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🟢 День (1900)</div>
+        <div class="stat-val" id="count-day1900" style="color: var(--green);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🌙 Ніч повна</div>
+        <div class="stat-val" id="count-night" style="color: var(--purple-light);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🏝️ Вихідні</div>
+        <div class="stat-val" id="count-vacation" style="color: var(--orange);">0</div>
+      </div>
+    </div>
+
+    <div class="tools-panel">
+      <div class="tools-title">⚡ Швидке заповнення та керування поточним місяцем</div>
+      <span style="font-size: 12px; color: var(--text-muted);">Старт з 1 числа:</span>
+      <select id="template-type" class="tool-select">
+        <option value="every_day">Кожен день (1000 грн)</option>
+        <option value="day_off">День через День (1000 грн)</option>
+        <option value="day_night_48">День / Ніч / 48 (Повні зміни)</option>
+        <option value="two_two">2 Дні / 2 Ночі / 4 Вихідних</option>
+      </select>
+      <button class="btn-tool" onclick="applyTemplate()">Заповнити за шаблоном</button>
+      <button class="btn-tool btn-danger" style="margin-left: auto;" onclick="clearCurrentMonth()">🗑️ Очистити цей місяць</button>
+    </div>
+
+    <div class="calendar-wrapper">
+      <div class="controls-bar">
+        <div class="select-group">
+          <select id="select-month" onchange="renderCalendar()"></select>
+          <select id="select-year" onchange="renderCalendar()"></select>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+          💡 Кілька змін на добу дозволено (без накладання годин)
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="color-dot" style="background: rgba(59, 130, 246, 0.2); border: 1px solid var(--blue);"></div> Денна (1000 грн)</div>
+        <div class="legend-item"><div class="color-dot" style="background: rgba(16, 185, 129, 0.2); border: 1px solid var(--green);"></div> Денна (1900 грн)</div>
+        <div class="legend-item"><div class="color-dot" style="background: rgba(139, 92, 246, 0.2); border: 1px solid var(--purple);"></div> Ніч повна (900 грн)</div>
+        <div class="legend-item"><div class="color-dot" style="background: rgba(245, 158, 11, 0.2); border: 1px solid var(--orange);"></div> Вихідний</div>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+  </div>
+
+  <div id="tab-content-finance" style="display: none;">
+    <header>
+      <div>
+        <div class="label">Особистий бюджет</div>
+        <h1>Мультигаманець та Баланси</h1>
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card" style="border-color: var(--purple);">
+        <div class="stat-label">🌍 ЗАГАЛЬНИЙ БАЛАНС</div>
+        <div class="stat-val" id="fin-balance" style="color: #fff; font-size: 22px;">0 грн</div>
+      </div>
+      <div class="stat-card wallet-card">
+        <div class="stat-label">💳 Основна картка</div>
+        <div class="stat-val" id="balance-wallet-main">0 грн</div>
+      </div>
+      <div class="stat-card wallet-pumb">
+        <div class="stat-label" style="color: #ff6b5b;">🔴 Картка ПУМБ</div>
+        <div class="stat-val" id="balance-wallet-pumb">0 грн</div>
+      </div>
+      <div class="stat-card" style="border-left: 4px solid var(--orange);">
+        <div class="stat-label">💵 Готівка</div>
+        <div class="stat-val" id="balance-wallet-cash">0 грн</div>
+      </div>
+    </div>
+
+    <div class="finance-panel" id="finance-panel-block">
+      <div class="finance-form">
+        <h2>Нова операція</h2>
+        <div class="form-group">
+          <label>Тип транзакції</label>
+          <div class="type-toggle">
+            <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')">Дохід</button>
+            <button id="btn-exp" class="type-btn exp" onclick="setFinanceType('expense')">Витрата</button>
+            <button id="btn-trn" class="type-btn trn" onclick="setFinanceType('transfer')">🔁 Переказ</button>
+          </div>
+        </div>
+        
+        <div class="form-group" id="wallet-source-group">
+          <label id="wallet-source-label">Куди зарахувати (Гаманець)</label>
+          <select id="fin-wallet">
+            <option value="main">💳 Основна картка</option>
+            <option value="pumb">🔴 Картка ПУМБ</option>
+            <option value="cash">💵 Готівка</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="wallet-target-group" style="display: none;">
+          <label>Куди переказати (Отримувач)</label>
+          <select id="fin-wallet-target">
+            <option value="main">💳 Основна картка</option>
+            <option value="pumb" selected>🔴 Картка ПУМБ</option>
+            <option value="cash">💵 Готівка</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Сума (грн)</label>
+          <input type="number" id="fin-amount" placeholder="0" min="1">
+        </div>
+        <div class="form-group" id="category-group">
+          <label>Категорія</label>
+          <select id="fin-category"></select>
+        </div>
+        <div class="form-group">
+          <label>Дата</label>
+          <input type="date" id="fin-date">
+        </div>
+        <div class="form-group">
+          <label>Коментар (необов'язково)</label>
+          <input type="text" id="fin-comment" placeholder="Деталі операції...">
+        </div>
+        <button class="btn-modal-save" style="margin-top: 6px;" onclick="addTransaction()">Додати запис</button>
+      </div>
+
+      <div class="finance-history">
+        <div class="history-header">
+          <h2>Історія бюджету</h2>
+        </div>
+        <div class="transaction-list" id="tx-list-container"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="shift-modal" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-date-title">Оберіть зміни</div>
+    <div class="conflict-warning" id="conflict-alert">⚠️ Помилка!</div>
+
+    <div class="modal-options">
+      <label class="checkbox-row" style="border-left: 4px solid var(--blue);">
+        <input type="checkbox" id="chk-day" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>☀️ Денна зміна</span>
+          <span class="checkbox-sub">07:00 - 19:00 • 1000 грн (12 год)</span>
+        </div>
+      </label>
+
+      <label class="checkbox-row" style="border-left: 4px solid var(--green);">
+        <input type="checkbox" id="chk-day1900" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>🟢 Денна зміна (Нова)</span>
+          <span class="checkbox-sub">07:00 - 19:00 • 1900 грн (12 год)</span>
+        </div>
+      </label>
+
+      <label class="checkbox-row" style="border-left: 4px solid var(--purple-light);">
+        <input type="checkbox" id="chk-night" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>🌙 Нічна повна зміна</span>
+          <span class="checkbox-sub">19:00 - 07:00 • 900 грн (12 год)</span>
+        </div>
+      </label>
+
+      <label class="checkbox-row" style="border-left: 4px solid var(--pink);">
+        <input type="checkbox" id="chk-night-h1" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>⏱️ Ніч (1-ша половина)</span>
+          <span class="checkbox-sub">19:00 - 01:00 • 450 грн (6 год)</span>
+        </div>
+      </label>
+
+      <label class="checkbox-row" style="border-left: 4px solid var(--cyan);">
+        <input type="checkbox" id="chk-night-h2" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>⏱️ Ніч (2-га половина)</span>
+          <span class="checkbox-sub">01:00 - 07:00 • 450 грн (6 год)</span>
+        </div>
+      </label>
+
+      <label class="checkbox-row" style="border-left: 4px solid var(--orange);">
+        <input type="checkbox" id="chk-vacation" onchange="validateModalSelection()">
+        <div class="checkbox-label">
+          <span>🏝️ Вихідний день</span>
+          <span class="checkbox-sub">Відпочинок • 0 грн (0 год)</span>
+        </div>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-close" onclick="closeModal()">Скасувати</button>
+      <button class="btn-modal-save" id="btn-save" onclick="saveModalSelection()">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">🔔 Сповіщення</div>
+
+<script>
+let shifts = {};
+let transactions = [];
+let selectedDateKey = null;
+let currentFinanceType = 'income';
+
+// Конфігурація Google Cloud Console API
+const CLIENT_ID = '291786971284-g29igf6nltr4q5v51btkvit1ssmjf693.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyCwY3sTSncISiwZMNiyAtWULhE-wDkr4EI';
+const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+let tokenClient;
+let gapiInited = false;
+let gapiAuthenticated = false;
+let backupFileId = null;
+
+const MONTHS = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+const WEEKDAYS = ["Пн", "Вв", "Ср", "Чт", "Пт", "Сб", "Нд"];
+
+const WALLET_NAMES = {
+  main: { text: "Основна", class: "tag-wallet-main" },
+  pumb: { text: "ПУМБ", class: "tag-wallet-pumb" },
+  cash: { text: "Готівка", class: "tag-wallet-cash" }
+};
+
+const CATEGORIES = {
+  income: ["Зарплата", "Аванс", "Підробіток", "Борг", "Кредит", "Інше"],
+  expense: ["Алла (жінка)", "Син", "Цигарки", "Кава", "Фастфуд", "Борг", "Кредит", "Продукти", "Транспорт / Авто", "Комуналка", "Покупки", "Інше"]
+};
+
+// --- Логіка Google Drive API ---
+
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    try {
+      await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
+      gapiInited = true;
+    } catch (e) {
+      console.error("GAPI initialization error:", e);
+    }
+  });
+}
+
+function gisLoaded() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) {
+        console.error("GIS Error:", resp.error);
+        return;
+      }
+      gapiAuthenticated = true;
+      updateGoogleUi(true);
+      showToast('🎉 Авторизовано через Google!');
+      await findOrCreateBackupFile();
+    },
+  });
+}
+
+function handleAuthClick() {
+  if (!tokenClient) {
+    alert("Сервіси Google ще завантажуються, зачекайте пару секунд.");
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function updateGoogleUi(auth) {
+  const btnAuth = document.getElementById('btn-g-auth');
+  const btnSave = document.getElementById('btn-g-save');
+  const btnLoad = document.getElementById('btn-g-load');
+  if (auth) {
+    if (btnAuth) btnAuth.textContent = "🔄 Змінити акаунт Google";
+    if (btnSave) btnSave.style.display = 'inline-block';
+    if (btnLoad) btnLoad.style.display = 'inline-block';
+  }
+}
+
+async function findOrCreateBackupFile() {
+  try {
+    const response = await gapi.client.drive.files.list({
+      q: "name='max_tracker_backup.json' and trashed=false",
+      fields: 'files(id, name)',
+    });
+    const files = response.result.files;
+    if (files && files.length > 0) {
+      backupFileId = files[0].id;
+      showToast('📂 Знайдено активний файл синхронізації на Диску!');
+    } else {
+      showToast('☁️ Файл хмарного бекапу ще не створено.');
+    }
+  } catch (err) {
+    console.error("Помилка пошуку файлу на Диску:", err);
+  }
+}
+
+async function saveToGoogleDrive() {
+  if (!gapiAuthenticated) {
+    handleAuthClick();
+    return;
+  }
+  const backupData = { shifts, transactions };
+  const content = JSON.stringify(backupData, null, 2);
+  
+  try {
+    if (!backupFileId) {
+      await findOrCreateBackupFile();
+    }
+
+    if (backupFileId) {
+      // Оновлення існуючого файлу (метод PATCH)
+      await gapi.client.request({
+        path: `/upload/drive/v3/files/${backupFileId}`,
+        method: 'PATCH',
+        params: { uploadType: 'media' },
+        body: content
+      });
+      showToast('🎉 Дані успішно синхронізовано з Google Диском!');
+    } else {
+      // Створення нового файлу (мультипарт формат)
+      const metadata = { name: 'max_tracker_backup.json', mimeType: 'application/json' };
+      const boundary = '314159265358979323846';
+      const delimiter = `\r\n--${boundary}\r\n`;
+      const close_delim = `\r\n--${boundary}--`;
+      const body = `${delimiter}Content-Type: application/json\r\n\r\n${JSON.stringify(metadata)}${delimiter}Content-Type: application/json\r\n\r\n${content}${close_delim}`;
+      
+      const response = await gapi.client.request({
+        path: '/upload/drive/v3/files',
+        method: 'POST',
+        params: { uploadType: 'multipart' },
+        headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+        body: body
+      });
+      backupFileId = response.result.id;
+      showToast('🎉 Новий файл бекапу створено на вашому Google Диску!');
+    }
+  } catch (err) {
+    showToast('❌ Помилка збереження на Диск');
+    console.error(err);
+  }
+}
+
+async function loadFromGoogleDrive() {
+  if (!gapiAuthenticated) {
+    handleAuthClick();
+    return;
+  }
+  if (!backupFileId) {
+    await findOrCreateBackupFile();
+  }
+  if (!backupFileId) {
+    alert('Бекап не знайдено на Диску. Спочатку виконайте збереження.');
+    return;
+  }
+  
+  try {
+    const response = await gapi.client.drive.files.get({
+      fileId: backupFileId,
+      alt: 'media',
+    });
+    const imported = response.result;
+    if (imported && typeof imported === 'object') {
+      if (confirm('Замінити всі поточні локальні дані (календар та транзакції) версією з Google Диску?')) {
+        if (imported.shifts) shifts = imported.shifts;
+        if (imported.transactions) transactions = imported.transactions;
+        saveToStorage(); 
+        localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
+        renderCalendar(); 
+        renderFinance(); 
+        showToast('🎉 Дані успішно завантажено з хмари!');
+      }
+    }
+  } catch (err) {
+    showToast('❌ Помилка завантаження даних з Диска');
+    console.error(err);
+  }
+}
+
+// --- Решта логіки застосунку ---
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+}
+
+function switchTab(tab) {
+  const navShifts = document.getElementById('nav-shifts');
+  const navFinance = document.getElementById('nav-finance');
+  if(navShifts) navShifts.classList.remove('active');
+  if(navFinance) navFinance.classList.remove('active');
+  
+  const shiftsContent = document.getElementById('tab-content-shifts');
+  const financeContent = document.getElementById('tab-content-finance');
+  const financePanelBlock = document.getElementById('finance-panel-block');
+
+  if (tab === 'shifts') {
+    if(navShifts) navShifts.classList.add('active');
+    if(shiftsContent) shiftsContent.style.display = 'block';
+    if(financeContent) financeContent.style.display = 'none';
+    renderCalendar();
+  } else {
+    if(navFinance) navFinance.classList.add('active');
+    if(shiftsContent) shiftsContent.style.display = 'none';
+    if(financeContent) financeContent.style.display = 'block';
+    if (financePanelBlock) {
+      if (window.innerWidth <= 768) {
+        financePanelBlock.style.display = 'block';
+      } else {
+        financePanelBlock.style.display = 'grid';
+      }
+    }
+    renderFinance();
+  }
+}
+
+function init() {
+  const current = new Date();
+  const mSelect = document.getElementById('select-month');
+  const ySelect = document.getElementById('select-year');
+
+  if (mSelect) {
+    mSelect.innerHTML = ''; 
+    MONTHS.forEach((m, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx; opt.textContent = m;
+      if (idx === current.getMonth()) opt.selected = true;
+      mSelect.appendChild(opt);
+    });
+  }
+
+  if (ySelect) {
+    ySelect.innerHTML = '';
+    for (let y = current.getFullYear() - 1; y <= current.getFullYear() + 2; y++) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (y === current.getFullYear()) opt.selected = true;
+      ySelect.appendChild(opt);
+    }
+  }
+
+  const stored = localStorage.getItem('maksim_multishifts_v1');
+  if (stored) shifts = JSON.parse(stored);
+
+  const storedTx = localStorage.getItem('maksim_finance_tx_v1');
+  if (storedTx) transactions = JSON.parse(storedTx);
+
+  const dateInput = document.getElementById('fin-date');
+  if (dateInput) {
+    dateInput.value = current.toISOString().split('T')[0];
+  }
+
+  switchTab('shifts');
+  setFinanceType('income');
+}
+
+function saveToStorage() {
+  localStorage.setItem('maksim_multishifts_v1', JSON.stringify(shifts));
+}
+
+function openModal(dateKey, displayDay) {
+  selectedDateKey = dateKey;
+  const mSelect = document.getElementById('select-month');
+  const monthIdx = mSelect ? parseInt(mSelect.value, 10) : 0;
+  const monthLabel = MONTHS[monthIdx] || "";
+  
+  const modalTitle = document.getElementById('modal-date-title');
+  if(modalTitle) modalTitle.textContent = `Зміни на ${displayDay} ${monthLabel}`;
+  
+  const chkDay = document.getElementById('chk-day');
+  const chkDay1900 = document.getElementById('chk-day1900');
+  const chkNight = document.getElementById('chk-night');
+  const chkNightH1 = document.getElementById('chk-night-h1');
+  const chkNightH2 = document.getElementById('chk-night-h2');
+  const chkVacation = document.getElementById('chk-vacation');
+
+  if(chkDay) chkDay.checked = false;
+  if(chkDay1900) chkDay1900.checked = false;
+  if(chkNight) chkNight.checked = false;
+  if(chkNightH1) chkNightH1.checked = false;
+  if(chkNightH2) chkNightH2.checked = false;
+  if(chkVacation) chkVacation.checked = false;
+
+  const dayShifts = shifts[dateKey] || [];
+  if (dayShifts.includes('day') && chkDay) chkDay.checked = true;
+  if (dayShifts.includes('day1900') && chkDay1900) chkDay1900.checked = true;
+  if (dayShifts.includes('night') && chkNight) chkNight.checked = true;
+  if (dayShifts.includes('night_half1') && chkNightH1) chkNightH1.checked = true;
+  if (dayShifts.includes('night_half2') && chkNightH2) chkNightH2.checked = true;
+  if (dayShifts.includes('vacation') && chkVacation) chkVacation.checked = true;
+
+  validateModalSelection();
+  const modalOverlay = document.getElementById('shift-modal');
+  if(modalOverlay) modalOverlay.style.display = 'flex';
+}
+
+function validateModalSelection() {
+  const chkDay = document.getElementById('chk-day');
+  const chkDay1900 = document.getElementById('chk-day1900');
+  const chkNight = document.getElementById('chk-night');
+  const chkNightH1 = document.getElementById('chk-night-h1');
+  const chkNightH2 = document.getElementById('chk-night-h2');
+  const chkVacation = document.getElementById('chk-vacation');
+
+  const day1000 = chkDay ? chkDay.checked : false;
+  const day1900 = chkDay1900 ? chkDay1900.checked : false;
+  const nightFull = chkNight ? chkNight.checked : false;
+  const h1 = chkNightH1 ? chkNightH1.checked : false;
+  const h2 = chkNightH2 ? chkNightH2.checked : false;
+  const vacation = chkVacation ? chkVacation.checked : false;
+  
+  let hasConflict = nightFull && (h1 || h2);
+  
+  if (vacation && (day1000 || day1900 || nightFull || h1 || h2)) {
+    if(chkDay) chkDay.checked = false;
+    if(chkDay1900) chkDay1900.checked = false;
+    if(chkNight) chkNight.checked = false;
+    if(chkNightH1) chkNightH1.checked = false;
+    if(chkNightH2) chkNightH2.checked = false;
+  }
+
+  if (day1000 && day1900) hasConflict = true;
+  
+  const alertBox = document.getElementById('conflict-alert');
+  const saveBtn = document.getElementById('btn-save');
+  
+  if (alertBox && saveBtn) {
+    if (hasConflict) {
+      alertBox.style.display = 'block';
+      alertBox.textContent = "⚠️ Помилка: Конфлікт вибору змін!";
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = '0.4';
+    } else {
+      alertBox.style.display = 'none';
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+    }
+  }
+}
+
+function closeModal() {
+  const modalOverlay = document.getElementById('shift-modal');
+  if(modalOverlay) modalOverlay.style.display = 'none';
+  selectedDateKey = null;
+}
+
+function saveModalSelection() {
+  if (!selectedDateKey) return;
+
+  const activeList = [];
+  const chkDay = document.getElementById('chk-day');
+  const chkDay1900 = document.getElementById('chk-day1900');
+  const chkNight = document.getElementById('chk-night');
+  const chkNightH1 = document.getElementById('chk-night-h1');
+  const chkNightH2 = document.getElementById('chk-night-h2');
+  const chkVacation = document.getElementById('chk-vacation');
+
+  if (chkDay && chkDay.checked) activeList.push('day');
+  if (chkDay1900 && chkDay1900.checked) activeList.push('day1900');
+  if (chkNight && chkNight.checked) activeList.push('night');
+  if (chkNightH1 && chkNightH1.checked) activeList.push('night_half1');
+  if (chkNightH2 && chkNightH2.checked) activeList.push('night_half2');
+  if (chkVacation && chkVacation.checked) activeList.push('vacation');
+
+  if (activeList.length === 0) {
+    delete shifts[selectedDateKey];
+  } else {
+    shifts[selectedDateKey] = activeList;
+  }
+
+  saveToStorage(); closeModal(); renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendar-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const mSelect = document.getElementById('select-month');
+  const ySelect = document.getElementById('select-year');
+  if (!mSelect || !ySelect) return;
+
+  const month = parseInt(mSelect.value, 10);
+  const year = parseInt(ySelect.value, 10);
+
+  const todayObj = new Date();
+  const isCurrentMonthReal = (todayObj.getMonth() === month && todayObj.getFullYear() === year);
+
+  WEEKDAYS.forEach(dayName => {
+    const el = document.createElement('div');
+    el.className = 'weekday-label'; el.textContent = dayName;
+    grid.appendChild(el);
+  });
+
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; 
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'day-cell empty';
+    grid.appendChild(emptyCell);
+  }
+
+  let countDay = 0, countDay1900 = 0, countNight = 0, countNightH1 = 0, countNightH2 = 0, countVacation = 0;
+  let totalEarnings = 0, totalHours = 0, totalNightHours = 0;
+
+  for (let d = 1; d <= totalDays; d++) {
+    const cell = document.createElement('div');
+    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayShifts = shifts[dateKey] || [];
+
+    const isToday = (isCurrentMonthReal && todayObj.getDate() === d);
+    cell.className = 'day-cell' + (dayShifts.length > 0 ? ' has-shifts' : '') + (isToday ? ' today' : '');
+
+    let badgesHtml = '';
+
+    dayShifts.forEach(type => {
+      if (type === 'day') {
+        badgesHtml += `<div class="mini-badge badge-day">День 1000</div>`;
+        countDay++; totalEarnings += 1000; totalHours += 12;
+      } else if (type === 'day1900') {
+        badgesHtml += `<div class="mini-badge badge-day1900">День 1900</div>`;
+        countDay1900++; totalEarnings += 1900; totalHours += 12;
+      } else if (type === 'night') {
+        badgesHtml += `<div class="mini-badge badge-night">Ніч повна</div>`;
+        countNight++; totalEarnings += 900; totalHours += 12; totalNightHours += 8;
+      } else if (type === 'night_half1') {
+        badgesHtml += `<div class="mini-badge badge-night_half1">Ніч 1/2</div>`;
+        countNightH1++; totalEarnings += 450; totalHours += 6; totalNightHours += 3;
+      } else if (type === 'night_half2') {
+        badgesHtml += `<div class="mini-badge badge-night_half2">Ніч 2/2</div>`;
+        countNightH2++; totalEarnings += 450; totalHours += 6; totalNightHours += 5;
+      } else if (type === 'vacation') {
+        badgesHtml += `<div class="mini-badge badge-vacation">Вихідний</div>`;
+        countVacation++;
+      }
+    });
+
+    cell.innerHTML = `
+      <div class="day-header">
+        <div class="day-num">${d}</div>
+        ${isToday ? '<div class="today-tag">Сьогодні</div>' : ''}
+      </div>
+      <div class="day-info-container">${badgesHtml}</div>
+    `;
+
+    cell.onclick = () => openModal(dateKey, d);
+    grid.appendChild(cell);
+  }
+
+  const elSal = document.getElementById('total-salary');
+  const elHrs = document.getElementById('total-hours');
+  const elNgh = document.getElementById('night-hours');
+  const elCd = document.getElementById('count-day');
+  const elCd19 = document.getElementById('count-day1900');
+  const elCn = document.getElementById('count-night');
+  const elCv = document.getElementById('count-vacation');
+
+  if(elSal) elSal.textContent = totalEarnings.toLocaleString('uk-UA') + ' грн';
+  if(elHrs) elHrs.textContent = totalHours + ' год';
+  if(elNgh) elNgh.textContent = `З них нічних: ${totalNightHours} год`;
+  if(elCd) elCd.textContent = countDay;
+  if(elCd19) elCd19.textContent = countDay1900;
+  if(elCn) elCn.textContent = countNight;
+  if(elCv) elCv.textContent = countVacation;
+}
+
+function clearCurrentMonth() {
+  if (!confirm('Ви дійсно хочете видалити всі зміни за ЦЕЙ вибраний місяць?')) return;
+  const month = parseInt(document.getElementById('select-month').value, 10);
+  const year = parseInt(document.getElementById('select-year').value, 10);
+  const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+
+  for (let key in shifts) {
+    if (key.startsWith(prefix)) delete shifts[key];
+  }
+
+  saveToStorage(); renderCalendar();
+  showToast('🗑️ Місяць успішно очищено');
+}
+
+function applyTemplate() {
+  const type = document.getElementById('template-type').value;
+  const month = parseInt(document.getElementById('select-month').value, 10);
+  const year = parseInt(document.getElementById('select-year').value, 10);
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  if (!confirm('Це заповнить увесь місяць автоматично. Продовжити?')) return;
+
+  const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+  for (let key in shifts) {
+    if (key.startsWith(prefix)) delete shifts[key];
+  }
+
+  if (type === 'every_day') {
+    for (let d = 1; d <= totalDays; d++) {
+      shifts[`${prefix}${String(d).padStart(2, '0')}`] = ['day'];
+    }
+  } else if (type === 'day_off') {
+    for (let d = 1; d <= totalDays; d += 2) {
+      shifts[`${prefix}${String(d).padStart(2, '0')}`] = ['day'];
+    }
+  } else if (type === 'day_night_48') {
+    let step = 0;
+    for (let d = 1; d <= totalDays; d++) {
+      const dateKey = `${prefix}${String(d).padStart(2, '0')}`;
+      if (step === 0) shifts[dateKey] = ['day'];
+      else if (step === 1) shifts[dateKey] = ['night'];
+      else { shifts[dateKey] = ['vacation']; }
+      step = (step + 1) % 4;
+    }
+  } else if (type === 'two_two') {
+    let step = 0;
+    for (let d = 1; d <= totalDays; d++) {
+      const dateKey = `${prefix}${String(d).padStart(2, '0')}`;
+      if (step === 0 || step === 1) shifts[dateKey] = ['day'];
+      else if (step === 2 || step === 3) shifts[dateKey] = ['night'];
+      else { shifts[dateKey] = ['vacation']; }
+      step = (step + 1) % 8;
+    }
+  }
+
+  saveToStorage(); renderCalendar();
+  showToast('⚡ Шаблон успішно застосовано!');
+}
+
+function setFinanceType(type) {
+  currentFinanceType = type;
+  
+  const btnInc = document.getElementById('btn-inc');
+  const btnExp = document.getElementById('btn-exp');
+  const btnTrn = document.getElementById('btn-trn');
+  
+  if(btnInc) btnInc.classList.remove('active');
+  if(btnExp) btnExp.classList.remove('active');
+  if(btnTrn) btnTrn.classList.remove('active');
+  
+  const labelSrc = document.getElementById('wallet-source-label');
+  const targetGroup = document.getElementById('wallet-target-group');
+  const catGroup = document.getElementById('category-group');
+
+  if (type === 'income') {
+    if(btnInc) btnInc.classList.add('active');
+    if(labelSrc) labelSrc.textContent = "Куди зарахувати (Гаманець)";
+    if(targetGroup) targetGroup.style.display = 'none';
+    if(catGroup) catGroup.style.display = 'flex';
+    fillCategories('income');
+  } else if (type === 'expense') {
+    if(btnExp) btnExp.classList.add('active');
+    if(labelSrc) labelSrc.textContent = "Звідки списати (Гаманець)";
+    if(targetGroup) targetGroup.style.display = 'none';
+    if(catGroup) catGroup.style.display = 'flex';
+    fillCategories('expense');
+  } else if (type === 'transfer') {
+    if(btnTrn) btnTrn.classList.add('active');
+    if(labelSrc) labelSrc.textContent = "Звідки переказати (Рахунок-донор)";
+    if(targetGroup) targetGroup.style.display = 'flex'; 
+    if(catGroup) catGroup.style.display = 'none'; 
+  }
+}
+
+function fillCategories(type) {
+  const catSelect = document.getElementById('fin-category');
+  if (!catSelect) return;
+  catSelect.innerHTML = '';
+  CATEGORIES[type].forEach(cat => {
+    const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat;
+    catSelect.appendChild(opt);
+  });
+}
+
+function addTransaction() {
+  const amountInput = document.getElementById('fin-amount');
+  if(!amountInput) return;
+  const amount = parseFloat(amountInput.value);
+  const walletSrc = document.getElementById('fin-wallet').value || 'main';
+  const walletTrg = document.getElementById('fin-wallet-target').value || 'pumb';
+  const date = document.getElementById('fin-date').value;
+  const comment = document.getElementById('fin-comment').value.trim();
+
+  if (isNaN(amount) || amount <= 0) { alert('Будь ласка, введіть коректну суму!'); return; }
+  if (!date) { alert('Оберіть дату операції!'); return; }
+
+  if (currentFinanceType === 'transfer' && walletSrc === walletTrg) {
+    alert('Рахунок-відправник та рахунок-отримувач не можуть збігатися!');
+    return;
+  }
+
+  const catEl = document.getElementById('fin-category');
+  const category = (currentFinanceType === 'transfer') ? 'Внутрішній переказ' : (catEl ? catEl.value : 'Інше');
+
+  const newTx = {
+    id: Date.now(),
+    type: currentFinanceType,
+    amount,
+    category,
+    wallet: walletSrc,
+    targetWallet: (currentFinanceType === 'transfer') ? walletTrg : null,
+    date,
+    comment
+  };
+
+  transactions.unshift(newTx);
+  localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
+  
+  amountInput.value = '';
+  const commEl = document.getElementById('fin-comment');
+  if(commEl) commEl.value = '';
+  
+  renderFinance();
+  showToast(currentFinanceType === 'transfer' ? '🔁 Переказ виконано' : '✅ Транзакцію додано');
+}
+
+function deleteTransaction(id) {
+  if (!confirm('Видалити цей запис?')) return;
+  transactions = transactions.filter(t => t.id !== id);
+  localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
+  renderFinance();
+}
+
+function renderFinance() {
+  let globalBalance = 0;
+  let walletBalances = { main: 0, pumb: 0, cash: 0 };
+
+  const listContainer = document.getElementById('tx-list-container');
+  if (!listContainer) return;
+  listContainer.innerHTML = '';
+
+  transactions.forEach(t => {
+    const currentWallet = t.wallet || 'main';
+
+    if (t.type === 'income') {
+      globalBalance += t.amount;
+      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] += t.amount;
+    } else if (t.type === 'expense') {
+      globalBalance -= t.amount;
+      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] -= t.amount;
+    } else if (t.type === 'transfer') {
+      const trgWallet = t.targetWallet || 'pumb';
+      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] -= t.amount;
+      if (walletBalances[trgWallet] !== undefined) walletBalances[trgWallet] += t.amount;
+    }
+
+    const item = document.createElement('div');
+    item.className = 'transaction-item';
+
+    const dateFormatted = t.date.split('-').reverse().join('.');
+    let sign = '';
+    let classType = '';
+    let walletBadgeHtml = '';
+
+    const walletConfigSrc = WALLET_NAMES[currentWallet] || { text: "Основна", class: "tag-wallet-main" };
+
+    if (t.type === 'income') {
+      sign = '+'; classType = 'income';
+      walletBadgeHtml = `<span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>`;
+    } else if (t.type === 'expense') {
+      sign = '-'; classType = 'expense';
+      walletBadgeHtml = `<span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>`;
+    } else if (t.type === 'transfer') {
+      sign = '🔁'; classType = 'transfer';
+      const walletConfigTrg = WALLET_NAMES[t.targetWallet || 'pumb'] || { text: "ПУМБ", class: "tag-wallet-pumb" };
+      walletBadgeHtml = `
+        <span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>
+        <span style="font-size: 10px; color: var(--text-muted);">➔</span>
+        <span class="tx-wallet-tag ${walletConfigTrg.class}">${walletConfigTrg.text}</span>
+      `;
+    }
+
+    item.innerHTML = `
+      <div class="tx-info">
+        <div>
+          <span class="tx-category">${t.category}</span>
+          ${walletBadgeHtml}
+        </div>
+        <span class="tx-meta">${dateFormatted} ${t.comment ? `• ${t.comment}` : ''}</span>
+      </div>
+      <div class="tx-amount-side">
+        <span class="tx-amount ${classType}">${sign} ${t.amount} грн</span>
+        <button class="btn-del-tx" onclick="deleteTransaction(${t.id})">🗑️</button>
+      </div>
+    `;
+    listContainer.appendChild(item);
+  });
+
+  const elFinBal = document.getElementById('fin-balance');
+  const elBalMain = document.getElementById('balance-wallet-main');
+  const elBalPumb = document.getElementById('balance-wallet-pumb');
+  const elBalCash = document.getElementById('balance-wallet-cash');
+
+  if(elFinBal) elFinBal.textContent = globalBalance.toLocaleString('uk-UA') + ' грн';
+  if(elBalMain) elBalMain.textContent = walletBalances.main.toLocaleString('uk-UA') + ' грн';
+  if(elBalPumb) elBalPumb.textContent = walletBalances.pumb.toLocaleString('uk-UA') + ' грн';
+  if(elBalCash) elBalCash.textContent = walletBalances.cash.toLocaleString('uk-UA') + ' грн';
+}
+
+function exportBackup() {
+  const backupData = { shifts, transactions };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+  const anchor = document.createElement('a');
+  anchor.setAttribute("href", dataStr); anchor.setAttribute("download", "max_tracker_full_backup.json");
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+}
+
+function importBackup(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (typeof imported === 'object' && imported !== null) {
+        if (confirm('Замінити дані файлом бекапу?')) {
+          if (imported.shifts) shifts = imported.shifts;
+          if (imported.transactions) transactions = imported.transactions;
+          saveToStorage(); localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
+          renderCalendar(); renderFinance(); showToast('🎉 Успішно відновлено!');
+        }
+      }
+    } catch (err) { alert('Помилка файлу.'); }
+  };
+  reader.readAsText(file); input.value = '';
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
