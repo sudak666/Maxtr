@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Графік змін та Фінанси: Максим Pro</title>
-
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#06050a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Максим Pro">
+<title>Графік змін та Фінанси: Максим Pro</title>
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
-
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238b5cf6'/><text y='.9em' font-size='75' x='10'>📅</text></svg>">
 <script>
-  // Реєстрація сервіс-воркера для автономної роботи
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker успішно зареєстровано!', reg.scope))
-        .catch(err => console.log('Помилка реєстрації Service Worker:', err));
+        .then(r => console.log('SW ok', r.scope))
+        .catch(e => console.log('SW err', e));
     });
   }
 </script>
@@ -331,14 +330,13 @@
         <h1>Робочі зміни Максима</h1>
       </div>
       <div class="sync-panel">
-        <button class="btn-sync" onclick="exportBackup()">Експорт бекапу</button>
-        <button class="btn-sync" onclick="document.getElementById('import-file').click()">Імпорт бекапу</button>
-        <input type="file" id="import-file" accept=".json" onchange="importBackup(this)">
-        
+        <span id="fb-status" class="btn-sync" style="cursor:default; pointer-events:none;">⏳ З'єднання...</span>
+        <button class="btn-sync" onclick="fbSaveNow()" title="Зберегти в хмару">☁️ Зберегти</button>
+        <button class="btn-sync" onclick="fbLoadNow()" title="Завантажити з хмари">🔄 Завантажити</button>
         <div style="width: 1px; height: 22px; background: var(--border); margin: 0 4px;"></div>
-        <button id="btn-g-auth" class="btn-sync" onclick="handleAuthClick()" style="border-color: rgba(139, 92, 246, 0.5);">🔑 Google Диск</button>
-        <button id="btn-g-save" class="btn-sync" onclick="saveToGoogleDrive()" style="display: none; border-color: var(--green);">☁️ Зберегти на Диск</button>
-        <button id="btn-g-load" class="btn-sync" onclick="loadFromGoogleDrive()" style="display: none; border-color: var(--blue);">☁️ Завантажити з Диска</button>
+        <button class="btn-sync" onclick="exportBackup()">📥 Бекап JSON</button>
+        <button class="btn-sync" onclick="document.getElementById('import-file').click()">📤 Імпорт</button>
+        <input type="file" id="import-file" accept=".json" onchange="importBackup(this)">
       </div>
     </header>
 
@@ -556,234 +554,115 @@
 
 <div id="toast">🔔 Сповіщення</div>
 
-<script>
+
+<script type="module">
+// ── Firebase SDK ──────────────────────────────────────────────
+import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
+  authDomain: "maxtr-c238f.firebaseapp.com",
+  projectId: "maxtr-c238f",
+  storageBucket: "maxtr-c238f.firebasestorage.app",
+  messagingSenderId: "311094677098",
+  appId: "1:311094677098:web:7a3797c99fad2874340413"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+const DOC_SHIFTS  = () => doc(db, 'max_tracker', 'shifts');
+const DOC_FINANCE = () => doc(db, 'max_tracker', 'finance');
+
+// ── Стан ──────────────────────────────────────────────────────
 let shifts = {};
 let transactions = [];
-let selectedDateKey = null;
 let currentFinanceType = 'income';
+let selectedDateKey = null;
+let fbSaveTimer = null;
 
-// Конфігурація Google Cloud Console API
-const CLIENT_ID = '291786971284-g29igf6nltr4q5v51btkvit1ssmjf693.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyCwY3sTSncISiwZMNiyAtWULhE-wDkr4EI';
-const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+// ── Firebase статус ───────────────────────────────────────────
+function fbSetStatus(text, color) {
+  const el = document.getElementById('fb-status');
+  if (!el) return;
+  el.textContent = text;
+  el.style.borderColor = color || 'var(--border)';
+  el.style.color = color || '';
+}
 
-let tokenClient;
-let gapiInited = false;
-let gapiAuthenticated = false;
-let backupFileId = null;
+async function fbSaveNow() {
+  fbSetStatus('💾 Зберігаю...', 'var(--orange)');
+  try {
+    await setDoc(DOC_SHIFTS(),  { data: shifts },       { merge: false });
+    await setDoc(DOC_FINANCE(), { data: transactions }, { merge: false });
+    fbSetStatus('✅ Збережено', 'var(--green)');
+    showToast('☁️ Збережено у Firebase!');
+  } catch(e) {
+    console.error(e);
+    fbSetStatus('❌ Помилка', 'var(--red)');
+    showToast('❌ Помилка збереження');
+  }
+}
 
-const MONTHS = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-const WEEKDAYS = ["Пн", "Вв", "Ср", "Чт", "Пт", "Сб", "Нд"];
+async function fbLoadNow() {
+  fbSetStatus('🔄 Завантажую...', 'var(--blue)');
+  try {
+    const [sSnap, fSnap] = await Promise.all([getDoc(DOC_SHIFTS()), getDoc(DOC_FINANCE())]);
+    if (sSnap.exists()) { shifts = sSnap.data().data || {}; saveToStorage(); }
+    if (fSnap.exists()) { transactions = fSnap.data().data || []; localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions)); }
+    fbSetStatus('✅ Синхронізовано', 'var(--green)');
+    renderCalendar(); renderFinance();
+    showToast('🎉 Дані з Firebase завантажено!');
+  } catch(e) {
+    console.error(e);
+    fbSetStatus('❌ Помилка', 'var(--red)');
+    showToast('❌ Помилка завантаження');
+  }
+}
 
-const WALLET_NAMES = {
-  main: { text: "Основна", class: "tag-wallet-main" },
-  pumb: { text: "ПУМБ", class: "tag-wallet-pumb" },
-  cash: { text: "Готівка", class: "tag-wallet-cash" }
-};
+function scheduleFbSave() {
+  fbSetStatus('⏳ Не збережено', 'var(--orange)');
+  clearTimeout(fbSaveTimer);
+  fbSaveTimer = setTimeout(fbSaveNow, 2000);
+}
 
+// ── Глобальні функції ─────────────────────────────────────────
+window.fbSaveNow = fbSaveNow;
+window.fbLoadNow = fbLoadNow;
+window.switchTab = switchTab;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.saveModalSelection = saveModalSelection;
+window.validateModalSelection = validateModalSelection;
+window.applyTemplate = applyTemplate;
+window.clearCurrentMonth = clearCurrentMonth;
+window.renderCalendar = renderCalendar;
+window.setFinanceType = setFinanceType;
+window.addTransaction = addTransaction;
+window.deleteTransaction = deleteTransaction;
+window.exportBackup = exportBackup;
+window.importBackup = importBackup;
+
+// ── Константи ─────────────────────────────────────────────────
+const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const WEEKDAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
 const CATEGORIES = {
-  income: ["Зарплата", "Аванс", "Підробіток", "Борг", "Кредит", "Інше"],
-  expense: ["Алла (жінка)", "Син", "Цигарки", "Кава", "Фастфуд", "Борг", "Кредит", "Продукти", "Транспорт / Авто", "Комуналка", "Покупки", "Інше"]
+  income:  ['💼 Зарплата','💳 Аванс','🎁 Підробіток','💰 Борг повернули','📦 Інше'],
+  expense: ['👩 Алла (жінка)','👦 Син','🚬 Цигарки','☕ Кава','🍔 Фастфуд','💳 Борг','🏦 Кредит','🛒 Продукти','🚗 Транспорт / Авто','🏠 Комуналка','🛍️ Покупки','💸 Інше'],
+};
+const WALLET_NAMES = {
+  main: { text: '💳 Основна', class: 'tag-wallet-main' },
+  pumb: { text: '🔴 ПУМБ',    class: 'tag-wallet-pumb' },
+  cash: { text: '💵 Готівка', class: 'tag-wallet-cash' },
 };
 
-// --- Логіка Google Drive API ---
-
-function gapiLoaded() {
-  gapi.load('client', async () => {
-    try {
-      await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
-      gapiInited = true;
-    } catch (e) {
-      console.error("GAPI initialization error:", e);
-    }
-  });
-}
-
-function gisLoaded() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: async (resp) => {
-      if (resp.error) {
-        console.error("GIS Error:", resp.error);
-        return;
-      }
-      gapiAuthenticated = true;
-      updateGoogleUi(true);
-      showToast('🎉 Авторизовано через Google!');
-      await findOrCreateBackupFile();
-    },
-  });
-}
-
-function handleAuthClick() {
-  if (!tokenClient) {
-    alert("Сервіси Google ще завантажуються, зачекайте пару секунд.");
-    return;
-  }
-  tokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
-function updateGoogleUi(auth) {
-  const btnAuth = document.getElementById('btn-g-auth');
-  const btnSave = document.getElementById('btn-g-save');
-  const btnLoad = document.getElementById('btn-g-load');
-  if (auth) {
-    if (btnAuth) btnAuth.textContent = "🔄 Змінити акаунт Google";
-    if (btnSave) btnSave.style.display = 'inline-block';
-    if (btnLoad) btnLoad.style.display = 'inline-block';
-  }
-}
-
-async function findOrCreateBackupFile() {
-  try {
-    const response = await gapi.client.drive.files.list({
-      q: "name='max_tracker_backup.json' and trashed=false",
-      fields: 'files(id, name)',
-    });
-    const files = response.result.files;
-    if (files && files.length > 0) {
-      backupFileId = files[0].id;
-      showToast('📂 Знайдено активний файл синхронізації на Диску!');
-    } else {
-      showToast('☁️ Файл хмарного бекапу ще не створено.');
-    }
-  } catch (err) {
-    console.error("Помилка пошуку файлу на Диску:", err);
-  }
-}
-
-async function saveToGoogleDrive() {
-  if (!gapiAuthenticated) {
-    handleAuthClick();
-    return;
-  }
-  const backupData = { shifts, transactions };
-  const content = JSON.stringify(backupData, null, 2);
-  
-  try {
-    if (!backupFileId) {
-      await findOrCreateBackupFile();
-    }
-
-    if (backupFileId) {
-      // Оновлення існуючого файлу (метод PATCH)
-      await gapi.client.request({
-        path: `/upload/drive/v3/files/${backupFileId}`,
-        method: 'PATCH',
-        params: { uploadType: 'media' },
-        body: content
-      });
-      showToast('🎉 Дані успішно синхронізовано з Google Диском!');
-    } else {
-      // Створення нового файлу (мультипарт формат)
-      const metadata = { name: 'max_tracker_backup.json', mimeType: 'application/json' };
-      const boundary = '314159265358979323846';
-      const delimiter = `\r\n--${boundary}\r\n`;
-      const close_delim = `\r\n--${boundary}--`;
-      const body = `${delimiter}Content-Type: application/json\r\n\r\n${JSON.stringify(metadata)}${delimiter}Content-Type: application/json\r\n\r\n${content}${close_delim}`;
-      
-      const response = await gapi.client.request({
-        path: '/upload/drive/v3/files',
-        method: 'POST',
-        params: { uploadType: 'multipart' },
-        headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
-        body: body
-      });
-      backupFileId = response.result.id;
-      showToast('🎉 Новий файл бекапу створено на вашому Google Диску!');
-    }
-  } catch (err) {
-    showToast('❌ Помилка збереження на Диск');
-    console.error(err);
-  }
-}
-
-async function loadFromGoogleDrive() {
-  if (!gapiAuthenticated) {
-    handleAuthClick();
-    return;
-  }
-  if (!backupFileId) {
-    await findOrCreateBackupFile();
-  }
-  if (!backupFileId) {
-    alert('Бекап не знайдено на Диску. Спочатку виконайте збереження.');
-    return;
-  }
-  
-  try {
-    const response = await gapi.client.drive.files.get({
-      fileId: backupFileId,
-      alt: 'media',
-    });
-    const imported = response.result;
-    if (imported && typeof imported === 'object') {
-      if (confirm('Замінити всі поточні локальні дані (календар та транзакції) версією з Google Диску?')) {
-        if (imported.shifts) shifts = imported.shifts;
-        if (imported.transactions) transactions = imported.transactions;
-        saveToStorage(); 
-        localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
-        renderCalendar(); 
-        renderFinance(); 
-        showToast('🎉 Дані успішно завантажено з хмари!');
-      }
-    }
-  } catch (err) {
-    showToast('❌ Помилка завантаження даних з Диска');
-    console.error(err);
-  }
-}
-
-// --- Решта логіки застосунку ---
-
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  if (toast) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
-  }
-}
-
-function switchTab(tab) {
-  const navShifts = document.getElementById('nav-shifts');
-  const navFinance = document.getElementById('nav-finance');
-  if(navShifts) navShifts.classList.remove('active');
-  if(navFinance) navFinance.classList.remove('active');
-  
-  const shiftsContent = document.getElementById('tab-content-shifts');
-  const financeContent = document.getElementById('tab-content-finance');
-  const financePanelBlock = document.getElementById('finance-panel-block');
-
-  if (tab === 'shifts') {
-    if(navShifts) navShifts.classList.add('active');
-    if(shiftsContent) shiftsContent.style.display = 'block';
-    if(financeContent) financeContent.style.display = 'none';
-    renderCalendar();
-  } else {
-    if(navFinance) navFinance.classList.add('active');
-    if(shiftsContent) shiftsContent.style.display = 'none';
-    if(financeContent) financeContent.style.display = 'block';
-    if (financePanelBlock) {
-      if (window.innerWidth <= 768) {
-        financePanelBlock.style.display = 'block';
-      } else {
-        financePanelBlock.style.display = 'grid';
-      }
-    }
-    renderFinance();
-  }
-}
-
-function init() {
+// ── Ініціалізація ─────────────────────────────────────────────
+async function init() {
   const current = new Date();
   const mSelect = document.getElementById('select-month');
   const ySelect = document.getElementById('select-year');
-
   if (mSelect) {
-    mSelect.innerHTML = ''; 
+    mSelect.innerHTML = '';
     MONTHS.forEach((m, idx) => {
       const opt = document.createElement('option');
       opt.value = idx; opt.textContent = m;
@@ -791,7 +670,6 @@ function init() {
       mSelect.appendChild(opt);
     });
   }
-
   if (ySelect) {
     ySelect.innerHTML = '';
     for (let y = current.getFullYear() - 1; y <= current.getFullYear() + 2; y++) {
@@ -801,490 +679,256 @@ function init() {
       ySelect.appendChild(opt);
     }
   }
-
   const stored = localStorage.getItem('maksim_multishifts_v1');
   if (stored) shifts = JSON.parse(stored);
-
   const storedTx = localStorage.getItem('maksim_finance_tx_v1');
   if (storedTx) transactions = JSON.parse(storedTx);
-
   const dateInput = document.getElementById('fin-date');
-  if (dateInput) {
-    dateInput.value = current.toISOString().split('T')[0];
-  }
-
+  if (dateInput) dateInput.value = current.toISOString().split('T')[0];
   switchTab('shifts');
   setFinanceType('income');
+  await fbLoadNow();
 }
 
 function saveToStorage() {
   localStorage.setItem('maksim_multishifts_v1', JSON.stringify(shifts));
 }
 
+// ── Вкладки ───────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('nav-shifts')?.classList.remove('active');
+  document.getElementById('nav-finance')?.classList.remove('active');
+  const sc = document.getElementById('tab-content-shifts');
+  const fc = document.getElementById('tab-content-finance');
+  const fp = document.getElementById('finance-panel-block');
+  if (tab === 'shifts') {
+    document.getElementById('nav-shifts')?.classList.add('active');
+    if(sc) sc.style.display = 'block'; if(fc) fc.style.display = 'none'; renderCalendar();
+  } else {
+    document.getElementById('nav-finance')?.classList.add('active');
+    if(sc) sc.style.display = 'none'; if(fc) fc.style.display = 'block';
+    if(fp) fp.style.display = window.innerWidth <= 768 ? 'block' : 'grid';
+    renderFinance();
+  }
+}
+
+// ── Тост ──────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if(t){ t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+}
+
+// ── Модальне вікно змін ───────────────────────────────────────
 function openModal(dateKey, displayDay) {
   selectedDateKey = dateKey;
   const mSelect = document.getElementById('select-month');
-  const monthIdx = mSelect ? parseInt(mSelect.value, 10) : 0;
-  const monthLabel = MONTHS[monthIdx] || "";
-  
+  const monthIdx = mSelect ? parseInt(mSelect.value,10) : 0;
   const modalTitle = document.getElementById('modal-date-title');
-  if(modalTitle) modalTitle.textContent = `Зміни на ${displayDay} ${monthLabel}`;
-  
-  const chkDay = document.getElementById('chk-day');
-  const chkDay1900 = document.getElementById('chk-day1900');
-  const chkNight = document.getElementById('chk-night');
-  const chkNightH1 = document.getElementById('chk-night-h1');
-  const chkNightH2 = document.getElementById('chk-night-h2');
-  const chkVacation = document.getElementById('chk-vacation');
-
-  if(chkDay) chkDay.checked = false;
-  if(chkDay1900) chkDay1900.checked = false;
-  if(chkNight) chkNight.checked = false;
-  if(chkNightH1) chkNightH1.checked = false;
-  if(chkNightH2) chkNightH2.checked = false;
-  if(chkVacation) chkVacation.checked = false;
-
+  if(modalTitle) modalTitle.textContent = `Зміни на ${displayDay} ${MONTHS[monthIdx]}`;
+  ['chk-day','chk-day1900','chk-night','chk-night-h1','chk-night-h2','chk-vacation'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.checked=false;
+  });
   const dayShifts = shifts[dateKey] || [];
-  if (dayShifts.includes('day') && chkDay) chkDay.checked = true;
-  if (dayShifts.includes('day1900') && chkDay1900) chkDay1900.checked = true;
-  if (dayShifts.includes('night') && chkNight) chkNight.checked = true;
-  if (dayShifts.includes('night_half1') && chkNightH1) chkNightH1.checked = true;
-  if (dayShifts.includes('night_half2') && chkNightH2) chkNightH2.checked = true;
-  if (dayShifts.includes('vacation') && chkVacation) chkVacation.checked = true;
-
+  const map = {'day':'chk-day','day1900':'chk-day1900','night':'chk-night','night_half1':'chk-night-h1','night_half2':'chk-night-h2','vacation':'chk-vacation'};
+  dayShifts.forEach(s=>{ const el=document.getElementById(map[s]); if(el) el.checked=true; });
   validateModalSelection();
-  const modalOverlay = document.getElementById('shift-modal');
-  if(modalOverlay) modalOverlay.style.display = 'flex';
-}
-
-function validateModalSelection() {
-  const chkDay = document.getElementById('chk-day');
-  const chkDay1900 = document.getElementById('chk-day1900');
-  const chkNight = document.getElementById('chk-night');
-  const chkNightH1 = document.getElementById('chk-night-h1');
-  const chkNightH2 = document.getElementById('chk-night-h2');
-  const chkVacation = document.getElementById('chk-vacation');
-
-  const day1000 = chkDay ? chkDay.checked : false;
-  const day1900 = chkDay1900 ? chkDay1900.checked : false;
-  const nightFull = chkNight ? chkNight.checked : false;
-  const h1 = chkNightH1 ? chkNightH1.checked : false;
-  const h2 = chkNightH2 ? chkNightH2.checked : false;
-  const vacation = chkVacation ? chkVacation.checked : false;
-  
-  let hasConflict = nightFull && (h1 || h2);
-  
-  if (vacation && (day1000 || day1900 || nightFull || h1 || h2)) {
-    if(chkDay) chkDay.checked = false;
-    if(chkDay1900) chkDay1900.checked = false;
-    if(chkNight) chkNight.checked = false;
-    if(chkNightH1) chkNightH1.checked = false;
-    if(chkNightH2) chkNightH2.checked = false;
-  }
-
-  if (day1000 && day1900) hasConflict = true;
-  
-  const alertBox = document.getElementById('conflict-alert');
-  const saveBtn = document.getElementById('btn-save');
-  
-  if (alertBox && saveBtn) {
-    if (hasConflict) {
-      alertBox.style.display = 'block';
-      alertBox.textContent = "⚠️ Помилка: Конфлікт вибору змін!";
-      saveBtn.disabled = true;
-      saveBtn.style.opacity = '0.4';
-    } else {
-      alertBox.style.display = 'none';
-      saveBtn.disabled = false;
-      saveBtn.style.opacity = '1';
-    }
-  }
+  const overlay = document.getElementById('shift-modal');
+  if(overlay) overlay.style.display = 'flex';
 }
 
 function closeModal() {
-  const modalOverlay = document.getElementById('shift-modal');
-  if(modalOverlay) modalOverlay.style.display = 'none';
+  const overlay = document.getElementById('shift-modal');
+  if(overlay) overlay.style.display='none';
   selectedDateKey = null;
+}
+
+function validateModalSelection() {
+  const g = id=>{ const el=document.getElementById(id); return el?el.checked:false; };
+  const day1000=g('chk-day'), day1900=g('chk-day1900'), nightFull=g('chk-night');
+  const h1=g('chk-night-h1'), h2=g('chk-night-h2'), vacation=g('chk-vacation');
+  let hasConflict = nightFull&&(h1||h2);
+  if (vacation&&(day1000||day1900||nightFull||h1||h2)) {
+    ['chk-day','chk-day1900','chk-night','chk-night-h1','chk-night-h2'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  }
+  if (day1000&&day1900) hasConflict=true;
+  const alertBox=document.getElementById('conflict-alert'), saveBtn=document.getElementById('btn-save');
+  if(alertBox&&saveBtn){
+    alertBox.style.display=hasConflict?'block':'none';
+    if(hasConflict) alertBox.textContent="⚠️ Конфлікт вибору змін!";
+    saveBtn.disabled=hasConflict; saveBtn.style.opacity=hasConflict?'0.4':'1';
+  }
 }
 
 function saveModalSelection() {
   if (!selectedDateKey) return;
-
-  const activeList = [];
-  const chkDay = document.getElementById('chk-day');
-  const chkDay1900 = document.getElementById('chk-day1900');
-  const chkNight = document.getElementById('chk-night');
-  const chkNightH1 = document.getElementById('chk-night-h1');
-  const chkNightH2 = document.getElementById('chk-night-h2');
-  const chkVacation = document.getElementById('chk-vacation');
-
-  if (chkDay && chkDay.checked) activeList.push('day');
-  if (chkDay1900 && chkDay1900.checked) activeList.push('day1900');
-  if (chkNight && chkNight.checked) activeList.push('night');
-  if (chkNightH1 && chkNightH1.checked) activeList.push('night_half1');
-  if (chkNightH2 && chkNightH2.checked) activeList.push('night_half2');
-  if (chkVacation && chkVacation.checked) activeList.push('vacation');
-
-  if (activeList.length === 0) {
-    delete shifts[selectedDateKey];
-  } else {
-    shifts[selectedDateKey] = activeList;
-  }
-
-  saveToStorage(); closeModal(); renderCalendar();
+  const activeList=[];
+  const map={'chk-day':'day','chk-day1900':'day1900','chk-night':'night','chk-night-h1':'night_half1','chk-night-h2':'night_half2','chk-vacation':'vacation'};
+  Object.entries(map).forEach(([id,val])=>{ const el=document.getElementById(id); if(el&&el.checked) activeList.push(val); });
+  if(activeList.length===0) delete shifts[selectedDateKey]; else shifts[selectedDateKey]=activeList;
+  saveToStorage(); scheduleFbSave(); closeModal(); renderCalendar();
 }
 
+// ── Календар ──────────────────────────────────────────────────
 function renderCalendar() {
-  const grid = document.getElementById('calendar-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  const mSelect = document.getElementById('select-month');
-  const ySelect = document.getElementById('select-year');
-  if (!mSelect || !ySelect) return;
-
-  const month = parseInt(mSelect.value, 10);
-  const year = parseInt(ySelect.value, 10);
-
-  const todayObj = new Date();
-  const isCurrentMonthReal = (todayObj.getMonth() === month && todayObj.getFullYear() === year);
-
-  WEEKDAYS.forEach(dayName => {
-    const el = document.createElement('div');
-    el.className = 'weekday-label'; el.textContent = dayName;
-    grid.appendChild(el);
-  });
-
-  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; 
-  const totalDays = new Date(year, month + 1, 0).getDate();
-
-  for (let i = 0; i < firstDay; i++) {
-    const emptyCell = document.createElement('div');
-    emptyCell.className = 'day-cell empty';
-    grid.appendChild(emptyCell);
-  }
-
-  let countDay = 0, countDay1900 = 0, countNight = 0, countNightH1 = 0, countNightH2 = 0, countVacation = 0;
-  let totalEarnings = 0, totalHours = 0, totalNightHours = 0;
-
-  for (let d = 1; d <= totalDays; d++) {
-    const cell = document.createElement('div');
-    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const dayShifts = shifts[dateKey] || [];
-
-    const isToday = (isCurrentMonthReal && todayObj.getDate() === d);
-    cell.className = 'day-cell' + (dayShifts.length > 0 ? ' has-shifts' : '') + (isToday ? ' today' : '');
-
-    let badgesHtml = '';
-
-    dayShifts.forEach(type => {
-      if (type === 'day') {
-        badgesHtml += `<div class="mini-badge badge-day">День 1000</div>`;
-        countDay++; totalEarnings += 1000; totalHours += 12;
-      } else if (type === 'day1900') {
-        badgesHtml += `<div class="mini-badge badge-day1900">День 1900</div>`;
-        countDay1900++; totalEarnings += 1900; totalHours += 12;
-      } else if (type === 'night') {
-        badgesHtml += `<div class="mini-badge badge-night">Ніч повна</div>`;
-        countNight++; totalEarnings += 900; totalHours += 12; totalNightHours += 8;
-      } else if (type === 'night_half1') {
-        badgesHtml += `<div class="mini-badge badge-night_half1">Ніч 1/2</div>`;
-        countNightH1++; totalEarnings += 450; totalHours += 6; totalNightHours += 3;
-      } else if (type === 'night_half2') {
-        badgesHtml += `<div class="mini-badge badge-night_half2">Ніч 2/2</div>`;
-        countNightH2++; totalEarnings += 450; totalHours += 6; totalNightHours += 5;
-      } else if (type === 'vacation') {
-        badgesHtml += `<div class="mini-badge badge-vacation">Вихідний</div>`;
-        countVacation++;
-      }
+  const grid=document.getElementById('calendar-grid'); if(!grid) return;
+  grid.innerHTML='';
+  const mSelect=document.getElementById('select-month'), ySelect=document.getElementById('select-year');
+  if(!mSelect||!ySelect) return;
+  const month=parseInt(mSelect.value,10), year=parseInt(ySelect.value,10);
+  const todayObj=new Date();
+  const isCurrentMonthReal=(todayObj.getMonth()===month&&todayObj.getFullYear()===year);
+  WEEKDAYS.forEach(d=>{ const el=document.createElement('div'); el.className='weekday-label'; el.textContent=d; grid.appendChild(el); });
+  const firstDay=(new Date(year,month,1).getDay()+6)%7;
+  const totalDays=new Date(year,month+1,0).getDate();
+  for(let i=0;i<firstDay;i++){ const e=document.createElement('div'); e.className='day-cell empty'; grid.appendChild(e); }
+  let cDay=0,cDay1900=0,cNight=0,cNH1=0,cNH2=0,cVac=0,earn=0,hrs=0,nightHrs=0;
+  for(let d=1;d<=totalDays;d++){
+    const cell=document.createElement('div');
+    const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayShifts=shifts[dateKey]||[];
+    const isToday=isCurrentMonthReal&&todayObj.getDate()===d;
+    cell.className='day-cell'+(dayShifts.length>0?' has-shifts':'')+(isToday?' today':'');
+    let badges='';
+    dayShifts.forEach(type=>{
+      if(type==='day')         { badges+=`<div class="mini-badge badge-day">День 1000</div>`;     cDay++;    earn+=1000; hrs+=12; }
+      else if(type==='day1900'){ badges+=`<div class="mini-badge badge-day1900">День 1900</div>`;cDay1900++;earn+=1900; hrs+=12; }
+      else if(type==='night')  { badges+=`<div class="mini-badge badge-night">Ніч повна</div>`;  cNight++;  earn+=900;  hrs+=12; nightHrs+=8; }
+      else if(type==='night_half1'){ badges+=`<div class="mini-badge badge-night_half1">Ніч 1/2</div>`;cNH1++;earn+=450;hrs+=6;nightHrs+=3; }
+      else if(type==='night_half2'){ badges+=`<div class="mini-badge badge-night_half2">Ніч 2/2</div>`;cNH2++;earn+=450;hrs+=6;nightHrs+=5; }
+      else if(type==='vacation'){ badges+=`<div class="mini-badge badge-vacation">Вихідний</div>`;cVac++; }
     });
-
-    cell.innerHTML = `
-      <div class="day-header">
-        <div class="day-num">${d}</div>
-        ${isToday ? '<div class="today-tag">Сьогодні</div>' : ''}
-      </div>
-      <div class="day-info-container">${badgesHtml}</div>
-    `;
-
-    cell.onclick = () => openModal(dateKey, d);
+    cell.innerHTML=`<div class="day-header"><div class="day-num">${d}</div>${isToday?'<div class="today-tag">Сьогодні</div>':''}</div><div class="day-info-container">${badges}</div>`;
+    cell.onclick=()=>openModal(dateKey,d);
     grid.appendChild(cell);
   }
-
-  const elSal = document.getElementById('total-salary');
-  const elHrs = document.getElementById('total-hours');
-  const elNgh = document.getElementById('night-hours');
-  const elCd = document.getElementById('count-day');
-  const elCd19 = document.getElementById('count-day1900');
-  const elCn = document.getElementById('count-night');
-  const elCv = document.getElementById('count-vacation');
-
-  if(elSal) elSal.textContent = totalEarnings.toLocaleString('uk-UA') + ' грн';
-  if(elHrs) elHrs.textContent = totalHours + ' год';
-  if(elNgh) elNgh.textContent = `З них нічних: ${totalNightHours} год`;
-  if(elCd) elCd.textContent = countDay;
-  if(elCd19) elCd19.textContent = countDay1900;
-  if(elCn) elCn.textContent = countNight;
-  if(elCv) elCv.textContent = countVacation;
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  s('total-salary',earn.toLocaleString('uk-UA')+' грн'); s('total-hours',hrs+' год');
+  s('night-hours','З них нічних: '+nightHrs+' год'); s('count-day',cDay);
+  s('count-day1900',cDay1900); s('count-night',cNight); s('count-vacation',cVac);
 }
 
+// ── Шаблони ───────────────────────────────────────────────────
 function clearCurrentMonth() {
-  if (!confirm('Ви дійсно хочете видалити всі зміни за ЦЕЙ вибраний місяць?')) return;
-  const month = parseInt(document.getElementById('select-month').value, 10);
-  const year = parseInt(document.getElementById('select-year').value, 10);
-  const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
-
-  for (let key in shifts) {
-    if (key.startsWith(prefix)) delete shifts[key];
-  }
-
-  saveToStorage(); renderCalendar();
-  showToast('🗑️ Місяць успішно очищено');
+  if(!confirm('Видалити всі зміни за цей місяць?')) return;
+  const month=parseInt(document.getElementById('select-month').value,10);
+  const year=parseInt(document.getElementById('select-year').value,10);
+  const prefix=`${year}-${String(month+1).padStart(2,'0')}-`;
+  for(let key in shifts){ if(key.startsWith(prefix)) delete shifts[key]; }
+  saveToStorage(); scheduleFbSave(); renderCalendar(); showToast('🗑️ Місяць очищено');
 }
 
 function applyTemplate() {
-  const type = document.getElementById('template-type').value;
-  const month = parseInt(document.getElementById('select-month').value, 10);
-  const year = parseInt(document.getElementById('select-year').value, 10);
-  const totalDays = new Date(year, month + 1, 0).getDate();
-
-  if (!confirm('Це заповнить увесь місяць автоматично. Продовжити?')) return;
-
-  const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
-  for (let key in shifts) {
-    if (key.startsWith(prefix)) delete shifts[key];
-  }
-
-  if (type === 'every_day') {
-    for (let d = 1; d <= totalDays; d++) {
-      shifts[`${prefix}${String(d).padStart(2, '0')}`] = ['day'];
-    }
-  } else if (type === 'day_off') {
-    for (let d = 1; d <= totalDays; d += 2) {
-      shifts[`${prefix}${String(d).padStart(2, '0')}`] = ['day'];
-    }
-  } else if (type === 'day_night_48') {
-    let step = 0;
-    for (let d = 1; d <= totalDays; d++) {
-      const dateKey = `${prefix}${String(d).padStart(2, '0')}`;
-      if (step === 0) shifts[dateKey] = ['day'];
-      else if (step === 1) shifts[dateKey] = ['night'];
-      else { shifts[dateKey] = ['vacation']; }
-      step = (step + 1) % 4;
-    }
-  } else if (type === 'two_two') {
-    let step = 0;
-    for (let d = 1; d <= totalDays; d++) {
-      const dateKey = `${prefix}${String(d).padStart(2, '0')}`;
-      if (step === 0 || step === 1) shifts[dateKey] = ['day'];
-      else if (step === 2 || step === 3) shifts[dateKey] = ['night'];
-      else { shifts[dateKey] = ['vacation']; }
-      step = (step + 1) % 8;
-    }
-  }
-
-  saveToStorage(); renderCalendar();
-  showToast('⚡ Шаблон успішно застосовано!');
+  const type=document.getElementById('template-type').value;
+  const month=parseInt(document.getElementById('select-month').value,10);
+  const year=parseInt(document.getElementById('select-year').value,10);
+  const totalDays=new Date(year,month+1,0).getDate();
+  if(!confirm('Заповнити місяць шаблоном?')) return;
+  const prefix=`${year}-${String(month+1).padStart(2,'0')}-`;
+  for(let key in shifts){ if(key.startsWith(prefix)) delete shifts[key]; }
+  if(type==='every_day'){ for(let d=1;d<=totalDays;d++) shifts[`${prefix}${String(d).padStart(2,'0')}`]=['day']; }
+  else if(type==='day_off'){ for(let d=1;d<=totalDays;d+=2) shifts[`${prefix}${String(d).padStart(2,'0')}`]=['day']; }
+  else if(type==='day_night_48'){ let step=0; for(let d=1;d<=totalDays;d++){ const dk=`${prefix}${String(d).padStart(2,'0')}`; if(step===0)shifts[dk]=['day']; else if(step===1)shifts[dk]=['night']; else shifts[dk]=['vacation']; step=(step+1)%4; } }
+  else if(type==='two_two'){ let step=0; for(let d=1;d<=totalDays;d++){ const dk=`${prefix}${String(d).padStart(2,'0')}`; if(step===0||step===1)shifts[dk]=['day']; else if(step===2||step===3)shifts[dk]=['night']; else shifts[dk]=['vacation']; step=(step+1)%8; } }
+  saveToStorage(); scheduleFbSave(); renderCalendar(); showToast('⚡ Шаблон застосовано!');
 }
 
+// ── Фінанси ───────────────────────────────────────────────────
 function setFinanceType(type) {
-  currentFinanceType = type;
-  
-  const btnInc = document.getElementById('btn-inc');
-  const btnExp = document.getElementById('btn-exp');
-  const btnTrn = document.getElementById('btn-trn');
-  
-  if(btnInc) btnInc.classList.remove('active');
-  if(btnExp) btnExp.classList.remove('active');
-  if(btnTrn) btnTrn.classList.remove('active');
-  
-  const labelSrc = document.getElementById('wallet-source-label');
-  const targetGroup = document.getElementById('wallet-target-group');
-  const catGroup = document.getElementById('category-group');
-
-  if (type === 'income') {
-    if(btnInc) btnInc.classList.add('active');
-    if(labelSrc) labelSrc.textContent = "Куди зарахувати (Гаманець)";
-    if(targetGroup) targetGroup.style.display = 'none';
-    if(catGroup) catGroup.style.display = 'flex';
-    fillCategories('income');
-  } else if (type === 'expense') {
-    if(btnExp) btnExp.classList.add('active');
-    if(labelSrc) labelSrc.textContent = "Звідки списати (Гаманець)";
-    if(targetGroup) targetGroup.style.display = 'none';
-    if(catGroup) catGroup.style.display = 'flex';
-    fillCategories('expense');
-  } else if (type === 'transfer') {
-    if(btnTrn) btnTrn.classList.add('active');
-    if(labelSrc) labelSrc.textContent = "Звідки переказати (Рахунок-донор)";
-    if(targetGroup) targetGroup.style.display = 'flex'; 
-    if(catGroup) catGroup.style.display = 'none'; 
-  }
+  currentFinanceType=type;
+  ['inc','exp','trn'].forEach(t=>{document.getElementById('btn-'+t)?.classList.remove('active');});
+  const lSrc=document.getElementById('wallet-source-label');
+  const tGrp=document.getElementById('wallet-target-group');
+  const cGrp=document.getElementById('category-group');
+  if(type==='income')  { document.getElementById('btn-inc')?.classList.add('active'); if(lSrc)lSrc.textContent="Куди зарахувати"; if(tGrp)tGrp.style.display='none'; if(cGrp)cGrp.style.display='flex'; fillCategories('income'); }
+  if(type==='expense') { document.getElementById('btn-exp')?.classList.add('active'); if(lSrc)lSrc.textContent="Звідки списати";   if(tGrp)tGrp.style.display='none'; if(cGrp)cGrp.style.display='flex'; fillCategories('expense'); }
+  if(type==='transfer'){ document.getElementById('btn-trn')?.classList.add('active'); if(lSrc)lSrc.textContent="Звідки переказати"; if(tGrp)tGrp.style.display='flex'; if(cGrp)cGrp.style.display='none'; }
 }
 
 function fillCategories(type) {
-  const catSelect = document.getElementById('fin-category');
-  if (!catSelect) return;
-  catSelect.innerHTML = '';
-  CATEGORIES[type].forEach(cat => {
-    const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat;
-    catSelect.appendChild(opt);
-  });
+  const sel=document.getElementById('fin-category'); if(!sel) return;
+  sel.innerHTML='';
+  CATEGORIES[type].forEach(cat=>{ const o=document.createElement('option'); o.value=cat; o.textContent=cat; sel.appendChild(o); });
 }
 
 function addTransaction() {
-  const amountInput = document.getElementById('fin-amount');
-  if(!amountInput) return;
-  const amount = parseFloat(amountInput.value);
-  const walletSrc = document.getElementById('fin-wallet').value || 'main';
-  const walletTrg = document.getElementById('fin-wallet-target').value || 'pumb';
-  const date = document.getElementById('fin-date').value;
-  const comment = document.getElementById('fin-comment').value.trim();
-
-  if (isNaN(amount) || amount <= 0) { alert('Будь ласка, введіть коректну суму!'); return; }
-  if (!date) { alert('Оберіть дату операції!'); return; }
-
-  if (currentFinanceType === 'transfer' && walletSrc === walletTrg) {
-    alert('Рахунок-відправник та рахунок-отримувач не можуть збігатися!');
-    return;
-  }
-
-  const catEl = document.getElementById('fin-category');
-  const category = (currentFinanceType === 'transfer') ? 'Внутрішній переказ' : (catEl ? catEl.value : 'Інше');
-
-  const newTx = {
-    id: Date.now(),
-    type: currentFinanceType,
-    amount,
-    category,
-    wallet: walletSrc,
-    targetWallet: (currentFinanceType === 'transfer') ? walletTrg : null,
-    date,
-    comment
-  };
-
-  transactions.unshift(newTx);
+  const ai=document.getElementById('fin-amount'); if(!ai) return;
+  const amount=parseFloat(ai.value);
+  const walletSrc=document.getElementById('fin-wallet').value||'main';
+  const walletTrg=document.getElementById('fin-wallet-target').value||'pumb';
+  const date=document.getElementById('fin-date').value;
+  const comment=document.getElementById('fin-comment').value.trim();
+  if(isNaN(amount)||amount<=0){alert('Введіть суму!');return;}
+  if(!date){alert('Оберіть дату!');return;}
+  if(currentFinanceType==='transfer'&&walletSrc===walletTrg){alert('Однаковий рахунок!');return;}
+  const catEl=document.getElementById('fin-category');
+  const category=(currentFinanceType==='transfer')?'Внутрішній переказ':(catEl?catEl.value:'Інше');
+  transactions.unshift({ id:Date.now(), type:currentFinanceType, amount, category, wallet:walletSrc, targetWallet:(currentFinanceType==='transfer')?walletTrg:null, date, comment });
   localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
-  
-  amountInput.value = '';
-  const commEl = document.getElementById('fin-comment');
-  if(commEl) commEl.value = '';
-  
+  scheduleFbSave();
+  ai.value=''; const ce=document.getElementById('fin-comment'); if(ce) ce.value='';
   renderFinance();
-  showToast(currentFinanceType === 'transfer' ? '🔁 Переказ виконано' : '✅ Транзакцію додано');
+  showToast(currentFinanceType==='transfer'?'🔁 Переказ виконано':'✅ Транзакцію додано');
 }
 
 function deleteTransaction(id) {
-  if (!confirm('Видалити цей запис?')) return;
-  transactions = transactions.filter(t => t.id !== id);
+  if(!confirm('Видалити?')) return;
+  transactions=transactions.filter(t=>t.id!==id);
   localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
-  renderFinance();
+  scheduleFbSave(); renderFinance();
 }
 
 function renderFinance() {
-  let globalBalance = 0;
-  let walletBalances = { main: 0, pumb: 0, cash: 0 };
-
-  const listContainer = document.getElementById('tx-list-container');
-  if (!listContainer) return;
-  listContainer.innerHTML = '';
-
-  transactions.forEach(t => {
-    const currentWallet = t.wallet || 'main';
-
-    if (t.type === 'income') {
-      globalBalance += t.amount;
-      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] += t.amount;
-    } else if (t.type === 'expense') {
-      globalBalance -= t.amount;
-      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] -= t.amount;
-    } else if (t.type === 'transfer') {
-      const trgWallet = t.targetWallet || 'pumb';
-      if (walletBalances[currentWallet] !== undefined) walletBalances[currentWallet] -= t.amount;
-      if (walletBalances[trgWallet] !== undefined) walletBalances[trgWallet] += t.amount;
-    }
-
-    const item = document.createElement('div');
-    item.className = 'transaction-item';
-
-    const dateFormatted = t.date.split('-').reverse().join('.');
-    let sign = '';
-    let classType = '';
-    let walletBadgeHtml = '';
-
-    const walletConfigSrc = WALLET_NAMES[currentWallet] || { text: "Основна", class: "tag-wallet-main" };
-
-    if (t.type === 'income') {
-      sign = '+'; classType = 'income';
-      walletBadgeHtml = `<span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>`;
-    } else if (t.type === 'expense') {
-      sign = '-'; classType = 'expense';
-      walletBadgeHtml = `<span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>`;
-    } else if (t.type === 'transfer') {
-      sign = '🔁'; classType = 'transfer';
-      const walletConfigTrg = WALLET_NAMES[t.targetWallet || 'pumb'] || { text: "ПУМБ", class: "tag-wallet-pumb" };
-      walletBadgeHtml = `
-        <span class="tx-wallet-tag ${walletConfigSrc.class}">${walletConfigSrc.text}</span>
-        <span style="font-size: 10px; color: var(--text-muted);">➔</span>
-        <span class="tx-wallet-tag ${walletConfigTrg.class}">${walletConfigTrg.text}</span>
-      `;
-    }
-
-    item.innerHTML = `
-      <div class="tx-info">
-        <div>
-          <span class="tx-category">${t.category}</span>
-          ${walletBadgeHtml}
-        </div>
-        <span class="tx-meta">${dateFormatted} ${t.comment ? `• ${t.comment}` : ''}</span>
-      </div>
-      <div class="tx-amount-side">
-        <span class="tx-amount ${classType}">${sign} ${t.amount} грн</span>
-        <button class="btn-del-tx" onclick="deleteTransaction(${t.id})">🗑️</button>
-      </div>
-    `;
-    listContainer.appendChild(item);
+  let bal=0; let wb={main:0,pumb:0,cash:0};
+  const lc=document.getElementById('tx-list-container'); if(!lc) return; lc.innerHTML='';
+  transactions.forEach(t=>{
+    const w=t.wallet||'main';
+    if(t.type==='income')   {bal+=t.amount; if(wb[w]!==undefined)wb[w]+=t.amount;}
+    if(t.type==='expense')  {bal-=t.amount; if(wb[w]!==undefined)wb[w]-=t.amount;}
+    if(t.type==='transfer') {const tw=t.targetWallet||'pumb'; if(wb[w]!==undefined)wb[w]-=t.amount; if(wb[tw]!==undefined)wb[tw]+=t.amount;}
+    const item=document.createElement('div'); item.className='transaction-item';
+    const df=t.date.split('-').reverse().join('.');
+    let sign='',ct='',wbh='';
+    const ws=WALLET_NAMES[w]||{text:'Основна',class:'tag-wallet-main'};
+    if(t.type==='income')   {sign='+';ct='income';   wbh=`<span class="tx-wallet-tag ${ws.class}">${ws.text}</span>`;}
+    if(t.type==='expense')  {sign='-';ct='expense';  wbh=`<span class="tx-wallet-tag ${ws.class}">${ws.text}</span>`;}
+    if(t.type==='transfer') {sign='🔁';ct='transfer';const wt=WALLET_NAMES[t.targetWallet||'pumb']||{text:'ПУМБ',class:'tag-wallet-pumb'}; wbh=`<span class="tx-wallet-tag ${ws.class}">${ws.text}</span><span style="font-size:10px;color:var(--text-muted)">➔</span><span class="tx-wallet-tag ${wt.class}">${wt.text}</span>`;}
+    item.innerHTML=`<div class="tx-info"><div><span class="tx-category">${t.category}</span>${wbh}</div><span class="tx-meta">${df}${t.comment?` • ${t.comment}`:''}</span></div><div class="tx-amount-side"><span class="tx-amount ${ct}">${sign} ${t.amount} грн</span><button class="btn-del-tx" onclick="deleteTransaction(${t.id})">🗑️</button></div>`;
+    lc.appendChild(item);
   });
-
-  const elFinBal = document.getElementById('fin-balance');
-  const elBalMain = document.getElementById('balance-wallet-main');
-  const elBalPumb = document.getElementById('balance-wallet-pumb');
-  const elBalCash = document.getElementById('balance-wallet-cash');
-
-  if(elFinBal) elFinBal.textContent = globalBalance.toLocaleString('uk-UA') + ' грн';
-  if(elBalMain) elBalMain.textContent = walletBalances.main.toLocaleString('uk-UA') + ' грн';
-  if(elBalPumb) elBalPumb.textContent = walletBalances.pumb.toLocaleString('uk-UA') + ' грн';
-  if(elBalCash) elBalCash.textContent = walletBalances.cash.toLocaleString('uk-UA') + ' грн';
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  s('fin-balance',bal.toLocaleString('uk-UA')+' грн');
+  s('balance-wallet-main',wb.main.toLocaleString('uk-UA')+' грн');
+  s('balance-wallet-pumb',wb.pumb.toLocaleString('uk-UA')+' грн');
+  s('balance-wallet-cash',wb.cash.toLocaleString('uk-UA')+' грн');
 }
 
+// ── Бекап ─────────────────────────────────────────────────────
 function exportBackup() {
-  const backupData = { shifts, transactions };
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-  const anchor = document.createElement('a');
-  anchor.setAttribute("href", dataStr); anchor.setAttribute("download", "max_tracker_full_backup.json");
-  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  const s="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({shifts,transactions},null,2));
+  const a=document.createElement('a'); a.href=s; a.download='max_tracker_backup.json'; document.body.appendChild(a); a.click(); a.remove();
 }
 
 function importBackup(input) {
-  const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
     try {
-      const imported = JSON.parse(e.target.result);
-      if (typeof imported === 'object' && imported !== null) {
-        if (confirm('Замінити дані файлом бекапу?')) {
-          if (imported.shifts) shifts = imported.shifts;
-          if (imported.transactions) transactions = imported.transactions;
-          saveToStorage(); localStorage.setItem('maksim_finance_tx_v1', JSON.stringify(transactions));
-          renderCalendar(); renderFinance(); showToast('🎉 Успішно відновлено!');
+      const imp=JSON.parse(e.target.result);
+      if(typeof imp==='object'&&imp!==null){
+        if(confirm('Замінити дані файлом бекапу?')){
+          if(imp.shifts) shifts=imp.shifts;
+          if(imp.transactions) transactions=imp.transactions;
+          saveToStorage(); localStorage.setItem('maksim_finance_tx_v1',JSON.stringify(transactions));
+          scheduleFbSave(); renderCalendar(); renderFinance(); showToast('🎉 Відновлено!');
         }
       }
-    } catch (err) { alert('Помилка файлу.'); }
+    } catch{ alert('Помилка файлу.'); }
   };
-  reader.readAsText(file); input.value = '';
+  r.readAsText(file); input.value='';
 }
 
-window.onload = init;
+// ── Старт ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
