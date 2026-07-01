@@ -404,8 +404,8 @@ button,input,select,textarea{font-family:inherit}
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
     <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема">☀️</button>
     <button class="btn btn-ghost" onclick="fbLoadNow()" title="Оновити">🔄</button>
-    <button class="btn btn-ghost" onclick="exportBackup()" title="Бекап">📥</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" title="Імпорт">📤</button>
+    <button class="btn btn-ghost" onclick="exportBackup()" title="Бекап">⬇️</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" title="Імпорт">⬆️</button>
     <input type="file" id="import-file" accept=".json" onchange="importBackup(this)" style="display:none">
   </div>
 </div>
@@ -518,7 +518,7 @@ button,input,select,textarea{font-family:inherit}
     <!-- Баланси -->
     <div class="stats-row">
       <div class="stat-card stat-big" style="--accent:var(--purple)">
-        <span class="stat-icon">🌍</span>
+        <span class="stat-icon">🪙</span>
         <div class="stat-label">Загальний баланс</div>
         <div class="stat-val" id="fin-balance" style="font-size:26px">0 грн</div>
       </div>
@@ -624,7 +624,7 @@ button,input,select,textarea{font-family:inherit}
       </label>
       <label class="chk-row" style="--row-color:var(--green)">
         <input type="checkbox" id="chk-day1900" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">🟢 Денна (підвищена ставка)</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
+        <div class="chk-label"><div class="chk-name">🔆 Денна (підвищена ставка)</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--purple2)">
         <input type="checkbox" id="chk-night" onchange="validateModalSelection()">
@@ -781,7 +781,7 @@ async function fbLoadNow(){
   }catch(e){
     console.error(e);
     fbSetStatus('error','Офлайн');
-    showToast('📵 Хмара недоступна — локальні дані');
+    showToast('🔌 Хмара недоступна — локальні дані');
   }
 }
 
@@ -1164,7 +1164,7 @@ function renderFinance(){
   if(tc) tc.textContent=filtered.length+' записів';
 
   if(filtered.length===0){
-    lc.innerHTML='<div class="tx-empty">📭 Записів немає</div>';
+    lc.innerHTML='<div class="tx-empty">🗃️ Записів немає</div>';
     return;
   }
 
@@ -1198,7 +1198,7 @@ function exportBackup(){
   const s="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({shifts,transactions,exportedAt:new Date().toISOString()},null,2));
   const a=document.createElement('a');a.href=s;a.download=`xamss_backup_${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(a);a.click();a.remove();
-  showToast('📥 Бекап збережено');
+  showToast('⬇️ Бекап збережено');
 }
 function importBackup(input){
   const f=input.files[0];if(!f)return;
