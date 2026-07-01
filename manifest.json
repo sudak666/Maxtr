@@ -1,6 +1,6 @@
 {
-  "name": "Максим Pro — Графік та Фінанси",
-  "short_name": "Максим Pro",
+  "name": "Xamss — Графік та Фінанси",
+  "short_name": "Xamss",
   "description": "Особистий трекер робочих змін та фінансів",
   "start_url": "./index.html",
   "display": "standalone",
