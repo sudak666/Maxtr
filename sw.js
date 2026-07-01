@@ -1,5 +1,5 @@
-// sw.js — Максим Pro PWA Service Worker v1.0
-const CACHE_NAME = 'max-tracker-v1';
+// sw.js — Xamss PWA Service Worker v2.0
+const CACHE_NAME = 'xamss-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
