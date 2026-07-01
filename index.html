@@ -79,6 +79,14 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s ease,color .25s ease}
 button,input,select,textarea{font-family:inherit}
 
+/* ── ICONS (monochrome, line-style) ── */
+.ico{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;margin-right:6px}
+.btn .ico,.tab-btn .ico,.chart-title .ico,.tools-label .ico,.fin-form-title .ico,.tx-cat .ico,.wallet-tag .ico,#toast .ico,.chk-name .ico,.sync-chip .ico{margin-right:0}
+.btn .ico{width:16px;height:16px}
+.tab-btn .ico{width:15px;height:15px}
+.chart-title .ico{width:14px;height:14px}
+.tools-label .ico{width:13px;height:13px}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg1)}
@@ -167,7 +175,8 @@ button,input,select,textarea{font-family:inherit}
 }
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--purple));opacity:.6;border-radius:99px 99px 0 0}
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.stat-icon{font-size:20px;margin-bottom:6px;display:block}
+.stat-icon{width:22px;height:22px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:var(--accent,var(--purple))}
+.stat-icon .ico{width:22px;height:22px;margin-right:0}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
@@ -186,7 +195,7 @@ button,input,select,textarea{font-family:inherit}
   background:var(--bg1);border:1px solid var(--border);border-radius:18px;
   padding:12px 16px;margin-bottom:18px;
 }
-.tools-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:100%;margin-bottom:2px}
+.tools-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:100%;margin-bottom:2px}
 .tool-select{
   background:var(--bg2);color:var(--text);border:1px solid var(--border2);
   padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;outline:none;
@@ -239,7 +248,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── CHART ── */
 .chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:20px}
-.chart-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
+.chart-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
 .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
 .chart-bar{width:100%;border-radius:6px 6px 2px 2px;transition:height .5s ease;cursor:default;min-height:2px;position:relative}
@@ -249,7 +258,7 @@ button,input,select,textarea{font-family:inherit}
 /* ── FINANCE ── */
 .fin-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
 .fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px}
-.fin-form-title{font-size:15px;font-weight:800;color:var(--text-strong)}
+.fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:11px;border:1px solid var(--border)}
 .type-btn{flex:1;padding:7px 8px;border:none;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
@@ -290,22 +299,26 @@ button,input,select,textarea{font-family:inherit}
 }
 .tx-item:hover{border-color:var(--border2)}
 .tx-left{display:flex;flex-direction:column;gap:2px;min-width:0}
-.tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tx-cat .ico{color:var(--purple2)}
 .tx-meta{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
 .tx-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap}
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
 .tx-amount.transfer{color:var(--blue2)}
-.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:4px;border-radius:8px;transition:all .15s;line-height:1}
+.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:4px;border-radius:8px;transition:all .15s;line-height:1;display:inline-flex}
+.tx-del .ico{margin-right:0;width:15px;height:15px}
 .tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
-.wallet-tag{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px}
+.wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px}
+.wallet-tag .ico{width:.9em;height:.9em}
 .wt-main{background:rgba(139,92,246,.12);color:var(--purple2);border:1px solid rgba(139,92,246,.2)}
 .wt-pumb{background:rgba(239,68,68,.12);color:#ff7b6b;border:1px solid rgba(239,68,68,.2)}
 .wt-cash{background:rgba(245,158,11,.12);color:var(--orange2);border:1px solid rgba(245,158,11,.2)}
 
-.tx-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-weight:600}
+.tx-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-weight:600}
+.tx-empty .ico{margin-right:0;width:26px;height:26px}
 
 /* ── MODAL (iOS bottom sheet) ── */
 .modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:flex-end;z-index:1000;padding:16px 16px 0}
@@ -313,7 +326,8 @@ button,input,select,textarea{font-family:inherit}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .sheet-grabber{width:36px;height:5px;border-radius:99px;background:var(--border2);margin:0 auto 16px}
 .modal-header{text-align:center;margin-bottom:18px}
-.modal-icon{font-size:28px;margin-bottom:4px}
+.modal-icon{width:30px;height:30px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--purple2)}
+.modal-icon .ico{width:30px;height:30px;margin-right:0}
 .modal-date{font-size:16px;font-weight:800;color:var(--text-strong)}
 .modal-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .chk-row{
@@ -324,10 +338,12 @@ button,input,select,textarea{font-family:inherit}
 .chk-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--row-color,var(--purple))}
 .chk-row:hover{border-color:var(--border2);background:var(--bg3)}
 .chk-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer;flex-shrink:0}
-.chk-label{display:flex;flex-direction:column;gap:1px}
-.chk-name{font-size:13px;font-weight:700;color:var(--text-strong)}
+.chk-label{display:flex;flex-direction:column;gap:2px}
+.chk-name{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)}
+.chk-name .ico{color:var(--row-color,var(--purple))}
 .chk-desc{font-size:11px;color:var(--muted);font-weight:500}
-.conflict-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red2);font-size:11.5px;padding:9px 12px;border-radius:12px;margin-bottom:12px;display:none;text-align:center;font-weight:600}
+.conflict-box{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red2);font-size:11.5px;padding:9px 12px;border-radius:12px;margin-bottom:12px;display:none;text-align:center;font-weight:600}
+.conflict-box.show{display:flex}
 .modal-actions{display:flex;gap:8px}
 .modal-cancel{flex:1;padding:12px;border-radius:13px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .modal-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
@@ -342,6 +358,7 @@ button,input,select,textarea{font-family:inherit}
   padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:9999;
   opacity:0;visibility:hidden;transition:all .25s;white-space:nowrap;
   box-shadow:0 8px 24px rgba(0,0,0,.5);
+  display:inline-flex;align-items:center;gap:8px;
 }
 #toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
 
@@ -402,10 +419,10 @@ button,input,select,textarea{font-family:inherit}
   </div>
   <div class="topbar-right">
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
-    <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема">☀️</button>
-    <button class="btn btn-ghost" onclick="fbLoadNow()" title="Оновити">🔄</button>
-    <button class="btn btn-ghost" onclick="exportBackup()" title="Бекап">⬇️</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" title="Імпорт">⬆️</button>
+    <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема"></button>
+    <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
+    <button class="btn btn-ghost" id="btn-export" onclick="exportBackup()" title="Бекап"></button>
+    <button class="btn btn-ghost" id="btn-import" onclick="document.getElementById('import-file').click()" title="Імпорт"></button>
     <input type="file" id="import-file" accept=".json" onchange="importBackup(this)" style="display:none">
   </div>
 </div>
@@ -414,8 +431,8 @@ button,input,select,textarea{font-family:inherit}
 
   <!-- TABS -->
   <div class="tabs" style="margin-top:18px">
-    <button id="nav-shifts" class="tab-btn active" onclick="switchTab('shifts')">🗓️ Графік змін</button>
-    <button id="nav-finance" class="tab-btn" onclick="switchTab('finance')">💰 Фінанси</button>
+    <button id="nav-shifts" class="tab-btn active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
+    <button id="nav-finance" class="tab-btn" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -428,7 +445,7 @@ button,input,select,textarea{font-family:inherit}
     <!-- Статистика -->
     <div class="stats-row">
       <div class="stat-card stat-big" style="--accent:var(--green)">
-        <span class="stat-icon">💰</span>
+        <span class="stat-icon" id="ic-salary"></span>
         <div class="stat-label">Зароблено цього місяця</div>
         <div class="stat-val" id="total-salary">0 грн</div>
         <div class="salary-progress">
@@ -437,25 +454,25 @@ button,input,select,textarea{font-family:inherit}
         </div>
       </div>
       <div class="stat-card" style="--accent:var(--purple2)">
-        <span class="stat-icon">⏱️</span>
+        <span class="stat-icon" id="ic-hours"></span>
         <div class="stat-label">Годин відпрацьовано</div>
         <div class="stat-val" id="total-hours">0</div>
         <div class="stat-sub" id="night-hours">нічних: 0 год</div>
       </div>
       <div class="stat-card" style="--accent:var(--blue)">
-        <span class="stat-icon">☀️</span>
+        <span class="stat-icon" id="ic-day"></span>
         <div class="stat-label">Денних змін</div>
         <div class="stat-val" id="count-day" style="color:var(--blue2)">0</div>
         <div class="stat-sub" id="count-day1900-sub">підвищена ставка: 0</div>
       </div>
       <div class="stat-card" style="--accent:var(--purple)">
-        <span class="stat-icon">🌙</span>
+        <span class="stat-icon" id="ic-night"></span>
         <div class="stat-label">Нічних змін</div>
         <div class="stat-val" id="count-night" style="color:var(--purple2)">0</div>
         <div class="stat-sub" id="count-halfnight-sub">половинок: 0</div>
       </div>
       <div class="stat-card" style="--accent:var(--orange)">
-        <span class="stat-icon">🏝️</span>
+        <span class="stat-icon" id="ic-vacation"></span>
         <div class="stat-label">Вихідних</div>
         <div class="stat-val" id="count-vacation" style="color:var(--orange2)">0</div>
         <div class="stat-sub">позначених</div>
@@ -464,13 +481,13 @@ button,input,select,textarea{font-family:inherit}
 
     <!-- Графік доходів по місяцях -->
     <div class="chart-section">
-      <div class="chart-title">📈 Динаміка заробітку — 6 місяців</div>
+      <div class="chart-title"><span id="ic-trend"></span>Динаміка заробітку — 6 місяців</div>
       <div class="chart-bars" id="income-chart"></div>
     </div>
 
     <!-- Інструменти -->
     <div class="tools-panel">
-      <div class="tools-label">⚡ Швидке заповнення</div>
+      <div class="tools-label"><span id="ic-bolt"></span>Швидке заповнення</div>
       <select id="template-type" class="tool-select">
         <option value="every_day">Щодня — Денна (стандартна ставка)</option>
         <option value="every_day1900">Щодня — Денна (підвищена ставка)</option>
@@ -479,7 +496,7 @@ button,input,select,textarea{font-family:inherit}
         <option value="two_two">2 дні / 2 ночі / 4 вихідних</option>
       </select>
       <button class="btn btn-primary" onclick="applyTemplate()">Застосувати</button>
-      <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()">🗑️ Очистити місяць</button>
+      <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span>Очистити місяць</button>
     </div>
 
     <!-- Календар -->
@@ -518,22 +535,22 @@ button,input,select,textarea{font-family:inherit}
     <!-- Баланси -->
     <div class="stats-row">
       <div class="stat-card stat-big" style="--accent:var(--purple)">
-        <span class="stat-icon">🪙</span>
+        <span class="stat-icon" id="ic-total-balance"></span>
         <div class="stat-label">Загальний баланс</div>
         <div class="stat-val" id="fin-balance" style="font-size:26px">0 грн</div>
       </div>
       <div class="stat-card" style="--accent:var(--purple2)">
-        <span class="stat-icon">💳</span>
+        <span class="stat-icon" id="ic-card-main"></span>
         <div class="stat-label">Основна картка</div>
         <div class="stat-val" id="balance-wallet-main" style="color:var(--purple2)">0 грн</div>
       </div>
       <div class="stat-card" style="--accent:var(--red)">
-        <span class="stat-icon">💳</span>
+        <span class="stat-icon" id="ic-card-pumb"></span>
         <div class="stat-label">Картка ПУМБ</div>
         <div class="stat-val" id="balance-wallet-pumb" style="color:#ff7b6b">0 грн</div>
       </div>
       <div class="stat-card" style="--accent:var(--orange)">
-        <span class="stat-icon">💵</span>
+        <span class="stat-icon" id="ic-cash"></span>
         <div class="stat-label">Готівка</div>
         <div class="stat-val" id="balance-wallet-cash" style="color:var(--orange2)">0 грн</div>
       </div>
@@ -541,14 +558,14 @@ button,input,select,textarea{font-family:inherit}
 
     <!-- Графік витрат по місяцях -->
     <div class="chart-section">
-      <div class="chart-title">📊 Баланс за останні 6 місяців</div>
+      <div class="chart-title"><span id="ic-barchart"></span>Баланс за останні 6 місяців</div>
       <div class="chart-bars" id="finance-chart"></div>
     </div>
 
     <div class="fin-grid" id="finance-panel-block">
       <!-- Форма -->
       <div class="fin-form">
-        <div class="fin-form-title">➕ Нова операція</div>
+        <div class="fin-form-title"><span id="ic-plus"></span>Нова операція</div>
         <div class="type-seg">
           <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')">+ Дохід</button>
           <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')">− Витрата</button>
@@ -557,17 +574,17 @@ button,input,select,textarea{font-family:inherit}
         <div class="fg">
           <label id="wallet-source-label">Гаманець</label>
           <select id="fin-wallet">
-            <option value="main">💳 Основна картка</option>
-            <option value="pumb">💳 Картка ПУМБ</option>
-            <option value="cash">💵 Готівка</option>
+            <option value="main">Основна картка</option>
+            <option value="pumb">Картка ПУМБ</option>
+            <option value="cash">Готівка</option>
           </select>
         </div>
         <div class="fg" id="wallet-target-group" style="display:none">
           <label>Куди переказати</label>
           <select id="fin-wallet-target">
-            <option value="main">💳 Основна картка</option>
-            <option value="pumb" selected>💳 Картка ПУМБ</option>
-            <option value="cash">💵 Готівка</option>
+            <option value="main">Основна картка</option>
+            <option value="pumb" selected>Картка ПУМБ</option>
+            <option value="cash">Готівка</option>
           </select>
         </div>
         <div class="fg">
@@ -613,34 +630,34 @@ button,input,select,textarea{font-family:inherit}
   <div class="modal-card" onclick="event.stopPropagation()">
     <div class="sheet-grabber"></div>
     <div class="modal-header">
-      <div class="modal-icon">🗓️</div>
+      <div class="modal-icon" id="ic-modal-cal"></div>
       <div class="modal-date" id="modal-date-title">Оберіть зміни</div>
     </div>
-    <div class="conflict-box" id="conflict-alert">⚠️ Конфлікт вибору змін!</div>
+    <div class="conflict-box" id="conflict-alert"><span id="ic-warning"></span>Конфлікт вибору змін!</div>
     <div class="modal-opts">
       <label class="chk-row" style="--row-color:var(--blue)">
         <input type="checkbox" id="chk-day" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">☀️ Денна зміна</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-day"></span>Денна зміна</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--green)">
         <input type="checkbox" id="chk-day1900" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">🔆 Денна (підвищена ставка)</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-day19"></span>Денна (підвищена ставка)</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--purple2)">
         <input type="checkbox" id="chk-night" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">🌙 Нічна повна</div><div class="chk-desc">19:00–07:00 · 12 год</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-night"></span>Нічна повна</div><div class="chk-desc">19:00–07:00 · 12 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--pink)">
         <input type="checkbox" id="chk-night-h1" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">⏱️ Ніч — рання половина</div><div class="chk-desc">19:00–01:00 · 6 год</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-h1"></span>Ніч — рання половина</div><div class="chk-desc">19:00–01:00 · 6 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--cyan)">
         <input type="checkbox" id="chk-night-h2" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">⏱️ Ніч — пізня половина</div><div class="chk-desc">01:00–07:00 · 6 год</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-h2"></span>Ніч — пізня половина</div><div class="chk-desc">01:00–07:00 · 6 год</div></div>
       </label>
       <label class="chk-row" style="--row-color:var(--orange)">
         <input type="checkbox" id="chk-vacation" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name">🏝️ Вихідний день</div><div class="chk-desc">Відпочинок</div></div>
+        <div class="chk-label"><div class="chk-name"><span id="ic-chk-vac"></span>Вихідний день</div><div class="chk-desc">Відпочинок</div></div>
       </label>
     </div>
     <div class="modal-actions">
@@ -654,6 +671,85 @@ button,input,select,textarea{font-family:inherit}
 
 <script>
 (function(){
+  // ── ICON LIBRARY (monochrome, line-style, SF-Symbols-like) ──
+  var ICON_PATHS = {
+    calendar:'<rect x="3.5" y="5" width="17" height="15" rx="3.2"/><path d="M3.5 9.6h17M8 3v3.4M16 3v3.4"/>',
+    wallet:'<rect x="3" y="7" width="18" height="12" rx="3"/><path d="M3 10.6h18"/><circle cx="16.6" cy="14.4" r="1" fill="currentColor" stroke="none"/>',
+    sun:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.3M12 19.1v2.3M4.3 4.3l1.6 1.6M18.1 18.1l1.6 1.6M2.6 12h2.3M19.1 12h2.3M4.3 19.7l1.6-1.6M18.1 5.9l1.6-1.6"/>',
+    sunFill:'<circle cx="12" cy="12" r="4.6" fill="currentColor" stroke="none"/><path d="M12 2.6v2.1M12 19.3v2.1M4.3 4.3l1.5 1.5M18.2 18.2l1.5 1.5M2.6 12h2.1M19.3 12h2.1M4.3 19.7l1.5-1.5M18.2 5.8l1.5-1.5"/>',
+    moon:'<path d="M20 14.6A8.6 8.6 0 1 1 9.4 4a7.1 7.1 0 0 0 10.6 10.6Z"/>',
+    clock:'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.5V12l3.1 1.9"/>',
+    umbrella:'<path d="M3 13a9 9 0 0 1 18 0Z"/><path d="M12 4v1.3M12 13v6.4a1.8 1.8 0 0 1-3.5 0"/>',
+    trendUp:'<path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/>',
+    barChart:'<path d="M4 20V10M10 20V4M16 20v-7"/><path d="M3 20h18"/>',
+    bolt:'<path d="M13 2 4 14h6l-1 8 9-12h-6Z" fill="currentColor" stroke="none"/>',
+    trash:'<path d="M4 7h16M9 7V4.9A1.9 1.9 0 0 1 10.9 3h2.2A1.9 1.9 0 0 1 15 4.9V7M6.3 7l.9 12.1A2 2 0 0 0 9.2 21h5.6a2 2 0 0 0 2-1.9L18 7M10 11v6M14 11v6"/>',
+    coin:'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v8.8M9.4 9.4c0-1 1.1-1.7 2.6-1.7s2.6.7 2.6 1.6c0 2.3-5.2 1-5.2 3.3 0 1 1.1 1.7 2.6 1.7s2.6-.8 2.6-1.7"/>',
+    card:'<rect x="2.5" y="5.5" width="19" height="13" rx="2.4"/><path d="M2.5 9.7h19"/>',
+    banknote:'<rect x="2.5" y="6.5" width="19" height="11" rx="2"/><circle cx="12" cy="12" r="2.4"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    warning:'<path d="M12 4 21.5 20H2.5Z"/><path d="M12 10v4.2"/><circle cx="12" cy="17.2" r=".15" fill="currentColor" stroke="none"/>',
+    refresh:'<path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/>',
+    download:'<path d="M12 3v12"/><path d="M7.4 10.6 12 15l4.6-4.4"/><path d="M4 17v2.3A1.7 1.7 0 0 0 5.7 21h12.6a1.7 1.7 0 0 0 1.7-1.7V17"/>',
+    upload:'<path d="M12 21V9"/><path d="M7.4 13.4 12 9l4.6 4.4"/><path d="M4 17v2.3A1.7 1.7 0 0 0 5.7 21h12.6a1.7 1.7 0 0 0 1.7-1.7V17"/>',
+    check:'<path d="M4.5 12.5 9.5 17.5 19.5 6.5"/>',
+    xmark:'<path d="M6 6l12 12M18 6 6 18"/>',
+    offline:'<path d="M2 8.6a15 15 0 0 1 8.4-3.9M13.6 4.7A15 15 0 0 1 22 8.6"/><path d="M5 12.2a10 10 0 0 1 6-2.9M15.2 10.5a10 10 0 0 1 3.8 1.7"/><path d="M8.6 15.7a5 5 0 0 1 4.2-1"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/><path d="M2.5 2.5l19 19"/>',
+    inbox:'<path d="M3 12 6 5h12l3 7"/><path d="M3 12v6.3A1.7 1.7 0 0 0 4.7 20h14.6a1.7 1.7 0 0 0 1.7-1.7V12"/><path d="M3 12h5.2a.8.8 0 0 1 .7.4l.9 1.6a.8.8 0 0 0 .7.4h2.9a.8.8 0 0 0 .7-.4l.9-1.6a.8.8 0 0 1 .7-.4H21"/>',
+    sparkle:'<path d="M12 3v4M12 17v4M4.2 12H8M16 12h3.8"/><path d="M6.3 6.3l2.1 2.1M15.6 15.6l2.1 2.1M17.7 6.3l-2.1 2.1M8.4 15.6l-2.1 2.1"/>',
+    swap:'<path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>',
+    bank:'<path d="M3 10 12 4l9 6"/><path d="M4 10h16v9H4Z"/><path d="M4 19h16M7 13v4M12 13v4M17 13v4"/>',
+    cart:'<path d="M3 4h2l2.4 12.2A2 2 0 0 0 9.3 18H18a2 2 0 0 0 2-1.6L21.5 8H6"/><circle cx="10" cy="21" r="1.3"/><circle cx="18" cy="21" r="1.3"/>',
+    car:'<path d="M5 16V11l2-4h10l2 4v5"/><path d="M3 16h18M7 16v2M17 16v2"/><circle cx="7.5" cy="16" r="1.2"/><circle cx="16.5" cy="16" r="1.2"/>',
+    house:'<path d="M4 11 12 4l8 7"/><path d="M6 10v9.3a.7.7 0 0 0 .7.7h10.6a.7.7 0 0 0 .7-.7V10"/><path d="M10 20v-5h4v5"/>',
+    bag:'<path d="M6 8h12l1 12.3a1.7 1.7 0 0 1-1.7 1.7H6.7A1.7 1.7 0 0 1 5 20.3Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    coffee:'<path d="M4 9h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 10.5h1.4a2.4 2.4 0 0 1 0 4.8H17"/><path d="M7.3 6.2c0-1 .8-1 .8-2M11 6.2c0-1 .8-1 .8-2"/>',
+    burger:'<path d="M4 10h16"/><path d="M3.5 14h17"/><path d="M5 10a7 7 0 0 1 14 0"/><path d="M5 14v1a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-1"/>',
+    cigarette:'<path d="M2.5 14.5h13.5v3.2H2.5Z"/><path d="M12.7 14.5v3.2"/><path d="M16.5 11.8s-1-1-1-2 1-2 1-2M19.5 11.8s-1-1-1-2 1-2 1-2"/>',
+    gift:'<path d="M3 9h18v4H3Z"/><path d="M5 13h14v6.3a.7.7 0 0 1-.7.7H5.7a.7.7 0 0 1-.7-.7Z"/><path d="M12 9v11"/><path d="M12 9C12 6.2 9.7 4.3 8.3 5.2S8.2 9 12 9M12 9c0-2.8 2.3-4.7 3.7-3.8S15.8 9 12 9"/>',
+    briefcase:'<rect x="3" y="7.5" width="18" height="12" rx="2.2"/><path d="M8 7.5V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/>',
+    person:'<circle cx="12" cy="8" r="3.3"/><path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3"/>',
+    box:'<path d="M3 8 12 4l9 4-9 4-9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>'
+  };
+  window.Icon = function(name){
+    var d = ICON_PATHS[name] || '';
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  };
+  function setIcon(id, name){
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = window.Icon(name);
+  }
+  // Populate every static icon slot
+  setIcon('theme-toggle','sun');
+  setIcon('btn-refresh','refresh');
+  setIcon('btn-export','download');
+  setIcon('btn-import','upload');
+  setIcon('tab-icon-shifts','calendar');
+  setIcon('tab-icon-finance','wallet');
+  setIcon('ic-salary','banknote');
+  setIcon('ic-hours','clock');
+  setIcon('ic-day','sun');
+  setIcon('ic-night','moon');
+  setIcon('ic-vacation','umbrella');
+  setIcon('ic-trend','trendUp');
+  setIcon('ic-bolt','bolt');
+  setIcon('ic-trash-month','trash');
+  setIcon('ic-total-balance','coin');
+  setIcon('ic-card-main','card');
+  setIcon('ic-card-pumb','card');
+  setIcon('ic-cash','banknote');
+  setIcon('ic-barchart','barChart');
+  setIcon('ic-plus','plus');
+  setIcon('ic-modal-cal','calendar');
+  setIcon('ic-warning','warning');
+  setIcon('ic-chk-day','sun');
+  setIcon('ic-chk-day19','sunFill');
+  setIcon('ic-chk-night','moon');
+  setIcon('ic-chk-h1','clock');
+  setIcon('ic-chk-h2','clock');
+  setIcon('ic-chk-vac','umbrella');
+
+  // ── PIN LOCK ──
   var PIN='7777';
   var input='';
   function $(id){return document.getElementById(id);}
@@ -694,8 +790,7 @@ button,input,select,textarea{font-family:inherit}
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
     try{localStorage.setItem('xamssTheme', theme);}catch(e){}
-    var btn=$('theme-toggle');
-    if(btn) btn.textContent = theme==='light' ? '🌙' : '☀️';
+    setIcon('theme-toggle', theme==='light' ? 'moon' : 'sun');
     var mc=document.querySelector('meta[name=theme-color]');
     if(mc) mc.setAttribute('content', theme==='light' ? '#f2f2f7' : '#0a0812');
   }
@@ -736,13 +831,19 @@ const MONTHS = ['Січень','Лютий','Березень','Квітень',
 const MONTHS_SHORT = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
 const WEEKDAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
 const CATS = {
-  income:  ['💼 Зарплата','💳 Аванс','🎁 Підробіток','💰 Повернення боргу','📦 Інше'],
-  expense: ['👩 Алла','👦 Син','🚬 Цигарки','☕ Кава','🍔 Фастфуд','💳 Борг','🏦 Кредит','🛒 Продукти','🚗 Транспорт','🏠 Комуналка','🛍️ Покупки','💸 Інше'],
+  income:  ['Зарплата','Аванс','Підробіток','Повернення боргу','Інше'],
+  expense: ['Алла','Син','Цигарки','Кава','Фастфуд','Борг','Кредит','Продукти','Транспорт','Комуналка','Покупки','Інше'],
+};
+const CAT_ICON = {
+  'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'coin','Інше':'box',
+  'Алла':'person','Син':'person','Цигарки':'cigarette','Кава':'coffee','Фастфуд':'burger',
+  'Борг':'card','Кредит':'bank','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
+  'Внутрішній переказ':'swap',
 };
 const WALLETS = {
-  main:{text:'💳 Основна',cls:'wt-main'},
-  pumb:{text:'💳 ПУМБ',   cls:'wt-pumb'},
-  cash:{text:'💵 Готівка', cls:'wt-cash'},
+  main:{text:'Основна',cls:'wt-main',icon:'card'},
+  pumb:{text:'ПУМБ',   cls:'wt-pumb',icon:'card'},
+  cash:{text:'Готівка', cls:'wt-cash',icon:'banknote'},
 };
 
 // ── FIREBASE ──────────────────────────────────────────────────
@@ -761,11 +862,11 @@ async function fbSaveNow(){
       setDoc(doc(db,DCOL,'shifts'),  {data:shifts},       {merge:false}),
       setDoc(doc(db,DCOL,'finance'), {data:transactions}, {merge:false}),
     ]);
-    fbSetStatus('ok','✓ Збережено');
+    fbSetStatus('ok','Збережено');
   }catch(e){
     console.error(e);
     fbSetStatus('error','Помилка');
-    showToast('❌ Помилка автозбереження');
+    showToast('Помилка автозбереження','xmark');
   }
 }
 
@@ -775,13 +876,13 @@ async function fbLoadNow(){
     const [sS,fS]=await Promise.all([getDoc(doc(db,DCOL,'shifts')),getDoc(doc(db,DCOL,'finance'))]);
     if(sS.exists()){shifts=sS.data().data||{};localStorage.setItem('mxshifts',JSON.stringify(shifts));}
     if(fS.exists()){transactions=fS.data().data||[];localStorage.setItem('mxtx',JSON.stringify(transactions));}
-    fbSetStatus('ok','✓ Синхронізовано');
+    fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart();
-    showToast('🎉 Дані оновлено');
+    showToast('Дані оновлено','sparkle');
   }catch(e){
     console.error(e);
     fbSetStatus('error','Офлайн');
-    showToast('🔌 Хмара недоступна — локальні дані');
+    showToast('Хмара недоступна — локальні дані','offline');
   }
 }
 
@@ -850,9 +951,10 @@ function switchTab(tab){
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
-function showToast(msg){
+function showToast(msg, icon){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+  t.innerHTML=(icon?window.Icon(icon):'')+'<span>'+msg+'</span>';
+  t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
@@ -896,7 +998,7 @@ function validateModalSelection(){
   if(v&&(d1||d2||n||h1||h2)){['chk-day','chk-day1900','chk-night','chk-night-h1','chk-night-h2'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});}
   const conflict=(n&&(h1||h2))||(d1&&d2);
   const ab=document.getElementById('conflict-alert'),sb=document.getElementById('btn-save');
-  ab.style.display=conflict?'block':'none';
+  ab.classList.toggle('show',conflict);
   sb.disabled=conflict; sb.style.opacity=conflict?'.4':'1';
 }
 function saveModalSelection(){
@@ -1068,7 +1170,7 @@ function clearCurrentMonth(){
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-  showToast('🗑️ Місяць очищено');
+  showToast('Місяць очищено','trash');
 }
 
 function applyTemplate(){
@@ -1086,7 +1188,7 @@ function applyTemplate(){
   else if(type==='day_night_48'){let s=0;for(let d=1;d<=total;d++){if(s===0)shifts[dk(d)]=['day'];else if(s===1)shifts[dk(d)]=['night'];else shifts[dk(d)]=['vacation'];s=(s+1)%4;}}
   else if(type==='two_two'){let s=0;for(let d=1;d<=total;d++){if(s<2)shifts[dk(d)]=['day'];else if(s<4)shifts[dk(d)]=['night'];else shifts[dk(d)]=['vacation'];s=(s+1)%8;}}
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-  showToast('⚡ Шаблон застосовано!');
+  showToast('Шаблон застосовано','bolt');
 }
 
 // ── FINANCE ───────────────────────────────────────────────────
@@ -1110,13 +1212,13 @@ function fillCats(type){
 function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const amount=parseFloat(ai?.value);
-  if(isNaN(amount)||amount<=0){showToast('❌ Введіть коректну суму');return;}
+  if(isNaN(amount)||amount<=0){showToast('Введіть коректну суму','xmark');return;}
   const date=document.getElementById('fin-date')?.value;
-  if(!date){showToast('❌ Оберіть дату');return;}
+  if(!date){showToast('Оберіть дату','xmark');return;}
   const ws=document.getElementById('fin-wallet')?.value||'main';
   const wt=document.getElementById('fin-wallet-target')?.value||'pumb';
-  if(currentFinanceType==='transfer'&&ws===wt){showToast('❌ Однакові рахунки');return;}
-  const cat=currentFinanceType==='transfer'?'⇄ Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
+  if(currentFinanceType==='transfer'&&ws===wt){showToast('Однакові рахунки','xmark');return;}
+  const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
   transactions.unshift({id:Date.now(),type:currentFinanceType,amount,category:cat,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,date,comment});
   localStorage.setItem('mxtx',JSON.stringify(transactions));
@@ -1124,7 +1226,7 @@ function addTransaction(){
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
   renderFinance(); renderFinanceChart();
-  showToast(currentFinanceType==='transfer'?'🔁 Переказ виконано':'✅ Запис додано');
+  showToast(currentFinanceType==='transfer'?'Переказ виконано':'Запис додано', currentFinanceType==='transfer'?'swap':'check');
 }
 
 function deleteTransaction(id){
@@ -1164,7 +1266,7 @@ function renderFinance(){
   if(tc) tc.textContent=filtered.length+' записів';
 
   if(filtered.length===0){
-    lc.innerHTML='<div class="tx-empty">🗃️ Записів немає</div>';
+    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>Записів немає</span></div>`;
     return;
   }
 
@@ -1172,22 +1274,23 @@ function renderFinance(){
     const w=WALLETS[t.wallet||'main']||WALLETS.main;
     const tw=t.targetWallet?WALLETS[t.targetWallet]||WALLETS.pumb:null;
     const df=t.date?t.date.split('-').reverse().join('.'):'';
-    let sign='',cls='',amtStr='';
-    if(t.type==='income')   {sign='+';cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} грн`;}
-    if(t.type==='expense')  {sign='−';cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} грн`;}
-    if(t.type==='transfer') {sign='⇄';cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} грн`;}
-    const wBadge=`<span class="wallet-tag ${w.cls}">${w.text}</span>`;
-    const twBadge=tw?`<span style="color:var(--muted2);font-size:10px">→</span><span class="wallet-tag ${tw.cls}">${tw.text}</span>`:'';
+    let cls='',amtStr='';
+    if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} грн`;}
+    if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} грн`;}
+    if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} грн`;}
+    const catIcon=window.Icon(CAT_ICON[t.category]||'box');
+    const wBadge=`<span class="wallet-tag ${w.cls}">${window.Icon(w.icon)}${w.text}</span>`;
+    const twBadge=tw?`<span style="color:var(--muted2);font-size:10px">→</span><span class="wallet-tag ${tw.cls}">${window.Icon(tw.icon)}${tw.text}</span>`:'';
     const item=document.createElement('div');
     item.className='tx-item';
     item.innerHTML=`
       <div class="tx-left">
-        <div class="tx-cat">${t.category}${wBadge}${twBadge}</div>
+        <div class="tx-cat">${catIcon}<span>${t.category}</span>${wBadge}${twBadge}</div>
         <div class="tx-meta">${df}${t.comment?' · '+t.comment:''}</div>
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
-        <button class="tx-del" onclick="deleteTransaction(${t.id})">🗑️</button>
+        <button class="tx-del" onclick="deleteTransaction(${t.id})">${window.Icon('trash')}</button>
       </div>`;
     lc.appendChild(item);
   });
@@ -1198,7 +1301,7 @@ function exportBackup(){
   const s="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({shifts,transactions,exportedAt:new Date().toISOString()},null,2));
   const a=document.createElement('a');a.href=s;a.download=`xamss_backup_${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(a);a.click();a.remove();
-  showToast('⬇️ Бекап збережено');
+  showToast('Бекап збережено','download');
 }
 function importBackup(input){
   const f=input.files[0];if(!f)return;
@@ -1211,9 +1314,9 @@ function importBackup(input){
         if(imp.transactions) transactions=imp.transactions;
         saveLocal();localStorage.setItem('mxtx',JSON.stringify(transactions));
         scheduleSave();renderCalendar();renderFinance();renderIncomeChart();renderFinanceChart();
-        showToast('🎉 Дані відновлено!');
+        showToast('Дані відновлено','sparkle');
       }
-    }catch{showToast('❌ Помилка файлу');}
+    }catch{showToast('Помилка файлу','xmark');}
   };
   r.readAsText(f);input.value='';
 }
