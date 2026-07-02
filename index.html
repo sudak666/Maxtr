@@ -366,6 +366,21 @@ button,input,select,textarea{font-family:inherit}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
+/* ── PIN CONFIRM (compact dialog for destructive actions) ── */
+.pin-confirm-overlay{align-items:center;padding:16px;z-index:2000}
+.pin-confirm-card{
+  background:var(--bg1);border:1px solid var(--border2);border-radius:24px;
+  padding:22px 20px;width:100%;max-width:300px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:sheetUp .22s ease;
+}
+.pin-confirm-title{font-size:15px;font-weight:800;color:var(--text-strong)}
+.pin-confirm-sub{font-size:12px;color:var(--muted);font-weight:600;min-height:16px;margin-top:2px}
+.pin-confirm-card .lock-dots{justify-content:center;margin:14px 0 16px}
+.pin-confirm-pad{display:grid;grid-template-columns:repeat(3,56px);gap:10px;justify-content:center}
+.pin-confirm-pad .lock-key,.pin-confirm-pad .lock-key-del{width:56px;height:56px}
+.pin-confirm-pad .lock-key-num{font-size:20px}
+.pin-confirm-pad .lock-key-del{font-size:11px}
+
 /* ── TOAST ── */
 #toast{
   position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
@@ -680,6 +695,31 @@ button,input,select,textarea{font-family:inherit}
   </div>
 </div>
 
+<!-- PIN CONFIRM (for destructive actions) -->
+<div class="modal-overlay pin-confirm-overlay" id="pin-confirm-modal">
+  <div class="pin-confirm-card" onclick="event.stopPropagation()">
+    <div class="pin-confirm-title" id="pin-confirm-title">Підтвердіть дію</div>
+    <div class="pin-confirm-sub" id="pin-confirm-sub">Введіть PIN для підтвердження</div>
+    <div class="lock-dots" id="pin-confirm-dots">
+      <span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span>
+    </div>
+    <div class="pin-confirm-pad">
+      <button class="lock-key pcm-key" data-k="1"><span class="lock-key-num">1</span></button>
+      <button class="lock-key pcm-key" data-k="2"><span class="lock-key-num">2</span><span class="lock-key-sub">ABC</span></button>
+      <button class="lock-key pcm-key" data-k="3"><span class="lock-key-num">3</span><span class="lock-key-sub">DEF</span></button>
+      <button class="lock-key pcm-key" data-k="4"><span class="lock-key-num">4</span><span class="lock-key-sub">GHI</span></button>
+      <button class="lock-key pcm-key" data-k="5"><span class="lock-key-num">5</span><span class="lock-key-sub">JKL</span></button>
+      <button class="lock-key pcm-key" data-k="6"><span class="lock-key-num">6</span><span class="lock-key-sub">MNO</span></button>
+      <button class="lock-key pcm-key" data-k="7"><span class="lock-key-num">7</span><span class="lock-key-sub">PQRS</span></button>
+      <button class="lock-key pcm-key" data-k="8"><span class="lock-key-num">8</span><span class="lock-key-sub">TUV</span></button>
+      <button class="lock-key pcm-key" data-k="9"><span class="lock-key-num">9</span><span class="lock-key-sub">WXYZ</span></button>
+      <button class="lock-key-del" id="pin-confirm-cancel">Скасувати</button>
+      <button class="lock-key pcm-key" data-k="0"><span class="lock-key-num">0</span></button>
+      <button class="lock-key-del" id="pin-confirm-del">Видалити</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -763,7 +803,7 @@ button,input,select,textarea{font-family:inherit}
   var input='';
   function $(id){return document.getElementById(id);}
   function renderDots(){
-    document.querySelectorAll('.lock-dot').forEach(function(d,i){d.classList.toggle('filled', i<input.length);});
+    document.querySelectorAll('#lock-dots .lock-dot').forEach(function(d,i){d.classList.toggle('filled', i<input.length);});
   }
   function unlock(){
     try{sessionStorage.setItem('xamssUnlocked','1');}catch(e){}
@@ -783,7 +823,7 @@ button,input,select,textarea{font-family:inherit}
       setTimeout(function(){ input===PIN ? unlock() : shake(); },150);
     }
   }
-  document.querySelectorAll('.lock-key[data-k]').forEach(function(b){
+  document.querySelectorAll('#lock-screen .lock-key[data-k]').forEach(function(b){
     b.addEventListener('click',function(){press(b.getAttribute('data-k'));});
   });
   var del=$('lock-del');
@@ -794,6 +834,56 @@ button,input,select,textarea{font-family:inherit}
       var ls=$('lock-screen'); if(ls) ls.style.display='none';
     }
   }catch(e){}
+
+  // ── PIN CONFIRM (compact dialog for destructive actions) ──
+  var pcmInput='';
+  var pcmCallback=null;
+  function pcmRenderDots(){
+    document.querySelectorAll('#pin-confirm-dots .lock-dot').forEach(function(d,i){d.classList.toggle('filled', i<pcmInput.length);});
+  }
+  function pcmClose(){
+    var ov=$('pin-confirm-modal');
+    if(ov) ov.style.display='none';
+    pcmInput=''; pcmCallback=null; pcmRenderDots();
+    var sub=$('pin-confirm-sub'); if(sub) sub.textContent='Введіть PIN для підтвердження';
+  }
+  function pcmShake(){
+    var dw=$('pin-confirm-dots');
+    dw.classList.add('lock-shake');
+    $('pin-confirm-sub').textContent='Невірний PIN, спробуйте ще';
+    setTimeout(function(){dw.classList.remove('lock-shake'); pcmInput=''; pcmRenderDots();},420);
+  }
+  function pcmPress(k){
+    if(pcmInput.length>=4) return;
+    pcmInput+=k; pcmRenderDots();
+    if(pcmInput.length===4){
+      setTimeout(function(){
+        if(pcmInput===PIN){
+          var cb=pcmCallback;
+          pcmClose();
+          if(cb) cb();
+        }else{
+          pcmShake();
+        }
+      },150);
+    }
+  }
+  window.confirmWithPin=function(message, onConfirm){
+    pcmInput=''; pcmCallback=onConfirm;
+    var title=$('pin-confirm-title'); if(title) title.textContent=message||'Підтвердіть дію';
+    var sub=$('pin-confirm-sub'); if(sub) sub.textContent='Введіть PIN для підтвердження';
+    pcmRenderDots();
+    var ov=$('pin-confirm-modal'); if(ov) ov.style.display='flex';
+  };
+  document.querySelectorAll('.pcm-key[data-k]').forEach(function(b){
+    b.addEventListener('click',function(){pcmPress(b.getAttribute('data-k'));});
+  });
+  var pcmDel=$('pin-confirm-del');
+  if(pcmDel) pcmDel.addEventListener('click',function(){pcmInput=pcmInput.slice(0,-1); pcmRenderDots();});
+  var pcmCancel=$('pin-confirm-cancel');
+  if(pcmCancel) pcmCancel.addEventListener('click', pcmClose);
+  var pcmOverlay=$('pin-confirm-modal');
+  if(pcmOverlay) pcmOverlay.addEventListener('click', function(e){ if(e.target===pcmOverlay) pcmClose(); });
 
   // ── THEME ──
   function applyTheme(theme){
@@ -1172,13 +1262,14 @@ function renderFinanceChart(){
 
 // ── TEMPLATES ─────────────────────────────────────────────────
 function clearCurrentMonth(){
-  if(!confirm('Видалити всі зміни за цей місяць?')) return;
-  const m=parseInt(document.getElementById('select-month').value);
-  const y=parseInt(document.getElementById('select-year').value);
-  const p=`${y}-${String(m+1).padStart(2,'0')}-`;
-  Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
-  saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-  showToast('Місяць очищено','trash');
+  window.confirmWithPin('Видалити всі зміни за цей місяць?', ()=>{
+    const m=parseInt(document.getElementById('select-month').value);
+    const y=parseInt(document.getElementById('select-year').value);
+    const p=`${y}-${String(m+1).padStart(2,'0')}-`;
+    Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
+    saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
+    showToast('Місяць очищено','trash');
+  });
 }
 
 function applyTemplate(){
