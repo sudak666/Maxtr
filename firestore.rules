@@ -10,16 +10,9 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // TEMPORARY: read-only access to the old shared collection so a
-    // signed-in user can pull their pre-auth data into their own account
-    // one time. Never allow writes here. Remove this block once the
-    // one-time import is done (see index.html importLegacyData()).
-    match /max_tracker/{document} {
-      allow read: if request.auth != null;
-      allow write: if false;
-    }
-
-    // Deny everything else by default.
+    // Deny everything else by default (including the old shared
+    // max_tracker/{doc} path used before per-user auth was added — its
+    // one-time recovery window is closed, see git history for details).
     match /{document=**} {
       allow read, write: if false;
     }
