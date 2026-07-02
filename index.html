@@ -1064,6 +1064,41 @@ window.updateDebtInfo=updateDebtInfo; window.addDebtEntry=addDebtEntry;
 window.updateDebtEntry=updateDebtEntry; window.deleteDebtEntry=deleteDebtEntry;
 window.deleteCurrentDebt=deleteCurrentDebt;
 
+// TEMPORARY: one-time console-invoked recovery for the debt history that
+// used to live hardcoded in this file's source (before per-user accounts
+// existed) but was never actually saved to the old shared Firestore doc.
+// Run `restoreLegacyDebt()` in the browser console once, while signed in,
+// then remove this block — it's not reachable from the UI on purpose.
+window.restoreLegacyDebt=async function(){
+  if(!currentUser){ alert('Спочатку увійди в акаунт.'); return; }
+  const recovered=[
+    { id:1, name:'Борг', note:'242', currency:'у.о.', startAmount:75000, entries:[
+      {id:1, amount:'500',   balance:74500, date:'Листопад'},
+      {id:2, amount:'500',   balance:74000, date:'Січень'},
+      {id:3, amount:'170',   balance:73830, date:'Вересень 23'},
+      {id:4, amount:'160',   balance:73670, date:''},
+      {id:5, amount:'160',   balance:73510, date:''},
+      {id:6, amount:'128',   balance:73382, date:''},
+      {id:7, amount:'125',   balance:73257, date:'Березень 24'},
+      {id:8, amount:'18000', balance:55257, date:'Червень 2024'},
+      {id:9, amount:'100',   balance:55157, date:'09.07.2024'},
+      {id:10,amount:'115',   balance:55042, date:'13.09.2024'},
+      {id:11,amount:'115',   balance:54927, date:'05.02.2025'},
+      {id:12,amount:'***68', balance:54641, date:'10.02.2026'},
+      {id:13,amount:'***67', balance:54574, date:'13.03.2026'},
+      {id:14,amount:'***68', balance:54574, date:'16.04.2026'},
+      {id:15,amount:'***90', balance:54484, date:'18.05.2026'},
+      {id:16,amount:'***93', balance:54391, date:'15.06.2026'},
+    ]},
+  ];
+  if(!confirm('Відновити збережену історію боргу (75000 у.о., 16 платежів)?')) return;
+  debts=recovered; currentDebtId=1;
+  saveDebtLocal();
+  await fbSaveNow();
+  renderDebt();
+  showToast('Борг відновлено','check');
+};
+
 // ── AUTH ──────────────────────────────────────────────────────
 let authMode='login';
 window.setAuthMode=function(mode){
