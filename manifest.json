@@ -1,7 +1,7 @@
 {
   "name": "Xamss — Графік та Фінанси",
   "short_name": "Xamss",
-  "description": "Особистий трекер робочих змін та фінансів",
+  "description": "Трекер робочих змін, фінансів і розрахунків з налаштовуваними типами змін, гаманцями та категоріями",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#06050a",
