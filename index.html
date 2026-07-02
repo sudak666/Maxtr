@@ -107,13 +107,16 @@ button,input,select,textarea{font-family:inherit}
 .lock-sub{font-size:13px;color:var(--muted);font-weight:600;min-height:18px;text-align:center}
 .lock-dots{display:flex;gap:16px}
 .lock-dots.lock-shake{animation:shake .42s ease}
-.lock-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:all .15s}
-.lock-dot.filled{background:var(--purple);border-color:var(--purple);transform:scale(1.1)}
+.lock-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);transition:all .15s}
+.lock-dot.filled{background:var(--purple);transform:scale(1.1)}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:18px;margin-top:8px}
-.lock-key{width:72px;height:72px;border-radius:50%;border:none;background:var(--bg2);color:var(--text-strong);font-size:26px;font-weight:600;cursor:pointer;transition:all .12s;font-family:inherit}
+.lock-key{width:72px;height:72px;border-radius:50%;border:none;background:var(--bg2);color:var(--text-strong);cursor:pointer;transition:all .12s;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .lock-key:active{transform:scale(.92);background:var(--bg3)}
-.lock-key-del{background:transparent;font-size:20px;color:var(--muted)}
+.lock-key-num{font-size:26px;font-weight:600;line-height:1}
+.lock-key-sub{font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.lock-key-del{width:72px;height:72px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+.lock-key-del:active{color:var(--text)}
 
 /* ── LAYOUT ── */
 .app{max-width:1200px;margin:0 auto;padding:20px 16px 80px}
@@ -173,10 +176,9 @@ button,input,select,textarea{font-family:inherit}
   padding:14px 16px;position:relative;overflow:hidden;cursor:default;
   transition:border-color .2s,transform .15s;
 }
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--purple));opacity:.6;border-radius:99px 99px 0 0}
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.stat-icon{width:22px;height:22px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:var(--accent,var(--purple))}
-.stat-icon .ico{width:22px;height:22px;margin-right:0}
+.stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
+.stat-icon .ico{width:20px;height:20px;margin-right:0}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
@@ -389,7 +391,8 @@ button,input,select,textarea{font-family:inherit}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
   .lock-pad{grid-template-columns:repeat(3,64px);gap:14px}
-  .lock-key{width:64px;height:64px;font-size:23px}
+  .lock-key,.lock-key-del{width:64px;height:64px}
+  .lock-key-num{font-size:23px}
 }
 </style>
 </head>
@@ -401,23 +404,23 @@ button,input,select,textarea{font-family:inherit}
     <div class="lock-logo">X</div>
     <div class="lock-title">Xamss</div>
   </div>
-  <div class="lock-sub" id="lock-sub">Введіть код доступу</div>
+  <div class="lock-sub" id="lock-sub">Введіть PIN для входу</div>
   <div class="lock-dots" id="lock-dots">
     <span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span>
   </div>
   <div class="lock-pad">
-    <button class="lock-key" data-k="1">1</button>
-    <button class="lock-key" data-k="2">2</button>
-    <button class="lock-key" data-k="3">3</button>
-    <button class="lock-key" data-k="4">4</button>
-    <button class="lock-key" data-k="5">5</button>
-    <button class="lock-key" data-k="6">6</button>
-    <button class="lock-key" data-k="7">7</button>
-    <button class="lock-key" data-k="8">8</button>
-    <button class="lock-key" data-k="9">9</button>
+    <button class="lock-key" data-k="1"><span class="lock-key-num">1</span></button>
+    <button class="lock-key" data-k="2"><span class="lock-key-num">2</span><span class="lock-key-sub">ABC</span></button>
+    <button class="lock-key" data-k="3"><span class="lock-key-num">3</span><span class="lock-key-sub">DEF</span></button>
+    <button class="lock-key" data-k="4"><span class="lock-key-num">4</span><span class="lock-key-sub">GHI</span></button>
+    <button class="lock-key" data-k="5"><span class="lock-key-num">5</span><span class="lock-key-sub">JKL</span></button>
+    <button class="lock-key" data-k="6"><span class="lock-key-num">6</span><span class="lock-key-sub">MNO</span></button>
+    <button class="lock-key" data-k="7"><span class="lock-key-num">7</span><span class="lock-key-sub">PQRS</span></button>
+    <button class="lock-key" data-k="8"><span class="lock-key-num">8</span><span class="lock-key-sub">TUV</span></button>
+    <button class="lock-key" data-k="9"><span class="lock-key-num">9</span><span class="lock-key-sub">WXYZ</span></button>
     <div></div>
-    <button class="lock-key" data-k="0">0</button>
-    <button class="lock-key lock-key-del" id="lock-del">⌫</button>
+    <button class="lock-key" data-k="0"><span class="lock-key-num">0</span></button>
+    <button class="lock-key-del" id="lock-del">Видалити</button>
   </div>
 </div>
 
@@ -454,7 +457,7 @@ button,input,select,textarea{font-family:inherit}
 
     <!-- Статистика -->
     <div class="stats-row">
-      <div class="stat-card stat-big" style="--accent:var(--green)">
+      <div class="stat-card stat-big">
         <span class="stat-icon" id="ic-salary"></span>
         <div class="stat-label">Зароблено цього місяця</div>
         <div class="stat-val" id="total-salary">0 грн</div>
@@ -463,25 +466,25 @@ button,input,select,textarea{font-family:inherit}
           <div class="salary-bar-label" id="salary-bar-label">Ціль: 20 000 грн</div>
         </div>
       </div>
-      <div class="stat-card" style="--accent:var(--purple2)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-hours"></span>
         <div class="stat-label">Годин відпрацьовано</div>
         <div class="stat-val" id="total-hours">0</div>
         <div class="stat-sub" id="night-hours">нічних: 0 год</div>
       </div>
-      <div class="stat-card" style="--accent:var(--blue)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-day"></span>
         <div class="stat-label">Денних змін</div>
         <div class="stat-val" id="count-day" style="color:var(--blue2)">0</div>
         <div class="stat-sub" id="count-day1900-sub">підвищена ставка: 0</div>
       </div>
-      <div class="stat-card" style="--accent:var(--purple)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-night"></span>
         <div class="stat-label">Нічних змін</div>
         <div class="stat-val" id="count-night" style="color:var(--purple2)">0</div>
         <div class="stat-sub" id="count-halfnight-sub">половинок: 0</div>
       </div>
-      <div class="stat-card" style="--accent:var(--orange)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-vacation"></span>
         <div class="stat-label">Вихідних</div>
         <div class="stat-val" id="count-vacation" style="color:var(--orange2)">0</div>
@@ -544,22 +547,22 @@ button,input,select,textarea{font-family:inherit}
 
     <!-- Баланси -->
     <div class="stats-row">
-      <div class="stat-card stat-big" style="--accent:var(--purple)">
+      <div class="stat-card stat-big">
         <span class="stat-icon" id="ic-total-balance"></span>
         <div class="stat-label">Загальний баланс</div>
         <div class="stat-val" id="fin-balance" style="font-size:26px">0 грн</div>
       </div>
-      <div class="stat-card" style="--accent:var(--purple2)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-card-main"></span>
         <div class="stat-label">Основна картка</div>
         <div class="stat-val" id="balance-wallet-main" style="color:var(--purple2)">0 грн</div>
       </div>
-      <div class="stat-card" style="--accent:var(--red)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-card-pumb"></span>
         <div class="stat-label">Картка ПУМБ</div>
         <div class="stat-val" id="balance-wallet-pumb" style="color:#ff7b6b">0 грн</div>
       </div>
-      <div class="stat-card" style="--accent:var(--orange)">
+      <div class="stat-card">
         <span class="stat-icon" id="ic-cash"></span>
         <div class="stat-label">Готівка</div>
         <div class="stat-val" id="balance-wallet-cash" style="color:var(--orange2)">0 грн</div>
@@ -771,7 +774,7 @@ button,input,select,textarea{font-family:inherit}
     var dw=$('lock-dots');
     dw.classList.add('lock-shake');
     $('lock-sub').textContent='Невірний код. Спробуйте ще раз';
-    setTimeout(function(){dw.classList.remove('lock-shake'); input=''; renderDots(); $('lock-sub').textContent='Введіть код доступу';},420);
+    setTimeout(function(){dw.classList.remove('lock-shake'); input=''; renderDots(); $('lock-sub').textContent='Введіть PIN для входу';},420);
   }
   function press(k){
     if(input.length>=4) return;
