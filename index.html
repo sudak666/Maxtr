@@ -337,7 +337,20 @@ button,input,select,textarea{font-family:inherit}
 }
 .chk-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--row-color,var(--purple))}
 .chk-row:hover{border-color:var(--border2);background:var(--bg3)}
-.chk-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer;flex-shrink:0}
+.chk-row input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  border:2px solid var(--border2);background:var(--bg1);
+  position:relative;transition:all .15s;
+}
+.chk-row input[type=checkbox]:checked{
+  background:var(--row-color,var(--purple));border-color:var(--row-color,var(--purple));
+}
+.chk-row input[type=checkbox]:checked::after{
+  content:'';position:absolute;left:50%;top:46%;width:5px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;
+  transform:translate(-50%,-50%) rotate(45deg);
+}
 .chk-label{display:flex;flex-direction:column;gap:2px}
 .chk-name{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)}
 .chk-name .ico{color:var(--row-color,var(--purple))}
