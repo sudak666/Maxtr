@@ -267,6 +267,7 @@ button,input,select,textarea{font-family:inherit}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
 .type-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
+.type-btn.active{background:var(--bg3);color:var(--text-strong);box-shadow:inset 0 0 0 1px var(--border2)}
 .type-btn.active.inc{background:rgba(16,185,129,.15);color:var(--green2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.3)}
 .type-btn.active.exp{background:rgba(239,68,68,.15);color:var(--red2);box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
 .type-btn.active.trn{background:rgba(59,130,246,.15);color:var(--blue2);box-shadow:inset 0 0 0 1px rgba(59,130,246,.3)}
@@ -390,6 +391,23 @@ button,input,select,textarea{font-family:inherit}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
+/* ── MANAGER MODALS (shift types / wallets / categories) ── */
+.mgr-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding-right:2px}
+.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:16px}
+.mgr-row input[type=text],.mgr-row input[type=number]{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0}
+.mgr-row input:focus{border-color:var(--purple)}
+.mgr-name{flex:1 1 100%}
+.mgr-num{flex:1 1 90px;width:90px}
+.mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;background:none;cursor:pointer;flex:0 0 auto}
+.mgr-color::-webkit-color-swatch{border:none;border-radius:8px}
+.mgr-color::-webkit-color-swatch-wrapper{padding:2px}
+.mgr-field{display:flex;flex-direction:column;gap:3px}
+.mgr-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
+.mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:7px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+.mgr-del .ico{margin-right:0;width:16px;height:16px}
+.mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
+.mgr-empty{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:20px}
+
 /* ── TOAST ── */
 #toast{
   position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
@@ -474,7 +492,7 @@ button,input,select,textarea{font-family:inherit}
   <div class="tabs" style="margin-top:18px">
     <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
     <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
-    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Борг</span></button>
+    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Розрахунки</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -499,24 +517,18 @@ button,input,select,textarea{font-family:inherit}
         <span class="stat-icon" id="ic-hours"></span>
         <div class="stat-label">Годин відпрацьовано</div>
         <div class="stat-val" id="total-hours">0</div>
-        <div class="stat-sub" id="night-hours">нічних: 0 год</div>
+        <div class="stat-sub">цього місяця</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-day"></span>
-        <div class="stat-label">Денних змін</div>
-        <div class="stat-val" id="count-day" style="color:var(--blue2)">0</div>
-        <div class="stat-sub" id="count-day1900-sub">підвищена ставка: 0</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-night"></span>
-        <div class="stat-label">Нічних змін</div>
-        <div class="stat-val" id="count-night" style="color:var(--purple2)">0</div>
-        <div class="stat-sub" id="count-halfnight-sub">половинок: 0</div>
+        <div class="stat-label">Змін</div>
+        <div class="stat-val" id="count-shifts" style="color:var(--blue2)">0</div>
+        <div class="stat-sub">робочих днів</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-vacation"></span>
         <div class="stat-label">Вихідних</div>
-        <div class="stat-val" id="count-vacation" style="color:var(--orange2)">0</div>
+        <div class="stat-val" id="count-off" style="color:var(--orange2)">0</div>
         <div class="stat-sub">позначених</div>
       </div>
     </div>
@@ -530,14 +542,15 @@ button,input,select,textarea{font-family:inherit}
     <!-- Інструменти -->
     <div class="tools-panel">
       <div class="tools-label"><span id="ic-bolt"></span>Швидке заповнення</div>
-      <select id="template-type" class="tool-select">
-        <option value="every_day">Щодня — Денна (стандартна ставка)</option>
-        <option value="every_day1900">Щодня — Денна (підвищена ставка)</option>
-        <option value="day_off">День через день (стандартна ставка)</option>
-        <option value="day_night_48">День / Ніч / 48 год вихідний</option>
-        <option value="two_two">2 дні / 2 ночі / 4 вихідних</option>
+      <select id="template-shift" class="tool-select"></select>
+      <select id="template-pattern" class="tool-select">
+        <option value="every">Щодня</option>
+        <option value="alt">День через день</option>
+        <option value="2_2">2 через 2</option>
+        <option value="3_3">3 через 3</option>
       </select>
       <button class="btn btn-primary" onclick="applyTemplate()">Застосувати</button>
+      <button class="btn btn-ghost" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span>Типи змін</button>
       <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span>Очистити місяць</button>
     </div>
 
@@ -554,14 +567,7 @@ button,input,select,textarea{font-family:inherit}
         <div class="cal-hint">Натисни на день щоб редагувати зміни</div>
       </div>
 
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot b-day"></div>День</div>
-        <div class="leg-item"><div class="leg-dot b-day19"></div>День+</div>
-        <div class="leg-item"><div class="leg-dot b-night"></div>Ніч повна</div>
-        <div class="leg-item"><div class="leg-dot b-nh1"></div>Ніч рання</div>
-        <div class="leg-item"><div class="leg-dot b-nh2"></div>Ніч пізня</div>
-        <div class="leg-item"><div class="leg-dot b-vac"></div>Вихідний</div>
-      </div>
+      <div class="legend" id="shift-legend"></div>
 
       <div class="cal-grid" id="calendar-grid"></div>
     </div>
@@ -575,27 +581,10 @@ button,input,select,textarea{font-family:inherit}
     </div>
 
     <!-- Баланси -->
-    <div class="stats-row">
-      <div class="stat-card stat-big">
-        <span class="stat-icon" id="ic-total-balance"></span>
-        <div class="stat-label">Загальний баланс</div>
-        <div class="stat-val" id="fin-balance" style="font-size:26px">0 грн</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-card-main"></span>
-        <div class="stat-label">Основна картка</div>
-        <div class="stat-val" id="balance-wallet-main" style="color:var(--purple2)">0 грн</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-card-pumb"></span>
-        <div class="stat-label">Картка ПУМБ</div>
-        <div class="stat-val" id="balance-wallet-pumb" style="color:#ff7b6b">0 грн</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-cash"></span>
-        <div class="stat-label">Готівка</div>
-        <div class="stat-val" id="balance-wallet-cash" style="color:var(--orange2)">0 грн</div>
-      </div>
+    <div class="stats-row" id="fin-balances"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin:-8px 0 16px">
+      <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
+      <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
     </div>
 
     <!-- Графік витрат по місяцях -->
@@ -615,19 +604,11 @@ button,input,select,textarea{font-family:inherit}
         </div>
         <div class="fg">
           <label id="wallet-source-label">Гаманець</label>
-          <select id="fin-wallet">
-            <option value="main">Основна картка</option>
-            <option value="pumb">Картка ПУМБ</option>
-            <option value="cash">Готівка</option>
-          </select>
+          <select id="fin-wallet"></select>
         </div>
         <div class="fg" id="wallet-target-group" style="display:none">
           <label>Куди переказати</label>
-          <select id="fin-wallet-target">
-            <option value="main">Основна картка</option>
-            <option value="pumb" selected>Картка ПУМБ</option>
-            <option value="cash">Готівка</option>
-          </select>
+          <select id="fin-wallet-target"></select>
         </div>
         <div class="fg">
           <label>Сума (грн)</label>
@@ -665,11 +646,11 @@ button,input,select,textarea{font-family:inherit}
     </div>
   </div>
 
-  <!-- ═══ БОРГ ═══ -->
+  <!-- ═══ РОЗРАХУНКИ ═══ -->
   <div id="tab-debt" style="display:none">
     <div class="page-head">
-      <div class="page-label">Облік боргу</div>
-      <div class="page-title">Борг</div>
+      <div class="page-label">Облік розрахунків</div>
+      <div class="page-title">Розрахунки</div>
     </div>
 
     <div class="debt-chips" id="debt-chips"></div>
@@ -698,10 +679,10 @@ button,input,select,textarea{font-family:inherit}
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
-      <div class="fin-form-title"><span id="ic-debt-info"></span>Дані боргу</div>
+      <div class="fin-form-title"><span id="ic-debt-info"></span>Дані розрахунку</div>
       <div class="fg">
-        <label>Назва боргу</label>
-        <input type="text" id="debt-name" placeholder="Назва боргу" onchange="updateDebtInfo()">
+        <label>Назва</label>
+        <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" onchange="updateDebtInfo()">
       </div>
       <div class="fg">
         <label>Нотатка</label>
@@ -721,7 +702,7 @@ button,input,select,textarea{font-family:inherit}
         <label>Початкова сума</label>
         <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
       </div>
-      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()">Видалити цей борг</button>
+      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()">Видалити цей розрахунок</button>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
@@ -760,36 +741,53 @@ button,input,select,textarea{font-family:inherit}
       <div class="modal-icon" id="ic-modal-cal"></div>
       <div class="modal-date" id="modal-date-title">Оберіть зміни</div>
     </div>
-    <div class="conflict-box" id="conflict-alert"><span id="ic-warning"></span>Конфлікт вибору змін!</div>
-    <div class="modal-opts">
-      <label class="chk-row" style="--row-color:var(--blue)">
-        <input type="checkbox" id="chk-day" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-day"></span>Денна зміна</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
-      </label>
-      <label class="chk-row" style="--row-color:var(--green)">
-        <input type="checkbox" id="chk-day1900" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-day19"></span>Денна (підвищена ставка)</div><div class="chk-desc">07:00–19:00 · 12 год</div></div>
-      </label>
-      <label class="chk-row" style="--row-color:var(--purple2)">
-        <input type="checkbox" id="chk-night" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-night"></span>Нічна повна</div><div class="chk-desc">19:00–07:00 · 12 год</div></div>
-      </label>
-      <label class="chk-row" style="--row-color:var(--pink)">
-        <input type="checkbox" id="chk-night-h1" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-h1"></span>Ніч — рання половина</div><div class="chk-desc">19:00–01:00 · 6 год</div></div>
-      </label>
-      <label class="chk-row" style="--row-color:var(--cyan)">
-        <input type="checkbox" id="chk-night-h2" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-h2"></span>Ніч — пізня половина</div><div class="chk-desc">01:00–07:00 · 6 год</div></div>
-      </label>
-      <label class="chk-row" style="--row-color:var(--orange)">
-        <input type="checkbox" id="chk-vacation" onchange="validateModalSelection()">
-        <div class="chk-label"><div class="chk-name"><span id="ic-chk-vac"></span>Вихідний день</div><div class="chk-desc">Відпочинок</div></div>
-      </label>
-    </div>
+    <div class="modal-opts" id="modal-opts"></div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal()">Скасувати</button>
       <button class="modal-save" id="btn-save" onclick="saveModalSelection()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER: SHIFT TYPES -->
+<div class="modal-overlay" id="shift-types-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Типи змін</div></div>
+    <div class="mgr-list" id="shift-types-list"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addShiftType()"><span id="ic-add-st"></span>Додати тип зміни</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER: WALLETS -->
+<div class="modal-overlay" id="wallets-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Гаманці</div></div>
+    <div class="mgr-list" id="wallets-list"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span>Додати гаманець</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER: CATEGORIES -->
+<div class="modal-overlay" id="categories-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Категорії</div></div>
+    <div class="type-seg" style="margin-bottom:12px">
+      <button class="type-btn active" id="catmgr-inc" onclick="setCatMgrType('income')">Дохід</button>
+      <button class="type-btn" id="catmgr-exp" onclick="setCatMgrType('expense')">Витрата</button>
+    </div>
+    <div class="mgr-list" id="categories-list"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span>Додати категорію</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
     </div>
   </div>
 </div>
@@ -835,7 +833,9 @@ button,input,select,textarea{font-family:inherit}
     briefcase:'<rect x="3" y="7.5" width="18" height="12" rx="2.2"/><path d="M8 7.5V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/>',
     person:'<circle cx="12" cy="8" r="3.3"/><path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3"/>',
     box:'<path d="M3 8 12 4l9 4-9 4-9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>',
-    logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
+    logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+    tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
+    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -864,25 +864,19 @@ button,input,select,textarea{font-family:inherit}
   setIcon('ic-salary','banknote');
   setIcon('ic-hours','clock');
   setIcon('ic-day','sun');
-  setIcon('ic-night','moon');
   setIcon('ic-vacation','umbrella');
   setIcon('ic-trend','trendUp');
   setIcon('ic-bolt','bolt');
+  setIcon('ic-shift-types','gear');
   setIcon('ic-trash-month','trash');
-  setIcon('ic-total-balance','coin');
-  setIcon('ic-card-main','card');
-  setIcon('ic-card-pumb','card');
-  setIcon('ic-cash','banknote');
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-modal-cal','calendar');
-  setIcon('ic-warning','warning');
-  setIcon('ic-chk-day','sun');
-  setIcon('ic-chk-day19','sunFill');
-  setIcon('ic-chk-night','moon');
-  setIcon('ic-chk-h1','clock');
-  setIcon('ic-chk-h2','clock');
-  setIcon('ic-chk-vac','umbrella');
+  setIcon('ic-manage-wallets','wallet');
+  setIcon('ic-manage-cats','tag');
+  setIcon('ic-add-st','plus');
+  setIcon('ic-add-w','plus');
+  setIcon('ic-add-cat','plus');
 
   function $(id){return document.getElementById(id);}
 
@@ -935,9 +929,18 @@ let txFilter = 'all';
 let fbTimer = null;
 const SALARY_GOAL = 20000;
 
-// Each signed-in user starts with their own empty debt list — data is
-// scoped to their account (users/{uid}/...), never shared or pre-filled.
+// User-configurable settings — seeded once per account (see migrateConfig).
+// shiftTypes: [{id,name,short,color,amount,hours,isOff}]
+// wallets:    [{id,name,color,icon}]
+// categories: {income:[names], expense:[names]}
+let shiftTypes = [];
+let wallets = [];
+let categories = {income:[], expense:[]};
+
+// Each signed-in user starts with their own empty list — data is scoped to
+// their account (users/{uid}/...), never shared or pre-filled.
 const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
+const PALETTE = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
 let debts = [];
 let currentDebtId = null;
 
@@ -945,21 +948,47 @@ let currentDebtId = null;
 const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 const MONTHS_SHORT = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
 const WEEKDAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
-const CATS = {
-  income:  ['Зарплата','Аванс','Підробіток','Повернення боргу','Інше'],
-  expense: ['Алла','Син','Цигарки','Кава','Фастфуд','Борг','Кредит','Продукти','Транспорт','Комуналка','Покупки','Інше'],
-};
+
+// Fallback icons for well-known category names; user-made ones use 'tag'.
 const CAT_ICON = {
   'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'coin','Інше':'box',
-  'Алла':'person','Син':'person','Цигарки':'cigarette','Кава':'coffee','Фастфуд':'burger',
-  'Борг':'card','Кредит':'bank','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
-  'Внутрішній переказ':'swap',
+  'Кава':'coffee','Кафе':'coffee','Фастфуд':'burger','Розваги':'gift',
+  'Кредит':'bank','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
+  'Здоров\'я':'coin','Внутрішній переказ':'swap',
 };
-const WALLETS = {
-  main:{text:'Основна',cls:'wt-main',icon:'card'},
-  pumb:{text:'ПУМБ',   cls:'wt-pumb',icon:'card'},
-  cash:{text:'Готівка', cls:'wt-cash',icon:'banknote'},
+
+// LEGACY_* reproduce the app's original hardcoded behaviour 1:1 — used to
+// migrate existing accounts so their calendar/earnings stay identical.
+const LEGACY_SHIFT_TYPES = [
+  {id:'day',         name:'Денна зміна',          short:'День', color:'#3b82f6', amount:1000, hours:12},
+  {id:'day1900',     name:'Денна (підвищена)',    short:'День+',color:'#10b981', amount:1900, hours:12},
+  {id:'night',       name:'Нічна повна',          short:'Ніч',  color:'#8b5cf6', amount:900,  hours:12},
+  {id:'night_half1', name:'Ніч рання',            short:'НічР', color:'#ec4899', amount:450,  hours:6},
+  {id:'night_half2', name:'Ніч пізня',            short:'НічП', color:'#06b6d4', amount:450,  hours:6},
+  {id:'vacation',    name:'Вихідний',             short:'Вих',  color:'#f59e0b', amount:0,    hours:0, isOff:true},
+];
+const LEGACY_WALLETS = [
+  {id:'main',name:'Основна картка',color:'#8b5cf6',icon:'card'},
+  {id:'pumb',name:'Картка ПУМБ',   color:'#ef4444',icon:'card'},
+  {id:'cash',name:'Готівка',        color:'#f59e0b',icon:'banknote'},
+];
+// DEFAULT_* — generic starters for brand-new accounts.
+const DEFAULT_SHIFT_TYPES = [
+  {id:'st_day',   name:'Денна зміна', short:'День', color:'#3b82f6', amount:0, hours:8},
+  {id:'st_night', name:'Нічна зміна', short:'Ніч',  color:'#8b5cf6', amount:0, hours:12},
+  {id:'st_off',   name:'Вихідний',    short:'Вих',  color:'#f59e0b', amount:0, hours:0, isOff:true},
+];
+const DEFAULT_WALLETS = [
+  {id:'w_card',name:'Картка', color:'#8b5cf6',icon:'card'},
+  {id:'w_cash',name:'Готівка',color:'#f59e0b',icon:'banknote'},
+];
+const DEFAULT_CATEGORIES = {
+  income:  ['Зарплата','Аванс','Підробіток','Інше'],
+  expense: ['Продукти','Кафе','Транспорт','Покупки','Комуналка','Здоров\'я','Розваги','Інше'],
 };
+
+function shiftType(id){ return shiftTypes.find(t=>t.id===id); }
+function walletById(id){ return wallets.find(w=>w.id===id); }
 
 // ── FIREBASE ──────────────────────────────────────────────────
 // All cloud data lives under users/{uid}/max_tracker/{doc} so accounts
@@ -1008,8 +1037,8 @@ async function fbSaveNow(){
     }
     const now=Date.now();
     await Promise.all([
-      setDoc(userDoc('shifts'),  {data:shifts, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1035,14 +1064,46 @@ function normalizeDebtData(raw){
   return null;
 }
 
+// One-time: seed the editable config (shift types, wallets, categories)
+// for an account that predates it. LEGACY_* reproduce the old hardcoded
+// behaviour exactly for accounts that already have data, so nothing
+// changes visibly; brand-new accounts get generic DEFAULT_* starters.
+// Records themselves (shifts/transactions/debts) are never rewritten.
+// Returns true if anything was seeded (caller then persists + backs up).
+function seedConfigFromDocs(sData, fData){
+  let seeded=false;
+  const hasData = Object.keys(shifts).length>0 || transactions.length>0 || (debts&&debts.length>0);
+  if(Array.isArray(sData&&sData.shiftTypes) && sData.shiftTypes.length){
+    shiftTypes=sData.shiftTypes;
+  }else{
+    shiftTypes=(hasData?LEGACY_SHIFT_TYPES:DEFAULT_SHIFT_TYPES).map(t=>({...t}));
+    seeded=true;
+  }
+  if(Array.isArray(fData&&fData.wallets) && fData.wallets.length){
+    wallets=fData.wallets;
+  }else{
+    wallets=(hasData?LEGACY_WALLETS:DEFAULT_WALLETS).map(w=>({...w}));
+    seeded=true;
+  }
+  if(fData&&fData.categories&&(fData.categories.income||fData.categories.expense)){
+    categories={income:fData.categories.income||[], expense:fData.categories.expense||[]};
+  }else{
+    categories={income:[...DEFAULT_CATEGORIES.income], expense:[...DEFAULT_CATEGORIES.expense]};
+    seeded=true;
+  }
+  return seeded;
+}
+
 async function fbLoadNow(){
   if(!currentUser) return;
   fbSetStatus('loading','Завантажую...');
   try{
     const [sS,fS,dS]=await Promise.all([getDoc(userDoc('shifts')),getDoc(userDoc('finance')),getDoc(userDoc('debt'))]);
-    shifts=sS.exists()?(sS.data().data||{}):{};
+    const sData=sS.exists()?sS.data():null;
+    const fData=fS.exists()?fS.data():null;
+    shifts=sData?(sData.data||{}):{};
     const sk=lsKey('shifts'); if(sk) localStorage.setItem(sk,JSON.stringify(shifts));
-    transactions=fS.exists()?(fS.data().data||[]):[];
+    transactions=fData?(fData.data||[]):[];
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
     if(dS.exists()){
       const norm=normalizeDebtData(dS.data().data);
@@ -1051,6 +1112,8 @@ async function fbLoadNow(){
       debts=[]; currentDebtId=null;
     }
     saveDebtLocal();
+    const seeded=seedConfigFromDocs(sData, fData);
+    saveConfigLocal();
     lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
       finance: fS.exists()?(fS.data().updatedAt||0):0,
@@ -1059,6 +1122,17 @@ async function fbLoadNow(){
     fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
     showToast('Дані оновлено','sparkle');
+    // Persist newly-seeded config, keeping a one-time raw backup first so
+    // the original docs can always be recovered if anything looks wrong.
+    if(seeded){
+      try{
+        await setDoc(userDoc('backup_v2'), {
+          shifts:sData||null, finance:fData||null,
+          debt:dS.exists()?dS.data():null, at:Date.now()
+        }, {merge:false});
+      }catch(be){ console.error('backup failed', be); }
+      await fbSaveNow();
+    }
   }catch(e){
     console.error(e);
     fbSetStatus('error','Офлайн');
@@ -1078,6 +1152,10 @@ function saveLocal(){
 
 function saveDebtLocal(){
   const k=lsKey('debt'); if(k) localStorage.setItem(k, JSON.stringify({debts, currentDebtId}));
+}
+
+function saveConfigLocal(){
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1208,7 +1286,7 @@ window.deleteAccountUser=async function(){
       return;
     }
   }
-  ['shifts','tx','debt'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+  ['shifts','tx','debt','cfg'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
   showToast('Акаунт видалено','trash');
 };
 
@@ -1259,6 +1337,12 @@ async function init(){
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
   try{const k=lsKey('tx'); const t=k&&localStorage.getItem(k); if(t) transactions=JSON.parse(t);}catch{}
   try{const k=lsKey('debt'); const d=k&&localStorage.getItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
+  // Config cache (shift types / wallets / categories); seed sane defaults
+  // if none cached yet so the first render before cloud load doesn't break.
+  let cfgCached=false;
+  try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; cfgCached=true;}}}catch{}
+  if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
@@ -1291,6 +1375,15 @@ const HTML_ESCAPES={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>HTML_ESCAPES[c]);
 }
+// Hex colour (#rgb or #rrggbb) → rgba() string with the given alpha, for
+// tinted badges/tags built from user-chosen colours.
+function hexA(hex, a){
+  let h=String(hex||'#8b5cf6').replace('#','');
+  if(h.length===3) h=h.split('').map(c=>c+c).join('');
+  const n=parseInt(h,16);
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return `rgba(${r},${g},${b},${a})`;
+}
 
 // ── TOAST ─────────────────────────────────────────────────────
 function showToast(msg, icon){
@@ -1318,36 +1411,48 @@ function goToday(){
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
+// Checkboxes are built from the user's shiftTypes so any custom type
+// (name/colour/pay/hours) appears here automatically.
+function renderShiftModalOptions(selectedIds){
+  const box=document.getElementById('modal-opts');
+  if(!box) return;
+  box.innerHTML='';
+  if(!shiftTypes.length){
+    box.innerHTML=`<div class="chk-desc" style="text-align:center;padding:8px">Немає типів змін. Додай їх кнопкою «Типи змін».</div>`;
+    return;
+  }
+  shiftTypes.forEach(t=>{
+    const checked=selectedIds.includes(t.id)?'checked':'';
+    const desc=t.isOff?'Відпочинок':`${t.amount?t.amount.toLocaleString('uk-UA')+' грн':'—'}${t.hours?' · '+t.hours+' год':''}`;
+    const label=document.createElement('label');
+    label.className='chk-row';
+    label.style.setProperty('--row-color', t.color||'#8b5cf6');
+    label.innerHTML=`
+      <input type="checkbox" data-stid="${escapeHtml(t.id)}" ${checked}>
+      <div class="chk-label"><div class="chk-name">${escapeHtml(t.name)}</div><div class="chk-desc">${escapeHtml(desc)}</div></div>`;
+    box.appendChild(label);
+  });
+}
 function openModal(dateKey, day){
   selectedDateKey=dateKey;
   const mi=parseInt(document.getElementById('select-month').value);
   document.getElementById('modal-date-title').textContent=`${day} ${MONTHS[mi]}`;
-  const ids=['chk-day','chk-day1900','chk-night','chk-night-h1','chk-night-h2','chk-vacation'];
-  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
-  const ds=shifts[dateKey]||[];
-  const map={day:'chk-day',day1900:'chk-day1900',night:'chk-night',night_half1:'chk-night-h1',night_half2:'chk-night-h2',vacation:'chk-vacation'};
-  ds.forEach(s=>{const el=document.getElementById(map[s]);if(el)el.checked=true;});
-  validateModalSelection();
+  renderShiftModalOptions(shifts[dateKey]||[]);
   document.getElementById('shift-modal').style.display='flex';
 }
 function closeModal(){
   document.getElementById('shift-modal').style.display='none';
   selectedDateKey=null;
 }
-function validateModalSelection(){
-  const g=id=>{const el=document.getElementById(id);return el?el.checked:false;};
-  const d1=g('chk-day'),d2=g('chk-day1900'),n=g('chk-night'),h1=g('chk-night-h1'),h2=g('chk-night-h2'),v=g('chk-vacation');
-  if(v&&(d1||d2||n||h1||h2)){['chk-day','chk-day1900','chk-night','chk-night-h1','chk-night-h2'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});}
-  const conflict=(n&&(h1||h2))||(d1&&d2);
-  const ab=document.getElementById('conflict-alert'),sb=document.getElementById('btn-save');
-  ab.classList.toggle('show',conflict);
-  sb.disabled=conflict; sb.style.opacity=conflict?'.4':'1';
-}
+// Kept for the inline onchange handlers on dynamically-built checkboxes;
+// any combination of shift types is allowed now, so this is a no-op.
+function validateModalSelection(){}
 function saveModalSelection(){
   if(!selectedDateKey) return;
   const al=[];
-  const map={'chk-day':'day','chk-day1900':'day1900','chk-night':'night','chk-night-h1':'night_half1','chk-night-h2':'night_half2','chk-vacation':'vacation'};
-  Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&el.checked)al.push(v);});
+  document.querySelectorAll('#modal-opts input[type=checkbox]').forEach(el=>{
+    if(el.checked) al.push(el.getAttribute('data-stid'));
+  });
   if(al.length===0) delete shifts[selectedDateKey]; else shifts[selectedDateKey]=al;
   saveLocal(); scheduleSave(); closeModal(); renderCalendar(); renderIncomeChart();
 }
@@ -1356,6 +1461,14 @@ function saveModalSelection(){
 function renderCalendar(){
   const grid=document.getElementById('calendar-grid');
   if(!grid) return;
+  renderTemplateShiftOptions();
+  // Legend from current shift types
+  const leg=document.getElementById('shift-legend');
+  if(leg){
+    leg.innerHTML=shiftTypes.map(t=>
+      `<div class="leg-item"><div class="leg-dot" style="background:${hexA(t.color,.25)};border:1px solid ${hexA(t.color,.6)}"></div>${escapeHtml(t.name)}</div>`
+    ).join('');
+  }
   grid.innerHTML='';
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
@@ -1375,7 +1488,7 @@ function renderCalendar(){
   const total=new Date(y,m+1,0).getDate();
   for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='day-cell empty';grid.appendChild(e);}
 
-  let earn=0,hrs=0,nightHrs=0,cDay=0,cDay19=0,cNight=0,cNH=0,cVac=0;
+  let earn=0,hrs=0,cShifts=0,cOff=0;
 
   for(let d=1;d<=total;d++){
     const dk=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -1388,13 +1501,12 @@ function renderCalendar(){
     cell.className='day-cell'+(ds.length?' has-shifts':'')+(isToday?' today':'')+(isWeekend?' weekend-cell':'');
 
     let badges='';
-    ds.forEach(t=>{
-      if(t==='day')        {badges+=`<div class="badge b-day">День</div>`;   cDay++;  earn+=1000;hrs+=12;}
-      else if(t==='day1900'){badges+=`<div class="badge b-day19">День+</div>`;cDay19++;earn+=1900;hrs+=12;}
-      else if(t==='night') {badges+=`<div class="badge b-night">Ніч</div>`;  cNight++;earn+=900; hrs+=12;nightHrs+=8;}
-      else if(t==='night_half1'){badges+=`<div class="badge b-nh1">НічР</div>`;cNH++;earn+=450;hrs+=6;nightHrs+=3;}
-      else if(t==='night_half2'){badges+=`<div class="badge b-nh2">НічП</div>`;cNH++;earn+=450;hrs+=6;nightHrs+=5;}
-      else if(t==='vacation'){badges+=`<div class="badge b-vac">Вих</div>`;cVac++;}
+    ds.forEach(id=>{
+      const t=shiftType(id);
+      if(!t) return; // unknown/removed type — skip gracefully
+      badges+=`<div class="badge" style="background:${hexA(t.color,.2)};border:1px solid ${hexA(t.color,.5)};color:${t.color}">${escapeHtml(t.short||t.name)}</div>`;
+      earn+=t.amount||0; hrs+=t.hours||0;
+      if(t.isOff) cOff++; else cShifts++;
     });
 
     cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span>${isToday?'<span class="today-pip"></span>':''}</div>${badges}`;
@@ -1406,12 +1518,8 @@ function renderCalendar(){
   const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   S('total-salary',earn.toLocaleString('uk-UA')+' грн');
   S('total-hours',hrs);
-  S('night-hours','нічних: '+nightHrs+' год');
-  S('count-day',cDay);
-  S('count-day1900-sub','підвищена ставка: '+cDay19);
-  S('count-night',cNight);
-  S('count-halfnight-sub','половинок: '+cNH);
-  S('count-vacation',cVac);
+  S('count-shifts',cShifts);
+  S('count-off',cOff);
   // Progress bar
   const pct=Math.min(100,Math.round(earn/SALARY_GOAL*100));
   const bar=document.getElementById('salary-bar');
@@ -1437,12 +1545,7 @@ function renderIncomeChart(){
     const prefix=`${y}-${String(m+1).padStart(2,'0')}-`;
     Object.entries(shifts).forEach(([k,ds])=>{
       if(!k.startsWith(prefix)) return;
-      ds.forEach(t=>{
-        if(t==='day')earn+=1000;
-        else if(t==='day1900')earn+=1900;
-        else if(t==='night')earn+=900;
-        else if(t==='night_half1'||t==='night_half2')earn+=450;
-      });
+      ds.forEach(id=>{ const t=shiftType(id); if(t) earn+=t.amount||0; });
     });
     return earn;
   });
@@ -1515,25 +1618,219 @@ function clearCurrentMonth(){
   showToast('Місяць очищено','trash');
 }
 
+// Populates the quick-fill shift-type dropdown from the user's work types.
+function renderTemplateShiftOptions(){
+  const sel=document.getElementById('template-shift');
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML='';
+  shiftTypes.filter(t=>!t.isOff).forEach(t=>{
+    const o=document.createElement('option');
+    o.value=t.id; o.textContent=t.name;
+    sel.appendChild(o);
+  });
+  if(prev&&shiftTypes.some(t=>t.id===prev)) sel.value=prev;
+}
+
 function applyTemplate(){
-  const type=document.getElementById('template-type').value;
+  const typeId=document.getElementById('template-shift').value;
+  const pattern=document.getElementById('template-pattern').value;
+  if(!typeId){showToast('Спершу додай тип зміни','xmark');return;}
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
   const total=new Date(y,m+1,0).getDate();
-  if(!confirm('Заповнити місяць шаблоном?')) return;
+  if(!confirm('Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.')) return;
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   const dk=d=>`${p}${String(d).padStart(2,'0')}`;
-  if(type==='every_day')    for(let d=1;d<=total;d++) shifts[dk(d)]=['day'];
-  else if(type==='every_day1900') for(let d=1;d<=total;d++) shifts[dk(d)]=['day1900'];
-  else if(type==='day_off') for(let d=1;d<=total;d+=2) shifts[dk(d)]=['day'];
-  else if(type==='day_night_48'){let s=0;for(let d=1;d<=total;d++){if(s===0)shifts[dk(d)]=['day'];else if(s===1)shifts[dk(d)]=['night'];else shifts[dk(d)]=['vacation'];s=(s+1)%4;}}
-  else if(type==='two_two'){let s=0;for(let d=1;d<=total;d++){if(s<2)shifts[dk(d)]=['day'];else if(s<4)shifts[dk(d)]=['night'];else shifts[dk(d)]=['vacation'];s=(s+1)%8;}}
+  // on/off cycle length by pattern; "on" days get the chosen type, others stay empty
+  const cycles={every:[1,0], alt:[1,1], '2_2':[2,2], '3_3':[3,3]};
+  const [on,off]=cycles[pattern]||cycles.every;
+  const period=on+off;
+  for(let d=1;d<=total;d++){
+    if(((d-1)%period)<on) shifts[dk(d)]=[typeId];
+  }
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
   showToast('Шаблон застосовано','bolt');
 }
 
+// ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
+window.closeManagers=function(e){
+  if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
+  ['shift-types-modal','wallets-modal','categories-modal'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+};
+function closeManagers(e){ window.closeManagers(e); }
+function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+// Shift types --------------------------------------------------
+window.openShiftTypesManager=function(){
+  renderShiftTypesList();
+  document.getElementById('shift-types-modal').style.display='flex';
+};
+function renderShiftTypesList(){
+  const box=document.getElementById('shift-types-list'); if(!box) return;
+  box.innerHTML='';
+  if(!shiftTypes.length){ box.innerHTML='<div class="mgr-empty">Немає типів змін</div>'; return; }
+  shiftTypes.forEach(t=>{
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateShiftType('${t.id}','color',this.value)">
+      <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="Назва" onchange="updateShiftType('${t.id}','name',this.value)">
+      <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
+      <div class="mgr-field"><span class="mgr-field-label">Оплата, грн</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
+      <div class="mgr-field"><span class="mgr-field-label">Години</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
+      <label class="mgr-field" style="flex-direction:row;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
+        <input type="checkbox" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)" style="width:18px;height:18px"> вихідний
+      </label>`;
+    box.appendChild(row);
+  });
+}
+window.updateShiftType=function(id,field,value){
+  const t=shiftType(id); if(!t) return;
+  if(field==='amount'||field==='hours') t[field]=parseFloat(value)||0;
+  else if(field==='isOff') t.isOff=!!value;
+  else if(field==='name'){ t.name=String(value).trim()||'Зміна'; t.short=t.name.slice(0,4); }
+  else t[field]=value;
+  saveConfigLocal(); scheduleSave();
+  renderCalendar(); renderIncomeChart();
+};
+window.addShiftType=function(){
+  const name=prompt('Назва типу зміни:','Нова зміна');
+  if(name===null) return;
+  const color=PALETTE[shiftTypes.length%PALETTE.length];
+  shiftTypes.push({id:uid('st'), name:name.trim()||'Нова зміна', short:(name.trim()||'Зміна').slice(0,4), color, amount:0, hours:8});
+  saveConfigLocal(); scheduleSave();
+  renderShiftTypesList(); renderCalendar(); renderIncomeChart();
+};
+window.deleteShiftType=function(id){
+  if(!confirm('Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.')) return;
+  shiftTypes=shiftTypes.filter(t=>t.id!==id);
+  // strip the id from any calendar days so counts stay correct
+  Object.keys(shifts).forEach(k=>{
+    shifts[k]=shifts[k].filter(x=>x!==id);
+    if(!shifts[k].length) delete shifts[k];
+  });
+  saveConfigLocal(); saveLocal(); scheduleSave();
+  renderShiftTypesList(); renderCalendar(); renderIncomeChart();
+};
+
+// Wallets ------------------------------------------------------
+window.openWalletsManager=function(){
+  renderWalletsList();
+  document.getElementById('wallets-modal').style.display='flex';
+};
+function walletInUse(id){ return transactions.some(t=>t.wallet===id||t.targetWallet===id); }
+function renderWalletsList(){
+  const box=document.getElementById('wallets-list'); if(!box) return;
+  box.innerHTML='';
+  if(!wallets.length){ box.innerHTML='<div class="mgr-empty">Немає гаманців</div>'; return; }
+  wallets.forEach(w=>{
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <input type="color" class="mgr-color" value="${escapeHtml(w.color||'#8b5cf6')}" onchange="updateWallet('${w.id}','color',this.value)">
+      <input type="text" class="mgr-name" value="${escapeHtml(w.name)}" placeholder="Назва" onchange="updateWallet('${w.id}','name',this.value)">
+      <button class="mgr-del" onclick="deleteWallet('${w.id}')">${window.Icon('trash')}</button>`;
+    box.appendChild(row);
+  });
+}
+window.updateWallet=function(id,field,value){
+  const w=walletById(id); if(!w) return;
+  if(field==='name') w.name=String(value).trim()||'Гаманець';
+  else w[field]=value;
+  saveConfigLocal(); scheduleSave();
+  renderFinance(); refreshWalletSelects();
+};
+window.addWallet=function(){
+  const name=prompt('Назва гаманця:','Новий гаманець');
+  if(name===null) return;
+  const color=PALETTE[wallets.length%PALETTE.length];
+  wallets.push({id:uid('w'), name:name.trim()||'Новий гаманець', color, icon:'card'});
+  saveConfigLocal(); scheduleSave();
+  renderWalletsList(); renderFinance(); refreshWalletSelects();
+};
+window.deleteWallet=function(id){
+  if(wallets.length<=1){ showToast('Має лишитись хоча б один гаманець','xmark'); return; }
+  if(walletInUse(id)){ showToast('Гаманець використовується в операціях','xmark'); return; }
+  if(!confirm('Видалити цей гаманець?')) return;
+  wallets=wallets.filter(w=>w.id!==id);
+  saveConfigLocal(); scheduleSave();
+  renderWalletsList(); renderFinance(); refreshWalletSelects();
+};
+
+// Categories ---------------------------------------------------
+let catMgrType='expense';
+window.openCategoriesManager=function(){
+  catMgrType='expense'; setCatMgrType('expense');
+  document.getElementById('categories-modal').style.display='flex';
+};
+window.setCatMgrType=function(type){
+  catMgrType=type;
+  document.getElementById('catmgr-inc').classList.toggle('active',type==='income');
+  document.getElementById('catmgr-exp').classList.toggle('active',type==='expense');
+  renderCategoriesList();
+};
+function renderCategoriesList(){
+  const box=document.getElementById('categories-list'); if(!box) return;
+  box.innerHTML='';
+  const list=categories[catMgrType]||[];
+  if(!list.length){ box.innerHTML='<div class="mgr-empty">Немає категорій</div>'; return; }
+  list.forEach((name,idx)=>{
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <input type="text" class="mgr-name" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
+      <button class="mgr-del" onclick="deleteCategory(${idx})">${window.Icon('trash')}</button>`;
+    box.appendChild(row);
+  });
+}
+window.renameCategory=function(idx,value){
+  const list=categories[catMgrType]; if(!list||!list[idx]) return;
+  const oldName=list[idx];
+  const newName=String(value).trim();
+  if(!newName){ renderCategoriesList(); return; }
+  list[idx]=newName;
+  // keep existing transactions consistent with the rename
+  transactions.forEach(t=>{ if(t.type===catMgrType && t.category===oldName) t.category=newName; });
+  saveConfigLocal();
+  const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
+  scheduleSave();
+  renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
+};
+window.addCategory=function(){
+  const name=prompt('Назва категорії:','');
+  if(name===null) return;
+  const clean=name.trim(); if(!clean) return;
+  if(!categories[catMgrType]) categories[catMgrType]=[];
+  if(categories[catMgrType].includes(clean)){ showToast('Така категорія вже є','xmark'); return; }
+  categories[catMgrType].push(clean);
+  saveConfigLocal(); scheduleSave();
+  renderCategoriesList(); fillCats(currentFinanceType);
+};
+window.deleteCategory=function(idx){
+  const list=categories[catMgrType]; if(!list||list[idx]===undefined) return;
+  if(!confirm('Видалити категорію? Старі операції збережуть свою назву.')) return;
+  list.splice(idx,1);
+  saveConfigLocal(); scheduleSave();
+  renderCategoriesList(); fillCats(currentFinanceType);
+};
+
 // ── FINANCE ───────────────────────────────────────────────────
+// Rebuilds the wallet dropdowns from the user's wallets, keeping the
+// current selection where possible.
+function refreshWalletSelects(){
+  ['fin-wallet','fin-wallet-target'].forEach((selId,i)=>{
+    const sel=document.getElementById(selId); if(!sel) return;
+    const prev=sel.value;
+    sel.innerHTML='';
+    wallets.forEach(w=>{const o=document.createElement('option');o.value=w.id;o.textContent=w.name;sel.appendChild(o);});
+    if(prev&&wallets.some(w=>w.id===prev)) sel.value=prev;
+    else if(selId==='fin-wallet-target'&&wallets[1]) sel.value=wallets[1].id;
+  });
+}
 function setFinanceType(t){
   currentFinanceType=t;
   ['inc','exp','trn'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('active'));
@@ -1541,14 +1838,17 @@ function setFinanceType(t){
   const wsl=document.getElementById('wallet-source-label');
   const tg=document.getElementById('wallet-target-group');
   const cg=document.getElementById('category-group');
+  refreshWalletSelects();
   if(t==='income')  {if(wsl)wsl.textContent='Гаманець';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
   if(t==='expense') {if(wsl)wsl.textContent='Звідки списати';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
   if(t==='transfer'){if(wsl)wsl.textContent='Звідки переказати';if(tg)tg.style.display='flex';if(cg)cg.style.display='none';}
 }
 function fillCats(type){
   const sel=document.getElementById('fin-category');if(!sel)return;
+  const prev=sel.value;
   sel.innerHTML='';
-  CATS[type].forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  (categories[type]||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  if(prev&&(categories[type]||[]).includes(prev)) sel.value=prev;
 }
 
 function addTransaction(){
@@ -1557,8 +1857,8 @@ function addTransaction(){
   if(isNaN(amount)||amount<=0){showToast('Введіть коректну суму','xmark');return;}
   const date=document.getElementById('fin-date')?.value;
   if(!date){showToast('Оберіть дату','xmark');return;}
-  const ws=document.getElementById('fin-wallet')?.value||'main';
-  const wt=document.getElementById('fin-wallet-target')?.value||'pumb';
+  const ws=document.getElementById('fin-wallet')?.value||(wallets[0]&&wallets[0].id);
+  const wt=document.getElementById('fin-wallet-target')?.value||(wallets[1]&&wallets[1].id);
   if(currentFinanceType==='transfer'&&ws===wt){showToast('Однакові рахунки','xmark');return;}
   const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
@@ -1586,19 +1886,34 @@ function setTxFilter(f){
   renderFinance();
 }
 
+// Renders a wallet chip from a wallet id, tinted with the wallet's colour.
+// Unknown ids (e.g. a deleted wallet still referenced by old records) fall
+// back to a neutral chip so history never breaks.
+function walletBadge(id){
+  const w=walletById(id);
+  const name=w?w.name:'—';
+  const color=w?(w.color||'#8b5cf6'):'#7b709a';
+  const icon=w?(w.icon||'card'):'card';
+  return `<span class="wallet-tag" style="background:${hexA(color,.12)};color:${color};border:1px solid ${hexA(color,.28)}">${window.Icon(icon)}${escapeHtml(name)}</span>`;
+}
 function renderFinance(){
-  let bal=0, wb={main:0,pumb:0,cash:0};
+  let bal=0; const wb={};
+  wallets.forEach(w=>{wb[w.id]=0;});
   transactions.forEach(t=>{
-    const w=t.wallet||'main';
+    const w=t.wallet;
     if(t.type==='income')   {bal+=t.amount;if(wb[w]!==undefined)wb[w]+=t.amount;}
     if(t.type==='expense')  {bal-=t.amount;if(wb[w]!==undefined)wb[w]-=t.amount;}
-    if(t.type==='transfer') {const tw=t.targetWallet||'pumb';if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=t.amount;}
+    if(t.type==='transfer') {const tw=t.targetWallet;if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=t.amount;}
   });
-  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  S('fin-balance',bal.toLocaleString('uk-UA')+' грн');
-  S('balance-wallet-main',wb.main.toLocaleString('uk-UA')+' грн');
-  S('balance-wallet-pumb',wb.pumb.toLocaleString('uk-UA')+' грн');
-  S('balance-wallet-cash',wb.cash.toLocaleString('uk-UA')+' грн');
+  // Balance cards (total + one per wallet)
+  const bc=document.getElementById('fin-balances');
+  if(bc){
+    let html=`<div class="stat-card stat-big"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
+    wallets.forEach(w=>{
+      html+=`<div class="stat-card"><span class="stat-icon" style="color:${w.color};background:${hexA(w.color,.14)}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} грн</div></div>`;
+    });
+    bc.innerHTML=html;
+  }
 
   const filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
   const lc=document.getElementById('tx-list-container');
@@ -1613,16 +1928,14 @@ function renderFinance(){
   }
 
   filtered.forEach(t=>{
-    const w=WALLETS[t.wallet||'main']||WALLETS.main;
-    const tw=t.targetWallet?WALLETS[t.targetWallet]||WALLETS.pumb:null;
     const df=t.date?t.date.split('-').reverse().join('.'):'';
     let cls='',amtStr='';
     if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} грн`;}
     if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} грн`;}
     if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} грн`;}
-    const catIcon=window.Icon(CAT_ICON[t.category]||'box');
-    const wBadge=`<span class="wallet-tag ${w.cls}">${window.Icon(w.icon)}${w.text}</span>`;
-    const twBadge=tw?`<span style="color:var(--muted2);font-size:10px">→</span><span class="wallet-tag ${tw.cls}">${window.Icon(tw.icon)}${tw.text}</span>`:'';
+    const catIcon=window.Icon(CAT_ICON[t.category]||'tag');
+    const wBadge=walletBadge(t.wallet);
+    const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}`:'';
     const item=document.createElement('div');
     item.className='tx-item';
     item.innerHTML=`
@@ -1649,18 +1962,18 @@ function switchDebt(id){
 }
 
 function addNewDebt(){
-  const name=prompt('Назва нового боргу:','Новий борг');
+  const name=prompt('Назва розрахунку:','Новий розрахунок');
   if(name===null) return;
-  const nd={id:Date.now(), name:name.trim()||'Новий борг', note:'', currency:'грн', startAmount:0, entries:[]};
+  const nd={id:Date.now(), name:name.trim()||'Новий розрахунок', note:'', currency:'грн', startAmount:0, entries:[]};
   debts.push(nd);
   currentDebtId=nd.id;
   saveDebtLocal(); scheduleSave(); renderDebt();
-  showToast('Борг додано','check');
+  showToast('Розрахунок додано','check');
 }
 
 function deleteCurrentDebt(){
-  if(debts.length<=1){showToast('Має лишитись хоча б один борг','xmark');return;}
-  if(!confirm('Видалити цей борг разом з усією історією платежів?')) return;
+  if(debts.length<=1){showToast('Має лишитись хоча б один розрахунок','xmark');return;}
+  if(!confirm('Видалити цей розрахунок разом з усією історією платежів?')) return;
   debts=debts.filter(d=>d.id!==currentDebtId);
   currentDebtId=debts[0].id;
   saveDebtLocal(); scheduleSave(); renderDebt();
@@ -1672,7 +1985,7 @@ function updateDebtInfo(){
   const noi=document.getElementById('debt-note');
   const ci=document.getElementById('debt-currency');
   const si=document.getElementById('debt-start');
-  cd.name=ni?.value.trim()||'Борг';
+  cd.name=ni?.value.trim()||'Розрахунок';
   cd.note=noi?.value.trim()||'';
   cd.currency=ci?.value||'у.о.';
   cd.startAmount=parseFloat(si?.value)||0;
@@ -1718,13 +2031,13 @@ function renderDebtChips(){
     const chip=document.createElement('button');
     chip.className='debt-chip'+(d.id===currentDebtId?' active':'');
     chip.style.setProperty('--chip-color', DEBT_COLORS[i%DEBT_COLORS.length]);
-    chip.textContent=d.name||'Борг';
+    chip.textContent=d.name||'Розрахунок';
     chip.onclick=()=>switchDebt(d.id);
     c.appendChild(chip);
   });
   const addChip=document.createElement('button');
   addChip.className='debt-chip debt-chip-add';
-  addChip.title='Новий борг';
+  addChip.title='Новий розрахунок';
   addChip.innerHTML=window.Icon('plus');
   addChip.onclick=addNewDebt;
   c.appendChild(addChip);
