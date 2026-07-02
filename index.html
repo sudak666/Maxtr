@@ -1204,6 +1204,40 @@ async function init(){
   setFinanceType('income');
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
+  await importLegacyData();
+}
+
+// ── ONE-TIME LEGACY IMPORT ──────────────────────────────────────
+// Before per-user auth existed, all data lived in one shared
+// max_tracker/{shifts|finance|debt} document. If this account has no
+// data yet, offer to pull that old data in. Firestore rules only allow
+// *reading* the legacy path (never writing), so this is safe to leave
+// in place — once the docs are gone/renamed it's simply a no-op.
+async function importLegacyData(){
+  if(!currentUser) return;
+  const hasAnyData = Object.keys(shifts).length>0 || transactions.length>0 || debts.length>0;
+  if(hasAnyData) return;
+  try{
+    const [sS,fS,dS]=await Promise.all([
+      getDoc(doc(db,'max_tracker','shifts')),
+      getDoc(doc(db,'max_tracker','finance')),
+      getDoc(doc(db,'max_tracker','debt')),
+    ]);
+    const legacyShifts = sS.exists()?(sS.data().data||{}):{};
+    const legacyTx     = fS.exists()?(fS.data().data||[]):[];
+    const legacyDebtRaw = dS.exists()?normalizeDebtData(dS.data().data):null;
+    const found = Object.keys(legacyShifts).length>0 || legacyTx.length>0 || (legacyDebtRaw&&legacyDebtRaw.debts.length>0);
+    if(!found) return;
+    if(!confirm('Знайдено старі дані застосунку (зміни/фінанси/борги). Імпортувати їх у цей акаунт?')) return;
+    shifts=legacyShifts; transactions=legacyTx;
+    if(legacyDebtRaw){ debts=legacyDebtRaw.debts; currentDebtId=legacyDebtRaw.currentDebtId; }
+    saveLocal(); const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions)); saveDebtLocal();
+    await fbSaveNow();
+    renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
+    showToast('Старі дані імпортовано','sparkle');
+  }catch(e){
+    console.error('legacy import failed', e);
+  }
 }
 
 // ── TABS ──────────────────────────────────────────────────────
