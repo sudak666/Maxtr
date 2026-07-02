@@ -908,7 +908,8 @@ import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstati
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail
+  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail,
+  EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const fbApp = initializeApp({
@@ -981,15 +982,37 @@ function fbSetStatus(type, text){
   tx.textContent=text;
 }
 
+// Optimistic concurrency: each doc carries an updatedAt written at save
+// time. We remember what we last loaded/saved so fbSaveNow() can detect
+// another device having saved in between, instead of silently clobbering
+// it with a last-write-wins overwrite.
+let lastKnownUpdatedAt={shifts:0, finance:0, debt:0};
+
 async function fbSaveNow(){
   if(!currentUser) return;
   fbSetStatus('loading','Зберігаю...');
   try{
-    await Promise.all([
-      setDoc(userDoc('shifts'),  {data:shifts},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions}, {merge:false}),
-      setDoc(userDoc('debt'),    {data:{debts, currentDebtId}}, {merge:false}),
+    const [sChk,fChk,dChk]=await Promise.all([
+      getDoc(userDoc('shifts')), getDoc(userDoc('finance')), getDoc(userDoc('debt')),
     ]);
+    const remoteUpdatedAt={
+      shifts:  sChk.exists()?(sChk.data().updatedAt||0):0,
+      finance: fChk.exists()?(fChk.data().updatedAt||0):0,
+      debt:    dChk.exists()?(dChk.data().updatedAt||0):0,
+    };
+    const conflict=Object.keys(remoteUpdatedAt).some(k=>remoteUpdatedAt[k]>lastKnownUpdatedAt[k]);
+    if(conflict){
+      fbSetStatus('error','Конфлікт');
+      const overwrite=confirm('Дані змінено на іншому пристрої з часу останнього завантаження тут. Записати поточну версію поверх (OK), чи натомість завантажити свіжі дані і втратити локальні зміни (Скасувати)?');
+      if(!overwrite){ await fbLoadNow(); return; }
+    }
+    const now=Date.now();
+    await Promise.all([
+      setDoc(userDoc('shifts'),  {data:shifts, updatedAt:now},       {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
+    ]);
+    lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
     fbSetStatus('ok','Збережено');
   }catch(e){
     console.error(e);
@@ -1028,6 +1051,11 @@ async function fbLoadNow(){
       debts=[]; currentDebtId=null;
     }
     saveDebtLocal();
+    lastKnownUpdatedAt={
+      shifts:  sS.exists()?(sS.data().updatedAt||0):0,
+      finance: fS.exists()?(fS.data().updatedAt||0):0,
+      debt:    dS.exists()?(dS.data().updatedAt||0):0,
+    };
     fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
     showToast('Дані оновлено','sparkle');
@@ -1127,6 +1155,27 @@ window.signOutUser=async function(){
   if(!confirm('Вийти з акаунту?')) return;
   await signOut(auth);
 };
+// If Firebase refuses account deletion because the sign-in is stale
+// (auth/requires-recent-login), re-prove identity right here instead of
+// forcing a full sign-out/sign-in cycle — otherwise the account's data
+// would already be gone (deleted below, before this is ever needed)
+// while the account itself survives.
+async function reauthenticateForDeletion(){
+  const providerId=currentUser.providerData[0]?.providerId;
+  try{
+    if(providerId==='google.com'){
+      await reauthenticateWithPopup(currentUser, googleProvider);
+    }else{
+      const password=prompt('Введи пароль ще раз, щоб підтвердити видалення акаунту:');
+      if(!password) return false;
+      await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email, password));
+    }
+    return true;
+  }catch(e){
+    console.error(e);
+    return false;
+  }
+}
 window.deleteAccountUser=async function(){
   if(!currentUser) return;
   if(!confirm('Остаточно видалити акаунт і всі дані (зміни, фінанси, борги)? Це незворотньо.')) return;
@@ -1136,18 +1185,31 @@ window.deleteAccountUser=async function(){
       deleteDoc(userDoc('finance')),
       deleteDoc(userDoc('debt')),
     ]);
-    const uid=currentUser.uid;
-    await deleteUser(currentUser);
-    ['shifts','tx','debt'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
-    showToast('Акаунт видалено','trash');
   }catch(e){
     console.error(e);
-    if(e.code==='auth/requires-recent-login'){
-      alert('Для видалення акаунту потрібен нещодавній вхід. Вийдіть і увійдіть знову, після чого одразу повторіть видалення.');
+    alert('Не вдалося видалити дані акаунту. Спробуйте ще раз.');
+    return;
+  }
+  const uid=currentUser.uid;
+  try{
+    await deleteUser(currentUser);
+  }catch(e){
+    if(e.code==='auth/requires-recent-login' && await reauthenticateForDeletion()){
+      try{
+        await deleteUser(currentUser);
+      }catch(e2){
+        console.error(e2);
+        alert('Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.');
+        return;
+      }
     }else{
-      alert('Не вдалося видалити акаунт. Спробуйте ще раз.');
+      console.error(e);
+      alert('Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.');
+      return;
     }
   }
+  ['shifts','tx','debt'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+  showToast('Акаунт видалено','trash');
 };
 
 onAuthStateChanged(auth, async (user)=>{
