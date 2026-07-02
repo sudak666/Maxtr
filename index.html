@@ -130,7 +130,7 @@ button,input,select,textarea{font-family:inherit}
 }
 [data-theme="light"] .topbar{background:rgba(255,255,255,0.85)}
 .topbar-brand{display:flex;align-items:center;gap:10px}
-.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0}
+.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0}
 .topbar-title{font-size:16px;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em}
 .topbar-sub{font-size:11px;color:var(--muted);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -148,7 +148,7 @@ button,input,select,textarea{font-family:inherit}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit}
 .btn:active{transform:scale(.97)}
 .btn-ghost{background:var(--bg2);color:var(--muted);border-color:var(--border)}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
@@ -160,9 +160,11 @@ button,input,select,textarea{font-family:inherit}
 .btn-success:hover{background:var(--green);color:#fff}
 
 /* ── TABS ── */
-.tabs{display:flex;gap:4px;padding:5px;background:var(--bg1);border:1px solid var(--border);border-radius:16px;margin-bottom:24px}
-.tab-btn{flex:1;padding:10px 16px;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.tabs{display:flex;gap:4px;padding:5px;background:var(--bg1);border:1px solid var(--border);border-radius:999px;margin-bottom:24px}
+.tab-btn{flex:1;padding:10px 16px;border:none;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
 .tab-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.35)}
+.tab-btn.tab-c-finance.active{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 16px rgba(16,185,129,.35)}
+.tab-btn.tab-c-debt.active{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 16px rgba(245,158,11,.35)}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -172,12 +174,12 @@ button,input,select,textarea{font-family:inherit}
 /* ── STATS GRID ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
 .stat-card{
-  background:var(--bg1);border:1px solid var(--border);border-radius:18px;
+  background:var(--bg1);border:1px solid var(--border);border-radius:20px;
   padding:14px 16px;position:relative;overflow:hidden;cursor:default;
   transition:border-color .2s,transform .15s;
 }
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
+.stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
 .stat-icon .ico{width:20px;height:20px;margin-right:0}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
@@ -194,24 +196,24 @@ button,input,select,textarea{font-family:inherit}
 /* ── TOOLS PANEL ── */
 .tools-panel{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  background:var(--bg1);border:1px solid var(--border);border-radius:18px;
+  background:var(--bg1);border:1px solid var(--border);border-radius:20px;
   padding:12px 16px;margin-bottom:18px;
 }
 .tools-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:100%;margin-bottom:2px}
 .tool-select{
   background:var(--bg2);color:var(--text);border:1px solid var(--border2);
-  padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;outline:none;
+  padding:8px 12px;border-radius:14px;font-size:12px;font-weight:600;outline:none;
   cursor:pointer;font-family:inherit;
 }
 .tool-select:focus{border-color:var(--purple)}
 
 /* ── CALENDAR WRAPPER ── */
-.cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:20px;margin-bottom:24px}
+.cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:20px;margin-bottom:24px}
 .cal-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
 .cal-nav{display:flex;align-items:center;gap:8px}
-.cal-nav select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
+.cal-nav select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:14px;font-size:13px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
 .cal-hint{font-size:11px;color:var(--muted);font-weight:500}
-.legend{display:flex;gap:8px 14px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:14px}
+.legend{display:flex;gap:8px 14px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:18px}
 [data-theme="light"] .legend{background:rgba(0,0,0,.02)}
 .leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:600}
 .leg-dot{width:10px;height:10px;border-radius:4px}
@@ -222,7 +224,7 @@ button,input,select,textarea{font-family:inherit}
 .wday.weekend{color:rgba(239,68,68,.5)}
 
 .day-cell{
-  background:var(--bg2);border:1px solid var(--border);border-radius:13px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
   min-height:80px;padding:5px;cursor:pointer;display:flex;flex-direction:column;
   gap:3px;transition:all .15s;user-select:none;overflow:hidden;position:relative;
 }
@@ -240,7 +242,7 @@ button,input,select,textarea{font-family:inherit}
 .day-num.weekend-num{color:rgba(239,68,68,.6)}
 .today-pip{width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0}
 
-.badge{font-size:8px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:6px;line-height:1.2;text-align:center}
+.badge{font-size:8px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center}
 .b-day  {background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#93c5fd}
 .b-day19{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#6ee7b7}
 .b-night{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.5);color:#c4b5fd}
@@ -249,7 +251,7 @@ button,input,select,textarea{font-family:inherit}
 .b-vac  {background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#fde68a}
 
 /* ── CHART ── */
-.chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:20px}
+.chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:20px}
 .chart-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
 .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
@@ -259,11 +261,11 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── FINANCE ── */
 .fin-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
-.fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
 
-.type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:11px;border:1px solid var(--border)}
-.type-btn{flex:1;padding:7px 8px;border:none;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
+.type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
+.type-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
 .type-btn.active.inc{background:rgba(16,185,129,.15);color:var(--green2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.3)}
 .type-btn.active.exp{background:rgba(239,68,68,.15);color:var(--red2);box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
 .type-btn.active.trn{background:rgba(59,130,246,.15);color:var(--blue2);box-shadow:inset 0 0 0 1px rgba(59,130,246,.3)}
@@ -272,12 +274,12 @@ button,input,select,textarea{font-family:inherit}
 .fg label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .fg select,.fg input{
   background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);
-  padding:9px 12px;border-radius:11px;font-size:13px;font-weight:600;
+  padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;
   outline:none;width:100%;font-family:inherit;transition:border-color .15s;
 }
 .fg select:focus,.fg input:focus{border-color:var(--purple)}
 .add-btn{
-  padding:12px;border-radius:13px;border:none;font-size:13px;font-weight:800;cursor:pointer;
+  padding:12px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;
   background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;
   font-family:inherit;transition:all .15s;box-shadow:0 4px 12px rgba(139,92,246,.3);
 }
@@ -285,7 +287,7 @@ button,input,select,textarea{font-family:inherit}
 .add-btn:active{transform:scale(.98)}
 
 /* ── HISTORY ── */
-.fin-history{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:18px;min-height:400px}
+.fin-history{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;min-height:400px}
 .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 
@@ -296,7 +298,7 @@ button,input,select,textarea{font-family:inherit}
 .tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px}
 .tx-item{
   display:flex;justify-content:space-between;align-items:center;
-  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
   transition:border-color .15s;gap:8px;
 }
 .tx-item:hover{border-color:var(--border2)}
@@ -309,11 +311,11 @@ button,input,select,textarea{font-family:inherit}
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
 .tx-amount.transfer{color:var(--blue2)}
-.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:4px;border-radius:8px;transition:all .15s;line-height:1;display:inline-flex}
+.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:6px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
 .tx-del .ico{margin-right:0;width:15px;height:15px}
 .tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
-.wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px}
+.wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
 .wallet-tag .ico{width:.9em;height:.9em}
 .wt-main{background:rgba(139,92,246,.12);color:var(--purple2);border:1px solid rgba(139,92,246,.2)}
 .wt-pumb{background:rgba(239,68,68,.12);color:#ff7b6b;border:1px solid rgba(239,68,68,.2)}
@@ -323,15 +325,23 @@ button,input,select,textarea{font-family:inherit}
 .tx-empty .ico{margin-right:0;width:26px;height:26px}
 
 /* ── DEBT TAB ── */
+.debt-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.debt-chip{padding:9px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--chip-color,var(--border2));background:var(--bg1);color:var(--muted);transition:all .15s;font-family:inherit}
+.debt-chip.active{background:var(--chip-color,var(--purple));border-color:var(--chip-color,var(--purple));color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.debt-chip-add{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-style:dashed;border-radius:50%}
+.debt-chip-add .ico{margin-right:0;width:16px;height:16px}
+.debt-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;border-radius:50%;display:inline-flex;transition:all .15s}
+.debt-chip-del .ico{margin-right:0;width:14px;height:14px}
+.debt-chip-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;padding-right:2px}
-.debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;transition:all .15s}
+.debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;transition:all .15s}
 .debt-row.discrepancy{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
 .debt-field{display:flex;flex-direction:column;gap:3px;flex:1 1 84px;min-width:70px}
 .debt-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
-.debt-row input{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 8px;border-radius:8px;width:100%;font-family:inherit;outline:none;transition:border-color .15s}
+.debt-row input{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s}
 .debt-row input:focus{border-color:var(--purple)}
 .debt-hint{flex-basis:100%;font-size:10px;color:var(--red2);font-weight:700;margin-top:-2px}
-.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:8px;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
+.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
 .debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
@@ -347,7 +357,7 @@ button,input,select,textarea{font-family:inherit}
 .modal-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .chk-row{
   display:flex;align-items:center;gap:12px;padding:11px 14px;
-  border:1px solid var(--border);border-radius:14px;background:var(--bg2);
+  border:1px solid var(--border);border-radius:18px;background:var(--bg2);
   cursor:pointer;user-select:none;transition:all .15s;position:relative;overflow:hidden;
 }
 .chk-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--row-color,var(--purple))}
@@ -370,12 +380,12 @@ button,input,select,textarea{font-family:inherit}
 .chk-name{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)}
 .chk-name .ico{color:var(--row-color,var(--purple))}
 .chk-desc{font-size:11px;color:var(--muted);font-weight:500}
-.conflict-box{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red2);font-size:11.5px;padding:9px 12px;border-radius:12px;margin-bottom:12px;display:none;text-align:center;font-weight:600}
+.conflict-box{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red2);font-size:11.5px;padding:9px 12px;border-radius:999px;margin-bottom:12px;display:none;text-align:center;font-weight:600}
 .conflict-box.show{display:flex}
 .modal-actions{display:flex;gap:8px}
-.modal-cancel{flex:1;padding:12px;border-radius:13px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.modal-cancel{flex:1;padding:12px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .modal-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
-.modal-save{flex:2;padding:12px;border-radius:13px;border:none;background:var(--purple);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 4px 12px rgba(139,92,246,.3)}
+.modal-save{flex:2;padding:12px;border-radius:999px;border:none;background:var(--purple);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 4px 12px rgba(139,92,246,.3)}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
@@ -398,7 +408,7 @@ button,input,select,textarea{font-family:inherit}
 #toast{
   position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);
-  padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:9999;
+  padding:10px 20px;border-radius:999px;font-size:13px;font-weight:700;z-index:9999;
   opacity:0;visibility:hidden;transition:all .25s;white-space:nowrap;
   box-shadow:0 8px 24px rgba(0,0,0,.5);
   display:inline-flex;align-items:center;gap:8px;
@@ -411,7 +421,7 @@ button,input,select,textarea{font-family:inherit}
   .app{padding:12px 10px 70px}
   .cal-wrap{padding:12px}
   .cal-grid{gap:3px}
-  .day-cell{min-height:64px;padding:4px;border-radius:11px}
+  .day-cell{min-height:64px;padding:4px;border-radius:14px}
   .day-num{font-size:11px}
   .badge{font-size:7px;padding:1px 3px}
   .stat-big{grid-column:span 1}
@@ -474,9 +484,9 @@ button,input,select,textarea{font-family:inherit}
 
   <!-- TABS -->
   <div class="tabs" style="margin-top:18px">
-    <button id="nav-shifts" class="tab-btn active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
-    <button id="nav-finance" class="tab-btn" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
-    <button id="nav-debt" class="tab-btn" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Борг</span></button>
+    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
+    <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
+    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Борг</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -674,21 +684,23 @@ button,input,select,textarea{font-family:inherit}
       <div class="page-title">Борг</div>
     </div>
 
+    <div class="debt-chips" id="debt-chips"></div>
+
     <div class="stats-row">
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-start"></span>
         <div class="stat-label">Початкова сума</div>
-        <div class="stat-val" id="debt-start-val">0 грн</div>
+        <div class="stat-val" id="debt-start-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-balance"></span>
         <div class="stat-label">Поточний залишок</div>
-        <div class="stat-val" id="debt-balance-val">0 грн</div>
+        <div class="stat-val" id="debt-balance-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-paid"></span>
         <div class="stat-label">Сплачено</div>
-        <div class="stat-val" id="debt-paid-val">0 грн</div>
+        <div class="stat-val" id="debt-paid-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-count"></span>
@@ -708,9 +720,20 @@ button,input,select,textarea{font-family:inherit}
         <input type="text" id="debt-note" placeholder="Додаткова нотатка..." onchange="updateDebtInfo()">
       </div>
       <div class="fg">
-        <label>Початкова сума (грн)</label>
+        <label>Валюта</label>
+        <select id="debt-currency" onchange="updateDebtInfo()">
+          <option value="у.о.">у.о.</option>
+          <option value="грн">грн</option>
+          <option value="$">$</option>
+          <option value="€">€</option>
+          <option value="£">£</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Початкова сума</label>
         <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
       </div>
+      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()">Видалити цей борг</button>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
@@ -1023,26 +1046,30 @@ const SALARY_GOAL = 20000;
 // Seed data — pre-filled once from the user's existing debt notes; entries
 // whose amount starts with *** had illegible/uncertain digits in the source
 // and are kept editable so discrepancies against the running balance can be
-// spotted and corrected in place.
-let debtInfo = { name:'Борг', note:'242', startAmount:75000 };
-let debtEntries = [
-  {id:1, amount:'500',   balance:74500, date:'Листопад'},
-  {id:2, amount:'500',   balance:74000, date:'Січень'},
-  {id:3, amount:'170',   balance:73830, date:'Вересень 23'},
-  {id:4, amount:'160',   balance:73670, date:''},
-  {id:5, amount:'160',   balance:73510, date:''},
-  {id:6, amount:'128',   balance:73382, date:''},
-  {id:7, amount:'125',   balance:73257, date:'Березень 24'},
-  {id:8, amount:'18000', balance:55257, date:'Червень 2024'},
-  {id:9, amount:'100',   balance:55157, date:'09.07.2024'},
-  {id:10,amount:'115',   balance:55042, date:'13.09.2024'},
-  {id:11,amount:'115',   balance:54927, date:'05.02.2025'},
-  {id:12,amount:'***68', balance:54641, date:'10.02.2026'},
-  {id:13,amount:'***67', balance:54574, date:'13.03.2026'},
-  {id:14,amount:'***68', balance:54574, date:'16.04.2026'},
-  {id:15,amount:'***90', balance:54484, date:'18.05.2026'},
-  {id:16,amount:'***93', balance:54391, date:'15.06.2026'},
+// spotted and corrected in place. Multiple debts are supported; each keeps
+// its own currency so amounts aren't forced into hryvnia.
+const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
+let debts = [
+  { id:1, name:'Борг', note:'242', currency:'у.о.', startAmount:75000, entries:[
+    {id:1, amount:'500',   balance:74500, date:'Листопад'},
+    {id:2, amount:'500',   balance:74000, date:'Січень'},
+    {id:3, amount:'170',   balance:73830, date:'Вересень 23'},
+    {id:4, amount:'160',   balance:73670, date:''},
+    {id:5, amount:'160',   balance:73510, date:''},
+    {id:6, amount:'128',   balance:73382, date:''},
+    {id:7, amount:'125',   balance:73257, date:'Березень 24'},
+    {id:8, amount:'18000', balance:55257, date:'Червень 2024'},
+    {id:9, amount:'100',   balance:55157, date:'09.07.2024'},
+    {id:10,amount:'115',   balance:55042, date:'13.09.2024'},
+    {id:11,amount:'115',   balance:54927, date:'05.02.2025'},
+    {id:12,amount:'***68', balance:54641, date:'10.02.2026'},
+    {id:13,amount:'***67', balance:54574, date:'13.03.2026'},
+    {id:14,amount:'***68', balance:54574, date:'16.04.2026'},
+    {id:15,amount:'***90', balance:54484, date:'18.05.2026'},
+    {id:16,amount:'***93', balance:54391, date:'15.06.2026'},
+  ]},
 ];
+let currentDebtId = 1;
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
@@ -1079,7 +1106,7 @@ async function fbSaveNow(){
     await Promise.all([
       setDoc(doc(db,DCOL,'shifts'),  {data:shifts},       {merge:false}),
       setDoc(doc(db,DCOL,'finance'), {data:transactions}, {merge:false}),
-      setDoc(doc(db,DCOL,'debt'),    {data:{info:debtInfo, entries:debtEntries}}, {merge:false}),
+      setDoc(doc(db,DCOL,'debt'),    {data:{debts, currentDebtId}}, {merge:false}),
     ]);
     fbSetStatus('ok','Збережено');
   }catch(e){
@@ -1089,6 +1116,20 @@ async function fbSaveNow(){
   }
 }
 
+// Accepts either the current {debts:[...], currentDebtId} shape or the
+// older single-debt {info,entries} shape and normalizes to the former.
+function normalizeDebtData(raw){
+  if(!raw) return null;
+  if(Array.isArray(raw.debts)&&raw.debts.length){
+    return {debts:raw.debts, currentDebtId:raw.currentDebtId||raw.debts[0].id};
+  }
+  if(raw.info){
+    const d={id:1,name:raw.info.name||'Борг',note:raw.info.note||'',currency:raw.info.currency||'у.о.',startAmount:raw.info.startAmount||0,entries:raw.entries||[]};
+    return {debts:[d], currentDebtId:d.id};
+  }
+  return null;
+}
+
 async function fbLoadNow(){
   fbSetStatus('loading','Завантажую...');
   try{
@@ -1096,10 +1137,8 @@ async function fbLoadNow(){
     if(sS.exists()){shifts=sS.data().data||{};localStorage.setItem('mxshifts',JSON.stringify(shifts));}
     if(fS.exists()){transactions=fS.data().data||[];localStorage.setItem('mxtx',JSON.stringify(transactions));}
     if(dS.exists()){
-      const d=dS.data().data||{};
-      debtInfo=d.info||debtInfo;
-      debtEntries=d.entries||[];
-      saveDebtLocal();
+      const norm=normalizeDebtData(dS.data().data);
+      if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId; saveDebtLocal();}
     }
     fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
@@ -1122,7 +1161,7 @@ function saveLocal(){
 }
 
 function saveDebtLocal(){
-  localStorage.setItem('mxdebt', JSON.stringify({info:debtInfo, entries:debtEntries}));
+  localStorage.setItem('mxdebt', JSON.stringify({debts, currentDebtId}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1135,6 +1174,7 @@ window.addTransaction=addTransaction; window.deleteTransaction=deleteTransaction
 window.setTxFilter=setTxFilter; window.shiftMonth=shiftMonth; window.goToday=goToday;
 window.updateDebtInfo=updateDebtInfo; window.addDebtEntry=addDebtEntry;
 window.updateDebtEntry=updateDebtEntry; window.deleteDebtEntry=deleteDebtEntry;
+window.deleteCurrentDebt=deleteCurrentDebt;
 
 // ── INIT ──────────────────────────────────────────────────────
 async function init(){
@@ -1158,7 +1198,7 @@ async function init(){
   // Local cache first
   try{const s=localStorage.getItem('mxshifts'); if(s) shifts=JSON.parse(s);}catch{}
   try{const t=localStorage.getItem('mxtx');     if(t) transactions=JSON.parse(t);}catch{}
-  try{const d=localStorage.getItem('mxdebt');   if(d){const p=JSON.parse(d); debtInfo=p.info||debtInfo; debtEntries=p.entries||debtEntries;}}catch{}
+  try{const d=localStorage.getItem('mxdebt'); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
@@ -1532,17 +1572,48 @@ function renderFinance(){
 }
 
 // ── DEBT ──────────────────────────────────────────────────────
+function getCurrentDebt(){
+  return debts.find(d=>d.id===currentDebtId)||debts[0];
+}
+
+function switchDebt(id){
+  currentDebtId=id;
+  saveDebtLocal(); renderDebt();
+}
+
+function addNewDebt(){
+  const name=prompt('Назва нового боргу:','Новий борг');
+  if(name===null) return;
+  const nd={id:Date.now(), name:name.trim()||'Новий борг', note:'', currency:'грн', startAmount:0, entries:[]};
+  debts.push(nd);
+  currentDebtId=nd.id;
+  saveDebtLocal(); scheduleSave(); renderDebt();
+  showToast('Борг додано','check');
+}
+
+function deleteCurrentDebt(){
+  if(debts.length<=1){showToast('Має лишитись хоча б один борг','xmark');return;}
+  if(!confirm('Видалити цей борг разом з усією історією платежів?')) return;
+  debts=debts.filter(d=>d.id!==currentDebtId);
+  currentDebtId=debts[0].id;
+  saveDebtLocal(); scheduleSave(); renderDebt();
+}
+
 function updateDebtInfo(){
+  const cd=getCurrentDebt(); if(!cd) return;
   const ni=document.getElementById('debt-name');
   const noi=document.getElementById('debt-note');
+  const ci=document.getElementById('debt-currency');
   const si=document.getElementById('debt-start');
-  debtInfo.name=ni?.value.trim()||'Борг';
-  debtInfo.note=noi?.value.trim()||'';
-  debtInfo.startAmount=parseFloat(si?.value)||0;
+  cd.name=ni?.value.trim()||'Борг';
+  cd.note=noi?.value.trim()||'';
+  cd.currency=ci?.value||'у.о.';
+  cd.startAmount=parseFloat(si?.value)||0;
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
 function addDebtEntry(){
+  const cd=getCurrentDebt(); if(!cd) return;
   const ai=document.getElementById('debt-amount');
   const bi=document.getElementById('debt-balance-input');
   const di=document.getElementById('debt-date');
@@ -1550,7 +1621,7 @@ function addDebtEntry(){
   const balance=parseFloat(bi?.value);
   if(!amount){showToast('Введіть суму платежу','xmark');return;}
   if(isNaN(balance)){showToast('Введіть залишок після оплати','xmark');return;}
-  debtEntries.push({id:Date.now(),amount,balance,date:di?.value.trim()||''});
+  cd.entries.push({id:Date.now(),amount,balance,date:di?.value.trim()||''});
   saveDebtLocal(); scheduleSave();
   if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value='';
   renderDebt();
@@ -1558,44 +1629,72 @@ function addDebtEntry(){
 }
 
 function updateDebtEntry(id,field,value){
-  const e=debtEntries.find(x=>x.id===id);
+  const cd=getCurrentDebt(); if(!cd) return;
+  const e=cd.entries.find(x=>x.id===id);
   if(!e) return;
   e[field]=field==='balance'?(parseFloat(value)||0):value;
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
 function deleteDebtEntry(id){
+  const cd=getCurrentDebt(); if(!cd) return;
   if(!confirm('Видалити цей платіж?')) return;
-  debtEntries=debtEntries.filter(x=>x.id!==id);
+  cd.entries=cd.entries.filter(x=>x.id!==id);
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
-function renderDebt(){
-  const ni=document.getElementById('debt-name'); if(ni) ni.value=debtInfo.name||'';
-  const noi=document.getElementById('debt-note'); if(noi) noi.value=debtInfo.note||'';
-  const si=document.getElementById('debt-start'); if(si) si.value=debtInfo.startAmount||0;
+function renderDebtChips(){
+  const c=document.getElementById('debt-chips');
+  if(!c) return;
+  c.innerHTML='';
+  debts.forEach((d,i)=>{
+    const chip=document.createElement('button');
+    chip.className='debt-chip'+(d.id===currentDebtId?' active':'');
+    chip.style.setProperty('--chip-color', DEBT_COLORS[i%DEBT_COLORS.length]);
+    chip.textContent=d.name||'Борг';
+    chip.onclick=()=>switchDebt(d.id);
+    c.appendChild(chip);
+  });
+  const addChip=document.createElement('button');
+  addChip.className='debt-chip debt-chip-add';
+  addChip.title='Новий борг';
+  addChip.innerHTML=window.Icon('plus');
+  addChip.onclick=addNewDebt;
+  c.appendChild(addChip);
+}
 
-  const currentBalance=debtEntries.length?debtEntries[debtEntries.length-1].balance:(debtInfo.startAmount||0);
-  const paid=(debtInfo.startAmount||0)-currentBalance;
+function renderDebt(){
+  renderDebtChips();
+  const cd=getCurrentDebt();
+  if(!cd) return;
+  const cur=cd.currency||'у.о.';
+
+  const ni=document.getElementById('debt-name'); if(ni) ni.value=cd.name||'';
+  const noi=document.getElementById('debt-note'); if(noi) noi.value=cd.note||'';
+  const ci=document.getElementById('debt-currency'); if(ci) ci.value=cur;
+  const si=document.getElementById('debt-start'); if(si) si.value=cd.startAmount||0;
+
+  const currentBalance=cd.entries.length?cd.entries[cd.entries.length-1].balance:(cd.startAmount||0);
+  const paid=(cd.startAmount||0)-currentBalance;
   const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  S('debt-start-val',(debtInfo.startAmount||0).toLocaleString('uk-UA')+' грн');
-  S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' грн');
-  S('debt-paid-val',paid.toLocaleString('uk-UA')+' грн');
-  S('debt-count-val',debtEntries.length);
+  S('debt-start-val',(cd.startAmount||0).toLocaleString('uk-UA')+' '+cur);
+  S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' '+cur);
+  S('debt-paid-val',paid.toLocaleString('uk-UA')+' '+cur);
+  S('debt-count-val',cd.entries.length);
 
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');
   if(!lc) return;
-  if(cc) cc.textContent=debtEntries.length+' записів';
+  if(cc) cc.textContent=cd.entries.length+' записів';
   lc.innerHTML='';
 
-  if(debtEntries.length===0){
+  if(cd.entries.length===0){
     lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>Платежів немає</span></div>`;
     return;
   }
 
-  let prevBalance=debtInfo.startAmount||0;
-  debtEntries.forEach(entry=>{
+  let prevBalance=cd.startAmount||0;
+  cd.entries.forEach(entry=>{
     const isCleanNumber=/^\d+(\.\d+)?$/.test(String(entry.amount).trim());
     const expected=isCleanNumber?prevBalance-parseFloat(entry.amount):null;
     const hasDiscrepancy=expected!==null&&Math.abs(expected-entry.balance)>0.01;
@@ -1606,7 +1705,7 @@ function renderDebt(){
       <div class="debt-field"><span class="debt-field-label">Залишок</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
       <div class="debt-field"><span class="debt-field-label">Дата</span><input type="text" value="${entry.date??''}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
       <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})">${window.Icon('trash')}</button>
-      ${hasDiscrepancy?`<div class="debt-hint">Очікувано ${expected.toLocaleString('uk-UA')} грн — розбіжність ${(entry.balance-expected).toLocaleString('uk-UA')} грн</div>`:''}
+      ${hasDiscrepancy?`<div class="debt-hint">Очікувано ${expected.toLocaleString('uk-UA')} ${cur} — розбіжність ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
     `;
     lc.appendChild(row);
     prevBalance=entry.balance;
