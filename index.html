@@ -322,6 +322,19 @@ button,input,select,textarea{font-family:inherit}
 .tx-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-weight:600}
 .tx-empty .ico{margin-right:0;width:26px;height:26px}
 
+/* ── DEBT TAB ── */
+.debt-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;padding-right:2px}
+.debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;transition:all .15s}
+.debt-row.discrepancy{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
+.debt-field{display:flex;flex-direction:column;gap:3px;flex:1 1 84px;min-width:70px}
+.debt-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
+.debt-row input{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 8px;border-radius:8px;width:100%;font-family:inherit;outline:none;transition:border-color .15s}
+.debt-row input:focus{border-color:var(--purple)}
+.debt-hint{flex-basis:100%;font-size:10px;color:var(--red2);font-weight:700;margin-top:-2px}
+.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:8px;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
+.debt-row-del .ico{margin-right:0;width:15px;height:15px}
+.debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
+
 /* ── MODAL (iOS bottom sheet) ── */
 .modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:flex-end;z-index:1000;padding:16px 16px 0}
 .modal-card{background:var(--bg1);border:1px solid var(--border2);border-bottom:none;border-radius:28px 28px 0 0;padding:14px 24px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:480px;box-shadow:0 -12px 50px rgba(0,0,0,.5);animation:sheetUp .28s cubic-bezier(.32,.72,0,1)}
@@ -408,6 +421,8 @@ button,input,select,textarea{font-family:inherit}
   .lock-pad{grid-template-columns:repeat(3,64px);gap:14px}
   .lock-key,.lock-key-del{width:64px;height:64px}
   .lock-key-num{font-size:23px}
+  .tab-btn{flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
+  .tab-btn .ico{width:14px;height:14px}
 }
 </style>
 </head>
@@ -461,6 +476,7 @@ button,input,select,textarea{font-family:inherit}
   <div class="tabs" style="margin-top:18px">
     <button id="nav-shifts" class="tab-btn active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
     <button id="nav-finance" class="tab-btn" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
+    <button id="nav-debt" class="tab-btn" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Борг</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -651,6 +667,78 @@ button,input,select,textarea{font-family:inherit}
     </div>
   </div>
 
+  <!-- ═══ БОРГ ═══ -->
+  <div id="tab-debt" style="display:none">
+    <div class="page-head">
+      <div class="page-label">Облік боргу</div>
+      <div class="page-title">Борг</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-debt-start"></span>
+        <div class="stat-label">Початкова сума</div>
+        <div class="stat-val" id="debt-start-val">0 грн</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-debt-balance"></span>
+        <div class="stat-label">Поточний залишок</div>
+        <div class="stat-val" id="debt-balance-val">0 грн</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-debt-paid"></span>
+        <div class="stat-label">Сплачено</div>
+        <div class="stat-val" id="debt-paid-val">0 грн</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-debt-count"></span>
+        <div class="stat-label">Платежів</div>
+        <div class="stat-val" id="debt-count-val">0</div>
+      </div>
+    </div>
+
+    <div class="fin-form" style="margin-bottom:18px">
+      <div class="fin-form-title"><span id="ic-debt-info"></span>Дані боргу</div>
+      <div class="fg">
+        <label>Назва боргу</label>
+        <input type="text" id="debt-name" placeholder="Назва боргу" onchange="updateDebtInfo()">
+      </div>
+      <div class="fg">
+        <label>Нотатка</label>
+        <input type="text" id="debt-note" placeholder="Додаткова нотатка..." onchange="updateDebtInfo()">
+      </div>
+      <div class="fg">
+        <label>Початкова сума (грн)</label>
+        <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
+      </div>
+    </div>
+
+    <div class="fin-form" style="margin-bottom:18px">
+      <div class="fin-form-title"><span id="ic-debt-plus"></span>Новий платіж</div>
+      <div class="fg">
+        <label>Сума</label>
+        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68">
+      </div>
+      <div class="fg">
+        <label>Залишок після оплати</label>
+        <input type="number" id="debt-balance-input" placeholder="0" step="0.01">
+      </div>
+      <div class="fg">
+        <label>Дата / мітка</label>
+        <input type="text" id="debt-date" placeholder="напр. 10.02.2026 або Березень">
+      </div>
+      <button class="add-btn" onclick="addDebtEntry()">Додати платіж</button>
+    </div>
+
+    <div class="fin-history">
+      <div class="hist-head">
+        <div class="hist-title">Історія платежів</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
+      </div>
+      <div class="debt-list" id="debt-list-container"></div>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
 <!-- MODAL ЗМІНИ -->
@@ -775,6 +863,13 @@ button,input,select,textarea{font-family:inherit}
   setIcon('btn-refresh','refresh');
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
+  setIcon('tab-icon-debt','bank');
+  setIcon('ic-debt-start','bank');
+  setIcon('ic-debt-balance','coin');
+  setIcon('ic-debt-paid','check');
+  setIcon('ic-debt-count','calendar');
+  setIcon('ic-debt-info','bank');
+  setIcon('ic-debt-plus','plus');
   setIcon('ic-salary','banknote');
   setIcon('ic-hours','clock');
   setIcon('ic-day','sun');
@@ -925,6 +1020,30 @@ let txFilter = 'all';
 let fbTimer = null;
 const SALARY_GOAL = 20000;
 
+// Seed data — pre-filled once from the user's existing debt notes; entries
+// whose amount starts with *** had illegible/uncertain digits in the source
+// and are kept editable so discrepancies against the running balance can be
+// spotted and corrected in place.
+let debtInfo = { name:'Борг', note:'242', startAmount:75000 };
+let debtEntries = [
+  {id:1, amount:'500',   balance:74500, date:'Листопад'},
+  {id:2, amount:'500',   balance:74000, date:'Січень'},
+  {id:3, amount:'170',   balance:73830, date:'Вересень 23'},
+  {id:4, amount:'160',   balance:73670, date:''},
+  {id:5, amount:'160',   balance:73510, date:''},
+  {id:6, amount:'128',   balance:73382, date:''},
+  {id:7, amount:'125',   balance:73257, date:'Березень 24'},
+  {id:8, amount:'18000', balance:55257, date:'Червень 2024'},
+  {id:9, amount:'100',   balance:55157, date:'09.07.2024'},
+  {id:10,amount:'115',   balance:55042, date:'13.09.2024'},
+  {id:11,amount:'115',   balance:54927, date:'05.02.2025'},
+  {id:12,amount:'***68', balance:54641, date:'10.02.2026'},
+  {id:13,amount:'***67', balance:54574, date:'13.03.2026'},
+  {id:14,amount:'***68', balance:54574, date:'16.04.2026'},
+  {id:15,amount:'***90', balance:54484, date:'18.05.2026'},
+  {id:16,amount:'***93', balance:54391, date:'15.06.2026'},
+];
+
 // ── CONSTANTS ─────────────────────────────────────────────────
 const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 const MONTHS_SHORT = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
@@ -960,6 +1079,7 @@ async function fbSaveNow(){
     await Promise.all([
       setDoc(doc(db,DCOL,'shifts'),  {data:shifts},       {merge:false}),
       setDoc(doc(db,DCOL,'finance'), {data:transactions}, {merge:false}),
+      setDoc(doc(db,DCOL,'debt'),    {data:{info:debtInfo, entries:debtEntries}}, {merge:false}),
     ]);
     fbSetStatus('ok','Збережено');
   }catch(e){
@@ -972,11 +1092,17 @@ async function fbSaveNow(){
 async function fbLoadNow(){
   fbSetStatus('loading','Завантажую...');
   try{
-    const [sS,fS]=await Promise.all([getDoc(doc(db,DCOL,'shifts')),getDoc(doc(db,DCOL,'finance'))]);
+    const [sS,fS,dS]=await Promise.all([getDoc(doc(db,DCOL,'shifts')),getDoc(doc(db,DCOL,'finance')),getDoc(doc(db,DCOL,'debt'))]);
     if(sS.exists()){shifts=sS.data().data||{};localStorage.setItem('mxshifts',JSON.stringify(shifts));}
     if(fS.exists()){transactions=fS.data().data||[];localStorage.setItem('mxtx',JSON.stringify(transactions));}
+    if(dS.exists()){
+      const d=dS.data().data||{};
+      debtInfo=d.info||debtInfo;
+      debtEntries=d.entries||[];
+      saveDebtLocal();
+    }
     fbSetStatus('ok','Синхронізовано');
-    renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart();
+    renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
     showToast('Дані оновлено','sparkle');
   }catch(e){
     console.error(e);
@@ -995,6 +1121,10 @@ function saveLocal(){
   localStorage.setItem('mxshifts',JSON.stringify(shifts));
 }
 
+function saveDebtLocal(){
+  localStorage.setItem('mxdebt', JSON.stringify({info:debtInfo, entries:debtEntries}));
+}
+
 // ── GLOBALS ───────────────────────────────────────────────────
 window.fbLoadNow=fbLoadNow;
 window.switchTab=switchTab; window.openModal=openModal; window.closeModal=closeModal;
@@ -1003,6 +1133,8 @@ window.applyTemplate=applyTemplate; window.clearCurrentMonth=clearCurrentMonth;
 window.renderCalendar=renderCalendar; window.setFinanceType=setFinanceType;
 window.addTransaction=addTransaction; window.deleteTransaction=deleteTransaction;
 window.setTxFilter=setTxFilter; window.shiftMonth=shiftMonth; window.goToday=goToday;
+window.updateDebtInfo=updateDebtInfo; window.addDebtEntry=addDebtEntry;
+window.updateDebtEntry=updateDebtEntry; window.deleteDebtEntry=deleteDebtEntry;
 
 // ── INIT ──────────────────────────────────────────────────────
 async function init(){
@@ -1026,6 +1158,7 @@ async function init(){
   // Local cache first
   try{const s=localStorage.getItem('mxshifts'); if(s) shifts=JSON.parse(s);}catch{}
   try{const t=localStorage.getItem('mxtx');     if(t) transactions=JSON.parse(t);}catch{}
+  try{const d=localStorage.getItem('mxdebt');   if(d){const p=JSON.parse(d); debtInfo=p.info||debtInfo; debtEntries=p.entries||debtEntries;}}catch{}
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
@@ -1039,13 +1172,16 @@ async function init(){
 function switchTab(tab){
   document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
+  document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
   document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
   document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
+  document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {renderFinance(); renderFinanceChart();
     const fp=document.getElementById('finance-panel-block');
     if(fp) fp.style.display=window.innerWidth<=900?'block':'grid';
   }
+  if(tab==='debt') {renderDebt();}
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
@@ -1395,6 +1531,87 @@ function renderFinance(){
   });
 }
 
+// ── DEBT ──────────────────────────────────────────────────────
+function updateDebtInfo(){
+  const ni=document.getElementById('debt-name');
+  const noi=document.getElementById('debt-note');
+  const si=document.getElementById('debt-start');
+  debtInfo.name=ni?.value.trim()||'Борг';
+  debtInfo.note=noi?.value.trim()||'';
+  debtInfo.startAmount=parseFloat(si?.value)||0;
+  saveDebtLocal(); scheduleSave(); renderDebt();
+}
+
+function addDebtEntry(){
+  const ai=document.getElementById('debt-amount');
+  const bi=document.getElementById('debt-balance-input');
+  const di=document.getElementById('debt-date');
+  const amount=ai?.value.trim();
+  const balance=parseFloat(bi?.value);
+  if(!amount){showToast('Введіть суму платежу','xmark');return;}
+  if(isNaN(balance)){showToast('Введіть залишок після оплати','xmark');return;}
+  debtEntries.push({id:Date.now(),amount,balance,date:di?.value.trim()||''});
+  saveDebtLocal(); scheduleSave();
+  if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value='';
+  renderDebt();
+  showToast('Платіж додано','check');
+}
+
+function updateDebtEntry(id,field,value){
+  const e=debtEntries.find(x=>x.id===id);
+  if(!e) return;
+  e[field]=field==='balance'?(parseFloat(value)||0):value;
+  saveDebtLocal(); scheduleSave(); renderDebt();
+}
+
+function deleteDebtEntry(id){
+  if(!confirm('Видалити цей платіж?')) return;
+  debtEntries=debtEntries.filter(x=>x.id!==id);
+  saveDebtLocal(); scheduleSave(); renderDebt();
+}
+
+function renderDebt(){
+  const ni=document.getElementById('debt-name'); if(ni) ni.value=debtInfo.name||'';
+  const noi=document.getElementById('debt-note'); if(noi) noi.value=debtInfo.note||'';
+  const si=document.getElementById('debt-start'); if(si) si.value=debtInfo.startAmount||0;
+
+  const currentBalance=debtEntries.length?debtEntries[debtEntries.length-1].balance:(debtInfo.startAmount||0);
+  const paid=(debtInfo.startAmount||0)-currentBalance;
+  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  S('debt-start-val',(debtInfo.startAmount||0).toLocaleString('uk-UA')+' грн');
+  S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' грн');
+  S('debt-paid-val',paid.toLocaleString('uk-UA')+' грн');
+  S('debt-count-val',debtEntries.length);
+
+  const lc=document.getElementById('debt-list-container');
+  const cc=document.getElementById('debt-entry-count');
+  if(!lc) return;
+  if(cc) cc.textContent=debtEntries.length+' записів';
+  lc.innerHTML='';
+
+  if(debtEntries.length===0){
+    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>Платежів немає</span></div>`;
+    return;
+  }
+
+  let prevBalance=debtInfo.startAmount||0;
+  debtEntries.forEach(entry=>{
+    const isCleanNumber=/^\d+(\.\d+)?$/.test(String(entry.amount).trim());
+    const expected=isCleanNumber?prevBalance-parseFloat(entry.amount):null;
+    const hasDiscrepancy=expected!==null&&Math.abs(expected-entry.balance)>0.01;
+    const row=document.createElement('div');
+    row.className='debt-row'+(hasDiscrepancy?' discrepancy':'');
+    row.innerHTML=`
+      <div class="debt-field"><span class="debt-field-label">Сума</span><input type="text" value="${entry.amount??''}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
+      <div class="debt-field"><span class="debt-field-label">Залишок</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
+      <div class="debt-field"><span class="debt-field-label">Дата</span><input type="text" value="${entry.date??''}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
+      <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})">${window.Icon('trash')}</button>
+      ${hasDiscrepancy?`<div class="debt-hint">Очікувано ${expected.toLocaleString('uk-UA')} грн — розбіжність ${(entry.balance-expected).toLocaleString('uk-UA')} грн</div>`:''}
+    `;
+    lc.appendChild(row);
+    prevBalance=entry.balance;
+  });
+}
 
 window.addEventListener('DOMContentLoaded',init);
 </script>
