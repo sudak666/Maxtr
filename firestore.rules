@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Xamss — per-user data isolation.
+// Every signed-in user can only read/write their own documents under
+// users/{uid}/max_tracker/{doc}. Anonymous or cross-account access is denied.
+// Deploy with: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/max_tracker/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Deny everything else by default (including the old shared
+    // max_tracker/{doc} path used before per-user auth was added).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
