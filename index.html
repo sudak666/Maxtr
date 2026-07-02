@@ -105,18 +105,19 @@ button,input,select,textarea{font-family:inherit}
 .lock-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(139,92,246,.35)}
 .lock-title{font-size:20px;font-weight:800;color:var(--text-strong);letter-spacing:-.02em}
 .lock-sub{font-size:13px;color:var(--muted);font-weight:600;min-height:18px;text-align:center}
-.lock-dots{display:flex;gap:16px}
-.lock-dots.lock-shake{animation:shake .42s ease}
-.lock-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);transition:all .15s}
-.lock-dot.filled{background:var(--purple);transform:scale(1.1)}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
-.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:18px;margin-top:8px}
-.lock-key{width:72px;height:72px;border-radius:50%;border:none;background:var(--bg2);color:var(--text-strong);cursor:pointer;transition:all .12s;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
-.lock-key:active{transform:scale(.92);background:var(--bg3)}
-.lock-key-num{font-size:26px;font-weight:600;line-height:1}
-.lock-key-sub{font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
-.lock-key-del{width:72px;height:72px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
-.lock-key-del:active{color:var(--text)}
+
+/* ── AUTH SCREEN ── */
+.auth-card{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}
+.auth-tabs{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:9px 10px;border:none;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
+.auth-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
+.auth-error{font-size:12px;font-weight:600;color:var(--red2);text-align:center;min-height:16px}
+.auth-sep{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.auth-sep::before,.auth-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-google{justify-content:center;width:100%}
+.auth-google .ico{width:16px;height:16px}
+.auth-link{background:none;border:none;color:var(--purple2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;align-self:center}
+.auth-link:hover{text-decoration:underline}
 
 /* ── LAYOUT ── */
 .app{max-width:1200px;margin:0 auto;padding:20px 16px 80px}
@@ -389,21 +390,6 @@ button,input,select,textarea{font-family:inherit}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
-/* ── PIN CONFIRM (compact dialog for destructive actions) ── */
-.pin-confirm-overlay{align-items:center;padding:16px;z-index:2000}
-.pin-confirm-card{
-  background:var(--bg1);border:1px solid var(--border2);border-radius:24px;
-  padding:22px 20px;width:100%;max-width:300px;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:sheetUp .22s ease;
-}
-.pin-confirm-title{font-size:15px;font-weight:800;color:var(--text-strong)}
-.pin-confirm-sub{font-size:12px;color:var(--muted);font-weight:600;min-height:16px;margin-top:2px}
-.pin-confirm-card .lock-dots{justify-content:center;margin:14px 0 16px}
-.pin-confirm-pad{display:grid;grid-template-columns:repeat(3,56px);gap:10px;justify-content:center}
-.pin-confirm-pad .lock-key,.pin-confirm-pad .lock-key-del{width:56px;height:56px}
-.pin-confirm-pad .lock-key-num{font-size:20px}
-.pin-confirm-pad .lock-key-del{font-size:11px}
-
 /* ── TOAST ── */
 #toast{
   position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
@@ -428,9 +414,6 @@ button,input,select,textarea{font-family:inherit}
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
-  .lock-pad{grid-template-columns:repeat(3,64px);gap:14px}
-  .lock-key,.lock-key-del{width:64px;height:64px}
-  .lock-key-num{font-size:23px}
   .tab-btn{flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
   .tab-btn .ico{width:14px;height:14px}
 }
@@ -438,29 +421,32 @@ button,input,select,textarea{font-family:inherit}
 </head>
 <body>
 
-<!-- PIN LOCK SCREEN -->
+<!-- AUTH SCREEN (real registration / sign-in) -->
 <div class="lock-screen" id="lock-screen">
   <div class="lock-brand">
     <div class="lock-logo">X</div>
     <div class="lock-title">Xamss</div>
   </div>
-  <div class="lock-sub" id="lock-sub">Введіть PIN для входу</div>
-  <div class="lock-dots" id="lock-dots">
-    <span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span>
-  </div>
-  <div class="lock-pad">
-    <button class="lock-key" data-k="1"><span class="lock-key-num">1</span></button>
-    <button class="lock-key" data-k="2"><span class="lock-key-num">2</span><span class="lock-key-sub">ABC</span></button>
-    <button class="lock-key" data-k="3"><span class="lock-key-num">3</span><span class="lock-key-sub">DEF</span></button>
-    <button class="lock-key" data-k="4"><span class="lock-key-num">4</span><span class="lock-key-sub">GHI</span></button>
-    <button class="lock-key" data-k="5"><span class="lock-key-num">5</span><span class="lock-key-sub">JKL</span></button>
-    <button class="lock-key" data-k="6"><span class="lock-key-num">6</span><span class="lock-key-sub">MNO</span></button>
-    <button class="lock-key" data-k="7"><span class="lock-key-num">7</span><span class="lock-key-sub">PQRS</span></button>
-    <button class="lock-key" data-k="8"><span class="lock-key-num">8</span><span class="lock-key-sub">TUV</span></button>
-    <button class="lock-key" data-k="9"><span class="lock-key-num">9</span><span class="lock-key-sub">WXYZ</span></button>
-    <div></div>
-    <button class="lock-key" data-k="0"><span class="lock-key-num">0</span></button>
-    <button class="lock-key-del" id="lock-del">Видалити</button>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')">Вхід</button>
+      <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')">Реєстрація</button>
+    </div>
+    <form id="auth-form" autocomplete="on">
+      <div class="fg" style="margin-bottom:10px">
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" name="email" autocomplete="username" placeholder="you@example.com" required>
+      </div>
+      <div class="fg" style="margin-bottom:4px">
+        <label for="auth-password">Пароль</label>
+        <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="Мінімум 6 символів" minlength="6" required>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px">Увійти</button>
+    </form>
+    <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()">Забули пароль?</button>
+    <div class="auth-sep"><span>або</span></div>
+    <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span>Продовжити через Google</button>
   </div>
 </div>
 
@@ -477,6 +463,8 @@ button,input,select,textarea{font-family:inherit}
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
     <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
+    <button class="btn btn-ghost" id="btn-signout" onclick="signOutUser()" title="Вийти" style="display:none"></button>
+    <button class="btn btn-danger" id="btn-delete-account" onclick="deleteAccountUser()" title="Видалити акаунт" style="display:none;padding:9px 12px"></button>
   </div>
 </div>
 
@@ -806,31 +794,6 @@ button,input,select,textarea{font-family:inherit}
   </div>
 </div>
 
-<!-- PIN CONFIRM (for destructive actions) -->
-<div class="modal-overlay pin-confirm-overlay" id="pin-confirm-modal">
-  <div class="pin-confirm-card" onclick="event.stopPropagation()">
-    <div class="pin-confirm-title" id="pin-confirm-title">Підтвердіть дію</div>
-    <div class="pin-confirm-sub" id="pin-confirm-sub">Введіть PIN для підтвердження</div>
-    <div class="lock-dots" id="pin-confirm-dots">
-      <span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span><span class="lock-dot"></span>
-    </div>
-    <div class="pin-confirm-pad">
-      <button class="lock-key pcm-key" data-k="1"><span class="lock-key-num">1</span></button>
-      <button class="lock-key pcm-key" data-k="2"><span class="lock-key-num">2</span><span class="lock-key-sub">ABC</span></button>
-      <button class="lock-key pcm-key" data-k="3"><span class="lock-key-num">3</span><span class="lock-key-sub">DEF</span></button>
-      <button class="lock-key pcm-key" data-k="4"><span class="lock-key-num">4</span><span class="lock-key-sub">GHI</span></button>
-      <button class="lock-key pcm-key" data-k="5"><span class="lock-key-num">5</span><span class="lock-key-sub">JKL</span></button>
-      <button class="lock-key pcm-key" data-k="6"><span class="lock-key-num">6</span><span class="lock-key-sub">MNO</span></button>
-      <button class="lock-key pcm-key" data-k="7"><span class="lock-key-num">7</span><span class="lock-key-sub">PQRS</span></button>
-      <button class="lock-key pcm-key" data-k="8"><span class="lock-key-num">8</span><span class="lock-key-sub">TUV</span></button>
-      <button class="lock-key pcm-key" data-k="9"><span class="lock-key-num">9</span><span class="lock-key-sub">WXYZ</span></button>
-      <button class="lock-key-del" id="pin-confirm-cancel">Скасувати</button>
-      <button class="lock-key pcm-key" data-k="0"><span class="lock-key-num">0</span></button>
-      <button class="lock-key-del" id="pin-confirm-del">Видалити</button>
-    </div>
-  </div>
-</div>
-
 <div id="toast"></div>
 
 <script>
@@ -871,7 +834,8 @@ button,input,select,textarea{font-family:inherit}
     gift:'<path d="M3 9h18v4H3Z"/><path d="M5 13h14v6.3a.7.7 0 0 1-.7.7H5.7a.7.7 0 0 1-.7-.7Z"/><path d="M12 9v11"/><path d="M12 9C12 6.2 9.7 4.3 8.3 5.2S8.2 9 12 9M12 9c0-2.8 2.3-4.7 3.7-3.8S15.8 9 12 9"/>',
     briefcase:'<rect x="3" y="7.5" width="18" height="12" rx="2.2"/><path d="M8 7.5V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/>',
     person:'<circle cx="12" cy="8" r="3.3"/><path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3"/>',
-    box:'<path d="M3 8 12 4l9 4-9 4-9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>'
+    box:'<path d="M3 8 12 4l9 4-9 4-9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>',
+    logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -881,6 +845,10 @@ button,input,select,textarea{font-family:inherit}
     var el = document.getElementById(id);
     if(el) el.innerHTML = window.Icon(name);
   }
+  var GOOGLE_G_SVG='<svg class="ico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.4-6.4C35.6 3 30.1 1 24 1 14.6 1 6.5 6.4 2.6 14.2l7.5 5.8C12 13.6 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.2 5.6C43.5 37.6 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.1 20c-.6 1.6-.9 3.3-.9 5s.3 3.4.9 5l-7.5 5.8C1 32.6 0 28.4 0 24s1-8.6 2.6-11.8z"/><path fill="#34A853" d="M24 47c6.1 0 11.3-2 15-5.5l-7.2-5.6c-2 1.4-4.6 2.2-7.8 2.2-6.5 0-12-4.1-13.9-9.9l-7.5 5.8C6.5 41.6 14.6 47 24 47z"/></svg>';
+  var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
+  setIcon('btn-signout','logout');
+  setIcon('btn-delete-account','trash');
   // Populate every static icon slot
   setIcon('theme-toggle','sun');
   setIcon('btn-refresh','refresh');
@@ -916,92 +884,7 @@ button,input,select,textarea{font-family:inherit}
   setIcon('ic-chk-h2','clock');
   setIcon('ic-chk-vac','umbrella');
 
-  // ── PIN LOCK ──
-  var PIN='7777';
-  var input='';
   function $(id){return document.getElementById(id);}
-  function renderDots(){
-    document.querySelectorAll('#lock-dots .lock-dot').forEach(function(d,i){d.classList.toggle('filled', i<input.length);});
-  }
-  function unlock(){
-    try{sessionStorage.setItem('xamssUnlocked','1');}catch(e){}
-    var ls=$('lock-screen');
-    if(ls){ls.classList.add('lock-hide'); setTimeout(function(){ls.style.display='none';},320);}
-  }
-  function shake(){
-    var dw=$('lock-dots');
-    dw.classList.add('lock-shake');
-    $('lock-sub').textContent='Невірний код. Спробуйте ще раз';
-    setTimeout(function(){dw.classList.remove('lock-shake'); input=''; renderDots(); $('lock-sub').textContent='Введіть PIN для входу';},420);
-  }
-  function press(k){
-    if(input.length>=4) return;
-    input+=k; renderDots();
-    if(input.length===4){
-      setTimeout(function(){ input===PIN ? unlock() : shake(); },150);
-    }
-  }
-  document.querySelectorAll('#lock-screen .lock-key[data-k]').forEach(function(b){
-    b.addEventListener('click',function(){press(b.getAttribute('data-k'));});
-  });
-  var del=$('lock-del');
-  if(del) del.addEventListener('click',function(){input=input.slice(0,-1); renderDots();});
-
-  try{
-    if(sessionStorage.getItem('xamssUnlocked')==='1'){
-      var ls=$('lock-screen'); if(ls) ls.style.display='none';
-    }
-  }catch(e){}
-
-  // ── PIN CONFIRM (compact dialog for destructive actions) ──
-  var pcmInput='';
-  var pcmCallback=null;
-  function pcmRenderDots(){
-    document.querySelectorAll('#pin-confirm-dots .lock-dot').forEach(function(d,i){d.classList.toggle('filled', i<pcmInput.length);});
-  }
-  function pcmClose(){
-    var ov=$('pin-confirm-modal');
-    if(ov) ov.style.display='none';
-    pcmInput=''; pcmCallback=null; pcmRenderDots();
-    var sub=$('pin-confirm-sub'); if(sub) sub.textContent='Введіть PIN для підтвердження';
-  }
-  function pcmShake(){
-    var dw=$('pin-confirm-dots');
-    dw.classList.add('lock-shake');
-    $('pin-confirm-sub').textContent='Невірний PIN, спробуйте ще';
-    setTimeout(function(){dw.classList.remove('lock-shake'); pcmInput=''; pcmRenderDots();},420);
-  }
-  function pcmPress(k){
-    if(pcmInput.length>=4) return;
-    pcmInput+=k; pcmRenderDots();
-    if(pcmInput.length===4){
-      setTimeout(function(){
-        if(pcmInput===PIN){
-          var cb=pcmCallback;
-          pcmClose();
-          if(cb) cb();
-        }else{
-          pcmShake();
-        }
-      },150);
-    }
-  }
-  window.confirmWithPin=function(message, onConfirm){
-    pcmInput=''; pcmCallback=onConfirm;
-    var title=$('pin-confirm-title'); if(title) title.textContent=message||'Підтвердіть дію';
-    var sub=$('pin-confirm-sub'); if(sub) sub.textContent='Введіть PIN для підтвердження';
-    pcmRenderDots();
-    var ov=$('pin-confirm-modal'); if(ov) ov.style.display='flex';
-  };
-  document.querySelectorAll('.pcm-key[data-k]').forEach(function(b){
-    b.addEventListener('click',function(){pcmPress(b.getAttribute('data-k'));});
-  });
-  var pcmDel=$('pin-confirm-del');
-  if(pcmDel) pcmDel.addEventListener('click',function(){pcmInput=pcmInput.slice(0,-1); pcmRenderDots();});
-  var pcmCancel=$('pin-confirm-cancel');
-  if(pcmCancel) pcmCancel.addEventListener('click', pcmClose);
-  var pcmOverlay=$('pin-confirm-modal');
-  if(pcmOverlay) pcmOverlay.addEventListener('click', function(e){ if(e.target===pcmOverlay) pcmClose(); });
 
   // ── THEME ──
   function applyTheme(theme){
@@ -1021,7 +904,12 @@ button,input,select,textarea{font-family:inherit}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, signOut, deleteUser,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
@@ -1032,7 +920,10 @@ const fbApp = initializeApp({
   appId:"1:311094677098:web:7a3797c99fad2874340413"
 });
 const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const googleProvider = new GoogleAuthProvider();
 const DCOL = 'max_tracker';
+let currentUser = null;
 
 // ── STATE ─────────────────────────────────────────────────────
 let shifts = {};
@@ -1043,33 +934,11 @@ let txFilter = 'all';
 let fbTimer = null;
 const SALARY_GOAL = 20000;
 
-// Seed data — pre-filled once from the user's existing debt notes; entries
-// whose amount starts with *** had illegible/uncertain digits in the source
-// and are kept editable so discrepancies against the running balance can be
-// spotted and corrected in place. Multiple debts are supported; each keeps
-// its own currency so amounts aren't forced into hryvnia.
+// Each signed-in user starts with their own empty debt list — data is
+// scoped to their account (users/{uid}/...), never shared or pre-filled.
 const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
-let debts = [
-  { id:1, name:'Борг', note:'242', currency:'у.о.', startAmount:75000, entries:[
-    {id:1, amount:'500',   balance:74500, date:'Листопад'},
-    {id:2, amount:'500',   balance:74000, date:'Січень'},
-    {id:3, amount:'170',   balance:73830, date:'Вересень 23'},
-    {id:4, amount:'160',   balance:73670, date:''},
-    {id:5, amount:'160',   balance:73510, date:''},
-    {id:6, amount:'128',   balance:73382, date:''},
-    {id:7, amount:'125',   balance:73257, date:'Березень 24'},
-    {id:8, amount:'18000', balance:55257, date:'Червень 2024'},
-    {id:9, amount:'100',   balance:55157, date:'09.07.2024'},
-    {id:10,amount:'115',   balance:55042, date:'13.09.2024'},
-    {id:11,amount:'115',   balance:54927, date:'05.02.2025'},
-    {id:12,amount:'***68', balance:54641, date:'10.02.2026'},
-    {id:13,amount:'***67', balance:54574, date:'13.03.2026'},
-    {id:14,amount:'***68', balance:54574, date:'16.04.2026'},
-    {id:15,amount:'***90', balance:54484, date:'18.05.2026'},
-    {id:16,amount:'***93', balance:54391, date:'15.06.2026'},
-  ]},
-];
-let currentDebtId = 1;
+let debts = [];
+let currentDebtId = null;
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
@@ -1092,6 +961,18 @@ const WALLETS = {
 };
 
 // ── FIREBASE ──────────────────────────────────────────────────
+// All cloud data lives under users/{uid}/max_tracker/{doc} so accounts
+// never see or overwrite each other's shifts/finances/debts. Firestore
+// security rules (see firestore.rules) must enforce this server-side —
+// this path scoping alone is only a client-side convention.
+function userDoc(name){
+  if(!currentUser) throw new Error('not-authenticated');
+  return doc(db,'users',currentUser.uid,DCOL,name);
+}
+function lsKey(name){
+  return currentUser ? `mx_${name}_${currentUser.uid}` : null;
+}
+
 function fbSetStatus(type, text){
   const el=document.getElementById('fb-status');
   const tx=document.getElementById('fb-text');
@@ -1101,12 +982,13 @@ function fbSetStatus(type, text){
 }
 
 async function fbSaveNow(){
+  if(!currentUser) return;
   fbSetStatus('loading','Зберігаю...');
   try{
     await Promise.all([
-      setDoc(doc(db,DCOL,'shifts'),  {data:shifts},       {merge:false}),
-      setDoc(doc(db,DCOL,'finance'), {data:transactions}, {merge:false}),
-      setDoc(doc(db,DCOL,'debt'),    {data:{debts, currentDebtId}}, {merge:false}),
+      setDoc(userDoc('shifts'),  {data:shifts},       {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions}, {merge:false}),
+      setDoc(userDoc('debt'),    {data:{debts, currentDebtId}}, {merge:false}),
     ]);
     fbSetStatus('ok','Збережено');
   }catch(e){
@@ -1131,15 +1013,21 @@ function normalizeDebtData(raw){
 }
 
 async function fbLoadNow(){
+  if(!currentUser) return;
   fbSetStatus('loading','Завантажую...');
   try{
-    const [sS,fS,dS]=await Promise.all([getDoc(doc(db,DCOL,'shifts')),getDoc(doc(db,DCOL,'finance')),getDoc(doc(db,DCOL,'debt'))]);
-    if(sS.exists()){shifts=sS.data().data||{};localStorage.setItem('mxshifts',JSON.stringify(shifts));}
-    if(fS.exists()){transactions=fS.data().data||[];localStorage.setItem('mxtx',JSON.stringify(transactions));}
+    const [sS,fS,dS]=await Promise.all([getDoc(userDoc('shifts')),getDoc(userDoc('finance')),getDoc(userDoc('debt'))]);
+    shifts=sS.exists()?(sS.data().data||{}):{};
+    const sk=lsKey('shifts'); if(sk) localStorage.setItem(sk,JSON.stringify(shifts));
+    transactions=fS.exists()?(fS.data().data||[]):[];
+    const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
     if(dS.exists()){
       const norm=normalizeDebtData(dS.data().data);
-      if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId; saveDebtLocal();}
+      debts=norm?norm.debts:[]; currentDebtId=norm?norm.currentDebtId:null;
+    }else{
+      debts=[]; currentDebtId=null;
     }
+    saveDebtLocal();
     fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
     showToast('Дані оновлено','sparkle');
@@ -1157,11 +1045,11 @@ function scheduleSave(){
 }
 
 function saveLocal(){
-  localStorage.setItem('mxshifts',JSON.stringify(shifts));
+  const k=lsKey('shifts'); if(k) localStorage.setItem(k,JSON.stringify(shifts));
 }
 
 function saveDebtLocal(){
-  localStorage.setItem('mxdebt', JSON.stringify({debts, currentDebtId}));
+  const k=lsKey('debt'); if(k) localStorage.setItem(k, JSON.stringify({debts, currentDebtId}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1176,29 +1064,139 @@ window.updateDebtInfo=updateDebtInfo; window.addDebtEntry=addDebtEntry;
 window.updateDebtEntry=updateDebtEntry; window.deleteDebtEntry=deleteDebtEntry;
 window.deleteCurrentDebt=deleteCurrentDebt;
 
+// ── AUTH ──────────────────────────────────────────────────────
+let authMode='login';
+window.setAuthMode=function(mode){
+  authMode=mode;
+  document.getElementById('auth-tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('auth-tab-register').classList.toggle('active',mode==='register');
+  document.getElementById('auth-submit').textContent=mode==='login'?'Увійти':'Зареєструватися';
+  document.getElementById('auth-password').setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
+  setAuthError('');
+};
+function setAuthError(msg){
+  const el=document.getElementById('auth-error');
+  if(el) el.textContent=msg||'';
+}
+function authErrorMessage(code){
+  const map={
+    'auth/invalid-email':'Некоректний email.',
+    'auth/user-not-found':'Користувача не знайдено.',
+    'auth/wrong-password':'Невірний пароль.',
+    'auth/invalid-credential':'Невірний email або пароль.',
+    'auth/email-already-in-use':'Цей email вже зареєстровано.',
+    'auth/weak-password':'Пароль надто простий (мінімум 6 символів).',
+    'auth/too-many-requests':'Забагато спроб. Спробуйте пізніше.',
+    'auth/popup-closed-by-user':'Вікно входу закрито.',
+  };
+  return map[code]||'Помилка входу. Спробуйте ще раз.';
+}
+document.getElementById('auth-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email=document.getElementById('auth-email').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const btn=document.getElementById('auth-submit');
+  setAuthError(''); btn.disabled=true;
+  try{
+    if(authMode==='login') await signInWithEmailAndPassword(auth,email,password);
+    else await createUserWithEmailAndPassword(auth,email,password);
+  }catch(err){
+    console.error(err);
+    setAuthError(authErrorMessage(err.code));
+  }finally{
+    btn.disabled=false;
+  }
+});
+window.googleSignIn=async function(){
+  setAuthError('');
+  try{ await signInWithPopup(auth, googleProvider); }
+  catch(err){ console.error(err); setAuthError(authErrorMessage(err.code)); }
+};
+window.resetPassword=async function(){
+  const email=document.getElementById('auth-email').value.trim();
+  if(!email){ setAuthError('Введіть email, щоб скинути пароль.'); return; }
+  try{
+    await sendPasswordResetEmail(auth,email);
+    setAuthError('Лист для скидання пароля надіслано.');
+  }catch(err){
+    console.error(err);
+    setAuthError(authErrorMessage(err.code));
+  }
+};
+window.signOutUser=async function(){
+  if(!confirm('Вийти з акаунту?')) return;
+  await signOut(auth);
+};
+window.deleteAccountUser=async function(){
+  if(!currentUser) return;
+  if(!confirm('Остаточно видалити акаунт і всі дані (зміни, фінанси, борги)? Це незворотньо.')) return;
+  try{
+    await Promise.all([
+      deleteDoc(userDoc('shifts')),
+      deleteDoc(userDoc('finance')),
+      deleteDoc(userDoc('debt')),
+    ]);
+    const uid=currentUser.uid;
+    await deleteUser(currentUser);
+    ['shifts','tx','debt'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+    showToast('Акаунт видалено','trash');
+  }catch(e){
+    console.error(e);
+    if(e.code==='auth/requires-recent-login'){
+      alert('Для видалення акаунту потрібен нещодавній вхід. Вийдіть і увійдіть знову, після чого одразу повторіть видалення.');
+    }else{
+      alert('Не вдалося видалити акаунт. Спробуйте ще раз.');
+    }
+  }
+};
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser=user;
+  const lockScreen=document.getElementById('lock-screen');
+  const signOutBtn=document.getElementById('btn-signout');
+  const deleteBtn=document.getElementById('btn-delete-account');
+  if(user){
+    if(lockScreen){ lockScreen.classList.add('lock-hide'); setTimeout(()=>{lockScreen.style.display='none';},320); }
+    if(signOutBtn) signOutBtn.style.display='';
+    if(deleteBtn) deleteBtn.style.display='';
+    await init();
+  }else{
+    shifts={}; transactions=[]; debts=[]; currentDebtId=null;
+    if(signOutBtn) signOutBtn.style.display='none';
+    if(deleteBtn) deleteBtn.style.display='none';
+    if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
+    const form=document.getElementById('auth-form'); if(form) form.reset();
+    setAuthError('');
+  }
+});
+
 // ── INIT ──────────────────────────────────────────────────────
+let initialized=false;
 async function init(){
   const now=new Date();
-  // Month select
-  const ms=document.getElementById('select-month');
-  MONTHS.forEach((m,i)=>{
-    const o=document.createElement('option');
-    o.value=i; o.textContent=m;
-    if(i===now.getMonth())o.selected=true;
-    ms.appendChild(o);
-  });
-  // Year select
-  const ys=document.getElementById('select-year');
-  for(let y=now.getFullYear()-2;y<=now.getFullYear()+1;y++){
-    const o=document.createElement('option');
-    o.value=y; o.textContent=y;
-    if(y===now.getFullYear())o.selected=true;
-    ys.appendChild(o);
+  if(!initialized){
+    initialized=true;
+    // Month select
+    const ms=document.getElementById('select-month');
+    MONTHS.forEach((m,i)=>{
+      const o=document.createElement('option');
+      o.value=i; o.textContent=m;
+      if(i===now.getMonth())o.selected=true;
+      ms.appendChild(o);
+    });
+    // Year select
+    const ys=document.getElementById('select-year');
+    for(let y=now.getFullYear()-2;y<=now.getFullYear()+1;y++){
+      const o=document.createElement('option');
+      o.value=y; o.textContent=y;
+      if(y===now.getFullYear())o.selected=true;
+      ys.appendChild(o);
+    }
   }
-  // Local cache first
-  try{const s=localStorage.getItem('mxshifts'); if(s) shifts=JSON.parse(s);}catch{}
-  try{const t=localStorage.getItem('mxtx');     if(t) transactions=JSON.parse(t);}catch{}
-  try{const d=localStorage.getItem('mxdebt'); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
+  // Local cache first (namespaced to the signed-in user)
+  try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
+  try{const k=lsKey('tx'); const t=k&&localStorage.getItem(k); if(t) transactions=JSON.parse(t);}catch{}
+  try{const k=lsKey('debt'); const d=k&&localStorage.getItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
@@ -1438,14 +1436,13 @@ function renderFinanceChart(){
 
 // ── TEMPLATES ─────────────────────────────────────────────────
 function clearCurrentMonth(){
-  window.confirmWithPin('Видалити всі зміни за цей місяць?', ()=>{
-    const m=parseInt(document.getElementById('select-month').value);
-    const y=parseInt(document.getElementById('select-year').value);
-    const p=`${y}-${String(m+1).padStart(2,'0')}-`;
-    Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
-    saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-    showToast('Місяць очищено','trash');
-  });
+  if(!confirm('Видалити всі зміни за цей місяць?')) return;
+  const m=parseInt(document.getElementById('select-month').value);
+  const y=parseInt(document.getElementById('select-year').value);
+  const p=`${y}-${String(m+1).padStart(2,'0')}-`;
+  Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
+  saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
+  showToast('Місяць очищено','trash');
 }
 
 function applyTemplate(){
@@ -1496,7 +1493,7 @@ function addTransaction(){
   const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
   transactions.unshift({id:Date.now(),type:currentFinanceType,amount,category:cat,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,date,comment});
-  localStorage.setItem('mxtx',JSON.stringify(transactions));
+  const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave();
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
@@ -1507,7 +1504,7 @@ function addTransaction(){
 function deleteTransaction(id){
   if(!confirm('Видалити цей запис?')) return;
   transactions=transactions.filter(t=>t.id!==id);
-  localStorage.setItem('mxtx',JSON.stringify(transactions));
+  const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave(); renderFinance(); renderFinanceChart();
 }
 
@@ -1712,7 +1709,6 @@ function renderDebt(){
   });
 }
 
-window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
