@@ -780,7 +780,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="fin-grid" id="finance-panel-block">
       <!-- Форма -->
       <div class="fin-form">
-        <div class="fin-form-title"><span id="ic-plus"></span>Нова операція</div>
+        <div class="fin-form-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span><span id="ic-plus"></span><span id="fin-form-title-text">Нова операція</span></span>
+          <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="cancelEditTransaction()">Скасувати</button>
+        </div>
         <div class="type-seg">
           <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')">+ Дохід</button>
           <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')">− Витрата</button>
@@ -818,7 +821,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <label>Коментар</label>
           <input type="text" id="fin-comment" placeholder="Деталі операції...">
         </div>
-        <button class="add-btn" onclick="addTransaction()">Додати запис</button>
+        <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()">Додати запис</button>
       </div>
 
       <!-- Історія -->
@@ -1329,6 +1332,7 @@ let transactions = [];
 // (turned into real transactions) by processRecurring() on cloud load.
 let recurring = [];
 let currentFinanceType = 'income';
+let editingTxId = null;
 let selectedDateKey = null;
 let txFilter = 'all';
 let fbTimer = null;
@@ -3196,6 +3200,16 @@ function addTransaction(){
     targetCurrency=walletCurrency(wt);
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
   }
+  if(editingTxId!=null){
+    const t=transactions.find(x=>x.id===editingTxId);
+    if(t) Object.assign(t,{type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:selectedTagIds.slice(),wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
+    cancelEditTransaction();
+    const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
+    scheduleSave();
+    renderFinance(); renderFinanceChart();
+    showToast('Запис оновлено','check');
+    return;
+  }
   transactions.unshift({id:Date.now(),type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:selectedTagIds.slice(),wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave();
@@ -3225,6 +3239,45 @@ async function deleteTransaction(id){
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave(); renderFinance(); renderFinanceChart();
 }
+
+// Loads an existing transaction back into the "Нова операція" form so its
+// fields can be changed instead of deleting and re-creating the record.
+window.editTransaction=function(id){
+  const t=transactions.find(x=>x.id===id); if(!t) return;
+  editingTxId=id;
+  setFinanceType(t.type);
+
+  const wsel=document.getElementById('fin-wallet');
+  if(wsel){ wsel.value=t.wallet; wsel.dispatchEvent(new Event('change',{bubbles:true})); }
+  if(t.type==='transfer'){
+    const wtsel=document.getElementById('fin-wallet-target');
+    if(wtsel){ wtsel.value=t.targetWallet; wtsel.dispatchEvent(new Event('change',{bubbles:true})); }
+  } else {
+    const catsel=document.getElementById('fin-category');
+    if(catsel){ catsel.value=t.category; catsel.dispatchEvent(new Event('change',{bubbles:true})); }
+    const subsel=document.getElementById('fin-subcategory');
+    if(subsel){ subsel.value=t.subcategory||''; subsel.dispatchEvent(new Event('change',{bubbles:true})); }
+  }
+  const ai=document.getElementById('fin-amount'); if(ai) ai.value=t.amount;
+  const dsel=document.getElementById('fin-date');
+  if(dsel){ dsel.value=t.date||''; dsel.dispatchEvent(new Event('change',{bubbles:true})); }
+  const ci=document.getElementById('fin-comment'); if(ci) ci.value=t.comment||'';
+  selectedTagIds=(t.tags||[]).slice(); renderFinTagChips();
+
+  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent='Редагування операції';
+  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent='Зберегти зміни';
+  const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='inline-block';
+  document.getElementById('finance-panel-block')?.scrollIntoView({behavior:'smooth',block:'start'});
+};
+window.cancelEditTransaction=function(){
+  editingTxId=null;
+  const ai=document.getElementById('fin-amount'); if(ai) ai.value='';
+  const ci=document.getElementById('fin-comment'); if(ci) ci.value='';
+  selectedTagIds=[]; renderFinTagChips();
+  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent='Нова операція';
+  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent='Додати запис';
+  const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='none';
+};
 
 function setTxFilter(f){
   txFilter=f;
@@ -3440,6 +3493,7 @@ function renderFinance(){
     const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
     const item=document.createElement('div');
     item.className='tx-item';
+    item.style.cursor='pointer';
     item.innerHTML=`
       <div class="tx-left">
         <div class="tx-cat">${catIcon}<span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
@@ -3448,8 +3502,10 @@ function renderFinance(){
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
-        <button class="tx-del" onclick="deleteTransaction(${t.id})">${window.Icon('trash')}</button>
+        <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)">${window.Icon('pencil')}</button>
+        <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})">${window.Icon('trash')}</button>
       </div>`;
+    item.addEventListener('click',()=>editTransaction(t.id));
     lc.appendChild(item);
   });
 }
