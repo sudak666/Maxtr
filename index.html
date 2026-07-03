@@ -406,8 +406,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .debt-row.discrepancy{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
 .debt-field{display:flex;flex-direction:column;gap:3px;flex:1 1 84px;min-width:70px}
 .debt-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
-.debt-row input{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s}
-.debt-row input:focus{border-color:var(--purple)}
+.debt-row input,.debt-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
+.debt-row select{cursor:pointer}
+.debt-row input:focus,.debt-row select:focus{border-color:var(--purple)}
+.debt-row.recur-paused{opacity:.55}
 .debt-hint{flex-basis:100%;font-size:10px;color:var(--red2);font-weight:700;margin-top:-2px}
 .debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
@@ -691,6 +693,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
       <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
       <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
+      <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-manage-recurring"></span>Повторювані</button>
     </div>
 
     <!-- Бюджети по категоріях -->
@@ -927,6 +930,22 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- MANAGER: RECURRING TRANSACTIONS -->
+<div class="modal-overlay" id="recurring-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Повторювані операції</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Автоматично додаються при вході в застосунок, коли настає дата.</div>
+    <div class="debt-list" id="recurring-list" style="max-height:420px"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addRecurring()"><span id="ic-add-recur"></span>Додати повторювану операцію</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- CUSTOM DIALOG (confirm / prompt / alert) -->
 <div class="modal-overlay dlg-overlay" id="ui-dialog">
   <div class="dlg-card" onclick="event.stopPropagation()">
@@ -985,7 +1004,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
     chevron:'<path d="M6 9l6 6 6-6"/>',
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
-    target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>'
+    target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
+    repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1026,6 +1046,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-manage-cats','tag');
   setIcon('ic-manage-budgets','target');
   setIcon('ic-budget','target');
+  setIcon('ic-manage-recurring','repeat');
+  setIcon('ic-add-recur','plus');
   setIcon('ic-add-st','plus');
   setIcon('ic-add-w','plus');
   setIcon('ic-add-cat','plus');
@@ -1075,6 +1097,10 @@ let currentUser = null;
 // ── STATE ─────────────────────────────────────────────────────
 let shifts = {};
 let transactions = [];
+// Recurring templates: [{id,type('income'|'expense'),amount,category,wallet,
+// frequency('daily'|'weekly'|'monthly'),nextDate,active,comment}]. Applied
+// (turned into real transactions) by processRecurring() on cloud load.
+let recurring = [];
 let currentFinanceType = 'income';
 let selectedDateKey = null;
 let txFilter = 'all';
@@ -1204,7 +1230,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1299,6 +1325,8 @@ async function fbLoadNow(){
     const sk=lsKey('shifts'); if(sk) localStorage.setItem(sk,JSON.stringify(shifts));
     transactions=fData?(fData.data||[]):[];
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
+    recurring=fData?(fData.recurring||[]):[];
+    saveRecurringLocal();
     if(dS.exists()){
       const norm=normalizeDebtData(dS.data().data);
       debts=norm?norm.debts:[]; currentDebtId=norm?norm.currentDebtId:null;
@@ -1309,6 +1337,7 @@ async function fbLoadNow(){
     const seeded=seedConfigFromDocs(sData, fData);
     const backfilled=backfillCategories();
     saveConfigLocal();
+    const recurAdded=processRecurring();
     lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
       finance: fS.exists()?(fS.data().updatedAt||0):0,
@@ -1316,7 +1345,8 @@ async function fbLoadNow(){
     };
     fbSetStatus('ok','Синхронізовано');
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
-    showToast('Дані оновлено','sparkle');
+    if(recurAdded) showToast(`Додано ${recurAdded} повторюваних операцій`,'repeat');
+    else showToast('Дані оновлено','sparkle');
     // Persist newly-seeded config, keeping a one-time raw backup first so
     // the original docs can always be recovered if anything looks wrong.
     if(seeded){
@@ -1327,7 +1357,7 @@ async function fbLoadNow(){
         }, {merge:false});
       }catch(be){ console.error('backup failed', be); }
     }
-    if(seeded||backfilled) await fbSaveNow();
+    if(seeded||backfilled||recurAdded) await fbSaveNow();
   }catch(e){
     console.error(e);
     fbSetStatus('error','Офлайн');
@@ -1347,6 +1377,46 @@ function saveLocal(){
 
 function saveDebtLocal(){
   const k=lsKey('debt'); if(k) localStorage.setItem(k, JSON.stringify({debts, currentDebtId}));
+}
+
+function saveRecurringLocal(){
+  const k=lsKey('recurring'); if(k) localStorage.setItem(k, JSON.stringify(recurring));
+}
+
+// Advances a YYYY-MM-DD date string by one period of the given frequency.
+function computeNextDate(dateStr, freq){
+  const d=new Date(dateStr+'T00:00:00');
+  if(freq==='daily') d.setDate(d.getDate()+1);
+  else if(freq==='weekly') d.setDate(d.getDate()+7);
+  else d.setMonth(d.getMonth()+1); // monthly (default)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Turns any due recurring template into a real transaction (catching up on
+// missed periods while the app was closed, capped so a stale template can't
+// spin forever), advancing nextDate past today. Returns how many were added.
+function processRecurring(){
+  if(!recurring.length) return 0;
+  const todayStr=new Date().toISOString().split('T')[0];
+  let added=0;
+  recurring.forEach(r=>{
+    if(r.active===false || !r.nextDate || !r.amount) return;
+    let guard=0;
+    while(r.nextDate<=todayStr && guard<24){
+      transactions.unshift({
+        id:Date.now()+added, type:r.type, amount:r.amount, category:r.category||'Інше',
+        wallet:r.wallet, targetWallet:null, date:r.nextDate,
+        comment:(r.comment?r.comment+' · ':'')+'повторювана'
+      });
+      r.nextDate=computeNextDate(r.nextDate, r.frequency||'monthly');
+      added++; guard++;
+    }
+  });
+  if(added){
+    const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
+    saveRecurringLocal();
+  }
+  return added;
 }
 
 function saveConfigLocal(){
@@ -1481,7 +1551,7 @@ window.deleteAccountUser=async function(){
       return;
     }
   }
-  ['shifts','tx','debt','cfg'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+  ['shifts','tx','recurring','debt','cfg'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
   showToast('Акаунт видалено','trash');
 };
 
@@ -1496,7 +1566,7 @@ onAuthStateChanged(auth, async (user)=>{
     if(deleteBtn) deleteBtn.style.display='';
     await init();
   }else{
-    shifts={}; transactions=[]; debts=[]; currentDebtId=null;
+    shifts={}; transactions=[]; recurring=[]; debts=[]; currentDebtId=null;
     if(signOutBtn) signOutBtn.style.display='none';
     if(deleteBtn) deleteBtn.style.display='none';
     if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
@@ -1531,6 +1601,7 @@ async function init(){
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
   try{const k=lsKey('tx'); const t=k&&localStorage.getItem(k); if(t) transactions=JSON.parse(t);}catch{}
+  try{const k=lsKey('recurring'); const r=k&&localStorage.getItem(k); if(r) recurring=JSON.parse(r);}catch{}
   try{const k=lsKey('debt'); const d=k&&localStorage.getItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
   // Config cache (shift types / wallets / categories); seed sane defaults
   // if none cached yet so the first render before cloud load doesn't break.
@@ -2026,7 +2097,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -2091,7 +2162,7 @@ window.openWalletsManager=function(){
   renderWalletsList();
   document.getElementById('wallets-modal').style.display='flex';
 };
-function walletInUse(id){ return transactions.some(t=>t.wallet===id||t.targetWallet===id); }
+function walletInUse(id){ return transactions.some(t=>t.wallet===id||t.targetWallet===id) || recurring.some(r=>r.wallet===id); }
 function renderWalletsList(){
   const box=document.getElementById('wallets-list'); if(!box) return;
   box.innerHTML='';
@@ -2164,8 +2235,9 @@ window.renameCategory=function(idx,value){
   list[idx]=newName;
   // keep existing transactions consistent with the rename
   transactions.forEach(t=>{ if(t.type===catMgrType && t.category===oldName) t.category=newName; });
+  recurring.forEach(r=>{ if(r.type===catMgrType && r.category===oldName) r.category=newName; });
   if(budgets[oldName]!==undefined){ budgets[newName]=budgets[oldName]; delete budgets[oldName]; }
-  saveConfigLocal();
+  saveConfigLocal(); saveRecurringLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
   scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
@@ -2248,6 +2320,90 @@ function renderBudgets(){
     box.appendChild(row);
   });
 }
+
+// Recurring transactions ----------------------------------------
+window.openRecurringManager=function(){
+  renderRecurringList();
+  document.getElementById('recurring-modal').style.display='flex';
+};
+function renderRecurringList(){
+  const box=document.getElementById('recurring-list'); if(!box) return;
+  box.innerHTML='';
+  if(!recurring.length){ box.innerHTML='<div class="mgr-empty">Немає повторюваних операцій</div>'; return; }
+  recurring.forEach(r=>{
+    const catList=categories[r.type]||[];
+    const row=document.createElement('div');
+    row.className='debt-row'+(r.active===false?' recur-paused':'');
+    row.innerHTML=`
+      <div class="debt-field" style="flex:1 1 100px">
+        <span class="debt-field-label">Тип</span>
+        <select onchange="updateRecurring('${r.id}','type',this.value)">
+          <option value="income" ${r.type==='income'?'selected':''}>Дохід</option>
+          <option value="expense" ${r.type==='expense'?'selected':''}>Витрата</option>
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 90px">
+        <span class="debt-field-label">Сума</span>
+        <input type="number" min="0.01" step="0.01" value="${r.amount||''}" onchange="updateRecurring('${r.id}','amount',this.value)">
+      </div>
+      <div class="debt-field" style="flex:1 1 130px">
+        <span class="debt-field-label">Категорія</span>
+        <select onchange="updateRecurring('${r.id}','category',this.value)">
+          ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 120px">
+        <span class="debt-field-label">Гаманець</span>
+        <select onchange="updateRecurring('${r.id}','wallet',this.value)">
+          ${wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 110px">
+        <span class="debt-field-label">Частота</span>
+        <select onchange="updateRecurring('${r.id}','frequency',this.value)">
+          <option value="daily" ${r.frequency==='daily'?'selected':''}>Щодня</option>
+          <option value="weekly" ${r.frequency==='weekly'?'selected':''}>Щотижня</option>
+          <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>Щомісяця</option>
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 132px">
+        <span class="debt-field-label">Наступного разу</span>
+        <input type="date" value="${r.nextDate||''}" onchange="updateRecurring('${r.id}','nextDate',this.value)">
+      </div>
+      <label class="debt-field" style="flex:0 0 auto;flex-direction:row;align-items:center;gap:6px;padding-bottom:6px;cursor:pointer">
+        <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
+        <span class="debt-field-label" style="text-transform:none;font-size:10px">активна</span>
+      </label>
+      <button class="debt-row-del" onclick="deleteRecurring('${r.id}')">${window.Icon('trash')}</button>
+    `;
+    box.appendChild(row);
+  });
+}
+window.updateRecurring=function(id,field,value){
+  const r=recurring.find(x=>x.id===id); if(!r) return;
+  if(field==='amount') r.amount=parseFloat(value)||0;
+  else if(field==='active') r.active=!!value;
+  else if(field==='type'){ r.type=value; r.category=(categories[value]||[])[0]||'Інше'; }
+  else r[field]=value;
+  saveRecurringLocal(); scheduleSave();
+  renderRecurringList();
+};
+window.addRecurring=function(){
+  const type='expense';
+  const category=(categories.expense||[])[0]||'Інше';
+  const wallet=(wallets[0]&&wallets[0].id)||'';
+  const today=new Date().toISOString().split('T')[0];
+  recurring.push({id:uid('rec'), type, amount:0, category, wallet, frequency:'monthly', nextDate:today, active:true, comment:''});
+  saveRecurringLocal(); scheduleSave();
+  renderRecurringList();
+  showToast('Шаблон додано — заповни суму','plus');
+};
+window.deleteRecurring=async function(id){
+  if(!(await uiConfirm('Видалити цю повторювану операцію? Вже додані транзакції залишаться.',{title:'Видалити шаблон',okText:'Видалити',danger:true}))) return;
+  recurring=recurring.filter(r=>r.id!==id);
+  saveRecurringLocal(); scheduleSave();
+  renderRecurringList();
+};
 
 // ── FINANCE ───────────────────────────────────────────────────
 // Rebuilds the wallet dropdowns from the user's wallets, keeping the
