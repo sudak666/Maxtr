@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<script>try{if(localStorage.getItem('xamssTheme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
+<script>try{var __xt=localStorage.getItem('xamssTheme'); if(__xt==='light'||__xt==='unbreakable')document.documentElement.setAttribute('data-theme',__xt);}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0812">
 <meta name="color-scheme" content="dark light">
@@ -74,6 +74,37 @@
 [data-theme="light"] .wt-pumb{color:#b91c1c}
 [data-theme="light"] .wt-cash{color:#b45309}
 [data-theme="light"] .wt-main{color:#6d28d9}
+
+/* "Незламні" — Ukraine-flag-inspired deep blue + gold theme. --purple stays
+   a proper blue (so the many hardcoded color:#fff pairings across buttons
+   stay legible) while --orange (already the app's secondary accent, used
+   for the cash wallet/budget warnings) becomes the flag gold. */
+[data-theme="unbreakable"]{
+  --bg:#03122b;
+  --bg1:#071c40;
+  --bg2:#0c274f;
+  --bg3:#123262;
+  --border:#1a3a6b;
+  --border2:#27508f;
+  --text:#eaf2ff;
+  --text-strong:#ffffff;
+  --muted:#87a0d4;
+  --muted2:#4d6aa3;
+  --purple:#0057b7;
+  --purple2:#5b9bf5;
+  --purple3:#003d82;
+  --green:#10b981;
+  --green2:#34d399;
+  --red:#ef4444;
+  --red2:#f87171;
+  --blue:#2f7fff;
+  --blue2:#7fb3ff;
+  --orange:#ffd700;
+  --orange2:#ffe14d;
+  --pink:#ec4899;
+  --cyan:#06b6d4;
+  --overlay:rgba(2,8,24,.8);
+}
 
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s ease,color .25s ease}
@@ -153,6 +184,7 @@ button,input,select,textarea{font-family:inherit}
 .btn:active{transform:scale(.97)}
 .btn-ghost{background:var(--bg2);color:var(--muted);border-color:var(--border)}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.lang-opt.active{background:rgba(139,92,246,.15);color:var(--purple2);border-color:var(--purple)}
 .btn-primary{background:var(--purple);color:#fff;border-color:transparent}
 .btn-primary:hover{background:var(--purple3)}
 .btn-danger{background:rgba(239,68,68,.1);color:var(--red2);border-color:rgba(239,68,68,.25)}
@@ -281,6 +313,14 @@ button,input,select,textarea{font-family:inherit}
   outline:none;width:100%;font-family:inherit;transition:border-color .15s;
 }
 .fg select:focus,.fg input:focus{border-color:var(--purple)}
+
+.profile-avatar{
+  width:64px;height:64px;border-radius:50%;flex-shrink:0;cursor:pointer;overflow:hidden;
+  background:var(--bg3);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:var(--purple2);
+}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* Hide the ugly native number-input spin buttons everywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -568,14 +608,18 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 <!-- AUTH SCREEN (real registration / sign-in) -->
 <div class="lock-screen" id="lock-screen">
+  <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px">
+    <button type="button" class="btn btn-ghost lang-opt" data-lang="uk" onclick="setLang('uk')" style="padding:6px 14px;font-size:12px">УКР</button>
+    <button type="button" class="btn btn-ghost lang-opt" data-lang="en" onclick="setLang('en')" style="padding:6px 14px;font-size:12px">ENG</button>
+  </div>
   <div class="lock-brand">
     <div class="lock-logo">X</div>
     <div class="lock-title">Xamss</div>
   </div>
   <div class="auth-card">
     <div class="auth-tabs">
-      <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')">Вхід</button>
-      <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')">Реєстрація</button>
+      <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')" data-i18n="auth_login_tab">Вхід</button>
+      <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')" data-i18n="auth_register_tab">Реєстрація</button>
     </div>
     <form id="auth-form" autocomplete="on">
       <div class="fg" style="margin-bottom:10px">
@@ -583,17 +627,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <input type="email" id="auth-email" name="email" autocomplete="username" placeholder="you@example.com" required>
       </div>
       <div class="fg" style="margin-bottom:4px">
-        <label for="auth-password">Пароль</label>
-        <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="Мінімум 6 символів" minlength="6" required>
+        <label for="auth-password" data-i18n="auth_password">Пароль</label>
+        <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="Мінімум 6 символів" data-i18n-placeholder="auth_password_placeholder" minlength="6" required>
       </div>
       <div class="auth-error" id="auth-error"></div>
-      <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px">Увійти</button>
+      <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px" data-i18n="auth_login_btn">Увійти</button>
     </form>
-    <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()">Забули пароль?</button>
-    <div class="auth-sep"><span>або</span></div>
-    <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span>Продовжити через Google</button>
+    <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()" data-i18n="auth_forgot">Забули пароль?</button>
+    <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
+    <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:2px">
-      Реєструючись, ти погоджуєшся з <a href="terms.html" target="_blank" style="color:var(--purple2)">Умовами використання</a> і <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політикою конфіденційності</a>
+      <span data-i18n="auth_terms_pre">Реєструючись, ти погоджуєшся з</span> <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умовами використання</a> <span data-i18n="auth_terms_and">і</span> <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політикою конфіденційності</a>
     </div>
   </div>
 </div>
@@ -655,11 +699,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="topbar-logo">X</div>
     <div>
       <div class="topbar-title">Xamss</div>
-      <div class="topbar-sub">Зміни · Фінанси · Хмара</div>
+      <div class="topbar-sub" data-i18n="topbar_sub">Зміни · Фінанси · Хмара</div>
     </div>
   </div>
   <div class="topbar-right">
-    <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
+    <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text" data-i18n="topbar_connecting">Підключення...</span></div>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
   </div>
 </div>
@@ -668,17 +712,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
   <!-- TABS -->
   <div class="tabs" style="margin-top:18px">
-    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
-    <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
-    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Розрахунки</span></button>
-    <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span>Налаштування</span></button>
+    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
+    <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span data-i18n="nav_finance">Фінанси</span></button>
+    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span data-i18n="nav_debt">Розрахунки</span></button>
+    <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span data-i18n="nav_settings">Налаштування</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
   <div id="tab-shifts">
     <div class="page-head">
-      <div class="page-label">Особистий робочий календар</div>
-      <div class="page-title">Робочі зміни</div>
+      <div class="page-label" data-i18n="shifts_kicker">Особистий робочий календар</div>
+      <div class="page-title" data-i18n="shifts_title">Робочі зміни</div>
     </div>
 
     <!-- Статистика -->
@@ -755,25 +799,25 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <!-- ═══ ФІНАНСИ ═══ -->
   <div id="tab-finance" style="display:none">
     <div class="page-head">
-      <div class="page-label">Особистий бюджет</div>
-      <div class="page-title">Гаманці & Фінанси</div>
+      <div class="page-label" data-i18n="finance_kicker">Особистий бюджет</div>
+      <div class="page-title" data-i18n="finance_title">Гаманці & Фінанси</div>
     </div>
 
     <!-- Баланси -->
     <div class="stats-row" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
-      <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span>Гаманці, категорії, бюджети…</button>
+      <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
     </div>
 
     <!-- Бюджети по категоріях -->
     <div class="chart-section" id="budgets-section" style="display:none">
-      <div class="chart-title"><span id="ic-budget"></span>Бюджети цього місяця</div>
+      <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
       <div id="budgets-list"></div>
     </div>
 
     <!-- Графік витрат по місяцях -->
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-barchart"></span>Баланс за останні 6 місяців</div>
+      <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
       <div class="chart-bars" id="finance-chart"></div>
     </div>
 
@@ -781,20 +825,20 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <!-- Форма -->
       <div class="fin-form">
         <div class="fin-form-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <span><span id="ic-plus"></span><span id="fin-form-title-text">Нова операція</span></span>
-          <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="cancelEditTransaction()">Скасувати</button>
+          <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
+          <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="cancelEditTransaction()" data-i18n="common_cancel">Скасувати</button>
         </div>
         <div class="type-seg">
-          <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')">+ Дохід</button>
-          <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')">− Витрата</button>
-          <button id="btn-trn" class="type-btn trn"        onclick="setFinanceType('transfer')">⇄ Переказ</button>
+          <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')" data-i18n="finance_type_income">+ Дохід</button>
+          <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')" data-i18n="finance_type_expense">− Витрата</button>
+          <button id="btn-trn" class="type-btn trn"        onclick="setFinanceType('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</button>
         </div>
         <div class="fg">
-          <label id="wallet-source-label">Гаманець</label>
+          <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
           <select id="fin-wallet"></select>
         </div>
         <div class="fg" id="wallet-target-group" style="display:none">
-          <label>Куди переказати</label>
+          <label data-i18n="finance_wallet_target">Куди переказати</label>
           <select id="fin-wallet-target"></select>
         </div>
         <div class="fg">
@@ -802,42 +846,42 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
         </div>
         <div class="fg" id="category-group">
-          <label>Категорія</label>
+          <label data-i18n="finance_category">Категорія</label>
           <select id="fin-category"></select>
         </div>
         <div class="fg" id="subcategory-group" style="display:none">
-          <label>Підкатегорія</label>
+          <label data-i18n="finance_subcategory">Підкатегорія</label>
           <select id="fin-subcategory"></select>
         </div>
         <div class="fg" id="tags-group" style="display:none">
-          <label>Теги</label>
+          <label data-i18n="finance_tags">Теги</label>
           <div class="filter-row" id="fin-tags-chips" style="margin-bottom:0"></div>
         </div>
         <div class="fg">
-          <label>Дата</label>
+          <label data-i18n="finance_date">Дата</label>
           <input type="date" id="fin-date">
         </div>
         <div class="fg">
-          <label>Коментар</label>
-          <input type="text" id="fin-comment" placeholder="Деталі операції...">
+          <label data-i18n="finance_comment">Коментар</label>
+          <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
         </div>
-        <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()">Додати запис</button>
+        <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()" data-i18n="finance_add_btn">Додати запис</button>
       </div>
 
       <!-- Історія -->
       <div class="fin-history">
         <div class="hist-head">
-          <div class="hist-title">Історія операцій</div>
+          <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
           <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
         </div>
         <div class="filter-row">
-          <div class="filter-chip active" data-filter="all"      onclick="setTxFilter('all')">Всі</div>
-          <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')">+ Дохід</div>
-          <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')">− Витрата</div>
-          <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')">⇄ Переказ</div>
+          <div class="filter-chip active" data-filter="all"      onclick="setTxFilter('all')" data-i18n="finance_filter_all">Всі</div>
+          <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')" data-i18n="finance_type_income">+ Дохід</div>
+          <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')" data-i18n="finance_type_expense">− Витрата</div>
+          <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</div>
         </div>
         <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
-          <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · Скинути ✕</span>
+          <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
         </div>
         <div class="tx-list" id="tx-list-container"></div>
       </div>
@@ -847,8 +891,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <!-- ═══ РОЗРАХУНКИ ═══ -->
   <div id="tab-debt" style="display:none">
     <div class="page-head">
-      <div class="page-label">Облік розрахунків</div>
-      <div class="page-title">Розрахунки</div>
+      <div class="page-label" data-i18n="debt_kicker">Облік розрахунків</div>
+      <div class="page-title" data-i18n="debt_title">Розрахунки</div>
     </div>
 
     <div class="debt-chips" id="debt-chips"></div>
@@ -932,53 +976,80 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <!-- ═══ НАЛАШТУВАННЯ ═══ -->
   <div id="tab-settings" style="display:none">
     <div class="page-head">
-      <div class="page-label">Керування застосунком</div>
-      <div class="page-title">Налаштування</div>
+      <div class="page-label" data-i18n="settings_kicker">Керування застосунком</div>
+      <div class="page-title" data-i18n="settings_title">Налаштування</div>
     </div>
 
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-settings-finance"></span>Фінанси</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-set-wallets"></span>Гаманці</button>
-        <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-set-rates"></span>Курси валют</button>
-        <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-set-cats"></span>Категорії</button>
-        <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span>Теги</button>
-        <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span>Бюджети</button>
-        <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span>Повторювані операції</button>
-        <button class="btn btn-ghost" onclick="openRulesManager()"><span id="ic-set-rules"></span>Автоматичні правила</button>
-        <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span>Експорт CSV</button>
+      <div class="chart-title"><span id="ic-settings-profile"></span><span data-i18n="settings_profile">Профіль</span></div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div class="profile-avatar" id="profile-avatar-preview" onclick="document.getElementById('profile-avatar-input').click()"></div>
+        <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+        <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:6px;min-width:180px">
+          <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none" onchange="updateNickname(this.value)">
+          <div style="font-size:11px;color:var(--muted);font-weight:600" id="profile-signed-as"></div>
+        </div>
       </div>
     </div>
 
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-settings-security"></span>Безпека</div>
+      <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" id="settings-pin" onclick="openPinSettings()" style="display:none"><span id="ic-set-pin"></span>PIN-код доступу</button>
+        <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-set-wallets"></span><span data-i18n="settings_wallets">Гаманці</span></button>
+        <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-set-rates"></span><span data-i18n="settings_rates">Курси валют</span></button>
+        <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-set-cats"></span><span data-i18n="settings_categories">Категорії</span></button>
+        <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span><span data-i18n="settings_tags">Теги</span></button>
+        <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span><span data-i18n="settings_budgets">Бюджети</span></button>
+        <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span><span data-i18n="settings_recurring">Повторювані операції</span></button>
+        <button class="btn btn-ghost" onclick="openRulesManager()"><span id="ic-set-rules"></span><span data-i18n="settings_rules">Автоматичні правила</span></button>
+        <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span><span data-i18n="settings_export">Експорт CSV</span></button>
       </div>
     </div>
 
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-settings-appearance"></span>Зовнішній вигляд</div>
+      <div class="chart-title"><span id="ic-settings-security"></span><span data-i18n="settings_security">Безпека</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" onclick="toggleTheme()"><span id="ic-settings-theme"></span><span id="settings-theme-label">Тема</span></button>
+        <button class="btn btn-ghost" id="settings-pin" onclick="openPinSettings()" style="display:none"><span id="ic-set-pin"></span><span data-i18n="settings_pin">PIN-код доступу</span></button>
       </div>
     </div>
 
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-settings-account"></span>Акаунт</div>
+      <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <button class="btn btn-ghost" id="notif-toggle-btn" onclick="toggleReminders()"><span id="ic-notif-toggle"></span><span id="notif-toggle-label" data-i18n="settings_notif_enable">Увімкнути нагадування</span></button>
+        <input type="time" id="notif-time-input" value="21:00" onchange="updateNotifTime(this.value)" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:8px 10px;border-radius:12px;font-weight:700;font-size:13px">
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px" data-i18n="settings_notif_hint">Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.</div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-appearance"></span><span data-i18n="settings_appearance">Зовнішній вигляд</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <button type="button" class="type-btn theme-opt" data-theme="dark" onclick="setTheme('dark')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_dark">Темна</button>
+        <button type="button" class="type-btn theme-opt" data-theme="light" onclick="setTheme('light')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_light">Світла</button>
+        <button type="button" class="type-btn theme-opt" data-theme="unbreakable" onclick="setTheme('unbreakable')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_unbreakable">Незламні</button>
+      </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" id="settings-signout" onclick="signOutUser()" style="display:none"><span id="ic-set-signout"></span>Вийти з акаунту</button>
-        <button class="btn btn-danger" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none"><span id="ic-set-delete"></span>Видалити акаунт</button>
+        <button type="button" class="type-btn lang-opt" data-lang="uk" onclick="setLang('uk')" style="flex:0 0 auto;padding:8px 16px">Українська</button>
+        <button type="button" class="type-btn lang-opt" data-lang="en" onclick="setLang('en')" style="flex:0 0 auto;padding:8px 16px">English</button>
       </div>
     </div>
 
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-settings-about"></span>Про застосунок</div>
+      <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" id="settings-signout" onclick="signOutUser()" style="display:none"><span id="ic-set-signout"></span><span data-i18n="settings_signout">Вийти з акаунту</span></button>
+        <button class="btn btn-danger" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none"><span id="ic-set-delete"></span><span data-i18n="settings_delete_account">Видалити акаунт</span></button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-about"></span><span data-i18n="settings_about">Про застосунок</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;font-weight:700">
-        <a href="terms.html" target="_blank" style="color:var(--purple2)">Умови використання</a>
-        <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політика конфіденційності</a>
+        <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a>
+        <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:12px">Xamss — трекер змін, фінансів і розрахунків</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Xamss — трекер змін, фінансів і розрахунків</div>
     </div>
   </div>
 
@@ -1154,7 +1225,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="dlg-msg" id="ui-dlg-msg"></div>
     <input type="text" class="dlg-input" id="ui-dlg-input" style="display:none">
     <div class="dlg-actions">
-      <button class="dlg-btn dlg-cancel" id="ui-dlg-cancel">Скасувати</button>
+      <button class="dlg-btn dlg-cancel" id="ui-dlg-cancel" data-i18n="common_cancel">Скасувати</button>
       <button class="dlg-btn dlg-ok" id="ui-dlg-ok">OK</button>
     </div>
   </div>
@@ -1213,7 +1284,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
     pencil:'<path d="M4 20h4l10.3-10.3a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16v4Z"/><path d="M14 6l4 4"/>',
     info:'<circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none"/>',
-    grip:'<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>'
+    grip:'<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>',
+    star:'<path d="M12 3.4l2.7 5.7 6.2.6-4.6 4.2 1.3 6.1L12 16.9l-5.6 3.1 1.3-6.1-4.6-4.2 6.2-.6Z"/>',
+    bell:'<path d="M6 10.2a6 6 0 0 1 12 0c0 4.1 1.5 5.6 2 6.1H4c.5-.5 2-2 2-6.1Z"/><path d="M9.3 19a2.7 2.7 0 0 0 5.4 0"/>',
+    camera:'<path d="M4 8.3A1.7 1.7 0 0 1 5.7 6.6h1.8l1-1.9h6.9l1 1.9h1.8A1.7 1.7 0 0 1 20 8.3v9A1.7 1.7 0 0 1 18.3 19H5.7A1.7 1.7 0 0 1 4 17.3Z"/><circle cx="12" cy="13" r="3.4"/>',
+    globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1236,8 +1311,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('btn-refresh','refresh');
   setIcon('ic-goto-settings','gear');
   setIcon('tab-icon-settings','gear');
+  setIcon('ic-settings-profile','person');
   setIcon('ic-settings-finance','wallet');
   setIcon('ic-settings-security','lock');
+  setIcon('ic-settings-notif','bell');
+  setIcon('ic-notif-toggle','bell');
   setIcon('ic-settings-appearance','sun');
   setIcon('ic-settings-account','person');
   setIcon('ic-settings-about','info');
@@ -1283,20 +1361,117 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   function $(id){return document.getElementById(id);}
 
   // ── THEME ──
+  var THEME_ICON={dark:'moon',light:'sun',unbreakable:'star'};
+  var THEME_COLOR={dark:'#0a0812',light:'#f2f2f7',unbreakable:'#03122b'};
   function applyTheme(theme){
+    if(!THEME_ICON[theme]) theme='dark';
     document.documentElement.setAttribute('data-theme', theme);
     try{localStorage.setItem('xamssTheme', theme);}catch(e){}
-    setIcon('ic-settings-theme', theme==='light' ? 'moon' : 'sun');
-    var lbl=$('settings-theme-label');
-    if(lbl) lbl.textContent = 'Тема: ' + (theme==='light' ? 'Світла' : 'Темна');
     var mc=document.querySelector('meta[name=theme-color]');
-    if(mc) mc.setAttribute('content', theme==='light' ? '#f2f2f7' : '#0a0812');
+    if(mc) mc.setAttribute('content', THEME_COLOR[theme]);
+    document.querySelectorAll('.theme-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.theme===theme); });
   }
+  window.setTheme=function(theme){ applyTheme(theme); };
   window.toggleTheme=function(){
     var cur=document.documentElement.getAttribute('data-theme')||'dark';
-    applyTheme(cur==='light'?'dark':'light');
+    var order=['dark','light','unbreakable'];
+    applyTheme(order[(order.indexOf(cur)+1)%order.length]);
   };
   applyTheme(document.documentElement.getAttribute('data-theme')||'dark');
+
+  // ── LANGUAGE (uk/en) ──
+  // Named `tr` (not `t`) since the app uses `t` everywhere as the loop
+  // variable for a single transaction — a same-named global would shadow
+  // itself in half the finance code.
+  var I18N={
+    uk:{
+      settings_kicker:'Керування застосунком', settings_title:'Налаштування',
+      settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм',
+      settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
+      settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
+      settings_recurring:'Повторювані операції', settings_rules:'Автоматичні правила', settings_export:'Експорт CSV',
+      settings_security:'Безпека', settings_pin:'PIN-код доступу',
+      settings_notifications:'Сповіщення', settings_notif_enable:'Увімкнути нагадування', settings_notif_disable:'Вимкнути нагадування',
+      settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
+      settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла', theme_unbreakable:'Незламні',
+      settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
+      settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
+      settings_footer:'Xamss — трекер змін, фінансів і розрахунків', settings_signed_in_as:'Увійшли як',
+      auth_login_tab:'Вхід', auth_register_tab:'Реєстрація', auth_password:'Пароль', auth_password_placeholder:'Мінімум 6 символів',
+      auth_login_btn:'Увійти', auth_register_btn:'Зареєструватися', auth_forgot:'Забули пароль?', auth_or:'або',
+      auth_google:'Продовжити через Google', auth_terms_pre:'Реєструючись, ти погоджуєшся з', auth_terms_and:'і',
+      topbar_sub:'Зміни · Фінанси · Хмара', topbar_connecting:'Підключення...',
+      nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування',
+      shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
+      finance_kicker:'Особистий бюджет', finance_title:'Гаманці & Фінанси',
+      debt_kicker:'Облік розрахунків', debt_title:'Розрахунки',
+      finance_goto_settings:'Гаманці, категорії, бюджети…', finance_budgets_title:'Бюджети цього місяця',
+      finance_chart_title:'Баланс за останні 6 місяців', finance_new_tx:'Нова операція', common_cancel:'Скасувати',
+      finance_type_income:'+ Дохід', finance_type_expense:'− Витрата', finance_type_transfer:'⇄ Переказ',
+      finance_wallet:'Гаманець', finance_wallet_expense:'Звідки списати', finance_wallet_transfer:'Звідки переказати',
+      finance_wallet_target:'Куди переказати', finance_category:'Категорія', finance_subcategory:'Підкатегорія',
+      finance_tags:'Теги', finance_date:'Дата', finance_comment:'Коментар', finance_comment_placeholder:'Деталі операції...',
+      finance_amount_prefix:'Сума', finance_add_btn:'Додати запис', finance_history_title:'Історія операцій',
+      finance_filter_all:'Всі', finance_filter_reset:'Скинути ✕', finance_records_suffix:'записів', finance_no_records:'Записів немає',
+      toast_tx_updated:'Запис оновлено', toast_transfer_done:'Переказ виконано', toast_tx_added:'Запис додано',
+      toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
+      toast_reminders_off:'Нагадування вимкнено', toast_reminders_unsupported:'Браузер не підтримує сповіщення',
+      toast_reminders_denied:'Дозвіл на сповіщення не надано', toast_reminders_on:'Нагадування увімкнено',
+      reminder_body:'Ви записали свої операції сьогодні?',
+    },
+    en:{
+      settings_kicker:'App settings', settings_title:'Settings',
+      settings_profile:'Profile', settings_nickname_placeholder:'Nickname',
+      settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
+      settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
+      settings_recurring:'Recurring transactions', settings_rules:'Auto-categorization rules', settings_export:'Export CSV',
+      settings_security:'Security', settings_pin:'PIN lock',
+      settings_notifications:'Notifications', settings_notif_enable:'Enable reminders', settings_notif_disable:'Disable reminders',
+      settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
+      settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light', theme_unbreakable:'Unbreakable',
+      settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
+      settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
+      settings_footer:'Xamss — shift, finance & settlement tracker', settings_signed_in_as:'Signed in as',
+      auth_login_tab:'Sign in', auth_register_tab:'Sign up', auth_password:'Password', auth_password_placeholder:'At least 6 characters',
+      auth_login_btn:'Sign in', auth_register_btn:'Sign up', auth_forgot:'Forgot password?', auth_or:'or',
+      auth_google:'Continue with Google', auth_terms_pre:'By signing up, you agree to the', auth_terms_and:'and',
+      topbar_sub:'Shifts · Finance · Cloud', topbar_connecting:'Connecting...',
+      nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings',
+      shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
+      finance_kicker:'Personal budget', finance_title:'Wallets & Finance',
+      debt_kicker:'Settlement tracking', debt_title:'Settlements',
+      finance_goto_settings:'Wallets, categories, budgets…', finance_budgets_title:"This month's budgets",
+      finance_chart_title:'Balance over the last 6 months', finance_new_tx:'New transaction', common_cancel:'Cancel',
+      finance_type_income:'+ Income', finance_type_expense:'− Expense', finance_type_transfer:'⇄ Transfer',
+      finance_wallet:'Wallet', finance_wallet_expense:'Pay from', finance_wallet_transfer:'Transfer from',
+      finance_wallet_target:'Transfer to', finance_category:'Category', finance_subcategory:'Subcategory',
+      finance_tags:'Tags', finance_date:'Date', finance_comment:'Comment', finance_comment_placeholder:'Transaction details...',
+      finance_amount_prefix:'Amount', finance_add_btn:'Add entry', finance_history_title:'Transaction history',
+      finance_filter_all:'All', finance_filter_reset:'Reset ✕', finance_records_suffix:'records', finance_no_records:'No records yet',
+      toast_tx_updated:'Entry updated', toast_transfer_done:'Transfer completed', toast_tx_added:'Entry added',
+      toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',
+      toast_reminders_off:'Reminders disabled', toast_reminders_unsupported:"Browser doesn't support notifications",
+      toast_reminders_denied:'Notification permission not granted', toast_reminders_on:'Reminders enabled',
+      reminder_body:'Did you record your transactions today?',
+    }
+  };
+  window.currentLang='uk';
+  try{ var savedLang=localStorage.getItem('xamssLang'); if(savedLang==='en'||savedLang==='uk') window.currentLang=savedLang; }catch(e){}
+  window.tr=function(key){ return (I18N[window.currentLang]&&I18N[window.currentLang][key]) || I18N.uk[key] || key; };
+  window.translateStaticDOM=function(){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=window.tr(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){ el.setAttribute('placeholder', window.tr(el.getAttribute('data-i18n-placeholder'))); });
+    document.querySelectorAll('.lang-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===window.currentLang); });
+    document.documentElement.setAttribute('lang', window.currentLang);
+  };
+  window.setLang=function(lang){
+    if(lang!=='en'&&lang!=='uk') return;
+    window.currentLang=lang;
+    try{localStorage.setItem('xamssLang', lang);}catch(e){}
+    window.translateStaticDOM();
+    if(window.__applyLangDynamic) window.__applyLangDynamic(lang);
+  };
+  window.translateStaticDOM();
 })();
 </script>
 
@@ -1361,6 +1536,14 @@ let currencyRates = {};
 let tags = [];
 // Tag ids toggled on in the "Нова операція" form; cleared after each add.
 let selectedTagIds = [];
+// Profile identity: nickname + a small square avatar (base64 data URL,
+// resized client-side before storing so it stays well under Firestore's
+// per-document size limit). Synced via the finance doc like other config.
+let profile = {nickname:'', avatar:''};
+// Daily reminder ("did you record today's transactions?"). Device-local by
+// design — Notification permission itself is per-browser, so there is no
+// value syncing this across devices like profile/wallets are.
+let notifSettings = {enabled:false, time:'21:00'};
 // When set, the history list only shows this category (set via a
 // category's "Показати транзакції" action); cleared by the chip's ✕.
 let txCategoryFilter = null;
@@ -1380,9 +1563,46 @@ let debts = [];
 let currentDebtId = null;
 
 // ── CONSTANTS ─────────────────────────────────────────────────
-const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
-const MONTHS_SHORT = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
-const WEEKDAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+// Calendar labels swap with the language toggle (applyLangArrays); kept as
+// `let` (not `const`) so that reassignment is visible everywhere they're
+// read by index, without threading a lang param through every call site.
+const LANG_CALENDAR={
+  uk:{
+    months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+    monthsShort:['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
+    weekdays:['Пн','Вт','Ср','Чт','Пт','Сб','Нд'],
+  },
+  en:{
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    monthsShort:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    weekdays:['Mo','Tu','We','Th','Fr','Sa','Su'],
+  }
+};
+let MONTHS = LANG_CALENDAR[window.currentLang].months;
+let MONTHS_SHORT = LANG_CALENDAR[window.currentLang].monthsShort;
+let WEEKDAYS = LANG_CALENDAR[window.currentLang].weekdays;
+function populateMonthSelectLabels(){
+  const ms=document.getElementById('select-month');
+  if(!ms) return;
+  Array.from(ms.options).forEach(o=>{ o.textContent=MONTHS[Number(o.value)]; });
+  csSync(ms);
+}
+// Called by the language-toggle chips (see the early inline script) once
+// the module has finished loading; re-points the calendar-label arrays and
+// re-renders whatever's currently on screen so nothing is left stale.
+window.__applyLangDynamic=function(lang){
+  MONTHS=LANG_CALENDAR[lang].months;
+  MONTHS_SHORT=LANG_CALENDAR[lang].monthsShort;
+  WEEKDAYS=LANG_CALENDAR[lang].weekdays;
+  populateMonthSelectLabels();
+  renderCalendar(); renderIncomeChart(); renderFinance(); renderFinanceChart(); renderDebt();
+  renderProfileUI(); renderNotifUI(); updateAmountLabel();
+  const wsl=document.getElementById('wallet-source-label');
+  if(wsl){
+    const key={income:'finance_wallet',expense:'finance_wallet_expense',transfer:'finance_wallet_transfer'}[currentFinanceType];
+    if(key) wsl.textContent=tr(key);
+  }
+};
 
 // Fallback icons for well-known category names; user-made ones use 'tag'.
 const CAT_ICON = {
@@ -1504,7 +1724,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1563,6 +1783,7 @@ function seedConfigFromDocs(sData, fData){
   currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
   tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
   autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
+  profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1699,7 +1920,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1720,7 +1941,7 @@ window.setAuthMode=function(mode){
   authMode=mode;
   document.getElementById('auth-tab-login').classList.toggle('active',mode==='login');
   document.getElementById('auth-tab-register').classList.toggle('active',mode==='register');
-  document.getElementById('auth-submit').textContent=mode==='login'?'Увійти':'Зареєструватися';
+  document.getElementById('auth-submit').textContent=mode==='login'?tr('auth_login_btn'):tr('auth_register_btn');
   document.getElementById('auth-password').setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
   setAuthError('');
 };
@@ -2062,6 +2283,10 @@ async function init(){
     document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
     // Auto-categorize as the user types the comment, per their rules
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
+    loadNotifSettings();
+    renderNotifUI();
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') maybeShowDailyReminder(); });
+    setInterval(maybeShowDailyReminder, 5*60*1000);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -2072,7 +2297,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -2080,8 +2305,11 @@ async function init(){
   switchTab('shifts');
   setFinanceType('income');
   enhanceAllSelects();
+  renderProfileUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
+  renderProfileUI();
+  maybeShowDailyReminder();
 }
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -2222,8 +2450,8 @@ function csSync(sel){ if(sel) sel.dispatchEvent(new Event('cs-sync')); }
 
 // ── CUSTOM DATE PICKER (replaces the native <input type=date> popup,
 // which on mobile renders as an ugly, sharp-cornered OS widget) ──
-const DP_MONTHS=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
-const DP_WEEKDAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+// DP_MONTHS/DP_WEEKDAYS used to duplicate MONTHS/WEEKDAYS verbatim; now
+// just aliased so both stay in sync with the language toggle automatically.
 function dpParse(v){
   if(!v) return null;
   const [y,m,d]=v.split('-').map(Number);
@@ -2255,8 +2483,8 @@ function enhanceDateInput(inp){
     const first=(new Date(y,m,1).getDay()+6)%7;
     const total=new Date(y,m+1,0).getDate();
     const prevTotal=new Date(y,m,0).getDate();
-    let html=`<div class="dp-nav"><button type="button" class="dp-nav-btn" data-act="prev">${window.Icon('chevron')}</button><div class="dp-month-label">${DP_MONTHS[m]} ${y}</div><button type="button" class="dp-nav-btn" data-act="next">${window.Icon('chevron')}</button></div>`;
-    html+=`<div class="dp-weekdays">${DP_WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div><div class="dp-grid">`;
+    let html=`<div class="dp-nav"><button type="button" class="dp-nav-btn" data-act="prev">${window.Icon('chevron')}</button><div class="dp-month-label">${MONTHS[m]} ${y}</div><button type="button" class="dp-nav-btn" data-act="next">${window.Icon('chevron')}</button></div>`;
+    html+=`<div class="dp-weekdays">${WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div><div class="dp-grid">`;
     for(let i=0;i<first;i++) html+=`<span class="dp-day dp-out">${prevTotal-first+i+1}</span>`;
     for(let d=1;d<=total;d++){
       const isSel=selected&&selected.getFullYear()===y&&selected.getMonth()===m&&selected.getDate()===d;
@@ -2442,8 +2670,7 @@ function renderCalendar(){
   const isCurrent=now.getMonth()===m&&now.getFullYear()===y;
 
   // Weekday headers
-  const wdays=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
-  wdays.forEach((d,i)=>{
+  WEEKDAYS.forEach((d,i)=>{
     const el=document.createElement('div');
     el.className='wday'+(i>=5?' weekend':'');
     el.textContent=d;
@@ -3103,6 +3330,119 @@ window.deleteRecurring=async function(id){
   renderRecurringList();
 };
 
+// ── PROFILE (avatar + nickname) ──────────────────────────────
+// Resizes/crops any uploaded image to a small square JPEG data URL client-
+// side (no Firebase Storage needed) so it fits comfortably inside the
+// finance doc alongside wallets/categories/etc.
+window.handleAvatarUpload=function(event){
+  const file=event.target.files && event.target.files[0];
+  event.target.value='';
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast(tr('toast_avatar_bad_file'),'xmark'); return; }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const size=160;
+      const canvas=document.createElement('canvas');
+      canvas.width=size; canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const s=Math.min(img.width,img.height);
+      const sx=(img.width-s)/2, sy=(img.height-s)/2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      profile.avatar=canvas.toDataURL('image/jpeg',0.82);
+      saveConfigLocal(); scheduleSave();
+      renderProfileUI();
+      showToast(tr('toast_avatar_updated'),'check');
+    };
+    img.onerror=()=>showToast(tr('toast_avatar_bad_file'),'xmark');
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+window.updateNickname=function(value){
+  profile.nickname=String(value||'').trim();
+  saveConfigLocal(); scheduleSave();
+  renderProfileUI();
+};
+function renderProfileUI(){
+  const av=document.getElementById('profile-avatar-preview');
+  if(av){
+    if(profile.avatar){ av.innerHTML=`<img src="${profile.avatar}" alt="">`; }
+    else{
+      const letter=(profile.nickname||(currentUser&&currentUser.email)||'?').trim().charAt(0).toUpperCase()||'?';
+      av.textContent=letter;
+    }
+  }
+  const ni=document.getElementById('profile-nickname-input');
+  if(ni && document.activeElement!==ni) ni.value=profile.nickname||'';
+  const who=document.getElementById('profile-signed-as');
+  if(who){
+    if(!currentUser){ who.textContent=''; }
+    else{
+      const isGoogle=(currentUser.providerData||[]).some(p=>p.providerId==='google.com');
+      who.textContent=`${tr('settings_signed_in_as')} ${currentUser.email||''} (${isGoogle?'Google':'Email'})`;
+    }
+  }
+}
+
+// ── DAILY REMINDER (local notification) ──────────────────────
+// Device-local best-effort reminder: no server/push infra, so it can only
+// fire while the app is actually open (checked on load, on tab-visible,
+// and every few minutes while it stays open) — not a true background push.
+function loadNotifSettings(){
+  try{ const n=localStorage.getItem('xamssNotif'); if(n) notifSettings={...notifSettings, ...JSON.parse(n)}; }catch(e){}
+}
+function saveNotifSettings(){
+  try{ localStorage.setItem('xamssNotif', JSON.stringify(notifSettings)); }catch(e){}
+}
+window.toggleReminders=async function(){
+  if(notifSettings.enabled){
+    notifSettings.enabled=false;
+    saveNotifSettings(); renderNotifUI();
+    showToast(tr('toast_reminders_off'),'xmark');
+    return;
+  }
+  if(!('Notification' in window)){ showToast(tr('toast_reminders_unsupported'),'xmark'); return; }
+  let perm=Notification.permission;
+  if(perm==='default') perm=await Notification.requestPermission();
+  if(perm!=='granted'){ showToast(tr('toast_reminders_denied'),'xmark'); return; }
+  notifSettings.enabled=true;
+  saveNotifSettings(); renderNotifUI();
+  showToast(tr('toast_reminders_on'),'check');
+  maybeShowDailyReminder();
+};
+window.updateNotifTime=function(value){
+  notifSettings.time=value||'21:00';
+  saveNotifSettings();
+};
+function renderNotifUI(){
+  const lbl=document.getElementById('notif-toggle-label');
+  if(lbl) lbl.textContent = notifSettings.enabled ? tr('settings_notif_disable') : tr('settings_notif_enable');
+  const ti=document.getElementById('notif-time-input');
+  if(ti) ti.value=notifSettings.time||'21:00';
+}
+function todayStr(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function maybeShowDailyReminder(){
+  if(!notifSettings.enabled) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const today=todayStr();
+  if(localStorage.getItem('xamssReminderShown')===today) return;
+  const now=new Date();
+  const [h,m]=(notifSettings.time||'21:00').split(':').map(Number);
+  if(now.getHours()<h || (now.getHours()===h && now.getMinutes()<(m||0))) return;
+  if(transactions.some(tx=>tx.date===today)) return;
+  const title='Xamss';
+  const body=tr('reminder_body');
+  const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'icon-192.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
+  if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
+  else show(null);
+  localStorage.setItem('xamssReminderShown', today);
+}
+
 // ── FINANCE ───────────────────────────────────────────────────
 // Rebuilds the wallet dropdowns from the user's wallets, keeping the
 // current selection where possible.
@@ -3123,20 +3463,20 @@ function updateAmountLabel(){
   const lbl=document.getElementById('fin-amount-label'); if(!lbl) return;
   const ws=document.getElementById('fin-wallet');
   const cur=ws?walletCurrency(ws.value):'UAH';
-  lbl.textContent=`Сума (${currencySymbol(cur)})`;
+  lbl.textContent=`${tr('finance_amount_prefix')} (${currencySymbol(cur)})`;
 }
-function setFinanceType(t){
-  currentFinanceType=t;
+function setFinanceType(type){
+  currentFinanceType=type;
   ['inc','exp','trn'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('active'));
-  document.getElementById('btn-'+{income:'inc',expense:'exp',transfer:'trn'}[t])?.classList.add('active');
+  document.getElementById('btn-'+{income:'inc',expense:'exp',transfer:'trn'}[type])?.classList.add('active');
   const wsl=document.getElementById('wallet-source-label');
   const tg=document.getElementById('wallet-target-group');
   const cg=document.getElementById('category-group');
   const sg=document.getElementById('subcategory-group');
   refreshWalletSelects();
-  if(t==='income')  {if(wsl)wsl.textContent='Гаманець';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
-  if(t==='expense') {if(wsl)wsl.textContent='Звідки списати';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
-  if(t==='transfer'){if(wsl)wsl.textContent='Звідки переказати';if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
+  if(type==='income')  {if(wsl)wsl.textContent=tr('finance_wallet');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
+  if(type==='expense') {if(wsl)wsl.textContent=tr('finance_wallet_expense');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
+  if(type==='transfer'){if(wsl)wsl.textContent=tr('finance_wallet_transfer');if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
   renderFinTagChips();
 }
 // Toggleable tag chips in the "Нова операція" form; hidden entirely until
@@ -3207,7 +3547,7 @@ function addTransaction(){
     const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
     scheduleSave();
     renderFinance(); renderFinanceChart();
-    showToast('Запис оновлено','check');
+    showToast(tr('toast_tx_updated'),'check');
     return;
   }
   transactions.unshift({id:Date.now(),type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:selectedTagIds.slice(),wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
@@ -3218,7 +3558,7 @@ function addTransaction(){
   selectedTagIds=[]; renderFinTagChips();
   renderFinance(); renderFinanceChart();
 
-  let toastMsg=currentFinanceType==='transfer'?'Переказ виконано':'Запис додано';
+  let toastMsg=currentFinanceType==='transfer'?tr('toast_transfer_done'):tr('toast_tx_added');
   let toastIcon=currentFinanceType==='transfer'?'swap':'check';
   if(currentFinanceType==='expense' && budgets[cat]>0){
     const now=new Date();
@@ -3471,10 +3811,10 @@ function renderFinance(){
   }
 
   lc.innerHTML='';
-  if(tc) tc.textContent=filtered.length+' записів';
+  if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
 
   if(filtered.length===0){
-    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>Записів немає</span></div>`;
+    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('finance_no_records')}</span></div>`;
     return;
   }
 

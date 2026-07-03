@@ -24,6 +24,17 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Клік по нагадуванню — фокус/відкриття застосунку
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(list => {
+      for (const c of list) if ('focus' in c) return c.focus();
+      return self.clients.openWindow('./');
+    })
+  );
+});
+
 // Fetch — Network First для HTML, Cache First для решти
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
