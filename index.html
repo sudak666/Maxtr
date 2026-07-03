@@ -703,6 +703,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
       <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
       <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-manage-recurring"></span>Повторювані</button>
+      <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-export"></span>Експорт CSV</button>
     </div>
 
     <!-- Бюджети по категоріях -->
@@ -1018,7 +1019,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     chevron:'<path d="M6 9l6 6 6-6"/>',
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
-    repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>'
+    repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
+    download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1061,6 +1063,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-budget','target');
   setIcon('ic-manage-recurring','repeat');
   setIcon('ic-add-recur','plus');
+  setIcon('ic-export','download');
   setIcon('ic-add-st','plus');
   setIcon('ic-add-w','plus');
   setIcon('ic-add-cat','plus');
@@ -2653,6 +2656,39 @@ function renderFinance(){
     lc.appendChild(item);
   });
 }
+
+// ── CSV EXPORT ────────────────────────────────────────────────
+const TX_TYPE_LABEL={income:'Дохід',expense:'Витрата',transfer:'Переказ'};
+function csvEscape(v){
+  const s=String(v==null?'':v);
+  return /[;"\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+// Plain client-side CSV (no external lib) — semicolon-delimited with a
+// comma decimal separator and a UTF-8 BOM, so it opens correctly in
+// Excel/Google Sheets straight out of the box for uk-UA locales.
+window.exportTransactionsCSV=function(){
+  if(!transactions.length){ showToast('Немає операцій для експорту','xmark'); return; }
+  const header=['Дата','Тип','Категорія','Підкатегорія','Гаманець','Куди','Сума','Коментар'];
+  const sorted=[...transactions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const rows=sorted.map(t=>[
+    t.date||'',
+    TX_TYPE_LABEL[t.type]||t.type,
+    t.category||'',
+    t.subcategory||'',
+    (walletById(t.wallet)||{}).name||'',
+    t.targetWallet?((walletById(t.targetWallet)||{}).name||''):'',
+    String(t.amount).replace('.',','),
+    t.comment||''
+  ]);
+  const csv=[header,...rows].map(r=>r.map(csvEscape).join(';')).join('\r\n');
+  const blob=new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`xamss-finansy-${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast('CSV завантажено','download');
+};
 
 // ── DEBT ──────────────────────────────────────────────────────
 function getCurrentDebt(){
