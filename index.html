@@ -302,8 +302,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 /* .cs-panel clips to its rounded shape; .cs-panel-scroll (inside) does
    the actual scrolling so the native scrollbar's square ends never
    poke past the rounded corners. */
+/* position:fixed (not absolute) so the panel escapes any overflow:hidden
+   ancestor — notably .modal-card, which clips absolutely-positioned
+   children even when they're meant to float above everything else.
+   JS (positionFixedPanel) sets top/left/width right before opening. */
 .cs-panel{
-  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:1600;
+  position:fixed;z-index:1600;
   background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
   box-shadow:0 14px 34px rgba(0,0,0,.45);max-height:260px;overflow:hidden;
   display:none;animation:popIn .16s ease;
@@ -322,8 +326,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .dp>input[type=date]{position:absolute;inset:0;opacity:0;pointer-events:none}
 .dp-trigger{width:100%}
 .dp-trigger .dp-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* position:fixed for the same reason as .cs-panel above. */
 .dp-panel{
-  position:absolute;top:calc(100% + 6px);left:0;z-index:1600;
+  position:fixed;z-index:1600;
   background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
   box-shadow:0 14px 34px rgba(0,0,0,.45);padding:14px;width:280px;max-width:88vw;
   display:none;animation:popIn .16s ease;
@@ -1873,6 +1878,24 @@ function showToast(msg, icon){
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
+// Positions a position:fixed dropdown/date-picker panel against the
+// trigger that opened it. Needed because the panels are fixed (so they
+// can escape overflow:hidden ancestors like .modal-card) rather than
+// absolutely positioned relative to a wrapper, so there's no CSS
+// top:100% to rely on — the coordinates have to be computed here.
+function positionFixedPanel(trigger, panel, matchTriggerWidth){
+  const r=trigger.getBoundingClientRect();
+  const vw=window.innerWidth, vh=window.innerHeight;
+  if(matchTriggerWidth) panel.style.width=r.width+'px';
+  const panelWidth=matchTriggerWidth?r.width:(panel.offsetWidth||280);
+  let left=r.left;
+  if(left+panelWidth>vw-8) left=Math.max(8, vw-8-panelWidth);
+  let top=r.bottom+6;
+  if(top>vh-40) top=Math.max(8, r.top-6-(panel.offsetHeight||260));
+  panel.style.left=left+'px';
+  panel.style.top=top+'px';
+}
+
 // ── CUSTOM SELECT (rounded dropdown over a native <select>) ──────
 // Keeps the native <select> in the DOM (hidden) so every existing
 // `.value` read and `onchange` handler keeps working; a MutationObserver
@@ -1910,7 +1933,7 @@ function enhanceSelect(sel){
     e.stopPropagation();
     const willOpen=!wrap.classList.contains('open');
     document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
-    if(willOpen) wrap.classList.add('open');
+    if(willOpen){ positionFixedPanel(trigger, panel, true); wrap.classList.add('open'); }
   });
   sel.addEventListener('change', build);
   sel.addEventListener('cs-sync', build); // for programmatic .value changes
@@ -1985,7 +2008,7 @@ function enhanceDateInput(inp){
     e.stopPropagation();
     const willOpen=!wrap.classList.contains('open');
     document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
-    if(willOpen){ viewDate=dpParse(inp.value)||new Date(); render(); wrap.classList.add('open'); }
+    if(willOpen){ viewDate=dpParse(inp.value)||new Date(); render(); positionFixedPanel(trigger, panel, false); wrap.classList.add('open'); }
   });
   inp.addEventListener('change', refreshLabel);
   inp.addEventListener('cs-sync', refreshLabel);
@@ -1997,7 +2020,13 @@ function enhanceAllSelects(){
   if(selectsEnhanced) return; selectsEnhanced=true;
   document.querySelectorAll('.app select').forEach(enhanceSelect);
   document.querySelectorAll('.app input[type=date]').forEach(enhanceDateInput);
-  document.addEventListener('click',()=>document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open')));
+  const closeAllPanels=()=>document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
+  document.addEventListener('click',closeAllPanels);
+  // Fixed-position panels don't move with their trigger, so close them on
+  // any scroll (capture:true catches scrolling inside .modal-card-body
+  // too, since 'scroll' doesn't bubble) or viewport resize.
+  document.addEventListener('scroll',closeAllPanels,true);
+  window.addEventListener('resize',closeAllPanels);
 }
 
 // ── CUSTOM DIALOGS (styled replacements for confirm/prompt/alert) ──
