@@ -2128,15 +2128,44 @@ function showToast(msg, icon){
 // can escape overflow:hidden ancestors like .modal-card) rather than
 // absolutely positioned relative to a wrapper, so there's no CSS
 // top:100% to rely on — the coordinates have to be computed here.
-function positionFixedPanel(trigger, panel, matchTriggerWidth){
+// dynamicHeight (used for the option-list dropdown, not the date picker)
+// shrinks the panel to whichever side — above or below the trigger — has
+// more room, instead of just flipping at a fixed 260px assumption. That
+// fixed assumption still failed when a trigger sits mid-page on a short
+// phone viewport with tight space on *both* sides (e.g. a category select
+// several fields down a form): flipping to the "less bad" side still let
+// the panel run off-screen with no way to reach the rest of the list.
+function positionFixedPanel(trigger, panel, matchTriggerWidth, opts){
+  opts=opts||{};
   const r=trigger.getBoundingClientRect();
   const vw=window.innerWidth, vh=window.innerHeight;
+  const margin=8;
   if(matchTriggerWidth) panel.style.width=r.width+'px';
   const panelWidth=matchTriggerWidth?r.width:(panel.offsetWidth||280);
   let left=r.left;
-  if(left+panelWidth>vw-8) left=Math.max(8, vw-8-panelWidth);
-  let top=r.bottom+6;
-  if(top>vh-40) top=Math.max(8, r.top-6-(panel.offsetHeight||260));
+  if(left+panelWidth>vw-margin) left=Math.max(margin, vw-margin-panelWidth);
+
+  const spaceBelow=vh-r.bottom-margin;
+  const spaceAbove=r.top-margin;
+  let top;
+  if(opts.dynamicHeight){
+    const preferredMax=260;
+    let maxH;
+    if(spaceBelow>=140 || spaceBelow>=spaceAbove){
+      top=r.bottom+6;
+      maxH=Math.max(100, Math.min(preferredMax, vh-top-margin));
+    }else{
+      maxH=Math.max(100, Math.min(preferredMax, spaceAbove-6));
+      top=Math.max(margin, r.top-6-maxH);
+    }
+    panel.style.maxHeight=maxH+'px';
+    const scroll=panel.querySelector('.cs-panel-scroll');
+    if(scroll) scroll.style.maxHeight=Math.max(60, maxH-12)+'px';
+  }else{
+    const estH=panel.offsetHeight||360;
+    top=r.bottom+6;
+    if(top+estH>vh-margin && spaceAbove>spaceBelow) top=Math.max(margin, r.top-6-estH);
+  }
   panel.style.left=left+'px';
   panel.style.top=top+'px';
 }
@@ -2178,7 +2207,7 @@ function enhanceSelect(sel){
     e.stopPropagation();
     const willOpen=!wrap.classList.contains('open');
     document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
-    if(willOpen){ positionFixedPanel(trigger, panel, true); wrap.classList.add('open'); }
+    if(willOpen){ positionFixedPanel(trigger, panel, true, {dynamicHeight:true}); wrap.classList.add('open'); }
   });
   sel.addEventListener('change', build);
   sel.addEventListener('cs-sync', build); // for programmatic .value changes
