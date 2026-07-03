@@ -505,6 +505,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 /* ── SUBCATEGORY CHIPS (inside the categories manager) ── */
 .subcat-toggle{background:var(--bg1);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+
+/* ── DRAG-TO-REORDER (categories list) ── */
+.drag-handle{background:none;border:none;color:var(--muted2);cursor:grab;padding:6px;border-radius:50%;display:inline-flex;flex:0 0 auto;touch-action:none;transition:all .15s}
+.drag-handle:hover{background:var(--bg3);color:var(--text)}
+.mgr-row.dragging{opacity:.6;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grabbing;z-index:5}
 .subcat-toggle:hover{border-color:var(--purple2);color:var(--purple2)}
 .subcat-total{font-size:10px;color:var(--muted);font-weight:600;margin-left:auto;white-space:nowrap}
 .subchip{display:inline-flex;align-items:center;gap:5px;padding:5px 6px 5px 12px;border-radius:999px;font-size:11px;font-weight:700;background:var(--bg1);border:1px solid var(--border2);color:var(--text)}
@@ -932,6 +937,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span>Теги</button>
         <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span>Бюджети</button>
         <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span>Повторювані операції</button>
+        <button class="btn btn-ghost" onclick="openRulesManager()"><span id="ic-set-rules"></span>Автоматичні правила</button>
         <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span>Експорт CSV</button>
       </div>
     </div>
@@ -1086,6 +1092,22 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- MANAGER: AUTO-CATEGORIZATION RULES -->
+<div class="modal-overlay" id="rules-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Автоматичні правила</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</div>
+    <div class="debt-list" id="rules-list" style="max-height:420px"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addAutoRule()"><span id="ic-add-rule"></span>Додати правило</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- MANAGER: BUDGETS -->
 <div class="modal-overlay" id="budgets-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1182,7 +1204,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     more:'<circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none"/>',
     search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
     pencil:'<path d="M4 20h4l10.3-10.3a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16v4Z"/><path d="M14 6l4 4"/>',
-    info:'<circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none"/>'
+    info:'<circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none"/>',
+    grip:'<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1213,6 +1236,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-set-tags','tag');
   setIcon('ic-set-budgets','target');
   setIcon('ic-set-recurring','repeat');
+  setIcon('ic-set-rules','sparkle');
+  setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
@@ -1327,6 +1352,9 @@ let selectedTagIds = [];
 // When set, the history list only shows this category (set via a
 // category's "Показати транзакції" action); cleared by the chip's ✕.
 let txCategoryFilter = null;
+// Auto-categorization rules: [{id,type,keyword,category}]. Applied live
+// while typing the comment in the "Нова операція" form.
+let autoRules = [];
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -1464,7 +1492,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1522,6 +1550,7 @@ function seedConfigFromDocs(sData, fData){
   subcategories = (fData && fData.subcategories) ? {...fData.subcategories} : {};
   currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
   tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
+  autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1658,7 +1687,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1933,6 +1962,8 @@ async function init(){
     document.getElementById('fin-category')?.addEventListener('change', fillSubcats);
     // Keep the amount field's currency label matched to the chosen wallet
     document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
+    // Auto-categorize as the user types the comment, per their rules
+    document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -1943,7 +1974,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -2459,7 +2490,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -2637,6 +2668,7 @@ function renderCategoriesList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
+    row.dataset.catName=name;
     row.innerHTML=`
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
         <span style="display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:80px;font-size:13px;font-weight:700;color:var(--text-strong)">
@@ -2645,6 +2677,7 @@ function renderCategoriesList(){
         <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} Підкат.${subs.length?` (${subs.length})`:''}</button>
         <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} грн цього міс.</span>
         <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
+        <button type="button" class="drag-handle" title="Перетягни, щоб змінити порядок">${window.Icon('grip')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -2657,7 +2690,46 @@ function renderCategoriesList(){
       const addBtn=row.querySelector('.btn-ghost');
       if(addBtn) addBtn.onclick=()=>addSubcategory(idx);
     }
+    const handle=row.querySelector('.drag-handle');
+    if(handle) attachCategoryDragHandle(handle, row);
     box.appendChild(row);
+  });
+}
+
+// Drag-to-reorder: pointer events (unify mouse+touch) on a dedicated
+// handle. Reorders DOM live as the pointer crosses a sibling's midpoint;
+// the underlying categories[type] array is only committed on release,
+// read back from the final DOM order via each row's data-cat-name.
+function attachCategoryDragHandle(handle, row){
+  handle.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    const box=row.parentNode; if(!box) return;
+    handle.setPointerCapture(e.pointerId);
+    row.classList.add('dragging');
+    function onMove(ev){
+      const y=ev.clientY;
+      const siblings=[...box.children].filter(r=>r!==row && r.classList.contains('mgr-row'));
+      let placed=false;
+      for(const sib of siblings){
+        const rect=sib.getBoundingClientRect();
+        if(y < rect.top+rect.height/2){ box.insertBefore(row, sib); placed=true; break; }
+      }
+      if(!placed) box.appendChild(row);
+    }
+    function onUp(){
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+      row.classList.remove('dragging');
+      const newOrder=[...box.children].filter(r=>r.classList.contains('mgr-row')).map(r=>r.dataset.catName);
+      categories[catMgrType]=newOrder;
+      expandedCatIdx=null;
+      saveConfigLocal(); scheduleSave();
+      renderCategoriesList(); fillCats(currentFinanceType); renderBudgets();
+    }
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   });
 }
 window.toggleSubcatPanel=function(idx){
@@ -3096,6 +3168,86 @@ window.deleteTag=async function(id){
   scheduleSave();
   renderTagsList(); renderFinTagChips(); renderFinance();
 };
+
+// Auto-categorization rules ---------------------------------------
+window.openRulesManager=function(){
+  renderAutoRulesList();
+  document.getElementById('rules-modal').style.display='flex';
+};
+function renderAutoRulesList(){
+  const box=document.getElementById('rules-list'); if(!box) return;
+  box.innerHTML='';
+  if(!autoRules.length){ box.innerHTML='<div class="mgr-empty">Немає правил</div>'; return; }
+  autoRules.forEach(r=>{
+    const catList=categories[r.type]||[];
+    const row=document.createElement('div');
+    row.className='debt-row';
+    row.innerHTML=`
+      <div class="debt-field" style="flex:1 1 100px">
+        <span class="debt-field-label">Тип</span>
+        <select onchange="updateAutoRule('${r.id}','type',this.value)">
+          <option value="expense" ${r.type==='expense'?'selected':''}>Витрата</option>
+          <option value="income" ${r.type==='income'?'selected':''}>Дохід</option>
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 140px">
+        <span class="debt-field-label">Слово в коментарі</span>
+        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="напр. Сільпо" onchange="updateAutoRule('${r.id}','keyword',this.value)">
+      </div>
+      <div class="debt-field" style="flex:1 1 140px">
+        <span class="debt-field-label">Категорія</span>
+        <select onchange="updateAutoRule('${r.id}','category',this.value)">
+          ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+        </select>
+      </div>
+      <button class="debt-row-del" onclick="deleteAutoRule('${r.id}')">${window.Icon('trash')}</button>
+    `;
+    box.appendChild(row);
+    row.querySelectorAll('select').forEach(enhanceSelect);
+  });
+}
+window.updateAutoRule=function(id,field,value){
+  const r=autoRules.find(x=>x.id===id); if(!r) return;
+  if(field==='type'){ r.type=value; r.category=(categories[value]||[])[0]||''; }
+  else r[field]=value;
+  saveConfigLocal(); scheduleSave();
+  renderAutoRulesList();
+};
+window.addAutoRule=function(){
+  const type='expense';
+  const category=(categories.expense||[])[0]||'';
+  autoRules.push({id:uid('rule'), type, keyword:'', category});
+  saveConfigLocal(); scheduleSave();
+  renderAutoRulesList();
+};
+window.deleteAutoRule=async function(id){
+  if(!(await uiConfirm('Видалити це правило?',{title:'Видалити правило',okText:'Видалити',danger:true}))) return;
+  autoRules=autoRules.filter(r=>r.id!==id);
+  saveConfigLocal(); scheduleSave();
+  renderAutoRulesList();
+};
+// Finds the first active rule whose keyword appears (case-insensitively)
+// in the given comment, for the given transaction type.
+function findMatchingRule(type, comment){
+  if(!comment) return null;
+  const lc=comment.toLowerCase();
+  return autoRules.find(r=>r.type===type && r.keyword && lc.includes(r.keyword.toLowerCase())) || null;
+}
+// Live-applies a matching rule's category while the user types the
+// comment, so they see (and can override) the auto-pick before saving.
+function applyAutoRuleToForm(){
+  if(currentFinanceType==='transfer') return;
+  const ci=document.getElementById('fin-comment');
+  const rule=findMatchingRule(currentFinanceType, ci?ci.value:'');
+  if(!rule) return;
+  const catSel=document.getElementById('fin-category');
+  if(!catSel || catSel.value===rule.category) return;
+  if(!(categories[currentFinanceType]||[]).includes(rule.category)) return;
+  catSel.value=rule.category;
+  catSel.dispatchEvent(new Event('change',{bubbles:true}));
+  csSync(catSel);
+  showToast(`Категорія визначена автоматично: ${rule.category}`,'sparkle');
+}
 
 function renderFinance(){
   const wb={};
