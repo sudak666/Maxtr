@@ -166,6 +166,7 @@ button,input,select,textarea{font-family:inherit}
 .tab-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.35)}
 .tab-btn.tab-c-finance.active{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 16px rgba(16,185,129,.35)}
 .tab-btn.tab-c-debt.active{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 16px rgba(245,158,11,.35)}
+.tab-btn.tab-c-settings.active{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 16px rgba(100,116,139,.35)}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -649,11 +650,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
   <div class="topbar-right">
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
-    <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
-    <button class="btn btn-ghost" id="btn-pin-settings" onclick="openPinSettings()" title="PIN-код" style="display:none"></button>
-    <button class="btn btn-ghost" id="btn-signout" onclick="signOutUser()" title="Вийти" style="display:none"></button>
-    <button class="btn btn-danger" id="btn-delete-account" onclick="deleteAccountUser()" title="Видалити акаунт" style="display:none;padding:9px 12px"></button>
   </div>
 </div>
 
@@ -664,6 +661,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
     <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
     <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Розрахунки</span></button>
+    <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span>Налаштування</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -753,14 +751,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <!-- Баланси -->
     <div class="stats-row" id="fin-balances"></div>
-    <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:-8px 0 16px">
-      <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
-      <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-rates"></span>Курси</button>
-      <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
-      <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-manage-tags"></span>Теги</button>
-      <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
-      <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-manage-recurring"></span>Повторювані</button>
-      <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-export"></span>Експорт CSV</button>
+    <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
+      <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span>Гаманці, категорії, бюджети…</button>
     </div>
 
     <!-- Бюджети по категоріях -->
@@ -921,6 +913,58 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
       </div>
       <div class="debt-list" id="debt-list-container"></div>
+    </div>
+  </div>
+
+  <!-- ═══ НАЛАШТУВАННЯ ═══ -->
+  <div id="tab-settings" style="display:none">
+    <div class="page-head">
+      <div class="page-label">Керування застосунком</div>
+      <div class="page-title">Налаштування</div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-finance"></span>Фінанси</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-set-wallets"></span>Гаманці</button>
+        <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-set-rates"></span>Курси валют</button>
+        <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-set-cats"></span>Категорії</button>
+        <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span>Теги</button>
+        <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span>Бюджети</button>
+        <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span>Повторювані операції</button>
+        <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span>Експорт CSV</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-security"></span>Безпека</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" id="settings-pin" onclick="openPinSettings()" style="display:none"><span id="ic-set-pin"></span>PIN-код доступу</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-appearance"></span>Зовнішній вигляд</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" onclick="toggleTheme()"><span id="ic-settings-theme"></span><span id="settings-theme-label">Тема</span></button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-account"></span>Акаунт</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" id="settings-signout" onclick="signOutUser()" style="display:none"><span id="ic-set-signout"></span>Вийти з акаунту</button>
+        <button class="btn btn-danger" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none"><span id="ic-set-delete"></span>Видалити акаунт</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-about"></span>Про застосунок</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;font-weight:700">
+        <a href="terms.html" target="_blank" style="color:var(--purple2)">Умови використання</a>
+        <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політика конфіденційності</a>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:12px">Xamss — трекер змін, фінансів і розрахунків</div>
     </div>
   </div>
 
@@ -1137,7 +1181,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
     more:'<circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none"/>',
     search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
-    pencil:'<path d="M4 20h4l10.3-10.3a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16v4Z"/><path d="M14 6l4 4"/>'
+    pencil:'<path d="M4 20h4l10.3-10.3a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16v4Z"/><path d="M14 6l4 4"/>',
+    info:'<circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1149,13 +1194,26 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   }
   var GOOGLE_G_SVG='<svg class="ico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.4-6.4C35.6 3 30.1 1 24 1 14.6 1 6.5 6.4 2.6 14.2l7.5 5.8C12 13.6 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.2 5.6C43.5 37.6 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.1 20c-.6 1.6-.9 3.3-.9 5s.3 3.4.9 5l-7.5 5.8C1 32.6 0 28.4 0 24s1-8.6 2.6-11.8z"/><path fill="#34A853" d="M24 47c6.1 0 11.3-2 15-5.5l-7.2-5.6c-2 1.4-4.6 2.2-7.8 2.2-6.5 0-12-4.1-13.9-9.9l-7.5 5.8C6.5 41.6 14.6 47 24 47z"/></svg>';
   var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
-  setIcon('btn-signout','logout');
-  setIcon('btn-delete-account','trash');
-  setIcon('btn-pin-settings','lock');
+  setIcon('ic-set-signout','logout');
+  setIcon('ic-set-delete','trash');
+  setIcon('ic-set-pin','lock');
   setIcon('ic-pin-logo','lock');
   // Populate every static icon slot
-  setIcon('theme-toggle','sun');
   setIcon('btn-refresh','refresh');
+  setIcon('ic-goto-settings','gear');
+  setIcon('tab-icon-settings','gear');
+  setIcon('ic-settings-finance','wallet');
+  setIcon('ic-settings-security','lock');
+  setIcon('ic-settings-appearance','sun');
+  setIcon('ic-settings-account','person');
+  setIcon('ic-settings-about','info');
+  setIcon('ic-set-wallets','wallet');
+  setIcon('ic-set-rates','swap');
+  setIcon('ic-set-cats','tag');
+  setIcon('ic-set-tags','tag');
+  setIcon('ic-set-budgets','target');
+  setIcon('ic-set-recurring','repeat');
+  setIcon('ic-set-export','download');
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
   setIcon('tab-icon-debt','bank');
@@ -1176,15 +1234,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-modal-cal','calendar');
-  setIcon('ic-manage-wallets','wallet');
-  setIcon('ic-manage-cats','tag');
-  setIcon('ic-rates','swap');
-  setIcon('ic-manage-budgets','target');
   setIcon('ic-budget','target');
-  setIcon('ic-manage-recurring','repeat');
   setIcon('ic-add-recur','plus');
-  setIcon('ic-export','download');
-  setIcon('ic-manage-tags','tag');
   setIcon('ic-add-tag','plus');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
@@ -1199,7 +1250,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
     try{localStorage.setItem('xamssTheme', theme);}catch(e){}
-    setIcon('theme-toggle', theme==='light' ? 'moon' : 'sun');
+    setIcon('ic-settings-theme', theme==='light' ? 'moon' : 'sun');
+    var lbl=$('settings-theme-label');
+    if(lbl) lbl.textContent = 'Тема: ' + (theme==='light' ? 'Світла' : 'Темна');
     var mc=document.querySelector('meta[name=theme-color]');
     if(mc) mc.setAttribute('content', theme==='light' ? '#f2f2f7' : '#0a0812');
   }
@@ -1830,9 +1883,9 @@ window.lockNow=function(){
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
   const lockScreen=document.getElementById('lock-screen');
-  const signOutBtn=document.getElementById('btn-signout');
-  const deleteBtn=document.getElementById('btn-delete-account');
-  const pinBtn=document.getElementById('btn-pin-settings');
+  const signOutBtn=document.getElementById('settings-signout');
+  const deleteBtn=document.getElementById('settings-delete-account');
+  const pinBtn=document.getElementById('settings-pin');
   if(user){
     if(lockScreen){ lockScreen.classList.add('lock-hide'); setTimeout(()=>{lockScreen.style.display='none';},320); }
     if(signOutBtn) signOutBtn.style.display='';
@@ -1907,9 +1960,11 @@ function switchTab(tab){
   document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
+  document.getElementById('nav-settings').classList.toggle('active',tab==='settings');
   document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
   document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
+  document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {renderFinance(); renderFinanceChart();
     const fp=document.getElementById('finance-panel-block');
