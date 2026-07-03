@@ -611,6 +611,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
     <div class="auth-error" id="pin-unlock-error"></div>
     <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()">Розблокувати</button>
+    <button type="button" class="btn btn-ghost" id="pin-bio-unlock-btn" style="width:100%;justify-content:center;margin-top:8px;display:none" onclick="tryBioUnlock()"><span id="ic-bio-unlock"></span>Face ID / Touch ID</button>
     <button type="button" class="auth-link" onclick="forgotPin()">Забув PIN?</button>
   </div>
 </div>
@@ -632,6 +633,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
     <button class="add-btn" style="width:100%" onclick="setPin()">Встановити PIN</button>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()">Заблокувати зараз</button>
+    <div id="pin-bio-section" style="display:none">
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-enable-btn" onclick="enableBiometric()"><span id="ic-bio-enable"></span>Увімкнути Face ID / Touch ID</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-disable-btn" onclick="disableBiometric()"><span id="ic-bio-disable"></span>Вимкнути Face ID / Touch ID</button>
+    </div>
     <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()">Прибрати PIN</button>
     <div class="chk-desc" style="text-align:center;margin-top:12px">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">
@@ -1221,6 +1226,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-set-delete','trash');
   setIcon('ic-set-pin','lock');
   setIcon('ic-pin-logo','lock');
+  setIcon('ic-bio-unlock','lock');
+  setIcon('ic-bio-enable','lock');
+  setIcon('ic-bio-disable','lock');
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
   setIcon('ic-goto-settings','gear');
@@ -1818,7 +1826,7 @@ window.deleteAccountUser=async function(){
       return;
     }
   }
-  ['shifts','tx','recurring','debt','cfg','pin'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+  ['shifts','tx','recurring','debt','cfg','pin','biocred'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
   showToast('Акаунт видалено','trash');
 };
 
@@ -1840,6 +1848,8 @@ async function checkPinLock(){
   const err=document.getElementById('pin-unlock-error');
   if(err) err.textContent='';
   if(scr){ scr.style.display='flex'; scr.classList.remove('lock-hide'); }
+  const bioBtn=document.getElementById('pin-bio-unlock-btn');
+  if(bioBtn) bioBtn.style.display = hasBioSet() ? '' : 'none';
   const inp=document.getElementById('pin-unlock-input');
   if(inp){ inp.value=''; setTimeout(()=>inp.focus(),150); }
 }
@@ -1863,10 +1873,11 @@ window.tryUnlockPin=async function(){
 window.forgotPin=async function(){
   if(!(await uiConfirm('Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.',{title:'Забули PIN?',okText:'Скинути й вийти',danger:true}))) return;
   const k=pinKey(); if(k) localStorage.removeItem(k);
+  const bk=bioKey(); if(bk) localStorage.removeItem(bk);
   pinUnlocked=true; // avoid a re-lock flash while the sign-out transition runs
   await signOut(auth);
 };
-window.openPinSettings=function(){
+window.openPinSettings=async function(){
   const statusEl=document.getElementById('pin-status-text');
   const removeBtn=document.getElementById('pin-remove-btn');
   const lockBtn=document.getElementById('pin-lock-now-btn');
@@ -1877,6 +1888,7 @@ window.openPinSettings=function(){
   const ni=document.getElementById('pin-new-input'); if(ni) ni.value='';
   const ci=document.getElementById('pin-confirm-input'); if(ci) ci.value='';
   document.getElementById('pin-settings-modal').style.display='flex';
+  await renderBioSettingsUI();
 };
 window.setPin=async function(){
   const ni=document.getElementById('pin-new-input');
@@ -1893,6 +1905,7 @@ window.setPin=async function(){
 };
 window.removePin=function(){
   const k=pinKey(); if(k) localStorage.removeItem(k);
+  const bk=bioKey(); if(bk) localStorage.removeItem(bk); // biometric requires a PIN fallback to exist
   window.closeManagers();
   showToast('PIN вимкнено','check');
 };
@@ -1908,6 +1921,87 @@ window.lockNow=function(){
   const inp=document.getElementById('pin-unlock-input');
   if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); window.tryUnlockPin(); } });
 })();
+
+// ── BIOMETRIC UNLOCK (WebAuthn platform authenticator) ──────────
+// Optional convenience layered on the PIN — registers a platform
+// credential (Face ID / Touch ID / Windows Hello / fingerprint) once,
+// then a get() call re-prompts it to unlock. There is no server to
+// verify the assertion against; like the PIN itself, this is a local
+// device convenience gate, not a replacement for the real Firebase
+// auth, so it always requires a PIN to already be set as a fallback.
+function bioSupported(){ return !!(window.PublicKeyCredential && navigator.credentials); }
+async function bioPlatformAvailable(){
+  if(!bioSupported()) return false;
+  try{ return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
+  catch(e){ return false; }
+}
+function bioKey(){ return currentUser ? `mx_biocred_${currentUser.uid}` : null; }
+function hasBioSet(){ const k=bioKey(); return !!(k && localStorage.getItem(k)); }
+function randBytes(len){ const a=new Uint8Array(len); crypto.getRandomValues(a); return a; }
+function b64FromBuf(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function bufFromB64(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
+
+async function renderBioSettingsUI(){
+  const wrap=document.getElementById('pin-bio-section');
+  if(!wrap) return;
+  const enableBtn=document.getElementById('pin-bio-enable-btn');
+  const disableBtn=document.getElementById('pin-bio-disable-btn');
+  const available = hasPinSet() && await bioPlatformAvailable();
+  if(!available){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  const on=hasBioSet();
+  if(enableBtn) enableBtn.style.display = on?'none':'';
+  if(disableBtn) disableBtn.style.display = on?'':'none';
+}
+window.enableBiometric=async function(){
+  if(!hasPinSet()){ showToast('Спершу встанови PIN','xmark'); return; }
+  try{
+    const cred=await navigator.credentials.create({
+      publicKey:{
+        challenge: randBytes(32),
+        rp:{ name:'Xamss' },
+        user:{ id: randBytes(16), name: (currentUser&&currentUser.email)||'user', displayName:'Xamss' },
+        pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+        authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required' },
+        timeout:60000,
+      }
+    });
+    if(!cred) throw new Error('no credential returned');
+    const k=bioKey(); if(k) localStorage.setItem(k, b64FromBuf(cred.rawId));
+    await renderBioSettingsUI();
+    showToast('Face ID / Touch ID увімкнено','check');
+  }catch(e){
+    console.error(e);
+    showToast('Не вдалося увімкнути біометрію','xmark');
+  }
+};
+window.disableBiometric=async function(){
+  const k=bioKey(); if(k) localStorage.removeItem(k);
+  await renderBioSettingsUI();
+  showToast('Face ID / Touch ID вимкнено','check');
+};
+window.tryBioUnlock=async function(){
+  const k=bioKey(); const credB64=k&&localStorage.getItem(k);
+  if(!credB64) return;
+  try{
+    const assertion=await navigator.credentials.get({
+      publicKey:{
+        challenge: randBytes(32),
+        allowCredentials:[{ id: bufFromB64(credB64), type:'public-key' }],
+        userVerification:'required',
+        timeout:60000,
+      }
+    });
+    if(!assertion) return;
+    pinUnlocked=true;
+    const err=document.getElementById('pin-unlock-error'); if(err) err.textContent='';
+    const scr=document.getElementById('pin-screen');
+    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+  }catch(e){
+    console.error(e);
+    // Cancelled or failed — the PIN field is still right there, no need to surface an error.
+  }
+};
 
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
