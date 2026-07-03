@@ -482,7 +482,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 /* ── MANAGER MODALS (shift types / wallets / categories) ── */
 .mgr-list{display:flex;flex-direction:column;gap:8px}
 .mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px}
-.mgr-row input[type=text],.mgr-row input[type=number]{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0}
+.mgr-row input[type=text],.mgr-row input[type=number],.mgr-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0;cursor:pointer}
 .mgr-row input:focus{border-color:var(--purple)}
 .mgr-name{flex:1 1 100%}
 .mgr-name-inline{flex:1 1 auto;min-width:0}
@@ -700,6 +700,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="stats-row" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin:-8px 0 16px">
       <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
+      <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-rates"></span>Курси</button>
       <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
       <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
       <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-manage-recurring"></span>Повторювані</button>
@@ -736,7 +737,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <select id="fin-wallet-target"></select>
         </div>
         <div class="fg">
-          <label>Сума (грн)</label>
+          <label id="fin-amount-label">Сума (грн)</label>
           <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
         </div>
         <div class="fg" id="category-group">
@@ -929,6 +930,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- MANAGER: CURRENCY RATES -->
+<div class="modal-overlay" id="rates-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Курси валют</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</div>
+    <div class="mgr-list" id="rates-list"></div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- MANAGER: BUDGETS -->
 <div class="modal-overlay" id="budgets-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1059,6 +1075,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-manage-wallets','wallet');
   setIcon('ic-manage-cats','tag');
+  setIcon('ic-rates','swap');
   setIcon('ic-manage-budgets','target');
   setIcon('ic-budget','target');
   setIcon('ic-manage-recurring','repeat');
@@ -1138,6 +1155,9 @@ let budgets = {};
 // {"expense:Продукти": ["Овочі","М'ясо"]}.
 let subcategories = {};
 function subKey(type,name){ return type+':'+name; }
+// Manual exchange rates {code: hryvnias per 1 unit}. UAH itself is never
+// stored here — convertCurrency() treats a missing entry as rate 1.
+let currencyRates = {};
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -1174,9 +1194,9 @@ const LEGACY_SHIFT_TYPES = [
   {id:'vacation',    name:'Вихідний',             short:'Вих',  color:'#f59e0b', amount:0,    hours:0, isOff:true},
 ];
 const LEGACY_WALLETS = [
-  {id:'main',name:'Основна картка',color:'#8b5cf6',icon:'card'},
-  {id:'pumb',name:'Картка ПУМБ',   color:'#ef4444',icon:'card'},
-  {id:'cash',name:'Готівка',        color:'#f59e0b',icon:'banknote'},
+  {id:'main',name:'Основна картка',color:'#8b5cf6',icon:'card',currency:'UAH'},
+  {id:'pumb',name:'Картка ПУМБ',   color:'#ef4444',icon:'card',currency:'UAH'},
+  {id:'cash',name:'Готівка',        color:'#f59e0b',icon:'banknote',currency:'UAH'},
 ];
 // DEFAULT_* — generic starters for brand-new accounts.
 const DEFAULT_SHIFT_TYPES = [
@@ -1185,9 +1205,33 @@ const DEFAULT_SHIFT_TYPES = [
   {id:'st_off',   name:'Вихідний',    short:'Вих',  color:'#f59e0b', amount:0, hours:0, isOff:true},
 ];
 const DEFAULT_WALLETS = [
-  {id:'w_card',name:'Картка', color:'#8b5cf6',icon:'card'},
-  {id:'w_cash',name:'Готівка',color:'#f59e0b',icon:'banknote'},
+  {id:'w_card',name:'Картка', color:'#8b5cf6',icon:'card',currency:'UAH'},
+  {id:'w_cash',name:'Готівка',color:'#f59e0b',icon:'banknote',currency:'UAH'},
 ];
+// Multi-currency: every wallet has a currency; totals/budgets/charts convert
+// everything to the base currency (UAH, fixed rate 1) using these manual
+// rates (no live FX API — user-edited via the "Курси" manager).
+const CURRENCY_LIST=['UAH','USD','EUR','GBP','PLN'];
+const CURRENCY_META={
+  UAH:{symbol:'грн'}, USD:{symbol:'$'}, EUR:{symbol:'€'}, GBP:{symbol:'£'}, PLN:{symbol:'zł'},
+};
+const SEED_RATES={USD:41, EUR:44, GBP:51, PLN:10.5};
+function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || 'грн'; }
+// Converts an amount between two currency codes using currencyRates (falls
+// back to SEED_RATES, then 1:1, for a currency the user hasn't set yet).
+function convertCurrency(amount, fromCode, toCode){
+  if(fromCode===toCode) return amount;
+  const fromRate=currencyRates[fromCode] ?? SEED_RATES[fromCode] ?? 1;
+  const toRate=currencyRates[toCode] ?? SEED_RATES[toCode] ?? 1;
+  return Math.round((amount*fromRate/toRate)*100)/100;
+}
+function toBase(amount, code){ return convertCurrency(amount, code||'UAH', 'UAH'); }
+function walletCurrency(id){ return (walletById(id)||{}).currency||'UAH'; }
+// Older wallets (saved before multi-currency) have no .currency field yet —
+// treat them as UAH, matching what their amounts always meant.
+function normalizeWallets(){
+  wallets.forEach(w=>{ if(!w.currency) w.currency='UAH'; });
+}
 const DEFAULT_CATEGORIES = {
   income:  ['Зарплата','Аванс','Підробіток','Інше'],
   expense: ['Продукти','Кафе','Транспорт','Покупки','Комуналка','Здоров\'я','Розваги','Інше'],
@@ -1251,7 +1295,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1298,6 +1342,7 @@ function seedConfigFromDocs(sData, fData){
     wallets=(hasData?LEGACY_WALLETS:DEFAULT_WALLETS).map(w=>({...w}));
     seeded=true;
   }
+  normalizeWallets();
   if(fData&&fData.categories&&(fData.categories.income||fData.categories.expense)){
     categories={income:fData.categories.income||[], expense:fData.categories.expense||[]};
   }else{
@@ -1306,6 +1351,7 @@ function seedConfigFromDocs(sData, fData){
   }
   budgets = (fData && fData.budgets) ? {...fData.budgets} : {};
   subcategories = (fData && fData.subcategories) ? {...fData.subcategories} : {};
+  currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1426,8 +1472,8 @@ function processRecurring(){
     let guard=0;
     while(r.nextDate<=todayStr && guard<24){
       transactions.unshift({
-        id:Date.now()+added, type:r.type, amount:r.amount, category:r.category||'Інше',
-        wallet:r.wallet, targetWallet:null, date:r.nextDate,
+        id:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
+        wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
         comment:(r.comment?r.comment+' · ':'')+'повторювана'
       });
       r.nextDate=computeNextDate(r.nextDate, r.frequency||'monthly');
@@ -1442,7 +1488,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1621,6 +1667,8 @@ async function init(){
     }
     // Refresh the subcategory list whenever the user picks a different category
     document.getElementById('fin-category')?.addEventListener('change', fillSubcats);
+    // Keep the amount field's currency label matched to the chosen wallet
+    document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -1631,7 +1679,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -2047,8 +2095,8 @@ function renderFinanceChart(){
     let inc=0,exp=0;
     transactions.forEach(t=>{
       if(!t.date||!t.date.startsWith(prefix)) return;
-      if(t.type==='income') inc+=t.amount;
-      else if(t.type==='expense') exp+=t.amount;
+      if(t.type==='income') inc+=toBase(t.amount,t.currency||'UAH');
+      else if(t.type==='expense') exp+=toBase(t.amount,t.currency||'UAH');
     });
     return {inc,exp,net:inc-exp};
   });
@@ -2121,7 +2169,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -2197,6 +2245,9 @@ function renderWalletsList(){
     row.innerHTML=`
       <input type="color" class="mgr-color" value="${escapeHtml(w.color||'#8b5cf6')}" onchange="updateWallet('${w.id}','color',this.value)">
       <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="Назва" onchange="updateWallet('${w.id}','name',this.value)">
+      <select style="flex:0 0 82px" onchange="updateWallet('${w.id}','currency',this.value)">
+        ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
+      </select>
       <button class="mgr-del" onclick="deleteWallet('${w.id}')">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
@@ -2204,6 +2255,7 @@ function renderWalletsList(){
 window.updateWallet=function(id,field,value){
   const w=walletById(id); if(!w) return;
   if(field==='name') w.name=String(value).trim()||'Гаманець';
+  else if(field==='currency'){ w.currency=value; if(value!=='UAH' && currencyRates[value]===undefined) currencyRates[value]=SEED_RATES[value]||1; }
   else w[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
@@ -2212,7 +2264,7 @@ window.addWallet=async function(){
   const name=await uiPrompt('Назва гаманця:','Новий гаманець','Новий гаманець');
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
-  wallets.push({id:uid('w'), name:name.trim()||'Новий гаманець', color, icon:'card'});
+  wallets.push({id:uid('w'), name:name.trim()||'Новий гаманець', color, icon:'card', currency:'UAH'});
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
 };
@@ -2223,6 +2275,34 @@ window.deleteWallet=async function(id){
   wallets=wallets.filter(w=>w.id!==id);
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
+};
+
+// Currency rates -------------------------------------------------
+window.openRatesManager=function(){
+  renderRatesList();
+  document.getElementById('rates-modal').style.display='flex';
+};
+function renderRatesList(){
+  const box=document.getElementById('rates-list'); if(!box) return;
+  box.innerHTML='';
+  CURRENCY_LIST.filter(c=>c!=='UAH').forEach(code=>{
+    const rate=currencyRates[code] ?? SEED_RATES[code] ?? 1;
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <div class="mgr-name-inline" style="flex:0 0 70px;font-size:13px;font-weight:800;color:var(--text-strong)">${code} ${currencySymbol(code)}</div>
+      <div class="mgr-field" style="flex:1 1 130px">
+        <span class="mgr-field-label">Грн за 1 ${code}</span>
+        <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" value="${rate}" onchange="updateCurrencyRate('${code}',this.value)">
+      </div>`;
+    box.appendChild(row);
+  });
+}
+window.updateCurrencyRate=function(code,value){
+  const v=parseFloat(value);
+  currencyRates[code]= v>0 ? v : (SEED_RATES[code]||1);
+  saveConfigLocal(); scheduleSave();
+  renderFinance(); renderFinanceChart();
 };
 
 // Categories ---------------------------------------------------
@@ -2247,11 +2327,11 @@ function currentMonthPrefix(){
 }
 function catMonthTotal(type,name){
   const p=currentMonthPrefix();
-  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.date&&t.date.startsWith(p))?s+t.amount:s,0);
+  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.date&&t.date.startsWith(p))?s+toBase(t.amount,t.currency||'UAH'):s,0);
 }
 function subMonthTotal(type,name,sub){
   const p=currentMonthPrefix();
-  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.subcategory===sub&&t.date&&t.date.startsWith(p))?s+t.amount:s,0);
+  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.subcategory===sub&&t.date&&t.date.startsWith(p))?s+toBase(t.amount,t.currency||'UAH'):s,0);
 }
 function renderCategoriesList(){
   const box=document.getElementById('categories-list'); if(!box) return;
@@ -2389,7 +2469,7 @@ function renderBudgets(){
   const prefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   box.innerHTML='';
   entries.sort((a,b)=>a[0].localeCompare(b[0],'uk')).forEach(([cat,limit])=>{
-    const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(prefix))?s+t.amount:s,0);
+    const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(prefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
     const pct=Math.min(100,Math.round(spent/limit*100));
     const over=spent>limit;
     const color=over?'var(--red2)':(pct>=80?'var(--orange2)':'var(--green2)');
@@ -2499,10 +2579,19 @@ function refreshWalletSelects(){
     const sel=document.getElementById(selId); if(!sel) return;
     const prev=sel.value;
     sel.innerHTML='';
-    wallets.forEach(w=>{const o=document.createElement('option');o.value=w.id;o.textContent=w.name;sel.appendChild(o);});
+    wallets.forEach(w=>{const o=document.createElement('option');o.value=w.id;o.textContent=`${w.name} (${w.currency||'UAH'})`;sel.appendChild(o);});
     if(prev&&wallets.some(w=>w.id===prev)) sel.value=prev;
     else if(selId==='fin-wallet-target'&&wallets[1]) sel.value=wallets[1].id;
   });
+  updateAmountLabel();
+}
+// Keeps the "Сума (...)" label in sync with the currently-selected source
+// wallet's currency, so the number the user types is unambiguous.
+function updateAmountLabel(){
+  const lbl=document.getElementById('fin-amount-label'); if(!lbl) return;
+  const ws=document.getElementById('fin-wallet');
+  const cur=ws?walletCurrency(ws.value):'UAH';
+  lbl.textContent=`Сума (${currencySymbol(cur)})`;
 }
 function setFinanceType(t){
   currentFinanceType=t;
@@ -2553,7 +2642,13 @@ function addTransaction(){
   const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const sub=currentFinanceType==='transfer'?null:(document.getElementById('fin-subcategory')?.value||null);
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
-  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,category:cat,subcategory:sub,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,date,comment});
+  const srcCur=walletCurrency(ws);
+  let targetAmount=null, targetCurrency=null;
+  if(currentFinanceType==='transfer'){
+    targetCurrency=walletCurrency(wt);
+    targetAmount=convertCurrency(amount, srcCur, targetCurrency);
+  }
+  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave();
   if(ai)ai.value='';
@@ -2567,7 +2662,7 @@ function addTransaction(){
     const mPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
     if(date.startsWith(mPrefix)){
       const limit=budgets[cat];
-      const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(mPrefix))?s+t.amount:s,0);
+      const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(mPrefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
       if(spent>=limit){ toastMsg=`Бюджет «${cat}» перевищено: ${spent.toLocaleString('uk-UA')}/${limit.toLocaleString('uk-UA')} грн`; toastIcon='warning'; }
       else if(spent>=limit*0.9){ toastMsg=`Бюджет «${cat}»: ${Math.round(spent/limit*100)}% витрачено`; toastIcon='warning'; }
     }
@@ -2601,20 +2696,26 @@ function walletBadge(id){
   return `<span class="wallet-tag" style="background:${hexA(color,.12)};color:${color};border:1px solid ${hexA(color,.28)}">${window.Icon(icon)}${escapeHtml(name)}</span>`;
 }
 function renderFinance(){
-  let bal=0; const wb={};
+  const wb={};
   wallets.forEach(w=>{wb[w.id]=0;});
   transactions.forEach(t=>{
     const w=t.wallet;
-    if(t.type==='income')   {bal+=t.amount;if(wb[w]!==undefined)wb[w]+=t.amount;}
-    if(t.type==='expense')  {bal-=t.amount;if(wb[w]!==undefined)wb[w]-=t.amount;}
-    if(t.type==='transfer') {const tw=t.targetWallet;if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=t.amount;}
+    if(t.type==='income')   {if(wb[w]!==undefined)wb[w]+=t.amount;}
+    if(t.type==='expense')  {if(wb[w]!==undefined)wb[w]-=t.amount;}
+    if(t.type==='transfer') {const tw=t.targetWallet;if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=(t.targetAmount!=null?t.targetAmount:t.amount);}
   });
+  // Total balance is a UAH-equivalent sum across wallets that may each hold
+  // a different currency — computed after the per-wallet loop, not
+  // incrementally, since a raw income/expense sum would be meaningless
+  // once wallets stop sharing one currency.
+  let bal=0;
+  wallets.forEach(w=>{ bal+=toBase(wb[w.id]||0, w.currency||'UAH'); });
   // Balance cards (total + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="stat-card stat-big"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
+    let html=`<div class="stat-card stat-big"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс (у грн)</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
     wallets.forEach(w=>{
-      html+=`<div class="stat-card"><span class="stat-icon" style="color:${w.color};background:${hexA(w.color,.14)}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} грн</div></div>`;
+      html+=`<div class="stat-card"><span class="stat-icon" style="color:${w.color};background:${hexA(w.color,.14)}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</div></div>`;
     });
     bc.innerHTML=html;
   }
@@ -2635,13 +2736,16 @@ function renderFinance(){
 
   filtered.forEach(t=>{
     const df=t.date?t.date.split('-').reverse().join('.'):'';
+    const cur=currencySymbol(t.currency||'UAH');
     let cls='',amtStr='';
-    if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} грн`;}
-    if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} грн`;}
-    if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} грн`;}
+    if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+    if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+    if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
     const catIcon=window.Icon(CAT_ICON[t.category]||'tag');
     const wBadge=walletBadge(t.wallet);
-    const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}`:'';
+    const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
+      ? `<span style="font-size:10px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
+    const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
     const item=document.createElement('div');
     item.className='tx-item';
     item.innerHTML=`
@@ -2668,7 +2772,7 @@ function csvEscape(v){
 // Excel/Google Sheets straight out of the box for uk-UA locales.
 window.exportTransactionsCSV=function(){
   if(!transactions.length){ showToast('Немає операцій для експорту','xmark'); return; }
-  const header=['Дата','Тип','Категорія','Підкатегорія','Гаманець','Куди','Сума','Коментар'];
+  const header=['Дата','Тип','Категорія','Підкатегорія','Гаманець','Сума','Валюта','Куди','Сума переказу','Валюта переказу','Коментар'];
   const sorted=[...transactions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const rows=sorted.map(t=>[
     t.date||'',
@@ -2676,8 +2780,11 @@ window.exportTransactionsCSV=function(){
     t.category||'',
     t.subcategory||'',
     (walletById(t.wallet)||{}).name||'',
-    t.targetWallet?((walletById(t.targetWallet)||{}).name||''):'',
     String(t.amount).replace('.',','),
+    t.currency||'UAH',
+    t.targetWallet?((walletById(t.targetWallet)||{}).name||''):'',
+    t.targetWallet?String(t.targetAmount??t.amount).replace('.',','):'',
+    t.targetWallet?(t.targetCurrency||t.currency||'UAH'):'',
     t.comment||''
   ]);
   const csv=[header,...rows].map(r=>r.map(csvEscape).join(';')).join('\r\n');
