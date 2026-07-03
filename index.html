@@ -690,6 +690,13 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div style="display:flex;justify-content:flex-end;gap:8px;margin:-8px 0 16px">
       <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
       <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
+      <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
+    </div>
+
+    <!-- Бюджети по категоріях -->
+    <div class="chart-section" id="budgets-section" style="display:none">
+      <div class="chart-title"><span id="ic-budget"></span>Бюджети цього місяця</div>
+      <div id="budgets-list"></div>
     </div>
 
     <!-- Графік витрат по місяцях -->
@@ -905,6 +912,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- MANAGER: BUDGETS -->
+<div class="modal-overlay" id="budgets-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Бюджети по категоріях</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</div>
+    <div class="mgr-list" id="budgets-list-mgr"></div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- CUSTOM DIALOG (confirm / prompt / alert) -->
 <div class="modal-overlay dlg-overlay" id="ui-dialog">
   <div class="dlg-card" onclick="event.stopPropagation()">
@@ -962,7 +984,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
     chevron:'<path d="M6 9l6 6 6-6"/>',
-    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>'
+    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+    target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1001,6 +1024,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-manage-wallets','wallet');
   setIcon('ic-manage-cats','tag');
+  setIcon('ic-manage-budgets','target');
+  setIcon('ic-budget','target');
   setIcon('ic-add-st','plus');
   setIcon('ic-add-w','plus');
   setIcon('ic-add-cat','plus');
@@ -1063,6 +1088,9 @@ const SALARY_GOAL = 20000;
 let shiftTypes = [];
 let wallets = [];
 let categories = {income:[], expense:[]};
+// Monthly spend limit per expense category: {categoryName: limit}. Missing
+// or non-positive entries mean "no budget set" for that category.
+let budgets = {};
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -1176,7 +1204,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1229,6 +1257,7 @@ function seedConfigFromDocs(sData, fData){
     categories={income:[...DEFAULT_CATEGORIES.income], expense:[...DEFAULT_CATEGORIES.expense]};
     seeded=true;
   }
+  budgets = (fData && fData.budgets) ? {...fData.budgets} : {};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1321,7 +1350,7 @@ function saveDebtLocal(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1507,7 +1536,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -1997,7 +2026,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -2135,6 +2164,7 @@ window.renameCategory=function(idx,value){
   list[idx]=newName;
   // keep existing transactions consistent with the rename
   transactions.forEach(t=>{ if(t.type===catMgrType && t.category===oldName) t.category=newName; });
+  if(budgets[oldName]!==undefined){ budgets[newName]=budgets[oldName]; delete budgets[oldName]; }
   saveConfigLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
   scheduleSave();
@@ -2153,10 +2183,71 @@ window.addCategory=async function(){
 window.deleteCategory=async function(idx){
   const list=categories[catMgrType]; if(!list||list[idx]===undefined) return;
   if(!(await uiConfirm('Видалити категорію? Старі операції збережуть свою назву.',{title:'Видалити категорію',okText:'Видалити',danger:true}))) return;
+  const removed=list[idx];
   list.splice(idx,1);
+  delete budgets[removed];
   saveConfigLocal(); scheduleSave();
-  renderCategoriesList(); fillCats(currentFinanceType);
+  renderCategoriesList(); fillCats(currentFinanceType); renderBudgets();
 };
+
+// Budgets -------------------------------------------------------
+window.openBudgetsManager=function(){
+  renderBudgetsManagerList();
+  document.getElementById('budgets-modal').style.display='flex';
+};
+function renderBudgetsManagerList(){
+  const box=document.getElementById('budgets-list-mgr'); if(!box) return;
+  box.innerHTML='';
+  const list=categories.expense||[];
+  if(!list.length){ box.innerHTML='<div class="mgr-empty">Немає категорій витрат</div>'; return; }
+  list.forEach(name=>{
+    const val=budgets[name]||'';
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <div class="mgr-name-inline" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)">${window.Icon(CAT_ICON[name]||'tag')}${escapeHtml(name)}</div>
+      <div class="mgr-field" style="flex:1 1 130px">
+        <span class="mgr-field-label">Ліміт/міс, грн</span>
+        <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
+      </div>`;
+    box.appendChild(row);
+  });
+}
+window.updateBudget=function(name,value){
+  const v=parseFloat(value);
+  if(!v||v<=0) delete budgets[name]; else budgets[name]=v;
+  saveConfigLocal(); scheduleSave();
+  renderBudgets();
+};
+// Renders the monthly budget progress bars shown in the Finance tab.
+function renderBudgets(){
+  const section=document.getElementById('budgets-section');
+  const box=document.getElementById('budgets-list');
+  if(!section||!box) return;
+  const entries=Object.entries(budgets).filter(([cat,limit])=>limit>0 && (categories.expense||[]).includes(cat));
+  if(!entries.length){ section.style.display='none'; return; }
+  section.style.display='block';
+  const now=new Date();
+  const prefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  box.innerHTML='';
+  entries.sort((a,b)=>a[0].localeCompare(b[0],'uk')).forEach(([cat,limit])=>{
+    const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(prefix))?s+t.amount:s,0);
+    const pct=Math.min(100,Math.round(spent/limit*100));
+    const over=spent>limit;
+    const color=over?'var(--red2)':(pct>=80?'var(--orange2)':'var(--green2)');
+    const row=document.createElement('div');
+    row.style.marginBottom='14px';
+    row.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
+        <span style="display:flex;align-items:center;gap:6px;color:var(--text-strong);min-width:0"><span style="flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
+        <span style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
+      </div>
+      <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      ${over?`<div style="font-size:10px;color:var(--red2);font-weight:700;margin-top:3px">Перевищено на ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
+    `;
+    box.appendChild(row);
+  });
+}
 
 // ── FINANCE ───────────────────────────────────────────────────
 // Rebuilds the wallet dropdowns from the user's wallets, keeping the
@@ -2208,7 +2299,20 @@ function addTransaction(){
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
   renderFinance(); renderFinanceChart();
-  showToast(currentFinanceType==='transfer'?'Переказ виконано':'Запис додано', currentFinanceType==='transfer'?'swap':'check');
+
+  let toastMsg=currentFinanceType==='transfer'?'Переказ виконано':'Запис додано';
+  let toastIcon=currentFinanceType==='transfer'?'swap':'check';
+  if(currentFinanceType==='expense' && budgets[cat]>0){
+    const now=new Date();
+    const mPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    if(date.startsWith(mPrefix)){
+      const limit=budgets[cat];
+      const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(mPrefix))?s+t.amount:s,0);
+      if(spent>=limit){ toastMsg=`Бюджет «${cat}» перевищено: ${spent.toLocaleString('uk-UA')}/${limit.toLocaleString('uk-UA')} грн`; toastIcon='warning'; }
+      else if(spent>=limit*0.9){ toastMsg=`Бюджет «${cat}»: ${Math.round(spent/limit*100)}% витрачено`; toastIcon='warning'; }
+    }
+  }
+  showToast(toastMsg, toastIcon);
 }
 
 async function deleteTransaction(id){
@@ -2254,6 +2358,8 @@ function renderFinance(){
     });
     bc.innerHTML=html;
   }
+
+  renderBudgets();
 
   const filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
   const lc=document.getElementById('tx-list-container');
