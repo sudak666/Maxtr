@@ -347,11 +347,11 @@ button,input,select,textarea{font-family:inherit}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
 .debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
-/* ── MODAL (iOS bottom sheet) ── */
-.modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:flex-end;z-index:1000;padding:16px 16px 0}
-.modal-card{background:var(--bg1);border:1px solid var(--border2);border-bottom:none;border-radius:28px 28px 0 0;padding:14px 24px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:480px;box-shadow:0 -12px 50px rgba(0,0,0,.5);animation:sheetUp .28s cubic-bezier(.32,.72,0,1)}
-@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sheet-grabber{width:36px;height:5px;border-radius:99px;background:var(--border2);margin:0 auto 16px}
+/* ── MODAL (centered, fully rounded) ── */
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
+.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;padding:22px 24px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .26s cubic-bezier(.32,.72,0,1)}
+@keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.sheet-grabber{display:none}
 .modal-header{text-align:center;margin-bottom:18px}
 .modal-icon{width:30px;height:30px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--purple2)}
 .modal-icon .ico{width:30px;height:30px;margin-right:0}
@@ -391,12 +391,29 @@ button,input,select,textarea{font-family:inherit}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
+/* ── CUSTOM DIALOG ── */
+.dlg-overlay{z-index:3000}
+.dlg-card{background:var(--bg1);border:1px solid var(--border2);border-radius:26px;padding:24px 22px 20px;width:100%;max-width:340px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .22s cubic-bezier(.32,.72,0,1)}
+.dlg-title{font-size:16px;font-weight:800;color:var(--text-strong);margin-bottom:6px}
+.dlg-msg{font-size:13.5px;color:var(--muted);font-weight:500;line-height:1.5;margin-bottom:16px}
+.dlg-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:11px 14px;border-radius:16px;font-size:14px;font-weight:600;outline:none;font-family:inherit;margin-bottom:16px;transition:border-color .15s}
+.dlg-input:focus{border-color:var(--purple)}
+.dlg-actions{display:flex;gap:10px}
+.dlg-btn{flex:1;padding:12px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid transparent}
+.dlg-cancel{background:transparent;border-color:var(--border2);color:var(--muted)}
+.dlg-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
+.dlg-ok{background:var(--purple);color:#fff;box-shadow:0 4px 12px rgba(139,92,246,.3)}
+.dlg-ok:hover{background:var(--purple3)}
+.dlg-ok.danger{background:var(--red);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.dlg-ok.danger:hover{background:#dc2626}
+
 /* ── MANAGER MODALS (shift types / wallets / categories) ── */
-.mgr-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding-right:2px}
-.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:16px}
+.mgr-list{display:flex;flex-direction:column;gap:8px}
+.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px}
 .mgr-row input[type=text],.mgr-row input[type=number]{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0}
 .mgr-row input:focus{border-color:var(--purple)}
 .mgr-name{flex:1 1 100%}
+.mgr-name-inline{flex:1 1 auto;min-width:0}
 .mgr-num{flex:1 1 90px;width:90px}
 .mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;background:none;cursor:pointer;flex:0 0 auto}
 .mgr-color::-webkit-color-swatch{border:none;border-radius:8px}
@@ -709,11 +726,11 @@ button,input,select,textarea{font-family:inherit}
       <div class="fin-form-title"><span id="ic-debt-plus"></span>Новий платіж</div>
       <div class="fg">
         <label>Сума</label>
-        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68">
+        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68" oninput="autoFillDebtBalance()">
       </div>
       <div class="fg">
-        <label>Залишок після оплати</label>
-        <input type="number" id="debt-balance-input" placeholder="0" step="0.01">
+        <label>Залишок після оплати <span style="color:var(--muted2);font-weight:600;text-transform:none;letter-spacing:0">(рахується автоматично)</span></label>
+        <input type="number" id="debt-balance-input" placeholder="авто" step="0.01">
       </div>
       <div class="fg">
         <label>Дата / мітка</label>
@@ -788,6 +805,19 @@ button,input,select,textarea{font-family:inherit}
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span>Додати категорію</button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM DIALOG (confirm / prompt / alert) -->
+<div class="modal-overlay dlg-overlay" id="ui-dialog">
+  <div class="dlg-card" onclick="event.stopPropagation()">
+    <div class="dlg-title" id="ui-dlg-title"></div>
+    <div class="dlg-msg" id="ui-dlg-msg"></div>
+    <input type="text" class="dlg-input" id="ui-dlg-input" style="display:none">
+    <div class="dlg-actions">
+      <button class="dlg-btn dlg-cancel" id="ui-dlg-cancel">Скасувати</button>
+      <button class="dlg-btn dlg-ok" id="ui-dlg-ok">OK</button>
     </div>
   </div>
 </div>
@@ -936,6 +966,9 @@ const SALARY_GOAL = 20000;
 let shiftTypes = [];
 let wallets = [];
 let categories = {income:[], expense:[]};
+// Set once, after old transaction categories have been merged into the
+// picker list (so pre-existing categories like a personal name reappear).
+let catBackfillDone = false;
 
 // Each signed-in user starts with their own empty list — data is scoped to
 // their account (users/{uid}/...), never shared or pre-filled.
@@ -1032,13 +1065,13 @@ async function fbSaveNow(){
     const conflict=Object.keys(remoteUpdatedAt).some(k=>remoteUpdatedAt[k]>lastKnownUpdatedAt[k]);
     if(conflict){
       fbSetStatus('error','Конфлікт');
-      const overwrite=confirm('Дані змінено на іншому пристрої з часу останнього завантаження тут. Записати поточну версію поверх (OK), чи натомість завантажити свіжі дані і втратити локальні зміни (Скасувати)?');
+      const overwrite=await uiConfirm('Дані змінено на іншому пристрої з часу останнього завантаження тут. Записати поточну версію поверх, чи завантажити свіжі дані?', {title:'Конфлікт синхронізації', okText:'Записати поверх', cancelText:'Завантажити свіже'});
       if(!overwrite){ await fbLoadNow(); return; }
     }
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, catBackfillDone, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1091,7 +1124,26 @@ function seedConfigFromDocs(sData, fData){
     categories={income:[...DEFAULT_CATEGORIES.income], expense:[...DEFAULT_CATEGORIES.expense]};
     seeded=true;
   }
+  catBackfillDone = !!(fData && fData.catBackfillDone);
   return seeded;
+}
+
+// One-time: merge every category that appears in existing transactions
+// into the picker list, so categories created before this update (incl.
+// personal ones) don't vanish from the dropdown. Runs once per account
+// (guarded by catBackfillDone); after that, deletions are respected.
+function backfillCategoriesFromTransactions(){
+  if(catBackfillDone) return false;
+  let changed=false;
+  transactions.forEach(t=>{
+    if(t.type!=='income' && t.type!=='expense') return;
+    const c=(t.category||'').trim();
+    if(!c || c==='Внутрішній переказ') return;
+    if(!categories[t.type]) categories[t.type]=[];
+    if(!categories[t.type].includes(c)){ categories[t.type].push(c); changed=true; }
+  });
+  catBackfillDone=true;
+  return changed;
 }
 
 async function fbLoadNow(){
@@ -1113,6 +1165,7 @@ async function fbLoadNow(){
     }
     saveDebtLocal();
     const seeded=seedConfigFromDocs(sData, fData);
+    const backfilled=backfillCategoriesFromTransactions();
     saveConfigLocal();
     lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
@@ -1131,8 +1184,8 @@ async function fbLoadNow(){
           debt:dS.exists()?dS.data():null, at:Date.now()
         }, {merge:false});
       }catch(be){ console.error('backup failed', be); }
-      await fbSaveNow();
     }
+    if(seeded||backfilled) await fbSaveNow();
   }catch(e){
     console.error(e);
     fbSetStatus('error','Офлайн');
@@ -1155,7 +1208,7 @@ function saveDebtLocal(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, catBackfillDone}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1230,7 +1283,7 @@ window.resetPassword=async function(){
   }
 };
 window.signOutUser=async function(){
-  if(!confirm('Вийти з акаунту?')) return;
+  if(!(await uiConfirm('Вийти з акаунту?',{title:'Вихід',okText:'Вийти'}))) return;
   await signOut(auth);
 };
 // If Firebase refuses account deletion because the sign-in is stale
@@ -1244,7 +1297,7 @@ async function reauthenticateForDeletion(){
     if(providerId==='google.com'){
       await reauthenticateWithPopup(currentUser, googleProvider);
     }else{
-      const password=prompt('Введи пароль ще раз, щоб підтвердити видалення акаунту:');
+      const password=await uiPrompt('Введи пароль ще раз, щоб підтвердити видалення акаунту:','','Підтвердження');
       if(!password) return false;
       await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email, password));
     }
@@ -1256,7 +1309,7 @@ async function reauthenticateForDeletion(){
 }
 window.deleteAccountUser=async function(){
   if(!currentUser) return;
-  if(!confirm('Остаточно видалити акаунт і всі дані (зміни, фінанси, борги)? Це незворотньо.')) return;
+  if(!(await uiConfirm('Остаточно видалити акаунт і всі дані (зміни, фінанси, розрахунки)? Це незворотньо.',{title:'Видалення акаунту',okText:'Видалити',danger:true}))) return;
   try{
     await Promise.all([
       deleteDoc(userDoc('shifts')),
@@ -1265,7 +1318,7 @@ window.deleteAccountUser=async function(){
     ]);
   }catch(e){
     console.error(e);
-    alert('Не вдалося видалити дані акаунту. Спробуйте ще раз.');
+    await uiAlert('Не вдалося видалити дані акаунту. Спробуйте ще раз.');
     return;
   }
   const uid=currentUser.uid;
@@ -1277,12 +1330,12 @@ window.deleteAccountUser=async function(){
         await deleteUser(currentUser);
       }catch(e2){
         console.error(e2);
-        alert('Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.');
+        await uiAlert('Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.');
         return;
       }
     }else{
       console.error(e);
-      alert('Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.');
+      await uiAlert('Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.');
       return;
     }
   }
@@ -1341,7 +1394,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; catBackfillDone=!!o.catBackfillDone; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -1392,6 +1445,50 @@ function showToast(msg, icon){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
+
+// ── CUSTOM DIALOGS (styled replacements for confirm/prompt/alert) ──
+let __dlgResolve=null;
+function __closeDlg(val){
+  const ov=document.getElementById('ui-dialog');
+  if(ov) ov.style.display='none';
+  const r=__dlgResolve; __dlgResolve=null;
+  if(r) r(val);
+}
+function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
+  return new Promise(resolve=>{
+    __dlgResolve=resolve;
+    document.getElementById('ui-dlg-title').textContent=title||'';
+    const msg=document.getElementById('ui-dlg-msg');
+    msg.textContent=message||''; msg.style.display=message?'block':'none';
+    const inp=document.getElementById('ui-dlg-input');
+    const ok=document.getElementById('ui-dlg-ok');
+    const cancel=document.getElementById('ui-dlg-cancel');
+    ok.textContent=okText||'OK';
+    ok.classList.toggle('danger',!!danger);
+    cancel.textContent=cancelText||'Скасувати';
+    cancel.style.display=(cancelText===null)?'none':'';
+    if(input){
+      inp.style.display='block'; inp.value=defaultValue||'';
+      setTimeout(()=>{inp.focus(); inp.select();},50);
+    }else{
+      inp.style.display='none';
+    }
+    document.getElementById('ui-dialog').style.display='flex';
+  });
+}
+window.uiConfirm=function(message,opts){ opts=opts||{}; return uiDialog({title:opts.title||'Підтвердіть дію',message,okText:opts.okText||'Так',cancelText:opts.cancelText||'Скасувати',danger:opts.danger}).then(v=>v!==null && v!==false); };
+window.uiAlert=function(message,title){ return uiDialog({title:title||'',message,okText:'Зрозуміло',cancelText:null}); };
+window.uiPrompt=function(message,defaultValue,title){ return uiDialog({title:title||'',message,input:true,defaultValue,okText:'Готово'}); };
+(function bindDlg(){
+  const ok=document.getElementById('ui-dlg-ok');
+  const cancel=document.getElementById('ui-dlg-cancel');
+  const inp=document.getElementById('ui-dlg-input');
+  const ov=document.getElementById('ui-dialog');
+  if(ok) ok.addEventListener('click',()=>{ const useInput=inp.style.display!=='none'; __closeDlg(useInput?inp.value:true); });
+  if(cancel) cancel.addEventListener('click',()=>__closeDlg(null));
+  if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) __closeDlg(null); });
+  if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); __closeDlg(inp.value);} if(e.key==='Escape'){__closeDlg(null);} });
+})();
 
 // ── CALENDAR NAV ──────────────────────────────────────────────
 function shiftMonth(d){
@@ -1608,8 +1705,8 @@ function renderFinanceChart(){
 }
 
 // ── TEMPLATES ─────────────────────────────────────────────────
-function clearCurrentMonth(){
-  if(!confirm('Видалити всі зміни за цей місяць?')) return;
+async function clearCurrentMonth(){
+  if(!(await uiConfirm('Видалити всі зміни за цей місяць?',{title:'Очистити місяць',okText:'Очистити',danger:true}))) return;
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
@@ -1632,14 +1729,14 @@ function renderTemplateShiftOptions(){
   if(prev&&shiftTypes.some(t=>t.id===prev)) sel.value=prev;
 }
 
-function applyTemplate(){
+async function applyTemplate(){
   const typeId=document.getElementById('template-shift').value;
   const pattern=document.getElementById('template-pattern').value;
   if(!typeId){showToast('Спершу додай тип зміни','xmark');return;}
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
   const total=new Date(y,m+1,0).getDate();
-  if(!confirm('Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.')) return;
+  if(!(await uiConfirm('Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.',{title:'Швидке заповнення',okText:'Заповнити'}))) return;
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   const dk=d=>`${p}${String(d).padStart(2,'0')}`;
@@ -1697,16 +1794,16 @@ window.updateShiftType=function(id,field,value){
   saveConfigLocal(); scheduleSave();
   renderCalendar(); renderIncomeChart();
 };
-window.addShiftType=function(){
-  const name=prompt('Назва типу зміни:','Нова зміна');
+window.addShiftType=async function(){
+  const name=await uiPrompt('Назва типу зміни:','Нова зміна','Новий тип зміни');
   if(name===null) return;
   const color=PALETTE[shiftTypes.length%PALETTE.length];
   shiftTypes.push({id:uid('st'), name:name.trim()||'Нова зміна', short:(name.trim()||'Зміна').slice(0,4), color, amount:0, hours:8});
   saveConfigLocal(); scheduleSave();
   renderShiftTypesList(); renderCalendar(); renderIncomeChart();
 };
-window.deleteShiftType=function(id){
-  if(!confirm('Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.')) return;
+window.deleteShiftType=async function(id){
+  if(!(await uiConfirm('Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.',{title:'Видалити тип',okText:'Видалити',danger:true}))) return;
   shiftTypes=shiftTypes.filter(t=>t.id!==id);
   // strip the id from any calendar days so counts stay correct
   Object.keys(shifts).forEach(k=>{
@@ -1732,7 +1829,7 @@ function renderWalletsList(){
     row.className='mgr-row';
     row.innerHTML=`
       <input type="color" class="mgr-color" value="${escapeHtml(w.color||'#8b5cf6')}" onchange="updateWallet('${w.id}','color',this.value)">
-      <input type="text" class="mgr-name" value="${escapeHtml(w.name)}" placeholder="Назва" onchange="updateWallet('${w.id}','name',this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="Назва" onchange="updateWallet('${w.id}','name',this.value)">
       <button class="mgr-del" onclick="deleteWallet('${w.id}')">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
@@ -1744,18 +1841,18 @@ window.updateWallet=function(id,field,value){
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
 };
-window.addWallet=function(){
-  const name=prompt('Назва гаманця:','Новий гаманець');
+window.addWallet=async function(){
+  const name=await uiPrompt('Назва гаманця:','Новий гаманець','Новий гаманець');
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
   wallets.push({id:uid('w'), name:name.trim()||'Новий гаманець', color, icon:'card'});
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
 };
-window.deleteWallet=function(id){
+window.deleteWallet=async function(id){
   if(wallets.length<=1){ showToast('Має лишитись хоча б один гаманець','xmark'); return; }
   if(walletInUse(id)){ showToast('Гаманець використовується в операціях','xmark'); return; }
-  if(!confirm('Видалити цей гаманець?')) return;
+  if(!(await uiConfirm('Видалити цей гаманець?',{title:'Видалити гаманець',okText:'Видалити',danger:true}))) return;
   wallets=wallets.filter(w=>w.id!==id);
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
@@ -1782,7 +1879,7 @@ function renderCategoriesList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <input type="text" class="mgr-name" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
       <button class="mgr-del" onclick="deleteCategory(${idx})">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
@@ -1800,8 +1897,8 @@ window.renameCategory=function(idx,value){
   scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
 };
-window.addCategory=function(){
-  const name=prompt('Назва категорії:','');
+window.addCategory=async function(){
+  const name=await uiPrompt('Назва категорії:','','Нова категорія');
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
   if(!categories[catMgrType]) categories[catMgrType]=[];
@@ -1810,9 +1907,9 @@ window.addCategory=function(){
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType);
 };
-window.deleteCategory=function(idx){
+window.deleteCategory=async function(idx){
   const list=categories[catMgrType]; if(!list||list[idx]===undefined) return;
-  if(!confirm('Видалити категорію? Старі операції збережуть свою назву.')) return;
+  if(!(await uiConfirm('Видалити категорію? Старі операції збережуть свою назву.',{title:'Видалити категорію',okText:'Видалити',danger:true}))) return;
   list.splice(idx,1);
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType);
@@ -1871,8 +1968,8 @@ function addTransaction(){
   showToast(currentFinanceType==='transfer'?'Переказ виконано':'Запис додано', currentFinanceType==='transfer'?'swap':'check');
 }
 
-function deleteTransaction(id){
-  if(!confirm('Видалити цей запис?')) return;
+async function deleteTransaction(id){
+  if(!(await uiConfirm('Видалити цей запис?',{title:'Видалити операцію',okText:'Видалити',danger:true}))) return;
   transactions=transactions.filter(t=>t.id!==id);
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave(); renderFinance(); renderFinanceChart();
@@ -1961,8 +2058,8 @@ function switchDebt(id){
   saveDebtLocal(); renderDebt();
 }
 
-function addNewDebt(){
-  const name=prompt('Назва розрахунку:','Новий розрахунок');
+async function addNewDebt(){
+  const name=await uiPrompt('Назва розрахунку:','Новий розрахунок','Новий розрахунок');
   if(name===null) return;
   const nd={id:Date.now(), name:name.trim()||'Новий розрахунок', note:'', currency:'грн', startAmount:0, entries:[]};
   debts.push(nd);
@@ -1971,9 +2068,9 @@ function addNewDebt(){
   showToast('Розрахунок додано','check');
 }
 
-function deleteCurrentDebt(){
+async function deleteCurrentDebt(){
   if(debts.length<=1){showToast('Має лишитись хоча б один розрахунок','xmark');return;}
-  if(!confirm('Видалити цей розрахунок разом з усією історією платежів?')) return;
+  if(!(await uiConfirm('Видалити цей розрахунок разом з усією історією платежів?',{title:'Видалити розрахунок',okText:'Видалити',danger:true}))) return;
   debts=debts.filter(d=>d.id!==currentDebtId);
   currentDebtId=debts[0].id;
   saveDebtLocal(); scheduleSave(); renderDebt();
@@ -1992,18 +2089,45 @@ function updateDebtInfo(){
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
+// Balance the running total sits at before a new payment.
+function debtCurrentBalance(cd){
+  return cd.entries.length?cd.entries[cd.entries.length-1].balance:(cd.startAmount||0);
+}
+function todayLabel(){
+  const d=new Date();
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+// Live: when a plain numeric amount is typed, prefill the "balance after"
+// field as previous balance − amount (still editable for override).
+window.autoFillDebtBalance=function(){
+  const cd=getCurrentDebt(); if(!cd) return;
+  const ai=document.getElementById('debt-amount');
+  const bi=document.getElementById('debt-balance-input');
+  if(!ai||!bi) return;
+  const raw=ai.value.trim();
+  if(/^\d+(\.\d+)?$/.test(raw)){
+    bi.value=Math.round((debtCurrentBalance(cd)-parseFloat(raw))*100)/100;
+  }else if(!raw){
+    bi.value='';
+  }
+};
 function addDebtEntry(){
   const cd=getCurrentDebt(); if(!cd) return;
   const ai=document.getElementById('debt-amount');
   const bi=document.getElementById('debt-balance-input');
   const di=document.getElementById('debt-date');
   const amount=ai?.value.trim();
-  const balance=parseFloat(bi?.value);
   if(!amount){showToast('Введіть суму платежу','xmark');return;}
-  if(isNaN(balance)){showToast('Введіть залишок після оплати','xmark');return;}
-  cd.entries.push({id:Date.now(),amount,balance,date:di?.value.trim()||''});
+  let balance=parseFloat(bi?.value);
+  if(isNaN(balance)){
+    // auto-compute from the running balance when the amount is a plain number
+    if(/^\d+(\.\d+)?$/.test(amount)) balance=debtCurrentBalance(cd)-parseFloat(amount);
+    else {showToast('Введіть залишок після оплати','xmark');return;}
+  }
+  const date=(di?.value.trim())||todayLabel();
+  cd.entries.push({id:Date.now(),amount,balance,date});
   saveDebtLocal(); scheduleSave();
-  if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value='';
+  if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value=todayLabel();
   renderDebt();
   showToast('Платіж додано','check');
 }
@@ -2016,9 +2140,9 @@ function updateDebtEntry(id,field,value){
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
-function deleteDebtEntry(id){
+async function deleteDebtEntry(id){
   const cd=getCurrentDebt(); if(!cd) return;
-  if(!confirm('Видалити цей платіж?')) return;
+  if(!(await uiConfirm('Видалити цей платіж?',{title:'Видалити платіж',okText:'Видалити',danger:true}))) return;
   cd.entries=cd.entries.filter(x=>x.id!==id);
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
@@ -2053,6 +2177,8 @@ function renderDebt(){
   const noi=document.getElementById('debt-note'); if(noi) noi.value=cd.note||'';
   const ci=document.getElementById('debt-currency'); if(ci) ci.value=cur;
   const si=document.getElementById('debt-start'); if(si) si.value=cd.startAmount||0;
+  // Prefill today's date for the next payment if the field is empty
+  const ddi=document.getElementById('debt-date'); if(ddi&&!ddi.value) ddi.value=todayLabel();
 
   const currentBalance=cd.entries.length?cd.entries[cd.entries.length-1].balance:(cd.startAmount||0);
   const paid=(cd.startAmount||0)-currentBalance;
