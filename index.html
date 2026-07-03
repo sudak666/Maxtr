@@ -2298,8 +2298,14 @@ function enhanceAllSelects(){
   document.addEventListener('click',closeAllPanels);
   // Fixed-position panels don't move with their trigger, so close them on
   // any scroll (capture:true catches scrolling inside .modal-card-body
-  // too, since 'scroll' doesn't bubble) or viewport resize.
-  document.addEventListener('scroll',closeAllPanels,true);
+  // too, since 'scroll' doesn't bubble) or viewport resize. Scrolling
+  // *inside* the panel itself (.cs-panel-scroll) must NOT close it —
+  // otherwise the very act of touch-scrolling the option list closes
+  // the panel before the user can see the rest of it.
+  document.addEventListener('scroll',e=>{
+    if(e.target.closest && e.target.closest('.cs-panel,.dp-panel')) return;
+    closeAllPanels();
+  },true);
   window.addEventListener('resize',closeAllPanels);
 }
 
