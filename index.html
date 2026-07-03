@@ -584,6 +584,49 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- PIN LOCK SCREEN (local device unlock, on top of the Firebase session) -->
+<div class="lock-screen" id="pin-screen" style="display:none">
+  <div class="lock-brand">
+    <div class="lock-logo" id="ic-pin-logo"></div>
+    <div class="lock-title">Xamss заблоковано</div>
+  </div>
+  <div class="auth-card">
+    <div class="fg" style="margin-bottom:4px">
+      <label for="pin-unlock-input">PIN-код</label>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="auth-error" id="pin-unlock-error"></div>
+    <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()">Розблокувати</button>
+    <button type="button" class="auth-link" onclick="forgotPin()">Забув PIN?</button>
+  </div>
+</div>
+
+<!-- MANAGER: PIN SETTINGS -->
+<div class="modal-overlay" id="pin-settings-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">PIN-код доступу</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Новий PIN (4–6 цифр)</label>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>Повторіть PIN</label>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
+    </div>
+    <button class="add-btn" style="width:100%" onclick="setPin()">Встановити PIN</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()">Заблокувати зараз</button>
+    <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()">Прибрати PIN</button>
+    <div class="chk-desc" style="text-align:center;margin-top:12px">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-brand">
@@ -597,6 +640,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
     <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
+    <button class="btn btn-ghost" id="btn-pin-settings" onclick="openPinSettings()" title="PIN-код" style="display:none"></button>
     <button class="btn btn-ghost" id="btn-signout" onclick="signOutUser()" title="Вийти" style="display:none"></button>
     <button class="btn btn-danger" id="btn-delete-account" onclick="deleteAccountUser()" title="Видалити акаунт" style="display:none;padding:9px 12px"></button>
   </div>
@@ -1036,7 +1080,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
-    download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>'
+    download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
+    lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1050,6 +1095,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
   setIcon('btn-signout','logout');
   setIcon('btn-delete-account','trash');
+  setIcon('btn-pin-settings','lock');
+  setIcon('ic-pin-logo','lock');
   // Populate every static icon slot
   setIcon('theme-toggle','sun');
   setIcon('btn-refresh','refresh');
@@ -1619,24 +1666,118 @@ window.deleteAccountUser=async function(){
       return;
     }
   }
-  ['shifts','tx','recurring','debt','cfg'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
+  ['shifts','tx','recurring','debt','cfg','pin'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
   showToast('Акаунт видалено','trash');
 };
+
+// ── PIN LOCK (local device unlock on top of the Firebase session) ──
+// Stored as a SHA-256 hash in localStorage, per uid, per device — this is
+// a convenience re-lock (like a phone's app-lock), not a replacement for
+// the real Firebase auth, so "forgot PIN" just clears it and signs out.
+let pinUnlocked=false;
+async function sha256Hex(str){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function pinKey(){ return currentUser ? `mx_pin_${currentUser.uid}` : null; }
+function hasPinSet(){ const k=pinKey(); return !!(k && localStorage.getItem(k)); }
+async function checkPinLock(){
+  if(!hasPinSet()){ pinUnlocked=true; return; }
+  if(pinUnlocked) return;
+  const scr=document.getElementById('pin-screen');
+  const err=document.getElementById('pin-unlock-error');
+  if(err) err.textContent='';
+  if(scr){ scr.style.display='flex'; scr.classList.remove('lock-hide'); }
+  const inp=document.getElementById('pin-unlock-input');
+  if(inp){ inp.value=''; setTimeout(()=>inp.focus(),150); }
+}
+window.tryUnlockPin=async function(){
+  const inp=document.getElementById('pin-unlock-input');
+  const err=document.getElementById('pin-unlock-error');
+  const val=(inp&&inp.value||'').trim();
+  if(!val){ if(err) err.textContent='Введіть PIN'; return; }
+  const hash=await sha256Hex(val);
+  const k=pinKey();
+  if(k && localStorage.getItem(k)===hash){
+    pinUnlocked=true;
+    if(err) err.textContent='';
+    const scr=document.getElementById('pin-screen');
+    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+  }else{
+    if(err) err.textContent='Невірний PIN';
+    if(inp){ inp.value=''; inp.focus(); }
+  }
+};
+window.forgotPin=async function(){
+  if(!(await uiConfirm('Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.',{title:'Забули PIN?',okText:'Скинути й вийти',danger:true}))) return;
+  const k=pinKey(); if(k) localStorage.removeItem(k);
+  pinUnlocked=true; // avoid a re-lock flash while the sign-out transition runs
+  await signOut(auth);
+};
+window.openPinSettings=function(){
+  const statusEl=document.getElementById('pin-status-text');
+  const removeBtn=document.getElementById('pin-remove-btn');
+  const lockBtn=document.getElementById('pin-lock-now-btn');
+  const set=hasPinSet();
+  if(statusEl) statusEl.textContent = set ? 'PIN уже встановлено на цьому пристрої. Введи новий, щоб змінити його.' : 'PIN ще не встановлено на цьому пристрої.';
+  if(removeBtn) removeBtn.style.display = set ? '' : 'none';
+  if(lockBtn) lockBtn.style.display = set ? '' : 'none';
+  const ni=document.getElementById('pin-new-input'); if(ni) ni.value='';
+  const ci=document.getElementById('pin-confirm-input'); if(ci) ci.value='';
+  document.getElementById('pin-settings-modal').style.display='flex';
+};
+window.setPin=async function(){
+  const ni=document.getElementById('pin-new-input');
+  const ci=document.getElementById('pin-confirm-input');
+  const v1=(ni&&ni.value||'').trim(), v2=(ci&&ci.value||'').trim();
+  if(!/^\d{4,6}$/.test(v1)){ showToast('PIN має бути з 4-6 цифр','xmark'); return; }
+  if(v1!==v2){ showToast('PIN не збігається','xmark'); return; }
+  const hash=await sha256Hex(v1);
+  const k=pinKey(); if(!k) return;
+  localStorage.setItem(k, hash);
+  pinUnlocked=true;
+  window.closeManagers();
+  showToast('PIN встановлено','check');
+};
+window.removePin=function(){
+  const k=pinKey(); if(k) localStorage.removeItem(k);
+  window.closeManagers();
+  showToast('PIN вимкнено','check');
+};
+// Re-locks immediately without waiting for a fresh page load — e.g. before
+// handing the phone to someone else.
+window.lockNow=function(){
+  if(!hasPinSet()){ showToast('Спершу встанови PIN','xmark'); return; }
+  window.closeManagers();
+  pinUnlocked=false;
+  checkPinLock();
+};
+(function bindPinEnter(){
+  const inp=document.getElementById('pin-unlock-input');
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); window.tryUnlockPin(); } });
+})();
 
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
   const lockScreen=document.getElementById('lock-screen');
   const signOutBtn=document.getElementById('btn-signout');
   const deleteBtn=document.getElementById('btn-delete-account');
+  const pinBtn=document.getElementById('btn-pin-settings');
   if(user){
     if(lockScreen){ lockScreen.classList.add('lock-hide'); setTimeout(()=>{lockScreen.style.display='none';},320); }
     if(signOutBtn) signOutBtn.style.display='';
     if(deleteBtn) deleteBtn.style.display='';
+    if(pinBtn) pinBtn.style.display='';
     await init();
+    await checkPinLock();
   }else{
     shifts={}; transactions=[]; recurring=[]; debts=[]; currentDebtId=null;
+    pinUnlocked=false;
     if(signOutBtn) signOutBtn.style.display='none';
     if(deleteBtn) deleteBtn.style.display='none';
+    if(pinBtn) pinBtn.style.display='none';
+    const pinScreen=document.getElementById('pin-screen');
+    if(pinScreen) pinScreen.style.display='none';
     if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
     const form=document.getElementById('auth-form'); if(form) form.reset();
     setAuthError('');
@@ -2169,7 +2310,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
