@@ -280,6 +280,39 @@ button,input,select,textarea{font-family:inherit}
   outline:none;width:100%;font-family:inherit;transition:border-color .15s;
 }
 .fg select:focus,.fg input:focus{border-color:var(--purple)}
+
+/* Hide the ugly native number-input spin buttons everywhere */
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance:none;margin:0}
+
+/* ── CUSTOM SELECT (rounded dropdown) ── */
+.cs{position:relative}
+.cs>select{position:absolute;inset:0;opacity:0;pointer-events:none}
+.cs-trigger{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+  background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);
+  padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:border-color .15s;text-align:left;
+}
+.cs.open .cs-trigger{border-color:var(--purple)}
+.cs-trigger .cs-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-trigger .cs-caret{width:16px;height:16px;flex-shrink:0;transition:transform .18s;color:var(--muted)}
+.cs.open .cs-trigger .cs-caret{transform:rotate(180deg)}
+.cs-panel{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:1600;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);padding:6px;max-height:260px;overflow-y:auto;
+  display:none;animation:popIn .16s ease;
+}
+.cs.open .cs-panel{display:block}
+.cs-opt{padding:9px 12px;border-radius:12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-opt:hover{background:var(--bg3)}
+.cs-opt.sel{background:rgba(139,92,246,.16);color:var(--purple2)}
+/* smaller variant for the compact toolbar / calendar-nav selects */
+.cs.cs-sm{display:inline-block;min-width:132px;vertical-align:middle}
+.cs.cs-sm .cs-trigger{padding:8px 12px;border-radius:14px;font-weight:700}
+
 .add-btn{
   padding:12px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;
   background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;
@@ -865,6 +898,7 @@ button,input,select,textarea{font-family:inherit}
     box:'<path d="M3 8 12 4l9 4-9 4-9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>',
     logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
+    chevron:'<path d="M6 9l6 6 6-6"/>',
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>'
   };
   window.Icon = function(name){
@@ -969,6 +1003,7 @@ let categories = {income:[], expense:[]};
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
+let catLegacyMerged = false;
 
 // Each signed-in user starts with their own empty list — data is scoped to
 // their account (users/{uid}/...), never shared or pre-filled.
@@ -1018,6 +1053,13 @@ const DEFAULT_WALLETS = [
 const DEFAULT_CATEGORIES = {
   income:  ['Зарплата','Аванс','Підробіток','Інше'],
   expense: ['Продукти','Кафе','Транспорт','Покупки','Комуналка','Здоров\'я','Розваги','Інше'],
+};
+// The original picker options that existing accounts used to have. Merged
+// back into the list once for migrated accounts so familiar categories
+// (incl. personal ones) don't disappear; new accounts never get these.
+const LEGACY_CATEGORIES = {
+  income:  ['Зарплата','Аванс','Підробіток','Повернення боргу','Інше'],
+  expense: ['Алла','Син','Цигарки','Кава','Фастфуд','Борг','Кредит','Продукти','Транспорт','Комуналка','Покупки','Інше'],
 };
 
 function shiftType(id){ return shiftTypes.find(t=>t.id===id); }
@@ -1071,7 +1113,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, catBackfillDone, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1125,24 +1167,32 @@ function seedConfigFromDocs(sData, fData){
     seeded=true;
   }
   catBackfillDone = !!(fData && fData.catBackfillDone);
+  catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
 }
 
-// One-time: merge every category that appears in existing transactions
-// into the picker list, so categories created before this update (incl.
-// personal ones) don't vanish from the dropdown. Runs once per account
-// (guarded by catBackfillDone); after that, deletions are respected.
-function backfillCategoriesFromTransactions(){
-  if(catBackfillDone) return false;
+// One-time (per account): make sure familiar categories don't disappear
+// from the picker. For migrated accounts (that had data before this
+// update) it restores the original built-in category list AND any
+// category actually used in transactions; brand-new accounts keep only
+// the generic defaults. Guarded by catLegacyMerged so later deletions
+// are respected.
+function backfillCategories(){
+  if(catLegacyMerged) return false;
+  const hasData = Object.keys(shifts).length>0 || transactions.length>0 || (debts&&debts.length>0);
   let changed=false;
-  transactions.forEach(t=>{
-    if(t.type!=='income' && t.type!=='expense') return;
-    const c=(t.category||'').trim();
+  const add=(type,name)=>{
+    const c=(name||'').trim();
     if(!c || c==='Внутрішній переказ') return;
-    if(!categories[t.type]) categories[t.type]=[];
-    if(!categories[t.type].includes(c)){ categories[t.type].push(c); changed=true; }
-  });
-  catBackfillDone=true;
+    if(!categories[type]) categories[type]=[];
+    if(!categories[type].includes(c)){ categories[type].push(c); changed=true; }
+  };
+  if(hasData){
+    LEGACY_CATEGORIES.income.forEach(c=>add('income',c));
+    LEGACY_CATEGORIES.expense.forEach(c=>add('expense',c));
+  }
+  transactions.forEach(t=>{ if(t.type==='income'||t.type==='expense') add(t.type, t.category); });
+  catLegacyMerged=true; catBackfillDone=true;
   return changed;
 }
 
@@ -1165,7 +1215,7 @@ async function fbLoadNow(){
     }
     saveDebtLocal();
     const seeded=seedConfigFromDocs(sData, fData);
-    const backfilled=backfillCategoriesFromTransactions();
+    const backfilled=backfillCategories();
     saveConfigLocal();
     lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
@@ -1208,7 +1258,7 @@ function saveDebtLocal(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, catBackfillDone}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1394,13 +1444,14 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; catBackfillDone=!!o.catBackfillDone; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
   switchTab('shifts');
   setFinanceType('income');
+  enhanceAllSelects();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
 }
@@ -1444,6 +1495,56 @@ function showToast(msg, icon){
   t.innerHTML=(icon?window.Icon(icon):'')+'<span>'+msg+'</span>';
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── CUSTOM SELECT (rounded dropdown over a native <select>) ──────
+// Keeps the native <select> in the DOM (hidden) so every existing
+// `.value` read and `onchange` handler keeps working; a MutationObserver
+// rebuilds the styled panel whenever options are repopulated.
+function enhanceSelect(sel){
+  if(!sel || sel.dataset.enhanced) return;
+  sel.dataset.enhanced='1';
+  const small = sel.classList.contains('tool-select') || !!sel.closest('.cal-nav');
+  const wrap=document.createElement('div');
+  wrap.className='cs'+(small?' cs-sm':'');
+  sel.parentNode.insertBefore(wrap, sel);
+  wrap.appendChild(sel);
+  const trigger=document.createElement('button');
+  trigger.type='button'; trigger.className='cs-trigger';
+  trigger.innerHTML='<span class="cs-val"></span>'+window.Icon('chevron');
+  const car=trigger.querySelector('svg'); if(car) car.classList.add('cs-caret');
+  const panel=document.createElement('div'); panel.className='cs-panel';
+  wrap.appendChild(trigger); wrap.appendChild(panel);
+  const close=()=>wrap.classList.remove('open');
+  function build(){
+    panel.innerHTML='';
+    Array.from(sel.options).forEach(opt=>{
+      const o=document.createElement('div');
+      o.className='cs-opt'+(opt.selected?' sel':'');
+      o.textContent=opt.textContent;
+      o.addEventListener('click',e=>{ e.stopPropagation(); sel.value=opt.value; sel.dispatchEvent(new Event('change',{bubbles:true})); close(); });
+      panel.appendChild(o);
+    });
+    const cur=sel.options[sel.selectedIndex];
+    trigger.querySelector('.cs-val').textContent=cur?cur.textContent:'';
+  }
+  trigger.addEventListener('click',e=>{
+    e.stopPropagation();
+    const willOpen=!wrap.classList.contains('open');
+    document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
+    if(willOpen) wrap.classList.add('open');
+  });
+  sel.addEventListener('change', build);
+  sel.addEventListener('cs-sync', build); // for programmatic .value changes
+  new MutationObserver(build).observe(sel,{childList:true});
+  build();
+}
+function csSync(sel){ if(sel) sel.dispatchEvent(new Event('cs-sync')); }
+let selectsEnhanced=false;
+function enhanceAllSelects(){
+  if(selectsEnhanced) return; selectsEnhanced=true;
+  document.querySelectorAll('.app select').forEach(enhanceSelect);
+  document.addEventListener('click',()=>document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open')));
 }
 
 // ── CUSTOM DIALOGS (styled replacements for confirm/prompt/alert) ──
@@ -1498,12 +1599,14 @@ function shiftMonth(d){
   if(m<0){m=11;y--;}
   if(m>11){m=0;y++;}
   ms.value=m; ys.value=y;
+  csSync(ms); csSync(ys);
   renderCalendar(); renderIncomeChart();
 }
 function goToday(){
   const now=new Date();
-  document.getElementById('select-month').value=now.getMonth();
-  document.getElementById('select-year').value=now.getFullYear();
+  const ms=document.getElementById('select-month'), ys=document.getElementById('select-year');
+  ms.value=now.getMonth(); ys.value=now.getFullYear();
+  csSync(ms); csSync(ys);
   renderCalendar();
 }
 
