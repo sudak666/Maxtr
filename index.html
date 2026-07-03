@@ -211,7 +211,7 @@ button,input,select,textarea{font-family:inherit}
 /* ── CALENDAR WRAPPER ── */
 .cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:20px;margin-bottom:24px}
 .cal-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
-.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cal-nav select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:14px;font-size:13px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
 .cal-hint{font-size:11px;color:var(--muted);font-weight:500}
 .legend{display:flex;gap:8px 14px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:18px}
@@ -310,7 +310,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .cs-opt:hover{background:var(--bg3)}
 .cs-opt.sel{background:rgba(139,92,246,.16);color:var(--purple2)}
 /* smaller variant for the compact toolbar / calendar-nav selects */
-.cs.cs-sm{display:inline-block;min-width:132px;vertical-align:middle}
+.cs.cs-sm{display:inline-block;min-width:108px;vertical-align:middle}
 .cs.cs-sm .cs-trigger{padding:8px 12px;border-radius:14px;font-weight:700}
 
 .add-btn{
@@ -382,7 +382,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 /* ── MODAL (centered, fully rounded) ── */
 .modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
-.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;padding:22px 24px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .26s cubic-bezier(.32,.72,0,1)}
+/* The card clips to the rounded shape (overflow:hidden); the actual
+   scrolling happens on .modal-card-body inside it, so the native
+   scrollbar's square ends never poke past the rounded corners. */
+.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:460px;max-height:88vh;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .26s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+.modal-card-body{padding:22px 24px;overflow-y:auto}
 @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 .sheet-grabber{display:none}
 .modal-header{text-align:center;margin-bottom:18px}
@@ -458,6 +462,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .mgr-empty{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:20px}
 
+/* Small round checkbox, reused wherever a plain toggle appears outside
+   the pick-shift modal (e.g. shift-type manager "isOff"). */
+.rchk{
+  appearance:none;-webkit-appearance:none;
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  border:2px solid var(--border2);background:var(--bg1);
+  position:relative;transition:all .15s;margin:0;
+}
+.rchk:checked{background:var(--purple);border-color:var(--purple)}
+.rchk:checked::after{
+  content:'';position:absolute;left:50%;top:46%;width:4px;height:7px;
+  border:solid #fff;border-width:0 2px 2px 0;
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+
 /* ── TOAST ── */
 #toast{
   position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
@@ -484,6 +503,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   .chart-bars{height:60px}
   .tab-btn{flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
   .tab-btn .ico{width:14px;height:14px}
+  .cal-nav{gap:6px}
+  .cs.cs-sm{min-width:0;flex:1 1 84px}
+  .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:12px}
 }
 </style>
 </head>
@@ -786,6 +808,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 <!-- MODAL ЗМІНИ -->
 <div class="modal-overlay" id="shift-modal" onclick="closeModal()">
   <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header">
       <div class="modal-icon" id="ic-modal-cal"></div>
@@ -796,12 +819,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <button class="modal-cancel" onclick="closeModal()">Скасувати</button>
       <button class="modal-save" id="btn-save" onclick="saveModalSelection()">Готово</button>
     </div>
+   </div>
   </div>
 </div>
 
 <!-- MANAGER: SHIFT TYPES -->
 <div class="modal-overlay" id="shift-types-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date">Типи змін</div></div>
     <div class="mgr-list" id="shift-types-list"></div>
@@ -809,12 +834,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
     </div>
+   </div>
   </div>
 </div>
 
 <!-- MANAGER: WALLETS -->
 <div class="modal-overlay" id="wallets-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date">Гаманці</div></div>
     <div class="mgr-list" id="wallets-list"></div>
@@ -822,12 +849,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
     </div>
+   </div>
   </div>
 </div>
 
 <!-- MANAGER: CATEGORIES -->
 <div class="modal-overlay" id="categories-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date">Категорії</div></div>
     <div class="type-seg" style="margin-bottom:12px">
@@ -839,6 +868,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
     </div>
+   </div>
   </div>
 </div>
 
@@ -1883,7 +1913,7 @@ function renderShiftTypesList(){
       <div class="mgr-field"><span class="mgr-field-label">Оплата, грн</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
       <div class="mgr-field"><span class="mgr-field-label">Години</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
       <label class="mgr-field" style="flex-direction:row;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
-        <input type="checkbox" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)" style="width:18px;height:18px"> вихідний
+        <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> вихідний
       </label>`;
     box.appendChild(row);
   });
