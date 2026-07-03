@@ -2391,6 +2391,7 @@ function renderWalletsList(){
       </select>
       <button class="mgr-del" onclick="deleteWallet('${w.id}')">${window.Icon('trash')}</button>`;
     box.appendChild(row);
+    row.querySelectorAll('select').forEach(enhanceSelect);
   });
 }
 window.updateWallet=function(id,field,value){
@@ -2677,13 +2678,17 @@ function renderRecurringList(){
         <span class="debt-field-label">Наступного разу</span>
         <input type="date" value="${r.nextDate||''}" onchange="updateRecurring('${r.id}','nextDate',this.value)">
       </div>
-      <label class="debt-field" style="flex:0 0 auto;flex-direction:row;align-items:center;gap:6px;padding-bottom:6px;cursor:pointer">
-        <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
-        <span class="debt-field-label" style="text-transform:none;font-size:10px">активна</span>
-      </label>
-      <button class="debt-row-del" onclick="deleteRecurring('${r.id}')">${window.Icon('trash')}</button>
+      <div class="debt-field" style="flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;gap:10px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0">
+          <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
+          <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">активна</span>
+        </label>
+        <button class="debt-row-del" style="align-self:auto" onclick="deleteRecurring('${r.id}')">${window.Icon('trash')}</button>
+      </div>
     `;
     box.appendChild(row);
+    row.querySelectorAll('select').forEach(enhanceSelect);
+    row.querySelectorAll('input[type=date]').forEach(enhanceDateInput);
   });
 }
 window.updateRecurring=function(id,field,value){
