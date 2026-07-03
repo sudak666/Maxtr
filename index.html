@@ -90,20 +90,34 @@
   --text-strong:#ffffff;
   --muted:#87a0d4;
   --muted2:#4d6aa3;
-  --purple:#0057b7;
-  --purple2:#5b9bf5;
-  --purple3:#003d82;
+  --purple:#ffd700;
+  --purple2:#ffe45c;
+  --purple3:#e6bc00;
   --green:#10b981;
   --green2:#34d399;
   --red:#ef4444;
   --red2:#f87171;
   --blue:#2f7fff;
   --blue2:#7fb3ff;
-  --orange:#ffd700;
-  --orange2:#ffe14d;
+  --orange:#f59e0b;
+  --orange2:#fbbf24;
   --pink:#ec4899;
   --cyan:#06b6d4;
   --overlay:rgba(2,8,24,.8);
+}
+/* --purple is now gold in this theme, so every spot that hardcodes
+   color:#fff on a --purple background needs a dark navy text override —
+   white-on-gold is unreadable. */
+[data-theme="unbreakable"] .lock-logo,
+[data-theme="unbreakable"] .auth-tab.active,
+[data-theme="unbreakable"] .topbar-logo,
+[data-theme="unbreakable"] .btn-primary,
+[data-theme="unbreakable"] .tab-btn.active,
+[data-theme="unbreakable"] .dp-day.dp-sel,
+[data-theme="unbreakable"] .add-btn,
+[data-theme="unbreakable"] .modal-save,
+[data-theme="unbreakable"] .dlg-ok{
+  color:#0a1330;
 }
 
 html{scroll-behavior:smooth}
@@ -646,17 +660,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 <div class="lock-screen" id="pin-screen" style="display:none">
   <div class="lock-brand">
     <div class="lock-logo" id="ic-pin-logo"></div>
-    <div class="lock-title">Xamss заблоковано</div>
+    <div class="lock-title" data-i18n="pin_locked_title">Xamss заблоковано</div>
   </div>
   <div class="auth-card">
     <div class="fg" style="margin-bottom:4px">
-      <label for="pin-unlock-input">PIN-код</label>
+      <label for="pin-unlock-input" data-i18n="pin_code">PIN-код</label>
       <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="auth-error" id="pin-unlock-error"></div>
-    <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()">Розблокувати</button>
+    <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()" data-i18n="pin_unlock">Розблокувати</button>
     <button type="button" class="btn btn-ghost" id="pin-bio-unlock-btn" style="width:100%;justify-content:center;margin-top:8px;display:none" onclick="tryBioUnlock()"><span id="ic-bio-unlock"></span>Face ID / Touch ID</button>
-    <button type="button" class="auth-link" onclick="forgotPin()">Забув PIN?</button>
+    <button type="button" class="auth-link" onclick="forgotPin()" data-i18n="pin_forgot">Забув PIN?</button>
   </div>
 </div>
 
@@ -665,29 +679,29 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">PIN-код доступу</div></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_pin">PIN-код доступу</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
     <div class="fg" style="margin-bottom:10px">
-      <label>Новий PIN (4–6 цифр)</label>
+      <label data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
       <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="fg" style="margin-bottom:14px">
-      <label>Повторіть PIN</label>
+      <label data-i18n="pin_repeat">Повторіть PIN</label>
       <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
     </div>
-    <button class="add-btn" style="width:100%" onclick="setPin()">Встановити PIN</button>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()">Заблокувати зараз</button>
+    <button class="add-btn" style="width:100%" onclick="setPin()" data-i18n="pin_set">Встановити PIN</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()" data-i18n="pin_lock_now">Заблокувати зараз</button>
     <div id="pin-bio-section" style="display:none">
-      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-enable-btn" onclick="enableBiometric()"><span id="ic-bio-enable"></span>Увімкнути Face ID / Touch ID</button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-disable-btn" onclick="disableBiometric()"><span id="ic-bio-disable"></span>Вимкнути Face ID / Touch ID</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-enable-btn" onclick="enableBiometric()"><span id="ic-bio-enable"></span><span data-i18n="pin_bio_enable">Увімкнути Face ID / Touch ID</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-disable-btn" onclick="disableBiometric()"><span id="ic-bio-disable"></span><span data-i18n="pin_bio_disable">Вимкнути Face ID / Touch ID</span></button>
     </div>
-    <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()">Прибрати PIN</button>
-    <div class="chk-desc" style="text-align:center;margin-top:12px">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
+    <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()" data-i18n="pin_remove">Прибрати PIN</button>
+    <div class="chk-desc" style="text-align:center;margin-top:12px" data-i18n="pin_disclaimer">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">
-      <a href="terms.html" target="_blank" style="color:var(--purple2)">Умови використання</a> · <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політика конфіденційності</a>
+      <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a> · <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
     </div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -729,52 +743,52 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="stats-row">
       <div class="stat-card stat-big">
         <span class="stat-icon" id="ic-salary"></span>
-        <div class="stat-label">Зароблено цього місяця</div>
+        <div class="stat-label" data-i18n="shifts_stat_earned">Зароблено цього місяця</div>
         <div class="stat-val" id="total-salary">0 грн</div>
         <div class="salary-progress">
           <div class="salary-bar-wrap"><div class="salary-bar-fill" id="salary-bar" style="width:0%"></div></div>
-          <div class="salary-bar-label" id="salary-bar-label">Ціль: 20 000 грн</div>
+          <div class="salary-bar-label" id="salary-bar-label"></div>
         </div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-hours"></span>
-        <div class="stat-label">Годин відпрацьовано</div>
+        <div class="stat-label" data-i18n="shifts_stat_hours">Годин відпрацьовано</div>
         <div class="stat-val" id="total-hours">0</div>
-        <div class="stat-sub">цього місяця</div>
+        <div class="stat-sub" data-i18n="shifts_stat_this_month">цього місяця</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-day"></span>
-        <div class="stat-label">Змін</div>
+        <div class="stat-label" data-i18n="shifts_stat_shifts">Змін</div>
         <div class="stat-val" id="count-shifts" style="color:var(--blue2)">0</div>
-        <div class="stat-sub">робочих днів</div>
+        <div class="stat-sub" data-i18n="shifts_stat_workdays">робочих днів</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-vacation"></span>
-        <div class="stat-label">Вихідних</div>
+        <div class="stat-label" data-i18n="shifts_stat_off">Вихідних</div>
         <div class="stat-val" id="count-off" style="color:var(--orange2)">0</div>
-        <div class="stat-sub">позначених</div>
+        <div class="stat-sub" data-i18n="shifts_stat_marked">позначених</div>
       </div>
     </div>
 
     <!-- Графік доходів по місяцях -->
     <div class="chart-section">
-      <div class="chart-title"><span id="ic-trend"></span>Динаміка заробітку — 6 місяців</div>
+      <div class="chart-title"><span id="ic-trend"></span><span data-i18n="shifts_chart_title">Динаміка заробітку — 6 місяців</span></div>
       <div class="chart-bars" id="income-chart"></div>
     </div>
 
     <!-- Інструменти -->
     <div class="tools-panel">
-      <div class="tools-label"><span id="ic-bolt"></span>Швидке заповнення</div>
+      <div class="tools-label"><span id="ic-bolt"></span><span data-i18n="shifts_quick_fill">Швидке заповнення</span></div>
       <select id="template-shift" class="tool-select"></select>
       <select id="template-pattern" class="tool-select">
-        <option value="every">Щодня</option>
-        <option value="alt">День через день</option>
-        <option value="2_2">2 через 2</option>
-        <option value="3_3">3 через 3</option>
+        <option value="every" data-i18n="shifts_pattern_every">Щодня</option>
+        <option value="alt" data-i18n="shifts_pattern_alt">День через день</option>
+        <option value="2_2" data-i18n="shifts_pattern_2_2">2 через 2</option>
+        <option value="3_3" data-i18n="shifts_pattern_3_3">3 через 3</option>
       </select>
-      <button class="btn btn-primary" onclick="applyTemplate()">Застосувати</button>
-      <button class="btn btn-ghost" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span>Типи змін</button>
-      <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span>Очистити місяць</button>
+      <button class="btn btn-primary" onclick="applyTemplate()" data-i18n="shifts_apply">Застосувати</button>
+      <button class="btn btn-ghost" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
+      <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
     </div>
 
     <!-- Календар -->
@@ -785,9 +799,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <select id="select-month" onchange="renderCalendar()"></select>
           <select id="select-year"  onchange="renderCalendar()"></select>
           <button class="btn btn-ghost" onclick="shiftMonth(1)"  style="padding:8px 10px">›</button>
-          <button class="btn btn-ghost" onclick="goToday()" style="font-size:11px">Сьогодні</button>
+          <button class="btn btn-ghost" onclick="goToday()" style="font-size:11px" data-i18n="shifts_today">Сьогодні</button>
         </div>
-        <div class="cal-hint">Натисни на день щоб редагувати зміни</div>
+        <div class="cal-hint" data-i18n="shifts_hint">Натисни на день щоб редагувати зміни</div>
       </div>
 
       <div class="legend" id="shift-legend"></div>
@@ -900,38 +914,38 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="stats-row">
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-start"></span>
-        <div class="stat-label">Початкова сума</div>
+        <div class="stat-label" data-i18n="debt_stat_start">Початкова сума</div>
         <div class="stat-val" id="debt-start-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-balance"></span>
-        <div class="stat-label">Поточний залишок</div>
+        <div class="stat-label" data-i18n="debt_stat_balance">Поточний залишок</div>
         <div class="stat-val" id="debt-balance-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-paid"></span>
-        <div class="stat-label">Сплачено</div>
+        <div class="stat-label" data-i18n="debt_stat_paid">Сплачено</div>
         <div class="stat-val" id="debt-paid-val">0</div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" id="ic-debt-count"></span>
-        <div class="stat-label">Платежів</div>
+        <div class="stat-label" data-i18n="debt_stat_count">Платежів</div>
         <div class="stat-val" id="debt-count-val">0</div>
       </div>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
-      <div class="fin-form-title"><span id="ic-debt-info"></span>Дані розрахунку</div>
+      <div class="fin-form-title"><span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані розрахунку</span></div>
       <div class="fg">
-        <label>Назва</label>
-        <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" onchange="updateDebtInfo()">
+        <label data-i18n="debt_name">Назва</label>
+        <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" data-i18n-placeholder="debt_name_placeholder" onchange="updateDebtInfo()">
       </div>
       <div class="fg">
-        <label>Нотатка</label>
-        <input type="text" id="debt-note" placeholder="Додаткова нотатка..." onchange="updateDebtInfo()">
+        <label data-i18n="debt_note">Нотатка</label>
+        <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" onchange="updateDebtInfo()">
       </div>
       <div class="fg">
-        <label>Валюта</label>
+        <label data-i18n="debt_currency">Валюта</label>
         <select id="debt-currency" onchange="updateDebtInfo()">
           <option value="у.о.">у.о.</option>
           <option value="грн">грн</option>
@@ -941,32 +955,32 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         </select>
       </div>
       <div class="fg">
-        <label>Початкова сума</label>
+        <label data-i18n="debt_stat_start">Початкова сума</label>
         <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
       </div>
-      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()">Видалити цей розрахунок</button>
+      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()" data-i18n="debt_delete">Видалити цей розрахунок</button>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
-      <div class="fin-form-title"><span id="ic-debt-plus"></span>Новий платіж</div>
+      <div class="fin-form-title"><span id="ic-debt-plus"></span><span data-i18n="debt_new_payment">Новий платіж</span></div>
       <div class="fg">
-        <label>Сума</label>
-        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68" oninput="autoFillDebtBalance()">
+        <label data-i18n="debt_amount">Сума</label>
+        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68" data-i18n-placeholder="debt_amount_placeholder" oninput="autoFillDebtBalance()">
       </div>
       <div class="fg">
-        <label>Залишок після оплати <span style="color:var(--muted2);font-weight:600;text-transform:none;letter-spacing:0">(рахується автоматично)</span></label>
-        <input type="number" id="debt-balance-input" placeholder="авто" step="0.01">
+        <label><span data-i18n="debt_balance_after">Залишок після оплати</span> <span style="color:var(--muted2);font-weight:600;text-transform:none;letter-spacing:0" data-i18n="debt_balance_auto">(рахується автоматично)</span></label>
+        <input type="number" id="debt-balance-input" placeholder="авто" data-i18n-placeholder="debt_auto_placeholder" step="0.01">
       </div>
       <div class="fg">
-        <label>Дата / мітка</label>
-        <input type="text" id="debt-date" placeholder="напр. 10.02.2026 або Березень">
+        <label data-i18n="debt_date_label">Дата / мітка</label>
+        <input type="text" id="debt-date" placeholder="напр. 10.02.2026 або Березень" data-i18n-placeholder="debt_date_placeholder">
       </div>
-      <button class="add-btn" onclick="addDebtEntry()">Додати платіж</button>
+      <button class="add-btn" onclick="addDebtEntry()" data-i18n="debt_add_payment">Додати платіж</button>
     </div>
 
     <div class="fin-history">
       <div class="hist-head">
-        <div class="hist-title">Історія платежів</div>
+        <div class="hist-title" data-i18n="debt_history_title">Історія платежів</div>
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
       </div>
       <div class="debt-list" id="debt-list-container"></div>
@@ -1017,7 +1031,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
         <button class="btn btn-ghost" id="notif-toggle-btn" onclick="toggleReminders()"><span id="ic-notif-toggle"></span><span id="notif-toggle-label" data-i18n="settings_notif_enable">Увімкнути нагадування</span></button>
-        <input type="time" id="notif-time-input" value="21:00" onchange="updateNotifTime(this.value)" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:8px 10px;border-radius:12px;font-weight:700;font-size:13px">
+        <div style="display:flex;align-items:center;gap:4px">
+          <select id="notif-time-hour" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+          <span style="font-weight:800;color:var(--muted)">:</span>
+          <select id="notif-time-minute" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+        </div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:8px" data-i18n="settings_notif_hint">Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.</div>
     </div>
@@ -1062,12 +1080,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="sheet-grabber"></div>
     <div class="modal-header">
       <div class="modal-icon" id="ic-modal-cal"></div>
-      <div class="modal-date" id="modal-date-title">Оберіть зміни</div>
+      <div class="modal-date" id="modal-date-title" data-i18n="shifts_pick_title">Оберіть зміни</div>
     </div>
     <div class="modal-opts" id="modal-opts"></div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal()">Скасувати</button>
-      <button class="modal-save" id="btn-save" onclick="saveModalSelection()">Готово</button>
+      <button class="modal-cancel" onclick="closeModal()" data-i18n="common_cancel">Скасувати</button>
+      <button class="modal-save" id="btn-save" onclick="saveModalSelection()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1078,11 +1096,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Типи змін</div></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="shifts_types_btn">Типи змін</div></div>
     <div class="mgr-list" id="shift-types-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addShiftType()"><span id="ic-add-st"></span>Додати тип зміни</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addShiftType()"><span id="ic-add-st"></span><span data-i18n="shifts_add_type">Додати тип зміни</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1093,11 +1111,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Гаманці</div></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_wallets">Гаманці</div></div>
     <div class="mgr-list" id="wallets-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span>Додати гаманець</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1108,15 +1126,15 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Категорії</div></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_categories">Категорії</div></div>
     <div class="type-seg" style="margin-bottom:12px">
-      <button class="type-btn active" id="catmgr-inc" onclick="setCatMgrType('income')">Дохід</button>
-      <button class="type-btn" id="catmgr-exp" onclick="setCatMgrType('expense')">Витрата</button>
+      <button class="type-btn active" id="catmgr-inc" onclick="setCatMgrType('income')" data-i18n="cat_income">Дохід</button>
+      <button class="type-btn" id="catmgr-exp" onclick="setCatMgrType('expense')" data-i18n="cat_expense">Витрата</button>
     </div>
     <div class="mgr-list" id="categories-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span>Додати категорію</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span><span data-i18n="cat_add">Додати категорію</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1127,13 +1145,13 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Курси валют</div></div>
-    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</div>
-    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="updateRatesOnline()"><span id="ic-rates-update"></span>Оновити з курсу НБУ</button>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_rates">Курси валют</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="rates_desc">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</div>
+    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="updateRatesOnline()"><span id="ic-rates-update"></span><span data-i18n="rates_update_btn">Оновити з курсу НБУ</span></button>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="rates-updated-hint"></div>
     <div class="mgr-list" id="rates-list"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1144,12 +1162,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Теги</div></div>
-    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_tags">Теги</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="tags_desc">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
     <div class="mgr-list" id="tags-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span>Додати тег</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1162,12 +1180,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" id="cat-action-title">Категорія</div></div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionEdit()"><span id="ic-cat-act-edit"></span>Редагувати</button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionShowTx()"><span id="ic-cat-act-show"></span>Показати транзакції</button>
-      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="catActionDelete()"><span id="ic-cat-act-del"></span>Видалити категорію</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionEdit()"><span id="ic-cat-act-edit"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionShowTx()"><span id="ic-cat-act-show"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="catActionDelete()"><span id="ic-cat-act-del"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
     </div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-cancel" style="flex:1" onclick="closeManagers()">Скасувати</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeManagers()" data-i18n="common_cancel">Скасувати</button>
     </div>
    </div>
   </div>
@@ -1178,12 +1196,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Автоматичні правила</div></div>
-    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_rules">Автоматичні правила</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="rules_desc">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</div>
     <div class="debt-list" id="rules-list" style="max-height:420px"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addAutoRule()"><span id="ic-add-rule"></span>Додати правило</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addAutoRule()"><span id="ic-add-rule"></span><span data-i18n="rules_add">Додати правило</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1194,11 +1212,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Бюджети по категоріях</div></div>
-    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</div>
+    <div class="modal-header"><div class="modal-date" data-i18n="budgets_title">Бюджети по категоріях</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="budgets_desc">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</div>
     <div class="mgr-list" id="budgets-list-mgr"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1209,12 +1227,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date">Повторювані операції</div></div>
-    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Автоматично додаються при вході в застосунок, коли настає дата.</div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_recurring">Повторювані операції</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="recurring_desc">Автоматично додаються при вході в застосунок, коли настає дата.</div>
     <div class="debt-list" id="recurring-list" style="max-height:420px"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addRecurring()"><span id="ic-add-recur"></span>Додати повторювану операцію</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addRecurring()"><span id="ic-add-recur"></span><span data-i18n="recurring_add">Додати повторювану операцію</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1421,6 +1439,100 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       toast_reminders_off:'Нагадування вимкнено', toast_reminders_unsupported:'Браузер не підтримує сповіщення',
       toast_reminders_denied:'Дозвіл на сповіщення не надано', toast_reminders_on:'Нагадування увімкнено',
       reminder_body:'Ви записали свої операції сьогодні?',
+      common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва',
+      common_confirm_title:'Підтвердіть дію', common_yes:'Так', common_got_it:'Зрозуміло',
+      cat_income:'Дохід', cat_expense:'Витрата', cat_other:'Інше',
+      sync_saving:'Зберігаю...', sync_conflict:'Конфлікт',
+      sync_conflict_msg:'Дані змінено на іншому пристрої з часу останнього завантаження тут. Записати поточну версію поверх, чи завантажити свіжі дані?',
+      sync_conflict_title:'Конфлікт синхронізації', sync_conflict_overwrite:'Записати поверх', sync_conflict_load_fresh:'Завантажити свіже',
+      sync_saved:'Збережено', sync_error:'Помилка', sync_autosave_error:'Помилка автозбереження',
+      sync_loading:'Завантажую...', sync_synced:'Синхронізовано', sync_recur_added:'Додано', sync_recur_suffix:'повторюваних операцій',
+      sync_data_updated:'Дані оновлено', sync_offline:'Офлайн', sync_cloud_unavailable:'Хмара недоступна — локальні дані', sync_autosave:'Автозбереження...',
+      recurring_comment_tag:'повторювана',
+      auth_err_invalid_email:'Некоректний email.', auth_err_user_not_found:'Користувача не знайдено.',
+      auth_err_wrong_password:'Невірний пароль.', auth_err_invalid_credential:'Невірний email або пароль.',
+      auth_err_email_in_use:'Цей email вже зареєстровано.', auth_err_weak_password:'Пароль надто простий (мінімум 6 символів).',
+      auth_err_too_many:'Забагато спроб. Спробуйте пізніше.', auth_err_popup_closed:'Вікно входу закрито.',
+      auth_err_generic:'Помилка входу. Спробуйте ще раз.',
+      auth_enter_email:'Введіть email, щоб скинути пароль.', auth_reset_sent:'Лист для скидання пароля надіслано.',
+      auth_signout_confirm:'Вийти з акаунту?', auth_signout_title:'Вихід', auth_signout_ok:'Вийти',
+      auth_reauth_prompt:'Введи пароль ще раз, щоб підтвердити видалення акаунту:', auth_reauth_title:'Підтвердження',
+      auth_delete_confirm:'Остаточно видалити акаунт і всі дані (зміни, фінанси, розрахунки)? Це незворотньо.', auth_delete_title:'Видалення акаунту',
+      auth_delete_data_fail:'Не вдалося видалити дані акаунту. Спробуйте ще раз.',
+      auth_delete_account_fail:'Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.',
+      auth_delete_needs_login:'Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.',
+      auth_account_deleted:'Акаунт видалено',
+      finance_pick_date:'Обери дату',
+      finance_err_amount:'Введіть коректну суму', finance_err_date:'Оберіть дату', finance_err_same_wallet:'Однакові рахунки',
+      finance_delete_confirm:'Видалити цей запис?', finance_delete_title:'Видалити операцію',
+      finance_edit_title:'Редагування операції', finance_save_changes:'Зберегти зміни',
+      csv_empty:'Немає операцій для експорту', csv_date:'Дата', csv_type:'Тип', csv_currency:'Валюта',
+      csv_to:'Куди', csv_transfer_amount:'Сума переказу', csv_transfer_currency:'Валюта переказу', csv_downloaded:'CSV завантажено',
+      shifts_stat_earned:'Зароблено цього місяця', shifts_stat_hours:'Годин відпрацьовано', shifts_stat_this_month:'цього місяця',
+      shifts_stat_shifts:'Змін', shifts_stat_workdays:'робочих днів', shifts_stat_off:'Вихідних', shifts_stat_marked:'позначених',
+      shifts_chart_title:'Динаміка заробітку — 6 місяців', shifts_quick_fill:'Швидке заповнення',
+      shifts_pattern_every:'Щодня', shifts_pattern_alt:'День через день', shifts_pattern_2_2:'2 через 2', shifts_pattern_3_3:'3 через 3',
+      shifts_apply:'Застосувати', shifts_types_btn:'Типи змін', shifts_clear_month:'Очистити місяць',
+      shifts_today:'Сьогодні', shifts_hint:'Натисни на день щоб редагувати зміни', shifts_goal_progress:'від цілі',
+      shifts_pick_title:'Оберіть зміни', shifts_add_type:'Додати тип зміни',
+      shifts_types_empty:'Немає типів змін', shifts_type_pay:'Оплата, грн', shifts_type_hours:'Години', shifts_type_off_label:'вихідний',
+      shifts_default_name:'Зміна', shifts_add_type_prompt:'Назва типу зміни:', shifts_new_type_default:'Нова зміна',
+      shifts_delete_type_confirm:'Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.', shifts_delete_type_title:'Видалити тип',
+      shifts_rest:'Відпочинок', shifts_hours_short:'год',
+      shifts_clear_confirm:'Видалити всі зміни за цей місяць?', shifts_clear_ok:'Очистити', shifts_month_cleared:'Місяць очищено',
+      shifts_add_type_first:'Спершу додай тип зміни', shifts_template_confirm:'Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.',
+      shifts_template_ok:'Заповнити', shifts_template_applied:'Шаблон застосовано',
+      wallets_empty:'Немає гаманців', wallets_default_name:'Гаманець', wallets_add_prompt:'Назва гаманця:', wallets_new_default:'Новий гаманець',
+      wallets_need_one:'Має лишитись хоча б один гаманець', wallets_in_use:'Гаманець використовується в операціях',
+      wallets_delete_confirm:'Видалити цей гаманець?', wallets_delete_title:'Видалити гаманець', wallets_add:'Додати гаманець',
+      rates_desc:'Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).', rates_update_btn:'Оновити з курсу НБУ',
+      rates_per_unit:'Грн за 1', rates_updated_at:'Оновлено (НБУ):', rates_never_updated:'Курси ще не оновлювались онлайн',
+      rates_update_success:'Курси валют оновлено (НБУ)', rates_update_fail:'Не вдалося отримати курси онлайн',
+      cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
+      cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
+      cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
+      cat_delete_subcat_confirm:'Видалити цю підкатегорію? Старі операції збережуть свою назву.', cat_delete_subcat_title:'Видалити підкатегорію',
+      cat_add_prompt:'Назва категорії:', cat_add_title:'Нова категорія', cat_already_exists:'Така категорія вже є',
+      cat_delete_confirm:'Видалити категорію? Старі операції збережуть свою назву.', cat_delete_title:'Видалити категорію',
+      cat_act_edit:'Редагувати', cat_act_show_tx:'Показати транзакції', cat_act_delete:'Видалити категорію',
+      cat_showing:'Показано:', cat_add:'Додати категорію',
+      budgets_empty:'Немає категорій витрат', budgets_limit_label:'Ліміт/міс, грн', budgets_over_by:'Перевищено на',
+      budgets_title:'Бюджети по категоріях', budgets_desc:'Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.',
+      recurring_empty:'Немає повторюваних операцій', recurring_type:'Тип', recurring_amount:'Сума',
+      recurring_frequency:'Частота', recurring_daily:'Щодня', recurring_weekly:'Щотижня', recurring_monthly:'Щомісяця',
+      recurring_next_date:'Наступного разу', recurring_active:'активна',
+      recurring_added:'Шаблон додано — заповни суму', recurring_delete_confirm:'Видалити цю повторювану операцію? Вже додані транзакції залишаться.',
+      recurring_delete_title:'Видалити шаблон', recurring_desc:'Автоматично додаються при вході в застосунок, коли настає дата.', recurring_add:'Додати повторювану операцію',
+      tags_empty:'Немає тегів', tags_default_name:'Тег', tags_add_prompt:'Назва тегу:', tags_add_title:'Новий тег',
+      tags_delete_confirm:'Видалити цей тег? Він буде прибраний зі старих операцій.', tags_delete_title:'Видалити тег',
+      tags_desc:'Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.', tags_add:'Додати тег',
+      rules_empty:'Немає правил', rules_keyword:'Слово в коментарі', rules_keyword_placeholder:'напр. Сільпо',
+      rules_delete_confirm:'Видалити це правило?', rules_delete_title:'Видалити правило', rules_auto_applied:'Категорія визначена автоматично:',
+      rules_desc:'Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.', rules_add:'Додати правило',
+      debt_stat_start:'Початкова сума', debt_stat_balance:'Поточний залишок', debt_stat_paid:'Сплачено', debt_stat_count:'Платежів',
+      debt_info_title:'Дані розрахунку', debt_name:'Назва', debt_name_placeholder:'Напр. Позика, Розстрочка…',
+      debt_note:'Нотатка', debt_note_placeholder:'Додаткова нотатка...', debt_currency:'Валюта', debt_delete:'Видалити цей розрахунок',
+      debt_new_payment:'Новий платіж', debt_amount:'Сума', debt_amount_placeholder:'напр. 500 або ***68',
+      debt_balance_after:'Залишок після оплати', debt_balance_auto:'(рахується автоматично)', debt_auto_placeholder:'авто',
+      debt_date_label:'Дата / мітка', debt_date_placeholder:'напр. 10.02.2026 або Березень', debt_add_payment:'Додати платіж',
+      debt_history_title:'Історія платежів',
+      debt_add_prompt:'Назва розрахунку:', debt_new_default:'Новий розрахунок', debt_added:'Розрахунок додано',
+      debt_need_one:'Має лишитись хоча б один розрахунок', debt_delete_confirm:'Видалити цей розрахунок разом з усією історією платежів?', debt_delete_title:'Видалити розрахунок',
+      debt_default_name:'Розрахунок',
+      debt_enter_amount:'Введіть суму платежу', debt_enter_balance:'Введіть залишок після оплати', debt_payment_added:'Платіж додано',
+      debt_delete_payment_confirm:'Видалити цей платіж?', debt_delete_payment_title:'Видалити платіж',
+      debt_no_payments:'Платежів немає', debt_expected:'Очікувано', debt_discrepancy:'розбіжність',
+      pin_locked_title:'Xamss заблоковано', pin_code:'PIN-код', pin_unlock:'Розблокувати', pin_forgot:'Забув PIN?',
+      pin_new:'Новий PIN (4–6 цифр)', pin_repeat:'Повторіть PIN', pin_set:'Встановити PIN', pin_lock_now:'Заблокувати зараз',
+      pin_bio_enable:'Увімкнути Face ID / Touch ID', pin_bio_disable:'Вимкнути Face ID / Touch ID', pin_remove:'Прибрати PIN',
+      pin_disclaimer:'PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.',
+      pin_enter:'Введіть PIN', pin_wrong:'Невірний PIN',
+      pin_forgot_confirm:'Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.',
+      pin_forgot_title:'Забули PIN?', pin_forgot_ok:'Скинути й вийти',
+      pin_status_set:'PIN уже встановлено на цьому пристрої. Введи новий, щоб змінити його.', pin_status_unset:'PIN ще не встановлено на цьому пристрої.',
+      pin_len_error:'PIN має бути з 4-6 цифр', pin_mismatch:'PIN не збігається', pin_set_success:'PIN встановлено',
+      pin_removed:'PIN вимкнено', pin_set_first:'Спершу встанови PIN',
+      pin_bio_on:'Face ID / Touch ID увімкнено', pin_bio_fail:'Не вдалося увімкнути біометрію', pin_bio_off:'Face ID / Touch ID вимкнено',
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
@@ -1456,6 +1568,100 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       toast_reminders_off:'Reminders disabled', toast_reminders_unsupported:"Browser doesn't support notifications",
       toast_reminders_denied:'Notification permission not granted', toast_reminders_on:'Reminders enabled',
       reminder_body:'Did you record your transactions today?',
+      common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name',
+      common_confirm_title:'Please confirm', common_yes:'Yes', common_got_it:'Got it',
+      cat_income:'Income', cat_expense:'Expense', cat_other:'Other',
+      sync_saving:'Saving...', sync_conflict:'Conflict',
+      sync_conflict_msg:'Data was changed on another device since it was last loaded here. Overwrite with the current version, or load the fresh data?',
+      sync_conflict_title:'Sync conflict', sync_conflict_overwrite:'Overwrite', sync_conflict_load_fresh:'Load fresh',
+      sync_saved:'Saved', sync_error:'Error', sync_autosave_error:'Autosave error',
+      sync_loading:'Loading...', sync_synced:'Synced', sync_recur_added:'Added', sync_recur_suffix:'recurring transactions',
+      sync_data_updated:'Data updated', sync_offline:'Offline', sync_cloud_unavailable:'Cloud unavailable — local data', sync_autosave:'Autosaving...',
+      recurring_comment_tag:'recurring',
+      auth_err_invalid_email:'Invalid email.', auth_err_user_not_found:'User not found.',
+      auth_err_wrong_password:'Wrong password.', auth_err_invalid_credential:'Invalid email or password.',
+      auth_err_email_in_use:'This email is already registered.', auth_err_weak_password:'Password is too weak (minimum 6 characters).',
+      auth_err_too_many:'Too many attempts. Try again later.', auth_err_popup_closed:'Sign-in window closed.',
+      auth_err_generic:'Sign-in error. Please try again.',
+      auth_enter_email:'Enter your email to reset the password.', auth_reset_sent:'Password reset email sent.',
+      auth_signout_confirm:'Sign out of your account?', auth_signout_title:'Sign out', auth_signout_ok:'Sign out',
+      auth_reauth_prompt:'Enter your password again to confirm account deletion:', auth_reauth_title:'Confirmation',
+      auth_delete_confirm:'Permanently delete your account and all data (shifts, finances, settlements)? This cannot be undone.', auth_delete_title:'Delete account',
+      auth_delete_data_fail:'Failed to delete account data. Please try again.',
+      auth_delete_account_fail:'Data deleted, but the account itself could not be deleted. Try again shortly.',
+      auth_delete_needs_login:'Data deleted, but deleting the account needs a recent sign-in. Sign in again and repeat the account deletion right away.',
+      auth_account_deleted:'Account deleted',
+      finance_pick_date:'Pick a date',
+      finance_err_amount:'Enter a valid amount', finance_err_date:'Choose a date', finance_err_same_wallet:'Same account',
+      finance_delete_confirm:'Delete this entry?', finance_delete_title:'Delete transaction',
+      finance_edit_title:'Edit transaction', finance_save_changes:'Save changes',
+      csv_empty:'No transactions to export', csv_date:'Date', csv_type:'Type', csv_currency:'Currency',
+      csv_to:'To', csv_transfer_amount:'Transfer amount', csv_transfer_currency:'Transfer currency', csv_downloaded:'CSV downloaded',
+      shifts_stat_earned:'Earned this month', shifts_stat_hours:'Hours worked', shifts_stat_this_month:'this month',
+      shifts_stat_shifts:'Shifts', shifts_stat_workdays:'work days', shifts_stat_off:'Days off', shifts_stat_marked:'marked',
+      shifts_chart_title:'Earnings trend — 6 months', shifts_quick_fill:'Quick fill',
+      shifts_pattern_every:'Every day', shifts_pattern_alt:'Every other day', shifts_pattern_2_2:'2 on 2 off', shifts_pattern_3_3:'3 on 3 off',
+      shifts_apply:'Apply', shifts_types_btn:'Shift types', shifts_clear_month:'Clear month',
+      shifts_today:'Today', shifts_hint:'Tap a day to edit shifts', shifts_goal_progress:'of goal',
+      shifts_pick_title:'Choose shifts', shifts_add_type:'Add shift type',
+      shifts_types_empty:'No shift types', shifts_type_pay:'Pay, UAH', shifts_type_hours:'Hours', shifts_type_off_label:'day off',
+      shifts_default_name:'Shift', shifts_add_type_prompt:'Shift type name:', shifts_new_type_default:'New shift',
+      shifts_delete_type_confirm:'Delete this shift type? It will be removed from every day it was marked on.', shifts_delete_type_title:'Delete type',
+      shifts_rest:'Rest', shifts_hours_short:'hrs',
+      shifts_clear_confirm:'Delete all shifts for this month?', shifts_clear_ok:'Clear', shifts_month_cleared:'Month cleared',
+      shifts_add_type_first:'Add a shift type first', shifts_template_confirm:'Fill the month with this template? The current shifts this month will be replaced.',
+      shifts_template_ok:'Fill', shifts_template_applied:'Template applied',
+      wallets_empty:'No wallets', wallets_default_name:'Wallet', wallets_add_prompt:'Wallet name:', wallets_new_default:'New wallet',
+      wallets_need_one:'At least one wallet must remain', wallets_in_use:'This wallet is used in transactions',
+      wallets_delete_confirm:'Delete this wallet?', wallets_delete_title:'Delete wallet', wallets_add:'Add wallet',
+      rates_desc:'How many hryvnias per 1 unit of currency. Base is UAH (rate always 1).', rates_update_btn:'Update from NBU rate',
+      rates_per_unit:'UAH per 1', rates_updated_at:'Updated (NBU):', rates_never_updated:'Rates have not been updated online yet',
+      rates_update_success:'Exchange rates updated (NBU)', rates_update_fail:'Failed to fetch rates online',
+      cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
+      cat_no_subcats:'No subcategories', cat_subcategory:'Subcategory',
+      cat_add_subcat_prompt:'Subcategory name:', cat_add_subcat_title:'New subcategory', cat_subcat_exists:'That subcategory already exists',
+      cat_delete_subcat_confirm:'Delete this subcategory? Old transactions will keep their name.', cat_delete_subcat_title:'Delete subcategory',
+      cat_add_prompt:'Category name:', cat_add_title:'New category', cat_already_exists:'That category already exists',
+      cat_delete_confirm:'Delete this category? Old transactions will keep their name.', cat_delete_title:'Delete category',
+      cat_act_edit:'Edit', cat_act_show_tx:'Show transactions', cat_act_delete:'Delete category',
+      cat_showing:'Showing:', cat_add:'Add category',
+      budgets_empty:'No expense categories', budgets_limit_label:'Limit/month, UAH', budgets_over_by:'Over by',
+      budgets_title:'Budgets by category', budgets_desc:'Monthly spending limit per category. Leave blank or 0 for no budget.',
+      recurring_empty:'No recurring transactions', recurring_type:'Type', recurring_amount:'Amount',
+      recurring_frequency:'Frequency', recurring_daily:'Daily', recurring_weekly:'Weekly', recurring_monthly:'Monthly',
+      recurring_next_date:'Next time', recurring_active:'active',
+      recurring_added:'Template added — fill in the amount', recurring_delete_confirm:'Delete this recurring transaction? Already-added transactions stay.',
+      recurring_delete_title:'Delete template', recurring_desc:'Automatically added when you open the app, once the date arrives.', recurring_add:'Add recurring transaction',
+      tags_empty:'No tags', tags_default_name:'Tag', tags_add_prompt:'Tag name:', tags_add_title:'New tag',
+      tags_delete_confirm:'Delete this tag? It will be removed from old transactions.', tags_delete_title:'Delete tag',
+      tags_desc:'Freeform labels on transactions, separate from categories — a transaction can have several.', tags_add:'Add tag',
+      rules_empty:'No rules', rules_keyword:'Word in comment', rules_keyword_placeholder:'e.g. Trader Joe\'s',
+      rules_delete_confirm:'Delete this rule?', rules_delete_title:'Delete rule', rules_auto_applied:'Category auto-detected:',
+      rules_desc:'If the comment contains a keyword, the category fills in automatically while you enter the transaction.', rules_add:'Add rule',
+      debt_stat_start:'Starting amount', debt_stat_balance:'Current balance', debt_stat_paid:'Paid', debt_stat_count:'Payments',
+      debt_info_title:'Settlement details', debt_name:'Name', debt_name_placeholder:'E.g. Loan, Installment plan…',
+      debt_note:'Note', debt_note_placeholder:'Additional note...', debt_currency:'Currency', debt_delete:'Delete this settlement',
+      debt_new_payment:'New payment', debt_amount:'Amount', debt_amount_placeholder:'e.g. 500 or ***68',
+      debt_balance_after:'Balance after payment', debt_balance_auto:'(calculated automatically)', debt_auto_placeholder:'auto',
+      debt_date_label:'Date / label', debt_date_placeholder:'e.g. 10.02.2026 or March', debt_add_payment:'Add payment',
+      debt_history_title:'Payment history',
+      debt_add_prompt:'Settlement name:', debt_new_default:'New settlement', debt_added:'Settlement added',
+      debt_need_one:'At least one settlement must remain', debt_delete_confirm:'Delete this settlement along with its entire payment history?', debt_delete_title:'Delete settlement',
+      debt_default_name:'Settlement',
+      debt_enter_amount:'Enter the payment amount', debt_enter_balance:'Enter the balance after payment', debt_payment_added:'Payment added',
+      debt_delete_payment_confirm:'Delete this payment?', debt_delete_payment_title:'Delete payment',
+      debt_no_payments:'No payments yet', debt_expected:'Expected', debt_discrepancy:'discrepancy',
+      pin_locked_title:'Xamss locked', pin_code:'PIN code', pin_unlock:'Unlock', pin_forgot:'Forgot PIN?',
+      pin_new:'New PIN (4–6 digits)', pin_repeat:'Repeat PIN', pin_set:'Set PIN', pin_lock_now:'Lock now',
+      pin_bio_enable:'Enable Face ID / Touch ID', pin_bio_disable:'Disable Face ID / Touch ID', pin_remove:'Remove PIN',
+      pin_disclaimer:'The PIN is stored only on this device and does not replace signing in to your account.',
+      pin_enter:'Enter PIN', pin_wrong:'Wrong PIN',
+      pin_forgot_confirm:'Reset the PIN on this device and sign out? You can set a new PIN after signing in again.',
+      pin_forgot_title:'Forgot PIN?', pin_forgot_ok:'Reset and sign out',
+      pin_status_set:'A PIN is already set on this device. Enter a new one to change it.', pin_status_unset:'No PIN set on this device yet.',
+      pin_len_error:'PIN must be 4-6 digits', pin_mismatch:"PINs don't match", pin_set_success:'PIN set',
+      pin_removed:'PIN disabled', pin_set_first:'Set a PIN first',
+      pin_bio_on:'Face ID / Touch ID enabled', pin_bio_fail:'Failed to enable biometrics', pin_bio_off:'Face ID / Touch ID disabled',
     }
   };
   window.currentLang='uk';
@@ -1708,7 +1914,7 @@ let lastKnownUpdatedAt={shifts:0, finance:0, debt:0};
 
 async function fbSaveNow(){
   if(!currentUser) return;
-  fbSetStatus('loading','Зберігаю...');
+  fbSetStatus('loading',tr('sync_saving'));
   try{
     const [sChk,fChk,dChk]=await Promise.all([
       getDoc(userDoc('shifts')), getDoc(userDoc('finance')), getDoc(userDoc('debt')),
@@ -1720,8 +1926,8 @@ async function fbSaveNow(){
     };
     const conflict=Object.keys(remoteUpdatedAt).some(k=>remoteUpdatedAt[k]>lastKnownUpdatedAt[k]);
     if(conflict){
-      fbSetStatus('error','Конфлікт');
-      const overwrite=await uiConfirm('Дані змінено на іншому пристрої з часу останнього завантаження тут. Записати поточну версію поверх, чи завантажити свіжі дані?', {title:'Конфлікт синхронізації', okText:'Записати поверх', cancelText:'Завантажити свіже'});
+      fbSetStatus('error',tr('sync_conflict'));
+      const overwrite=await uiConfirm(tr('sync_conflict_msg'), {title:tr('sync_conflict_title'), okText:tr('sync_conflict_overwrite'), cancelText:tr('sync_conflict_load_fresh')});
       if(!overwrite){ await fbLoadNow(); return; }
     }
     const now=Date.now();
@@ -1731,11 +1937,11 @@ async function fbSaveNow(){
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
-    fbSetStatus('ok','Збережено');
+    fbSetStatus('ok',tr('sync_saved'));
   }catch(e){
     console.error(e);
-    fbSetStatus('error','Помилка');
-    showToast('Помилка автозбереження','xmark');
+    fbSetStatus('error',tr('sync_error'));
+    showToast(tr('sync_autosave_error'),'xmark');
   }
 }
 
@@ -1819,7 +2025,7 @@ function backfillCategories(){
 
 async function fbLoadNow(){
   if(!currentUser) return;
-  fbSetStatus('loading','Завантажую...');
+  fbSetStatus('loading',tr('sync_loading'));
   try{
     const [sS,fS,dS]=await Promise.all([getDoc(userDoc('shifts')),getDoc(userDoc('finance')),getDoc(userDoc('debt'))]);
     const sData=sS.exists()?sS.data():null;
@@ -1846,10 +2052,10 @@ async function fbLoadNow(){
       finance: fS.exists()?(fS.data().updatedAt||0):0,
       debt:    dS.exists()?(dS.data().updatedAt||0):0,
     };
-    fbSetStatus('ok','Синхронізовано');
+    fbSetStatus('ok',tr('sync_synced'));
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
-    if(recurAdded) showToast(`Додано ${recurAdded} повторюваних операцій`,'repeat');
-    else showToast('Дані оновлено','sparkle');
+    if(recurAdded) showToast(`${tr('sync_recur_added')} ${recurAdded} ${tr('sync_recur_suffix')}`,'repeat');
+    else showToast(tr('sync_data_updated'),'sparkle');
     // Persist newly-seeded config, keeping a one-time raw backup first so
     // the original docs can always be recovered if anything looks wrong.
     if(seeded){
@@ -1863,13 +2069,13 @@ async function fbLoadNow(){
     if(seeded||backfilled||recurAdded) await fbSaveNow();
   }catch(e){
     console.error(e);
-    fbSetStatus('error','Офлайн');
-    showToast('Хмара недоступна — локальні дані','offline');
+    fbSetStatus('error',tr('sync_offline'));
+    showToast(tr('sync_cloud_unavailable'),'offline');
   }
 }
 
 function scheduleSave(){
-  fbSetStatus('loading','Автозбереження...');
+  fbSetStatus('loading',tr('sync_autosave'));
   clearTimeout(fbTimer);
   fbTimer=setTimeout(fbSaveNow,1800);
 }
@@ -1909,7 +2115,7 @@ function processRecurring(){
       transactions.unshift({
         id:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
         wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
-        comment:(r.comment?r.comment+' · ':'')+'повторювана'
+        comment:(r.comment?r.comment+' · ':'')+tr('recurring_comment_tag')
       });
       r.nextDate=computeNextDate(r.nextDate, r.frequency||'monthly');
       added++; guard++;
@@ -1954,16 +2160,16 @@ function setAuthError(msg){
 }
 function authErrorMessage(code){
   const map={
-    'auth/invalid-email':'Некоректний email.',
-    'auth/user-not-found':'Користувача не знайдено.',
-    'auth/wrong-password':'Невірний пароль.',
-    'auth/invalid-credential':'Невірний email або пароль.',
-    'auth/email-already-in-use':'Цей email вже зареєстровано.',
-    'auth/weak-password':'Пароль надто простий (мінімум 6 символів).',
-    'auth/too-many-requests':'Забагато спроб. Спробуйте пізніше.',
-    'auth/popup-closed-by-user':'Вікно входу закрито.',
+    'auth/invalid-email':tr('auth_err_invalid_email'),
+    'auth/user-not-found':tr('auth_err_user_not_found'),
+    'auth/wrong-password':tr('auth_err_wrong_password'),
+    'auth/invalid-credential':tr('auth_err_invalid_credential'),
+    'auth/email-already-in-use':tr('auth_err_email_in_use'),
+    'auth/weak-password':tr('auth_err_weak_password'),
+    'auth/too-many-requests':tr('auth_err_too_many'),
+    'auth/popup-closed-by-user':tr('auth_err_popup_closed'),
   };
-  return map[code]||'Помилка входу. Спробуйте ще раз.';
+  return map[code]||tr('auth_err_generic');
 }
 document.getElementById('auth-form').addEventListener('submit', async function(e){
   e.preventDefault();
@@ -1988,17 +2194,17 @@ window.googleSignIn=async function(){
 };
 window.resetPassword=async function(){
   const email=document.getElementById('auth-email').value.trim();
-  if(!email){ setAuthError('Введіть email, щоб скинути пароль.'); return; }
+  if(!email){ setAuthError(tr('auth_enter_email')); return; }
   try{
     await sendPasswordResetEmail(auth,email);
-    setAuthError('Лист для скидання пароля надіслано.');
+    setAuthError(tr('auth_reset_sent'));
   }catch(err){
     console.error(err);
     setAuthError(authErrorMessage(err.code));
   }
 };
 window.signOutUser=async function(){
-  if(!(await uiConfirm('Вийти з акаунту?',{title:'Вихід',okText:'Вийти'}))) return;
+  if(!(await uiConfirm(tr('auth_signout_confirm'),{title:tr('auth_signout_title'),okText:tr('auth_signout_ok')}))) return;
   await signOut(auth);
 };
 // If Firebase refuses account deletion because the sign-in is stale
@@ -2012,7 +2218,7 @@ async function reauthenticateForDeletion(){
     if(providerId==='google.com'){
       await reauthenticateWithPopup(currentUser, googleProvider);
     }else{
-      const password=await uiPrompt('Введи пароль ще раз, щоб підтвердити видалення акаунту:','','Підтвердження');
+      const password=await uiPrompt(tr('auth_reauth_prompt'),'',tr('auth_reauth_title'));
       if(!password) return false;
       await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email, password));
     }
@@ -2024,7 +2230,7 @@ async function reauthenticateForDeletion(){
 }
 window.deleteAccountUser=async function(){
   if(!currentUser) return;
-  if(!(await uiConfirm('Остаточно видалити акаунт і всі дані (зміни, фінанси, розрахунки)? Це незворотньо.',{title:'Видалення акаунту',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('auth_delete_confirm'),{title:tr('auth_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   try{
     await Promise.all([
       deleteDoc(userDoc('shifts')),
@@ -2033,7 +2239,7 @@ window.deleteAccountUser=async function(){
     ]);
   }catch(e){
     console.error(e);
-    await uiAlert('Не вдалося видалити дані акаунту. Спробуйте ще раз.');
+    await uiAlert(tr('auth_delete_data_fail'));
     return;
   }
   const uid=currentUser.uid;
@@ -2045,17 +2251,17 @@ window.deleteAccountUser=async function(){
         await deleteUser(currentUser);
       }catch(e2){
         console.error(e2);
-        await uiAlert('Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.');
+        await uiAlert(tr('auth_delete_account_fail'));
         return;
       }
     }else{
       console.error(e);
-      await uiAlert('Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.');
+      await uiAlert(tr('auth_delete_needs_login'));
       return;
     }
   }
   ['shifts','tx','recurring','debt','cfg','pin','biocred'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
-  showToast('Акаунт видалено','trash');
+  showToast(tr('auth_account_deleted'),'trash');
 };
 
 // ── PIN LOCK (local device unlock on top of the Firebase session) ──
@@ -2085,7 +2291,7 @@ window.tryUnlockPin=async function(){
   const inp=document.getElementById('pin-unlock-input');
   const err=document.getElementById('pin-unlock-error');
   const val=(inp&&inp.value||'').trim();
-  if(!val){ if(err) err.textContent='Введіть PIN'; return; }
+  if(!val){ if(err) err.textContent=tr('pin_enter'); return; }
   const hash=await sha256Hex(val);
   const k=pinKey();
   if(k && localStorage.getItem(k)===hash){
@@ -2094,12 +2300,12 @@ window.tryUnlockPin=async function(){
     const scr=document.getElementById('pin-screen');
     if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
   }else{
-    if(err) err.textContent='Невірний PIN';
+    if(err) err.textContent=tr('pin_wrong');
     if(inp){ inp.value=''; inp.focus(); }
   }
 };
 window.forgotPin=async function(){
-  if(!(await uiConfirm('Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.',{title:'Забули PIN?',okText:'Скинути й вийти',danger:true}))) return;
+  if(!(await uiConfirm(tr('pin_forgot_confirm'),{title:tr('pin_forgot_title'),okText:tr('pin_forgot_ok'),danger:true}))) return;
   const k=pinKey(); if(k) localStorage.removeItem(k);
   const bk=bioKey(); if(bk) localStorage.removeItem(bk);
   pinUnlocked=true; // avoid a re-lock flash while the sign-out transition runs
@@ -2110,7 +2316,7 @@ window.openPinSettings=async function(){
   const removeBtn=document.getElementById('pin-remove-btn');
   const lockBtn=document.getElementById('pin-lock-now-btn');
   const set=hasPinSet();
-  if(statusEl) statusEl.textContent = set ? 'PIN уже встановлено на цьому пристрої. Введи новий, щоб змінити його.' : 'PIN ще не встановлено на цьому пристрої.';
+  if(statusEl) statusEl.textContent = set ? tr('pin_status_set') : tr('pin_status_unset');
   if(removeBtn) removeBtn.style.display = set ? '' : 'none';
   if(lockBtn) lockBtn.style.display = set ? '' : 'none';
   const ni=document.getElementById('pin-new-input'); if(ni) ni.value='';
@@ -2122,25 +2328,25 @@ window.setPin=async function(){
   const ni=document.getElementById('pin-new-input');
   const ci=document.getElementById('pin-confirm-input');
   const v1=(ni&&ni.value||'').trim(), v2=(ci&&ci.value||'').trim();
-  if(!/^\d{4,6}$/.test(v1)){ showToast('PIN має бути з 4-6 цифр','xmark'); return; }
-  if(v1!==v2){ showToast('PIN не збігається','xmark'); return; }
+  if(!/^\d{4,6}$/.test(v1)){ showToast(tr('pin_len_error'),'xmark'); return; }
+  if(v1!==v2){ showToast(tr('pin_mismatch'),'xmark'); return; }
   const hash=await sha256Hex(v1);
   const k=pinKey(); if(!k) return;
   localStorage.setItem(k, hash);
   pinUnlocked=true;
   window.closeManagers();
-  showToast('PIN встановлено','check');
+  showToast(tr('pin_set_success'),'check');
 };
 window.removePin=function(){
   const k=pinKey(); if(k) localStorage.removeItem(k);
   const bk=bioKey(); if(bk) localStorage.removeItem(bk); // biometric requires a PIN fallback to exist
   window.closeManagers();
-  showToast('PIN вимкнено','check');
+  showToast(tr('pin_removed'),'check');
 };
 // Re-locks immediately without waiting for a fresh page load — e.g. before
 // handing the phone to someone else.
 window.lockNow=function(){
-  if(!hasPinSet()){ showToast('Спершу встанови PIN','xmark'); return; }
+  if(!hasPinSet()){ showToast(tr('pin_set_first'),'xmark'); return; }
   window.closeManagers();
   pinUnlocked=false;
   checkPinLock();
@@ -2182,7 +2388,7 @@ async function renderBioSettingsUI(){
   if(disableBtn) disableBtn.style.display = on?'':'none';
 }
 window.enableBiometric=async function(){
-  if(!hasPinSet()){ showToast('Спершу встанови PIN','xmark'); return; }
+  if(!hasPinSet()){ showToast(tr('pin_set_first'),'xmark'); return; }
   try{
     const cred=await navigator.credentials.create({
       publicKey:{
@@ -2197,16 +2403,16 @@ window.enableBiometric=async function(){
     if(!cred) throw new Error('no credential returned');
     const k=bioKey(); if(k) localStorage.setItem(k, b64FromBuf(cred.rawId));
     await renderBioSettingsUI();
-    showToast('Face ID / Touch ID увімкнено','check');
+    showToast(tr('pin_bio_on'),'check');
   }catch(e){
     console.error(e);
-    showToast('Не вдалося увімкнути біометрію','xmark');
+    showToast(tr('pin_bio_fail'),'xmark');
   }
 };
 window.disableBiometric=async function(){
   const k=bioKey(); if(k) localStorage.removeItem(k);
   await renderBioSettingsUI();
-  showToast('Face ID / Touch ID вимкнено','check');
+  showToast(tr('pin_bio_off'),'check');
 };
 window.tryBioUnlock=async function(){
   const k=bioKey(); const credB64=k&&localStorage.getItem(k);
@@ -2287,6 +2493,7 @@ async function init(){
     // Auto-categorize as the user types the comment, per their rules
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
     loadNotifSettings();
+    populateNotifTimeSelects();
     renderNotifUI();
     document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') maybeShowDailyReminder(); });
     setInterval(maybeShowDailyReminder, 5*60*1000);
@@ -2464,7 +2671,7 @@ function dpParse(v){
 }
 function dpFmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function dpLabel(v){
-  const d=dpParse(v); if(!d) return 'Обери дату';
+  const d=dpParse(v); if(!d) return tr('finance_pick_date');
   return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 function enhanceDateInput(inp){
@@ -2564,7 +2771,7 @@ function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
     const cancel=document.getElementById('ui-dlg-cancel');
     ok.textContent=okText||'OK';
     ok.classList.toggle('danger',!!danger);
-    cancel.textContent=cancelText||'Скасувати';
+    cancel.textContent=cancelText||tr('common_cancel');
     cancel.style.display=(cancelText===null)?'none':'';
     if(input){
       inp.style.display='block'; inp.value=defaultValue||'';
@@ -2575,9 +2782,9 @@ function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
     document.getElementById('ui-dialog').style.display='flex';
   });
 }
-window.uiConfirm=function(message,opts){ opts=opts||{}; return uiDialog({title:opts.title||'Підтвердіть дію',message,okText:opts.okText||'Так',cancelText:opts.cancelText||'Скасувати',danger:opts.danger}).then(v=>v!==null && v!==false); };
-window.uiAlert=function(message,title){ return uiDialog({title:title||'',message,okText:'Зрозуміло',cancelText:null}); };
-window.uiPrompt=function(message,defaultValue,title){ return uiDialog({title:title||'',message,input:true,defaultValue,okText:'Готово'}); };
+window.uiConfirm=function(message,opts){ opts=opts||{}; return uiDialog({title:opts.title||tr('common_confirm_title'),message,okText:opts.okText||tr('common_yes'),cancelText:opts.cancelText||tr('common_cancel'),danger:opts.danger}).then(v=>v!==null && v!==false); };
+window.uiAlert=function(message,title){ return uiDialog({title:title||'',message,okText:tr('common_got_it'),cancelText:null}); };
+window.uiPrompt=function(message,defaultValue,title){ return uiDialog({title:title||'',message,input:true,defaultValue,okText:tr('common_done')}); };
 (function bindDlg(){
   const ok=document.getElementById('ui-dlg-ok');
   const cancel=document.getElementById('ui-dlg-cancel');
@@ -2621,7 +2828,7 @@ function renderShiftModalOptions(selectedIds){
   }
   shiftTypes.forEach(t=>{
     const checked=selectedIds.includes(t.id)?'checked':'';
-    const desc=t.isOff?'Відпочинок':`${t.amount?t.amount.toLocaleString('uk-UA')+' грн':'—'}${t.hours?' · '+t.hours+' год':''}`;
+    const desc=t.isOff?tr('shifts_rest'):`${t.amount?t.amount.toLocaleString('uk-UA')+' грн':'—'}${t.hours?' · '+t.hours+' '+tr('shifts_hours_short'):''}`;
     const label=document.createElement('label');
     label.className='chk-row';
     label.style.setProperty('--row-color', t.color||'#8b5cf6');
@@ -2722,7 +2929,7 @@ function renderCalendar(){
   const bar=document.getElementById('salary-bar');
   const lbl=document.getElementById('salary-bar-label');
   if(bar) bar.style.width=pct+'%';
-  if(lbl) lbl.textContent=`${pct}% від цілі ${SALARY_GOAL.toLocaleString('uk-UA')} грн`;
+  if(lbl) lbl.textContent=`${pct}% ${tr('shifts_goal_progress')} ${SALARY_GOAL.toLocaleString('uk-UA')} грн`;
 }
 
 // ── INCOME CHART ──────────────────────────────────────────────
@@ -2806,13 +3013,13 @@ function renderFinanceChart(){
 
 // ── TEMPLATES ─────────────────────────────────────────────────
 async function clearCurrentMonth(){
-  if(!(await uiConfirm('Видалити всі зміни за цей місяць?',{title:'Очистити місяць',okText:'Очистити',danger:true}))) return;
+  if(!(await uiConfirm(tr('shifts_clear_confirm'),{title:tr('shifts_clear_month'),okText:tr('shifts_clear_ok'),danger:true}))) return;
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-  showToast('Місяць очищено','trash');
+  showToast(tr('shifts_month_cleared'),'trash');
 }
 
 // Populates the quick-fill shift-type dropdown from the user's work types.
@@ -2832,11 +3039,11 @@ function renderTemplateShiftOptions(){
 async function applyTemplate(){
   const typeId=document.getElementById('template-shift').value;
   const pattern=document.getElementById('template-pattern').value;
-  if(!typeId){showToast('Спершу додай тип зміни','xmark');return;}
+  if(!typeId){showToast(tr('shifts_add_type_first'),'xmark');return;}
   const m=parseInt(document.getElementById('select-month').value);
   const y=parseInt(document.getElementById('select-year').value);
   const total=new Date(y,m+1,0).getDate();
-  if(!(await uiConfirm('Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.',{title:'Швидке заповнення',okText:'Заповнити'}))) return;
+  if(!(await uiConfirm(tr('shifts_template_confirm'),{title:tr('shifts_quick_fill'),okText:tr('shifts_template_ok')}))) return;
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   const dk=d=>`${p}${String(d).padStart(2,'0')}`;
@@ -2848,7 +3055,7 @@ async function applyTemplate(){
     if(((d-1)%period)<on) shifts[dk(d)]=[typeId];
   }
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
-  showToast('Шаблон застосовано','bolt');
+  showToast(tr('shifts_template_applied'),'bolt');
 }
 
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
@@ -2869,18 +3076,18 @@ window.openShiftTypesManager=function(){
 function renderShiftTypesList(){
   const box=document.getElementById('shift-types-list'); if(!box) return;
   box.innerHTML='';
-  if(!shiftTypes.length){ box.innerHTML='<div class="mgr-empty">Немає типів змін</div>'; return; }
+  if(!shiftTypes.length){ box.innerHTML=`<div class="mgr-empty">${tr('shifts_types_empty')}</div>`; return; }
   shiftTypes.forEach(t=>{
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
       <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateShiftType('${t.id}','color',this.value)">
-      <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="Назва" onchange="updateShiftType('${t.id}','name',this.value)">
+      <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateShiftType('${t.id}','name',this.value)">
       <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
-      <div class="mgr-field"><span class="mgr-field-label">Оплата, грн</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
-      <div class="mgr-field"><span class="mgr-field-label">Години</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
+      <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
+      <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
       <label class="mgr-field" style="flex-direction:row;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
-        <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> вихідний
+        <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> ${tr('shifts_type_off_label')}
       </label>`;
     box.appendChild(row);
   });
@@ -2889,21 +3096,21 @@ window.updateShiftType=function(id,field,value){
   const t=shiftType(id); if(!t) return;
   if(field==='amount'||field==='hours') t[field]=parseFloat(value)||0;
   else if(field==='isOff') t.isOff=!!value;
-  else if(field==='name'){ t.name=String(value).trim()||'Зміна'; t.short=t.name.slice(0,4); }
+  else if(field==='name'){ t.name=String(value).trim()||tr('shifts_default_name'); t.short=t.name.slice(0,4); }
   else t[field]=value;
   saveConfigLocal(); scheduleSave();
   renderCalendar(); renderIncomeChart();
 };
 window.addShiftType=async function(){
-  const name=await uiPrompt('Назва типу зміни:','Нова зміна','Новий тип зміни');
+  const name=await uiPrompt(tr('shifts_add_type_prompt'),tr('shifts_new_type_default'),tr('shifts_add_type'));
   if(name===null) return;
   const color=PALETTE[shiftTypes.length%PALETTE.length];
-  shiftTypes.push({id:uid('st'), name:name.trim()||'Нова зміна', short:(name.trim()||'Зміна').slice(0,4), color, amount:0, hours:8});
+  shiftTypes.push({id:uid('st'), name:name.trim()||tr('shifts_new_type_default'), short:(name.trim()||tr('shifts_default_name')).slice(0,4), color, amount:0, hours:8});
   saveConfigLocal(); scheduleSave();
   renderShiftTypesList(); renderCalendar(); renderIncomeChart();
 };
 window.deleteShiftType=async function(id){
-  if(!(await uiConfirm('Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.',{title:'Видалити тип',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('shifts_delete_type_confirm'),{title:tr('shifts_delete_type_title'),okText:tr('common_delete'),danger:true}))) return;
   shiftTypes=shiftTypes.filter(t=>t.id!==id);
   // strip the id from any calendar days so counts stay correct
   Object.keys(shifts).forEach(k=>{
@@ -2923,13 +3130,13 @@ function walletInUse(id){ return transactions.some(t=>t.wallet===id||t.targetWal
 function renderWalletsList(){
   const box=document.getElementById('wallets-list'); if(!box) return;
   box.innerHTML='';
-  if(!wallets.length){ box.innerHTML='<div class="mgr-empty">Немає гаманців</div>'; return; }
+  if(!wallets.length){ box.innerHTML=`<div class="mgr-empty">${tr('wallets_empty')}</div>`; return; }
   wallets.forEach(w=>{
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
       <input type="color" class="mgr-color" value="${escapeHtml(w.color||'#8b5cf6')}" onchange="updateWallet('${w.id}','color',this.value)">
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="Назва" onchange="updateWallet('${w.id}','name',this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" onchange="updateWallet('${w.id}','name',this.value)">
       <select style="flex:0 0 82px" onchange="updateWallet('${w.id}','currency',this.value)">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
       </select>
@@ -2940,24 +3147,24 @@ function renderWalletsList(){
 }
 window.updateWallet=function(id,field,value){
   const w=walletById(id); if(!w) return;
-  if(field==='name') w.name=String(value).trim()||'Гаманець';
+  if(field==='name') w.name=String(value).trim()||tr('wallets_default_name');
   else if(field==='currency'){ w.currency=value; if(value!=='UAH' && currencyRates[value]===undefined) currencyRates[value]=SEED_RATES[value]||1; }
   else w[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
 };
 window.addWallet=async function(){
-  const name=await uiPrompt('Назва гаманця:','Новий гаманець','Новий гаманець');
+  const name=await uiPrompt(tr('wallets_add_prompt'),tr('wallets_new_default'),tr('wallets_new_default'));
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
-  wallets.push({id:uid('w'), name:name.trim()||'Новий гаманець', color, icon:'card', currency:'UAH'});
+  wallets.push({id:uid('w'), name:name.trim()||tr('wallets_new_default'), color, icon:'card', currency:'UAH'});
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
 };
 window.deleteWallet=async function(id){
-  if(wallets.length<=1){ showToast('Має лишитись хоча б один гаманець','xmark'); return; }
-  if(walletInUse(id)){ showToast('Гаманець використовується в операціях','xmark'); return; }
-  if(!(await uiConfirm('Видалити цей гаманець?',{title:'Видалити гаманець',okText:'Видалити',danger:true}))) return;
+  if(wallets.length<=1){ showToast(tr('wallets_need_one'),'xmark'); return; }
+  if(walletInUse(id)){ showToast(tr('wallets_in_use'),'xmark'); return; }
+  if(!(await uiConfirm(tr('wallets_delete_confirm'),{title:tr('wallets_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   wallets=wallets.filter(w=>w.id!==id);
   saveConfigLocal(); scheduleSave();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
@@ -2979,7 +3186,7 @@ function renderRatesList(){
     row.innerHTML=`
       <div class="mgr-name-inline" style="flex:0 0 70px;font-size:13px;font-weight:800;color:var(--text-strong)">${code} ${currencySymbol(code)}</div>
       <div class="mgr-field" style="flex:1 1 130px">
-        <span class="mgr-field-label">Грн за 1 ${code}</span>
+        <span class="mgr-field-label">${tr('rates_per_unit')} ${code}</span>
         <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" value="${rate}" onchange="updateCurrencyRate('${code}',this.value)">
       </div>`;
     box.appendChild(row);
@@ -3001,7 +3208,7 @@ function renderRatesUpdatedHint(){
   const hint=document.getElementById('rates-updated-hint'); if(!hint) return;
   let at=null;
   try{ at=localStorage.getItem(ratesUpdatedAtKey()); }catch(e){}
-  hint.textContent = at ? `Оновлено (НБУ): ${new Date(Number(at)).toLocaleString('uk-UA')}` : 'Курси ще не оновлювались онлайн';
+  hint.textContent = at ? `${tr('rates_updated_at')} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
 }
 async function fetchLiveRates(){
   const res=await fetch(NBU_RATES_URL);
@@ -3025,10 +3232,10 @@ window.updateRatesOnline=async function(silent){
   try{
     await fetchLiveRates();
     renderRatesList(); renderRatesUpdatedHint(); renderFinance(); renderFinanceChart();
-    if(!silent) showToast('Курси валют оновлено (НБУ)','check');
+    if(!silent) showToast(tr('rates_update_success'),'check');
   }catch(e){
     console.error('live rates fetch failed', e);
-    if(!silent) showToast('Не вдалося отримати курси онлайн','xmark');
+    if(!silent) showToast(tr('rates_update_fail'),'xmark');
   }finally{
     if(btn) btn.disabled=false;
   }
@@ -3077,7 +3284,7 @@ function renderCategoriesList(){
   const box=document.getElementById('categories-list'); if(!box) return;
   box.innerHTML='';
   const list=categories[catMgrType]||[];
-  if(!list.length){ box.innerHTML='<div class="mgr-empty">Немає категорій</div>'; return; }
+  if(!list.length){ box.innerHTML=`<div class="mgr-empty">${tr('cat_empty')}</div>`; return; }
   list.forEach((name,idx)=>{
     const subs=subcategories[subKey(catMgrType,name)]||[];
     const open=expandedCatIdx===idx;
@@ -3090,17 +3297,17 @@ function renderCategoriesList(){
         <span style="display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:80px;font-size:13px;font-weight:700;color:var(--text-strong)">
           ${window.Icon(CAT_ICON[name]||'tag')}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</span>
         </span>
-        <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} Підкат.${subs.length?` (${subs.length})`:''}</button>
-        <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} грн цього міс.</span>
+        <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''}</button>
+        <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
         <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
-        <button type="button" class="drag-handle" title="Перетягни, щоб змінити порядок">${window.Icon('grip')}</button>
+        <button type="button" class="drag-handle" title="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(catMgrType,name,s).toLocaleString('uk-UA')} грн<button onclick="deleteSubcategory(${idx},${si})">${window.Icon('xmark')}</button></span>`).join(''):'<span class="mgr-empty" style="padding:2px 0">Немає підкатегорій</span>'}
+          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button onclick="deleteSubcategory(${idx},${si})">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
         </div>
-        <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:11px">${window.Icon('plus')}Підкатегорія</button>
+        <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:11px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
       </div>`:''}`;
     if(open){
       const addBtn=row.querySelector('.btn-ghost');
@@ -3154,12 +3361,12 @@ window.toggleSubcatPanel=function(idx){
 };
 window.addSubcategory=async function(idx){
   const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
-  const subName=await uiPrompt('Назва підкатегорії:','','Нова підкатегорія');
+  const subName=await uiPrompt(tr('cat_add_subcat_prompt'),'',tr('cat_add_subcat_title'));
   if(subName===null) return;
   const clean=subName.trim(); if(!clean) return;
   const key=subKey(catMgrType,name);
   if(!subcategories[key]) subcategories[key]=[];
-  if(subcategories[key].includes(clean)){ showToast('Така підкатегорія вже є','xmark'); return; }
+  if(subcategories[key].includes(clean)){ showToast(tr('cat_subcat_exists'),'xmark'); return; }
   subcategories[key].push(clean);
   saveConfigLocal(); scheduleSave();
   renderCategoriesList();
@@ -3167,7 +3374,7 @@ window.addSubcategory=async function(idx){
 window.deleteSubcategory=async function(idx,si){
   const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
   const subs=subcategories[subKey(catMgrType,name)]; if(!subs||subs[si]===undefined) return;
-  if(!(await uiConfirm('Видалити цю підкатегорію? Старі операції збережуть свою назву.',{title:'Видалити підкатегорію',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('cat_delete_subcat_confirm'),{title:tr('cat_delete_subcat_title'),okText:tr('common_delete'),danger:true}))) return;
   subs.splice(si,1);
   saveConfigLocal(); scheduleSave();
   renderCategoriesList();
@@ -3190,18 +3397,18 @@ window.renameCategory=function(idx,value){
   renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
 };
 window.addCategory=async function(){
-  const name=await uiPrompt('Назва категорії:','','Нова категорія');
+  const name=await uiPrompt(tr('cat_add_prompt'),'',tr('cat_add_title'));
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
   if(!categories[catMgrType]) categories[catMgrType]=[];
-  if(categories[catMgrType].includes(clean)){ showToast('Така категорія вже є','xmark'); return; }
+  if(categories[catMgrType].includes(clean)){ showToast(tr('cat_already_exists'),'xmark'); return; }
   categories[catMgrType].push(clean);
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType);
 };
 window.deleteCategory=async function(idx){
   const list=categories[catMgrType]; if(!list||list[idx]===undefined) return;
-  if(!(await uiConfirm('Видалити категорію? Старі операції збережуть свою назву.',{title:'Видалити категорію',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('cat_delete_confirm'),{title:tr('cat_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   const removed=list[idx];
   list.splice(idx,1);
   delete budgets[removed];
@@ -3221,7 +3428,7 @@ window.openCatActionMenu=function(idx){
 window.catActionEdit=async function(){
   const idx=catActionIdx; const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
   window.closeManagers();
-  const newName=await uiPrompt('Назва категорії:', name, 'Редагувати категорію');
+  const newName=await uiPrompt(tr('cat_add_prompt'), name, tr('cat_act_edit'));
   if(newName===null) return;
   window.renameCategory(idx, newName);
 };
@@ -3231,7 +3438,7 @@ window.catActionShowTx=function(){
   txCategoryFilter=name;
   window.switchTab('finance');
   renderFinance();
-  showToast(`Показано: ${name}`,'search');
+  showToast(`${tr('cat_showing')} ${name}`,'search');
 };
 window.catActionDelete=async function(){
   const idx=catActionIdx;
@@ -3248,7 +3455,7 @@ function renderBudgetsManagerList(){
   const box=document.getElementById('budgets-list-mgr'); if(!box) return;
   box.innerHTML='';
   const list=categories.expense||[];
-  if(!list.length){ box.innerHTML='<div class="mgr-empty">Немає категорій витрат</div>'; return; }
+  if(!list.length){ box.innerHTML=`<div class="mgr-empty">${tr('budgets_empty')}</div>`; return; }
   list.forEach(name=>{
     const val=budgets[name]||'';
     const row=document.createElement('div');
@@ -3256,7 +3463,7 @@ function renderBudgetsManagerList(){
     row.innerHTML=`
       <div class="mgr-name-inline" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)">${window.Icon(CAT_ICON[name]||'tag')}${escapeHtml(name)}</div>
       <div class="mgr-field" style="flex:1 1 130px">
-        <span class="mgr-field-label">Ліміт/міс, грн</span>
+        <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
         <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
       </div>`;
     box.appendChild(row);
@@ -3292,7 +3499,7 @@ function renderBudgets(){
         <span style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      ${over?`<div style="font-size:10px;color:var(--red2);font-weight:700;margin-top:3px">Перевищено на ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
+      ${over?`<div style="font-size:10px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
     `;
     box.appendChild(row);
   });
@@ -3306,51 +3513,51 @@ window.openRecurringManager=function(){
 function renderRecurringList(){
   const box=document.getElementById('recurring-list'); if(!box) return;
   box.innerHTML='';
-  if(!recurring.length){ box.innerHTML='<div class="mgr-empty">Немає повторюваних операцій</div>'; return; }
+  if(!recurring.length){ box.innerHTML=`<div class="mgr-empty">${tr('recurring_empty')}</div>`; return; }
   recurring.forEach(r=>{
     const catList=categories[r.type]||[];
     const row=document.createElement('div');
     row.className='debt-row'+(r.active===false?' recur-paused':'');
     row.innerHTML=`
       <div class="debt-field" style="flex:1 1 100px">
-        <span class="debt-field-label">Тип</span>
+        <span class="debt-field-label">${tr('recurring_type')}</span>
         <select onchange="updateRecurring('${r.id}','type',this.value)">
-          <option value="income" ${r.type==='income'?'selected':''}>Дохід</option>
-          <option value="expense" ${r.type==='expense'?'selected':''}>Витрата</option>
+          <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
+          <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 90px">
-        <span class="debt-field-label">Сума</span>
+        <span class="debt-field-label">${tr('recurring_amount')}</span>
         <input type="number" min="0.01" step="0.01" value="${r.amount||''}" onchange="updateRecurring('${r.id}','amount',this.value)">
       </div>
       <div class="debt-field" style="flex:1 1 130px">
-        <span class="debt-field-label">Категорія</span>
+        <span class="debt-field-label">${tr('finance_category')}</span>
         <select onchange="updateRecurring('${r.id}','category',this.value)">
           ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 120px">
-        <span class="debt-field-label">Гаманець</span>
+        <span class="debt-field-label">${tr('finance_wallet')}</span>
         <select onchange="updateRecurring('${r.id}','wallet',this.value)">
           ${wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 110px">
-        <span class="debt-field-label">Частота</span>
+        <span class="debt-field-label">${tr('recurring_frequency')}</span>
         <select onchange="updateRecurring('${r.id}','frequency',this.value)">
-          <option value="daily" ${r.frequency==='daily'?'selected':''}>Щодня</option>
-          <option value="weekly" ${r.frequency==='weekly'?'selected':''}>Щотижня</option>
-          <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>Щомісяця</option>
+          <option value="daily" ${r.frequency==='daily'?'selected':''}>${tr('recurring_daily')}</option>
+          <option value="weekly" ${r.frequency==='weekly'?'selected':''}>${tr('recurring_weekly')}</option>
+          <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>${tr('recurring_monthly')}</option>
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 132px">
-        <span class="debt-field-label">Наступного разу</span>
+        <span class="debt-field-label">${tr('recurring_next_date')}</span>
         <input type="date" value="${r.nextDate||''}" onchange="updateRecurring('${r.id}','nextDate',this.value)">
       </div>
       <div class="debt-field" style="flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;gap:10px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0">
           <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
-          <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">активна</span>
+          <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">${tr('recurring_active')}</span>
         </label>
         <button class="debt-row-del" style="align-self:auto" onclick="deleteRecurring('${r.id}')">${window.Icon('trash')}</button>
       </div>
@@ -3364,23 +3571,23 @@ window.updateRecurring=function(id,field,value){
   const r=recurring.find(x=>x.id===id); if(!r) return;
   if(field==='amount') r.amount=parseFloat(value)||0;
   else if(field==='active') r.active=!!value;
-  else if(field==='type'){ r.type=value; r.category=(categories[value]||[])[0]||'Інше'; }
+  else if(field==='type'){ r.type=value; r.category=(categories[value]||[])[0]||tr('cat_other'); }
   else r[field]=value;
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();
 };
 window.addRecurring=function(){
   const type='expense';
-  const category=(categories.expense||[])[0]||'Інше';
+  const category=(categories.expense||[])[0]||tr('cat_other');
   const wallet=(wallets[0]&&wallets[0].id)||'';
   const today=new Date().toISOString().split('T')[0];
   recurring.push({id:uid('rec'), type, amount:0, category, wallet, frequency:'monthly', nextDate:today, active:true, comment:''});
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();
-  showToast('Шаблон додано — заповни суму','plus');
+  showToast(tr('recurring_added'),'plus');
 };
 window.deleteRecurring=async function(id){
-  if(!(await uiConfirm('Видалити цю повторювану операцію? Вже додані транзакції залишаться.',{title:'Видалити шаблон',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('recurring_delete_confirm'),{title:tr('recurring_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   recurring=recurring.filter(r=>r.id!==id);
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();
@@ -3468,15 +3675,33 @@ window.toggleReminders=async function(){
   showToast(tr('toast_reminders_on'),'check');
   maybeShowDailyReminder();
 };
-window.updateNotifTime=function(value){
-  notifSettings.time=value||'21:00';
+// Two plain <select>s (hour / 5-min steps) picked up by the app's own
+// enhanceSelect() styling — replaces a native <input type=time>, whose OS
+// clock-face picker doesn't match the app at all and looked out of place.
+function populateNotifTimeSelects(){
+  const h=document.getElementById('notif-time-hour');
+  const m=document.getElementById('notif-time-minute');
+  if(h && !h.options.length){
+    for(let i=0;i<24;i++){ const o=document.createElement('option'); o.value=o.textContent=String(i).padStart(2,'0'); h.appendChild(o); }
+  }
+  if(m && !m.options.length){
+    for(let i=0;i<60;i+=5){ const o=document.createElement('option'); o.value=o.textContent=String(i).padStart(2,'0'); m.appendChild(o); }
+  }
+}
+window.updateNotifTimeFromSelects=function(){
+  const h=document.getElementById('notif-time-hour')?.value||'21';
+  const m=document.getElementById('notif-time-minute')?.value||'00';
+  notifSettings.time=`${h}:${m}`;
   saveNotifSettings();
 };
 function renderNotifUI(){
   const lbl=document.getElementById('notif-toggle-label');
   if(lbl) lbl.textContent = notifSettings.enabled ? tr('settings_notif_disable') : tr('settings_notif_enable');
-  const ti=document.getElementById('notif-time-input');
-  if(ti) ti.value=notifSettings.time||'21:00';
+  const [hh,mm]=(notifSettings.time||'21:00').split(':');
+  const h=document.getElementById('notif-time-hour');
+  const m=document.getElementById('notif-time-minute');
+  if(h && h.value!==hh){ h.value=hh; csSync(h); }
+  if(m && m.value!==mm){ m.value=mm; csSync(m); }
 }
 function todayStr(){
   const d=new Date();
@@ -3581,12 +3806,12 @@ function fillSubcats(){
 function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const amount=parseFloat(ai?.value);
-  if(isNaN(amount)||amount<=0){showToast('Введіть коректну суму','xmark');return;}
+  if(isNaN(amount)||amount<=0){showToast(tr('finance_err_amount'),'xmark');return;}
   const date=document.getElementById('fin-date')?.value;
-  if(!date){showToast('Оберіть дату','xmark');return;}
+  if(!date){showToast(tr('finance_err_date'),'xmark');return;}
   const ws=document.getElementById('fin-wallet')?.value||(wallets[0]&&wallets[0].id);
   const wt=document.getElementById('fin-wallet-target')?.value||(wallets[1]&&wallets[1].id);
-  if(currentFinanceType==='transfer'&&ws===wt){showToast('Однакові рахунки','xmark');return;}
+  if(currentFinanceType==='transfer'&&ws===wt){showToast(tr('finance_err_same_wallet'),'xmark');return;}
   const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const sub=currentFinanceType==='transfer'?null:(document.getElementById('fin-subcategory')?.value||null);
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
@@ -3630,7 +3855,7 @@ function addTransaction(){
 }
 
 async function deleteTransaction(id){
-  if(!(await uiConfirm('Видалити цей запис?',{title:'Видалити операцію',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('finance_delete_confirm'),{title:tr('finance_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   transactions=transactions.filter(t=>t.id!==id);
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave(); renderFinance(); renderFinanceChart();
@@ -3660,8 +3885,8 @@ window.editTransaction=function(id){
   const ci=document.getElementById('fin-comment'); if(ci) ci.value=t.comment||'';
   selectedTagIds=(t.tags||[]).slice(); renderFinTagChips();
 
-  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent='Редагування операції';
-  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent='Зберегти зміни';
+  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_edit_title');
+  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent=tr('finance_save_changes');
   const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='inline-block';
   document.getElementById('finance-panel-block')?.scrollIntoView({behavior:'smooth',block:'start'});
 };
@@ -3670,8 +3895,8 @@ window.cancelEditTransaction=function(){
   const ai=document.getElementById('fin-amount'); if(ai) ai.value='';
   const ci=document.getElementById('fin-comment'); if(ci) ci.value='';
   selectedTagIds=[]; renderFinTagChips();
-  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent='Нова операція';
-  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent='Додати запис';
+  const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_new_tx');
+  const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent=tr('finance_add_btn');
   const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='none';
 };
 
@@ -3709,26 +3934,26 @@ window.openTagsManager=function(){
 function renderTagsList(){
   const box=document.getElementById('tags-list'); if(!box) return;
   box.innerHTML='';
-  if(!tags.length){ box.innerHTML='<div class="mgr-empty">Немає тегів</div>'; return; }
+  if(!tags.length){ box.innerHTML=`<div class="mgr-empty">${tr('tags_empty')}</div>`; return; }
   tags.forEach(t=>{
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
       <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateTag('${t.id}','color',this.value)">
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="Назва" onchange="updateTag('${t.id}','name',this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateTag('${t.id}','name',this.value)">
       <button class="mgr-del" onclick="deleteTag('${t.id}')">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
 }
 window.updateTag=function(id,field,value){
   const t=tags.find(x=>x.id===id); if(!t) return;
-  if(field==='name') t.name=String(value).trim()||'Тег';
+  if(field==='name') t.name=String(value).trim()||tr('tags_default_name');
   else t[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinTagChips(); renderFinance();
 };
 window.addTag=async function(){
-  const name=await uiPrompt('Назва тегу:','','Новий тег');
+  const name=await uiPrompt(tr('tags_add_prompt'),'',tr('tags_add_title'));
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
   const color=PALETTE[tags.length%PALETTE.length];
@@ -3737,7 +3962,7 @@ window.addTag=async function(){
   renderTagsList(); renderFinTagChips();
 };
 window.deleteTag=async function(id){
-  if(!(await uiConfirm('Видалити цей тег? Він буде прибраний зі старих операцій.',{title:'Видалити тег',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('tags_delete_confirm'),{title:tr('tags_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   tags=tags.filter(t=>t.id!==id);
   selectedTagIds=selectedTagIds.filter(tid=>tid!==id);
   transactions.forEach(t=>{ if(Array.isArray(t.tags)) t.tags=t.tags.filter(tid=>tid!==id); });
@@ -3755,25 +3980,25 @@ window.openRulesManager=function(){
 function renderAutoRulesList(){
   const box=document.getElementById('rules-list'); if(!box) return;
   box.innerHTML='';
-  if(!autoRules.length){ box.innerHTML='<div class="mgr-empty">Немає правил</div>'; return; }
+  if(!autoRules.length){ box.innerHTML=`<div class="mgr-empty">${tr('rules_empty')}</div>`; return; }
   autoRules.forEach(r=>{
     const catList=categories[r.type]||[];
     const row=document.createElement('div');
     row.className='debt-row';
     row.innerHTML=`
       <div class="debt-field" style="flex:1 1 100px">
-        <span class="debt-field-label">Тип</span>
+        <span class="debt-field-label">${tr('recurring_type')}</span>
         <select onchange="updateAutoRule('${r.id}','type',this.value)">
-          <option value="expense" ${r.type==='expense'?'selected':''}>Витрата</option>
-          <option value="income" ${r.type==='income'?'selected':''}>Дохід</option>
+          <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
+          <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 140px">
-        <span class="debt-field-label">Слово в коментарі</span>
-        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="напр. Сільпо" onchange="updateAutoRule('${r.id}','keyword',this.value)">
+        <span class="debt-field-label">${tr('rules_keyword')}</span>
+        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" onchange="updateAutoRule('${r.id}','keyword',this.value)">
       </div>
       <div class="debt-field" style="flex:1 1 140px">
-        <span class="debt-field-label">Категорія</span>
+        <span class="debt-field-label">${tr('finance_category')}</span>
         <select onchange="updateAutoRule('${r.id}','category',this.value)">
           ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
         </select>
@@ -3799,7 +4024,7 @@ window.addAutoRule=function(){
   renderAutoRulesList();
 };
 window.deleteAutoRule=async function(id){
-  if(!(await uiConfirm('Видалити це правило?',{title:'Видалити правило',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('rules_delete_confirm'),{title:tr('rules_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   autoRules=autoRules.filter(r=>r.id!==id);
   saveConfigLocal(); scheduleSave();
   renderAutoRulesList();
@@ -3824,7 +4049,7 @@ function applyAutoRuleToForm(){
   catSel.value=rule.category;
   catSel.dispatchEvent(new Event('change',{bubbles:true}));
   csSync(catSel);
-  showToast(`Категорія визначена автоматично: ${rule.category}`,'sparkle');
+  showToast(`${tr('rules_auto_applied')} ${rule.category}`,'sparkle');
 }
 
 function renderFinance(){
@@ -3911,7 +4136,6 @@ window.clearTxCategoryFilter=function(){
 };
 
 // ── CSV EXPORT ────────────────────────────────────────────────
-const TX_TYPE_LABEL={income:'Дохід',expense:'Витрата',transfer:'Переказ'};
 function csvEscape(v){
   const s=String(v==null?'':v);
   return /[;"\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
@@ -3920,8 +4144,9 @@ function csvEscape(v){
 // comma decimal separator and a UTF-8 BOM, so it opens correctly in
 // Excel/Google Sheets straight out of the box for uk-UA locales.
 window.exportTransactionsCSV=function(){
-  if(!transactions.length){ showToast('Немає операцій для експорту','xmark'); return; }
-  const header=['Дата','Тип','Категорія','Підкатегорія','Гаманець','Сума','Валюта','Куди','Сума переказу','Валюта переказу','Коментар'];
+  if(!transactions.length){ showToast(tr('csv_empty'),'xmark'); return; }
+  const TX_TYPE_LABEL={income:tr('finance_type_income').replace('+ ',''),expense:tr('finance_type_expense').replace('− ',''),transfer:tr('finance_type_transfer').replace('⇄ ','')};
+  const header=[tr('csv_date'),tr('csv_type'),tr('finance_category'),tr('finance_subcategory'),tr('finance_wallet'),tr('finance_amount_prefix'),tr('csv_currency'),tr('csv_to'),tr('csv_transfer_amount'),tr('csv_transfer_currency'),tr('finance_comment')];
   const sorted=[...transactions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const rows=sorted.map(t=>[
     t.date||'',
@@ -3943,7 +4168,7 @@ window.exportTransactionsCSV=function(){
   a.href=url; a.download=`xamss-finansy-${new Date().toISOString().split('T')[0]}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  showToast('CSV завантажено','download');
+  showToast(tr('csv_downloaded'),'download');
 };
 
 // ── DEBT ──────────────────────────────────────────────────────
@@ -3957,18 +4182,18 @@ function switchDebt(id){
 }
 
 async function addNewDebt(){
-  const name=await uiPrompt('Назва розрахунку:','Новий розрахунок','Новий розрахунок');
+  const name=await uiPrompt(tr('debt_add_prompt'),tr('debt_new_default'),tr('debt_new_default'));
   if(name===null) return;
-  const nd={id:Date.now(), name:name.trim()||'Новий розрахунок', note:'', currency:'грн', startAmount:0, entries:[]};
+  const nd={id:Date.now(), name:name.trim()||tr('debt_new_default'), note:'', currency:'грн', startAmount:0, entries:[]};
   debts.push(nd);
   currentDebtId=nd.id;
   saveDebtLocal(); scheduleSave(); renderDebt();
-  showToast('Розрахунок додано','check');
+  showToast(tr('debt_added'),'check');
 }
 
 async function deleteCurrentDebt(){
-  if(debts.length<=1){showToast('Має лишитись хоча б один розрахунок','xmark');return;}
-  if(!(await uiConfirm('Видалити цей розрахунок разом з усією історією платежів?',{title:'Видалити розрахунок',okText:'Видалити',danger:true}))) return;
+  if(debts.length<=1){showToast(tr('debt_need_one'),'xmark');return;}
+  if(!(await uiConfirm(tr('debt_delete_confirm'),{title:tr('debt_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   debts=debts.filter(d=>d.id!==currentDebtId);
   currentDebtId=debts[0].id;
   saveDebtLocal(); scheduleSave(); renderDebt();
@@ -3980,7 +4205,7 @@ function updateDebtInfo(){
   const noi=document.getElementById('debt-note');
   const ci=document.getElementById('debt-currency');
   const si=document.getElementById('debt-start');
-  cd.name=ni?.value.trim()||'Розрахунок';
+  cd.name=ni?.value.trim()||tr('debt_default_name');
   cd.note=noi?.value.trim()||'';
   cd.currency=ci?.value||'у.о.';
   cd.startAmount=parseFloat(si?.value)||0;
@@ -4015,19 +4240,19 @@ function addDebtEntry(){
   const bi=document.getElementById('debt-balance-input');
   const di=document.getElementById('debt-date');
   const amount=ai?.value.trim();
-  if(!amount){showToast('Введіть суму платежу','xmark');return;}
+  if(!amount){showToast(tr('debt_enter_amount'),'xmark');return;}
   let balance=parseFloat(bi?.value);
   if(isNaN(balance)){
     // auto-compute from the running balance when the amount is a plain number
     if(/^\d+(\.\d+)?$/.test(amount)) balance=debtCurrentBalance(cd)-parseFloat(amount);
-    else {showToast('Введіть залишок після оплати','xmark');return;}
+    else {showToast(tr('debt_enter_balance'),'xmark');return;}
   }
   const date=(di?.value.trim())||todayLabel();
   cd.entries.push({id:Date.now(),amount,balance,date});
   saveDebtLocal(); scheduleSave();
   if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value=todayLabel();
   renderDebt();
-  showToast('Платіж додано','check');
+  showToast(tr('debt_payment_added'),'check');
 }
 
 function updateDebtEntry(id,field,value){
@@ -4040,7 +4265,7 @@ function updateDebtEntry(id,field,value){
 
 async function deleteDebtEntry(id){
   const cd=getCurrentDebt(); if(!cd) return;
-  if(!(await uiConfirm('Видалити цей платіж?',{title:'Видалити платіж',okText:'Видалити',danger:true}))) return;
+  if(!(await uiConfirm(tr('debt_delete_payment_confirm'),{title:tr('debt_delete_payment_title'),okText:tr('common_delete'),danger:true}))) return;
   cd.entries=cd.entries.filter(x=>x.id!==id);
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
@@ -4053,13 +4278,13 @@ function renderDebtChips(){
     const chip=document.createElement('button');
     chip.className='debt-chip'+(d.id===currentDebtId?' active':'');
     chip.style.setProperty('--chip-color', DEBT_COLORS[i%DEBT_COLORS.length]);
-    chip.textContent=d.name||'Розрахунок';
+    chip.textContent=d.name||tr('debt_default_name');
     chip.onclick=()=>switchDebt(d.id);
     c.appendChild(chip);
   });
   const addChip=document.createElement('button');
   addChip.className='debt-chip debt-chip-add';
-  addChip.title='Новий розрахунок';
+  addChip.title=tr('debt_new_default');
   addChip.innerHTML=window.Icon('plus');
   addChip.onclick=addNewDebt;
   c.appendChild(addChip);
@@ -4089,11 +4314,11 @@ function renderDebt(){
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');
   if(!lc) return;
-  if(cc) cc.textContent=cd.entries.length+' записів';
+  if(cc) cc.textContent=cd.entries.length+' '+tr('finance_records_suffix');
   lc.innerHTML='';
 
   if(cd.entries.length===0){
-    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>Платежів немає</span></div>`;
+    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('debt_no_payments')}</span></div>`;
     return;
   }
 
@@ -4105,11 +4330,11 @@ function renderDebt(){
     const row=document.createElement('div');
     row.className='debt-row'+(hasDiscrepancy?' discrepancy':'');
     row.innerHTML=`
-      <div class="debt-field"><span class="debt-field-label">Сума</span><input type="text" value="${escapeHtml(entry.amount??'')}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
-      <div class="debt-field"><span class="debt-field-label">Залишок</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
-      <div class="debt-field"><span class="debt-field-label">Дата</span><input type="text" value="${escapeHtml(entry.date??'')}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
       <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})">${window.Icon('trash')}</button>
-      ${hasDiscrepancy?`<div class="debt-hint">Очікувано ${expected.toLocaleString('uk-UA')} ${cur} — розбіжність ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
+      ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
     `;
     lc.appendChild(row);
     prevBalance=entry.balance;
