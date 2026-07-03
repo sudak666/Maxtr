@@ -299,12 +299,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .cs-trigger .cs-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cs-trigger .cs-caret{width:16px;height:16px;flex-shrink:0;transition:transform .18s;color:var(--muted)}
 .cs.open .cs-trigger .cs-caret{transform:rotate(180deg)}
+/* .cs-panel clips to its rounded shape; .cs-panel-scroll (inside) does
+   the actual scrolling so the native scrollbar's square ends never
+   poke past the rounded corners. */
 .cs-panel{
   position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:1600;
   background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
-  box-shadow:0 14px 34px rgba(0,0,0,.45);padding:6px;max-height:260px;overflow-y:auto;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);max-height:260px;overflow:hidden;
   display:none;animation:popIn .16s ease;
 }
+.cs-panel-scroll{max-height:260px;overflow-y:auto;padding:6px}
 .cs.open .cs-panel{display:block}
 .cs-opt{padding:9px 12px;border-radius:12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cs-opt:hover{background:var(--bg3)}
@@ -312,6 +316,35 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 /* smaller variant for the compact toolbar / calendar-nav selects */
 .cs.cs-sm{display:inline-block;min-width:108px;vertical-align:middle}
 .cs.cs-sm .cs-trigger{padding:8px 12px;border-radius:14px;font-weight:700}
+
+/* ── CUSTOM DATE PICKER (replaces the native <input type=date> popup) ── */
+.dp{position:relative}
+.dp>input[type=date]{position:absolute;inset:0;opacity:0;pointer-events:none}
+.dp-trigger{width:100%}
+.dp-trigger .dp-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-panel{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:1600;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);padding:14px;width:280px;max-width:88vw;
+  display:none;animation:popIn .16s ease;
+}
+.dp.open .dp-panel{display:block}
+.dp-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dp-nav-btn{background:var(--bg3);border:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;flex-shrink:0}
+.dp-nav-btn .ico{width:14px;height:14px;margin-right:0}
+.dp-nav-btn[data-act=prev] .ico{transform:rotate(90deg)}
+.dp-nav-btn[data-act=next] .ico{transform:rotate(-90deg)}
+.dp-month-label{font-size:13px;font-weight:800;color:var(--text-strong)}
+.dp-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.dp-weekdays span{text-align:center;font-size:10px;font-weight:800;color:var(--muted2);text-transform:uppercase}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dp-day{display:flex;align-items:center;justify-content:center;height:32px;border-radius:50%;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer}
+.dp-day:hover{background:var(--bg3)}
+.dp-day.dp-out{color:var(--muted2);opacity:.4;cursor:default;pointer-events:none}
+.dp-day.dp-today-mark{color:var(--purple2);font-weight:800}
+.dp-day.dp-sel{background:var(--purple);color:#fff}
+.dp-today-btn{width:100%;margin-top:10px;padding:8px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.dp-today-btn:hover{border-color:var(--purple);color:var(--purple2)}
 
 .add-btn{
   padding:12px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;
@@ -1544,16 +1577,18 @@ function enhanceSelect(sel){
   trigger.innerHTML='<span class="cs-val"></span>'+window.Icon('chevron');
   const car=trigger.querySelector('svg'); if(car) car.classList.add('cs-caret');
   const panel=document.createElement('div'); panel.className='cs-panel';
+  const panelScroll=document.createElement('div'); panelScroll.className='cs-panel-scroll';
+  panel.appendChild(panelScroll);
   wrap.appendChild(trigger); wrap.appendChild(panel);
   const close=()=>wrap.classList.remove('open');
   function build(){
-    panel.innerHTML='';
+    panelScroll.innerHTML='';
     Array.from(sel.options).forEach(opt=>{
       const o=document.createElement('div');
       o.className='cs-opt'+(opt.selected?' sel':'');
       o.textContent=opt.textContent;
       o.addEventListener('click',e=>{ e.stopPropagation(); sel.value=opt.value; sel.dispatchEvent(new Event('change',{bubbles:true})); close(); });
-      panel.appendChild(o);
+      panelScroll.appendChild(o);
     });
     const cur=sel.options[sel.selectedIndex];
     trigger.querySelector('.cs-val').textContent=cur?cur.textContent:'';
@@ -1570,11 +1605,86 @@ function enhanceSelect(sel){
   build();
 }
 function csSync(sel){ if(sel) sel.dispatchEvent(new Event('cs-sync')); }
+
+// ── CUSTOM DATE PICKER (replaces the native <input type=date> popup,
+// which on mobile renders as an ugly, sharp-cornered OS widget) ──
+const DP_MONTHS=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DP_WEEKDAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+function dpParse(v){
+  if(!v) return null;
+  const [y,m,d]=v.split('-').map(Number);
+  if(!y) return null;
+  return new Date(y,m-1,d);
+}
+function dpFmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dpLabel(v){
+  const d=dpParse(v); if(!d) return 'Обери дату';
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function enhanceDateInput(inp){
+  if(!inp || inp.dataset.enhanced) return;
+  inp.dataset.enhanced='1';
+  const wrap=document.createElement('div'); wrap.className='dp';
+  inp.parentNode.insertBefore(wrap, inp);
+  wrap.appendChild(inp);
+  const trigger=document.createElement('button');
+  trigger.type='button'; trigger.className='cs-trigger dp-trigger';
+  trigger.innerHTML='<span class="dp-val"></span>'+window.Icon('calendar');
+  const panel=document.createElement('div'); panel.className='dp-panel';
+  wrap.appendChild(trigger); wrap.appendChild(panel);
+  let viewDate=dpParse(inp.value)||new Date();
+  const close=()=>wrap.classList.remove('open');
+  function refreshLabel(){ trigger.querySelector('.dp-val').textContent=dpLabel(inp.value); }
+  function render(){
+    const y=viewDate.getFullYear(), m=viewDate.getMonth();
+    const selected=dpParse(inp.value), today=new Date();
+    const first=(new Date(y,m,1).getDay()+6)%7;
+    const total=new Date(y,m+1,0).getDate();
+    const prevTotal=new Date(y,m,0).getDate();
+    let html=`<div class="dp-nav"><button type="button" class="dp-nav-btn" data-act="prev">${window.Icon('chevron')}</button><div class="dp-month-label">${DP_MONTHS[m]} ${y}</div><button type="button" class="dp-nav-btn" data-act="next">${window.Icon('chevron')}</button></div>`;
+    html+=`<div class="dp-weekdays">${DP_WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div><div class="dp-grid">`;
+    for(let i=0;i<first;i++) html+=`<span class="dp-day dp-out">${prevTotal-first+i+1}</span>`;
+    for(let d=1;d<=total;d++){
+      const isSel=selected&&selected.getFullYear()===y&&selected.getMonth()===m&&selected.getDate()===d;
+      const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+      html+=`<span class="dp-day${isSel?' dp-sel':''}${!isSel&&isToday?' dp-today-mark':''}" data-d="${d}">${d}</span>`;
+    }
+    const rest=(7-((first+total)%7))%7;
+    for(let i=1;i<=rest;i++) html+=`<span class="dp-day dp-out">${i}</span>`;
+    html+='</div><button type="button" class="dp-today-btn" data-act="today">Сьогодні</button>';
+    panel.innerHTML=html;
+    panel.querySelector('[data-act=prev]').addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m-1,1); render();});
+    panel.querySelector('[data-act=next]').addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m+1,1); render();});
+    panel.querySelector('[data-act=today]').addEventListener('click',e=>{
+      e.stopPropagation(); const t=new Date(); inp.value=dpFmt(t);
+      inp.dispatchEvent(new Event('change',{bubbles:true})); viewDate=t; refreshLabel(); close();
+    });
+    panel.querySelectorAll('.dp-day:not(.dp-out)').forEach(el=>{
+      el.addEventListener('click',e=>{
+        e.stopPropagation();
+        inp.value=dpFmt(new Date(y,m,parseInt(el.getAttribute('data-d'))));
+        inp.dispatchEvent(new Event('change',{bubbles:true}));
+        refreshLabel(); close();
+      });
+    });
+  }
+  trigger.addEventListener('click',e=>{
+    e.stopPropagation();
+    const willOpen=!wrap.classList.contains('open');
+    document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
+    if(willOpen){ viewDate=dpParse(inp.value)||new Date(); render(); wrap.classList.add('open'); }
+  });
+  inp.addEventListener('change', refreshLabel);
+  inp.addEventListener('cs-sync', refreshLabel);
+  refreshLabel();
+}
+
 let selectsEnhanced=false;
 function enhanceAllSelects(){
   if(selectsEnhanced) return; selectsEnhanced=true;
   document.querySelectorAll('.app select').forEach(enhanceSelect);
-  document.addEventListener('click',()=>document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open')));
+  document.querySelectorAll('.app input[type=date]').forEach(enhanceDateInput);
+  document.addEventListener('click',()=>document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open')));
 }
 
 // ── CUSTOM DIALOGS (styled replacements for confirm/prompt/alert) ──
