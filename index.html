@@ -497,6 +497,15 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .mgr-empty{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:20px}
 
+/* ── SUBCATEGORY CHIPS (inside the categories manager) ── */
+.subcat-toggle{background:var(--bg1);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.subcat-toggle:hover{border-color:var(--purple2);color:var(--purple2)}
+.subcat-total{font-size:10px;color:var(--muted);font-weight:600;margin-left:auto;white-space:nowrap}
+.subchip{display:inline-flex;align-items:center;gap:5px;padding:5px 6px 5px 12px;border-radius:999px;font-size:11px;font-weight:700;background:var(--bg1);border:1px solid var(--border2);color:var(--text)}
+.subchip button{background:none;border:none;color:var(--muted2);cursor:pointer;padding:3px;border-radius:50%;display:inline-flex;line-height:1}
+.subchip button:hover{background:rgba(239,68,68,.12);color:var(--red2)}
+.subchip button .ico{width:11px;height:11px;margin-right:0}
+
 /* Small round checkbox, reused wherever a plain toggle appears outside
    the pick-shift modal (e.g. shift-type manager "isOff"). */
 .rchk{
@@ -732,6 +741,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <div class="fg" id="category-group">
           <label>Категорія</label>
           <select id="fin-category"></select>
+        </div>
+        <div class="fg" id="subcategory-group" style="display:none">
+          <label>Підкатегорія</label>
+          <select id="fin-subcategory"></select>
         </div>
         <div class="fg">
           <label>Дата</label>
@@ -1117,6 +1130,11 @@ let categories = {income:[], expense:[]};
 // Monthly spend limit per expense category: {categoryName: limit}. Missing
 // or non-positive entries mean "no budget set" for that category.
 let budgets = {};
+// Subcategories per category, keyed by "type:categoryName" (so an
+// income and expense category that happen to share a name don't collide):
+// {"expense:Продукти": ["Овочі","М'ясо"]}.
+let subcategories = {};
+function subKey(type,name){ return type+':'+name; }
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -1230,7 +1248,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1284,6 +1302,7 @@ function seedConfigFromDocs(sData, fData){
     seeded=true;
   }
   budgets = (fData && fData.budgets) ? {...fData.budgets} : {};
+  subcategories = (fData && fData.subcategories) ? {...fData.subcategories} : {};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1420,7 +1439,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1597,6 +1616,8 @@ async function init(){
       if(y===now.getFullYear())o.selected=true;
       ys.appendChild(o);
     }
+    // Refresh the subcategory list whenever the user picks a different category
+    document.getElementById('fin-category')?.addEventListener('change', fillSubcats);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -1607,7 +1628,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -2203,30 +2224,88 @@ window.deleteWallet=async function(id){
 
 // Categories ---------------------------------------------------
 let catMgrType='expense';
+// Index of the category (within the current catMgrType list) whose
+// subcategory panel is expanded; null = all collapsed. Kept across
+// re-renders so adding/removing a subcategory doesn't collapse the panel.
+let expandedCatIdx=null;
 window.openCategoriesManager=function(){
-  catMgrType='expense'; setCatMgrType('expense');
+  catMgrType='expense'; expandedCatIdx=null; setCatMgrType('expense');
   document.getElementById('categories-modal').style.display='flex';
 };
 window.setCatMgrType=function(type){
-  catMgrType=type;
+  catMgrType=type; expandedCatIdx=null;
   document.getElementById('catmgr-inc').classList.toggle('active',type==='income');
   document.getElementById('catmgr-exp').classList.toggle('active',type==='expense');
   renderCategoriesList();
 };
+function currentMonthPrefix(){
+  const n=new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+function catMonthTotal(type,name){
+  const p=currentMonthPrefix();
+  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.date&&t.date.startsWith(p))?s+t.amount:s,0);
+}
+function subMonthTotal(type,name,sub){
+  const p=currentMonthPrefix();
+  return transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.subcategory===sub&&t.date&&t.date.startsWith(p))?s+t.amount:s,0);
+}
 function renderCategoriesList(){
   const box=document.getElementById('categories-list'); if(!box) return;
   box.innerHTML='';
   const list=categories[catMgrType]||[];
   if(!list.length){ box.innerHTML='<div class="mgr-empty">Немає категорій</div>'; return; }
   list.forEach((name,idx)=>{
+    const subs=subcategories[subKey(catMgrType,name)]||[];
+    const open=expandedCatIdx===idx;
     const row=document.createElement('div');
     row.className='mgr-row';
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
-      <button class="mgr-del" onclick="deleteCategory(${idx})">${window.Icon('trash')}</button>`;
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <input type="text" class="mgr-name-inline" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
+        <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} Підкат.${subs.length?` (${subs.length})`:''}</button>
+        <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} грн цього міс.</span>
+        <button class="mgr-del" onclick="deleteCategory(${idx})">${window.Icon('trash')}</button>
+      </div>
+      ${open?`
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(catMgrType,name,s).toLocaleString('uk-UA')} грн<button onclick="deleteSubcategory(${idx},${si})">${window.Icon('xmark')}</button></span>`).join(''):'<span class="mgr-empty" style="padding:2px 0">Немає підкатегорій</span>'}
+        </div>
+        <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:11px">${window.Icon('plus')}Підкатегорія</button>
+      </div>`:''}`;
+    if(open){
+      const addBtn=row.querySelector('.btn-ghost');
+      if(addBtn) addBtn.onclick=()=>addSubcategory(idx);
+    }
     box.appendChild(row);
   });
 }
+window.toggleSubcatPanel=function(idx){
+  expandedCatIdx = expandedCatIdx===idx ? null : idx;
+  renderCategoriesList();
+};
+window.addSubcategory=async function(idx){
+  const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
+  const subName=await uiPrompt('Назва підкатегорії:','','Нова підкатегорія');
+  if(subName===null) return;
+  const clean=subName.trim(); if(!clean) return;
+  const key=subKey(catMgrType,name);
+  if(!subcategories[key]) subcategories[key]=[];
+  if(subcategories[key].includes(clean)){ showToast('Така підкатегорія вже є','xmark'); return; }
+  subcategories[key].push(clean);
+  saveConfigLocal(); scheduleSave();
+  renderCategoriesList();
+};
+window.deleteSubcategory=async function(idx,si){
+  const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
+  const subs=subcategories[subKey(catMgrType,name)]; if(!subs||subs[si]===undefined) return;
+  if(!(await uiConfirm('Видалити цю підкатегорію? Старі операції збережуть свою назву.',{title:'Видалити підкатегорію',okText:'Видалити',danger:true}))) return;
+  subs.splice(si,1);
+  saveConfigLocal(); scheduleSave();
+  renderCategoriesList();
+};
 window.renameCategory=function(idx,value){
   const list=categories[catMgrType]; if(!list||!list[idx]) return;
   const oldName=list[idx];
@@ -2237,6 +2316,8 @@ window.renameCategory=function(idx,value){
   transactions.forEach(t=>{ if(t.type===catMgrType && t.category===oldName) t.category=newName; });
   recurring.forEach(r=>{ if(r.type===catMgrType && r.category===oldName) r.category=newName; });
   if(budgets[oldName]!==undefined){ budgets[newName]=budgets[oldName]; delete budgets[oldName]; }
+  const oldKey=subKey(catMgrType,oldName);
+  if(subcategories[oldKey]!==undefined){ subcategories[subKey(catMgrType,newName)]=subcategories[oldKey]; delete subcategories[oldKey]; }
   saveConfigLocal(); saveRecurringLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
   scheduleSave();
@@ -2258,6 +2339,8 @@ window.deleteCategory=async function(idx){
   const removed=list[idx];
   list.splice(idx,1);
   delete budgets[removed];
+  delete subcategories[subKey(catMgrType,removed)];
+  expandedCatIdx=null;
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType); renderBudgets();
 };
@@ -2425,10 +2508,11 @@ function setFinanceType(t){
   const wsl=document.getElementById('wallet-source-label');
   const tg=document.getElementById('wallet-target-group');
   const cg=document.getElementById('category-group');
+  const sg=document.getElementById('subcategory-group');
   refreshWalletSelects();
   if(t==='income')  {if(wsl)wsl.textContent='Гаманець';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
   if(t==='expense') {if(wsl)wsl.textContent='Звідки списати';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
-  if(t==='transfer'){if(wsl)wsl.textContent='Звідки переказати';if(tg)tg.style.display='flex';if(cg)cg.style.display='none';}
+  if(t==='transfer'){if(wsl)wsl.textContent='Звідки переказати';if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
 }
 function fillCats(type){
   const sel=document.getElementById('fin-category');if(!sel)return;
@@ -2436,6 +2520,22 @@ function fillCats(type){
   sel.innerHTML='';
   (categories[type]||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
   if(prev&&(categories[type]||[]).includes(prev)) sel.value=prev;
+  fillSubcats();
+}
+// Populates the subcategory dropdown for the currently-selected category,
+// hiding the whole field when that category has none.
+function fillSubcats(){
+  const sel=document.getElementById('fin-subcategory');
+  const group=document.getElementById('subcategory-group');
+  if(!sel||!group) return;
+  if(currentFinanceType==='transfer'){ group.style.display='none'; return; }
+  const catSel=document.getElementById('fin-category');
+  const cat=catSel?catSel.value:'';
+  const subs=subcategories[subKey(currentFinanceType,cat)]||[];
+  const prev=sel.value;
+  sel.innerHTML='<option value="">—</option>'+subs.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if(prev&&subs.includes(prev)) sel.value=prev;
+  group.style.display = subs.length ? 'flex' : 'none';
 }
 
 function addTransaction(){
@@ -2448,8 +2548,9 @@ function addTransaction(){
   const wt=document.getElementById('fin-wallet-target')?.value||(wallets[1]&&wallets[1].id);
   if(currentFinanceType==='transfer'&&ws===wt){showToast('Однакові рахунки','xmark');return;}
   const cat=currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
+  const sub=currentFinanceType==='transfer'?null:(document.getElementById('fin-subcategory')?.value||null);
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
-  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,category:cat,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,date,comment});
+  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,category:cat,subcategory:sub,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,date,comment});
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave();
   if(ai)ai.value='';
@@ -2542,7 +2643,7 @@ function renderFinance(){
     item.className='tx-item';
     item.innerHTML=`
       <div class="tx-left">
-        <div class="tx-cat">${catIcon}<span>${escapeHtml(t.category)}</span>${wBadge}${twBadge}</div>
+        <div class="tx-cat">${catIcon}<span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
         <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
       </div>
       <div class="tx-right">
