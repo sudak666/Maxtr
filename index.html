@@ -166,6 +166,7 @@ button,input,select,textarea{font-family:inherit}
 .tab-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.35)}
 .tab-btn.tab-c-finance.active{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 16px rgba(16,185,129,.35)}
 .tab-btn.tab-c-debt.active{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 16px rgba(245,158,11,.35)}
+.tab-btn.tab-c-settings.active{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 16px rgba(100,116,139,.35)}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -586,6 +587,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()">Забули пароль?</button>
     <div class="auth-sep"><span>або</span></div>
     <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span>Продовжити через Google</button>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:2px">
+      Реєструючись, ти погоджуєшся з <a href="terms.html" target="_blank" style="color:var(--purple2)">Умовами використання</a> і <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політикою конфіденційності</a>
+    </div>
   </div>
 </div>
 
@@ -625,6 +629,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()">Заблокувати зараз</button>
     <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()">Прибрати PIN</button>
     <div class="chk-desc" style="text-align:center;margin-top:12px">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">
+      <a href="terms.html" target="_blank" style="color:var(--purple2)">Умови використання</a> · <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політика конфіденційності</a>
+    </div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
     </div>
@@ -643,11 +650,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
   <div class="topbar-right">
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text">Підключення...</span></div>
-    <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Тема"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
-    <button class="btn btn-ghost" id="btn-pin-settings" onclick="openPinSettings()" title="PIN-код" style="display:none"></button>
-    <button class="btn btn-ghost" id="btn-signout" onclick="signOutUser()" title="Вийти" style="display:none"></button>
-    <button class="btn btn-danger" id="btn-delete-account" onclick="deleteAccountUser()" title="Видалити акаунт" style="display:none;padding:9px 12px"></button>
   </div>
 </div>
 
@@ -658,6 +661,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span>Графік змін</span></button>
     <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span>Фінанси</span></button>
     <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span>Розрахунки</span></button>
+    <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span>Налаштування</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
@@ -747,13 +751,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <!-- Баланси -->
     <div class="stats-row" id="fin-balances"></div>
-    <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:-8px 0 16px">
-      <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-manage-wallets"></span>Гаманці</button>
-      <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-rates"></span>Курси</button>
-      <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-manage-cats"></span>Категорії</button>
-      <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-manage-budgets"></span>Бюджети</button>
-      <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-manage-recurring"></span>Повторювані</button>
-      <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-export"></span>Експорт CSV</button>
+    <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
+      <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span>Гаманці, категорії, бюджети…</button>
     </div>
 
     <!-- Бюджети по категоріях -->
@@ -797,6 +796,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <label>Підкатегорія</label>
           <select id="fin-subcategory"></select>
         </div>
+        <div class="fg" id="tags-group" style="display:none">
+          <label>Теги</label>
+          <div class="filter-row" id="fin-tags-chips" style="margin-bottom:0"></div>
+        </div>
         <div class="fg">
           <label>Дата</label>
           <input type="date" id="fin-date">
@@ -819,6 +822,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')">+ Дохід</div>
           <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')">− Витрата</div>
           <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')">⇄ Переказ</div>
+        </div>
+        <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
+          <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · Скинути ✕</span>
         </div>
         <div class="tx-list" id="tx-list-container"></div>
       </div>
@@ -910,6 +916,58 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
   </div>
 
+  <!-- ═══ НАЛАШТУВАННЯ ═══ -->
+  <div id="tab-settings" style="display:none">
+    <div class="page-head">
+      <div class="page-label">Керування застосунком</div>
+      <div class="page-title">Налаштування</div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-finance"></span>Фінанси</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-set-wallets"></span>Гаманці</button>
+        <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-set-rates"></span>Курси валют</button>
+        <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-set-cats"></span>Категорії</button>
+        <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span>Теги</button>
+        <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span>Бюджети</button>
+        <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span>Повторювані операції</button>
+        <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span>Експорт CSV</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-security"></span>Безпека</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" id="settings-pin" onclick="openPinSettings()" style="display:none"><span id="ic-set-pin"></span>PIN-код доступу</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-appearance"></span>Зовнішній вигляд</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" onclick="toggleTheme()"><span id="ic-settings-theme"></span><span id="settings-theme-label">Тема</span></button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-account"></span>Акаунт</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-ghost" id="settings-signout" onclick="signOutUser()" style="display:none"><span id="ic-set-signout"></span>Вийти з акаунту</button>
+        <button class="btn btn-danger" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none"><span id="ic-set-delete"></span>Видалити акаунт</button>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title"><span id="ic-settings-about"></span>Про застосунок</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;font-weight:700">
+        <a href="terms.html" target="_blank" style="color:var(--purple2)">Умови використання</a>
+        <a href="privacy.html" target="_blank" style="color:var(--purple2)">Політика конфіденційності</a>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:12px">Xamss — трекер змін, фінансів і розрахунків</div>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
 <!-- MODAL ЗМІНИ -->
@@ -989,6 +1047,40 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="mgr-list" id="rates-list"></div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<!-- MANAGER: TAGS -->
+<div class="modal-overlay" id="tags-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date">Теги</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
+    <div class="mgr-list" id="tags-list"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span>Додати тег</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<!-- CATEGORY ACTION MENU -->
+<div class="modal-overlay" id="cat-action-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:320px">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" id="cat-action-title">Категорія</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionEdit()"><span id="ic-cat-act-edit"></span>Редагувати</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionShowTx()"><span id="ic-cat-act-show"></span>Показати транзакції</button>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="catActionDelete()"><span id="ic-cat-act-del"></span>Видалити категорію</button>
+    </div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-cancel" style="flex:1" onclick="closeManagers()">Скасувати</button>
     </div>
    </div>
   </div>
@@ -1086,7 +1178,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
-    lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>'
+    lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+    more:'<circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    pencil:'<path d="M4 20h4l10.3-10.3a1.9 1.9 0 0 0 0-2.7l-1.3-1.3a1.9 1.9 0 0 0-2.7 0L4 16v4Z"/><path d="M14 6l4 4"/>',
+    info:'<circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1" fill="currentColor" stroke="none"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1098,13 +1194,26 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   }
   var GOOGLE_G_SVG='<svg class="ico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.4-6.4C35.6 3 30.1 1 24 1 14.6 1 6.5 6.4 2.6 14.2l7.5 5.8C12 13.6 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.2 5.6C43.5 37.6 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.1 20c-.6 1.6-.9 3.3-.9 5s.3 3.4.9 5l-7.5 5.8C1 32.6 0 28.4 0 24s1-8.6 2.6-11.8z"/><path fill="#34A853" d="M24 47c6.1 0 11.3-2 15-5.5l-7.2-5.6c-2 1.4-4.6 2.2-7.8 2.2-6.5 0-12-4.1-13.9-9.9l-7.5 5.8C6.5 41.6 14.6 47 24 47z"/></svg>';
   var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
-  setIcon('btn-signout','logout');
-  setIcon('btn-delete-account','trash');
-  setIcon('btn-pin-settings','lock');
+  setIcon('ic-set-signout','logout');
+  setIcon('ic-set-delete','trash');
+  setIcon('ic-set-pin','lock');
   setIcon('ic-pin-logo','lock');
   // Populate every static icon slot
-  setIcon('theme-toggle','sun');
   setIcon('btn-refresh','refresh');
+  setIcon('ic-goto-settings','gear');
+  setIcon('tab-icon-settings','gear');
+  setIcon('ic-settings-finance','wallet');
+  setIcon('ic-settings-security','lock');
+  setIcon('ic-settings-appearance','sun');
+  setIcon('ic-settings-account','person');
+  setIcon('ic-settings-about','info');
+  setIcon('ic-set-wallets','wallet');
+  setIcon('ic-set-rates','swap');
+  setIcon('ic-set-cats','tag');
+  setIcon('ic-set-tags','tag');
+  setIcon('ic-set-budgets','target');
+  setIcon('ic-set-recurring','repeat');
+  setIcon('ic-set-export','download');
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
   setIcon('tab-icon-debt','bank');
@@ -1125,14 +1234,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-modal-cal','calendar');
-  setIcon('ic-manage-wallets','wallet');
-  setIcon('ic-manage-cats','tag');
-  setIcon('ic-rates','swap');
-  setIcon('ic-manage-budgets','target');
   setIcon('ic-budget','target');
-  setIcon('ic-manage-recurring','repeat');
   setIcon('ic-add-recur','plus');
-  setIcon('ic-export','download');
+  setIcon('ic-add-tag','plus');
+  setIcon('ic-cat-act-edit','pencil');
+  setIcon('ic-cat-act-show','search');
+  setIcon('ic-cat-act-del','trash');
   setIcon('ic-add-st','plus');
   setIcon('ic-add-w','plus');
   setIcon('ic-add-cat','plus');
@@ -1143,7 +1250,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
     try{localStorage.setItem('xamssTheme', theme);}catch(e){}
-    setIcon('theme-toggle', theme==='light' ? 'moon' : 'sun');
+    setIcon('ic-settings-theme', theme==='light' ? 'moon' : 'sun');
+    var lbl=$('settings-theme-label');
+    if(lbl) lbl.textContent = 'Тема: ' + (theme==='light' ? 'Світла' : 'Темна');
     var mc=document.querySelector('meta[name=theme-color]');
     if(mc) mc.setAttribute('content', theme==='light' ? '#f2f2f7' : '#0a0812');
   }
@@ -1210,6 +1319,14 @@ function subKey(type,name){ return type+':'+name; }
 // Manual exchange rates {code: hryvnias per 1 unit}. UAH itself is never
 // stored here — convertCurrency() treats a missing entry as rate 1.
 let currencyRates = {};
+// Cross-cutting labels, independent of category: [{id,name,color}]. A
+// transaction can carry any number of them (t.tags: [id,...]).
+let tags = [];
+// Tag ids toggled on in the "Нова операція" form; cleared after each add.
+let selectedTagIds = [];
+// When set, the history list only shows this category (set via a
+// category's "Показати транзакції" action); cleared by the chip's ✕.
+let txCategoryFilter = null;
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -1347,7 +1464,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, recurring, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -1404,6 +1521,7 @@ function seedConfigFromDocs(sData, fData){
   budgets = (fData && fData.budgets) ? {...fData.budgets} : {};
   subcategories = (fData && fData.subcategories) ? {...fData.subcategories} : {};
   currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
+  tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -1540,7 +1658,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -1765,9 +1883,9 @@ window.lockNow=function(){
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
   const lockScreen=document.getElementById('lock-screen');
-  const signOutBtn=document.getElementById('btn-signout');
-  const deleteBtn=document.getElementById('btn-delete-account');
-  const pinBtn=document.getElementById('btn-pin-settings');
+  const signOutBtn=document.getElementById('settings-signout');
+  const deleteBtn=document.getElementById('settings-delete-account');
+  const pinBtn=document.getElementById('settings-pin');
   if(user){
     if(lockScreen){ lockScreen.classList.add('lock-hide'); setTimeout(()=>{lockScreen.style.display='none';},320); }
     if(signOutBtn) signOutBtn.style.display='';
@@ -1825,7 +1943,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -1842,9 +1960,11 @@ function switchTab(tab){
   document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
+  document.getElementById('nav-settings').classList.toggle('active',tab==='settings');
   document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
   document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
+  document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {renderFinance(); renderFinanceChart();
     const fp=document.getElementById('finance-panel-block');
@@ -2339,7 +2459,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -2482,6 +2602,8 @@ let catMgrType='expense';
 // subcategory panel is expanded; null = all collapsed. Kept across
 // re-renders so adding/removing a subcategory doesn't collapse the panel.
 let expandedCatIdx=null;
+// Index of the category the action-menu (Edit/Show tx/Delete) is open for.
+let catActionIdx=null;
 window.openCategoriesManager=function(){
   catMgrType='expense'; expandedCatIdx=null; setCatMgrType('expense');
   document.getElementById('categories-modal').style.display='flex';
@@ -2517,10 +2639,12 @@ function renderCategoriesList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-        <input type="text" class="mgr-name-inline" value="${escapeHtml(name)}" onchange="renameCategory(${idx},this.value)">
+        <span style="display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:80px;font-size:13px;font-weight:700;color:var(--text-strong)">
+          ${window.Icon(CAT_ICON[name]||'tag')}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</span>
+        </span>
         <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} Підкат.${subs.length?` (${subs.length})`:''}</button>
         <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} грн цього міс.</span>
-        <button class="mgr-del" onclick="deleteCategory(${idx})">${window.Icon('trash')}</button>
+        <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -2597,6 +2721,34 @@ window.deleteCategory=async function(idx){
   expandedCatIdx=null;
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(currentFinanceType); renderBudgets();
+};
+
+// Category action menu (kebab button on each row) ---------------
+window.openCatActionMenu=function(idx){
+  const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
+  catActionIdx=idx;
+  document.getElementById('cat-action-title').textContent=name;
+  document.getElementById('cat-action-modal').style.display='flex';
+};
+window.catActionEdit=async function(){
+  const idx=catActionIdx; const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
+  window.closeManagers();
+  const newName=await uiPrompt('Назва категорії:', name, 'Редагувати категорію');
+  if(newName===null) return;
+  window.renameCategory(idx, newName);
+};
+window.catActionShowTx=function(){
+  const idx=catActionIdx; const list=categories[catMgrType]; const name=list&&list[idx]; if(!name) return;
+  window.closeManagers();
+  txCategoryFilter=name;
+  window.switchTab('finance');
+  renderFinance();
+  showToast(`Показано: ${name}`,'search');
+};
+window.catActionDelete=async function(){
+  const idx=catActionIdx;
+  window.closeManagers();
+  await window.deleteCategory(idx);
 };
 
 // Budgets -------------------------------------------------------
@@ -2780,7 +2932,27 @@ function setFinanceType(t){
   if(t==='income')  {if(wsl)wsl.textContent='Гаманець';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
   if(t==='expense') {if(wsl)wsl.textContent='Звідки списати';if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
   if(t==='transfer'){if(wsl)wsl.textContent='Звідки переказати';if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
+  renderFinTagChips();
 }
+// Toggleable tag chips in the "Нова операція" form; hidden entirely until
+// the user has created at least one tag.
+function renderFinTagChips(){
+  const group=document.getElementById('tags-group');
+  const box=document.getElementById('fin-tags-chips');
+  if(!group||!box) return;
+  if(!tags.length){ group.style.display='none'; return; }
+  group.style.display='flex';
+  box.innerHTML=tags.map(t=>{
+    const on=selectedTagIds.includes(t.id);
+    const style=on?`border-color:${t.color};background:${hexA(t.color,.18)};color:${t.color}`:'';
+    return `<div class="filter-chip${on?' active':''}" style="${style}" onclick="toggleFinTag('${t.id}')">${escapeHtml(t.name)}</div>`;
+  }).join('');
+}
+window.toggleFinTag=function(id){
+  const i=selectedTagIds.indexOf(id);
+  if(i===-1) selectedTagIds.push(id); else selectedTagIds.splice(i,1);
+  renderFinTagChips();
+};
 function fillCats(type){
   const sel=document.getElementById('fin-category');if(!sel)return;
   const prev=sel.value;
@@ -2823,11 +2995,12 @@ function addTransaction(){
     targetCurrency=walletCurrency(wt);
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
   }
-  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
+  transactions.unshift({id:Date.now(),type:currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:selectedTagIds.slice(),wallet:ws,targetWallet:currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
   scheduleSave();
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
+  selectedTagIds=[]; renderFinTagChips();
   renderFinance(); renderFinanceChart();
 
   let toastMsg=currentFinanceType==='transfer'?'Переказ виконано':'Запис додано';
@@ -2870,6 +3043,60 @@ function walletBadge(id){
   const icon=w?(w.icon||'card'):'card';
   return `<span class="wallet-tag" style="background:${hexA(color,.12)};color:${color};border:1px solid ${hexA(color,.28)}">${window.Icon(icon)}${escapeHtml(name)}</span>`;
 }
+// Renders a tag chip; silently skipped by the caller (via .filter(Boolean))
+// if the tag was since deleted.
+function tagBadge(id){
+  const t=tags.find(x=>x.id===id);
+  if(!t) return '';
+  return `<span class="wallet-tag" style="background:${hexA(t.color,.12)};color:${t.color};border:1px solid ${hexA(t.color,.28)}">${window.Icon('tag')}${escapeHtml(t.name)}</span>`;
+}
+
+// Tags -----------------------------------------------------------
+window.openTagsManager=function(){
+  renderTagsList();
+  document.getElementById('tags-modal').style.display='flex';
+};
+function renderTagsList(){
+  const box=document.getElementById('tags-list'); if(!box) return;
+  box.innerHTML='';
+  if(!tags.length){ box.innerHTML='<div class="mgr-empty">Немає тегів</div>'; return; }
+  tags.forEach(t=>{
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateTag('${t.id}','color',this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="Назва" onchange="updateTag('${t.id}','name',this.value)">
+      <button class="mgr-del" onclick="deleteTag('${t.id}')">${window.Icon('trash')}</button>`;
+    box.appendChild(row);
+  });
+}
+window.updateTag=function(id,field,value){
+  const t=tags.find(x=>x.id===id); if(!t) return;
+  if(field==='name') t.name=String(value).trim()||'Тег';
+  else t[field]=value;
+  saveConfigLocal(); scheduleSave();
+  renderFinTagChips(); renderFinance();
+};
+window.addTag=async function(){
+  const name=await uiPrompt('Назва тегу:','','Новий тег');
+  if(name===null) return;
+  const clean=name.trim(); if(!clean) return;
+  const color=PALETTE[tags.length%PALETTE.length];
+  tags.push({id:uid('tag'), name:clean, color});
+  saveConfigLocal(); scheduleSave();
+  renderTagsList(); renderFinTagChips();
+};
+window.deleteTag=async function(id){
+  if(!(await uiConfirm('Видалити цей тег? Він буде прибраний зі старих операцій.',{title:'Видалити тег',okText:'Видалити',danger:true}))) return;
+  tags=tags.filter(t=>t.id!==id);
+  selectedTagIds=selectedTagIds.filter(tid=>tid!==id);
+  transactions.forEach(t=>{ if(Array.isArray(t.tags)) t.tags=t.tags.filter(tid=>tid!==id); });
+  saveConfigLocal();
+  const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
+  scheduleSave();
+  renderTagsList(); renderFinTagChips(); renderFinance();
+};
+
 function renderFinance(){
   const wb={};
   wallets.forEach(w=>{wb[w.id]=0;});
@@ -2897,10 +3124,18 @@ function renderFinance(){
 
   renderBudgets();
 
-  const filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
+  let filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
+  if(txCategoryFilter) filtered=filtered.filter(t=>t.category===txCategoryFilter);
   const lc=document.getElementById('tx-list-container');
   const tc=document.getElementById('tx-count');
   if(!lc) return;
+
+  const catChip=document.getElementById('tx-cat-filter-chip');
+  if(catChip){
+    if(txCategoryFilter){ catChip.style.display='block'; document.getElementById('tx-cat-filter-label').textContent=txCategoryFilter; }
+    else catChip.style.display='none';
+  }
+
   lc.innerHTML='';
   if(tc) tc.textContent=filtered.length+' записів';
 
@@ -2921,12 +3156,14 @@ function renderFinance(){
     const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
       ? `<span style="font-size:10px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
     const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
+    const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
     const item=document.createElement('div');
     item.className='tx-item';
     item.innerHTML=`
       <div class="tx-left">
         <div class="tx-cat">${catIcon}<span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
         <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
+        ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
@@ -2935,6 +3172,10 @@ function renderFinance(){
     lc.appendChild(item);
   });
 }
+window.clearTxCategoryFilter=function(){
+  txCategoryFilter=null;
+  renderFinance();
+};
 
 // ── CSV EXPORT ────────────────────────────────────────────────
 const TX_TYPE_LABEL={income:'Дохід',expense:'Витрата',transfer:'Переказ'};
