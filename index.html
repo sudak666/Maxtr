@@ -3328,7 +3328,14 @@ window.updateCurrencyRate=function(code,value){
 // Live rates from the National Bank of Ukraine's public feed (no API key,
 // UAH-denominated — matches this app's model where every rate is "how many
 // hryvnias per 1 unit", exactly what currencyRates already stores).
-const NBU_RATES_URL='https://bank.gov.ua/NBU_Exchange/exchange?json';
+// bank.gov.ua's legacy NBU_Exchange endpoint doesn't send CORS headers, so a
+// browser fetch() from our origin gets blocked outright (confirmed on the
+// live deployment). NBUStatService is NBU's documented open-data API meant
+// for exactly this kind of external consumption and is expected to allow
+// cross-origin requests; api.allorigins.win is a last-resort CORS relay for
+// the old endpoint in case NBUStatService is ever unreachable too.
+const NBU_RATES_URL='https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json';
+const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent('https://bank.gov.ua/NBU_Exchange/exchange?json');
 function ratesUpdatedAtKey(){ return 'xamssRatesUpdatedAt'; }
 function renderRatesUpdatedHint(){
   const hint=document.getElementById('rates-updated-hint'); if(!hint) return;
@@ -3337,9 +3344,17 @@ function renderRatesUpdatedHint(){
   hint.textContent = at ? `${tr('rates_updated_at')} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
 }
 async function fetchLiveRates(){
-  const res=await fetch(NBU_RATES_URL);
-  if(!res.ok) throw new Error('NBU HTTP '+res.status);
-  const list=await res.json();
+  let list;
+  try{
+    const res=await fetch(NBU_RATES_URL);
+    if(!res.ok) throw new Error('NBU HTTP '+res.status);
+    list=await res.json();
+  }catch(primaryErr){
+    console.warn('primary NBU rates endpoint failed, trying CORS-relay fallback', primaryErr);
+    const res=await fetch(NBU_RATES_FALLBACK_URL);
+    if(!res.ok) throw new Error('NBU fallback HTTP '+res.status);
+    list=await res.json();
+  }
   if(!Array.isArray(list)) throw new Error('unexpected NBU response');
   const wanted=CURRENCY_LIST.filter(c=>c!=='UAH');
   let updated=0;
