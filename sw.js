@@ -1,5 +1,5 @@
-// sw.js — Xamss PWA Service Worker v2.0
-const CACHE_NAME = 'xamss-v2';
+// sw.js — Zminka PWA Service Worker v3.0
+const CACHE_NAME = 'zminka-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
