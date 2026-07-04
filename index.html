@@ -1255,7 +1255,13 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_rates">Курси валют</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="rates_desc">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</div>
-    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="updateRatesOnline()"><span id="ic-rates-update"></span><span data-i18n="rates_update_btn">Оновити з курсу НБУ</span></button>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px" data-i18n="rates_source_label">Джерело курсу</div>
+    <div class="filter-row" id="rates-source-filter" style="margin-bottom:6px">
+      <div class="filter-chip active" data-source="nbu" onclick="setRatesSource('nbu')" data-i18n="rates_source_nbu">НБУ (офіційний)</div>
+      <div class="filter-chip" data-source="privat" onclick="setRatesSource('privat')" data-i18n="rates_source_privat">ПриватБанк (готівка)</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" data-i18n="rates_source_hint">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</div>
+    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="updateRatesOnline()"><span id="ic-rates-update"></span><span data-i18n="rates_update_btn">Оновити онлайн</span></button>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="rates-updated-hint"></div>
     <div class="mgr-list" id="rates-list"></div>
     <div class="modal-actions" style="margin-top:12px">
@@ -1600,9 +1606,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       wallets_empty:'Немає гаманців', wallets_default_name:'Гаманець', wallets_add_prompt:'Назва гаманця:', wallets_new_default:'Новий гаманець',
       wallets_need_one:'Має лишитись хоча б один гаманець', wallets_in_use:'Гаманець використовується в операціях',
       wallets_delete_confirm:'Видалити цей гаманець?', wallets_delete_title:'Видалити гаманець', wallets_add:'Додати гаманець',
-      rates_desc:'Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).', rates_update_btn:'Оновити з курсу НБУ',
-      rates_per_unit:'Грн за 1', rates_updated_at:'Оновлено (НБУ):', rates_never_updated:'Курси ще не оновлювались онлайн',
-      rates_update_success:'Курси валют оновлено (НБУ)', rates_update_fail:'Не вдалося отримати курси онлайн',
+      rates_desc:'Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).', rates_update_btn:'Оновити онлайн',
+      rates_per_unit:'Грн за 1', rates_updated_at:'Оновлено —', rates_never_updated:'Курси ще не оновлювались онлайн',
+      rates_update_success:'Курси валют оновлено', rates_update_fail:'Не вдалося отримати курси онлайн',
+      rates_source_label:'Джерело курсу', rates_source_nbu:'НБУ (офіційний)', rates_source_privat:'ПриватБанк (готівка)',
+      rates_source_nbu_short:'НБУ,', rates_source_privat_short:'ПриватБанк,',
+      rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
       cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
       cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
       cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
@@ -1742,9 +1751,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       wallets_empty:'No wallets', wallets_default_name:'Wallet', wallets_add_prompt:'Wallet name:', wallets_new_default:'New wallet',
       wallets_need_one:'At least one wallet must remain', wallets_in_use:'This wallet is used in transactions',
       wallets_delete_confirm:'Delete this wallet?', wallets_delete_title:'Delete wallet', wallets_add:'Add wallet',
-      rates_desc:'How many hryvnias per 1 unit of currency. Base is UAH (rate always 1).', rates_update_btn:'Update from NBU rate',
-      rates_per_unit:'UAH per 1', rates_updated_at:'Updated (NBU):', rates_never_updated:'Rates have not been updated online yet',
-      rates_update_success:'Exchange rates updated (NBU)', rates_update_fail:'Failed to fetch rates online',
+      rates_desc:'How many hryvnias per 1 unit of currency. Base is UAH (rate always 1).', rates_update_btn:'Update online',
+      rates_per_unit:'UAH per 1', rates_updated_at:'Updated —', rates_never_updated:'Rates have not been updated online yet',
+      rates_update_success:'Exchange rates updated', rates_update_fail:'Failed to fetch rates online',
+      rates_source_label:'Rate source', rates_source_nbu:'NBU (official)', rates_source_privat:'PrivatBank (cash)',
+      rates_source_nbu_short:'NBU,', rates_source_privat_short:'PrivatBank,',
+      rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
       cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
       cat_no_subcats:'No subcategories', cat_subcategory:'Subcategory',
       cat_add_subcat_prompt:'Subcategory name:', cat_add_subcat_title:'New subcategory', cat_subcat_exists:'That subcategory already exists',
@@ -3323,6 +3335,7 @@ window.deleteWallet=async function(id){
 window.openRatesManager=function(){
   renderRatesList();
   renderRatesUpdatedHint();
+  renderRatesSourceUI();
   document.getElementById('rates-modal').style.display='flex';
 };
 function renderRatesList(){
@@ -3359,12 +3372,46 @@ window.updateCurrencyRate=function(code,value){
 // the old endpoint in case NBUStatService is ever unreachable too.
 const NBU_RATES_URL='https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json';
 const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent('https://bank.gov.ua/NBU_Exchange/exchange?json');
+// PrivatBank's public cash-exchange feed (no API key). It only ever covers a
+// handful of currencies (USD/EUR, sometimes RUR) — never GBP/PLN — so it's
+// used as an optional override for just the currencies it reports, layered
+// on top of the NBU fetch above rather than replacing it. Like the NBU
+// legacy endpoint, this may or may not send CORS headers; unverified from
+// this sandbox, same caveat as the NBU fix.
+const PRIVAT_RATES_URL='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
+function ratesSourceKey(){ return 'xamssRatesSource'; }
+let ratesSource='nbu';
+try{ const s=localStorage.getItem(ratesSourceKey()); if(s==='privat'||s==='nbu') ratesSource=s; }catch(e){}
+window.setRatesSource=function(source){
+  ratesSource = source==='privat' ? 'privat' : 'nbu';
+  try{ localStorage.setItem(ratesSourceKey(), ratesSource); }catch(e){}
+  renderRatesSourceUI();
+  window.updateRatesOnline(true);
+};
+function renderRatesSourceUI(){
+  document.querySelectorAll('#rates-source-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.source===ratesSource));
+}
+async function fetchPrivatCashRates(){
+  const res=await fetch(PRIVAT_RATES_URL);
+  if(!res.ok) throw new Error('PrivatBank HTTP '+res.status);
+  const list=await res.json();
+  if(!Array.isArray(list)) throw new Error('unexpected PrivatBank response');
+  let updated=0;
+  list.forEach(entry=>{
+    const code=entry.ccy;
+    if(!CURRENCY_LIST.includes(code) || code==='UAH') return;
+    const buy=parseFloat(entry.buy), sale=parseFloat(entry.sale);
+    if(buy>0 && sale>0){ currencyRates[code]=Math.round(((buy+sale)/2)*100)/100; updated++; }
+  });
+  return updated;
+}
 function ratesUpdatedAtKey(){ return 'xamssRatesUpdatedAt'; }
 function renderRatesUpdatedHint(){
   const hint=document.getElementById('rates-updated-hint'); if(!hint) return;
   let at=null;
   try{ at=localStorage.getItem(ratesUpdatedAtKey()); }catch(e){}
-  hint.textContent = at ? `${tr('rates_updated_at')} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
+  const sourceLabel = ratesSource==='privat' ? tr('rates_source_privat_short') : tr('rates_source_nbu_short');
+  hint.textContent = at ? `${tr('rates_updated_at')} ${sourceLabel} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
 }
 async function fetchLiveRates(){
   let list;
@@ -3386,6 +3433,10 @@ async function fetchLiveRates(){
     if(entry && entry.rate>0){ currencyRates[code]=Math.round(entry.rate*100)/100; updated++; }
   });
   if(!updated) throw new Error('none of the tracked currencies found in NBU response');
+  if(ratesSource==='privat'){
+    try{ await fetchPrivatCashRates(); }
+    catch(privatErr){ console.warn('PrivatBank cash-rate override failed, keeping NBU rates for USD/EUR', privatErr); }
+  }
   saveConfigLocal(); scheduleSave();
   try{ localStorage.setItem(ratesUpdatedAtKey(), String(Date.now())); }catch(e){}
   return updated;
