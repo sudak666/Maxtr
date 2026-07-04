@@ -196,6 +196,19 @@ button,input,select,textarea{font-family:inherit}
 .salary-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--green2));transition:width .6s ease}
 .salary-bar-label{font-size:10px;color:var(--muted);margin-top:4px}
 
+/* ── ANALYTICS DONUT (conic-gradient, no chart library) ── */
+.analytics-donut{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;background:var(--bg3)}
+.analytics-donut-hole{position:absolute;inset:20px;border-radius:50%;background:var(--bg1)}
+.analytics-donut-center{position:absolute;inset:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px}
+.analytics-donut-total{font-size:14px;font-weight:800;color:var(--text-strong);line-height:1.2}
+.analytics-donut-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.analytics-cat-row{margin-bottom:10px}
+.analytics-cat-row:last-child{margin-bottom:0}
+.analytics-cat-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:4px}
+.analytics-cat-name{display:flex;align-items:center;gap:6px;color:var(--text-strong);min-width:0;overflow:hidden}
+.analytics-cat-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.analytics-cat-amt{white-space:nowrap;color:var(--muted);font-weight:600}
+
 /* ── TOOLS PANEL ── */
 .tools-panel{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
@@ -778,6 +791,30 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
     </div>
 
+    <!-- Аналітика витрат і доходів -->
+    <div class="chart-section" id="analytics-section">
+      <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
+      <div class="filter-row" id="analytics-period-filter">
+        <div class="filter-chip active" data-period="month" onclick="setAnalyticsPeriod('month')" data-i18n="analytics_period_month">Цей місяць</div>
+        <div class="filter-chip" data-period="prev" onclick="setAnalyticsPeriod('prev')" data-i18n="analytics_period_prev">Минулий місяць</div>
+        <div class="filter-chip" data-period="3m" onclick="setAnalyticsPeriod('3m')" data-i18n="analytics_period_3m">3 місяці</div>
+        <div class="filter-chip" data-period="all" onclick="setAnalyticsPeriod('all')" data-i18n="analytics_period_all">Весь час</div>
+      </div>
+      <div class="stats-row" id="analytics-stats"></div>
+      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+        <div class="analytics-donut" id="analytics-donut"></div>
+        <div style="flex:1 1 220px;min-width:220px">
+          <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
+          <div id="analytics-expense-list"></div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_income_category">Доходи за категоріями</div>
+        <div id="analytics-income-list"></div>
+      </div>
+    </div>
+
     <!-- Бюджети по категоріях -->
     <div class="chart-section" id="budgets-section" style="display:none">
       <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
@@ -1262,7 +1299,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     star:'<path d="M12 3.4l2.7 5.7 6.2.6-4.6 4.2 1.3 6.1L12 16.9l-5.6 3.1 1.3-6.1-4.6-4.2 6.2-.6Z"/>',
     bell:'<path d="M6 10.2a6 6 0 0 1 12 0c0 4.1 1.5 5.6 2 6.1H4c.5-.5 2-2 2-6.1Z"/><path d="M9.3 19a2.7 2.7 0 0 0 5.4 0"/>',
     camera:'<path d="M4 8.3A1.7 1.7 0 0 1 5.7 6.6h1.8l1-1.9h6.9l1 1.9h1.8A1.7 1.7 0 0 1 20 8.3v9A1.7 1.7 0 0 1 18.3 19H5.7A1.7 1.7 0 0 1 4 17.3Z"/><circle cx="12" cy="13" r="3.4"/>',
-    globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>'
+    globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>',
+    pie:'<path d="M12 3.5v8.5h8.5A8.5 8.5 0 1 1 12 3.5Z"/><path d="M14.2 3.8A8.5 8.5 0 0 1 20.2 9.8"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1324,6 +1362,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-plus','plus');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
+  setIcon('ic-analytics','pie');
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
   setIcon('ic-cat-act-edit','pencil');
@@ -1487,6 +1526,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       pin_len_error:'PIN має бути з 4-6 цифр', pin_mismatch:'PIN не збігається', pin_set_success:'PIN встановлено',
       pin_removed:'PIN вимкнено', pin_set_first:'Спершу встанови PIN',
       pin_bio_on:'Face ID / Touch ID увімкнено', pin_bio_fail:'Не вдалося увімкнути біометрію', pin_bio_off:'Face ID / Touch ID вимкнено',
+      analytics_title:'Аналітика витрат і доходів', analytics_by_expense_category:'Витрати за категоріями', analytics_by_income_category:'Доходи за категоріями',
+      analytics_period_month:'Цей місяць', analytics_period_prev:'Минулий місяць', analytics_period_3m:'3 місяці', analytics_period_all:'Весь час',
+      analytics_income:'Дохід', analytics_expense:'Витрата', analytics_net:'Різниця', analytics_savings_rate:'Норма заощаджень',
+      analytics_prefix:'Витрачаєш на', analytics_suffix_more:'більше, ніж попереднього періоду', analytics_suffix_less:'менше, ніж попереднього періоду',
+      analytics_same:'Витрати на рівні попереднього періоду', analytics_no_data:'Немає даних',
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
@@ -1616,6 +1660,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       pin_len_error:'PIN must be 4-6 digits', pin_mismatch:"PINs don't match", pin_set_success:'PIN set',
       pin_removed:'PIN disabled', pin_set_first:'Set a PIN first',
       pin_bio_on:'Face ID / Touch ID enabled', pin_bio_fail:'Failed to enable biometrics', pin_bio_off:'Face ID / Touch ID disabled',
+      analytics_title:'Income & expense analytics', analytics_by_expense_category:'Expenses by category', analytics_by_income_category:'Income by category',
+      analytics_period_month:'This month', analytics_period_prev:'Last month', analytics_period_3m:'3 months', analytics_period_all:'All time',
+      analytics_income:'Income', analytics_expense:'Expense', analytics_net:'Net', analytics_savings_rate:'Savings rate',
+      analytics_prefix:'You\'re spending', analytics_suffix_more:'more than the previous period', analytics_suffix_less:'less than the previous period',
+      analytics_same:'Spending is level with the previous period', analytics_no_data:'No data yet',
     }
   };
   window.currentLang='uk';
@@ -4006,6 +4055,119 @@ function applyAutoRuleToForm(){
   showToast(`${tr('rules_auto_applied')} ${rule.category}`,'sparkle');
 }
 
+// ── ANALYTICS (expense/income breakdown by category) ───────────
+let analyticsPeriod='month';
+window.setAnalyticsPeriod=function(period){
+  analyticsPeriod=period;
+  document.querySelectorAll('#analytics-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.period===period));
+  renderAnalytics();
+};
+// Returns [predicate-for-selected-period, predicate-for-the-equivalent-prior-period-to-compare-against].
+// The "prior" predicate is null for 'all' since there's nothing before "all time".
+function analyticsPredicates(){
+  const now=new Date();
+  const mPrefix=(y,m)=>`${y}-${String(m+1).padStart(2,'0')}`;
+  if(analyticsPeriod==='month'){
+    const p=mPrefix(now.getFullYear(),now.getMonth());
+    const prevD=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const pp=mPrefix(prevD.getFullYear(),prevD.getMonth());
+    return [t=>t.date&&t.date.startsWith(p), t=>t.date&&t.date.startsWith(pp)];
+  }
+  if(analyticsPeriod==='prev'){
+    const d=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const p=mPrefix(d.getFullYear(),d.getMonth());
+    const prevD=new Date(d.getFullYear(),d.getMonth()-1,1);
+    const pp=mPrefix(prevD.getFullYear(),prevD.getMonth());
+    return [t=>t.date&&t.date.startsWith(p), t=>t.date&&t.date.startsWith(pp)];
+  }
+  if(analyticsPeriod==='3m'){
+    const from=mPrefix(new Date(now.getFullYear(),now.getMonth()-2,1).getFullYear(), new Date(now.getFullYear(),now.getMonth()-2,1).getMonth())+'-01';
+    const prevFrom=mPrefix(new Date(now.getFullYear(),now.getMonth()-5,1).getFullYear(), new Date(now.getFullYear(),now.getMonth()-5,1).getMonth())+'-01';
+    return [t=>t.date&&t.date>=from, t=>t.date&&t.date>=prevFrom&&t.date<from];
+  }
+  return [()=>true, null]; // 'all'
+}
+function renderAnalytics(){
+  const section=document.getElementById('analytics-section');
+  if(!section) return;
+  const [pred,prevPred]=analyticsPredicates();
+  const expenseTx=transactions.filter(t=>t.type==='expense'&&pred(t));
+  const incomeTx=transactions.filter(t=>t.type==='income'&&pred(t));
+  const totalExpense=expenseTx.reduce((s,t)=>s+toBase(t.amount,t.currency||'UAH'),0);
+  const totalIncome=incomeTx.reduce((s,t)=>s+toBase(t.amount,t.currency||'UAH'),0);
+  const net=totalIncome-totalExpense;
+  const savingsRate=totalIncome>0?Math.round((net/totalIncome)*100):0;
+
+  const statsBox=document.getElementById('analytics-stats');
+  if(statsBox){
+    statsBox.innerHTML=`
+      <div class="stat-card"><span class="stat-icon" style="color:var(--green2)">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${totalIncome.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="color:var(--red2)">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${totalExpense.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon">${window.Icon('target')}</span><div class="stat-label">${tr('analytics_savings_rate')}</div><div class="stat-val" style="color:${savingsRate>=0?'var(--green2)':'var(--red2)'};font-size:18px">${savingsRate}%</div></div>
+    `;
+  }
+
+  const insightEl=document.getElementById('analytics-insight');
+  if(insightEl){
+    if(!prevPred){ insightEl.textContent=''; }
+    else{
+      const prevExpense=transactions.filter(t=>t.type==='expense'&&prevPred(t)).reduce((s,t)=>s+toBase(t.amount,t.currency||'UAH'),0);
+      if(prevExpense>0 && totalExpense>0){
+        const diffPct=Math.round(((totalExpense-prevExpense)/prevExpense)*100);
+        if(diffPct>=5) insightEl.innerHTML=`${tr('analytics_prefix')} <strong style="color:var(--red2)">${diffPct}%</strong> ${tr('analytics_suffix_more')}`;
+        else if(diffPct<=-5) insightEl.innerHTML=`${tr('analytics_prefix')} <strong style="color:var(--green2)">${Math.abs(diffPct)}%</strong> ${tr('analytics_suffix_less')}`;
+        else insightEl.textContent=tr('analytics_same');
+      } else insightEl.textContent='';
+    }
+  }
+
+  const byCatAmount=(txList)=>{
+    const byCat={};
+    txList.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+toBase(t.amount,t.currency||'UAH'); });
+    return Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  };
+  const expenseByCat=byCatAmount(expenseTx);
+  const incomeByCat=byCatAmount(incomeTx);
+
+  const donut=document.getElementById('analytics-donut');
+  if(donut){
+    if(!expenseByCat.length || totalExpense<=0){
+      donut.style.background='var(--bg3)';
+      donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-label">${tr('analytics_no_data')}</span></div>`;
+    }else{
+      let acc=0;
+      const stops=expenseByCat.map(([cat,amt],i)=>{
+        const color=PALETTE[i%PALETTE.length];
+        const startPct=acc/totalExpense*100;
+        acc+=amt;
+        return `${color} ${startPct}% ${acc/totalExpense*100}%`;
+      }).join(', ');
+      donut.style.background=`conic-gradient(${stops})`;
+      donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-total">${totalExpense.toLocaleString('uk-UA')}</span><span class="analytics-donut-label">${tr('finance_amount_prefix')}</span></div>`;
+    }
+  }
+
+  const renderCatList=(entries,total)=>{
+    if(!entries.length) return `<div class="mgr-empty">${tr('analytics_no_data')}</div>`;
+    return entries.map(([cat,amt],i)=>{
+      const pct=total>0?Math.round(amt/total*100):0;
+      const color=PALETTE[i%PALETTE.length];
+      return `<div class="analytics-cat-row">
+        <div class="analytics-cat-top">
+          <span class="analytics-cat-name"><span style="flex-shrink:0;color:${color}">${window.Icon(CAT_ICON[cat]||'tag')}</span><span>${escapeHtml(cat)}</span></span>
+          <span class="analytics-cat-amt">${amt.toLocaleString('uk-UA')} грн · ${pct}%</span>
+        </div>
+        <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+  };
+  const expBox=document.getElementById('analytics-expense-list');
+  if(expBox) expBox.innerHTML=renderCatList(expenseByCat,totalExpense);
+  const incBox=document.getElementById('analytics-income-list');
+  if(incBox) incBox.innerHTML=renderCatList(incomeByCat,totalIncome);
+}
+
 function renderFinance(){
   const wb={};
   wallets.forEach(w=>{wb[w.id]=0;});
@@ -4032,6 +4194,7 @@ function renderFinance(){
   }
 
   renderBudgets();
+  renderAnalytics();
 
   let filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
   if(txCategoryFilter) filtered=filtered.filter(t=>t.category===txCategoryFilter);
