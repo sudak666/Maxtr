@@ -184,6 +184,29 @@ button,input,select,textarea{font-family:inherit}
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
 .stat-icon .ico{width:20px;height:20px;margin-right:0}
+
+/* ── SOLID COLORED ICON BADGE (category/wallet/tag identity) ── */
+.icon-badge{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff}
+.icon-badge .ico{width:17px;height:17px;margin-right:0}
+.icon-badge.icon-badge-sm{width:26px;height:26px}
+.icon-badge.icon-badge-sm .ico{width:13px;height:13px}
+
+/* ── TOGGLE SWITCH (checkbox styled as an iOS-like slider) ── */
+.toggle{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.toggle-track{position:absolute;inset:0;background:var(--bg3);border:1px solid var(--border2);border-radius:999px;transition:all .2s}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.toggle input:checked+.toggle-track{background:var(--green);border-color:var(--green)}
+.toggle input:checked+.toggle-track::after{transform:translateX(18px)}
+
+/* ── TWO-LINE SETTINGS LIST ROW ── */
+.settings-row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
+.settings-row+.settings-row{border-top:1px dashed var(--border)}
+.settings-row-text{flex:1 1 auto;min-width:0}
+.settings-row-title{font-size:13.5px;font-weight:700;color:var(--text-strong)}
+.settings-row-sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px}
+.settings-row-chevron{color:var(--muted);flex-shrink:0;transform:rotate(-90deg);width:16px;height:16px}
+.settings-row-chevron .ico{margin-right:0}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
@@ -398,9 +421,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   transition:border-color .15s;gap:8px;
 }
 .tx-item:hover{border-color:var(--border2)}
+.tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
 .tx-left{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tx-cat .ico{color:var(--purple2)}
 .tx-meta{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
 .tx-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap}
@@ -1000,36 +1023,102 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" onclick="openWalletsManager()"><span id="ic-set-wallets"></span><span data-i18n="settings_wallets">Гаманці</span></button>
-        <button class="btn btn-ghost" onclick="openRatesManager()"><span id="ic-set-rates"></span><span data-i18n="settings_rates">Курси валют</span></button>
-        <button class="btn btn-ghost" onclick="openCategoriesManager()"><span id="ic-set-cats"></span><span data-i18n="settings_categories">Категорії</span></button>
-        <button class="btn btn-ghost" onclick="openTagsManager()"><span id="ic-set-tags"></span><span data-i18n="settings_tags">Теги</span></button>
-        <button class="btn btn-ghost" onclick="openBudgetsManager()"><span id="ic-set-budgets"></span><span data-i18n="settings_budgets">Бюджети</span></button>
-        <button class="btn btn-ghost" onclick="openRecurringManager()"><span id="ic-set-recurring"></span><span data-i18n="settings_recurring">Повторювані операції</span></button>
-        <button class="btn btn-ghost" onclick="openRulesManager()"><span id="ic-set-rules"></span><span data-i18n="settings_rules">Автоматичні правила</span></button>
-        <button class="btn btn-ghost" onclick="exportTransactionsCSV()"><span id="ic-set-export"></span><span data-i18n="settings_export">Експорт CSV</span></button>
+      <div class="settings-row" onclick="openWalletsManager()">
+        <span id="ic-set-wallets" class="icon-badge" style="background:#8b5cf6"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_wallets">Гаманці</div>
+          <div class="settings-row-sub" data-i18n="settings_wallets_sub">Картки, готівка та інші рахунки</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openRatesManager()">
+        <span id="ic-set-rates" class="icon-badge" style="background:#3b82f6"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_rates">Курси валют</div>
+          <div class="settings-row-sub" data-i18n="settings_rates_sub">Автоматичне оновлення з НБУ</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openCategoriesManager()">
+        <span id="ic-set-cats" class="icon-badge" style="background:#ec4899"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_categories">Категорії</div>
+          <div class="settings-row-sub" data-i18n="settings_categories_sub">Власні категорії доходів і витрат</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openTagsManager()">
+        <span id="ic-set-tags" class="icon-badge" style="background:#06b6d4"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_tags">Теги</div>
+          <div class="settings-row-sub" data-i18n="settings_tags_sub">Мітки для операцій, окремо від категорій</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openBudgetsManager()">
+        <span id="ic-set-budgets" class="icon-badge" style="background:#f59e0b"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_budgets">Бюджети</div>
+          <div class="settings-row-sub" data-i18n="settings_budgets_sub">Місячні ліміти витрат по категоріях</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openRecurringManager()">
+        <span id="ic-set-recurring" class="icon-badge" style="background:#10b981"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_recurring">Повторювані операції</div>
+          <div class="settings-row-sub" data-i18n="settings_recurring_sub">Автоматичні платежі за розкладом</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openRulesManager()">
+        <span id="ic-set-rules" class="icon-badge" style="background:#a78bfa"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_rules">Автоматичні правила</div>
+          <div class="settings-row-sub" data-i18n="settings_rules_sub">Категорія за ключовим словом у коментарі</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="exportTransactionsCSV()" style="border-top:none">
+        <span id="ic-set-export" class="icon-badge" style="background:#ef4444"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_export">Експорт CSV</div>
+          <div class="settings-row-sub" data-i18n="settings_export_sub">Вивантажити всі операції у файл</div>
+        </div>
+        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-security"></span><span data-i18n="settings_security">Безпека</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" id="settings-pin" onclick="openPinSettings()" style="display:none"><span id="ic-set-pin"></span><span data-i18n="settings_pin">PIN-код доступу</span></button>
+      <div class="settings-row" id="settings-pin" onclick="openPinSettings()" style="display:none">
+        <span id="ic-set-pin" class="icon-badge" style="background:#525158"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_pin">PIN-код доступу</div>
+          <div class="settings-row-sub" data-i18n="settings_pin_sub">Захисти застосунок кодом і Face ID/Touch ID</div>
+        </div>
+        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-        <button class="btn btn-ghost" id="notif-toggle-btn" onclick="toggleReminders()"><span id="ic-notif-toggle"></span><span id="notif-toggle-label" data-i18n="settings_notif_enable">Увімкнути нагадування</span></button>
-        <div style="display:flex;align-items:center;gap:4px">
-          <select id="notif-time-hour" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
-          <span style="font-weight:800;color:var(--muted)">:</span>
-          <select id="notif-time-minute" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+      <div class="settings-row" style="cursor:default">
+        <span id="ic-notif-toggle" class="icon-badge" style="background:#f59e0b"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_notif_title">Нагадування про облік</div>
+          <div class="settings-row-sub" data-i18n="settings_notif_hint">Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.</div>
         </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-toggle-checkbox" onchange="toggleReminders()">
+          <span class="toggle-track"></span>
+        </label>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px" data-i18n="settings_notif_hint">Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.</div>
+      <div style="display:flex;align-items:center;gap:4px;padding:2px 0 4px 46px">
+        <select id="notif-time-hour" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+        <span style="font-weight:800;color:var(--muted)">:</span>
+        <select id="notif-time-minute" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+      </div>
     </div>
 
     <div class="chart-section">
@@ -1046,9 +1135,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-ghost" id="settings-signout" onclick="signOutUser()" style="display:none"><span id="ic-set-signout"></span><span data-i18n="settings_signout">Вийти з акаунту</span></button>
-        <button class="btn btn-danger" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none"><span id="ic-set-delete"></span><span data-i18n="settings_delete_account">Видалити акаунт</span></button>
+      <div class="settings-row" id="settings-signout" onclick="signOutUser()" style="display:none">
+        <span id="ic-set-signout" class="icon-badge" style="background:#525158"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_signout">Вийти з акаунту</div>
+          <div class="settings-row-sub" data-i18n="settings_signout_sub">Завершити сеанс на цьому пристрої</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none">
+        <span id="ic-set-delete" class="icon-badge" style="background:var(--red)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" style="color:var(--red2)" data-i18n="settings_delete_account">Видалити акаунт</div>
+          <div class="settings-row-sub" data-i18n="settings_delete_account_sub">Остаточно видалити акаунт і всі дані</div>
+        </div>
+        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1341,6 +1442,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-set-rules','sparkle');
   setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
+  document.querySelectorAll('.settings-row-chevron').forEach(function(el){ el.innerHTML=window.Icon('chevron'); });
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
   setIcon('tab-icon-debt','bank');
@@ -1531,6 +1633,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       analytics_income:'Дохід', analytics_expense:'Витрата', analytics_net:'Різниця', analytics_savings_rate:'Норма заощаджень',
       analytics_prefix:'Витрачаєш на', analytics_suffix_more:'більше, ніж попереднього періоду', analytics_suffix_less:'менше, ніж попереднього періоду',
       analytics_same:'Витрати на рівні попереднього періоду', analytics_no_data:'Немає даних',
+      settings_wallets_sub:'Картки, готівка та інші рахунки', settings_rates_sub:'Автоматичне оновлення з НБУ',
+      settings_categories_sub:'Власні категорії доходів і витрат', settings_tags_sub:'Мітки для операцій, окремо від категорій',
+      settings_budgets_sub:'Місячні ліміти витрат по категоріях', settings_recurring_sub:'Автоматичні платежі за розкладом',
+      settings_rules_sub:'Категорія за ключовим словом у коментарі', settings_export_sub:'Вивантажити всі операції у файл',
+      settings_pin_sub:'Захисти застосунок кодом і Face ID/Touch ID', settings_notif_title:'Нагадування про облік',
+      settings_signout_sub:'Завершити сеанс на цьому пристрої', settings_delete_account_sub:'Остаточно видалити акаунт і всі дані',
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
@@ -1665,6 +1773,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       analytics_income:'Income', analytics_expense:'Expense', analytics_net:'Net', analytics_savings_rate:'Savings rate',
       analytics_prefix:'You\'re spending', analytics_suffix_more:'more than the previous period', analytics_suffix_less:'less than the previous period',
       analytics_same:'Spending is level with the previous period', analytics_no_data:'No data yet',
+      settings_wallets_sub:'Cards, cash, and other accounts', settings_rates_sub:'Automatic updates from NBU',
+      settings_categories_sub:'Your own income and expense categories', settings_tags_sub:'Freeform labels for transactions, separate from categories',
+      settings_budgets_sub:'Monthly spending limits per category', settings_recurring_sub:'Automatic payments on a schedule',
+      settings_rules_sub:'Category by keyword in the comment', settings_export_sub:'Export all transactions to a file',
+      settings_pin_sub:'Protect the app with a code and Face ID/Touch ID', settings_notif_title:'Tracking reminder',
+      settings_signout_sub:'End the session on this device', settings_delete_account_sub:'Permanently delete the account and all data',
     }
   };
   window.currentLang='uk';
@@ -1771,6 +1885,15 @@ let catLegacyMerged = false;
 // their account (users/{uid}/...), never shared or pre-filled.
 const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
 const PALETTE = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
+// Deterministic color per category name (same string always maps to the
+// same PALETTE entry) so a category's badge color stays stable across
+// screens and re-renders, instead of shifting with list order/index.
+function categoryColor(name){
+  const s=String(name||'');
+  let h=0;
+  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  return PALETTE[h%PALETTE.length];
+}
 let debts = [];
 let currentDebtId = null;
 
@@ -3298,7 +3421,7 @@ function renderCategoriesList(){
     row.innerHTML=`
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
         <span style="display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:80px;font-size:13px;font-weight:700;color:var(--text-strong)">
-          ${window.Icon(CAT_ICON[name]||'tag')}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</span>
+          <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</span>
         </span>
         <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''}</button>
         <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
@@ -3464,7 +3587,7 @@ function renderBudgetsManagerList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <div class="mgr-name-inline" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-strong)">${window.Icon(CAT_ICON[name]||'tag')}${escapeHtml(name)}</div>
+      <div class="mgr-name-inline" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-strong)"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>${escapeHtml(name)}</div>
       <div class="mgr-field" style="flex:1 1 130px">
         <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
         <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
@@ -3498,7 +3621,7 @@ function renderBudgets(){
     row.style.marginBottom='14px';
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
-        <span style="display:flex;align-items:center;gap:6px;color:var(--text-strong);min-width:0"><span style="flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
+        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
         <span style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -3669,10 +3792,10 @@ window.toggleReminders=async function(){
     showToast(tr('toast_reminders_off'),'xmark');
     return;
   }
-  if(!('Notification' in window)){ showToast(tr('toast_reminders_unsupported'),'xmark'); return; }
+  if(!('Notification' in window)){ showToast(tr('toast_reminders_unsupported'),'xmark'); renderNotifUI(); return; }
   let perm=Notification.permission;
   if(perm==='default') perm=await Notification.requestPermission();
-  if(perm!=='granted'){ showToast(tr('toast_reminders_denied'),'xmark'); return; }
+  if(perm!=='granted'){ showToast(tr('toast_reminders_denied'),'xmark'); renderNotifUI(); return; }
   notifSettings.enabled=true;
   saveNotifSettings(); renderNotifUI();
   showToast(tr('toast_reminders_on'),'check');
@@ -3698,8 +3821,8 @@ window.updateNotifTimeFromSelects=function(){
   saveNotifSettings();
 };
 function renderNotifUI(){
-  const lbl=document.getElementById('notif-toggle-label');
-  if(lbl) lbl.textContent = notifSettings.enabled ? tr('settings_notif_disable') : tr('settings_notif_enable');
+  const cb=document.getElementById('notif-toggle-checkbox');
+  if(cb) cb.checked=!!notifSettings.enabled;
   const [hh,mm]=(notifSettings.time||'21:00').split(':');
   const h=document.getElementById('notif-time-hour');
   const m=document.getElementById('notif-time-minute');
@@ -4137,8 +4260,8 @@ function renderAnalytics(){
       donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-label">${tr('analytics_no_data')}</span></div>`;
     }else{
       let acc=0;
-      const stops=expenseByCat.map(([cat,amt],i)=>{
-        const color=PALETTE[i%PALETTE.length];
+      const stops=expenseByCat.map(([cat,amt])=>{
+        const color=categoryColor(cat);
         const startPct=acc/totalExpense*100;
         acc+=amt;
         return `${color} ${startPct}% ${acc/totalExpense*100}%`;
@@ -4150,12 +4273,12 @@ function renderAnalytics(){
 
   const renderCatList=(entries,total)=>{
     if(!entries.length) return `<div class="mgr-empty">${tr('analytics_no_data')}</div>`;
-    return entries.map(([cat,amt],i)=>{
+    return entries.map(([cat,amt])=>{
       const pct=total>0?Math.round(amt/total*100):0;
-      const color=PALETTE[i%PALETTE.length];
+      const color=categoryColor(cat);
       return `<div class="analytics-cat-row">
         <div class="analytics-cat-top">
-          <span class="analytics-cat-name"><span style="flex-shrink:0;color:${color}">${window.Icon(CAT_ICON[cat]||'tag')}</span><span>${escapeHtml(cat)}</span></span>
+          <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="background:${color};flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span>${escapeHtml(cat)}</span></span>
           <span class="analytics-cat-amt">${amt.toLocaleString('uk-UA')} грн · ${pct}%</span>
         </div>
         <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -4188,7 +4311,7 @@ function renderFinance(){
   if(bc){
     let html=`<div class="stat-card stat-big"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс (у грн)</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
     wallets.forEach(w=>{
-      html+=`<div class="stat-card"><span class="stat-icon" style="color:${w.color};background:${hexA(w.color,.14)}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</div></div>`;
+      html+=`<div class="stat-card"><span class="stat-icon" style="color:#fff;background:${w.color}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</div></div>`;
     });
     bc.innerHTML=html;
   }
@@ -4233,10 +4356,13 @@ function renderFinance(){
     item.className='tx-item';
     item.style.cursor='pointer';
     item.innerHTML=`
-      <div class="tx-left">
-        <div class="tx-cat">${catIcon}<span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
-        <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
-        ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
+      <div class="tx-left-wrap">
+        <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
+        <div class="tx-left">
+          <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
+          <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
+          ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
+        </div>
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
