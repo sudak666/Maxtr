@@ -733,7 +733,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <!-- Статистика -->
     <div class="stats-row">
       <div class="stat-card stat-big">
-        <span class="stat-icon" id="ic-salary"></span>
+        <span class="stat-icon" id="ic-salary" style="background:var(--green);color:#fff"></span>
         <div class="stat-label" data-i18n="shifts_stat_earned">Зароблено цього місяця</div>
         <div class="stat-val" id="total-salary">0 грн</div>
         <div class="salary-progress">
@@ -742,19 +742,19 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         </div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-hours"></span>
+        <span class="stat-icon" id="ic-hours" style="background:var(--purple);color:#fff"></span>
         <div class="stat-label" data-i18n="shifts_stat_hours">Годин відпрацьовано</div>
         <div class="stat-val" id="total-hours">0</div>
         <div class="stat-sub" data-i18n="shifts_stat_this_month">цього місяця</div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-day"></span>
+        <span class="stat-icon" id="ic-day" style="background:var(--blue);color:#fff"></span>
         <div class="stat-label" data-i18n="shifts_stat_shifts">Змін</div>
         <div class="stat-val" id="count-shifts" style="color:var(--blue2)">0</div>
         <div class="stat-sub" data-i18n="shifts_stat_workdays">робочих днів</div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-vacation"></span>
+        <span class="stat-icon" id="ic-vacation" style="background:var(--orange);color:#fff"></span>
         <div class="stat-label" data-i18n="shifts_stat_off">Вихідних</div>
         <div class="stat-val" id="count-off" style="color:var(--orange2)">0</div>
         <div class="stat-sub" data-i18n="shifts_stat_marked">позначених</div>
@@ -928,22 +928,22 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <div class="stats-row">
       <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-start"></span>
+        <span class="stat-icon" id="ic-debt-start" style="background:var(--purple);color:#fff"></span>
         <div class="stat-label" data-i18n="debt_stat_start">Початкова сума</div>
         <div class="stat-val" id="debt-start-val">0</div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-balance"></span>
+        <span class="stat-icon" id="ic-debt-balance" style="background:var(--blue);color:#fff"></span>
         <div class="stat-label" data-i18n="debt_stat_balance">Поточний залишок</div>
         <div class="stat-val" id="debt-balance-val">0</div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-paid"></span>
+        <span class="stat-icon" id="ic-debt-paid" style="background:var(--green);color:#fff"></span>
         <div class="stat-label" data-i18n="debt_stat_paid">Сплачено</div>
         <div class="stat-val" id="debt-paid-val">0</div>
       </div>
       <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-count"></span>
+        <span class="stat-icon" id="ic-debt-count" style="background:var(--orange);color:#fff"></span>
         <div class="stat-label" data-i18n="debt_stat_count">Платежів</div>
         <div class="stat-val" id="debt-count-val">0</div>
       </div>
@@ -1155,10 +1155,22 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-about"></span><span data-i18n="settings_about">Про застосунок</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;font-weight:700">
-        <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a>
-        <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
-      </div>
+      <a href="terms.html" target="_blank" class="settings-row" style="text-decoration:none;color:inherit">
+        <span id="ic-set-terms" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_terms">Умови використання</div>
+          <div class="settings-row-sub" data-i18n="settings_terms_sub">Правила користування застосунком</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </a>
+      <a href="privacy.html" target="_blank" class="settings-row" style="text-decoration:none;color:inherit">
+        <span id="ic-set-privacy" class="icon-badge" style="background:var(--green)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_privacy">Політика конфіденційності</div>
+          <div class="settings-row-sub" data-i18n="settings_privacy_sub">Як ми обробляємо твої дані</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </a>
       <div style="font-size:11px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Xamss — трекер змін, фінансів і розрахунків</div>
     </div>
   </div>
@@ -1272,9 +1284,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" id="cat-action-title">Категорія</div></div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionEdit()"><span id="ic-cat-act-edit"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start" onclick="catActionShowTx()"><span id="ic-cat-act-show"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
-      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="catActionDelete()"><span id="ic-cat-act-del"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionEdit()"><span id="ic-cat-act-edit" class="icon-badge icon-badge-sm" style="background:var(--blue)"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionShowTx()"><span id="ic-cat-act-show" class="icon-badge icon-badge-sm" style="background:var(--purple)"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionDelete()"><span id="ic-cat-act-del" class="icon-badge icon-badge-sm" style="background:var(--red)"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
     </div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-cancel" style="flex:1" onclick="closeManagers()" data-i18n="common_cancel">Скасувати</button>
@@ -1401,7 +1413,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     bell:'<path d="M6 10.2a6 6 0 0 1 12 0c0 4.1 1.5 5.6 2 6.1H4c.5-.5 2-2 2-6.1Z"/><path d="M9.3 19a2.7 2.7 0 0 0 5.4 0"/>',
     camera:'<path d="M4 8.3A1.7 1.7 0 0 1 5.7 6.6h1.8l1-1.9h6.9l1 1.9h1.8A1.7 1.7 0 0 1 20 8.3v9A1.7 1.7 0 0 1 18.3 19H5.7A1.7 1.7 0 0 1 4 17.3Z"/><circle cx="12" cy="13" r="3.4"/>',
     globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>',
-    pie:'<path d="M12 3.5v8.5h8.5A8.5 8.5 0 1 1 12 3.5Z"/><path d="M14.2 3.8A8.5 8.5 0 0 1 20.2 9.8"/>'
+    pie:'<path d="M12 3.5v8.5h8.5A8.5 8.5 0 1 1 12 3.5Z"/><path d="M14.2 3.8A8.5 8.5 0 0 1 20.2 9.8"/>',
+    doc:'<path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M8 12.5h8M8 16h8"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1443,6 +1456,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
   document.querySelectorAll('.settings-row-chevron').forEach(function(el){ el.innerHTML=window.Icon('chevron'); });
+  setIcon('ic-set-terms','doc');
+  setIcon('ic-set-privacy','lock');
   setIcon('tab-icon-shifts','calendar');
   setIcon('tab-icon-finance','wallet');
   setIcon('tab-icon-debt','bank');
@@ -1639,6 +1654,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_rules_sub:'Категорія за ключовим словом у коментарі', settings_export_sub:'Вивантажити всі операції у файл',
       settings_pin_sub:'Захисти застосунок кодом і Face ID/Touch ID', settings_notif_title:'Нагадування про облік',
       settings_signout_sub:'Завершити сеанс на цьому пристрої', settings_delete_account_sub:'Остаточно видалити акаунт і всі дані',
+      settings_terms_sub:'Правила користування застосунком', settings_privacy_sub:'Як ми обробляємо твої дані',
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
@@ -1779,6 +1795,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_rules_sub:'Category by keyword in the comment', settings_export_sub:'Export all transactions to a file',
       settings_pin_sub:'Protect the app with a code and Face ID/Touch ID', settings_notif_title:'Tracking reminder',
       settings_signout_sub:'End the session on this device', settings_delete_account_sub:'Permanently delete the account and all data',
+      settings_terms_sub:'Rules for using the app', settings_privacy_sub:'How we handle your data',
     }
   };
   window.currentLang='uk';
@@ -4238,11 +4255,13 @@ function renderAnalytics(){
 
   const statsBox=document.getElementById('analytics-stats');
   if(statsBox){
+    const netColor=net>=0?'var(--green)':'var(--red)';
+    const rateColor=savingsRate>=0?'var(--green)':'var(--red)';
     statsBox.innerHTML=`
-      <div class="stat-card"><span class="stat-icon" style="color:var(--green2)">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${totalIncome.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon" style="color:var(--red2)">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${totalExpense.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon">${window.Icon('target')}</span><div class="stat-label">${tr('analytics_savings_rate')}</div><div class="stat-val" style="color:${savingsRate>=0?'var(--green2)':'var(--red2)'};font-size:18px">${savingsRate}%</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:var(--green);color:#fff">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${totalIncome.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:var(--red);color:#fff">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${totalExpense.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:${netColor};color:#fff">${window.Icon('coin')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:${rateColor};color:#fff">${window.Icon('target')}</span><div class="stat-label">${tr('analytics_savings_rate')}</div><div class="stat-val" style="color:${savingsRate>=0?'var(--green2)':'var(--red2)'};font-size:18px">${savingsRate}%</div></div>
     `;
   }
 
