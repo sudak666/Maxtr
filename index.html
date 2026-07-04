@@ -2,9 +2,9 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<script>try{var __xt=localStorage.getItem('xamssTheme'); if(__xt==='light'||__xt==='unbreakable')document.documentElement.setAttribute('data-theme',__xt);}catch(e){}</script>
+<script>try{if(localStorage.getItem('xamssTheme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0a0812">
+<meta name="theme-color" content="#1c1c1f">
 <meta name="color-scheme" content="dark light">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,16 +21,16 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 :root{
-  --bg:#08060f;
-  --bg1:#0f0c1a;
-  --bg2:#161225;
-  --bg3:#1e1830;
-  --border:#2a2245;
-  --border2:#3d3460;
-  --text:#ede9f8;
+  --bg:#1c1c1f;
+  --bg1:#242327;
+  --bg2:#2c2b30;
+  --bg3:#38373d;
+  --border:#403f45;
+  --border2:#525158;
+  --text:#e9e8ea;
   --text-strong:#ffffff;
-  --muted:#7b709a;
-  --muted2:#4f4870;
+  --muted:#96959c;
+  --muted2:#68676e;
   --purple:#8b5cf6;
   --purple2:#a78bfa;
   --purple3:#6d28d9;
@@ -74,51 +74,6 @@
 [data-theme="light"] .wt-pumb{color:#b91c1c}
 [data-theme="light"] .wt-cash{color:#b45309}
 [data-theme="light"] .wt-main{color:#6d28d9}
-
-/* "Незламні" — Ukraine-flag-inspired deep blue + gold theme. --purple stays
-   a proper blue (so the many hardcoded color:#fff pairings across buttons
-   stay legible) while --orange (already the app's secondary accent, used
-   for the cash wallet/budget warnings) becomes the flag gold. */
-[data-theme="unbreakable"]{
-  --bg:#03122b;
-  --bg1:#071c40;
-  --bg2:#0c274f;
-  --bg3:#123262;
-  --border:#1a3a6b;
-  --border2:#27508f;
-  --text:#eaf2ff;
-  --text-strong:#ffffff;
-  --muted:#87a0d4;
-  --muted2:#4d6aa3;
-  --purple:#ffd700;
-  --purple2:#ffe45c;
-  --purple3:#e6bc00;
-  --green:#10b981;
-  --green2:#34d399;
-  --red:#ef4444;
-  --red2:#f87171;
-  --blue:#2f7fff;
-  --blue2:#7fb3ff;
-  --orange:#f59e0b;
-  --orange2:#fbbf24;
-  --pink:#ec4899;
-  --cyan:#06b6d4;
-  --overlay:rgba(2,8,24,.8);
-}
-/* --purple is now gold in this theme, so every spot that hardcodes
-   color:#fff on a --purple background needs a dark navy text override —
-   white-on-gold is unreadable. */
-[data-theme="unbreakable"] .lock-logo,
-[data-theme="unbreakable"] .auth-tab.active,
-[data-theme="unbreakable"] .topbar-logo,
-[data-theme="unbreakable"] .btn-primary,
-[data-theme="unbreakable"] .tab-btn.active,
-[data-theme="unbreakable"] .dp-day.dp-sel,
-[data-theme="unbreakable"] .add-btn,
-[data-theme="unbreakable"] .modal-save,
-[data-theme="unbreakable"] .dlg-ok{
-  color:#0a1330;
-}
 
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s ease,color .25s ease}
@@ -170,7 +125,7 @@ button,input,select,textarea{font-family:inherit}
 /* ── TOP NAV ── */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:calc(14px + env(safe-area-inset-top)) 20px 14px;background:rgba(15,12,26,0.85);
+  padding:calc(14px + env(safe-area-inset-top)) 20px 14px;background:rgba(28,28,31,0.85);
   backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap;
 }
@@ -1045,7 +1000,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <button type="button" class="type-btn theme-opt" data-theme="dark" onclick="setTheme('dark')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_dark">Темна</button>
         <button type="button" class="type-btn theme-opt" data-theme="light" onclick="setTheme('light')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_light">Світла</button>
-        <button type="button" class="type-btn theme-opt" data-theme="unbreakable" onclick="setTheme('unbreakable')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_unbreakable">Незламні</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <button type="button" class="type-btn lang-opt" data-lang="uk" onclick="setLang('uk')" style="flex:0 0 auto;padding:8px 16px">Українська</button>
@@ -1382,8 +1336,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   function $(id){return document.getElementById(id);}
 
   // ── THEME ──
-  var THEME_ICON={dark:'moon',light:'sun',unbreakable:'star'};
-  var THEME_COLOR={dark:'#0a0812',light:'#f2f2f7',unbreakable:'#03122b'};
+  var THEME_ICON={dark:'moon',light:'sun'};
+  var THEME_COLOR={dark:'#1c1c1f',light:'#f2f2f7'};
   function applyTheme(theme){
     if(!THEME_ICON[theme]) theme='dark';
     document.documentElement.setAttribute('data-theme', theme);
@@ -1395,7 +1349,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   window.setTheme=function(theme){ applyTheme(theme); };
   window.toggleTheme=function(){
     var cur=document.documentElement.getAttribute('data-theme')||'dark';
-    var order=['dark','light','unbreakable'];
+    var order=['dark','light'];
     applyTheme(order[(order.indexOf(cur)+1)%order.length]);
   };
   applyTheme(document.documentElement.getAttribute('data-theme')||'dark');
@@ -1414,7 +1368,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_security:'Безпека', settings_pin:'PIN-код доступу',
       settings_notifications:'Сповіщення', settings_notif_enable:'Увімкнути нагадування', settings_notif_disable:'Вимкнути нагадування',
       settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
-      settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла', theme_unbreakable:'Незламні',
+      settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
       settings_footer:'Xamss — трекер змін, фінансів і розрахунків', settings_signed_in_as:'Увійшли як',
@@ -1543,7 +1497,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_security:'Security', settings_pin:'PIN lock',
       settings_notifications:'Notifications', settings_notif_enable:'Enable reminders', settings_notif_disable:'Disable reminders',
       settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
-      settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light', theme_unbreakable:'Unbreakable',
+      settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
       settings_footer:'Xamss — shift, finance & settlement tracker', settings_signed_in_as:'Signed in as',

@@ -4,7 +4,7 @@
   "description": "Трекер робочих змін, фінансів і розрахунків з налаштовуваними типами змін, гаманцями та категоріями",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#06050a",
+  "background_color": "#1c1c1f",
   "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
   "icons": [
