@@ -1040,6 +1040,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
 
     <div class="chart-section">
+      <div class="settings-row" onclick="showPremiumUpsell()">
+        <span id="ic-set-premium" class="icon-badge" style="background:#f59e0b"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_premium">Преміум</div>
+          <div class="settings-row-sub" id="settings-premium-sub" data-i18n="premium_free_plan">Безкоштовний план</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+    </div>
+
+    <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
       <div class="settings-row" onclick="openWalletsManager()">
         <span id="ic-set-wallets" class="icon-badge" style="background:#8b5cf6"></span>
@@ -1285,6 +1296,36 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- PREMIUM UPSELL -->
+<div class="modal-overlay" id="premium-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div style="display:flex;justify-content:center;margin-bottom:10px">
+      <span class="icon-badge" id="ic-premium-badge" style="width:52px;height:52px;background:linear-gradient(135deg,#f59e0b,#ec4899)"></span>
+    </div>
+    <div class="modal-header" style="justify-content:center;text-align:center"><div class="modal-date" data-i18n="premium_title">Xamss Преміум</div></div>
+    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Розблокуй більше можливостей застосунку.</div>
+    <div class="settings-row">
+      <span class="icon-badge icon-badge-sm" style="background:var(--purple)" id="ic-premium-wallets"></span>
+      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_limits">Без лімітів</div><div class="settings-row-sub" data-i18n="premium_perk_limits_sub">Необмежено гаманців, категорій, авто-правил і повторюваних платежів</div></div>
+    </div>
+    <div class="settings-row">
+      <span class="icon-badge icon-badge-sm" style="background:var(--blue)" id="ic-premium-bell"></span>
+      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_push">Push-сповіщення</div><div class="settings-row-sub" data-i18n="premium_perk_push_sub">Нагадування навіть коли застосунок закритий</div></div>
+    </div>
+    <div class="settings-row">
+      <span class="icon-badge icon-badge-sm" style="background:var(--green)" id="ic-premium-bank"></span>
+      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_banks">Інтеграція з банками</div><div class="settings-row-sub" data-i18n="premium_perk_banks_sub">Автоматичне підвантаження операцій</div></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" disabled style="width:100%;justify-content:center;opacity:.6" data-i18n="premium_soon_btn">Скоро буде доступно</button>
+      <button class="modal-save" style="width:100%" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- MANAGER: TAGS -->
 <div class="modal-overlay" id="tags-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1469,6 +1510,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-settings-appearance','sun');
   setIcon('ic-settings-account','person');
   setIcon('ic-settings-about','info');
+  setIcon('ic-set-premium','star');
+  setIcon('ic-premium-badge','star');
+  setIcon('ic-premium-wallets','wallet');
+  setIcon('ic-premium-bell','bell');
+  setIcon('ic-premium-bank','bank');
   setIcon('ic-set-wallets','wallet');
   setIcon('ic-set-rates','swap');
   setIcon('ic-rates-update','refresh');
@@ -1629,6 +1675,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_nbu_short:'НБУ,', rates_source_privat_short:'ПриватБанк,',
       rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
       fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
+      settings_premium:'Преміум', premium_free_plan:'Безкоштовний план', premium_active_plan:'Преміум активний',
+      premium_title:'Xamss Преміум', premium_subtitle:'Розблокуй більше можливостей застосунку.',
+      premium_perk_limits:'Без лімітів', premium_perk_limits_sub:'Необмежено гаманців, категорій, авто-правил і повторюваних платежів',
+      premium_perk_push:'Push-сповіщення', premium_perk_push_sub:'Нагадування навіть коли застосунок закритий',
+      premium_perk_banks:'Інтеграція з банками', premium_perk_banks_sub:'Автоматичне підвантаження операцій',
+      premium_soon_btn:'Скоро буде доступно',
+      premium_limit_wallets:'Безкоштовний план дозволяє до 3 гаманців. Преміум знімає це обмеження.',
+      premium_limit_categories:'Безкоштовний план дозволяє до 8 категорій одного типу. Преміум знімає це обмеження.',
+      premium_limit_rules:'Безкоштовний план дозволяє до 3 авто-правил. Преміум знімає це обмеження.',
+      premium_limit_recurring:'Безкоштовний план дозволяє до 3 повторюваних платежів. Преміум знімає це обмеження.',
       cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
       cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
       cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
@@ -1775,6 +1831,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_nbu_short:'NBU,', rates_source_privat_short:'PrivatBank,',
       rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
       fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
+      settings_premium:'Premium', premium_free_plan:'Free plan', premium_active_plan:'Premium active',
+      premium_title:'Xamss Premium', premium_subtitle:'Unlock more of the app.',
+      premium_perk_limits:'No limits', premium_perk_limits_sub:'Unlimited wallets, categories, auto-rules, and recurring payments',
+      premium_perk_push:'Push notifications', premium_perk_push_sub:'Reminders even when the app is closed',
+      premium_perk_banks:'Bank integrations', premium_perk_banks_sub:'Automatic transaction import',
+      premium_soon_btn:'Coming soon',
+      premium_limit_wallets:'The free plan allows up to 3 wallets. Premium removes this limit.',
+      premium_limit_categories:'The free plan allows up to 8 categories per type. Premium removes this limit.',
+      premium_limit_rules:'The free plan allows up to 3 auto-rules. Premium removes this limit.',
+      premium_limit_recurring:'The free plan allows up to 3 recurring payments. Premium removes this limit.',
       cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
       cat_no_subcats:'No subcategories', cat_subcategory:'Subcategory',
       cat_add_subcat_prompt:'Subcategory name:', cat_add_subcat_title:'New subcategory', cat_subcat_exists:'That subcategory already exists',
@@ -1919,6 +1985,24 @@ let selectedTagIds = [];
 // resized client-side before storing so it stays well under Firestore's
 // per-document size limit). Synced via the finance doc like other config.
 let profile = {nickname:'', avatar:''};
+// Subscription/plan state — data model only for now, no payment wired up
+// yet. 'expiresAt' is a ms timestamp for a time-limited premium grant (null
+// means "no expiry", used once real purchases exist). Synced via the
+// finance doc like profile, so plan status follows the user across devices.
+let subscription = {plan:'free', expiresAt:null};
+const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3};
+function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
+function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
+function renderPremiumUI(){
+  const sub=document.getElementById('settings-premium-sub');
+  if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
+}
+const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring'};
+window.showPremiumUpsell=function(limitKind){
+  const msgEl=document.getElementById('premium-modal-limit-msg');
+  if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
+  document.getElementById('premium-modal').style.display='flex';
+};
 // Daily reminder ("did you record today's transactions?"). Device-local by
 // design — Notification permission itself is per-browser, so there is no
 // value syncing this across devices like profile/wallets are.
@@ -1984,7 +2068,7 @@ window.__applyLangDynamic=function(lang){
   WEEKDAYS=LANG_CALENDAR[lang].weekdays;
   populateMonthSelectLabels();
   renderCalendar(); renderIncomeChart(); renderFinance(); renderFinanceChart(); renderDebt();
-  renderProfileUI(); renderNotifUI(); updateAmountLabel();
+  renderProfileUI(); renderPremiumUI(); renderNotifUI(); updateAmountLabel();
   const wsl=document.getElementById('wallet-source-label');
   if(wsl){
     const key={income:'finance_wallet',expense:'finance_wallet_expense',transfer:'finance_wallet_transfer'}[currentFinanceType];
@@ -2112,7 +2196,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, subscription, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -2172,6 +2256,7 @@ function seedConfigFromDocs(sData, fData){
   tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
   autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
   profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
+  subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -2308,7 +2393,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, subscription, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -2686,7 +2771,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -2694,10 +2779,10 @@ async function init(){
   switchTab('shifts');
   setFinanceType('income');
   enhanceAllSelects();
-  renderProfileUI();
+  renderProfileUI(); renderPremiumUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
-  renderProfileUI();
+  renderProfileUI(); renderPremiumUI();
   maybeShowDailyReminder();
   maybeAutoUpdateRates();
 }
@@ -3240,7 +3325,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -3333,6 +3418,7 @@ window.updateWallet=function(id,field,value){
   renderFinance(); refreshWalletSelects();
 };
 window.addWallet=async function(){
+  if(!canAddMore('wallets', wallets.length)){ showPremiumUpsell('wallets'); return; }
   const name=await uiPrompt(tr('wallets_add_prompt'),tr('wallets_new_default'),tr('wallets_new_default'));
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
@@ -3661,6 +3747,7 @@ window.renameCategory=function(idx,value){
   renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
 };
 window.addCategory=async function(){
+  if(!canAddMore('categoriesPerType', (categories[catMgrType]||[]).length)){ showPremiumUpsell('categoriesPerType'); return; }
   const name=await uiPrompt(tr('cat_add_prompt'),'',tr('cat_add_title'));
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
@@ -3841,6 +3928,7 @@ window.updateRecurring=function(id,field,value){
   renderRecurringList();
 };
 window.addRecurring=function(){
+  if(!canAddMore('recurring', recurring.length)){ showPremiumUpsell('recurring'); return; }
   const type='expense';
   const category=(categories.expense||[])[0]||tr('cat_other');
   const wallet=(wallets[0]&&wallets[0].id)||'';
@@ -4299,6 +4387,7 @@ window.updateAutoRule=function(id,field,value){
   renderAutoRulesList();
 };
 window.addAutoRule=function(){
+  if(!canAddMore('autoRules', autoRules.length)){ showPremiumUpsell('autoRules'); return; }
   const type='expense';
   const category=(categories.expense||[])[0]||'';
   autoRules.push({id:uid('rule'), type, keyword:'', category});
