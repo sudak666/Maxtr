@@ -331,6 +331,14 @@ button,input,select,textarea{font-family:inherit}
   font-size:24px;font-weight:800;color:var(--purple2);
 }
 .profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar-opt{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  border:2px solid transparent;transition:transform .15s,border-color .15s;
+  box-shadow:inset 0 -4px 7px rgba(0,0,0,.3), inset 0 2px 3px rgba(255,255,255,.4);
+}
+.avatar-opt:active{transform:scale(.92)}
+.avatar-opt.sel{border-color:var(--text-strong)}
 
 /* Hide the ugly native number-input spin buttons everywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -722,14 +730,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
   <!-- TABS -->
   <div class="tabs" style="margin-top:18px">
-    <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span data-i18n="nav_finance">Фінанси</span></button>
-    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
+    <button id="nav-finance" class="tab-btn tab-c-finance active" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span data-i18n="nav_finance">Фінанси</span></button>
+    <button id="nav-shifts" class="tab-btn tab-c-shifts" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
     <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span data-i18n="nav_debt">Розрахунки</span></button>
     <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span data-i18n="nav_settings">Налаштування</span></button>
   </div>
 
   <!-- ═══ ЗМІНИ ═══ -->
-  <div id="tab-shifts">
+  <div id="tab-shifts" style="display:none">
     <div class="page-head">
       <div class="page-label" data-i18n="shifts_kicker">Особистий робочий календар</div>
       <div class="page-title" data-i18n="shifts_title">Робочі зміни</div>
@@ -807,7 +815,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 
   <!-- ═══ ФІНАНСИ ═══ -->
-  <div id="tab-finance" style="display:none">
+  <div id="tab-finance">
     <div class="page-head">
       <div class="page-label" data-i18n="finance_kicker">Особистий бюджет</div>
       <div class="page-title" data-i18n="finance_title">Гаманці & Фінанси</div>
@@ -820,13 +828,34 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
 
     <!-- Курси валют -->
-    <div class="chart-section">
+    <div class="chart-section" id="fx-widget-section">
       <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
         <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
         <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()"><span id="ic-fx-widget-refresh"></span></button>
       </div>
       <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
       <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
+    </div>
+
+    <!-- Конвертер валют -->
+    <div class="chart-section" id="fx-converter-section">
+      <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="flex:1 1 110px;margin:0">
+          <label data-i18n="fx_converter_amount">Сума</label>
+          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" oninput="renderFxConverter()">
+        </div>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_from">З</label>
+          <select id="fx-conv-from" onchange="renderFxConverter()"></select>
+        </div>
+        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" onclick="swapFxConverter()" title="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_to">В</label>
+          <select id="fx-conv-to" onchange="renderFxConverter()"></select>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
     </div>
 
     <!-- Аналітика витрат і доходів -->
@@ -860,7 +889,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     </div>
 
     <!-- Графік витрат по місяцях -->
-    <div class="chart-section">
+    <div class="chart-section" id="finance-chart-section">
       <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
       <div class="chart-bars" id="finance-chart"></div>
     </div>
@@ -1037,6 +1066,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
           <div style="font-size:11px;color:var(--muted);font-weight:600" id="profile-signed-as"></div>
         </div>
       </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;margin:14px 0 8px" data-i18n="settings_avatar_picker_label">Або обери іконку профілю</div>
+      <div id="profile-avatar-picker" style="display:flex;gap:10px;flex-wrap:wrap"></div>
     </div>
 
     <div class="chart-section">
@@ -1065,6 +1096,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_rates">Курси валют</div>
           <div class="settings-row-sub" data-i18n="settings_rates_sub">Автоматичне оновлення з НБУ</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openWidgetsManager()">
+        <span id="ic-set-widgets" class="icon-badge" style="background:#14b8a6"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_widgets">Віджети</div>
+          <div class="settings-row-sub" data-i18n="settings_widgets_sub">Що показувати на вкладці Фінанси</div>
         </div>
         <span class="settings-row-chevron"></span>
       </div>
@@ -1296,6 +1335,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
 </div>
 
+<!-- MANAGER: WIDGETS -->
+<div class="modal-overlay" id="widgets-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_widgets">Віджети</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="widgets_desc">Увімкни чи вимкни блоки на вкладці "Фінанси".</div>
+    <div id="widgets-list"></div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- PREMIUM UPSELL -->
 <div class="modal-overlay" id="premium-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1479,7 +1533,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     camera:'<path d="M4 8.3A1.7 1.7 0 0 1 5.7 6.6h1.8l1-1.9h6.9l1 1.9h1.8A1.7 1.7 0 0 1 20 8.3v9A1.7 1.7 0 0 1 18.3 19H5.7A1.7 1.7 0 0 1 4 17.3Z"/><circle cx="12" cy="13" r="3.4"/>',
     globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>',
     pie:'<path d="M12 3.5v8.5h8.5A8.5 8.5 0 1 1 12 3.5Z"/><path d="M14.2 3.8A8.5 8.5 0 0 1 20.2 9.8"/>',
-    doc:'<path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M8 12.5h8M8 16h8"/>'
+    doc:'<path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M8 12.5h8M8 16h8"/>',
+    grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1520,6 +1575,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-rates-update','refresh');
   setIcon('ic-fx-widget','swap');
   setIcon('ic-fx-widget-refresh','refresh');
+  setIcon('ic-fx-converter','swap');
+  setIcon('ic-fx-converter-swap','swap');
+  setIcon('ic-set-widgets','grid');
   setIcon('ic-set-cats','tag');
   setIcon('ic-set-tags','tag');
   setIcon('ic-set-budgets','target');
@@ -1589,7 +1647,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   var I18N={
     uk:{
       settings_kicker:'Керування застосунком', settings_title:'Налаштування',
-      settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм',
+      settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм', settings_avatar_picker_label:'Або обери іконку профілю',
       settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
       settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
       settings_recurring:'Повторювані операції', settings_rules:'Автоматичні правила', settings_export:'Експорт CSV',
@@ -1675,6 +1733,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_nbu_short:'НБУ,', rates_source_privat_short:'ПриватБанк,',
       rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
       fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
+      fx_converter_title:'Конвертер валют', fx_converter_amount:'Сума', fx_converter_from:'З', fx_converter_to:'В',
+      settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни чи вимкни блоки на вкладці "Фінанси".',
+      widgets_item_rates:'Курси валют', widgets_item_rates_sub:'Компактний список курсів', widgets_item_converter:'Конвертер валют', widgets_item_converter_sub:'Швидкий перерахунок суми',
+      widgets_item_analytics:'Аналітика', widgets_item_analytics_sub:'Витрати й доходи за категоріями', widgets_item_chart:'Графік балансу', widgets_item_chart_sub:'Баланс за останні 6 місяців',
       settings_premium:'Преміум', premium_free_plan:'Безкоштовний план', premium_active_plan:'Преміум активний',
       premium_title:'Xamss Преміум', premium_subtitle:'Розблокуй більше можливостей застосунку.',
       premium_perk_limits:'Без лімітів', premium_perk_limits_sub:'Необмежено гаманців, категорій, авто-правил і повторюваних платежів',
@@ -1745,7 +1807,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
-      settings_profile:'Profile', settings_nickname_placeholder:'Nickname',
+      settings_profile:'Profile', settings_nickname_placeholder:'Nickname', settings_avatar_picker_label:'Or pick a profile icon',
       settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
       settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
       settings_recurring:'Recurring transactions', settings_rules:'Auto-categorization rules', settings_export:'Export CSV',
@@ -1831,6 +1893,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_nbu_short:'NBU,', rates_source_privat_short:'PrivatBank,',
       rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
       fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
+      fx_converter_title:'Currency converter', fx_converter_amount:'Amount', fx_converter_from:'From', fx_converter_to:'To',
+      settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off.',
+      widgets_item_rates:'Exchange rates', widgets_item_rates_sub:'Compact rates list', widgets_item_converter:'Currency converter', widgets_item_converter_sub:'Quick amount conversion',
+      widgets_item_analytics:'Analytics', widgets_item_analytics_sub:'Income and expenses by category', widgets_item_chart:'Balance chart', widgets_item_chart_sub:'Balance over the last 6 months',
       settings_premium:'Premium', premium_free_plan:'Free plan', premium_active_plan:'Premium active',
       premium_title:'Xamss Premium', premium_subtitle:'Unlock more of the app.',
       premium_perk_limits:'No limits', premium_perk_limits_sub:'Unlimited wallets, categories, auto-rules, and recurring payments',
@@ -1990,6 +2056,18 @@ let profile = {nickname:'', avatar:''};
 // means "no expiry", used once real purchases exist). Synced via the
 // finance doc like profile, so plan status follows the user across devices.
 let subscription = {plan:'free', expiresAt:null};
+// Which optional Finance-tab widgets the user wants to see. Synced via the
+// finance doc like profile/subscription so the choice follows the user
+// across devices. Budgets isn't here — it already hides itself when the
+// user hasn't set any budget.
+let widgets = {rates:true, converter:true, analytics:true, chart:true};
+function applyWidgetVisibility(){
+  const map={rates:'fx-widget-section', converter:'fx-converter-section', analytics:'analytics-section', chart:'finance-chart-section'};
+  Object.entries(map).forEach(([key,id])=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = widgets[key]===false ? 'none' : '';
+  });
+}
 const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3};
 function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
@@ -2196,7 +2274,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, subscription, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, subscription, widgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -2257,6 +2335,7 @@ function seedConfigFromDocs(sData, fData){
   autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
   profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
+  widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false} : {rates:true, converter:true, analytics:true, chart:true};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -2393,7 +2472,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, subscription, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, subscription, widgets, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -2771,18 +2850,19 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false}:{rates:true,converter:true,analytics:true,chart:true}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
   if(di) di.value=now.toISOString().split('T')[0];
-  switchTab('shifts');
+  switchTab('finance');
   setFinanceType('income');
+  populateFxConverterSelects(); renderFxConverter();
   enhanceAllSelects();
   renderProfileUI(); renderPremiumUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
-  renderProfileUI(); renderPremiumUI();
+  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility();
   maybeShowDailyReminder();
   maybeAutoUpdateRates();
 }
@@ -2798,7 +2878,7 @@ function switchTab(tab){
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
-  if(tab==='finance') {renderFinance(); renderFinanceChart();
+  if(tab==='finance') {applyWidgetVisibility(); renderFinance(); renderFinanceChart();
     const fp=document.getElementById('finance-panel-block');
     if(fp) fp.style.display=window.innerWidth<=900?'block':'grid';
   }
@@ -3325,7 +3405,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -3441,6 +3521,37 @@ window.openRatesManager=function(){
   renderRatesUpdatedHint();
   renderRatesSourceUI();
   document.getElementById('rates-modal').style.display='flex';
+};
+// Widgets manager: lets the user hide/show optional Finance-tab blocks.
+const WIDGET_DEFS=[
+  {key:'rates', icon:'swap', color:'#3b82f6', titleKey:'widgets_item_rates', subKey:'widgets_item_rates_sub'},
+  {key:'converter', icon:'swap', color:'#0ea5e9', titleKey:'widgets_item_converter', subKey:'widgets_item_converter_sub'},
+  {key:'analytics', icon:'pie', color:'#ec4899', titleKey:'widgets_item_analytics', subKey:'widgets_item_analytics_sub'},
+  {key:'chart', icon:'barChart', color:'#f59e0b', titleKey:'widgets_item_chart', subKey:'widgets_item_chart_sub'},
+];
+function renderWidgetsList(){
+  const box=document.getElementById('widgets-list'); if(!box) return;
+  box.innerHTML=WIDGET_DEFS.map(w=>`
+    <div class="settings-row" style="cursor:default">
+      <span class="icon-badge" style="background:${w.color}">${window.Icon(w.icon)}</span>
+      <div class="settings-row-text">
+        <div class="settings-row-title">${tr(w.titleKey)}</div>
+        <div class="settings-row-sub">${tr(w.subKey)}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${widgets[w.key]!==false?'checked':''} onchange="toggleWidget('${w.key}', this.checked)">
+        <span class="toggle-track"></span>
+      </label>
+    </div>`).join('');
+}
+window.toggleWidget=function(key, on){
+  widgets[key]=!!on;
+  saveConfigLocal(); scheduleSave();
+  applyWidgetVisibility();
+};
+window.openWidgetsManager=function(){
+  renderWidgetsList();
+  document.getElementById('widgets-modal').style.display='flex';
 };
 function renderRatesList(){
   const box=document.getElementById('rates-list'); if(!box) return;
@@ -3587,6 +3698,33 @@ function renderFxWidget(){
     hint.textContent = at ? `${tr('rates_updated_at')} ${sourceLabel} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
   }
 }
+// Quick amount converter between any two of the app's tracked currencies,
+// reusing the same currencyRates the wallets/analytics/charts convert with.
+function populateFxConverterSelects(){
+  const from=document.getElementById('fx-conv-from'), to=document.getElementById('fx-conv-to');
+  if(!from || !to || from.options.length) return;
+  const optHtml=CURRENCY_LIST.map(c=>`<option value="${c}">${c}</option>`).join('');
+  from.innerHTML=optHtml; to.innerHTML=optHtml;
+  from.value='USD'; to.value='UAH';
+}
+function renderFxConverter(){
+  const amountEl=document.getElementById('fx-conv-amount');
+  const fromEl=document.getElementById('fx-conv-from'), toEl=document.getElementById('fx-conv-to');
+  const resultEl=document.getElementById('fx-converter-result');
+  if(!amountEl || !fromEl || !toEl || !resultEl) return;
+  const amount=parseFloat(amountEl.value)||0;
+  const from=fromEl.value||'UAH', to=toEl.value||'UAH';
+  const result=convertCurrency(amount, from, to);
+  resultEl.textContent=`${amount.toLocaleString('uk-UA')} ${currencySymbol(from)} = ${result.toLocaleString('uk-UA')} ${currencySymbol(to)}`;
+}
+window.renderFxConverter=renderFxConverter;
+window.swapFxConverter=function(){
+  const fromEl=document.getElementById('fx-conv-from'), toEl=document.getElementById('fx-conv-to');
+  if(!fromEl || !toEl) return;
+  const tmp=fromEl.value; fromEl.value=toEl.value; toEl.value=tmp;
+  csSync(fromEl); csSync(toEl);
+  renderFxConverter();
+};
 window.refreshFxWidget=function(){
   window.updateRatesOnline();
 };
@@ -3946,6 +4084,27 @@ window.deleteRecurring=async function(id){
 };
 
 // ── PROFILE (avatar + nickname) ──────────────────────────────
+// Built-in profile icons for anyone who'd rather not upload a photo.
+// Stored as "builtin:<id>" in profile.avatar; the gradient + inset shadow
+// (see .avatar-opt) gives the flat emoji a glossy, rounded look.
+const BUILTIN_AVATARS=[
+  {id:'fox', emoji:'🦊', gradient:'linear-gradient(135deg,#f97316,#fbbf24)'},
+  {id:'panda', emoji:'🐼', gradient:'linear-gradient(135deg,#64748b,#cbd5e1)'},
+  {id:'robot', emoji:'🤖', gradient:'linear-gradient(135deg,#0ea5e9,#67e8f9)'},
+  {id:'rocket', emoji:'🚀', gradient:'linear-gradient(135deg,#8b5cf6,#ec4899)'},
+  {id:'gem', emoji:'💎', gradient:'linear-gradient(135deg,#06b6d4,#3b82f6)'},
+  {id:'lion', emoji:'🦁', gradient:'linear-gradient(135deg,#f59e0b,#ef4444)'},
+];
+window.selectBuiltinAvatar=function(id){
+  profile.avatar='builtin:'+id;
+  saveConfigLocal(); scheduleSave();
+  renderProfileUI();
+  showToast(tr('toast_avatar_updated'),'check');
+};
+function renderAvatarPicker(){
+  const box=document.getElementById('profile-avatar-picker'); if(!box) return;
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectBuiltinAvatar('${a.id}')">${a.emoji}</div>`).join('');
+}
 // Resizes/crops any uploaded image to a small square JPEG data URL client-
 // side (no Firebase Storage needed) so it fits comfortably inside the
 // finance doc alongside wallets/categories/etc.
@@ -3998,6 +4157,11 @@ window.saveNickname=function(){
 // user's uploaded photo, or their nickname/email initial as a fallback.
 function fillAvatarEl(el){
   if(!el) return;
+  if(profile.avatar && profile.avatar.startsWith('builtin:')){
+    const a=BUILTIN_AVATARS.find(x=>'builtin:'+x.id===profile.avatar);
+    if(a){ el.style.background=a.gradient; el.textContent=a.emoji; return; }
+  }
+  el.style.background='';
   if(profile.avatar){ el.innerHTML=`<img src="${profile.avatar}" alt="">`; }
   else{
     const letter=(profile.nickname||(currentUser&&currentUser.email)||'?').trim().charAt(0).toUpperCase()||'?';
@@ -4007,6 +4171,7 @@ function fillAvatarEl(el){
 function renderProfileUI(){
   fillAvatarEl(document.getElementById('profile-avatar-preview'));
   fillAvatarEl(document.getElementById('topbar-avatar'));
+  renderAvatarPicker();
   const ni=document.getElementById('profile-nickname-input');
   if(ni && document.activeElement!==ni) ni.value=profile.nickname||'';
   const who=document.getElementById('profile-signed-as');
@@ -4564,6 +4729,7 @@ function renderFinance(){
   }
 
   renderFxWidget();
+  renderFxConverter();
   renderBudgets();
   renderAnalytics();
 
