@@ -131,7 +131,8 @@ button,input,select,textarea{font-family:inherit}
 }
 [data-theme="light"] .topbar{background:rgba(255,255,255,0.85)}
 .topbar-brand{display:flex;align-items:center;gap:10px}
-.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0}
+.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;cursor:pointer}
+.topbar-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .topbar-title{font-size:16px;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em}
 .topbar-sub{font-size:11px;color:var(--muted);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -701,7 +702,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-brand">
-    <div class="topbar-logo">X</div>
+    <div class="topbar-logo" id="topbar-avatar" onclick="switchTab('settings')" title="Профіль">X</div>
     <div>
       <div class="topbar-title">Xamss</div>
       <div class="topbar-sub" data-i18n="topbar_sub">Зміни · Фінанси · Хмара</div>
@@ -1015,7 +1016,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <div class="profile-avatar" id="profile-avatar-preview" onclick="document.getElementById('profile-avatar-input').click()"></div>
         <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
         <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:6px;min-width:180px">
-          <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none" onchange="updateNickname(this.value)">
+          <div style="display:flex;gap:6px">
+            <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" style="flex:1 1 auto;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none" oninput="onNicknameInput(this.value)">
+            <button class="btn btn-primary" id="profile-save-btn" onclick="saveNickname()" style="display:none;flex-shrink:0" data-i18n="common_save">Зберегти</button>
+          </div>
           <div style="font-size:11px;color:var(--muted);font-weight:600" id="profile-signed-as"></div>
         </div>
       </div>
@@ -1549,7 +1553,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       toast_reminders_off:'Нагадування вимкнено', toast_reminders_unsupported:'Браузер не підтримує сповіщення',
       toast_reminders_denied:'Дозвіл на сповіщення не надано', toast_reminders_on:'Нагадування увімкнено',
       reminder_body:'Ви записали свої операції сьогодні?',
-      common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва',
+      common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва', common_save:'Зберегти',
+      toast_nickname_saved:'Нікнейм збережено',
       common_confirm_title:'Підтвердіть дію', common_yes:'Так', common_got_it:'Зрозуміло',
       cat_income:'Дохід', cat_expense:'Витрата', cat_other:'Інше',
       sync_saving:'Зберігаю...', sync_conflict:'Конфлікт',
@@ -1690,7 +1695,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       toast_reminders_off:'Reminders disabled', toast_reminders_unsupported:"Browser doesn't support notifications",
       toast_reminders_denied:'Notification permission not granted', toast_reminders_on:'Reminders enabled',
       reminder_body:'Did you record your transactions today?',
-      common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name',
+      common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name', common_save:'Save',
+      toast_nickname_saved:'Nickname saved',
       common_confirm_title:'Please confirm', common_yes:'Yes', common_got_it:'Got it',
       cat_income:'Income', cat_expense:'Expense', cat_other:'Other',
       sync_saving:'Saving...', sync_conflict:'Conflict',
@@ -3786,15 +3792,33 @@ window.updateNickname=function(value){
   saveConfigLocal(); scheduleSave();
   renderProfileUI();
 };
-function renderProfileUI(){
-  const av=document.getElementById('profile-avatar-preview');
-  if(av){
-    if(profile.avatar){ av.innerHTML=`<img src="${profile.avatar}" alt="">`; }
-    else{
-      const letter=(profile.nickname||(currentUser&&currentUser.email)||'?').trim().charAt(0).toUpperCase()||'?';
-      av.textContent=letter;
-    }
+// Nickname only saves when "Зберегти" is pressed (not on every keystroke/
+// blur) — the button itself only appears once the field actually differs
+// from the saved value, so it's obvious when there's something to save.
+window.onNicknameInput=function(value){
+  const btn=document.getElementById('profile-save-btn');
+  if(btn) btn.style.display = (String(value||'').trim()!==(profile.nickname||'')) ? 'inline-flex' : 'none';
+};
+window.saveNickname=function(){
+  const ni=document.getElementById('profile-nickname-input');
+  updateNickname(ni?ni.value:'');
+  const btn=document.getElementById('profile-save-btn');
+  if(btn) btn.style.display='none';
+  showToast(tr('toast_nickname_saved'),'check');
+};
+// Fills any avatar-circle element (topbar logo, profile picker) with the
+// user's uploaded photo, or their nickname/email initial as a fallback.
+function fillAvatarEl(el){
+  if(!el) return;
+  if(profile.avatar){ el.innerHTML=`<img src="${profile.avatar}" alt="">`; }
+  else{
+    const letter=(profile.nickname||(currentUser&&currentUser.email)||'?').trim().charAt(0).toUpperCase()||'?';
+    el.textContent=letter;
   }
+}
+function renderProfileUI(){
+  fillAvatarEl(document.getElementById('profile-avatar-preview'));
+  fillAvatarEl(document.getElementById('topbar-avatar'));
   const ni=document.getElementById('profile-nickname-input');
   if(ni && document.activeElement!==ni) ni.value=profile.nickname||'';
   const who=document.getElementById('profile-signed-as');
