@@ -1,6 +1,6 @@
 {
-  "name": "Xamss — Графік та Фінанси",
-  "short_name": "Xamss",
+  "name": "Zminka — Графік та Фінанси",
+  "short_name": "Zminka",
   "description": "Трекер робочих змін, фінансів і розрахунків з налаштовуваними типами змін, гаманцями та категоріями",
   "start_url": "./index.html",
   "display": "standalone",
