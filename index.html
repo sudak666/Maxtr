@@ -178,7 +178,7 @@ button,input,select,textarea{font-family:inherit}
 /* ── STATS GRID ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
 .stat-card{
-  background:var(--bg1);border:1px solid var(--border);border-radius:20px;
+  background:var(--bg1);border:1px solid var(--border);border-radius:24px;
   padding:14px 16px;position:relative;overflow:hidden;cursor:default;
   transition:border-color .2s,transform .15s;
 }
@@ -252,7 +252,7 @@ button,input,select,textarea{font-family:inherit}
 .tool-select:focus{border-color:var(--purple)}
 
 /* ── CALENDAR WRAPPER ── */
-.cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:20px;margin-bottom:24px}
+.cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:26px;padding:20px;margin-bottom:24px}
 .cal-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
 .cal-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cal-nav select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:14px;font-size:13px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
@@ -295,7 +295,7 @@ button,input,select,textarea{font-family:inherit}
 .b-vac  {background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#fde68a}
 
 /* ── CHART ── */
-.chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:20px}
+.chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;margin-bottom:20px}
 .chart-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
 .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
@@ -305,7 +305,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── FINANCE ── */
 .fin-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
-.fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
@@ -537,7 +537,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 /* ── MANAGER MODALS (shift types / wallets / categories) ── */
 .mgr-list{display:flex;flex-direction:column;gap:8px}
-.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px}
+.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:22px}
 .mgr-row input[type=text],.mgr-row input[type=number],.mgr-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0;cursor:pointer}
 .mgr-row input:focus{border-color:var(--purple)}
 .mgr-name{flex:1 1 100%}
@@ -722,8 +722,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
   <!-- TABS -->
   <div class="tabs" style="margin-top:18px">
-    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
     <button id="nav-finance" class="tab-btn tab-c-finance" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span data-i18n="nav_finance">Фінанси</span></button>
+    <button id="nav-shifts" class="tab-btn tab-c-shifts active" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
     <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span data-i18n="nav_debt">Розрахунки</span></button>
     <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span data-i18n="nav_settings">Налаштування</span></button>
   </div>
@@ -4556,7 +4556,7 @@ function renderFinance(){
   // Balance cards (total + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="stat-card stat-big"><span class="stat-icon">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс (у грн)</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
+    let html=`<div class="stat-card stat-big"><span class="stat-icon" style="background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс (у грн)</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
     wallets.forEach(w=>{
       html+=`<div class="stat-card"><span class="stat-icon" style="color:#fff;background:${w.color}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</div></div>`;
     });
