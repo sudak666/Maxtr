@@ -191,6 +191,10 @@ button,input,select,textarea{font-family:inherit}
 .icon-badge .ico{width:17px;height:17px;margin-right:0}
 .icon-badge.icon-badge-sm{width:26px;height:26px}
 .icon-badge.icon-badge-sm .ico{width:13px;height:13px}
+.icon-badge-symbol{font-size:14px;font-weight:800}
+.fx-widget-row{display:flex;align-items:center;gap:12px;padding:10px 0}
+.fx-widget-row+.fx-widget-row{border-top:1px dashed var(--border)}
+.fx-widget-rate{margin-left:auto;text-align:right;font-size:14px;font-weight:800;color:var(--text-strong);flex-shrink:0}
 
 /* ── TOGGLE SWITCH (checkbox styled as an iOS-like slider) ── */
 .toggle{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;cursor:pointer}
@@ -813,6 +817,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <div class="stats-row" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
       <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
+    </div>
+
+    <!-- Курси валют -->
+    <div class="chart-section">
+      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
+        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()"><span id="ic-fx-widget-refresh"></span></button>
+      </div>
+      <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
     </div>
 
     <!-- Аналітика витрат і доходів -->
@@ -1458,6 +1472,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-set-wallets','wallet');
   setIcon('ic-set-rates','swap');
   setIcon('ic-rates-update','refresh');
+  setIcon('ic-fx-widget','swap');
+  setIcon('ic-fx-widget-refresh','refresh');
   setIcon('ic-set-cats','tag');
   setIcon('ic-set-tags','tag');
   setIcon('ic-set-budgets','target');
@@ -1612,6 +1628,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_label:'Джерело курсу', rates_source_nbu:'НБУ (офіційний)', rates_source_privat:'ПриватБанк (готівка)',
       rates_source_nbu_short:'НБУ,', rates_source_privat_short:'ПриватБанк,',
       rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
+      fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
       cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
       cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
       cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
@@ -1757,6 +1774,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       rates_source_label:'Rate source', rates_source_nbu:'NBU (official)', rates_source_privat:'PrivatBank (cash)',
       rates_source_nbu_short:'NBU,', rates_source_privat_short:'PrivatBank,',
       rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
+      fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
       cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
       cat_no_subcats:'No subcategories', cat_subcategory:'Subcategory',
       cat_add_subcat_prompt:'Subcategory name:', cat_add_subcat_title:'New subcategory', cat_subcat_exists:'That subcategory already exists',
@@ -3443,7 +3461,9 @@ async function fetchLiveRates(){
 }
 window.updateRatesOnline=async function(silent){
   const btn=document.getElementById('rates-update-btn');
+  const widgetBtn=document.getElementById('fx-widget-refresh-btn');
   if(btn) btn.disabled=true;
+  if(widgetBtn) widgetBtn.disabled=true;
   try{
     await fetchLiveRates();
     renderRatesList(); renderRatesUpdatedHint(); renderFinance(); renderFinanceChart();
@@ -3453,7 +3473,36 @@ window.updateRatesOnline=async function(silent){
     if(!silent) showToast(tr('rates_update_fail'),'xmark');
   }finally{
     if(btn) btn.disabled=false;
+    if(widgetBtn) widgetBtn.disabled=false;
   }
+};
+// Compact currency-rates widget on the Finance tab — a quick-glance list
+// (tap to open the full rates manager) rather than a duplicate editable form.
+const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple)', PLN:'var(--orange)'};
+function renderFxWidget(){
+  const box=document.getElementById('fx-widget-list'); if(!box) return;
+  box.innerHTML=CURRENCY_LIST.filter(c=>c!=='UAH').map(code=>{
+    const rate=currencyRates[code] ?? SEED_RATES[code] ?? 1;
+    return `
+      <div class="fx-widget-row">
+        <span class="icon-badge icon-badge-symbol" style="background:${FX_WIDGET_COLORS[code]||'var(--muted)'}">${currencySymbol(code)}</span>
+        <div class="settings-row-text">
+          <div class="settings-row-title">${code}</div>
+          <div class="settings-row-sub">${tr('fx_name_'+code.toLowerCase())}</div>
+        </div>
+        <div class="fx-widget-rate">${rate.toLocaleString('uk-UA')} грн</div>
+      </div>`;
+  }).join('');
+  const hint=document.getElementById('fx-widget-updated-hint');
+  if(hint){
+    let at=null;
+    try{ at=localStorage.getItem(ratesUpdatedAtKey()); }catch(e){}
+    const sourceLabel = ratesSource==='privat' ? tr('rates_source_privat_short') : tr('rates_source_nbu_short');
+    hint.textContent = at ? `${tr('rates_updated_at')} ${sourceLabel} ${new Date(Number(at)).toLocaleString('uk-UA')}` : tr('rates_never_updated');
+  }
+}
+window.refreshFxWidget=function(){
+  window.updateRatesOnline();
 };
 // Auto-refresh once a day in the background, so rates stay current without
 // the user having to remember to open the manager — failures are silent
@@ -4425,6 +4474,7 @@ function renderFinance(){
     bc.innerHTML=html;
   }
 
+  renderFxWidget();
   renderBudgets();
   renderAnalytics();
 
