@@ -102,6 +102,24 @@ button,input,select,textarea{font-family:inherit}
 }
 .lock-screen.lock-hide{opacity:0;transform:scale(1.04);pointer-events:none}
 .lock-brand{display:flex;flex-direction:column;align-items:center;gap:10px}
+
+/* ── ONBOARDING ── */
+.onboard-screen{
+  position:fixed;inset:0;z-index:5500;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top)) 28px calc(24px + env(safe-area-inset-bottom));
+  transition:opacity .3s ease,transform .3s ease;
+}
+.onboard-screen.lock-hide{opacity:0;transform:scale(1.04);pointer-events:none}
+.onboard-skip{position:absolute;top:calc(18px + env(safe-area-inset-top));right:20px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;padding:6px 8px}
+.onboard-icon{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:26px;box-shadow:0 14px 34px rgba(0,0,0,.25);flex-shrink:0}
+.onboard-icon svg{width:48px;height:48px;stroke:#fff}
+.onboard-title{font-size:21px;font-weight:800;color:var(--text-strong);letter-spacing:-.02em;margin-bottom:10px}
+.onboard-desc{font-size:14px;color:var(--muted);max-width:320px;line-height:1.55;margin-bottom:26px}
+.onboard-dots{display:flex;gap:7px;margin-bottom:26px}
+.onboard-dot{width:7px;height:7px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);transition:all .2s}
+.onboard-dot.active{width:20px;border-radius:4px;background:var(--purple);border-color:var(--purple)}
+.onboard-actions{width:100%;max-width:320px}
 .lock-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(139,92,246,.35)}
 .lock-title{font-size:20px;font-weight:800;color:var(--text-strong);letter-spacing:-.02em}
 .lock-sub{font-size:13px;color:var(--muted);font-weight:600;min-height:18px;text-align:center}
@@ -675,6 +693,18 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()" data-i18n="pin_unlock">Розблокувати</button>
     <button type="button" class="btn btn-ghost" id="pin-bio-unlock-btn" style="width:100%;justify-content:center;margin-top:8px;display:none" onclick="tryBioUnlock()"><span id="ic-bio-unlock"></span>Face ID / Touch ID</button>
     <button type="button" class="auth-link" onclick="forgotPin()" data-i18n="pin_forgot">Забув PIN?</button>
+  </div>
+</div>
+
+<!-- ONBOARDING (first launch after sign-in, shown once per device/account) -->
+<div class="onboard-screen" id="onboard-screen" style="display:none">
+  <div class="onboard-skip" id="onboard-skip" onclick="finishOnboarding()" data-i18n="onboard_skip">Пропустити</div>
+  <div class="onboard-icon" id="onboard-icon"></div>
+  <div class="onboard-title" id="onboard-title"></div>
+  <div class="onboard-desc" id="onboard-desc"></div>
+  <div class="onboard-dots" id="onboard-dots"></div>
+  <div class="onboard-actions">
+    <button class="add-btn" style="width:100%" id="onboard-next-btn" onclick="onboardNext()"></button>
   </div>
 </div>
 
@@ -1782,6 +1812,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       debt_delete_payment_confirm:'Видалити цей платіж?', debt_delete_payment_title:'Видалити платіж',
       debt_no_payments:'Платежів немає', debt_expected:'Очікувано', debt_discrepancy:'розбіжність',
       pin_locked_title:'Zminka заблоковано', pin_code:'PIN-код', pin_unlock:'Розблокувати', pin_forgot:'Забув PIN?',
+      onboard_skip:'Пропустити', onboard_next:'Далі', onboard_start:'Почати',
+      onboard_1_title:'Графік змін', onboard_1_desc:'Веди робочий календар: типи змін, кольори й автоматичний розрахунок зарплати за місяць.',
+      onboard_2_title:'Фінанси в одному місці', onboard_2_desc:'Гаманці в різних валютах, категорії, бюджети та повна історія операцій.',
+      onboard_3_title:'Курси та конвертер валют', onboard_3_desc:'Живі курси НБУ чи ПриватБанку і вбудований конвертер — завжди під рукою.',
+      onboard_4_title:'Розрахунки', onboard_4_desc:'Веди облік боргів і розстрочок з історією платежів по кожному з них.',
+      onboard_5_title:'Захист і налаштування', onboard_5_desc:'PIN-код, Face ID / Touch ID, а ще — обирай, які віджети показувати на вкладці "Фінанси".',
       pin_new:'Новий PIN (4–6 цифр)', pin_repeat:'Повторіть PIN', pin_set:'Встановити PIN', pin_lock_now:'Заблокувати зараз',
       pin_bio_enable:'Увімкнути Face ID / Touch ID', pin_bio_disable:'Вимкнути Face ID / Touch ID', pin_remove:'Прибрати PIN',
       pin_disclaimer:'PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.',
@@ -1942,6 +1978,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       debt_delete_payment_confirm:'Delete this payment?', debt_delete_payment_title:'Delete payment',
       debt_no_payments:'No payments yet', debt_expected:'Expected', debt_discrepancy:'discrepancy',
       pin_locked_title:'Zminka locked', pin_code:'PIN code', pin_unlock:'Unlock', pin_forgot:'Forgot PIN?',
+      onboard_skip:'Skip', onboard_next:'Next', onboard_start:'Get started',
+      onboard_1_title:'Shift schedule', onboard_1_desc:'Keep a work calendar: shift types, colors, and automatic monthly salary calculation.',
+      onboard_2_title:'Finances in one place', onboard_2_desc:'Multi-currency wallets, categories, budgets, and a full history of transactions.',
+      onboard_3_title:'Rates and a converter', onboard_3_desc:'Live NBU or PrivatBank exchange rates plus a built-in converter, always at hand.',
+      onboard_4_title:'Settlements', onboard_4_desc:'Track debts and installment plans with a full payment history for each one.',
+      onboard_5_title:'Security and customization', onboard_5_desc:'PIN code, Face ID / Touch ID, and choose which widgets show up on the Finance tab.',
       pin_new:'New PIN (4–6 digits)', pin_repeat:'Repeat PIN', pin_set:'Set PIN', pin_lock_now:'Lock now',
       pin_bio_enable:'Enable Face ID / Touch ID', pin_bio_disable:'Disable Face ID / Touch ID', pin_remove:'Remove PIN',
       pin_disclaimer:'The PIN is stored only on this device and does not replace signing in to your account.',
@@ -2618,6 +2660,45 @@ async function sha256Hex(str){
 }
 function pinKey(){ return currentUser ? `mx_pin_${currentUser.uid}` : null; }
 function hasPinSet(){ const k=pinKey(); return !!(k && localStorage.getItem(k)); }
+
+// ── ONBOARDING (first launch after sign-in, shown once per device/account) ──
+const ONBOARD_SLIDES=[
+  {icon:'calendar', gradient:'linear-gradient(135deg,#8b5cf6,#a78bfa)', titleKey:'onboard_1_title', descKey:'onboard_1_desc'},
+  {icon:'wallet', gradient:'linear-gradient(135deg,#10b981,#34d399)', titleKey:'onboard_2_title', descKey:'onboard_2_desc'},
+  {icon:'swap', gradient:'linear-gradient(135deg,#0ea5e9,#22d3ee)', titleKey:'onboard_3_title', descKey:'onboard_3_desc'},
+  {icon:'bank', gradient:'linear-gradient(135deg,#f59e0b,#fb923c)', titleKey:'onboard_4_title', descKey:'onboard_4_desc'},
+  {icon:'lock', gradient:'linear-gradient(135deg,#8b5cf6,#ec4899)', titleKey:'onboard_5_title', descKey:'onboard_5_desc'},
+];
+let onboardIndex=0;
+function onboardKey(){ return currentUser ? `mx_onboarded_${currentUser.uid}` : null; }
+function renderOnboardSlide(){
+  const s=ONBOARD_SLIDES[onboardIndex];
+  const icon=document.getElementById('onboard-icon');
+  if(icon){ icon.style.background=s.gradient; icon.innerHTML=window.Icon(s.icon); }
+  const title=document.getElementById('onboard-title'); if(title) title.textContent=tr(s.titleKey);
+  const desc=document.getElementById('onboard-desc'); if(desc) desc.textContent=tr(s.descKey);
+  const dots=document.getElementById('onboard-dots');
+  if(dots) dots.innerHTML=ONBOARD_SLIDES.map((_,i)=>`<div class="onboard-dot${i===onboardIndex?' active':''}"></div>`).join('');
+  const next=document.getElementById('onboard-next-btn');
+  if(next) next.textContent = onboardIndex===ONBOARD_SLIDES.length-1 ? tr('onboard_start') : tr('onboard_next');
+}
+window.onboardNext=function(){
+  if(onboardIndex<ONBOARD_SLIDES.length-1){ onboardIndex++; renderOnboardSlide(); }
+  else finishOnboarding();
+};
+window.finishOnboarding=function(){
+  const k=onboardKey(); if(k) localStorage.setItem(k,'1');
+  const scr=document.getElementById('onboard-screen');
+  if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+};
+function maybeShowOnboarding(){
+  const k=onboardKey();
+  if(!k || localStorage.getItem(k)) return;
+  onboardIndex=0;
+  renderOnboardSlide();
+  const scr=document.getElementById('onboard-screen');
+  if(scr){ scr.style.display='flex'; scr.classList.remove('lock-hide'); }
+}
 async function checkPinLock(){
   if(!hasPinSet()){ pinUnlocked=true; return; }
   if(pinUnlocked) return;
@@ -2641,7 +2722,7 @@ window.tryUnlockPin=async function(){
     pinUnlocked=true;
     if(err) err.textContent='';
     const scr=document.getElementById('pin-screen');
-    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide'); maybeShowOnboarding();},320); }
   }else{
     if(err) err.textContent=tr('pin_wrong');
     if(inp){ inp.value=''; inp.focus(); }
@@ -2773,7 +2854,7 @@ window.tryBioUnlock=async function(){
     pinUnlocked=true;
     const err=document.getElementById('pin-unlock-error'); if(err) err.textContent='';
     const scr=document.getElementById('pin-screen');
-    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+    if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide'); maybeShowOnboarding();},320); }
   }catch(e){
     console.error(e);
     // Cancelled or failed — the PIN field is still right there, no need to surface an error.
@@ -2793,6 +2874,7 @@ onAuthStateChanged(auth, async (user)=>{
     if(pinBtn) pinBtn.style.display='';
     await init();
     await checkPinLock();
+    if(!hasPinSet()) maybeShowOnboarding();
   }else{
     shifts={}; transactions=[]; recurring=[]; debts=[]; currentDebtId=null;
     pinUnlocked=false;
