@@ -461,6 +461,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
 .tx-amount.transfer{color:var(--blue2)}
+
+/* ── HIDE AMOUNTS (privacy toggle in the topbar) ── */
+body.amounts-hidden .stat-val,
+body.amounts-hidden .tx-amount,
+body.amounts-hidden .fx-widget-rate,
+body.amounts-hidden #fx-converter-result{
+  filter:blur(7px);user-select:none;transition:filter .15s;
+}
 .tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:6px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
 .tx-del .ico{margin-right:0;width:15px;height:15px}
 .tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
@@ -752,6 +760,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   </div>
   <div class="topbar-right">
     <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text" data-i18n="topbar_connecting">Підключення...</span></div>
+    <button class="btn btn-ghost" id="btn-hide-amounts" onclick="toggleHideAmounts()" title="Сховати суми"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
   </div>
 </div>
@@ -1217,6 +1226,28 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
         <span style="font-weight:800;color:var(--muted)">:</span>
         <select id="notif-time-minute" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
       </div>
+      <div class="settings-row" style="cursor:default">
+        <span id="ic-notif-budget" class="icon-badge" style="background:var(--red)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_notif_budget_title">Бюджет перевищено</div>
+          <div class="settings-row-sub" data-i18n="settings_notif_budget_hint">Сповістимо, коли витрати за категорією перевищать місячний бюджет.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-budget-checkbox" onchange="toggleBudgetAlerts()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="cursor:default">
+        <span id="ic-notif-recurring" class="icon-badge" style="background:#10b981"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_notif_recurring_title">Наближається платіж</div>
+          <div class="settings-row-sub" data-i18n="settings_notif_recurring_hint">Попередимо за день до автододавання повторюваної операції.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-recurring-checkbox" onchange="toggleRecurringAlerts()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
 
     <div class="chart-section">
@@ -1564,7 +1595,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
     globe:'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/>',
     pie:'<path d="M12 3.5v8.5h8.5A8.5 8.5 0 1 1 12 3.5Z"/><path d="M14.2 3.8A8.5 8.5 0 0 1 20.2 9.8"/>',
     doc:'<path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M8 12.5h8M8 16h8"/>',
-    grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>'
+    grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+    eyeOff:'<path d="M3 3l18 18"/><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.6 8.6 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1585,6 +1618,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-bio-disable','lock');
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
+  try{
+    var hideAmt=localStorage.getItem('xamssHideAmounts')==='1';
+    document.body.classList.toggle('amounts-hidden', hideAmt);
+    setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
+  }catch(e){}
   setIcon('ic-goto-settings','gear');
   setIcon('tab-icon-settings','gear');
   setIcon('ic-settings-profile','person');
@@ -1592,6 +1630,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   setIcon('ic-settings-security','lock');
   setIcon('ic-settings-notif','bell');
   setIcon('ic-notif-toggle','bell');
+  setIcon('ic-notif-budget','warning');
+  setIcon('ic-notif-recurring','repeat');
   setIcon('ic-settings-appearance','sun');
   setIcon('ic-settings-account','person');
   setIcon('ic-settings-about','info');
@@ -1684,6 +1724,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_security:'Безпека', settings_pin:'PIN-код доступу',
       settings_notifications:'Сповіщення', settings_notif_enable:'Увімкнути нагадування', settings_notif_disable:'Вимкнути нагадування',
       settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
+      settings_notif_budget_title:'Бюджет перевищено', settings_notif_budget_hint:'Сповістимо, коли витрати за категорією перевищать місячний бюджет.',
+      settings_notif_recurring_title:'Наближається платіж', settings_notif_recurring_hint:'Попередимо за день до автододавання повторюваної операції.',
+      notif_budget_title:'Бюджет перевищено', notif_budget_body:'Витрати за категорією "{category}" перевищили місячний бюджет.',
+      notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
@@ -1850,6 +1894,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
       settings_security:'Security', settings_pin:'PIN lock',
       settings_notifications:'Notifications', settings_notif_enable:'Enable reminders', settings_notif_disable:'Disable reminders',
       settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
+      settings_notif_budget_title:'Budget exceeded', settings_notif_budget_hint:"We'll notify you when a category's spending goes over its monthly budget.",
+      settings_notif_recurring_title:'Upcoming payment', settings_notif_recurring_hint:"We'll warn you a day before a recurring transaction auto-adds.",
+      notif_budget_title:'Budget exceeded', notif_budget_body:'Spending in "{category}" has gone over its monthly budget.',
+      notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
@@ -2126,7 +2174,7 @@ window.showPremiumUpsell=function(limitKind){
 // Daily reminder ("did you record today's transactions?"). Device-local by
 // design — Notification permission itself is per-browser, so there is no
 // value syncing this across devices like profile/wallets are.
-let notifSettings = {enabled:false, time:'21:00'};
+let notifSettings = {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false};
 // When set, the history list only shows this category (set via a
 // category's "Показати транзакції" action); cleared by the chip's ✕.
 let txCategoryFilter = null;
@@ -2920,8 +2968,8 @@ async function init(){
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') maybeShowDailyReminder(); });
-    setInterval(maybeShowDailyReminder, 5*60*1000);
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') runNotificationChecks(); });
+    setInterval(runNotificationChecks, 5*60*1000);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -2945,7 +2993,7 @@ async function init(){
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility();
-  maybeShowDailyReminder();
+  runNotificationChecks();
   maybeAutoUpdateRates();
 }
 
@@ -3631,6 +3679,15 @@ window.toggleWidget=function(key, on){
   saveConfigLocal(); scheduleSave();
   applyWidgetVisibility();
 };
+// Privacy quick-toggle: blurs balances/amounts app-wide (device-only,
+// independent of account) for glancing at the app around other people.
+window.toggleHideAmounts=function(){
+  const on=!document.body.classList.contains('amounts-hidden');
+  document.body.classList.toggle('amounts-hidden', on);
+  try{ localStorage.setItem('xamssHideAmounts', on?'1':'0'); }catch(e){}
+  const btn=document.getElementById('btn-hide-amounts');
+  if(btn) btn.innerHTML=window.Icon(on?'eyeOff':'eye');
+};
 window.openWidgetsManager=function(){
   renderWidgetsList();
   document.getElementById('widgets-modal').style.display='flex';
@@ -4276,6 +4333,22 @@ function loadNotifSettings(){
 function saveNotifSettings(){
   try{ localStorage.setItem('xamssNotif', JSON.stringify(notifSettings)); }catch(e){}
 }
+// Shared permission gate for every notification category below.
+async function ensureNotifPermission(){
+  if(!('Notification' in window)){ showToast(tr('toast_reminders_unsupported'),'xmark'); return false; }
+  let perm=Notification.permission;
+  if(perm==='default') perm=await Notification.requestPermission();
+  if(perm!=='granted'){ showToast(tr('toast_reminders_denied'),'xmark'); return false; }
+  return true;
+}
+// Shows a local notification via the service worker when available (needed
+// for it to appear even if the tab isn't focused), falling back to a plain
+// Notification otherwise.
+function showLocalNotification(title, body){
+  const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'icon-192.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
+  if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
+  else show(null);
+}
 window.toggleReminders=async function(){
   if(notifSettings.enabled){
     notifSettings.enabled=false;
@@ -4283,14 +4356,33 @@ window.toggleReminders=async function(){
     showToast(tr('toast_reminders_off'),'xmark');
     return;
   }
-  if(!('Notification' in window)){ showToast(tr('toast_reminders_unsupported'),'xmark'); renderNotifUI(); return; }
-  let perm=Notification.permission;
-  if(perm==='default') perm=await Notification.requestPermission();
-  if(perm!=='granted'){ showToast(tr('toast_reminders_denied'),'xmark'); renderNotifUI(); return; }
+  if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
   notifSettings.enabled=true;
   saveNotifSettings(); renderNotifUI();
   showToast(tr('toast_reminders_on'),'check');
   maybeShowDailyReminder();
+};
+window.toggleBudgetAlerts=async function(){
+  if(notifSettings.budgetAlerts){
+    notifSettings.budgetAlerts=false;
+    saveNotifSettings(); renderNotifUI();
+    return;
+  }
+  if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
+  notifSettings.budgetAlerts=true;
+  saveNotifSettings(); renderNotifUI();
+  checkBudgetAlerts();
+};
+window.toggleRecurringAlerts=async function(){
+  if(notifSettings.recurringAlerts){
+    notifSettings.recurringAlerts=false;
+    saveNotifSettings(); renderNotifUI();
+    return;
+  }
+  if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
+  notifSettings.recurringAlerts=true;
+  saveNotifSettings(); renderNotifUI();
+  checkRecurringAlerts();
 };
 // Two plain <select>s (hour / 5-min steps) picked up by the app's own
 // enhanceSelect() styling — replaces a native <input type=time>, whose OS
@@ -4319,10 +4411,19 @@ function renderNotifUI(){
   const m=document.getElementById('notif-time-minute');
   if(h && h.value!==hh){ h.value=hh; csSync(h); }
   if(m && m.value!==mm){ m.value=mm; csSync(m); }
+  const bcb=document.getElementById('notif-budget-checkbox');
+  if(bcb) bcb.checked=!!notifSettings.budgetAlerts;
+  const rcb=document.getElementById('notif-recurring-checkbox');
+  if(rcb) rcb.checked=!!notifSettings.recurringAlerts;
 }
 function todayStr(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function runNotificationChecks(){
+  maybeShowDailyReminder();
+  checkBudgetAlerts();
+  checkRecurringAlerts();
 }
 function maybeShowDailyReminder(){
   if(!notifSettings.enabled) return;
@@ -4333,12 +4434,43 @@ function maybeShowDailyReminder(){
   const [h,m]=(notifSettings.time||'21:00').split(':').map(Number);
   if(now.getHours()<h || (now.getHours()===h && now.getMinutes()<(m||0))) return;
   if(transactions.some(tx=>tx.date===today)) return;
-  const title='Zminka';
-  const body=tr('reminder_body');
-  const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'icon-192.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
-  if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
-  else show(null);
+  showLocalNotification('Zminka', tr('reminder_body'));
   localStorage.setItem('xamssReminderShown', today);
+}
+// Fires once per category per month, the first time its spending crosses
+// the budget limit (renderBudgets() already computes the same spent/limit
+// figures for the on-screen progress bars).
+function checkBudgetAlerts(){
+  if(!notifSettings.budgetAlerts) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const now=new Date();
+  const prefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  Object.entries(budgets).forEach(([cat,limit])=>{
+    if(!(limit>0) || !(categories.expense||[]).includes(cat)) return;
+    const spent=transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(prefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
+    if(spent<=limit) return;
+    const shownKey=`xamssBudgetAlert_${prefix}_${cat}`;
+    if(localStorage.getItem(shownKey)) return;
+    showLocalNotification(tr('notif_budget_title'), tr('notif_budget_body').replace('{category}',cat));
+    localStorage.setItem(shownKey,'1');
+  });
+}
+// Fires once per recurring item, the day before it's due to auto-add (see
+// processRecurring() — by the actual due date it's already been silently
+// turned into a transaction, so "the day before" is the useful moment).
+function checkRecurringAlerts(){
+  if(!notifSettings.recurringAlerts) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=`${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+  recurring.forEach(r=>{
+    if(r.active===false || r.nextDate!==tomorrowStr || !r.amount) return;
+    const shownKey=`xamssRecurAlert_${r.id}_${tomorrowStr}`;
+    if(localStorage.getItem(shownKey)) return;
+    const amountStr=r.amount.toLocaleString('uk-UA')+' '+currencySymbol(walletCurrency(r.wallet));
+    showLocalNotification(tr('notif_recurring_title'), tr('notif_recurring_body').replace('{category}',r.category||tr('cat_other')).replace('{amount}',amountStr));
+    localStorage.setItem(shownKey,'1');
+  });
 }
 
 // ── FINANCE ───────────────────────────────────────────────────
