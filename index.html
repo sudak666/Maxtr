@@ -644,7 +644,7 @@ body.amounts-hidden #fx-converter-result{
 /* ── RESPONSIVE ── */
 @media(max-width:900px){.fin-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
-  .app{padding:12px 10px 70px}
+  .app{padding:12px 10px calc(96px + env(safe-area-inset-bottom))}
   .cal-wrap{padding:12px}
   .cal-grid{gap:3px}
   .day-cell{min-height:64px;padding:4px;border-radius:14px}
