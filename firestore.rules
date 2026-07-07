@@ -10,6 +10,14 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // FCM push token per account, written by the client when the user
+    // enables push notifications. Read by the notificationSweep Cloud
+    // Function via the Admin SDK (which bypasses these rules entirely) —
+    // this rule only governs direct client access.
+    match /push_tokens/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Deny everything else by default (including the old shared
     // max_tracker/{doc} path used before per-user auth was added — its
     // one-time recovery window is closed, see git history for details).

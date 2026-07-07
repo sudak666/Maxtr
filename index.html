@@ -1246,6 +1246,17 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
       <div class="settings-row" style="cursor:default">
+        <span id="ic-notif-push" class="icon-badge" style="background:var(--purple)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_notif_push_title">Push-сповіщення</div>
+          <div class="settings-row-sub" data-i18n="settings_notif_push_hint">Приходять навіть коли застосунок закрито.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-push-checkbox" onchange="togglePushNotifications()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="cursor:default">
         <span id="ic-notif-toggle" class="icon-badge" style="background:#f59e0b"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_notif_title">Нагадування про облік</div>
@@ -1683,6 +1694,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-settings-finance','wallet');
   setIcon('ic-settings-security','lock');
   setIcon('ic-settings-notif','bell');
+  setIcon('ic-notif-push','bell');
   setIcon('ic-notif-toggle','bell');
   setIcon('ic-notif-budget','warning');
   setIcon('ic-notif-recurring','repeat');
@@ -1783,6 +1795,7 @@ body.amounts-hidden #fx-converter-result{
       settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
       settings_notif_budget_title:'Бюджет перевищено', settings_notif_budget_hint:'Сповістимо, коли витрати за категорією перевищать місячний бюджет.',
       settings_notif_recurring_title:'Наближається платіж', settings_notif_recurring_hint:'Попередимо за день до автододавання повторюваної операції.',
+      settings_notif_push_title:'Push-сповіщення', settings_notif_push_hint:'Приходять навіть коли застосунок закрито.',
       notif_budget_title:'Бюджет перевищено', notif_budget_body:'Витрати за категорією "{category}" перевищили місячний бюджет.',
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
@@ -1813,6 +1826,8 @@ body.amounts-hidden #fx-converter-result{
       toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
       toast_reminders_off:'Нагадування вимкнено', toast_reminders_unsupported:'Браузер не підтримує сповіщення',
       toast_reminders_denied:'Дозвіл на сповіщення не надано', toast_reminders_on:'Нагадування увімкнено',
+      toast_push_no_vapid:'Push ще не налаштовано (бракує VAPID-ключа)', toast_push_unsupported:'Браузер не підтримує push-сповіщення',
+      toast_push_on:'Push-сповіщення увімкнено', toast_push_off:'Push-сповіщення вимкнено', toast_push_fail:'Не вдалося увімкнути push-сповіщення',
       reminder_body:'Ви записали свої операції сьогодні?',
       common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва', common_save:'Зберегти',
       toast_nickname_saved:'Нікнейм збережено',
@@ -1967,6 +1982,7 @@ body.amounts-hidden #fx-converter-result{
       settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
       settings_notif_budget_title:'Budget exceeded', settings_notif_budget_hint:"We'll notify you when a category's spending goes over its monthly budget.",
       settings_notif_recurring_title:'Upcoming payment', settings_notif_recurring_hint:"We'll warn you a day before a recurring transaction auto-adds.",
+      settings_notif_push_title:'Push notifications', settings_notif_push_hint:'Delivered even when the app is closed.',
       notif_budget_title:'Budget exceeded', notif_budget_body:'Spending in "{category}" has gone over its monthly budget.',
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
@@ -1997,6 +2013,8 @@ body.amounts-hidden #fx-converter-result{
       toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',
       toast_reminders_off:'Reminders disabled', toast_reminders_unsupported:"Browser doesn't support notifications",
       toast_reminders_denied:'Notification permission not granted', toast_reminders_on:'Reminders enabled',
+      toast_push_no_vapid:'Push isn’t configured yet (missing VAPID key)', toast_push_unsupported:'This browser doesn’t support push notifications',
+      toast_push_on:'Push notifications enabled', toast_push_off:'Push notifications disabled', toast_push_fail:'Couldn’t enable push notifications',
       reminder_body:'Did you record your transactions today?',
       common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name', common_save:'Save',
       toast_nickname_saved:'Nickname saved',
@@ -2171,6 +2189,7 @@ import {
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
   RecaptchaVerifier, signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
@@ -2185,6 +2204,11 @@ const auth = getAuth(fbApp);
 const googleProvider = new GoogleAuthProvider();
 const DCOL = 'max_tracker';
 let currentUser = null;
+// Push notifications (Firebase Cloud Messaging). Get this key from Firebase
+// Console > Project Settings > Cloud Messaging > Web configuration > Web
+// Push certificates — it's a public key, safe to ship in client code (same
+// as the apiKey above). Without it, enabling push fails with a clear error.
+const VAPID_KEY = 'BBcPaLYW4stwLwTHX-2mNXmu86eQeqw1biQXPGv4-FLOZWbUl8BAVgeHxGC2vvlLXkYqOUCyoo8NqnN6n8Usbtw';
 
 // ── STATE ─────────────────────────────────────────────────────
 let shifts = {};
@@ -2458,7 +2482,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, goals, profile, subscription, widgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, goals, profile, subscription, widgets, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -2521,6 +2545,10 @@ function seedConfigFromDocs(sData, fData){
   profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
   widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false, goals:fData.widgets.goals!==false} : {rates:true, converter:true, analytics:true, chart:true, goals:true};
+  // Merged (not replaced) over the local/localStorage copy, so a value
+  // set on another device wins, but nothing here can be missing — the
+  // Cloud Function sweep needs a complete object, not a partial one.
+  if(fData && fData.notifSettings && typeof fData.notifSettings==='object') notifSettings={...notifSettings, ...fData.notifSettings};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -3155,9 +3183,13 @@ async function init(){
   renderProfileUI(); renderPremiumUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
-  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility();
+  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI();
   runNotificationChecks();
   maybeAutoUpdateRates();
+  // Re-attach the foreground push handler if this device already has push
+  // enabled from a previous session (registering the token itself only
+  // happens once, in enablePushNotifications()).
+  if(localStorage.getItem(pushEnabledKey())==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
 }
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -4577,15 +4609,24 @@ function renderProfileUI(){
   }
 }
 
-// ── DAILY REMINDER (local notification) ──────────────────────
-// Device-local best-effort reminder: no server/push infra, so it can only
-// fire while the app is actually open (checked on load, on tab-visible,
-// and every few minutes while it stays open) — not a true background push.
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+// Two delivery paths share the same three conditions (daily reminder,
+// budget exceeded, upcoming recurring payment):
+// 1. Local (below): fires only while the app is open, checked here in the
+//    browser — no server involved.
+// 2. Push (further down): the same three conditions are re-checked by a
+//    scheduled Cloud Function (functions/index.js) against notifSettings
+//    synced to the finance doc, and delivered via FCM even when the app
+//    is fully closed.
 function loadNotifSettings(){
   try{ const n=localStorage.getItem('xamssNotif'); if(n) notifSettings={...notifSettings, ...JSON.parse(n)}; }catch(e){}
 }
 function saveNotifSettings(){
   try{ localStorage.setItem('xamssNotif', JSON.stringify(notifSettings)); }catch(e){}
+  // Also synced to the finance doc (see setDoc payload) — the scheduled
+  // Cloud Function push sweep reads it from there, since it obviously
+  // can't see this device's localStorage.
+  scheduleSave();
 }
 // Shared permission gate for every notification category below.
 async function ensureNotifPermission(){
@@ -4602,6 +4643,59 @@ function showLocalNotification(title, body){
   const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'icon-192.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
   if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
   else show(null);
+}
+
+// ── PUSH NOTIFICATIONS (Firebase Cloud Messaging) ──────────────
+// Registers this device's FCM token in push_tokens/{uid}, read by the
+// notificationSweep Cloud Function (functions/index.js) so the same three
+// conditions above can also be delivered while the app is fully closed.
+function pushEnabledKey(){ return currentUser ? `mx_pushEnabled_${currentUser.uid}` : null; }
+let messagingInstance=null;
+// Lazily creates the messaging instance and wires up the foreground-message
+// handler exactly once — FCM only auto-shows a system notification when the
+// tab isn't focused, so a foreground push needs to be surfaced manually.
+async function getMessagingInstance(){
+  if(messagingInstance) return messagingInstance;
+  if(!(await isMessagingSupported())) return null;
+  messagingInstance=getMessaging(fbApp);
+  onMessage(messagingInstance, payload=>{
+    const n=payload.notification||{};
+    showLocalNotification(n.title||'Zminka', n.body||'');
+  });
+  return messagingInstance;
+}
+window.togglePushNotifications=async function(){
+  const k=pushEnabledKey();
+  if(k && localStorage.getItem(k)==='1') await disablePushNotifications();
+  else await enablePushNotifications();
+};
+async function enablePushNotifications(){
+  if(VAPID_KEY==='PASTE_YOUR_VAPID_KEY_HERE'){ showToast(tr('toast_push_no_vapid'),'xmark'); renderNotifUI(); return; }
+  const messaging=await getMessagingInstance();
+  if(!messaging){ showToast(tr('toast_push_unsupported'),'xmark'); renderNotifUI(); return; }
+  if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
+  try{
+    const reg=await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
+    if(!token) throw new Error('no-token');
+    await setDoc(doc(db,'push_tokens',currentUser.uid), {token, updatedAt:Date.now()}, {merge:true});
+    const k=pushEnabledKey(); if(k) localStorage.setItem(k,'1');
+    showToast(tr('toast_push_on'),'check');
+  }catch(err){
+    console.error('enable push failed',err);
+    showToast(tr('toast_push_fail'),'xmark');
+  }
+  renderNotifUI();
+}
+async function disablePushNotifications(){
+  try{
+    const messaging=await getMessagingInstance();
+    if(messaging) await deleteToken(messaging);
+  }catch(err){ console.warn('deleteToken failed', err); }
+  try{ await deleteDoc(doc(db,'push_tokens',currentUser.uid)); }catch(err){ console.warn('deleting push token doc failed', err); }
+  const k=pushEnabledKey(); if(k) localStorage.removeItem(k);
+  showToast(tr('toast_push_off'),'xmark');
+  renderNotifUI();
 }
 window.toggleReminders=async function(){
   if(notifSettings.enabled){
@@ -4669,6 +4763,9 @@ function renderNotifUI(){
   if(bcb) bcb.checked=!!notifSettings.budgetAlerts;
   const rcb=document.getElementById('notif-recurring-checkbox');
   if(rcb) rcb.checked=!!notifSettings.recurringAlerts;
+  const pcb=document.getElementById('notif-push-checkbox');
+  const pk=pushEnabledKey();
+  if(pcb) pcb.checked=!!(pk && localStorage.getItem(pk)==='1');
 }
 function todayStr(){
   const d=new Date();
