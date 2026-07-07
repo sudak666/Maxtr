@@ -39,14 +39,12 @@ self.addEventListener('notificationclick', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Firebase та зовнішні запити — завжди мережа
-  if (url.hostname.includes('firebase') ||
-      url.hostname.includes('gstatic') ||
-      url.hostname.includes('googleapis') ||
-      url.hostname.includes('fonts.g')) {
-    event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
-    return;
-  }
+  // Сторонні (крос-origin) запити — Firebase, reCAPTCHA, шрифти тощо —
+  // не чіпаємо взагалі й лишаємо браузеру, ніби сервіс-воркера немає.
+  // Раніше тут був respondWith(fetch(...)) навіть для чужих запитів, і це
+  // ламало деякі no-cors/redirect-запити (напр. внутрішній CSP-звіт
+  // reCAPTCHA), викликаючи "TypeError: Failed to fetch" в консолі.
+  if (url.origin !== self.location.origin) return;
 
   // HTML файли — Network First (завжди свіжий код)
   if (event.request.destination === 'document' || url.pathname.endsWith('.html')) {

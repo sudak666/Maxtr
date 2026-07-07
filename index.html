@@ -3155,6 +3155,10 @@ function setPhoneError(msg){
   const el=document.getElementById('auth-phone-error');
   if(el) el.textContent=msg||'';
 }
+function resetRecaptchaContainer(containerId){
+  const el=document.getElementById(containerId);
+  if(el) el.innerHTML='';
+}
 let recaptchaVerifier=null;
 function ensureRecaptcha(){
   if(!recaptchaVerifier) recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'invisible'});
@@ -3175,6 +3179,10 @@ window.sendPhoneCode=async function(){
     console.error(err);
     setPhoneError(authErrorMessage(err.code));
     if(recaptchaVerifier){ try{ recaptchaVerifier.clear(); }catch(e){} recaptchaVerifier=null; }
+    // .clear() can itself throw mid-way (leaves the widget's DOM node behind),
+    // so a retry's new RecaptchaVerifier fails with "already been rendered in
+    // this element" — force the container empty regardless of .clear()'s outcome.
+    resetRecaptchaContainer('recaptcha-container');
   }finally{
     btn.disabled=false;
   }
@@ -3238,6 +3246,7 @@ window.sendLinkPhoneCode=async function(){
     console.error(err);
     setLinkPhoneError(authErrorMessage(err.code));
     if(linkRecaptchaVerifier){ try{ linkRecaptchaVerifier.clear(); }catch(e){} linkRecaptchaVerifier=null; }
+    resetRecaptchaContainer('link-recaptcha-container');
   }finally{
     btn.disabled=false;
   }
