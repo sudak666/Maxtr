@@ -138,7 +138,7 @@ button,input,select,textarea{font-family:inherit}
 .auth-link:hover{text-decoration:underline}
 
 /* ── LAYOUT ── */
-.app{max-width:1200px;margin:0 auto;padding:20px 16px 80px}
+.app{max-width:1200px;margin:0 auto;padding:20px 16px calc(96px + env(safe-area-inset-bottom))}
 
 /* ── TOP NAV ── */
 .topbar{
@@ -181,12 +181,29 @@ button,input,select,textarea{font-family:inherit}
 .btn-success:hover{background:var(--green);color:#fff}
 
 /* ── TABS ── */
-.tabs{display:flex;gap:4px;padding:5px;background:var(--bg1);border:1px solid var(--border);border-radius:999px;margin-bottom:24px}
-.tab-btn{flex:1;padding:10px 16px;border:none;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
-.tab-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.35)}
-.tab-btn.tab-c-finance.active{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 16px rgba(16,185,129,.35)}
-.tab-btn.tab-c-debt.active{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 16px rgba(245,158,11,.35)}
-.tab-btn.tab-c-settings.active{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 16px rgba(100,116,139,.35)}
+/* Bottom nav bar (Monobank-style): fixed, floating, icon-in-a-circle that
+   lights up with a per-tab gradient only while active — rest of the bar
+   stays flat/muted so the active tab reads at a glance. */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:200;
+  display:flex;gap:2px;
+  background:var(--bg1);border-top:1px solid var(--border);
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  backdrop-filter:blur(16px);
+}
+.tab-btn{
+  flex:1;border:none;background:transparent;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:2px;font-size:10.5px;font-weight:700;color:var(--muted);
+  letter-spacing:-.01em;transition:color .2s;
+}
+.tab-icon-wrap{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
+.tab-btn .ico{width:19px;height:19px;margin-right:0}
+.tab-btn.active{color:var(--text-strong)}
+.tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.4)}
+.tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.4)}
+.tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,.4)}
+.tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,.4)}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -201,6 +218,13 @@ button,input,select,textarea{font-family:inherit}
   transition:border-color .2s,transform .15s;
 }
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.quick-actions{display:flex;gap:16px;overflow-x:auto;padding:2px 2px 14px;margin-bottom:6px;scrollbar-width:none}
+.quick-actions::-webkit-scrollbar{display:none}
+.quick-action{display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto;width:68px;cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+.quick-action-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);transition:transform .15s}
+.quick-action-icon .ico{width:24px;height:24px;margin-right:0}
+.quick-action:active .quick-action-icon{transform:scale(.9)}
+.quick-action-label{font-size:11.5px;font-weight:700;color:var(--text-strong);text-align:center;line-height:1.2;white-space:nowrap}
 .stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
 .stat-icon .ico{width:20px;height:20px;margin-right:0}
 
@@ -640,8 +664,8 @@ body.amounts-hidden #fx-converter-result{
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
-  .tab-btn{flex-direction:column;gap:3px;padding:8px 2px;font-size:10px;letter-spacing:-.01em}
-  .tab-btn .ico{width:14px;height:14px}
+  .tab-icon-wrap{width:34px;height:34px}
+  .tab-btn .ico{width:17px;height:17px}
   .cal-nav{gap:6px}
   .cs.cs-sm{min-width:0;flex:1 1 84px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:12px}
@@ -787,15 +811,6 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <div class="app">
-
-  <!-- TABS -->
-  <div class="tabs" style="margin-top:18px">
-    <button id="nav-finance" class="tab-btn tab-c-finance active" onclick="switchTab('finance')"><span id="tab-icon-finance"></span><span data-i18n="nav_finance">Фінанси</span></button>
-    <button id="nav-shifts" class="tab-btn tab-c-shifts" onclick="switchTab('shifts')"><span id="tab-icon-shifts"></span><span data-i18n="nav_shifts">Графік змін</span></button>
-    <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span id="tab-icon-debt"></span><span data-i18n="nav_debt">Розрахунки</span></button>
-    <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span id="tab-icon-settings"></span><span data-i18n="nav_settings">Налаштування</span></button>
-  </div>
-
   <!-- ═══ ЗМІНИ ═══ -->
   <div id="tab-shifts" style="display:none">
     <div class="page-head">
@@ -885,6 +900,30 @@ body.amounts-hidden #fx-converter-result{
     <div class="stats-row" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
       <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
+    </div>
+
+    <!-- Швидкі дії: тап одразу відкриває потрібний розділ -->
+    <div class="quick-actions">
+      <button type="button" class="quick-action" onclick="openRatesManager()">
+        <span class="quick-action-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)" id="ic-qa-rates"></span>
+        <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
+      </button>
+      <button type="button" class="quick-action" onclick="scrollToSection('fx-converter-section')">
+        <span class="quick-action-icon" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)" id="ic-qa-converter"></span>
+        <span class="quick-action-label" data-i18n="qa_converter">Конвертер</span>
+      </button>
+      <button type="button" class="quick-action" onclick="openBudgetsManager()">
+        <span class="quick-action-icon" style="background:linear-gradient(135deg,#f59e0b,#fb923c)" id="ic-qa-budgets"></span>
+        <span class="quick-action-label" data-i18n="settings_budgets">Бюджети</span>
+      </button>
+      <button type="button" class="quick-action" onclick="openGoalsManager()">
+        <span class="quick-action-icon" style="background:linear-gradient(135deg,#10b981,#34d399)" id="ic-qa-goals"></span>
+        <span class="quick-action-label" data-i18n="settings_goals">Цілі</span>
+      </button>
+      <button type="button" class="quick-action" onclick="scrollToSection('analytics-section')">
+        <span class="quick-action-icon" style="background:linear-gradient(135deg,#ec4899,#f472b6)" id="ic-qa-analytics"></span>
+        <span class="quick-action-label" data-i18n="qa_analytics">Аналітика</span>
+      </button>
     </div>
 
     <div class="fin-grid" id="finance-panel-block">
@@ -1352,6 +1391,14 @@ body.amounts-hidden #fx-converter-result{
 
 </div><!-- /app -->
 
+<!-- BOTTOM NAV -->
+<div class="tabs">
+  <button id="nav-finance" class="tab-btn tab-c-finance active" onclick="switchTab('finance')"><span class="tab-icon-wrap"><span id="tab-icon-finance"></span></span><span data-i18n="nav_finance">Фінанси</span></button>
+  <button id="nav-shifts" class="tab-btn tab-c-shifts" onclick="switchTab('shifts')"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
+  <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
+  <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
+</div>
+
 <!-- MODAL ЗМІНИ -->
 <div class="modal-overlay" id="shift-modal" onclick="closeModal()">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1748,6 +1795,11 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-goals','flag');
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
+  setIcon('ic-qa-rates','swap');
+  setIcon('ic-qa-converter','swap');
+  setIcon('ic-qa-budgets','target');
+  setIcon('ic-qa-goals','flag');
+  setIcon('ic-qa-analytics','pie');
   setIcon('ic-analytics','pie');
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
@@ -1887,6 +1939,7 @@ body.amounts-hidden #fx-converter-result{
       rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
       fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
       fx_converter_title:'Конвертер валют', fx_converter_amount:'Сума', fx_converter_from:'З', fx_converter_to:'В',
+      qa_rates:'Курси', qa_converter:'Конвертер', qa_analytics:'Аналітика',
       settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни чи вимкни блоки на вкладці "Фінанси".',
       widgets_item_rates:'Курси валют', widgets_item_rates_sub:'Компактний список курсів', widgets_item_converter:'Конвертер валют', widgets_item_converter_sub:'Швидкий перерахунок суми',
       widgets_item_analytics:'Аналітика', widgets_item_analytics_sub:'Витрати й доходи за категоріями', widgets_item_chart:'Графік балансу', widgets_item_chart_sub:'Баланс за останні 6 місяців',
@@ -2074,6 +2127,7 @@ body.amounts-hidden #fx-converter-result{
       rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
       fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
       fx_converter_title:'Currency converter', fx_converter_amount:'Amount', fx_converter_from:'From', fx_converter_to:'To',
+      qa_rates:'Rates', qa_converter:'Converter', qa_analytics:'Analytics',
       settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off.',
       widgets_item_rates:'Exchange rates', widgets_item_rates_sub:'Compact rates list', widgets_item_converter:'Currency converter', widgets_item_converter_sub:'Quick amount conversion',
       widgets_item_analytics:'Analytics', widgets_item_analytics_sub:'Income and expenses by category', widgets_item_chart:'Balance chart', widgets_item_chart_sub:'Balance over the last 6 months',
@@ -2688,6 +2742,12 @@ function saveConfigLocal(){
   const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, catBackfillDone, catLegacyMerged}));
 }
 
+// Quick-actions row on the Finance tab: jumps straight to an inline
+// section (rates/converter/analytics don't have a dedicated manager modal
+// the way budgets/goals do).
+window.scrollToSection=function(id){
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
+};
 // ── GLOBALS ───────────────────────────────────────────────────
 window.fbLoadNow=fbLoadNow;
 window.switchTab=switchTab; window.openModal=openModal; window.closeModal=closeModal;
