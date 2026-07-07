@@ -81,7 +81,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── ICONS (monochrome, line-style) ── */
 .ico{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;margin-right:6px}
-.btn .ico,.tab-btn .ico,.chart-title .ico,.tools-label .ico,.fin-form-title .ico,.tx-cat .ico,.wallet-tag .ico,#toast .ico,.chk-name .ico,.sync-chip .ico{margin-right:0}
+.btn .ico,.tab-btn .ico,.chart-title .ico,.tools-label .ico,.fin-form-title .ico,.tx-cat .ico,.wallet-tag .ico,#toast .ico,.chk-name .ico{margin-right:0}
 .btn .ico{width:16px;height:16px}
 .tab-btn .ico{width:15px;height:15px}
 .chart-title .ico{width:14px;height:14px}
@@ -155,18 +155,6 @@ button,input,select,textarea{font-family:inherit}
 .topbar-sub{font-size:11px;color:var(--muted);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
-/* ── SYNC CHIP ── */
-.sync-chip{
-  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
-  border-radius:99px;font-size:11px;font-weight:700;border:1px solid var(--border2);
-  background:var(--bg2);cursor:default;transition:all .2s;white-space:nowrap;
-}
-.sync-chip.ok{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.08);color:var(--green2)}
-.sync-chip.loading{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08);color:var(--orange2)}
-.sync-chip.error{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:var(--red2)}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse-dot 2s infinite}
-@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
-
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit}
 .btn:active{transform:scale(.97)}
@@ -187,9 +175,11 @@ button,input,select,textarea{font-family:inherit}
 .tabs{
   position:fixed;left:0;right:0;bottom:0;z-index:200;
   display:flex;gap:2px;
-  background:var(--bg1);border-top:1px solid var(--border);
+  background:var(--bg1);border:1px solid var(--border);border-bottom:none;
+  border-radius:26px 26px 0 0;
   padding:8px 10px calc(8px + env(safe-area-inset-bottom));
   backdrop-filter:blur(16px);
+  box-shadow:0 -8px 24px rgba(0,0,0,.18);
 }
 .tab-btn{
   flex:1;border:none;background:transparent;cursor:pointer;font-family:inherit;
@@ -642,7 +632,7 @@ body.amounts-hidden #fx-converter-result{
 
 /* ── TOAST ── */
 #toast{
-  position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
+  position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);
   padding:10px 20px;border-radius:999px;font-size:13px;font-weight:700;z-index:9999;
   opacity:0;visibility:hidden;transition:all .25s;white-space:nowrap;
@@ -804,7 +794,6 @@ body.amounts-hidden #fx-converter-result{
     </div>
   </div>
   <div class="topbar-right">
-    <div class="sync-chip loading" id="fb-status"><span class="sync-dot"></span><span id="fb-text" data-i18n="topbar_connecting">Підключення...</span></div>
     <button class="btn btn-ghost" id="btn-hide-amounts" onclick="toggleHideAmounts()" title="Сховати суми"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" title="Оновити"></button>
   </div>
@@ -1861,7 +1850,7 @@ body.amounts-hidden #fx-converter-result{
       auth_phone_code_label:'Код із SMS', auth_phone_verify:'Підтвердити', auth_phone_back:'← Назад',
       auth_phone_code_sent:'Код надіслано', auth_phone_bad_format:'Введи номер у форматі +380XXXXXXXXX',
       auth_phone_enter_code:'Введи код із SMS',
-      topbar_sub:'Зміни · Фінанси · Хмара', topbar_connecting:'Підключення...',
+      topbar_sub:'Зміни · Фінанси · Хмара',
       nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування',
       shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
       finance_kicker:'Особистий бюджет', finance_title:'Гаманці & Фінанси',
@@ -1890,7 +1879,7 @@ body.amounts-hidden #fx-converter-result{
       sync_conflict_title:'Конфлікт синхронізації', sync_conflict_overwrite:'Записати поверх', sync_conflict_load_fresh:'Завантажити свіже',
       sync_saved:'Збережено', sync_error:'Помилка', sync_autosave_error:'Помилка автозбереження',
       sync_loading:'Завантажую...', sync_synced:'Синхронізовано', sync_recur_added:'Додано', sync_recur_suffix:'повторюваних операцій',
-      sync_data_updated:'Дані оновлено', sync_offline:'Офлайн', sync_cloud_unavailable:'Хмара недоступна — локальні дані', sync_autosave:'Автозбереження...',
+      sync_offline:'Офлайн', sync_cloud_unavailable:'Хмара недоступна — локальні дані', sync_autosave:'Автозбереження...',
       recurring_comment_tag:'повторювана',
       auth_err_invalid_email:'Некоректний email.', auth_err_user_not_found:'Користувача не знайдено.',
       auth_err_wrong_password:'Невірний пароль.', auth_err_invalid_credential:'Невірний email або пароль.',
@@ -2049,7 +2038,7 @@ body.amounts-hidden #fx-converter-result{
       auth_phone_code_label:'SMS code', auth_phone_verify:'Verify', auth_phone_back:'← Back',
       auth_phone_code_sent:'Code sent', auth_phone_bad_format:'Enter a number in +380XXXXXXXXX format',
       auth_phone_enter_code:'Enter the SMS code',
-      topbar_sub:'Shifts · Finance · Cloud', topbar_connecting:'Connecting...',
+      topbar_sub:'Shifts · Finance · Cloud',
       nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings',
       shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
       finance_kicker:'Personal budget', finance_title:'Wallets & Finance',
@@ -2078,7 +2067,7 @@ body.amounts-hidden #fx-converter-result{
       sync_conflict_title:'Sync conflict', sync_conflict_overwrite:'Overwrite', sync_conflict_load_fresh:'Load fresh',
       sync_saved:'Saved', sync_error:'Error', sync_autosave_error:'Autosave error',
       sync_loading:'Loading...', sync_synced:'Synced', sync_recur_added:'Added', sync_recur_suffix:'recurring transactions',
-      sync_data_updated:'Data updated', sync_offline:'Offline', sync_cloud_unavailable:'Cloud unavailable — local data', sync_autosave:'Autosaving...',
+      sync_offline:'Offline', sync_cloud_unavailable:'Cloud unavailable — local data', sync_autosave:'Autosaving...',
       recurring_comment_tag:'recurring',
       auth_err_invalid_email:'Invalid email.', auth_err_user_not_found:'User not found.',
       auth_err_wrong_password:'Wrong password.', auth_err_invalid_credential:'Invalid email or password.',
@@ -2664,8 +2653,9 @@ async function fbLoadNow(){
     };
     fbSetStatus('ok',tr('sync_synced'));
     renderCalendar(); renderFinance(); renderIncomeChart(); renderFinanceChart(); renderDebt();
+    // Sync itself stays silent — only surfaced to the user when something
+    // actually needs their attention (a conflict, or being offline below).
     if(recurAdded) showToast(`${tr('sync_recur_added')} ${recurAdded} ${tr('sync_recur_suffix')}`,'repeat');
-    else showToast(tr('sync_data_updated'),'sparkle');
     // Persist newly-seeded config, keeping a one-time raw backup first so
     // the original docs can always be recovered if anything looks wrong.
     if(seeded){
