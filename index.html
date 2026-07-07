@@ -212,7 +212,7 @@ button,input,select,textarea{font-family:inherit}
 .quick-actions{display:flex;gap:16px;overflow-x:auto;padding:2px 2px 14px;margin-bottom:6px;scrollbar-width:none}
 .quick-actions::-webkit-scrollbar{display:none}
 .quick-action{display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto;width:68px;cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
-.quick-action-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18);transition:transform .15s}
+.quick-action-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple3));box-shadow:0 6px 16px rgba(0,0,0,.18);transition:transform .15s}
 .quick-action-icon .ico{width:24px;height:24px;margin-right:0}
 .quick-action:active .quick-action-icon{transform:scale(.9)}
 .quick-action-label{font-size:11.5px;font-weight:700;color:var(--text-strong);text-align:center;line-height:1.2;white-space:nowrap}
@@ -249,6 +249,28 @@ button,input,select,textarea{font-family:inherit}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
 .stat-big{grid-column:span 2}
+
+/* ── HERO METRIC + CHIP ROW (replaces a row of equal-weight stat cards
+   with one primary number and a compact scrollable strip of the rest) ── */
+.hero-metric{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:12px}
+.hero-metric-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:var(--text-strong);margin:4px 0 0;line-height:1}
+.chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
+.chip-stat-row::-webkit-scrollbar{display:none}
+.chip-stat{display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:999px;padding:8px 14px 8px 8px;white-space:nowrap}
+.chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
+.chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
+.chip-stat-val{font-size:13px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
+.chip-stat-lbl{font-size:11px;font-weight:600;color:var(--muted)}
+.hero-balance{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:16px}
+.hero-balance-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:var(--text-strong);margin:4px 0 14px;line-height:1}
+.wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.wallet-chip-row::-webkit-scrollbar{display:none}
+.wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
+.wallet-chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.wallet-chip-name{font-size:12px;font-weight:700;color:var(--text-strong)}
+.wallet-chip-val{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
 
 /* ── SALARY PROGRESS ── */
 .salary-progress{margin-top:8px}
@@ -337,7 +359,6 @@ button,input,select,textarea{font-family:inherit}
 .chart-bar-label{font-size:9px;font-weight:700;color:var(--muted2);text-align:center}
 
 /* ── FINANCE ── */
-.fin-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
 .fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
 
@@ -460,6 +481,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 /* ── HISTORY ── */
 .fin-history{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;min-height:400px}
+
+/* ── FLOATING ADD BUTTON (opens the transaction form as a sheet) ── */
+.fin-fab{
+  position:fixed;right:20px;bottom:calc(108px + env(safe-area-inset-bottom));z-index:150;
+  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  background:linear-gradient(135deg,var(--purple),var(--purple3));
+  box-shadow:0 10px 24px rgba(139,92,246,.45);transition:transform .15s;
+}
+.fin-fab:active{transform:scale(.92)}
+.fin-fab .ico{width:24px;height:24px;margin-right:0}
 .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 
@@ -510,6 +542,8 @@ body.amounts-hidden #fx-converter-result{
 .debt-chip.active{background:var(--chip-color,var(--purple));border-color:var(--chip-color,var(--purple));color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .debt-chip-add{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-style:dashed;border-radius:50%}
 .debt-chip-add .ico{margin-right:0;width:16px;height:16px}
+.debt-chip-add-labeled{width:auto;height:auto;padding:9px 18px 9px 14px;border-radius:999px;gap:7px}
+.debt-chip-add-labeled .ico{width:14px;height:14px}
 .debt-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;border-radius:50%;display:inline-flex;transition:all .15s}
 .debt-chip-del .ico{margin-right:0;width:14px;height:14px}
 .debt-chip-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
@@ -610,6 +644,13 @@ body.amounts-hidden #fx-converter-result{
 
 /* ── SUBCATEGORY CHIPS (inside the categories manager) ── */
 .subcat-toggle{background:var(--bg1);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.cat-row{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;width:100%;min-width:0}
+.budget-row{flex-wrap:nowrap;gap:10px;min-width:0}
+.budget-row-name{flex:1 1 auto;min-width:0;font-size:13px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.budget-row-input{flex:0 0 96px;width:96px;text-align:right}
+.cat-row-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
+.cat-row-name{font-size:13px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-row-sub{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── DRAG-TO-REORDER (categories list) ── */
 .drag-handle{background:none;border:none;color:var(--muted2);cursor:grab;padding:6px;border-radius:50%;display:inline-flex;flex:0 0 auto;touch-action:none;transition:all .15s}
@@ -649,7 +690,6 @@ body.amounts-hidden #fx-converter-result{
 #toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
 
 /* ── RESPONSIVE ── */
-@media(max-width:900px){.fin-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
   .app{padding:12px 10px calc(96px + env(safe-area-inset-bottom))}
   .cal-wrap{padding:12px}
@@ -815,34 +855,18 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <!-- Статистика -->
-    <div class="stats-row">
-      <div class="stat-card stat-big">
-        <span class="stat-icon" id="ic-salary" style="background:var(--green);color:#fff"></span>
-        <div class="stat-label" data-i18n="shifts_stat_earned">Зароблено цього місяця</div>
-        <div class="stat-val" id="total-salary">0 грн</div>
-        <div class="salary-progress">
-          <div class="salary-bar-wrap"><div class="salary-bar-fill" id="salary-bar" style="width:0%"></div></div>
-          <div class="salary-bar-label" id="salary-bar-label"></div>
-        </div>
+    <div class="hero-metric">
+      <div class="hero-metric-label" data-i18n="shifts_stat_earned">Зароблено цього місяця</div>
+      <div class="hero-metric-val" id="total-salary">0 грн</div>
+      <div class="salary-progress">
+        <div class="salary-bar-wrap"><div class="salary-bar-fill" id="salary-bar" style="width:0%"></div></div>
+        <div class="salary-bar-label" id="salary-bar-label"></div>
       </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-hours" style="background:var(--purple);color:#fff"></span>
-        <div class="stat-label" data-i18n="shifts_stat_hours">Годин відпрацьовано</div>
-        <div class="stat-val" id="total-hours">0</div>
-        <div class="stat-sub" data-i18n="shifts_stat_this_month">цього місяця</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-day" style="background:var(--blue);color:#fff"></span>
-        <div class="stat-label" data-i18n="shifts_stat_shifts">Змін</div>
-        <div class="stat-val" id="count-shifts" style="color:var(--blue2)">0</div>
-        <div class="stat-sub" data-i18n="shifts_stat_workdays">робочих днів</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-vacation" style="background:var(--orange);color:#fff"></span>
-        <div class="stat-label" data-i18n="shifts_stat_off">Вихідних</div>
-        <div class="stat-val" id="count-off" style="color:var(--orange2)">0</div>
-        <div class="stat-sub" data-i18n="shifts_stat_marked">позначених</div>
-      </div>
+    </div>
+    <div class="chip-stat-row">
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-hours"></span><span class="chip-stat-val" id="total-hours">0</span><span class="chip-stat-lbl" data-i18n="shifts_chip_hours">год</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-day"></span><span class="chip-stat-val" id="count-shifts">0</span><span class="chip-stat-lbl" data-i18n="shifts_stat_shifts">Змін</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-vacation"></span><span class="chip-stat-val" id="count-off">0</span><span class="chip-stat-lbl" data-i18n="shifts_stat_off">Вихідних</span></span>
     </div>
 
     <!-- Графік доходів по місяцях -->
@@ -893,7 +917,7 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <!-- Баланси -->
-    <div class="stats-row" id="fin-balances"></div>
+    <div class="hero-balance" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
       <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
     </div>
@@ -901,92 +925,51 @@ body.amounts-hidden #fx-converter-result{
     <!-- Швидкі дії: тап одразу відкриває потрібний розділ -->
     <div class="quick-actions">
       <button type="button" class="quick-action" onclick="openRatesManager()">
-        <span class="quick-action-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)" id="ic-qa-rates"></span>
+        <span class="quick-action-icon" id="ic-qa-rates"></span>
         <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
       </button>
       <button type="button" class="quick-action" onclick="scrollToSection('fx-converter-section')">
-        <span class="quick-action-icon" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)" id="ic-qa-converter"></span>
+        <span class="quick-action-icon" id="ic-qa-converter"></span>
         <span class="quick-action-label" data-i18n="qa_converter">Конвертер</span>
       </button>
       <button type="button" class="quick-action" onclick="openBudgetsManager()">
-        <span class="quick-action-icon" style="background:linear-gradient(135deg,#f59e0b,#fb923c)" id="ic-qa-budgets"></span>
+        <span class="quick-action-icon" id="ic-qa-budgets"></span>
         <span class="quick-action-label" data-i18n="settings_budgets">Бюджети</span>
       </button>
       <button type="button" class="quick-action" onclick="openGoalsManager()">
-        <span class="quick-action-icon" style="background:linear-gradient(135deg,#10b981,#34d399)" id="ic-qa-goals"></span>
+        <span class="quick-action-icon" id="ic-qa-goals"></span>
         <span class="quick-action-label" data-i18n="settings_goals">Цілі</span>
       </button>
       <button type="button" class="quick-action" onclick="scrollToSection('analytics-section')">
-        <span class="quick-action-icon" style="background:linear-gradient(135deg,#ec4899,#f472b6)" id="ic-qa-analytics"></span>
+        <span class="quick-action-icon" id="ic-qa-analytics"></span>
         <span class="quick-action-label" data-i18n="qa_analytics">Аналітика</span>
       </button>
     </div>
 
-    <div class="fin-grid" id="finance-panel-block">
-      <!-- Форма -->
-      <div class="fin-form">
-        <div class="fin-form-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
-          <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="cancelEditTransaction()" data-i18n="common_cancel">Скасувати</button>
-        </div>
-        <div class="type-seg">
-          <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')" data-i18n="finance_type_income">+ Дохід</button>
-          <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')" data-i18n="finance_type_expense">− Витрата</button>
-          <button id="btn-trn" class="type-btn trn"        onclick="setFinanceType('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</button>
-        </div>
-        <div class="fg">
-          <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
-          <select id="fin-wallet"></select>
-        </div>
-        <div class="fg" id="wallet-target-group" style="display:none">
-          <label data-i18n="finance_wallet_target">Куди переказати</label>
-          <select id="fin-wallet-target"></select>
-        </div>
-        <div class="fg">
-          <label id="fin-amount-label">Сума (грн)</label>
-          <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
-        </div>
-        <div class="fg" id="category-group">
-          <label data-i18n="finance_category">Категорія</label>
-          <select id="fin-category"></select>
-        </div>
-        <div class="fg" id="subcategory-group" style="display:none">
-          <label data-i18n="finance_subcategory">Підкатегорія</label>
-          <select id="fin-subcategory"></select>
-        </div>
-        <div class="fg" id="tags-group" style="display:none">
-          <label data-i18n="finance_tags">Теги</label>
-          <div class="filter-row" id="fin-tags-chips" style="margin-bottom:0"></div>
-        </div>
-        <div class="fg">
-          <label data-i18n="finance_date">Дата</label>
-          <input type="date" id="fin-date">
-        </div>
-        <div class="fg">
-          <label data-i18n="finance_comment">Коментар</label>
-          <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
-        </div>
-        <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()" data-i18n="finance_add_btn">Додати запис</button>
+    <!-- Історія -->
+    <div class="fin-history">
+      <div class="hist-head">
+        <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
       </div>
-
-      <!-- Історія -->
-      <div class="fin-history">
-        <div class="hist-head">
-          <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
-          <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-chip active" data-filter="all"      onclick="setTxFilter('all')" data-i18n="finance_filter_all">Всі</div>
-          <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')" data-i18n="finance_type_income">+ Дохід</div>
-          <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')" data-i18n="finance_type_expense">− Витрата</div>
-          <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</div>
-        </div>
-        <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
-          <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
-        </div>
-        <div class="tx-list" id="tx-list-container"></div>
+      <div class="filter-row">
+        <div class="filter-chip active" data-filter="all"      onclick="setTxFilter('all')" data-i18n="finance_filter_all">Всі</div>
+        <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')" data-i18n="finance_type_income">+ Дохід</div>
+        <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')" data-i18n="finance_type_expense">− Витрата</div>
+        <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</div>
       </div>
+      <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
+        <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
+      </div>
+      <div class="tx-list" id="tx-list-container"></div>
     </div>
+
+    <!-- Плаваюча кнопка: відкриває форму нової операції в шторці замість
+         постійно розгорнутої форми, щоб типовий "просто перевірити баланс"
+         візит не починався з форми на чверть екрана. -->
+    <button type="button" class="fin-fab" onclick="openNewTxModal()" aria-label="Нова операція">
+      <span id="ic-fin-fab"></span>
+    </button>
 
     <!-- Аналітика витрат і доходів -->
     <div class="chart-section" id="analytics-section">
@@ -1071,27 +1054,14 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="debt-chips" id="debt-chips"></div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-start" style="background:var(--purple);color:#fff"></span>
-        <div class="stat-label" data-i18n="debt_stat_start">Початкова сума</div>
-        <div class="stat-val" id="debt-start-val">0</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-balance" style="background:var(--blue);color:#fff"></span>
-        <div class="stat-label" data-i18n="debt_stat_balance">Поточний залишок</div>
-        <div class="stat-val" id="debt-balance-val">0</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-paid" style="background:var(--green);color:#fff"></span>
-        <div class="stat-label" data-i18n="debt_stat_paid">Сплачено</div>
-        <div class="stat-val" id="debt-paid-val">0</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-debt-count" style="background:var(--orange);color:#fff"></span>
-        <div class="stat-label" data-i18n="debt_stat_count">Платежів</div>
-        <div class="stat-val" id="debt-count-val">0</div>
-      </div>
+    <div class="hero-metric">
+      <div class="hero-metric-label" data-i18n="debt_stat_balance">Поточний залишок</div>
+      <div class="hero-metric-val" id="debt-balance-val">0</div>
+    </div>
+    <div class="chip-stat-row">
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-start"></span><span class="chip-stat-val" id="debt-start-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_start">Початкова сума</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-paid"></span><span class="chip-stat-val" id="debt-paid-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_paid">Сплачено</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-count"></span><span class="chip-stat-val" id="debt-count-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_count">Платежів</span></span>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
@@ -1154,17 +1124,9 @@ body.amounts-hidden #fx-converter-result{
       <div class="page-title" data-i18n="shopping_title">Список покупок</div>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-shopping-remaining" style="background:var(--purple);color:#fff"></span>
-        <div class="stat-label" data-i18n="shopping_stat_remaining">Залишилось</div>
-        <div class="stat-val" id="shopping-remaining-val">0</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon" id="ic-shopping-bought" style="background:var(--green);color:#fff"></span>
-        <div class="stat-label" data-i18n="shopping_stat_bought">Куплено</div>
-        <div class="stat-val" id="shopping-bought-val">0</div>
-      </div>
+    <div class="chip-stat-row">
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-shopping-remaining"></span><span class="chip-stat-val" id="shopping-remaining-val">0</span><span class="chip-stat-lbl" data-i18n="shopping_stat_remaining">Залишилось</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" id="ic-shopping-bought"></span><span class="chip-stat-val" id="shopping-bought-val">0</span><span class="chip-stat-lbl" data-i18n="shopping_stat_bought">Куплено</span></span>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
@@ -1501,6 +1463,59 @@ body.amounts-hidden #fx-converter-result{
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<!-- НОВА ОПЕРАЦІЯ (шторка, відкривається плаваючою кнопкою на вкладці Фінанси) -->
+<div class="modal-overlay" id="tx-form-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="fin-form" style="border:none;background:none;padding:0">
+      <div class="fin-form-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
+        <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="closeTxModal()" data-i18n="common_cancel">Скасувати</button>
+      </div>
+      <div class="type-seg">
+        <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-trn" class="type-btn trn"        onclick="setFinanceType('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</button>
+      </div>
+      <div class="fg">
+        <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
+        <select id="fin-wallet"></select>
+      </div>
+      <div class="fg" id="wallet-target-group" style="display:none">
+        <label data-i18n="finance_wallet_target">Куди переказати</label>
+        <select id="fin-wallet-target"></select>
+      </div>
+      <div class="fg">
+        <label id="fin-amount-label">Сума (грн)</label>
+        <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
+      </div>
+      <div class="fg" id="category-group">
+        <label data-i18n="finance_category">Категорія</label>
+        <select id="fin-category"></select>
+      </div>
+      <div class="fg" id="subcategory-group" style="display:none">
+        <label data-i18n="finance_subcategory">Підкатегорія</label>
+        <select id="fin-subcategory"></select>
+      </div>
+      <div class="fg" id="tags-group" style="display:none">
+        <label data-i18n="finance_tags">Теги</label>
+        <div class="filter-row" id="fin-tags-chips" style="margin-bottom:0"></div>
+      </div>
+      <div class="fg">
+        <label data-i18n="finance_date">Дата</label>
+        <input type="date" id="fin-date">
+      </div>
+      <div class="fg">
+        <label data-i18n="finance_comment">Коментар</label>
+        <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+      </div>
+      <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()" data-i18n="finance_add_btn">Додати запис</button>
     </div>
    </div>
   </div>
@@ -1932,6 +1947,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-trash-month','trash');
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
+  setIcon('ic-fin-fab','plus');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
@@ -2068,7 +2084,7 @@ body.amounts-hidden #fx-converter-result{
       csv_empty:'Немає операцій для експорту', csv_date:'Дата', csv_type:'Тип', csv_currency:'Валюта',
       csv_to:'Куди', csv_transfer_amount:'Сума переказу', csv_transfer_currency:'Валюта переказу', csv_downloaded:'CSV завантажено',
       shifts_stat_earned:'Зароблено цього місяця', shifts_stat_hours:'Годин відпрацьовано', shifts_stat_this_month:'цього місяця',
-      shifts_stat_shifts:'Змін', shifts_stat_workdays:'робочих днів', shifts_stat_off:'Вихідних', shifts_stat_marked:'позначених',
+      shifts_stat_shifts:'Змін', shifts_stat_workdays:'робочих днів', shifts_stat_off:'Вихідних', shifts_stat_marked:'позначених', shifts_chip_hours:'год',
       shifts_chart_title:'Динаміка заробітку — 6 місяців', shifts_quick_fill:'Швидке заповнення',
       shifts_pattern_every:'Щодня', shifts_pattern_alt:'День через день', shifts_pattern_2_2:'2 через 2', shifts_pattern_3_3:'3 через 3',
       shifts_apply:'Застосувати', shifts_types_btn:'Типи змін', shifts_clear_month:'Очистити місяць',
@@ -2277,7 +2293,7 @@ body.amounts-hidden #fx-converter-result{
       csv_empty:'No transactions to export', csv_date:'Date', csv_type:'Type', csv_currency:'Currency',
       csv_to:'To', csv_transfer_amount:'Transfer amount', csv_transfer_currency:'Transfer currency', csv_downloaded:'CSV downloaded',
       shifts_stat_earned:'Earned this month', shifts_stat_hours:'Hours worked', shifts_stat_this_month:'this month',
-      shifts_stat_shifts:'Shifts', shifts_stat_workdays:'work days', shifts_stat_off:'Days off', shifts_stat_marked:'marked',
+      shifts_stat_shifts:'Shifts', shifts_stat_workdays:'work days', shifts_stat_off:'Days off', shifts_stat_marked:'marked', shifts_chip_hours:'hrs',
       shifts_chart_title:'Earnings trend — 6 months', shifts_quick_fill:'Quick fill',
       shifts_pattern_every:'Every day', shifts_pattern_alt:'Every other day', shifts_pattern_2_2:'2 on 2 off', shifts_pattern_3_3:'3 on 3 off',
       shifts_apply:'Apply', shifts_types_btn:'Shift types', shifts_clear_month:'Clear month',
@@ -3716,10 +3732,7 @@ function switchTab(tab){
   document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
-  if(tab==='finance') {applyWidgetVisibility(); renderFinance(); renderFinanceChart();
-    const fp=document.getElementById('finance-panel-block');
-    if(fp) fp.style.display=window.innerWidth<=900?'block':'grid';
-  }
+  if(tab==='finance') {applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
   if(tab==='shopping') {renderShoppingList();}
 }
@@ -4244,7 +4257,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -4629,14 +4642,14 @@ function renderCategoriesList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.dataset.catName=name;
     row.innerHTML=`
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-        <span style="display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:80px;font-size:13px;font-weight:700;color:var(--text-strong)">
-          <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</span>
-        </span>
-        <button type="button" class="subcat-toggle" onclick="toggleSubcatPanel(${idx})">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''}</button>
-        <span class="subcat-total">${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
-        <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
+      <div class="cat-row">
         <button type="button" class="drag-handle" title="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
+        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>
+        <button type="button" class="cat-row-body" onclick="toggleSubcatPanel(${idx})">
+          <span class="cat-row-name">${escapeHtml(name)}</span>
+          <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
+        </button>
+        <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -4795,13 +4808,12 @@ function renderBudgetsManagerList(){
   list.forEach(name=>{
     const val=budgets[name]||'';
     const row=document.createElement('div');
-    row.className='mgr-row';
+    row.className='mgr-row budget-row';
     row.innerHTML=`
-      <div class="mgr-name-inline" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-strong)"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>${escapeHtml(name)}</div>
-      <div class="mgr-field" style="flex:1 1 130px">
-        <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
-        <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
-      </div>`;
+      <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>
+      <span class="budget-row-name">${escapeHtml(name)}</span>
+      <input type="number" class="mgr-num budget-row-input" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
+    `;
     box.appendChild(row);
   });
 }
@@ -5439,6 +5451,7 @@ function addTransaction(){
     const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(transactions));
     scheduleSave();
     renderFinance(); renderFinanceChart();
+    const m1=document.getElementById('tx-form-modal'); if(m1) m1.style.display='none';
     showToast(tr('toast_tx_updated'),'check');
     return;
   }
@@ -5449,6 +5462,7 @@ function addTransaction(){
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
   selectedTagIds=[]; renderFinTagChips();
   renderFinance(); renderFinanceChart();
+  const m2=document.getElementById('tx-form-modal'); if(m2) m2.style.display='none';
 
   let toastMsg=currentFinanceType==='transfer'?tr('toast_transfer_done'):tr('toast_tx_added');
   let toastIcon=currentFinanceType==='transfer'?'swap':'check';
@@ -5499,7 +5513,7 @@ window.editTransaction=function(id){
   const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_edit_title');
   const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent=tr('finance_save_changes');
   const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='inline-block';
-  document.getElementById('finance-panel-block')?.scrollIntoView({behavior:'smooth',block:'start'});
+  const m=document.getElementById('tx-form-modal'); if(m) m.style.display='flex';
 };
 window.cancelEditTransaction=function(){
   editingTxId=null;
@@ -5509,6 +5523,16 @@ window.cancelEditTransaction=function(){
   const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_new_tx');
   const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent=tr('finance_add_btn');
   const cancelBtn=document.getElementById('fin-cancel-edit-btn'); if(cancelBtn) cancelBtn.style.display='none';
+};
+// FAB opens the "Нова операція" sheet; always starts from a clean form so a
+// stale edit from a previous visit can't leak in.
+window.openNewTxModal=function(){
+  cancelEditTransaction();
+  const m=document.getElementById('tx-form-modal'); if(m) m.style.display='flex';
+};
+window.closeTxModal=function(){
+  cancelEditTransaction();
+  const m=document.getElementById('tx-form-modal'); if(m) m.style.display='none';
 };
 
 function setTxFilter(f){
@@ -5804,10 +5828,11 @@ function renderFinance(){
   // Balance cards (total + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="stat-card stat-big"><span class="stat-icon" style="background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff">${window.Icon('coin')}</span><div class="stat-label">Загальний баланс (у грн)</div><div class="stat-val" style="font-size:26px">${bal.toLocaleString('uk-UA')} грн</div></div>`;
+    let html=`<div class="hero-balance-label">Загальний баланс (у грн)</div><div class="hero-balance-val">${bal.toLocaleString('uk-UA')} грн</div><div class="wallet-chip-row">`;
     wallets.forEach(w=>{
-      html+=`<div class="stat-card"><span class="stat-icon" style="color:#fff;background:${w.color}">${window.Icon(w.icon||'card')}</span><div class="stat-label">${escapeHtml(w.name)}</div><div class="stat-val" style="color:${w.color}">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</div></div>`;
+      html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span></span>`;
     });
+    html+='</div>';
     bc.innerHTML=html;
   }
 
@@ -6024,9 +6049,15 @@ function renderDebtChips(){
     c.appendChild(chip);
   });
   const addChip=document.createElement('button');
-  addChip.className='debt-chip debt-chip-add';
+  // With no existing calcs yet, an icon-only circle reads as decoration, not
+  // a button — show the label so the very first action is discoverable
+  // without relying on a hover title. Once calcs exist, the chip row already
+  // has visible text next to it, so icon+title is enough.
+  addChip.className='debt-chip debt-chip-add'+(debts.length===0?' debt-chip-add-labeled':'');
   addChip.title=tr('debt_new_default');
-  addChip.innerHTML=window.Icon('plus');
+  addChip.innerHTML=debts.length===0
+    ? `${window.Icon('plus')}<span>${tr('debt_new_default')}</span>`
+    : window.Icon('plus');
   addChip.onclick=addNewDebt;
   c.appendChild(addChip);
 }
