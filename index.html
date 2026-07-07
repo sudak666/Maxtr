@@ -927,6 +927,12 @@ body.amounts-hidden #fx-converter-result{
       <div id="budgets-list"></div>
     </div>
 
+    <!-- Цілі накопичення -->
+    <div class="chart-section" id="goals-section" style="display:none">
+      <div class="chart-title"><span id="ic-goals"></span><span data-i18n="finance_goals_title">Цілі</span></div>
+      <div id="goals-list"></div>
+    </div>
+
     <!-- Графік витрат по місяцях -->
     <div class="chart-section" id="finance-chart-section">
       <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
@@ -1167,6 +1173,14 @@ body.amounts-hidden #fx-converter-result{
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_budgets">Бюджети</div>
           <div class="settings-row-sub" data-i18n="settings_budgets_sub">Місячні ліміти витрат по категоріях</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
+      <div class="settings-row" onclick="openGoalsManager()">
+        <span id="ic-set-goals" class="icon-badge" style="background:#10b981"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_goals">Цілі</div>
+          <div class="settings-row-sub" data-i18n="settings_goals_sub">Накопичення на гаманці з ціллю</div>
         </div>
         <span class="settings-row-chevron"></span>
       </div>
@@ -1506,6 +1520,22 @@ body.amounts-hidden #fx-converter-result{
   </div>
 </div>
 
+<!-- MANAGER: GOALS -->
+<div class="modal-overlay" id="goals-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_goals">Цілі</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="goals_desc">Прив'яжи ціль до гаманця — прогрес рахується від його поточного балансу.</div>
+    <div class="debt-list" id="goals-list-mgr" style="max-height:420px"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addGoal()"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- MANAGER: RECURRING TRANSACTIONS -->
 <div class="modal-overlay" id="recurring-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()">
@@ -1597,7 +1627,8 @@ body.amounts-hidden #fx-converter-result{
     doc:'<path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M8 12.5h8M8 16h8"/>',
     grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
     eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
-    eyeOff:'<path d="M3 3l18 18"/><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.6 8.6 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2"/>'
+    eyeOff:'<path d="M3 3l18 18"/><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.6 8.6 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2"/>',
+    flag:'<path d="M5 3v18"/><path d="M5 4h13l-3 4 3 4H5"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1679,6 +1710,9 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-plus','plus');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
+  setIcon('ic-goals','flag');
+  setIcon('ic-set-goals','flag');
+  setIcon('ic-add-goal','plus');
   setIcon('ic-analytics','pie');
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
@@ -1811,9 +1845,10 @@ body.amounts-hidden #fx-converter-result{
       settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни чи вимкни блоки на вкладці "Фінанси".',
       widgets_item_rates:'Курси валют', widgets_item_rates_sub:'Компактний список курсів', widgets_item_converter:'Конвертер валют', widgets_item_converter_sub:'Швидкий перерахунок суми',
       widgets_item_analytics:'Аналітика', widgets_item_analytics_sub:'Витрати й доходи за категоріями', widgets_item_chart:'Графік балансу', widgets_item_chart_sub:'Баланс за останні 6 місяців',
+      widgets_item_goals:'Цілі', widgets_item_goals_sub:'Прогрес накопичення на гаманцях',
       settings_premium:'Преміум', premium_free_plan:'Безкоштовний план', premium_active_plan:'Преміум активний',
       premium_title:'Zminka Преміум', premium_subtitle:'Розблокуй більше можливостей застосунку.',
-      premium_perk_limits:'Без лімітів', premium_perk_limits_sub:'Необмежено гаманців, категорій, авто-правил і повторюваних платежів',
+      premium_perk_limits:'Без лімітів', premium_perk_limits_sub:'Необмежено гаманців, категорій, авто-правил, повторюваних платежів і цілей',
       premium_perk_push:'Push-сповіщення', premium_perk_push_sub:'Нагадування навіть коли застосунок закритий',
       premium_perk_banks:'Інтеграція з банками', premium_perk_banks_sub:'Автоматичне підвантаження операцій',
       premium_soon_btn:'Скоро буде доступно',
@@ -1821,6 +1856,12 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_categories:'Безкоштовний план дозволяє до 8 категорій одного типу. Преміум знімає це обмеження.',
       premium_limit_rules:'Безкоштовний план дозволяє до 3 авто-правил. Преміум знімає це обмеження.',
       premium_limit_recurring:'Безкоштовний план дозволяє до 3 повторюваних платежів. Преміум знімає це обмеження.',
+      premium_limit_goals:'Безкоштовний план дозволяє 1 ціль. Преміум знімає це обмеження.',
+      finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
+      goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
+      goals_add:'Додати ціль', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
+      goals_reached:'Ціль досягнуто!', goals_added:'Ціль додано', goals_need_wallet:'Спочатку додай гаманець',
+      goals_delete_confirm:'Видалити цю ціль?', goals_delete_title:'Видалення цілі',
       cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
       cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
       cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
@@ -1981,9 +2022,10 @@ body.amounts-hidden #fx-converter-result{
       settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off.',
       widgets_item_rates:'Exchange rates', widgets_item_rates_sub:'Compact rates list', widgets_item_converter:'Currency converter', widgets_item_converter_sub:'Quick amount conversion',
       widgets_item_analytics:'Analytics', widgets_item_analytics_sub:'Income and expenses by category', widgets_item_chart:'Balance chart', widgets_item_chart_sub:'Balance over the last 6 months',
+      widgets_item_goals:'Goals', widgets_item_goals_sub:'Savings progress on your wallets',
       settings_premium:'Premium', premium_free_plan:'Free plan', premium_active_plan:'Premium active',
       premium_title:'Zminka Premium', premium_subtitle:'Unlock more of the app.',
-      premium_perk_limits:'No limits', premium_perk_limits_sub:'Unlimited wallets, categories, auto-rules, and recurring payments',
+      premium_perk_limits:'No limits', premium_perk_limits_sub:'Unlimited wallets, categories, auto-rules, recurring payments, and goals',
       premium_perk_push:'Push notifications', premium_perk_push_sub:'Reminders even when the app is closed',
       premium_perk_banks:'Bank integrations', premium_perk_banks_sub:'Automatic transaction import',
       premium_soon_btn:'Coming soon',
@@ -1991,6 +2033,12 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_categories:'The free plan allows up to 8 categories per type. Premium removes this limit.',
       premium_limit_rules:'The free plan allows up to 3 auto-rules. Premium removes this limit.',
       premium_limit_recurring:'The free plan allows up to 3 recurring payments. Premium removes this limit.',
+      premium_limit_goals:'The free plan allows 1 goal. Premium removes this limit.',
+      finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
+      goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
+      goals_add:'Add a goal', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
+      goals_reached:'Goal reached!', goals_added:'Goal added', goals_need_wallet:'Add a wallet first',
+      goals_delete_confirm:'Delete this goal?', goals_delete_title:'Delete goal',
       cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
       cat_no_subcats:'No subcategories', cat_subcategory:'Subcategory',
       cat_add_subcat_prompt:'Subcategory name:', cat_add_subcat_title:'New subcategory', cat_subcat_exists:'That subcategory already exists',
@@ -2150,22 +2198,25 @@ let subscription = {plan:'free', expiresAt:null};
 // finance doc like profile/subscription so the choice follows the user
 // across devices. Budgets isn't here — it already hides itself when the
 // user hasn't set any budget.
-let widgets = {rates:true, converter:true, analytics:true, chart:true};
+let widgets = {rates:true, converter:true, analytics:true, chart:true, goals:true};
 function applyWidgetVisibility(){
   const map={rates:'fx-widget-section', converter:'fx-converter-section', analytics:'analytics-section', chart:'finance-chart-section'};
   Object.entries(map).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = widgets[key]===false ? 'none' : '';
   });
+  // Goals additionally self-hides when there are none to show, same as
+  // budgets — so it's re-rendered rather than just display-toggled.
+  renderGoals();
 }
-const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3};
+const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
 function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
 function renderPremiumUI(){
   const sub=document.getElementById('settings-premium-sub');
   if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
 }
-const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring'};
+const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals'};
 window.showPremiumUpsell=function(limitKind){
   const msgEl=document.getElementById('premium-modal-limit-msg');
   if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
@@ -2181,6 +2232,11 @@ let txCategoryFilter = null;
 // Auto-categorization rules: [{id,type,keyword,category}]. Applied live
 // while typing the comment in the "Нова операція" form.
 let autoRules = [];
+// Savings goals: [{id, walletId, targetAmount, targetDate}]. No separate
+// "contributions" ledger — progress is just the linked wallet's live
+// balance against the target, so funding a goal is just moving money into
+// that wallet like any other transfer.
+let goals = [];
 // Set once, after old transaction categories have been merged into the
 // picker list (so pre-existing categories like a personal name reappear).
 let catBackfillDone = false;
@@ -2364,7 +2420,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, profile, subscription, widgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, goals, profile, subscription, widgets, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -2423,9 +2479,10 @@ function seedConfigFromDocs(sData, fData){
   currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
   tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
   autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
+  goals = (fData && Array.isArray(fData.goals)) ? fData.goals : [];
   profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
-  widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false} : {rates:true, converter:true, analytics:true, chart:true};
+  widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false, goals:fData.widgets.goals!==false} : {rates:true, converter:true, analytics:true, chart:true, goals:true};
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -2562,7 +2619,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, profile, subscription, widgets, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, catBackfillDone, catLegacyMerged}));
 }
 
 // ── GLOBALS ───────────────────────────────────────────────────
@@ -2980,7 +3037,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false}:{rates:true,converter:true,analytics:true,chart:true}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; goals=Array.isArray(o.goals)?o.goals:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -3535,7 +3592,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -3658,6 +3715,7 @@ const WIDGET_DEFS=[
   {key:'converter', icon:'swap', color:'#0ea5e9', titleKey:'widgets_item_converter', subKey:'widgets_item_converter_sub'},
   {key:'analytics', icon:'pie', color:'#ec4899', titleKey:'widgets_item_analytics', subKey:'widgets_item_analytics_sub'},
   {key:'chart', icon:'barChart', color:'#f59e0b', titleKey:'widgets_item_chart', subKey:'widgets_item_chart_sub'},
+  {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
 ];
 function renderWidgetsList(){
   const box=document.getElementById('widgets-list'); if(!box) return;
@@ -4221,6 +4279,96 @@ window.deleteRecurring=async function(id){
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();
 };
+
+// ── GOALS (savings targets linked to a wallet) ─────────────────
+window.openGoalsManager=function(){
+  renderGoalsManagerList();
+  document.getElementById('goals-modal').style.display='flex';
+};
+function renderGoalsManagerList(){
+  const box=document.getElementById('goals-list-mgr'); if(!box) return;
+  box.innerHTML='';
+  if(!goals.length){ box.innerHTML=`<div class="mgr-empty">${tr('goals_empty')}</div>`; return; }
+  goals.forEach(g=>{
+    const row=document.createElement('div');
+    row.className='debt-row';
+    row.innerHTML=`
+      <div class="debt-field" style="flex:1 1 140px">
+        <span class="debt-field-label">${tr('finance_wallet')}</span>
+        <select onchange="updateGoal('${g.id}','walletId',this.value)">
+          ${wallets.map(w=>`<option value="${w.id}" ${g.walletId===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="debt-field" style="flex:1 1 110px">
+        <span class="debt-field-label">${tr('goals_target')}</span>
+        <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" onchange="updateGoal('${g.id}','targetAmount',this.value)">
+      </div>
+      <div class="debt-field" style="flex:1 1 150px">
+        <span class="debt-field-label">${tr('goals_target_date')}</span>
+        <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" onchange="updateGoal('${g.id}','targetDate',this.value)">
+      </div>
+      <button class="debt-row-del" onclick="deleteGoal('${g.id}')">${window.Icon('trash')}</button>
+    `;
+    box.appendChild(row);
+    row.querySelectorAll('select').forEach(enhanceSelect);
+  });
+}
+window.updateGoal=function(id,field,value){
+  const g=goals.find(x=>x.id===id); if(!g) return;
+  if(field==='targetAmount') g.targetAmount=parseFloat(value)||0;
+  else g[field]=value;
+  saveConfigLocal(); scheduleSave();
+  renderGoalsManagerList();
+  renderGoals();
+};
+window.addGoal=function(){
+  if(!canAddMore('goals', goals.length)){ showPremiumUpsell('goals'); return; }
+  if(!wallets.length){ showToast(tr('goals_need_wallet'),'xmark'); return; }
+  goals.push({id:uid('goal'), walletId:wallets[0].id, targetAmount:0, targetDate:''});
+  saveConfigLocal(); scheduleSave();
+  renderGoalsManagerList();
+  renderGoals();
+  showToast(tr('goals_added'),'plus');
+};
+window.deleteGoal=async function(id){
+  if(!(await uiConfirm(tr('goals_delete_confirm'),{title:tr('goals_delete_title'),okText:tr('common_delete'),danger:true}))) return;
+  goals=goals.filter(g=>g.id!==id);
+  saveConfigLocal(); scheduleSave();
+  renderGoalsManagerList();
+  renderGoals();
+};
+// Finance-tab widget: progress bars, one per goal. Progress is simply the
+// linked wallet's current balance (computeWalletBalances()) against the
+// target — funding a goal is just moving money into that wallet.
+function renderGoals(){
+  const section=document.getElementById('goals-section');
+  const box=document.getElementById('goals-list');
+  if(!section||!box) return;
+  if(!widgets.goals || !goals.length){ section.style.display='none'; return; }
+  section.style.display='block';
+  const wb=computeWalletBalances();
+  box.innerHTML='';
+  goals.forEach(g=>{
+    const w=walletById(g.walletId);
+    if(!w) return;
+    const saved=Math.max(0, wb[g.walletId]||0);
+    const target=g.targetAmount||0;
+    const pct=target>0?Math.min(100,Math.round(saved/target*100)):0;
+    const done=target>0 && saved>=target;
+    const color=done?'var(--green2)':'var(--purple2)';
+    const row=document.createElement('div');
+    row.style.marginBottom='14px';
+    row.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
+        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${w.color}">${window.Icon(w.icon||'card')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(w.name)}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span></span>
+        <span style="color:${color};white-space:nowrap">${saved.toLocaleString('uk-UA')} / ${target.toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span>
+      </div>
+      <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      ${done?`<div style="font-size:10px;color:var(--green2);font-weight:700;margin-top:3px">${tr('goals_reached')}</div>`:''}
+    `;
+    box.appendChild(row);
+  });
+}
 
 // ── PROFILE (avatar + nickname) ──────────────────────────────
 // Built-in profile icons for anyone who'd rather not upload a photo.
@@ -4917,7 +5065,11 @@ function renderAnalytics(){
   if(incBox) incBox.innerHTML=renderCatList(incomeByCat,totalIncome);
 }
 
-function renderFinance(){
+// Current balance per wallet id, from scratch off the full transaction list
+// (income +, expense -, transfer moves between the two wallets involved).
+// Shared by renderFinance() (balance cards) and renderGoals() (goal progress
+// is just a linked wallet's balance against its target).
+function computeWalletBalances(){
   const wb={};
   wallets.forEach(w=>{wb[w.id]=0;});
   transactions.forEach(t=>{
@@ -4926,6 +5078,10 @@ function renderFinance(){
     if(t.type==='expense')  {if(wb[w]!==undefined)wb[w]-=t.amount;}
     if(t.type==='transfer') {const tw=t.targetWallet;if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=(t.targetAmount!=null?t.targetAmount:t.amount);}
   });
+  return wb;
+}
+function renderFinance(){
+  const wb=computeWalletBalances();
   // Total balance is a UAH-equivalent sum across wallets that may each hold
   // a different currency — computed after the per-wallet loop, not
   // incrementally, since a raw income/expense sum would be meaningless
@@ -4945,6 +5101,7 @@ function renderFinance(){
   renderFxWidget();
   renderFxConverter();
   renderBudgets();
+  renderGoals();
   renderAnalytics();
 
   let filtered=txFilter==='all'?transactions:transactions.filter(t=>t.type===txFilter);
