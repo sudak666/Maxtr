@@ -1394,6 +1394,14 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section">
       <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
+      <div class="settings-row" id="settings-link-phone" onclick="openLinkPhoneManager()">
+        <span id="ic-set-link-phone" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_phone">Номер телефону</div>
+          <div class="settings-row-sub" id="settings-phone-sub" data-i18n="settings_phone_sub_empty">Не додано</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
       <div class="settings-row" id="settings-signout" onclick="signOutUser()" style="display:none">
         <span id="ic-set-signout" class="icon-badge" style="background:#525158"></span>
         <div class="settings-row-text">
@@ -1603,6 +1611,54 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" data-i18n="profiles_manager_title">Профілі</div></div>
     <div class="mgr-list" id="profiles-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addProfile()"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="link-phone-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_phone">Номер телефону</div></div>
+
+    <div id="link-phone-current" style="display:none;text-align:center;margin-bottom:14px">
+      <div style="font-size:16px;font-weight:800;color:var(--text-strong)" id="link-phone-current-number"></div>
+      <button class="btn btn-danger" style="margin-top:12px" onclick="unlinkPhone()" data-i18n="settings_phone_remove">Прибрати номер</button>
+    </div>
+
+    <div id="link-phone-form">
+      <div class="fg" style="margin-bottom:10px">
+        <label for="link-phone-input" data-i18n="auth_phone_label">Номер телефону</label>
+        <input type="tel" id="link-phone-input" placeholder="+380XXXXXXXXX">
+      </div>
+      <div class="auth-error" id="link-phone-error"></div>
+      <button type="button" class="add-btn" id="link-phone-send-btn" style="width:100%;margin-top:6px" onclick="sendLinkPhoneCode()" data-i18n="auth_phone_send">Надіслати код</button>
+      <div id="link-phone-code-group" style="display:none;margin-top:14px">
+        <div class="fg" style="margin-bottom:10px">
+          <label for="link-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
+          <input type="text" id="link-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
+        </div>
+        <button type="button" class="add-btn" id="link-phone-verify-btn" style="width:100%" onclick="confirmLinkPhoneCode()" data-i18n="auth_phone_verify">Підтвердити</button>
+      </div>
+    </div>
+    <div id="link-recaptcha-container"></div>
+
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="profile-avatar-pick-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="profiles_avatar_pick">Оберіть аватар</div></div>
+    <div id="profile-avatar-pick-grid" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
@@ -1872,6 +1928,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
   setIcon('ic-add-profile','plus');
+  setIcon('ic-set-link-phone','phone');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
   setIcon('ic-cat-act-del','trash');
@@ -1921,6 +1978,10 @@ body.amounts-hidden #fx-converter-result{
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
+      settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
+      settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
+      settings_phone_remove_title:'Прибрати номер', settings_phone_linked:'Номер телефону додано',
+      settings_phone_removed:'Номер телефону прибрано', settings_phone_remove_fail:'Не вдалося прибрати номер',
       settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
       settings_footer:'Zminka — трекер змін, фінансів і розрахунків', settings_signed_in_as:'Увійшли як',
       auth_login_tab:'Вхід', auth_register_tab:'Реєстрація', auth_password:'Пароль', auth_password_placeholder:'Мінімум 6 символів',
@@ -2040,6 +2101,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_delete_last_blocked:'Повинен залишитися хоча б один профіль.',
       profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
       profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
+      profiles_avatar_pick:'Оберіть аватар',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
       goals_add:'Додати ціль', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
@@ -2125,6 +2187,10 @@ body.amounts-hidden #fx-converter-result{
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
+      settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
+      settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
+      settings_phone_remove_title:'Remove number', settings_phone_linked:'Phone number added',
+      settings_phone_removed:'Phone number removed', settings_phone_remove_fail:'Failed to remove the number',
       settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
       settings_footer:'Zminka — shift, finance & settlement tracker', settings_signed_in_as:'Signed in as',
       auth_login_tab:'Sign in', auth_register_tab:'Sign up', auth_password:'Password', auth_password_placeholder:'At least 6 characters',
@@ -2244,6 +2310,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_delete_last_blocked:'At least one profile must remain.',
       profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
       profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
+      profiles_avatar_pick:'Choose an avatar',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
       goals_add:'Add a goal', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
@@ -2342,7 +2409,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail,
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
-  RecaptchaVerifier, signInWithPhoneNumber
+  RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber, unlink
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
@@ -2665,6 +2732,24 @@ window.renameProfile=async function(id){
   await saveProfilesMeta();
   renderProfilesUI();
 };
+let avatarPickTargetProfileId=null;
+window.openProfileAvatarPicker=function(id){
+  avatarPickTargetProfileId=id;
+  renderProfileAvatarPickerGrid();
+  document.getElementById('profile-avatar-pick-modal').style.display='flex';
+};
+function renderProfileAvatarPickerGrid(){
+  const box=document.getElementById('profile-avatar-pick-grid'); if(!box) return;
+  const p=profilesMeta.list.find(x=>x.id===avatarPickTargetProfileId);
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectProfileAvatar('${a.id}')">${a.emoji}</div>`).join('');
+}
+window.selectProfileAvatar=async function(avatarId){
+  const p=profilesMeta.list.find(x=>x.id===avatarPickTargetProfileId); if(!p) return;
+  p.avatar='builtin:'+avatarId;
+  await saveProfilesMeta();
+  document.getElementById('profile-avatar-pick-modal').style.display='none';
+  renderProfilesUI();
+};
 window.deleteProfile=async function(id){
   if(id===activeProfileId){ showToast(tr('profiles_delete_active_blocked'),'warning'); return; }
   if(profilesMeta.list.length<=1){ showToast(tr('profiles_delete_last_blocked'),'warning'); return; }
@@ -2699,9 +2784,12 @@ function renderProfilesUI(){
     const isActive=p.id===activeProfileId;
     const row=document.createElement('div');
     row.className='mgr-row';
+    const builtin=p.avatar && p.avatar.startsWith('builtin:') ? BUILTIN_AVATARS.find(a=>'builtin:'+a.id===p.avatar) : null;
     const initial=(p.name||'?').trim().charAt(0).toUpperCase()||'?';
+    const avatarBg=builtin ? builtin.gradient : PALETTE[i%PALETTE.length];
+    const avatarContent=builtin ? builtin.emoji : escapeHtml(initial);
     row.innerHTML=`
-      <div class="profile-row-avatar" style="background:${PALETTE[i%PALETTE.length]}">${escapeHtml(initial)}</div>
+      <div class="profile-row-avatar" style="background:${avatarBg};cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')" title="${tr('profiles_avatar_pick')}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${isActive
         ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
@@ -3104,6 +3192,86 @@ window.verifyPhoneCode=async function(){
     setPhoneError(authErrorMessage(err.code));
   }finally{
     btn.disabled=false;
+  }
+};
+// ── LINK PHONE NUMBER (add a phone as an extra sign-in method to an
+// already-signed-in account, e.g. one that signed in via Google) ──
+window.openLinkPhoneManager=function(){
+  renderLinkPhoneUI();
+  document.getElementById('link-phone-modal').style.display='flex';
+};
+function renderLinkPhoneUI(){
+  const phoneProvider=(currentUser?.providerData||[]).find(p=>p.providerId==='phone');
+  const cur=document.getElementById('link-phone-current');
+  const form=document.getElementById('link-phone-form');
+  const sub=document.getElementById('settings-phone-sub');
+  if(!cur||!form) return;
+  if(phoneProvider){
+    cur.style.display='block'; form.style.display='none';
+    document.getElementById('link-phone-current-number').textContent=phoneProvider.phoneNumber;
+    if(sub) sub.textContent=phoneProvider.phoneNumber;
+  }else{
+    cur.style.display='none'; form.style.display='block';
+    if(sub) sub.textContent=tr('settings_phone_sub_empty');
+  }
+}
+let linkRecaptchaVerifier=null;
+function ensureLinkRecaptcha(){
+  if(!linkRecaptchaVerifier) linkRecaptchaVerifier=new RecaptchaVerifier(auth,'link-recaptcha-container',{size:'invisible'});
+  return linkRecaptchaVerifier;
+}
+function setLinkPhoneError(msg){
+  const el=document.getElementById('link-phone-error'); if(el) el.textContent=msg||'';
+}
+let linkPhoneConfirmationResult=null;
+window.sendLinkPhoneCode=async function(){
+  const raw=document.getElementById('link-phone-input').value.trim();
+  if(!/^\+\d{8,15}$/.test(raw)){ setLinkPhoneError(tr('auth_phone_bad_format')); return; }
+  const btn=document.getElementById('link-phone-send-btn');
+  setLinkPhoneError(''); btn.disabled=true;
+  try{
+    linkPhoneConfirmationResult=await linkWithPhoneNumber(currentUser, raw, ensureLinkRecaptcha());
+    document.getElementById('link-phone-code-group').style.display='block';
+    btn.style.display='none';
+    showToast(tr('auth_phone_code_sent'),'check');
+  }catch(err){
+    console.error(err);
+    setLinkPhoneError(authErrorMessage(err.code));
+    if(linkRecaptchaVerifier){ try{ linkRecaptchaVerifier.clear(); }catch(e){} linkRecaptchaVerifier=null; }
+  }finally{
+    btn.disabled=false;
+  }
+};
+window.confirmLinkPhoneCode=async function(){
+  const code=document.getElementById('link-phone-code-input').value.trim();
+  if(!code || !linkPhoneConfirmationResult){ setLinkPhoneError(tr('auth_phone_enter_code')); return; }
+  const btn=document.getElementById('link-phone-verify-btn');
+  setLinkPhoneError(''); btn.disabled=true;
+  try{
+    await linkPhoneConfirmationResult.confirm(code);
+    linkPhoneConfirmationResult=null;
+    document.getElementById('link-phone-input').value='';
+    document.getElementById('link-phone-code-input').value='';
+    document.getElementById('link-phone-code-group').style.display='none';
+    document.getElementById('link-phone-send-btn').style.display='';
+    renderLinkPhoneUI();
+    showToast(tr('settings_phone_linked'),'check');
+  }catch(err){
+    console.error(err);
+    setLinkPhoneError(authErrorMessage(err.code));
+  }finally{
+    btn.disabled=false;
+  }
+};
+window.unlinkPhone=async function(){
+  if(!(await uiConfirm(tr('settings_phone_remove_confirm'),{title:tr('settings_phone_remove_title'),okText:tr('common_delete'),danger:true}))) return;
+  try{
+    await unlink(currentUser,'phone');
+    renderLinkPhoneUI();
+    showToast(tr('settings_phone_removed'),'check');
+  }catch(err){
+    console.error(err);
+    showToast(tr('settings_phone_remove_fail'),'xmark');
   }
 };
 window.signOutUser=async function(){
@@ -4018,7 +4186,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -4111,7 +4279,6 @@ window.updateWallet=function(id,field,value){
   renderFinance(); refreshWalletSelects();
 };
 window.addWallet=async function(){
-  if(!canAddMore('wallets', wallets.length)){ showPremiumUpsell('wallets'); return; }
   const name=await uiPrompt(tr('wallets_add_prompt'),tr('wallets_new_default'),tr('wallets_new_default'));
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
@@ -4508,7 +4675,6 @@ window.renameCategory=function(idx,value){
   renderCategoriesList(); fillCats(currentFinanceType); renderFinance();
 };
 window.addCategory=async function(){
-  if(!canAddMore('categoriesPerType', (categories[catMgrType]||[]).length)){ showPremiumUpsell('categoriesPerType'); return; }
   const name=await uiPrompt(tr('cat_add_prompt'),'',tr('cat_add_title'));
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
@@ -4689,7 +4855,6 @@ window.updateRecurring=function(id,field,value){
   renderRecurringList();
 };
 window.addRecurring=function(){
-  if(!canAddMore('recurring', recurring.length)){ showPremiumUpsell('recurring'); return; }
   const type='expense';
   const category=(categories.expense||[])[0]||tr('cat_other');
   const wallet=(wallets[0]&&wallets[0].id)||'';
@@ -4748,7 +4913,6 @@ window.updateGoal=function(id,field,value){
   renderGoals();
 };
 window.addGoal=function(){
-  if(!canAddMore('goals', goals.length)){ showPremiumUpsell('goals'); return; }
   if(!wallets.length){ showToast(tr('goals_need_wallet'),'xmark'); return; }
   goals.push({id:uid('goal'), walletId:wallets[0].id, targetAmount:0, targetDate:''});
   saveConfigLocal(); scheduleSave();
@@ -4895,6 +5059,7 @@ function renderProfileUI(){
       who.textContent=`${tr('settings_signed_in_as')} ${currentUser.email||''} (${isGoogle?'Google':'Email'})`;
     }
   }
+  renderLinkPhoneUI();
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────
@@ -5405,7 +5570,6 @@ window.updateAutoRule=function(id,field,value){
   renderAutoRulesList();
 };
 window.addAutoRule=function(){
-  if(!canAddMore('autoRules', autoRules.length)){ showPremiumUpsell('autoRules'); return; }
   const type='expense';
   const category=(categories.expense||[])[0]||'';
   autoRules.push({id:uid('rule'), type, keyword:'', category});
