@@ -348,7 +348,7 @@ button,input,select,textarea{font-family:inherit}
 .day-num.weekend-num{color:rgba(239,68,68,.6)}
 .today-pip{width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0}
 
-.badge{font-size:8px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center}
+.badge{font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center}
 .b-day  {background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#93c5fd}
 .b-day19{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#6ee7b7}
 .b-night{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.5);color:#c4b5fd}
@@ -564,7 +564,7 @@ body.amounts-hidden #fx-converter-result{
 .debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;transition:all .15s}
 .debt-row.discrepancy{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
 .debt-field{display:flex;flex-direction:column;gap:3px;flex:1 1 84px;min-width:70px}
-.debt-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
+.debt-field-label{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .debt-row input,.debt-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
 .debt-row select{cursor:pointer}
 .debt-row input:focus,.debt-row select:focus{border-color:var(--purple)}
@@ -647,9 +647,10 @@ body.amounts-hidden #fx-converter-result{
 .mgr-name-inline{flex:1 1 auto;min-width:0}
 .mgr-num{flex:1 1 90px;width:90px}
 .mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;cursor:pointer;flex:0 0 auto}
-.profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 auto}
+.profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex:0 0 auto}
+.profile-row-avatar .ico{margin-right:0}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
-.mgr-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
+.mgr-field-label{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:7px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
 .mgr-del .ico{margin-right:0;width:16px;height:16px}
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
@@ -659,6 +660,17 @@ body.amounts-hidden #fx-converter-result{
 .subcat-toggle{background:var(--bg1);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 .cat-row{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;width:100%;min-width:0}
 .budget-row{flex-wrap:nowrap;gap:10px;min-width:0}
+.rate-row{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:10px 12px}
+.rate-row-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rate-row-code{font-size:13.5px;font-weight:800;color:var(--text-strong)}
+.rate-row-sub{font-size:11px;font-weight:600;color:var(--muted)}
+.rate-row-input{
+  flex:0 0 92px;width:92px;text-align:right;
+  background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);
+  padding:8px 10px;border-radius:12px;font-size:13px;font-weight:700;outline:none;
+  font-family:inherit;transition:border-color .15s;
+}
+.rate-row-input:focus{border-color:var(--purple)}
 .budget-row-name{flex:1 1 auto;min-width:0;font-size:13px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .budget-row-input{flex:0 0 96px;width:96px;text-align:right}
 .cat-row-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
@@ -709,7 +721,7 @@ body.amounts-hidden #fx-converter-result{
   .cal-grid{gap:3px}
   .day-cell{min-height:64px;padding:4px;border-radius:14px}
   .day-num{font-size:11px}
-  .badge{font-size:7px;padding:1px 3px}
+  .badge{font-size:8px;padding:1px 4px}
   .stat-big{grid-column:span 1}
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
@@ -2910,9 +2922,9 @@ function renderProfilesUI(){
     const builtin=p.avatar && p.avatar.startsWith('builtin:') ? BUILTIN_AVATARS.find(a=>'builtin:'+a.id===p.avatar) : null;
     const initial=(p.name||'?').trim().charAt(0).toUpperCase()||'?';
     const avatarBg=builtin ? builtin.gradient : PALETTE[i%PALETTE.length];
-    const avatarContent=builtin ? builtin.emoji : escapeHtml(initial);
+    const avatarContent=builtin ? window.Icon(builtin.icon) : escapeHtml(initial);
     row.innerHTML=`
-      <div class="profile-row-avatar" style="background:${avatarBg};cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')">${avatarContent}</div>
+      <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${isActive
         ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
@@ -3817,11 +3829,24 @@ function hexA(hex, a){
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
+// Light haptic confirmation on the phone, same idea as Monobank/Revolut's
+// tap-to-confirm buzz — a short pulse on success, a sharper double-pulse
+// on error, nothing on neutral/informational toasts. No-ops silently
+// wherever the Vibration API isn't available (desktop, iOS Safari).
+function hapticFeedback(kind){
+  if(!('vibrate' in navigator)) return;
+  try{
+    if(kind==='success') navigator.vibrate(10);
+    else if(kind==='error') navigator.vibrate([12,40,12]);
+  }catch(e){}
+}
 function showToast(msg, icon){
   const t=document.getElementById('toast');
   t.innerHTML=(icon?window.Icon(icon):'')+'<span>'+msg+'</span>';
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
+  if(icon==='check') hapticFeedback('success');
+  else if(icon==='xmark') hapticFeedback('error');
 }
 
 // Positions a position:fixed dropdown/date-picker panel against the
@@ -4492,13 +4517,14 @@ function renderRatesList(){
   CURRENCY_LIST.filter(c=>c!=='UAH').forEach(code=>{
     const rate=currencyRates[code] ?? SEED_RATES[code] ?? 1;
     const row=document.createElement('div');
-    row.className='mgr-row';
+    row.className='rate-row';
     row.innerHTML=`
-      <div class="mgr-name-inline" style="flex:0 0 70px;font-size:13px;font-weight:800;color:var(--text-strong)">${code} ${currencySymbol(code)}</div>
-      <div class="mgr-field" style="flex:1 1 130px">
-        <span class="mgr-field-label">${tr('rates_per_unit')} ${code}</span>
-        <input type="number" class="mgr-num" style="width:100%" min="0" step="0.01" value="${rate}" onchange="updateCurrencyRate('${code}',this.value)">
-      </div>`;
+      <span class="icon-badge icon-badge-symbol" style="background:${FX_WIDGET_COLORS[code]||'var(--muted)'}">${currencySymbol(code)}</span>
+      <span class="rate-row-text">
+        <span class="rate-row-code">${code}</span>
+        <span class="rate-row-sub">${tr('rates_per_unit')} ${code}</span>
+      </span>
+      <input type="number" class="rate-row-input" min="0" step="0.01" value="${rate}" onchange="updateCurrencyRate('${code}',this.value)">`;
     box.appendChild(row);
   });
 }
