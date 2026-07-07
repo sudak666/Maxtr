@@ -5812,7 +5812,21 @@ function renderDebtChips(){
 function renderDebt(){
   renderDebtChips();
   const cd=getCurrentDebt();
-  if(!cd) return;
+  if(!cd){
+    // No debts in this profile — clear out whatever the previous profile's
+    // renderDebt() left on screen instead of leaving it stale.
+    const ni=document.getElementById('debt-name'); if(ni) ni.value='';
+    const noi=document.getElementById('debt-note'); if(noi) noi.value='';
+    const ci=document.getElementById('debt-currency'); if(ci) ci.value='у.о.';
+    const si=document.getElementById('debt-start'); if(si) si.value='';
+    const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    S('debt-start-val','0'); S('debt-balance-val','0'); S('debt-paid-val','0'); S('debt-count-val','0');
+    const lc=document.getElementById('debt-list-container');
+    const cc=document.getElementById('debt-entry-count');
+    if(cc) cc.textContent='';
+    if(lc) lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('debt_no_payments')}</span></div>`;
+    return;
+  }
   const cur=cd.currency||'у.о.';
 
   const ni=document.getElementById('debt-name'); if(ni) ni.value=cd.name||'';
