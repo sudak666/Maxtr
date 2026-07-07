@@ -34,3 +34,30 @@ firebase deploy --only firestore:rules
 `max_tracker/*` без власника. Цей шлях уже перенесено в основний акаунт і
 повністю закрито в правилах (`allow read, write: if false`) — окремих дій
 тут більше не потрібно.
+
+## 5. Вхід за номером телефону (опційно)
+Firebase Console → **Authentication → Sign-in method** → увімкнути **Phone**.
+Потрібен тариф **Blaze** (pay-as-you-go) — безкоштовний Spark не підтримує
+відправку SMS взагалі, незалежно від коду застосунку.
+
+## 6. Push-сповіщення (опційно, потребує коду з `functions/`)
+Сповіщення (нагадування про облік, перевищення бюджету, наближення
+повторюваного платежу) працюють локально й без цього кроку — але тільки
+поки застосунок відкритий у браузері. Щоб вони доходили й коли застосунок
+закрито, потрібен Firebase Cloud Messaging + одна Cloud Function:
+
+1. **VAPID-ключ**: Firebase Console → **Project settings → Cloud Messaging →
+   Web configuration → Web Push certificates → Generate key pair**. Встав
+   отриманий ключ в `index.html` замість `PASTE_YOUR_VAPID_KEY_HERE`
+   (пошук по файлу — `const VAPID_KEY`).
+2. **Задеплоїти функцію та оновлені правила Firestore**:
+   ```
+   cd functions && npm install && cd ..
+   firebase deploy --only functions,firestore:rules
+   ```
+   Потрібен тариф **Blaze** (Cloud Functions на безкоштовному Spark не
+   працюють).
+3. Готово — кнопка "Push-сповіщення" в Налаштуваннях → Сповіщення тепер
+   реєструє токен пристрою, а функція `notificationSweep`
+   (`functions/index.js`) щогодини перевіряє всі три умови для кожного
+   користувача й надсилає push через FCM.
