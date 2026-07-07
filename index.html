@@ -2029,7 +2029,6 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_rules:'Безкоштовний план дозволяє до 3 авто-правил. Преміум знімає це обмеження.',
       premium_limit_recurring:'Безкоштовний план дозволяє до 3 повторюваних платежів. Преміум знімає це обмеження.',
       premium_limit_goals:'Безкоштовний план дозволяє 1 ціль. Преміум знімає це обмеження.',
-      premium_limit_profiles:'Безкоштовний план дозволяє 2 профілі. Преміум знімає це обмеження.',
       profiles_default_name:'Профіль 1',
       settings_profiles:'Профілі', settings_profiles_sub:'Перемикайтеся між окремими наборами даних',
       profiles_manager_title:'Профілі', profiles_active_badge:'Активний', profiles_switch_btn:'Перемкнути',
@@ -2234,7 +2233,6 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_rules:'The free plan allows up to 3 auto-rules. Premium removes this limit.',
       premium_limit_recurring:'The free plan allows up to 3 recurring payments. Premium removes this limit.',
       premium_limit_goals:'The free plan allows 1 goal. Premium removes this limit.',
-      premium_limit_profiles:'The free plan allows 2 profiles. Premium removes this limit.',
       profiles_default_name:'Profile 1',
       settings_profiles:'Profiles', settings_profiles_sub:'Switch between separate sets of data',
       profiles_manager_title:'Profiles', profiles_active_badge:'Active', profiles_switch_btn:'Switch',
@@ -2436,14 +2434,14 @@ function applyWidgetVisibility(){
   // budgets — so it's re-rendered rather than just display-toggled.
   renderGoals();
 }
-const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1, profiles:2};
+const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
 function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
 function renderPremiumUI(){
   const sub=document.getElementById('settings-premium-sub');
   if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
 }
-const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals', profiles:'premium_limit_profiles'};
+const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals'};
 window.showPremiumUpsell=function(limitKind){
   const msgEl=document.getElementById('premium-modal-limit-msg');
   if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
@@ -2649,7 +2647,8 @@ async function saveProfilesMeta(){
   await setDoc(userDoc('profiles_meta'), profilesMeta, {merge:false});
 }
 window.addProfile=async function(){
-  if(!canAddMore('profiles', profilesMeta.list.length)){ showPremiumUpsell('profiles'); return; }
+  // No free-tier cap here: premium isn't purchasable yet (no payment
+  // provider wired up), so a hard limit would be a dead end for everyone.
   const name=await uiPrompt(tr('profiles_add_prompt'),'',tr('profiles_add_title'));
   if(name===null) return;
   const clean=name.trim(); if(!clean) return;
