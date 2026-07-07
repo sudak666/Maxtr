@@ -520,6 +520,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 body.amounts-hidden .stat-val,
 body.amounts-hidden .tx-amount,
 body.amounts-hidden .fx-widget-rate,
+body.amounts-hidden .hero-balance-val,
+body.amounts-hidden .hero-metric-val,
+body.amounts-hidden .wallet-chip-val,
+body.amounts-hidden .chip-stat-val,
 body.amounts-hidden #fx-converter-result{
   filter:blur(7px);user-select:none;transition:filter .15s;
 }
@@ -2069,6 +2073,9 @@ body.amounts-hidden #fx-converter-result{
       auth_err_invalid_phone:'Некоректний номер телефону.', auth_err_invalid_code:'Невірний код із SMS.',
       auth_err_code_expired:'Код прострочено. Надішли новий.', auth_err_quota:'Забагато спроб. Спробуйте пізніше.',
       auth_err_phone_disabled:'Вхід за телефоном тимчасово недоступний.',
+      auth_err_captcha:'Перевірка reCAPTCHA не пройшла. Перевір з\'єднання і спробуй ще раз.',
+      auth_err_unauthorized_domain:'Цей сайт не додано до дозволених доменів Firebase — вхід за телефоном тут не працює.',
+      auth_err_network:'Немає з\'єднання з мережею. Перевір інтернет і спробуй ще раз.',
       auth_enter_email:'Введіть email, щоб скинути пароль.', auth_reset_sent:'Лист для скидання пароля надіслано.',
       auth_signout_confirm:'Вийти з акаунту?', auth_signout_title:'Вихід', auth_signout_ok:'Вийти',
       auth_reauth_prompt:'Введи пароль ще раз, щоб підтвердити видалення акаунту:', auth_reauth_title:'Підтвердження',
@@ -2278,6 +2285,9 @@ body.amounts-hidden #fx-converter-result{
       auth_err_invalid_phone:'Invalid phone number.', auth_err_invalid_code:'Wrong SMS code.',
       auth_err_code_expired:'Code expired. Request a new one.', auth_err_quota:'Too many attempts. Try again later.',
       auth_err_phone_disabled:'Phone sign-in is temporarily unavailable.',
+      auth_err_captcha:'reCAPTCHA check failed. Check your connection and try again.',
+      auth_err_unauthorized_domain:'This site isn\'t on Firebase\'s authorized domains list — phone sign-in won\'t work here.',
+      auth_err_network:'No network connection. Check your internet and try again.',
       auth_enter_email:'Enter your email to reset the password.', auth_reset_sent:'Password reset email sent.',
       auth_signout_confirm:'Sign out of your account?', auth_signout_title:'Sign out', auth_signout_ok:'Sign out',
       auth_reauth_prompt:'Enter your password again to confirm account deletion:', auth_reauth_title:'Confirmation',
@@ -2626,13 +2636,27 @@ window.__applyLangDynamic=function(lang){
   }
 };
 
-// Fallback icons for well-known category names; user-made ones use 'tag'.
+// Fallback icons for well-known category names; anything else falls
+// through to categoryIcon()'s hashed pool below instead of a single shared
+// icon, so two custom categories never look identical by default.
 const CAT_ICON = {
   'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'coin','Інше':'box',
   'Кава':'coffee','Кафе':'coffee','Фастфуд':'burger','Розваги':'gift',
-  'Кредит':'bank','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
-  'Здоров\'я':'coin','Внутрішній переказ':'swap',
+  'Кредит':'bank','Борг':'coin','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
+  'Здоров\'я':'coin','Аптека':'coin','Цигарки':'cigarette','Внутрішній переказ':'swap',
 };
+// Custom categories (a person's name, a one-off label, ...) have no
+// meaningful keyword to match — instead of all sharing 'tag', hash the name
+// into a pool of visually distinct icons so they stay stable across
+// re-renders but don't collide with each other.
+const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift','umbrella'];
+function categoryIcon(name){
+  if(CAT_ICON[name]) return CAT_ICON[name];
+  const s=String(name||'');
+  let h=0;
+  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  return CAT_ICON_FALLBACK_POOL[h%CAT_ICON_FALLBACK_POOL.length];
+}
 
 // LEGACY_* reproduce the app's original hardcoded behaviour 1:1 — used to
 // migrate existing accounts so their calendar/earnings stay identical.
@@ -3163,6 +3187,10 @@ function authErrorMessage(code){
     'auth/code-expired':tr('auth_err_code_expired'),
     'auth/quota-exceeded':tr('auth_err_quota'),
     'auth/operation-not-allowed':tr('auth_err_phone_disabled'),
+    'auth/captcha-check-failed':tr('auth_err_captcha'),
+    'auth/argument-error':tr('auth_err_captcha'),
+    'auth/unauthorized-domain':tr('auth_err_unauthorized_domain'),
+    'auth/network-request-failed':tr('auth_err_network'),
   };
   return map[code]||tr('auth_err_generic');
 }
@@ -4298,7 +4326,7 @@ window.updateShiftType=function(id,field,value){
   renderCalendar(); renderIncomeChart();
 };
 window.addShiftType=async function(){
-  const name=await uiPrompt(tr('shifts_add_type_prompt'),tr('shifts_new_type_default'),tr('shifts_add_type'));
+  const name=await uiPrompt(tr('shifts_add_type_prompt'),'',tr('shifts_add_type'));
   if(name===null) return;
   const color=PALETTE[shiftTypes.length%PALETTE.length];
   shiftTypes.push({id:uid('st'), name:name.trim()||tr('shifts_new_type_default'), short:(name.trim()||tr('shifts_default_name')).slice(0,4), color, amount:0, hours:8});
@@ -4350,7 +4378,7 @@ window.updateWallet=function(id,field,value){
   renderFinance(); refreshWalletSelects();
 };
 window.addWallet=async function(){
-  const name=await uiPrompt(tr('wallets_add_prompt'),tr('wallets_new_default'),tr('wallets_new_default'));
+  const name=await uiPrompt(tr('wallets_add_prompt'),'',tr('wallets_new_default'));
   if(name===null) return;
   const color=PALETTE[wallets.length%PALETTE.length];
   wallets.push({id:uid('w'), name:name.trim()||tr('wallets_new_default'), color, icon:'card', currency:'UAH'});
@@ -4644,7 +4672,7 @@ function renderCategoriesList(){
     row.innerHTML=`
       <div class="cat-row">
         <button type="button" class="drag-handle" title="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
-        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>
+        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
         <button type="button" class="cat-row-body" onclick="toggleSubcatPanel(${idx})">
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
@@ -4810,7 +4838,7 @@ function renderBudgetsManagerList(){
     const row=document.createElement('div');
     row.className='mgr-row budget-row';
     row.innerHTML=`
-      <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(CAT_ICON[name]||'tag')}</span>
+      <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
       <span class="budget-row-name">${escapeHtml(name)}</span>
       <input type="number" class="mgr-num budget-row-input" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
     `;
@@ -4843,7 +4871,7 @@ function renderBudgets(){
     row.style.marginBottom='14px';
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
-        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
+        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
         <span style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -5789,7 +5817,7 @@ function renderAnalytics(){
       const color=categoryColor(cat);
       return `<div class="analytics-cat-row">
         <div class="analytics-cat-top">
-          <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="background:${color};flex-shrink:0">${window.Icon(CAT_ICON[cat]||'tag')}</span><span>${escapeHtml(cat)}</span></span>
+          <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="background:${color};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span>${escapeHtml(cat)}</span></span>
           <span class="analytics-cat-amt">${amt.toLocaleString('uk-UA')} грн · ${pct}%</span>
         </div>
         <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -5869,7 +5897,7 @@ function renderFinance(){
     if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
     if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
     if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-    const catIcon=window.Icon(CAT_ICON[t.category]||'tag');
+    const catIcon=window.Icon(categoryIcon(t.category));
     const wBadge=walletBadge(t.wallet);
     const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
       ? `<span style="font-size:10px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
@@ -5948,7 +5976,7 @@ function switchDebt(id){
 }
 
 async function addNewDebt(){
-  const name=await uiPrompt(tr('debt_add_prompt'),tr('debt_new_default'),tr('debt_new_default'));
+  const name=await uiPrompt(tr('debt_add_prompt'),'',tr('debt_new_default'));
   if(name===null) return;
   const nd={id:Date.now(), name:name.trim()||tr('debt_new_default'), note:'', currency:'грн', startAmount:0, entries:[]};
   debts.push(nd);
@@ -6049,15 +6077,11 @@ function renderDebtChips(){
     c.appendChild(chip);
   });
   const addChip=document.createElement('button');
-  // With no existing calcs yet, an icon-only circle reads as decoration, not
-  // a button — show the label so the very first action is discoverable
-  // without relying on a hover title. Once calcs exist, the chip row already
-  // has visible text next to it, so icon+title is enough.
-  addChip.className='debt-chip debt-chip-add'+(debts.length===0?' debt-chip-add-labeled':'');
-  addChip.title=tr('debt_new_default');
-  addChip.innerHTML=debts.length===0
-    ? `${window.Icon('plus')}<span>${tr('debt_new_default')}</span>`
-    : window.Icon('plus');
+  // An icon-only circle reads as decoration, not a button — always show the
+  // label rather than relying on a hover title (which doesn't even fire on
+  // touch), matching the "+ Додати гаманець" convention used everywhere else.
+  addChip.className='debt-chip debt-chip-add debt-chip-add-labeled';
+  addChip.innerHTML=`${window.Icon('plus')}<span>${tr('debt_new_default')}</span>`;
   addChip.onclick=addNewDebt;
   c.appendChild(addChip);
 }

@@ -16,6 +16,15 @@ Firebase Console → проєкт `maxtr-c238f` → **Authentication → Sign-in
 домен, і `localhost` для тестів). Без цього `signInWithPopup` для Google
 видаватиме помилку `auth/unauthorized-domain`.
 
+**Важливо для цього репо:** `*.web.app`/`*.firebaseapp.com` додаються
+автоматично, але **GitHub Pages-дзеркало (`sudak666.github.io`) — ні**.
+Якщо вхід за номером телефону (або Google popup) не працює саме на
+`https://sudak666.github.io/Maxtr/`, але працює на `https://maxtr-c238f.web.app`
+— це воно: додай `sudak666.github.io` в Authorized domains вручну. Судячи з
+того, що invisible reCAPTCHA на телефоні "блимає і зникає" одразу з
+помилкою входу, це схоже саме на цей випадок — Firebase відхиляє домен
+ще до того, як капча встигає щось показати.
+
 ## 3. Задеплоїти правила безпеки Firestore
 У репозиторії є `firestore.rules` — вони обмежують доступ так, що
 користувач бачить і редагує **тільки свої** дані:
