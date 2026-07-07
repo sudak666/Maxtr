@@ -138,7 +138,7 @@ button,input,select,textarea{font-family:inherit}
 .auth-link:hover{text-decoration:underline}
 
 /* ── LAYOUT ── */
-.app{max-width:1200px;margin:0 auto;padding:20px 16px calc(96px + env(safe-area-inset-bottom))}
+.app{max-width:1200px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom))}
 
 /* ── TOP NAV ── */
 .topbar{
@@ -172,14 +172,17 @@ button,input,select,textarea{font-family:inherit}
 /* Bottom nav bar (Monobank-style): fixed, floating, icon-in-a-circle that
    lights up with a per-tab gradient only while active — rest of the bar
    stays flat/muted so the active tab reads at a glance. */
+/* Floating pill nav (Telegram-style): detached from the screen edges on
+   all sides rather than a bar flush against the bottom, so it reads as a
+   control floating over the content instead of a fixed dock. */
 .tabs{
-  position:fixed;left:0;right:0;bottom:0;z-index:200;
+  position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;
   display:flex;gap:2px;
-  background:var(--bg1);border:1px solid var(--border);border-bottom:none;
-  border-radius:26px 26px 0 0;
-  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:var(--bg1);border:1px solid var(--border);
+  border-radius:26px;
+  padding:8px 10px;
   backdrop-filter:blur(16px);
-  box-shadow:0 -8px 24px rgba(0,0,0,.18);
+  box-shadow:0 10px 30px rgba(0,0,0,.28);
 }
 .tab-btn{
   flex:1;border:none;background:transparent;cursor:pointer;font-family:inherit;
@@ -299,6 +302,10 @@ button,input,select,textarea{font-family:inherit}
   padding:12px 16px;margin-bottom:18px;
 }
 .tools-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:100%;margin-bottom:2px}
+.tools-label-toggle{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;justify-content:space-between}
+.tools-toggle-chevron{margin-left:auto;width:14px;height:14px;flex-shrink:0;display:inline-flex;transition:transform .2s;color:var(--muted)}
+.tools-toggle-chevron .ico{margin-right:0}
+.tools-panel-body{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:10px}
 .tool-select{
   background:var(--bg2);color:var(--text);border:1px solid var(--border2);
   padding:8px 12px;border-radius:14px;font-size:12px;font-weight:600;outline:none;
@@ -385,12 +392,14 @@ button,input,select,textarea{font-family:inherit}
   font-size:24px;font-weight:800;color:var(--purple2);
 }
 .profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.profile-avatar .ico,.topbar-logo .ico{margin-right:0}
 .avatar-opt{
   width:44px;height:44px;border-radius:50%;flex-shrink:0;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
   border:2px solid transparent;transition:transform .15s,border-color .15s;
   box-shadow:inset 0 -4px 7px rgba(0,0,0,.3), inset 0 2px 3px rgba(255,255,255,.4);
 }
+.avatar-opt .ico{margin-right:0}
 .avatar-opt:active{transform:scale(.92)}
 .avatar-opt.sel{border-color:var(--text-strong)}
 .color-opt{
@@ -484,7 +493,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 /* ── FLOATING ADD BUTTON (opens the transaction form as a sheet) ── */
 .fin-fab{
-  position:fixed;right:20px;bottom:calc(108px + env(safe-area-inset-bottom));z-index:150;
+  position:fixed;right:20px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:150;
   width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:#fff;
   background:linear-gradient(135deg,var(--purple),var(--purple3));
@@ -695,7 +704,7 @@ body.amounts-hidden #fx-converter-result{
 
 /* ── RESPONSIVE ── */
 @media(max-width:600px){
-  .app{padding:12px 10px calc(96px + env(safe-area-inset-bottom))}
+  .app{padding:12px 10px calc(112px + env(safe-area-inset-bottom))}
   .cal-wrap{padding:12px}
   .cal-grid{gap:3px}
   .day-cell{min-height:64px;padding:4px;border-radius:14px}
@@ -708,8 +717,16 @@ body.amounts-hidden #fx-converter-result{
   .tab-icon-wrap{width:38px;height:38px}
   .tab-btn .ico{width:18px;height:18px}
   .cal-nav{gap:6px}
-  .cs.cs-sm{min-width:0;flex:1 1 84px}
+  .cs.cs-sm{min-width:0;flex:1 1 74px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:12px}
+  /* The month select needs real room for names like "Липень" — min-width:0
+     above let it shrink past its own text down to "Лип…". Give it more
+     space than the year select (always 4 digits) and push "Сьогодні" onto
+     its own line so the ‹/month/year/› cluster isn't fighting it for
+     width on one line. */
+  .cal-nav > .cs.cs-sm:nth-child(2){flex:1.6 1 108px;min-width:108px}
+  .cal-nav > .cs.cs-sm:nth-child(3){flex:1 1 70px;min-width:70px}
+  .cal-today-btn{flex:1 1 100%;justify-content:center}
 }
 </style>
 </head>
@@ -879,19 +896,33 @@ body.amounts-hidden #fx-converter-result{
       <div class="chart-bars" id="income-chart"></div>
     </div>
 
-    <!-- Інструменти -->
+    <!-- Інструменти: згорнуто за замовчуванням, щоб календар (головний
+         об'єкт вкладки) не був відсунутий вниз цією панеллю щоразу. -->
     <div class="tools-panel">
-      <div class="tools-label"><span id="ic-bolt"></span><span data-i18n="shifts_quick_fill">Швидке заповнення</span></div>
-      <select id="template-shift" class="tool-select"></select>
-      <select id="template-pattern" class="tool-select">
-        <option value="every" data-i18n="shifts_pattern_every">Щодня</option>
-        <option value="alt" data-i18n="shifts_pattern_alt">День через день</option>
-        <option value="2_2" data-i18n="shifts_pattern_2_2">2 через 2</option>
-        <option value="3_3" data-i18n="shifts_pattern_3_3">3 через 3</option>
-      </select>
-      <button class="btn btn-primary" onclick="applyTemplate()" data-i18n="shifts_apply">Застосувати</button>
-      <button class="btn btn-ghost" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
-      <button class="btn btn-danger" style="margin-left:auto" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
+      <button type="button" class="tools-label tools-label-toggle" onclick="toggleQuickFill()">
+        <span id="ic-bolt"></span><span data-i18n="shifts_quick_fill">Швидке заповнення</span>
+        <span class="tools-toggle-chevron" id="tools-toggle-chevron"></span>
+      </button>
+      <div class="tools-panel-body" id="tools-panel-body" style="display:none">
+        <div class="fg">
+          <label data-i18n="shifts_template_type">Тип зміни</label>
+          <select id="template-shift"></select>
+        </div>
+        <div class="fg">
+          <label data-i18n="shifts_template_pattern">Періодичність</label>
+          <select id="template-pattern">
+            <option value="every" data-i18n="shifts_pattern_every">Щодня</option>
+            <option value="alt" data-i18n="shifts_pattern_alt">День через день</option>
+            <option value="2_2" data-i18n="shifts_pattern_2_2">2 через 2</option>
+            <option value="3_3" data-i18n="shifts_pattern_3_3">3 через 3</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="applyTemplate()" data-i18n="shifts_apply">Застосувати</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
+          <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
+        </div>
+      </div>
     </div>
 
     <!-- Календар -->
@@ -902,7 +933,7 @@ body.amounts-hidden #fx-converter-result{
           <select id="select-month" onchange="renderCalendar()"></select>
           <select id="select-year"  onchange="renderCalendar()"></select>
           <button class="btn btn-ghost" onclick="shiftMonth(1)"  style="padding:8px 10px">›</button>
-          <button class="btn btn-ghost" onclick="goToday()" style="font-size:11px" data-i18n="shifts_today">Сьогодні</button>
+          <button class="btn btn-ghost cal-today-btn" onclick="goToday()" style="font-size:11px" data-i18n="shifts_today">Сьогодні</button>
         </div>
         <div class="cal-hint" data-i18n="shifts_hint">Натисни на день щоб редагувати зміни</div>
       </div>
@@ -1947,6 +1978,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-vacation','umbrella');
   setIcon('ic-trend','trendUp');
   setIcon('ic-bolt','bolt');
+  setIcon('tools-toggle-chevron','chevron');
   setIcon('ic-shift-types','gear');
   setIcon('ic-trash-month','trash');
   setIcon('ic-barchart','barChart');
@@ -2093,6 +2125,7 @@ body.amounts-hidden #fx-converter-result{
       shifts_stat_earned:'Зароблено цього місяця', shifts_stat_hours:'Годин відпрацьовано', shifts_stat_this_month:'цього місяця',
       shifts_stat_shifts:'Змін', shifts_stat_workdays:'робочих днів', shifts_stat_off:'Вихідних', shifts_stat_marked:'позначених', shifts_chip_hours:'год',
       shifts_chart_title:'Динаміка заробітку — 6 місяців', shifts_quick_fill:'Швидке заповнення',
+      shifts_template_type:'Тип зміни', shifts_template_pattern:'Періодичність',
       shifts_pattern_every:'Щодня', shifts_pattern_alt:'День через день', shifts_pattern_2_2:'2 через 2', shifts_pattern_3_3:'3 через 3',
       shifts_apply:'Застосувати', shifts_types_btn:'Типи змін', shifts_clear_month:'Очистити місяць',
       shifts_today:'Сьогодні', shifts_hint:'Натисни на день щоб редагувати зміни', shifts_goal_progress:'від цілі',
@@ -2305,6 +2338,7 @@ body.amounts-hidden #fx-converter-result{
       shifts_stat_earned:'Earned this month', shifts_stat_hours:'Hours worked', shifts_stat_this_month:'this month',
       shifts_stat_shifts:'Shifts', shifts_stat_workdays:'work days', shifts_stat_off:'Days off', shifts_stat_marked:'marked', shifts_chip_hours:'hrs',
       shifts_chart_title:'Earnings trend — 6 months', shifts_quick_fill:'Quick fill',
+      shifts_template_type:'Shift type', shifts_template_pattern:'Repeat pattern',
       shifts_pattern_every:'Every day', shifts_pattern_alt:'Every other day', shifts_pattern_2_2:'2 on 2 off', shifts_pattern_3_3:'3 on 3 off',
       shifts_apply:'Apply', shifts_types_btn:'Shift types', shifts_clear_month:'Clear month',
       shifts_today:'Today', shifts_hint:'Tap a day to edit shifts', shifts_goal_progress:'of goal',
@@ -2830,7 +2864,7 @@ window.openProfileAvatarPicker=function(id){
 function renderProfileAvatarPickerGrid(){
   const box=document.getElementById('profile-avatar-pick-grid'); if(!box) return;
   const p=profilesMeta.list.find(x=>x.id===avatarPickTargetProfileId);
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectProfileAvatar('${a.id}')">${a.emoji}</div>`).join('');
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectProfileAvatar('${a.id}')">${window.Icon(a.icon)}</div>`).join('');
 }
 window.selectProfileAvatar=async function(avatarId){
   const p=profilesMeta.list.find(x=>x.id===avatarPickTargetProfileId); if(!p) return;
@@ -4260,6 +4294,16 @@ function renderTemplateShiftOptions(){
   if(prev&&shiftTypes.some(t=>t.id===prev)) sel.value=prev;
 }
 
+// "Швидке заповнення" starts collapsed so the calendar (the actual point
+// of this tab) isn't pushed down by a panel most visits don't need.
+window.toggleQuickFill=function(){
+  const body=document.getElementById('tools-panel-body');
+  const chev=document.getElementById('tools-toggle-chevron');
+  if(!body) return;
+  const opening = body.style.display==='none';
+  body.style.display = opening ? 'flex' : 'none';
+  if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
+};
 async function applyTemplate(){
   const typeId=document.getElementById('template-shift').value;
   const pattern=document.getElementById('template-pattern').value;
@@ -5059,16 +5103,19 @@ function renderGoals(){
 }
 
 // ── PROFILE (avatar + nickname) ──────────────────────────────
-// Built-in profile icons for anyone who'd rather not upload a photo.
-// Stored as "builtin:<id>" in profile.avatar; the gradient + inset shadow
-// (see .avatar-opt) gives the flat emoji a glossy, rounded look.
+// Built-in profile icons for anyone who'd rather not upload a photo. Uses
+// the app's own monochrome Icon() glyphs (same family as the ghost logo
+// and every wallet/category badge) rather than literal emoji, so the
+// picker matches the rest of the UI instead of looking like a different
+// product bolted on. Stored as "builtin:<id>" in profile.avatar; the
+// gradient + inset shadow (see .avatar-opt) gives it a glossy, rounded look.
 const BUILTIN_AVATARS=[
-  {id:'fox', emoji:'🦊', gradient:'linear-gradient(135deg,#f97316,#fbbf24)'},
-  {id:'panda', emoji:'🐼', gradient:'linear-gradient(135deg,#64748b,#cbd5e1)'},
-  {id:'robot', emoji:'🤖', gradient:'linear-gradient(135deg,#0ea5e9,#67e8f9)'},
-  {id:'rocket', emoji:'🚀', gradient:'linear-gradient(135deg,#8b5cf6,#ec4899)'},
-  {id:'gem', emoji:'💎', gradient:'linear-gradient(135deg,#06b6d4,#3b82f6)'},
-  {id:'lion', emoji:'🦁', gradient:'linear-gradient(135deg,#f59e0b,#ef4444)'},
+  {id:'fox', icon:'sparkle', gradient:'linear-gradient(135deg,#f97316,#fbbf24)'},
+  {id:'panda', icon:'moon', gradient:'linear-gradient(135deg,#64748b,#cbd5e1)'},
+  {id:'robot', icon:'bolt', gradient:'linear-gradient(135deg,#0ea5e9,#67e8f9)'},
+  {id:'rocket', icon:'target', gradient:'linear-gradient(135deg,#8b5cf6,#ec4899)'},
+  {id:'gem', icon:'star', gradient:'linear-gradient(135deg,#06b6d4,#3b82f6)'},
+  {id:'lion', icon:'flag', gradient:'linear-gradient(135deg,#f59e0b,#ef4444)'},
 ];
 window.selectBuiltinAvatar=function(id){
   profile.avatar='builtin:'+id;
@@ -5078,7 +5125,7 @@ window.selectBuiltinAvatar=function(id){
 };
 function renderAvatarPicker(){
   const box=document.getElementById('profile-avatar-picker'); if(!box) return;
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectBuiltinAvatar('${a.id}')">${a.emoji}</div>`).join('');
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectBuiltinAvatar('${a.id}')">${window.Icon(a.icon)}</div>`).join('');
 }
 // Resizes/crops any uploaded image to a small square JPEG data URL client-
 // side (no Firebase Storage needed) so it fits comfortably inside the
@@ -5132,9 +5179,10 @@ window.saveNickname=function(){
 // user's uploaded photo, or their nickname/email initial as a fallback.
 function fillAvatarEl(el){
   if(!el) return;
+  el.style.color='';
   if(profile.avatar && profile.avatar.startsWith('builtin:')){
     const a=BUILTIN_AVATARS.find(x=>'builtin:'+x.id===profile.avatar);
-    if(a){ el.style.background=a.gradient; el.textContent=a.emoji; return; }
+    if(a){ el.style.background=a.gradient; el.style.color='#fff'; el.innerHTML=window.Icon(a.icon); return; }
   }
   el.style.background='';
   if(profile.avatar){ el.innerHTML=`<img src="${profile.avatar}" alt="">`; }
