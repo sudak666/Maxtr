@@ -372,6 +372,13 @@ button,input,select,textarea{font-family:inherit}
 }
 .avatar-opt:active{transform:scale(.92)}
 .avatar-opt.sel{border-color:var(--text-strong)}
+.color-opt{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  border:2px solid transparent;transition:transform .15s,border-color .15s;
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.25), inset 0 2px 3px rgba(255,255,255,.35);
+}
+.color-opt:active{transform:scale(.92)}
+.color-opt.sel{border-color:var(--text-strong)}
 
 /* Hide the ugly native number-input spin buttons everywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -592,10 +599,8 @@ body.amounts-hidden #fx-converter-result{
 .mgr-name{flex:1 1 100%}
 .mgr-name-inline{flex:1 1 auto;min-width:0}
 .mgr-num{flex:1 1 90px;width:90px}
-.mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;background:none;cursor:pointer;flex:0 0 auto}
+.mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;cursor:pointer;flex:0 0 auto}
 .profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 auto}
-.mgr-color::-webkit-color-swatch{border:none;border-radius:8px}
-.mgr-color::-webkit-color-swatch-wrapper{padding:2px}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:7px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
@@ -1666,6 +1671,19 @@ body.amounts-hidden #fx-converter-result{
   </div>
 </div>
 
+<div class="modal-overlay" id="color-pick-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:320px">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="color_pick_title">Оберіть колір</div></div>
+    <div id="color-pick-grid" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- CATEGORY ACTION MENU -->
 <div class="modal-overlay" id="cat-action-modal" onclick="closeManagers(event)">
   <div class="modal-card" onclick="event.stopPropagation()" style="max-width:320px">
@@ -2101,7 +2119,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_delete_last_blocked:'Повинен залишитися хоча б один профіль.',
       profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
       profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
-      profiles_avatar_pick:'Оберіть аватар',
+      profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
       goals_add:'Додати ціль', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
@@ -2310,7 +2328,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_delete_last_blocked:'At least one profile must remain.',
       profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
       profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
-      profiles_avatar_pick:'Choose an avatar',
+      profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
       goals_add:'Add a goal', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
@@ -2713,6 +2731,37 @@ async function saveProfilesMeta(){
   profilesMeta.updatedAt=Date.now();
   await setDoc(userDoc('profiles_meta'), profilesMeta, {merge:false});
 }
+// ── COLOR PICKER (shared by wallets/shift types/tags) ──────────
+// Replaces the browser's native <input type=color> swatch (an OS-level
+// popup that can't be restyled) with the app's own PALETTE-swatch grid,
+// consistent with the rest of the custom UI.
+let colorPickTarget=null; // {kind:'wallet'|'shiftType'|'tag', id}
+window.openColorPicker=function(kind,id){
+  colorPickTarget={kind,id};
+  renderColorPickerGrid();
+  document.getElementById('color-pick-modal').style.display='flex';
+};
+function currentPickedColor(){
+  if(!colorPickTarget) return '';
+  const {kind,id}=colorPickTarget;
+  const item = kind==='wallet' ? wallets.find(x=>x.id===id)
+    : kind==='shiftType' ? shiftTypes.find(x=>x.id===id)
+    : tags.find(x=>x.id===id);
+  return item ? (item.color||'') : '';
+}
+function renderColorPickerGrid(){
+  const box=document.getElementById('color-pick-grid'); if(!box) return;
+  const current=currentPickedColor();
+  box.innerHTML=PALETTE.map(c=>`<div class="color-opt${c===current?' sel':''}" style="background:${c}" onclick="selectPickedColor('${c}')"></div>`).join('');
+}
+window.selectPickedColor=function(color){
+  if(!colorPickTarget) return;
+  const {kind,id}=colorPickTarget;
+  if(kind==='wallet') updateWallet(id,'color',color);
+  else if(kind==='shiftType') updateShiftType(id,'color',color);
+  else if(kind==='tag') updateTag(id,'color',color);
+  document.getElementById('color-pick-modal').style.display='none';
+};
 window.addProfile=async function(){
   // No free-tier cap here: premium isn't purchasable yet (no payment
   // provider wired up), so a hard limit would be a dead end for everyone.
@@ -2789,7 +2838,7 @@ function renderProfilesUI(){
     const avatarBg=builtin ? builtin.gradient : PALETTE[i%PALETTE.length];
     const avatarContent=builtin ? builtin.emoji : escapeHtml(initial);
     row.innerHTML=`
-      <div class="profile-row-avatar" style="background:${avatarBg};cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')" title="${tr('profiles_avatar_pick')}">${avatarContent}</div>
+      <div class="profile-row-avatar" style="background:${avatarBg};cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${isActive
         ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
@@ -4195,7 +4244,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -4215,7 +4264,7 @@ function renderShiftTypesList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateShiftType('${t.id}','color',this.value)">
+      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('shiftType','${t.id}')"></button>
       <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateShiftType('${t.id}','name',this.value)">
       <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
       <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
@@ -4269,7 +4318,7 @@ function renderWalletsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <input type="color" class="mgr-color" value="${escapeHtml(w.color||'#8b5cf6')}" onchange="updateWallet('${w.id}','color',this.value)">
+      <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" onclick="openColorPicker('wallet','${w.id}')"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" onchange="updateWallet('${w.id}','name',this.value)">
       <select style="flex:0 0 82px" onchange="updateWallet('${w.id}','currency',this.value)">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
@@ -5501,7 +5550,7 @@ function renderTagsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <input type="color" class="mgr-color" value="${escapeHtml(t.color||'#8b5cf6')}" onchange="updateTag('${t.id}','color',this.value)">
+      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('tag','${t.id}')"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateTag('${t.id}','name',this.value)">
       <button class="mgr-del" onclick="deleteTag('${t.id}')">${window.Icon('trash')}</button>`;
     box.appendChild(row);
