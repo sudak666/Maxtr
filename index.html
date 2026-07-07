@@ -187,13 +187,14 @@ button,input,select,textarea{font-family:inherit}
   padding:2px;font-size:10.5px;font-weight:700;color:var(--muted);
   letter-spacing:-.01em;transition:color .2s;
 }
-.tab-icon-wrap{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
-.tab-btn .ico{width:19px;height:19px;margin-right:0}
+.tab-icon-wrap{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
+.tab-btn .ico{width:20px;height:20px;margin-right:0}
 .tab-btn.active{color:var(--text-strong)}
 .tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.4)}
 .tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.4)}
 .tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,.4)}
 .tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,.4)}
+.tab-btn.tab-c-shopping.active .tab-icon-wrap{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 14px rgba(236,72,153,.4)}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -592,6 +593,7 @@ body.amounts-hidden #fx-converter-result{
 .mgr-name-inline{flex:1 1 auto;min-width:0}
 .mgr-num{flex:1 1 90px;width:90px}
 .mgr-color{width:34px;height:34px;padding:0;border:1px solid var(--border2);border-radius:10px;background:none;cursor:pointer;flex:0 0 auto}
+.profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 auto}
 .mgr-color::-webkit-color-swatch{border:none;border-radius:8px}
 .mgr-color::-webkit-color-swatch-wrapper{padding:2px}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
@@ -654,8 +656,8 @@ body.amounts-hidden #fx-converter-result{
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
-  .tab-icon-wrap{width:34px;height:34px}
-  .tab-btn .ico{width:17px;height:17px}
+  .tab-icon-wrap{width:38px;height:38px}
+  .tab-btn .ico{width:18px;height:18px}
   .cal-nav{gap:6px}
   .cs.cs-sm{min-width:0;flex:1 1 84px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:12px}
@@ -1140,6 +1142,49 @@ body.amounts-hidden #fx-converter-result{
     </div>
   </div>
 
+  <!-- ═══ СПИСОК ПОКУПОК ═══ -->
+  <div id="tab-shopping" style="display:none">
+    <div class="page-head">
+      <div class="page-label" data-i18n="shopping_kicker">Ваші покупки</div>
+      <div class="page-title" data-i18n="shopping_title">Список покупок</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-shopping-remaining" style="background:var(--purple);color:#fff"></span>
+        <div class="stat-label" data-i18n="shopping_stat_remaining">Залишилось</div>
+        <div class="stat-val" id="shopping-remaining-val">0</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" id="ic-shopping-bought" style="background:var(--green);color:#fff"></span>
+        <div class="stat-label" data-i18n="shopping_stat_bought">Куплено</div>
+        <div class="stat-val" id="shopping-bought-val">0</div>
+      </div>
+    </div>
+
+    <div class="fin-form" style="margin-bottom:18px">
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <div class="fg" style="flex:1 1 200px">
+          <label data-i18n="shopping_add_placeholder">Назва товару</label>
+          <input type="text" id="shopping-name-input" placeholder="напр. Молоко" data-i18n-placeholder="shopping_add_placeholder" onkeydown="if(event.key==='Enter') addShoppingItem()">
+        </div>
+        <div class="fg" style="flex:0 1 90px">
+          <label data-i18n="shopping_qty_placeholder">К-сть</label>
+          <input type="number" id="shopping-qty-input" placeholder="1" min="1" step="1" onkeydown="if(event.key==='Enter') addShoppingItem()">
+        </div>
+      </div>
+      <button class="add-btn" onclick="addShoppingItem()"><span id="ic-shopping-add"></span><span data-i18n="shopping_add_btn">Додати</span></button>
+    </div>
+
+    <div class="fin-history">
+      <div class="hist-head">
+        <div class="hist-title" data-i18n="shopping_title">Список покупок</div>
+        <button class="btn btn-ghost" id="shopping-clear-btn" style="display:none;padding:6px 12px;font-size:12px" onclick="clearBoughtShopping()" data-i18n="shopping_clear_bought">Очистити куплені</button>
+      </div>
+      <div class="mgr-list" id="shopping-list-container"></div>
+    </div>
+  </div>
+
   <!-- ═══ НАЛАШТУВАННЯ ═══ -->
   <div id="tab-settings" style="display:none">
     <div class="page-head">
@@ -1162,6 +1207,17 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div style="font-size:11px;color:var(--muted);font-weight:600;margin:14px 0 8px" data-i18n="settings_avatar_picker_label">Або обери іконку профілю</div>
       <div id="profile-avatar-picker" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+    </div>
+
+    <div class="chart-section">
+      <div class="settings-row" onclick="document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI()">
+        <span id="ic-settings-profiles" class="icon-badge" style="background:#06b6d4"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_profiles">Профілі</div>
+          <div class="settings-row-sub" id="settings-profiles-sub" data-i18n="settings_profiles_sub">Перемикайтеся між окремими наборами даних</div>
+        </div>
+        <span class="settings-row-chevron"></span>
+      </div>
     </div>
 
     <div class="chart-section">
@@ -1385,6 +1441,7 @@ body.amounts-hidden #fx-converter-result{
   <button id="nav-finance" class="tab-btn tab-c-finance active" onclick="switchTab('finance')"><span class="tab-icon-wrap"><span id="tab-icon-finance"></span></span><span data-i18n="nav_finance">Фінанси</span></button>
   <button id="nav-shifts" class="tab-btn tab-c-shifts" onclick="switchTab('shifts')"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
   <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
+  <button id="nav-shopping" class="tab-btn tab-c-shopping" onclick="switchTab('shopping')"><span class="tab-icon-wrap"><span id="tab-icon-shopping"></span></span><span data-i18n="nav_shopping">Покупки</span></button>
   <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
 </div>
 
@@ -1532,6 +1589,20 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="tags_desc">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
     <div class="mgr-list" id="tags-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="profiles-modal" onclick="closeManagers(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="profiles_manager_title">Профілі</div></div>
+    <div class="mgr-list" id="profiles-list"></div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addProfile()"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
@@ -1697,7 +1768,10 @@ body.amounts-hidden #fx-converter-result{
     eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     eyeOff:'<path d="M3 3l18 18"/><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.6 8.6 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2"/>',
     flag:'<path d="M5 3v18"/><path d="M5 4h13l-3 4 3 4H5"/>',
-    phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>'
+    phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>',
+    calculator:'<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="7.5" y="5" width="9" height="4" rx="1"/><circle cx="8.3" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="8.3" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="17" r="1" fill="currentColor" stroke="none"/>',
+    idCard:'<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8" cy="12" r="2.2"/><path d="M5 16.5c0-1.7 1.3-2.8 3-2.8s3 1.1 3 2.8"/><path d="M13.5 9.5h4.5M13.5 13h4.5"/>',
+    people:'<circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.2 13.8c2.5.3 4.3 2.3 4.3 5"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1727,6 +1801,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-goto-settings','gear');
   setIcon('tab-icon-settings','gear');
   setIcon('ic-settings-profile','person');
+  setIcon('ic-settings-profiles','people');
   setIcon('ic-settings-finance','wallet');
   setIcon('ic-settings-security','lock');
   setIcon('ic-settings-notif','bell');
@@ -1735,7 +1810,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-notif-budget','warning');
   setIcon('ic-notif-recurring','repeat');
   setIcon('ic-settings-appearance','sun');
-  setIcon('ic-settings-account','person');
+  setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-about','info');
   setIcon('ic-set-premium','star');
   setIcon('ic-premium-badge','star');
@@ -1747,10 +1822,10 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-rates-update','refresh');
   setIcon('ic-fx-widget','swap');
   setIcon('ic-fx-widget-refresh','refresh');
-  setIcon('ic-fx-converter','swap');
+  setIcon('ic-fx-converter','calculator');
   setIcon('ic-fx-converter-swap','swap');
   setIcon('ic-set-widgets','grid');
-  setIcon('ic-set-cats','tag');
+  setIcon('ic-set-cats','box');
   setIcon('ic-set-tags','tag');
   setIcon('ic-set-budgets','target');
   setIcon('ic-set-recurring','repeat');
@@ -1767,7 +1842,11 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-debt-balance','coin');
   setIcon('ic-debt-paid','check');
   setIcon('ic-debt-count','calendar');
-  setIcon('ic-debt-info','bank');
+  setIcon('ic-debt-info','doc');
+  setIcon('tab-icon-shopping','cart');
+  setIcon('ic-shopping-remaining','cart');
+  setIcon('ic-shopping-bought','check');
+  setIcon('ic-shopping-add','plus');
   setIcon('ic-debt-plus','plus');
   setIcon('ic-salary','banknote');
   setIcon('ic-hours','clock');
@@ -1785,13 +1864,14 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
   setIcon('ic-qa-rates','swap');
-  setIcon('ic-qa-converter','swap');
+  setIcon('ic-qa-converter','calculator');
   setIcon('ic-qa-budgets','target');
   setIcon('ic-qa-goals','flag');
   setIcon('ic-qa-analytics','pie');
   setIcon('ic-analytics','pie');
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
+  setIcon('ic-add-profile','plus');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
   setIcon('ic-cat-act-del','trash');
@@ -1851,7 +1931,12 @@ body.amounts-hidden #fx-converter-result{
       auth_phone_code_sent:'Код надіслано', auth_phone_bad_format:'Введи номер у форматі +380XXXXXXXXX',
       auth_phone_enter_code:'Введи код із SMS',
       topbar_sub:'Зміни · Фінанси · Хмара',
-      nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування',
+      nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування', nav_shopping:'Покупки',
+      shopping_kicker:'Ваші покупки', shopping_title:'Список покупок',
+      shopping_add_placeholder:'Назва товару', shopping_qty_placeholder:'К-сть', shopping_add_btn:'Додати',
+      shopping_empty:'Список порожній', shopping_clear_bought:'Очистити куплені',
+      shopping_stat_remaining:'Залишилось', shopping_stat_bought:'Куплено',
+      shopping_clear_confirm:'Видалити всі куплені товари зі списку?', shopping_clear_title:'Очистити куплені',
       shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
       finance_kicker:'Особистий бюджет', finance_title:'Гаманці & Фінанси',
       debt_kicker:'Облік розрахунків', debt_title:'Розрахунки',
@@ -1944,6 +2029,18 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_rules:'Безкоштовний план дозволяє до 3 авто-правил. Преміум знімає це обмеження.',
       premium_limit_recurring:'Безкоштовний план дозволяє до 3 повторюваних платежів. Преміум знімає це обмеження.',
       premium_limit_goals:'Безкоштовний план дозволяє 1 ціль. Преміум знімає це обмеження.',
+      premium_limit_profiles:'Безкоштовний план дозволяє 2 профілі. Преміум знімає це обмеження.',
+      profiles_default_name:'Профіль 1',
+      settings_profiles:'Профілі', settings_profiles_sub:'Перемикайтеся між окремими наборами даних',
+      profiles_manager_title:'Профілі', profiles_active_badge:'Активний', profiles_switch_btn:'Перемкнути',
+      profiles_add_btn:'Додати профіль', profiles_add_prompt:'Назва профілю', profiles_add_title:'Новий профіль',
+      profiles_rename_prompt:'Нова назва профілю', profiles_rename_title:'Перейменувати профіль',
+      profiles_delete_confirm:'Видалити профіль зі списку? Його дані залишаться в хмарі, але зникнуть з переліку профілів.',
+      profiles_delete_title:'Видалити профіль',
+      profiles_delete_active_blocked:'Неможливо видалити активний профіль. Спочатку перемкніться на інший.',
+      profiles_delete_last_blocked:'Повинен залишитися хоча б один профіль.',
+      profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
+      profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
       goals_add:'Додати ціль', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
@@ -2039,7 +2136,12 @@ body.amounts-hidden #fx-converter-result{
       auth_phone_code_sent:'Code sent', auth_phone_bad_format:'Enter a number in +380XXXXXXXXX format',
       auth_phone_enter_code:'Enter the SMS code',
       topbar_sub:'Shifts · Finance · Cloud',
-      nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings',
+      nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings', nav_shopping:'Shopping',
+      shopping_kicker:'Your shopping', shopping_title:'Shopping list',
+      shopping_add_placeholder:'Item name', shopping_qty_placeholder:'Qty', shopping_add_btn:'Add',
+      shopping_empty:'The list is empty', shopping_clear_bought:'Clear bought',
+      shopping_stat_remaining:'Remaining', shopping_stat_bought:'Bought',
+      shopping_clear_confirm:'Remove all bought items from the list?', shopping_clear_title:'Clear bought',
       shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
       finance_kicker:'Personal budget', finance_title:'Wallets & Finance',
       debt_kicker:'Settlement tracking', debt_title:'Settlements',
@@ -2132,6 +2234,18 @@ body.amounts-hidden #fx-converter-result{
       premium_limit_rules:'The free plan allows up to 3 auto-rules. Premium removes this limit.',
       premium_limit_recurring:'The free plan allows up to 3 recurring payments. Premium removes this limit.',
       premium_limit_goals:'The free plan allows 1 goal. Premium removes this limit.',
+      premium_limit_profiles:'The free plan allows 2 profiles. Premium removes this limit.',
+      profiles_default_name:'Profile 1',
+      settings_profiles:'Profiles', settings_profiles_sub:'Switch between separate sets of data',
+      profiles_manager_title:'Profiles', profiles_active_badge:'Active', profiles_switch_btn:'Switch',
+      profiles_add_btn:'Add profile', profiles_add_prompt:'Profile name', profiles_add_title:'New profile',
+      profiles_rename_prompt:'New profile name', profiles_rename_title:'Rename profile',
+      profiles_delete_confirm:'Remove this profile from the list? Its data stays in the cloud but disappears from the profile list.',
+      profiles_delete_title:'Delete profile',
+      profiles_delete_active_blocked:'Cannot delete the active profile. Switch to another one first.',
+      profiles_delete_last_blocked:'At least one profile must remain.',
+      profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
+      profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
       goals_add:'Add a goal', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
@@ -2247,6 +2361,12 @@ const auth = getAuth(fbApp);
 const googleProvider = new GoogleAuthProvider();
 const DCOL = 'max_tracker';
 let currentUser = null;
+// Multiple data-profiles per account (e.g. "Я"/"Дружина"): the default
+// profile is today's original docs untouched; any other profile's docs are
+// suffixed "@<id>" (see userDoc/lsKey below). activeProfileId is a
+// per-device choice (not synced) — see loadActiveProfileId()/switchProfile().
+let activeProfileId = 'default';
+let profilesMeta = {list:[{id:'default', name:''}], updatedAt:0};
 // Push notifications (Firebase Cloud Messaging). Get this key from Firebase
 // Console > Project Settings > Cloud Messaging > Web configuration > Web
 // Push certificates — it's a public key, safe to ship in client code (same
@@ -2260,6 +2380,8 @@ let transactions = [];
 // frequency('daily'|'weekly'|'monthly'),nextDate,active,comment}]. Applied
 // (turned into real transactions) by processRecurring() on cloud load.
 let recurring = [];
+// Shopping list items: [{id,name,qty,done,createdAt}].
+let shoppingList = [];
 let currentFinanceType = 'income';
 let editingTxId = null;
 let selectedDateKey = null;
@@ -2314,14 +2436,14 @@ function applyWidgetVisibility(){
   // budgets — so it's re-rendered rather than just display-toggled.
   renderGoals();
 }
-const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
+const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1, profiles:2};
 function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
 function renderPremiumUI(){
   const sub=document.getElementById('settings-premium-sub');
   if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
 }
-const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals'};
+const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals', profiles:'premium_limit_profiles'};
 window.showPremiumUpsell=function(limitKind){
   const msgEl=document.getElementById('premium-modal-limit-msg');
   if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
@@ -2482,13 +2604,116 @@ function walletById(id){ return wallets.find(w=>w.id===id); }
 // never see or overwrite each other's shifts/finances/debts. Firestore
 // security rules (see firestore.rules) must enforce this server-side —
 // this path scoping alone is only a client-side convention.
+// The default profile keeps the original unsuffixed doc names/ls keys
+// (zero migration for existing users); any other profile's docs/keys get
+// a "@<profileId>" suffix. profiles_meta itself is account-wide, never
+// suffixed. See switchProfile()/loadActiveProfileId() for activeProfileId.
 function userDoc(name){
   if(!currentUser) throw new Error('not-authenticated');
-  return doc(db,'users',currentUser.uid,DCOL,name);
+  const docName = (name!=='profiles_meta' && activeProfileId && activeProfileId!=='default') ? `${name}@${activeProfileId}` : name;
+  return doc(db,'users',currentUser.uid,DCOL,docName);
 }
 function lsKey(name){
-  return currentUser ? `mx_${name}_${currentUser.uid}` : null;
+  if(!currentUser) return null;
+  return (activeProfileId && activeProfileId!=='default') ? `mx_${name}_${currentUser.uid}_${activeProfileId}` : `mx_${name}_${currentUser.uid}`;
 }
+function activeProfileLsKey(){
+  return currentUser ? `mx_activeProfile_${currentUser.uid}` : null;
+}
+function loadActiveProfileId(){
+  try{
+    const k=activeProfileLsKey(); const v=k&&localStorage.getItem(k);
+    activeProfileId = v || 'default';
+  }catch(e){ activeProfileId='default'; }
+}
+// Account-wide list of switchable data-profiles (name + id only — each
+// profile's own nickname/avatar lives inside its own finance doc via the
+// existing profile.nickname/profile.avatar, see PROFILE section below).
+async function loadProfilesMeta(){
+  const snap=await getDoc(userDoc('profiles_meta'));
+  if(snap.exists() && Array.isArray(snap.data().list) && snap.data().list.length){
+    profilesMeta=snap.data();
+  }else{
+    profilesMeta={list:[{id:'default', name:tr('profiles_default_name'), createdAt:Date.now()}], updatedAt:Date.now()};
+    await setDoc(userDoc('profiles_meta'), profilesMeta, {merge:false});
+  }
+  // If the locally-remembered active profile was deleted on another device,
+  // fall back to the first available profile rather than loading nothing.
+  if(!profilesMeta.list.some(p=>p.id===activeProfileId)){
+    activeProfileId=profilesMeta.list[0].id;
+    try{ const k=activeProfileLsKey(); if(k) localStorage.setItem(k, activeProfileId); }catch(e){}
+  }
+}
+async function saveProfilesMeta(){
+  profilesMeta.updatedAt=Date.now();
+  await setDoc(userDoc('profiles_meta'), profilesMeta, {merge:false});
+}
+window.addProfile=async function(){
+  if(!canAddMore('profiles', profilesMeta.list.length)){ showPremiumUpsell('profiles'); return; }
+  const name=await uiPrompt(tr('profiles_add_prompt'),'',tr('profiles_add_title'));
+  if(name===null) return;
+  const clean=name.trim(); if(!clean) return;
+  profilesMeta.list.push({id:uid('profile'), name:clean, createdAt:Date.now()});
+  await saveProfilesMeta();
+  renderProfilesUI();
+};
+window.renameProfile=async function(id){
+  const p=profilesMeta.list.find(x=>x.id===id); if(!p) return;
+  const name=await uiPrompt(tr('profiles_rename_prompt'), p.name, tr('profiles_rename_title'));
+  if(name===null) return;
+  const clean=name.trim(); if(!clean) return;
+  p.name=clean;
+  await saveProfilesMeta();
+  renderProfilesUI();
+};
+window.deleteProfile=async function(id){
+  if(id===activeProfileId){ showToast(tr('profiles_delete_active_blocked'),'warning'); return; }
+  if(profilesMeta.list.length<=1){ showToast(tr('profiles_delete_last_blocked'),'warning'); return; }
+  if(!(await uiConfirm(tr('profiles_delete_confirm'),{title:tr('profiles_delete_title'),okText:tr('common_delete'),danger:true}))) return;
+  profilesMeta.list=profilesMeta.list.filter(p=>p.id!==id);
+  await saveProfilesMeta();
+  renderProfilesUI();
+};
+window.switchProfile=async function(id){
+  if(id===activeProfileId) return;
+  if(!profilesMeta.list.some(p=>p.id===id)) return;
+  if(!(await uiConfirm(tr('profiles_switch_confirm'),{title:tr('profiles_switch_title'),okText:tr('profiles_switch_btn')}))) return;
+  clearTimeout(fbTimer);
+  await fbSaveNow();
+  activeProfileId=id;
+  try{ const k=activeProfileLsKey(); if(k) localStorage.setItem(k, activeProfileId); }catch(e){}
+  closeManagers();
+  await fbLoadNow();
+  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
+  switchTab('finance');
+  showToast(tr('profiles_switched_toast'),'check');
+};
+function renderProfilesUI(){
+  const sub=document.getElementById('settings-profiles-sub');
+  if(sub){
+    const active=profilesMeta.list.find(p=>p.id===activeProfileId);
+    sub.textContent = (active && active.name) ? active.name : tr('settings_profiles_sub');
+  }
+  const box=document.getElementById('profiles-list'); if(!box) return;
+  box.innerHTML='';
+  profilesMeta.list.forEach((p,i)=>{
+    const isActive=p.id===activeProfileId;
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    const initial=(p.name||'?').trim().charAt(0).toUpperCase()||'?';
+    row.innerHTML=`
+      <div class="profile-row-avatar" style="background:${PALETTE[i%PALETTE.length]}">${escapeHtml(initial)}</div>
+      <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
+      ${isActive
+        ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
+        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" onclick="switchProfile('${p.id}')">${tr('profiles_switch_btn')}</button>`}
+      <button class="mgr-del" onclick="renameProfile('${p.id}')">${window.Icon('pencil')}</button>
+      <button class="mgr-del" onclick="deleteProfile('${p.id}')">${window.Icon('trash')}</button>
+    `;
+    box.appendChild(row);
+  });
+}
+window.renderProfilesUI=renderProfilesUI;
 
 function fbSetStatus(type, text){
   const el=document.getElementById('fb-status');
@@ -2525,7 +2750,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, goals, profile, subscription, widgets, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, shoppingList, goals, profile, subscription, widgets, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -2635,6 +2860,8 @@ async function fbLoadNow(){
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
     recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
+    shoppingList=fData?(fData.shoppingList||[]):[];
+    saveShoppingLocal();
     if(dS.exists()){
       const norm=normalizeDebtData(dS.data().data);
       debts=norm?norm.debts:[]; currentDebtId=norm?norm.currentDebtId:null;
@@ -2690,6 +2917,10 @@ function saveDebtLocal(){
 
 function saveRecurringLocal(){
   const k=lsKey('recurring'); if(k) localStorage.setItem(k, JSON.stringify(recurring));
+}
+
+function saveShoppingLocal(){
+  const k=lsKey('shopping'); if(k) localStorage.setItem(k, JSON.stringify(shoppingList));
 }
 
 // Advances a YYYY-MM-DD date string by one period of the given frequency.
@@ -3151,6 +3382,7 @@ window.tryBioUnlock=async function(){
 
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
+  if(user) loadActiveProfileId();
   const lockScreen=document.getElementById('lock-screen');
   const signOutBtn=document.getElementById('settings-signout');
   const deleteBtn=document.getElementById('settings-delete-account');
@@ -3164,7 +3396,8 @@ onAuthStateChanged(auth, async (user)=>{
     await checkPinLock();
     if(!hasPinSet()) maybeShowOnboarding();
   }else{
-    shifts={}; transactions=[]; recurring=[]; debts=[]; currentDebtId=null;
+    shifts={}; transactions=[]; recurring=[]; shoppingList=[]; debts=[]; currentDebtId=null;
+    activeProfileId='default'; profilesMeta={list:[{id:'default', name:''}], updatedAt:0};
     pinUnlocked=false;
     if(signOutBtn) signOutBtn.style.display='none';
     if(deleteBtn) deleteBtn.style.display='none';
@@ -3216,6 +3449,7 @@ async function init(){
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
   try{const k=lsKey('tx'); const t=k&&localStorage.getItem(k); if(t) transactions=JSON.parse(t);}catch{}
   try{const k=lsKey('recurring'); const r=k&&localStorage.getItem(k); if(r) recurring=JSON.parse(r);}catch{}
+  try{const k=lsKey('shopping'); const s2=k&&localStorage.getItem(k); if(s2) shoppingList=JSON.parse(s2);}catch{}
   try{const k=lsKey('debt'); const d=k&&localStorage.getItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){debts=norm.debts; currentDebtId=norm.currentDebtId;}}}catch{}
   // Config cache (shift types / wallets / categories); seed sane defaults
   // if none cached yet so the first render before cloud load doesn't break.
@@ -3231,6 +3465,8 @@ async function init(){
   populateFxConverterSelects(); renderFxConverter();
   enhanceAllSelects();
   renderProfileUI(); renderPremiumUI();
+  try{ await loadProfilesMeta(); }catch(e){ console.error('profiles meta load failed', e); }
+  renderProfilesUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI();
@@ -3247,10 +3483,12 @@ function switchTab(tab){
   document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
+  document.getElementById('nav-shopping').classList.toggle('active',tab==='shopping');
   document.getElementById('nav-settings').classList.toggle('active',tab==='settings');
   document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
   document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
+  document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {applyWidgetVisibility(); renderFinance(); renderFinanceChart();
@@ -3258,6 +3496,7 @@ function switchTab(tab){
     if(fp) fp.style.display=window.innerWidth<=900?'block':'grid';
   }
   if(tab==='debt') {renderDebt();}
+  if(tab==='shopping') {renderShoppingList();}
 }
 
 // ── UTIL ──────────────────────────────────────────────────────
@@ -3780,7 +4019,7 @@ async function applyTemplate(){
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 };
@@ -5622,6 +5861,66 @@ function renderDebt(){
   });
 }
 
+// ── SHOPPING LIST ─────────────────────────────────────────────
+window.addShoppingItem=function(){
+  const ni=document.getElementById('shopping-name-input');
+  const qi=document.getElementById('shopping-qty-input');
+  const name=(ni&&ni.value||'').trim();
+  if(!name) return;
+  const qty=parseInt(qi&&qi.value,10)||1;
+  shoppingList.push({id:uid('item'), name, qty, done:false, createdAt:Date.now()});
+  if(ni) ni.value='';
+  if(qi) qi.value='';
+  saveShoppingLocal(); scheduleSave();
+  renderShoppingList();
+  if(ni) ni.focus();
+};
+window.toggleShoppingItem=function(id, done){
+  const it=shoppingList.find(x=>x.id===id); if(!it) return;
+  it.done=!!done;
+  saveShoppingLocal(); scheduleSave();
+  renderShoppingList();
+};
+window.deleteShoppingItem=function(id){
+  shoppingList=shoppingList.filter(x=>x.id!==id);
+  saveShoppingLocal(); scheduleSave();
+  renderShoppingList();
+};
+window.clearBoughtShopping=async function(){
+  if(!shoppingList.some(x=>x.done)) return;
+  if(!(await uiConfirm(tr('shopping_clear_confirm'),{title:tr('shopping_clear_title'),okText:tr('common_delete'),danger:true}))) return;
+  shoppingList=shoppingList.filter(x=>!x.done);
+  saveShoppingLocal(); scheduleSave();
+  renderShoppingList();
+};
+function renderShoppingList(){
+  const box=document.getElementById('shopping-list-container'); if(!box) return;
+  const remaining=shoppingList.filter(x=>!x.done).length;
+  const bought=shoppingList.length-remaining;
+  const S=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  S('shopping-remaining-val', remaining);
+  S('shopping-bought-val', bought);
+  const clearBtn=document.getElementById('shopping-clear-btn');
+  if(clearBtn) clearBtn.style.display = bought>0 ? '' : 'none';
+  box.innerHTML='';
+  if(!shoppingList.length){
+    box.innerHTML=`<div class="mgr-empty">${tr('shopping_empty')}</div>`;
+    return;
+  }
+  // Unbought items first, bought ones (dimmed/struck-through) trail behind.
+  const sorted=[...shoppingList].sort((a,b)=>(a.done===b.done)?0:(a.done?1:-1));
+  sorted.forEach(it=>{
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    row.innerHTML=`
+      <input type="checkbox" class="rchk" ${it.done?'checked':''} onchange="toggleShoppingItem('${it.id}', this.checked)">
+      <div class="mgr-name-inline" style="${it.done?'text-decoration:line-through;opacity:.55':''}">${escapeHtml(it.name)}</div>
+      ${it.qty>1?`<span style="font-size:12px;font-weight:700;color:var(--muted);flex:0 0 auto">×${it.qty}</span>`:''}
+      <button class="mgr-del" onclick="deleteShoppingItem('${it.id}')">${window.Icon('trash')}</button>
+    `;
+    box.appendChild(row);
+  });
+}
 </script>
 </body>
 </html>
