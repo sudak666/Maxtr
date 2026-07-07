@@ -640,7 +640,7 @@ body.amounts-hidden #fx-converter-result{
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
-  .tab-btn{flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
+  .tab-btn{flex-direction:column;gap:3px;padding:8px 2px;font-size:10px;letter-spacing:-.01em}
   .tab-btn .ico{width:14px;height:14px}
   .cal-nav{gap:6px}
   .cs.cs-sm{min-width:0;flex:1 1 84px}
@@ -661,25 +661,46 @@ body.amounts-hidden #fx-converter-result{
     <div class="lock-title">Zminka</div>
   </div>
   <div class="auth-card">
-    <div class="auth-tabs">
-      <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')" data-i18n="auth_login_tab">Вхід</button>
-      <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')" data-i18n="auth_register_tab">Реєстрація</button>
+    <div id="auth-email-section">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')" data-i18n="auth_login_tab">Вхід</button>
+        <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')" data-i18n="auth_register_tab">Реєстрація</button>
+      </div>
+      <form id="auth-form" autocomplete="on">
+        <div class="fg" style="margin-bottom:10px">
+          <label for="auth-email">Email</label>
+          <input type="email" id="auth-email" name="email" autocomplete="username" placeholder="you@example.com" required>
+        </div>
+        <div class="fg" style="margin-bottom:4px">
+          <label for="auth-password" data-i18n="auth_password">Пароль</label>
+          <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="Мінімум 6 символів" data-i18n-placeholder="auth_password_placeholder" minlength="6" required>
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+        <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px" data-i18n="auth_login_btn">Увійти</button>
+      </form>
+      <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()" data-i18n="auth_forgot">Забули пароль?</button>
+      <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
+      <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
+      <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
+      <button type="button" class="btn btn-ghost" onclick="showPhoneAuth()"><span id="ic-phone"></span><span data-i18n="auth_phone_btn">Увійти за номером телефону</span></button>
     </div>
-    <form id="auth-form" autocomplete="on">
+    <div id="auth-phone-section" style="display:none">
       <div class="fg" style="margin-bottom:10px">
-        <label for="auth-email">Email</label>
-        <input type="email" id="auth-email" name="email" autocomplete="username" placeholder="you@example.com" required>
+        <label for="auth-phone-input" data-i18n="auth_phone_label">Номер телефону</label>
+        <input type="tel" id="auth-phone-input" placeholder="+380XXXXXXXXX">
       </div>
-      <div class="fg" style="margin-bottom:4px">
-        <label for="auth-password" data-i18n="auth_password">Пароль</label>
-        <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="Мінімум 6 символів" data-i18n-placeholder="auth_password_placeholder" minlength="6" required>
+      <div class="auth-error" id="auth-phone-error"></div>
+      <button type="button" class="add-btn" id="auth-phone-send-btn" style="width:100%;margin-top:6px" onclick="sendPhoneCode()" data-i18n="auth_phone_send">Надіслати код</button>
+      <div id="auth-phone-code-group" style="display:none;margin-top:14px">
+        <div class="fg" style="margin-bottom:10px">
+          <label for="auth-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
+          <input type="text" id="auth-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
+        </div>
+        <button type="button" class="add-btn" id="auth-phone-verify-btn" style="width:100%" onclick="verifyPhoneCode()" data-i18n="auth_phone_verify">Підтвердити</button>
       </div>
-      <div class="auth-error" id="auth-error"></div>
-      <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px" data-i18n="auth_login_btn">Увійти</button>
-    </form>
-    <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()" data-i18n="auth_forgot">Забули пароль?</button>
-    <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
-    <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
+      <button type="button" class="auth-link" onclick="hidePhoneAuth()" data-i18n="auth_phone_back">← Назад</button>
+    </div>
+    <div id="recaptcha-container"></div>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:2px">
       <span data-i18n="auth_terms_pre">Реєструючись, ти погоджуєшся з</span> <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умовами використання</a> <span data-i18n="auth_terms_and">і</span> <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політикою конфіденційності</a>
     </div>
@@ -866,79 +887,6 @@ body.amounts-hidden #fx-converter-result{
       <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
     </div>
 
-    <!-- Курси валют -->
-    <div class="chart-section" id="fx-widget-section">
-      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
-        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()"><span id="ic-fx-widget-refresh"></span></button>
-      </div>
-      <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
-      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
-    </div>
-
-    <!-- Конвертер валют -->
-    <div class="chart-section" id="fx-converter-section">
-      <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-        <div class="fg" style="flex:1 1 110px;margin:0">
-          <label data-i18n="fx_converter_amount">Сума</label>
-          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" oninput="renderFxConverter()">
-        </div>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_from">З</label>
-          <select id="fx-conv-from" onchange="renderFxConverter()"></select>
-        </div>
-        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" onclick="swapFxConverter()" title="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_to">В</label>
-          <select id="fx-conv-to" onchange="renderFxConverter()"></select>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
-    </div>
-
-    <!-- Аналітика витрат і доходів -->
-    <div class="chart-section" id="analytics-section">
-      <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
-      <div class="filter-row" id="analytics-period-filter">
-        <div class="filter-chip active" data-period="month" onclick="setAnalyticsPeriod('month')" data-i18n="analytics_period_month">Цей місяць</div>
-        <div class="filter-chip" data-period="prev" onclick="setAnalyticsPeriod('prev')" data-i18n="analytics_period_prev">Минулий місяць</div>
-        <div class="filter-chip" data-period="3m" onclick="setAnalyticsPeriod('3m')" data-i18n="analytics_period_3m">3 місяці</div>
-        <div class="filter-chip" data-period="all" onclick="setAnalyticsPeriod('all')" data-i18n="analytics_period_all">Весь час</div>
-      </div>
-      <div class="stats-row" id="analytics-stats"></div>
-      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
-      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
-        <div class="analytics-donut" id="analytics-donut"></div>
-        <div style="flex:1 1 220px;min-width:220px">
-          <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
-          <div id="analytics-expense-list"></div>
-        </div>
-      </div>
-      <div style="margin-top:18px">
-        <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_income_category">Доходи за категоріями</div>
-        <div id="analytics-income-list"></div>
-      </div>
-    </div>
-
-    <!-- Бюджети по категоріях -->
-    <div class="chart-section" id="budgets-section" style="display:none">
-      <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
-      <div id="budgets-list"></div>
-    </div>
-
-    <!-- Цілі накопичення -->
-    <div class="chart-section" id="goals-section" style="display:none">
-      <div class="chart-title"><span id="ic-goals"></span><span data-i18n="finance_goals_title">Цілі</span></div>
-      <div id="goals-list"></div>
-    </div>
-
-    <!-- Графік витрат по місяцях -->
-    <div class="chart-section" id="finance-chart-section">
-      <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
-      <div class="chart-bars" id="finance-chart"></div>
-    </div>
-
     <div class="fin-grid" id="finance-panel-block">
       <!-- Форма -->
       <div class="fin-form">
@@ -1003,6 +951,79 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <div class="tx-list" id="tx-list-container"></div>
       </div>
+    </div>
+
+    <!-- Аналітика витрат і доходів -->
+    <div class="chart-section" id="analytics-section">
+      <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
+      <div class="filter-row" id="analytics-period-filter">
+        <div class="filter-chip active" data-period="month" onclick="setAnalyticsPeriod('month')" data-i18n="analytics_period_month">Цей місяць</div>
+        <div class="filter-chip" data-period="prev" onclick="setAnalyticsPeriod('prev')" data-i18n="analytics_period_prev">Минулий місяць</div>
+        <div class="filter-chip" data-period="3m" onclick="setAnalyticsPeriod('3m')" data-i18n="analytics_period_3m">3 місяці</div>
+        <div class="filter-chip" data-period="all" onclick="setAnalyticsPeriod('all')" data-i18n="analytics_period_all">Весь час</div>
+      </div>
+      <div class="stats-row" id="analytics-stats"></div>
+      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+        <div class="analytics-donut" id="analytics-donut"></div>
+        <div style="flex:1 1 220px;min-width:220px">
+          <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
+          <div id="analytics-expense-list"></div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_income_category">Доходи за категоріями</div>
+        <div id="analytics-income-list"></div>
+      </div>
+    </div>
+
+    <!-- Бюджети по категоріях -->
+    <div class="chart-section" id="budgets-section" style="display:none">
+      <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
+      <div id="budgets-list"></div>
+    </div>
+
+    <!-- Цілі накопичення -->
+    <div class="chart-section" id="goals-section" style="display:none">
+      <div class="chart-title"><span id="ic-goals"></span><span data-i18n="finance_goals_title">Цілі</span></div>
+      <div id="goals-list"></div>
+    </div>
+
+    <!-- Графік витрат по місяцях -->
+    <div class="chart-section" id="finance-chart-section">
+      <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
+      <div class="chart-bars" id="finance-chart"></div>
+    </div>
+
+    <!-- Курси валют -->
+    <div class="chart-section" id="fx-widget-section">
+      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
+        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()"><span id="ic-fx-widget-refresh"></span></button>
+      </div>
+      <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
+    </div>
+
+    <!-- Конвертер валют -->
+    <div class="chart-section" id="fx-converter-section">
+      <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="flex:1 1 110px;margin:0">
+          <label data-i18n="fx_converter_amount">Сума</label>
+          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" oninput="renderFxConverter()">
+        </div>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_from">З</label>
+          <select id="fx-conv-from" onchange="renderFxConverter()"></select>
+        </div>
+        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" onclick="swapFxConverter()" title="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_to">В</label>
+          <select id="fx-conv-to" onchange="renderFxConverter()"></select>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
     </div>
   </div>
 
@@ -1628,7 +1649,8 @@ body.amounts-hidden #fx-converter-result{
     grid:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
     eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     eyeOff:'<path d="M3 3l18 18"/><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.6 8.6 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2"/>',
-    flag:'<path d="M5 3v18"/><path d="M5 4h13l-3 4 3 4H5"/>'
+    flag:'<path d="M5 3v18"/><path d="M5 4h13l-3 4 3 4H5"/>',
+    phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -1640,6 +1662,7 @@ body.amounts-hidden #fx-converter-result{
   }
   var GOOGLE_G_SVG='<svg class="ico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.4-6.4C35.6 3 30.1 1 24 1 14.6 1 6.5 6.4 2.6 14.2l7.5 5.8C12 13.6 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.2 5.6C43.5 37.6 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.1 20c-.6 1.6-.9 3.3-.9 5s.3 3.4.9 5l-7.5 5.8C1 32.6 0 28.4 0 24s1-8.6 2.6-11.8z"/><path fill="#34A853" d="M24 47c6.1 0 11.3-2 15-5.5l-7.2-5.6c-2 1.4-4.6 2.2-7.8 2.2-6.5 0-12-4.1-13.9-9.9l-7.5 5.8C6.5 41.6 14.6 47 24 47z"/></svg>';
   var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
+  setIcon('ic-phone','phone');
   setIcon('ic-set-signout','logout');
   setIcon('ic-set-delete','trash');
   setIcon('ic-set-pin','lock');
@@ -1769,6 +1792,10 @@ body.amounts-hidden #fx-converter-result{
       auth_login_tab:'Вхід', auth_register_tab:'Реєстрація', auth_password:'Пароль', auth_password_placeholder:'Мінімум 6 символів',
       auth_login_btn:'Увійти', auth_register_btn:'Зареєструватися', auth_forgot:'Забули пароль?', auth_or:'або',
       auth_google:'Продовжити через Google', auth_terms_pre:'Реєструючись, ти погоджуєшся з', auth_terms_and:'і',
+      auth_phone_btn:'Увійти за номером телефону', auth_phone_label:'Номер телефону', auth_phone_send:'Надіслати код',
+      auth_phone_code_label:'Код із SMS', auth_phone_verify:'Підтвердити', auth_phone_back:'← Назад',
+      auth_phone_code_sent:'Код надіслано', auth_phone_bad_format:'Введи номер у форматі +380XXXXXXXXX',
+      auth_phone_enter_code:'Введи код із SMS',
       topbar_sub:'Зміни · Фінанси · Хмара', topbar_connecting:'Підключення...',
       nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування',
       shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
@@ -1803,6 +1830,9 @@ body.amounts-hidden #fx-converter-result{
       auth_err_email_in_use:'Цей email вже зареєстровано.', auth_err_weak_password:'Пароль надто простий (мінімум 6 символів).',
       auth_err_too_many:'Забагато спроб. Спробуйте пізніше.', auth_err_popup_closed:'Вікно входу закрито.',
       auth_err_generic:'Помилка входу. Спробуйте ще раз.',
+      auth_err_invalid_phone:'Некоректний номер телефону.', auth_err_invalid_code:'Невірний код із SMS.',
+      auth_err_code_expired:'Код прострочено. Надішли новий.', auth_err_quota:'Забагато спроб. Спробуйте пізніше.',
+      auth_err_phone_disabled:'Вхід за телефоном тимчасово недоступний.',
       auth_enter_email:'Введіть email, щоб скинути пароль.', auth_reset_sent:'Лист для скидання пароля надіслано.',
       auth_signout_confirm:'Вийти з акаунту?', auth_signout_title:'Вихід', auth_signout_ok:'Вийти',
       auth_reauth_prompt:'Введи пароль ще раз, щоб підтвердити видалення акаунту:', auth_reauth_title:'Підтвердження',
@@ -1946,6 +1976,10 @@ body.amounts-hidden #fx-converter-result{
       auth_login_tab:'Sign in', auth_register_tab:'Sign up', auth_password:'Password', auth_password_placeholder:'At least 6 characters',
       auth_login_btn:'Sign in', auth_register_btn:'Sign up', auth_forgot:'Forgot password?', auth_or:'or',
       auth_google:'Continue with Google', auth_terms_pre:'By signing up, you agree to the', auth_terms_and:'and',
+      auth_phone_btn:'Sign in with phone number', auth_phone_label:'Phone number', auth_phone_send:'Send code',
+      auth_phone_code_label:'SMS code', auth_phone_verify:'Verify', auth_phone_back:'← Back',
+      auth_phone_code_sent:'Code sent', auth_phone_bad_format:'Enter a number in +380XXXXXXXXX format',
+      auth_phone_enter_code:'Enter the SMS code',
       topbar_sub:'Shifts · Finance · Cloud', topbar_connecting:'Connecting...',
       nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings',
       shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
@@ -1980,6 +2014,9 @@ body.amounts-hidden #fx-converter-result{
       auth_err_email_in_use:'This email is already registered.', auth_err_weak_password:'Password is too weak (minimum 6 characters).',
       auth_err_too_many:'Too many attempts. Try again later.', auth_err_popup_closed:'Sign-in window closed.',
       auth_err_generic:'Sign-in error. Please try again.',
+      auth_err_invalid_phone:'Invalid phone number.', auth_err_invalid_code:'Wrong SMS code.',
+      auth_err_code_expired:'Code expired. Request a new one.', auth_err_quota:'Too many attempts. Try again later.',
+      auth_err_phone_disabled:'Phone sign-in is temporarily unavailable.',
       auth_enter_email:'Enter your email to reset the password.', auth_reset_sent:'Password reset email sent.',
       auth_signout_confirm:'Sign out of your account?', auth_signout_title:'Sign out', auth_signout_ok:'Sign out',
       auth_reauth_prompt:'Enter your password again to confirm account deletion:', auth_reauth_title:'Confirmation',
@@ -2131,7 +2168,8 @@ import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail,
-  EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup
+  EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
+  RecaptchaVerifier, signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const fbApp = initializeApp({
@@ -2658,6 +2696,12 @@ function authErrorMessage(code){
     'auth/weak-password':tr('auth_err_weak_password'),
     'auth/too-many-requests':tr('auth_err_too_many'),
     'auth/popup-closed-by-user':tr('auth_err_popup_closed'),
+    'auth/invalid-phone-number':tr('auth_err_invalid_phone'),
+    'auth/missing-phone-number':tr('auth_err_invalid_phone'),
+    'auth/invalid-verification-code':tr('auth_err_invalid_code'),
+    'auth/code-expired':tr('auth_err_code_expired'),
+    'auth/quota-exceeded':tr('auth_err_quota'),
+    'auth/operation-not-allowed':tr('auth_err_phone_disabled'),
   };
   return map[code]||tr('auth_err_generic');
 }
@@ -2691,6 +2735,67 @@ window.resetPassword=async function(){
   }catch(err){
     console.error(err);
     setAuthError(authErrorMessage(err.code));
+  }
+};
+// ── PHONE SIGN-IN (SMS code via Firebase, alternative to email/Google) ──
+// Requires the "Phone" sign-in provider enabled in the Firebase console
+// (Authentication > Sign-in method) and the project on the Blaze plan —
+// Spark (free) does not support sending SMS at all.
+window.showPhoneAuth=function(){
+  document.getElementById('auth-email-section').style.display='none';
+  document.getElementById('auth-phone-section').style.display='block';
+  setPhoneError('');
+};
+window.hidePhoneAuth=function(){
+  document.getElementById('auth-phone-section').style.display='none';
+  document.getElementById('auth-email-section').style.display='';
+  document.getElementById('auth-phone-code-group').style.display='none';
+  document.getElementById('auth-phone-send-btn').style.display='';
+  const codeInp=document.getElementById('auth-phone-code-input'); if(codeInp) codeInp.value='';
+  phoneConfirmationResult=null;
+  setPhoneError('');
+};
+function setPhoneError(msg){
+  const el=document.getElementById('auth-phone-error');
+  if(el) el.textContent=msg||'';
+}
+let recaptchaVerifier=null;
+function ensureRecaptcha(){
+  if(!recaptchaVerifier) recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'invisible'});
+  return recaptchaVerifier;
+}
+let phoneConfirmationResult=null;
+window.sendPhoneCode=async function(){
+  const raw=document.getElementById('auth-phone-input').value.trim();
+  if(!/^\+\d{8,15}$/.test(raw)){ setPhoneError(tr('auth_phone_bad_format')); return; }
+  const btn=document.getElementById('auth-phone-send-btn');
+  setPhoneError(''); btn.disabled=true;
+  try{
+    phoneConfirmationResult=await signInWithPhoneNumber(auth, raw, ensureRecaptcha());
+    document.getElementById('auth-phone-code-group').style.display='block';
+    btn.style.display='none';
+    showToast(tr('auth_phone_code_sent'),'check');
+  }catch(err){
+    console.error(err);
+    setPhoneError(authErrorMessage(err.code));
+    if(recaptchaVerifier){ try{ recaptchaVerifier.clear(); }catch(e){} recaptchaVerifier=null; }
+  }finally{
+    btn.disabled=false;
+  }
+};
+window.verifyPhoneCode=async function(){
+  const code=document.getElementById('auth-phone-code-input').value.trim();
+  if(!code || !phoneConfirmationResult){ setPhoneError(tr('auth_phone_enter_code')); return; }
+  const btn=document.getElementById('auth-phone-verify-btn');
+  setPhoneError(''); btn.disabled=true;
+  try{
+    await phoneConfirmationResult.confirm(code);
+    // onAuthStateChanged picks up the new session and hides the lock screen.
+  }catch(err){
+    console.error(err);
+    setPhoneError(authErrorMessage(err.code));
+  }finally{
+    btn.disabled=false;
   }
 };
 window.signOutUser=async function(){
@@ -2991,6 +3096,7 @@ onAuthStateChanged(auth, async (user)=>{
     if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
     const form=document.getElementById('auth-form'); if(form) form.reset();
     setAuthError('');
+    if(document.getElementById('auth-phone-section')?.style.display!=='none') window.hidePhoneAuth();
   }
 });
 
