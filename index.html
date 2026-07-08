@@ -2120,6 +2120,7 @@ body.amounts-hidden #fx-converter-result{
       auth_err_captcha:'Перевірка reCAPTCHA не пройшла. Перевір з\'єднання і спробуй ще раз.',
       auth_err_unauthorized_domain:'Цей сайт не додано до дозволених доменів Firebase — вхід за телефоном тут не працює.',
       auth_err_network:'Немає з\'єднання з мережею. Перевір інтернет і спробуй ще раз.',
+      auth_err_sms_unavailable:'SMS тимчасово недоступні для цього номера (ліміт спроб або обмеження регіону). Спробуй ще раз пізніше або скористайся входом через email чи Google.',
       auth_enter_email:'Введіть email, щоб скинути пароль.', auth_reset_sent:'Лист для скидання пароля надіслано.',
       auth_signout_confirm:'Вийти з акаунту?', auth_signout_title:'Вихід', auth_signout_ok:'Вийти',
       auth_reauth_prompt:'Введи пароль ще раз, щоб підтвердити видалення акаунту:', auth_reauth_title:'Підтвердження',
@@ -2333,6 +2334,7 @@ body.amounts-hidden #fx-converter-result{
       auth_err_captcha:'reCAPTCHA check failed. Check your connection and try again.',
       auth_err_unauthorized_domain:'This site isn\'t on Firebase\'s authorized domains list — phone sign-in won\'t work here.',
       auth_err_network:'No network connection. Check your internet and try again.',
+      auth_err_sms_unavailable:'SMS is temporarily unavailable for this number (rate limit or regional restriction). Try again later, or sign in with email or Google instead.',
       auth_enter_email:'Enter your email to reset the password.', auth_reset_sent:'Password reset email sent.',
       auth_signout_confirm:'Sign out of your account?', auth_signout_title:'Sign out', auth_signout_ok:'Sign out',
       auth_reauth_prompt:'Enter your password again to confirm account deletion:', auth_reauth_title:'Confirmation',
@@ -3237,8 +3239,15 @@ function authErrorMessage(code){
     'auth/argument-error':tr('auth_err_captcha'),
     'auth/unauthorized-domain':tr('auth_err_unauthorized_domain'),
     'auth/network-request-failed':tr('auth_err_network'),
+    'auth/internal-error':tr('auth_err_sms_unavailable'),
   };
-  return map[code]||tr('auth_err_generic');
+  if(map[code]) return map[code];
+  // Identity Toolkit sometimes fails a phone sendVerificationCode call with a
+  // 503 wrapped as "auth/error-code:<n>" instead of a normal auth/* code —
+  // seen for per-number SMS rate limits and regional/carrier blocks on
+  // Google's side, not something a retry with the same number fixes.
+  if(/^auth\/error-code:/.test(code||'')) return tr('auth_err_sms_unavailable');
+  return tr('auth_err_generic');
 }
 document.getElementById('auth-form').addEventListener('submit', async function(e){
   e.preventDefault();
