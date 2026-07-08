@@ -6186,7 +6186,10 @@ function renderFinance(){
         <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})">${window.Icon('trash')}</button>
       </div>`;
     item.addEventListener('click',()=>editTransaction(t.id));
-    item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
+    item.addEventListener('keydown',e=>{
+      if(e.target!==item) return;
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); }
+    });
     lc.appendChild(item);
   });
 }
