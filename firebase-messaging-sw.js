@@ -3,8 +3,8 @@
 // caching) because Firebase Cloud Messaging needs its own service worker
 // registered at the page's default scope; this file must stay at the site
 // root (not under a subfolder) for that scope to cover the whole app.
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",

@@ -2597,16 +2597,16 @@ body.amounts-hidden #fx-converter-result{
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail,
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
   RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber, unlink
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
