@@ -260,6 +260,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-group-row::-webkit-scrollbar{display:none}
 .settings-group-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--bg1);color:var(--muted);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
 .settings-group-chip.active{background:rgba(139,92,246,.16);border-color:var(--purple);color:var(--purple2)}
+.contextual-tip{display:none;align-items:flex-start;gap:10px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:18px;padding:12px 14px;margin-bottom:14px}
+.contextual-tip-icon{width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.contextual-tip-icon .ico{width:14px;height:14px;margin:0}
+.contextual-tip-text{flex:1;font-size:12.5px;line-height:1.4;color:var(--text);font-weight:600;padding-top:4px}
+.contextual-tip-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;flex-shrink:0;display:flex}
+.contextual-tip-close .ico{width:14px;height:14px;margin:0}
+.widget-reorder-col{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+.widget-reorder-btn{background:var(--bg2);border:1px solid var(--border2);color:var(--muted);border-radius:8px;width:22px;height:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit}
+.widget-reorder-btn .ico{width:11px;height:11px;margin:0;transform:rotate(180deg)}
+.widget-reorder-btn.widget-reorder-down .ico{transform:none}
+.widget-reorder-btn:disabled{opacity:.3;cursor:default}
+.widget-reorder-btn:not(:disabled):hover{border-color:var(--purple2);color:var(--purple2)}
 .stat-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:500}
@@ -1077,12 +1089,6 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <!-- Бюджети по категоріях -->
-    <div class="chart-section" id="budgets-section" style="display:none">
-      <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
-      <div id="budgets-list"></div>
-    </div>
-
     <!-- Цілі накопичення -->
     <div class="chart-section" id="goals-section" style="display:none">
       <div class="chart-title"><span id="ic-goals"></span><span data-i18n="finance_goals_title">Цілі</span></div>
@@ -1124,6 +1130,15 @@ body.amounts-hidden #fx-converter-result{
         </div>
       </div>
       <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
+    </div>
+
+    <!-- Бюджети по категоріях: не входить у widgetOrder (завжди сама
+         ховається за відсутності бюджету), тож навмисно останній елемент
+         блоку — слугує нерухомим "якорем", відносно якого applyWidgetOrder()
+         переставляє решту 5 віджетів через insertBefore. -->
+    <div class="chart-section" id="budgets-section" style="display:none">
+      <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
+      <div id="budgets-list"></div>
     </div>
   </div>
 
@@ -1238,6 +1253,12 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="settings-group-chip" data-group="finance" onclick="setSettingsGroup('finance')" data-i18n="settings_group_finance">Фінанси</button>
       <button type="button" class="settings-group-chip" data-group="security" onclick="setSettingsGroup('security')" data-i18n="settings_group_security">Безпека</button>
       <button type="button" class="settings-group-chip" data-group="app" onclick="setSettingsGroup('app')" data-i18n="settings_group_app">Вигляд</button>
+    </div>
+
+    <div class="contextual-tip" id="settings-contextual-tip" style="display:none">
+      <span class="contextual-tip-icon" id="ic-settings-tip"></span>
+      <div class="contextual-tip-text" data-i18n="settings_tip_search">Порада: скористайся пошуком або групами вище, щоб швидко знайти потрібний розділ.</div>
+      <button type="button" class="contextual-tip-close" onclick="dismissSettingsTip()" aria-label="Закрити"><span id="ic-settings-tip-close"></span></button>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -1693,21 +1714,17 @@ body.amounts-hidden #fx-converter-result{
       <span class="icon-badge" id="ic-premium-badge" style="width:52px;height:52px;background:linear-gradient(135deg,#f59e0b,#ec4899)"></span>
     </div>
     <div class="modal-header" style="justify-content:center;text-align:center"><div class="modal-date" data-i18n="premium_title">Zminka Преміум</div></div>
-    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Розблокуй більше можливостей застосунку.</div>
+    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Zminka зараз повністю безкоштовна — без лімітів. Ось що ми додаємо далі:</div>
     <div class="settings-row">
-      <span class="icon-badge icon-badge-sm" style="background:var(--purple)" id="ic-premium-wallets"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_limits">Без лімітів</div><div class="settings-row-sub" data-i18n="premium_perk_limits_sub">Необмежено гаманців, категорій, авто-правил і повторюваних платежів</div></div>
+      <span class="icon-badge icon-badge-sm" style="background:var(--green)" id="ic-premium-wallets"></span>
+      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_free_now">Вже доступно безкоштовно</div><div class="settings-row-sub" data-i18n="premium_perk_free_now_sub">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</div></div>
     </div>
-    <div class="settings-row">
-      <span class="icon-badge icon-badge-sm" style="background:var(--blue)" id="ic-premium-bell"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_push">Push-сповіщення</div><div class="settings-row-sub" data-i18n="premium_perk_push_sub">Нагадування навіть коли застосунок закритий</div></div>
+    <div class="settings-row" style="border-top:none">
+      <span class="icon-badge icon-badge-sm" style="background:var(--orange)" id="ic-premium-bank"></span>
+      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_banks">Інтеграція з банками</div><div class="settings-row-sub" data-i18n="premium_perk_banks_sub">Автоматичне підвантаження операцій — у розробці</div></div>
+      <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
     </div>
-    <div class="settings-row">
-      <span class="icon-badge icon-badge-sm" style="background:var(--green)" id="ic-premium-bank"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_banks">Інтеграція з банками</div><div class="settings-row-sub" data-i18n="premium_perk_banks_sub">Автоматичне підвантаження операцій</div></div>
-    </div>
-    <div class="modal-actions" style="margin-top:16px;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" disabled style="width:100%;justify-content:center;opacity:.6" data-i18n="premium_soon_btn">Скоро буде доступно</button>
+    <div class="modal-actions" style="margin-top:16px">
       <button class="modal-save" style="width:100%" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
    </div>
@@ -1995,6 +2012,8 @@ body.amounts-hidden #fx-converter-result{
   }catch(e){}
   setIcon('ic-goto-settings','gear');
   setIcon('ic-settings-search','search');
+  setIcon('ic-settings-tip','sparkle');
+  setIcon('ic-settings-tip-close','xmark');
   setIcon('tab-icon-settings','gear');
   setIcon('ic-settings-profile','person');
   setIcon('ic-settings-profiles','people');
@@ -2010,8 +2029,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-settings-about','info');
   setIcon('ic-set-premium','star');
   setIcon('ic-premium-badge','star');
-  setIcon('ic-premium-wallets','wallet');
-  setIcon('ic-premium-bell','bell');
+  setIcon('ic-premium-wallets','check');
   setIcon('ic-premium-bank','bank');
   setIcon('ic-set-wallets','wallet');
   setIcon('ic-set-rates','swap');
@@ -2109,6 +2127,7 @@ body.amounts-hidden #fx-converter-result{
       settings_kicker:'Керування застосунком', settings_title:'Налаштування',
       settings_search_placeholder:'Пошук: гаманці, категорії, push…', settings_search_empty:'Нічого не знайдено',
       settings_group_all:'Усі', settings_group_account:'Акаунт', settings_group_finance:'Фінанси', settings_group_security:'Безпека', settings_group_app:'Вигляд',
+      settings_tip_search:'Порада: скористайся пошуком або групами вище, щоб швидко знайти потрібний розділ.',
       settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм', settings_avatar_picker_label:'Або обери іконку профілю',
       settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
       settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
@@ -2234,16 +2253,15 @@ body.amounts-hidden #fx-converter-result{
       fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
       fx_converter_title:'Конвертер валют', fx_converter_amount:'Сума', fx_converter_from:'З', fx_converter_to:'В',
       qa_rates:'Курси', qa_converter:'Конвертер', qa_analytics:'Аналітика',
-      settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни чи вимкни блоки на вкладці "Фінанси".',
+      settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни, вимкни й переставляй блоки на вкладці "Фінанси".',
+      widgets_move_up:'Вище', widgets_move_down:'Нижче',
       widgets_item_rates:'Курси валют', widgets_item_rates_sub:'Компактний список курсів', widgets_item_converter:'Конвертер валют', widgets_item_converter_sub:'Швидкий перерахунок суми',
       widgets_item_analytics:'Аналітика', widgets_item_analytics_sub:'Витрати й доходи за категоріями', widgets_item_chart:'Графік балансу', widgets_item_chart_sub:'Баланс за останні 6 місяців',
       widgets_item_goals:'Цілі', widgets_item_goals_sub:'Прогрес накопичення на гаманцях',
       settings_premium:'Преміум', premium_free_plan:'Безкоштовний план', premium_active_plan:'Преміум активний',
-      premium_title:'Zminka Преміум', premium_subtitle:'Розблокуй більше можливостей застосунку.',
-      premium_perk_limits:'Без лімітів', premium_perk_limits_sub:'Необмежено гаманців, категорій, авто-правил, повторюваних платежів і цілей',
-      premium_perk_push:'Push-сповіщення', premium_perk_push_sub:'Нагадування навіть коли застосунок закритий',
-      premium_perk_banks:'Інтеграція з банками', premium_perk_banks_sub:'Автоматичне підвантаження операцій',
-      premium_soon_btn:'Скоро буде доступно',
+      premium_title:'Zminka Преміум', premium_subtitle:'Zminka зараз повністю безкоштовна — без лімітів. Ось що ми додаємо далі:',
+      premium_perk_free_now:'Вже доступно безкоштовно', premium_perk_free_now_sub:'Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення',
+      premium_perk_banks:'Інтеграція з банками', premium_perk_banks_sub:'Автоматичне підвантаження операцій — у розробці', premium_soon_badge:'Скоро',
       premium_limit_wallets:'Безкоштовний план дозволяє до 3 гаманців. Преміум знімає це обмеження.',
       premium_limit_categories:'Безкоштовний план дозволяє до 8 категорій одного типу. Преміум знімає це обмеження.',
       premium_limit_rules:'Безкоштовний план дозволяє до 3 авто-правил. Преміум знімає це обмеження.',
@@ -2322,6 +2340,7 @@ body.amounts-hidden #fx-converter-result{
       analytics_income:'Дохід', analytics_expense:'Витрата', analytics_net:'Різниця', analytics_savings_rate:'Норма заощаджень',
       analytics_prefix:'Витрачаєш на', analytics_suffix_more:'більше, ніж попереднього періоду', analytics_suffix_less:'менше, ніж попереднього періоду',
       analytics_same:'Витрати на рівні попереднього періоду', analytics_no_data:'Немає даних',
+      analytics_cat_insight_prefix:'Найбільше зросли витрати на', analytics_cat_insight_suffix:'цього періоду',
       settings_wallets_sub:'Картки, готівка та інші рахунки', settings_rates_sub:'Автоматичне оновлення з НБУ',
       settings_categories_sub:'Власні категорії доходів і витрат', settings_tags_sub:'Мітки для операцій, окремо від категорій',
       settings_budgets_sub:'Місячні ліміти витрат по категоріях', settings_recurring_sub:'Автоматичні платежі за розкладом',
@@ -2334,6 +2353,7 @@ body.amounts-hidden #fx-converter-result{
       settings_kicker:'App settings', settings_title:'Settings',
       settings_search_placeholder:'Search: wallets, categories, push…', settings_search_empty:'No settings found',
       settings_group_all:'All', settings_group_account:'Account', settings_group_finance:'Finance', settings_group_security:'Security', settings_group_app:'Appearance',
+      settings_tip_search:'Tip: use the search box or the group chips above to find a setting faster.',
       settings_profile:'Profile', settings_nickname_placeholder:'Nickname', settings_avatar_picker_label:'Or pick a profile icon',
       settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
       settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
@@ -2459,16 +2479,15 @@ body.amounts-hidden #fx-converter-result{
       fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
       fx_converter_title:'Currency converter', fx_converter_amount:'Amount', fx_converter_from:'From', fx_converter_to:'To',
       qa_rates:'Rates', qa_converter:'Converter', qa_analytics:'Analytics',
-      settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off.',
+      settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off, and reorder them.',
+      widgets_move_up:'Move up', widgets_move_down:'Move down',
       widgets_item_rates:'Exchange rates', widgets_item_rates_sub:'Compact rates list', widgets_item_converter:'Currency converter', widgets_item_converter_sub:'Quick amount conversion',
       widgets_item_analytics:'Analytics', widgets_item_analytics_sub:'Income and expenses by category', widgets_item_chart:'Balance chart', widgets_item_chart_sub:'Balance over the last 6 months',
       widgets_item_goals:'Goals', widgets_item_goals_sub:'Savings progress on your wallets',
       settings_premium:'Premium', premium_free_plan:'Free plan', premium_active_plan:'Premium active',
-      premium_title:'Zminka Premium', premium_subtitle:'Unlock more of the app.',
-      premium_perk_limits:'No limits', premium_perk_limits_sub:'Unlimited wallets, categories, auto-rules, recurring payments, and goals',
-      premium_perk_push:'Push notifications', premium_perk_push_sub:'Reminders even when the app is closed',
-      premium_perk_banks:'Bank integrations', premium_perk_banks_sub:'Automatic transaction import',
-      premium_soon_btn:'Coming soon',
+      premium_title:'Zminka Premium', premium_subtitle:"Zminka is fully free right now — no limits. Here's what's next:",
+      premium_perk_free_now:'Already free', premium_perk_free_now_sub:'Unlimited wallets, categories, rules, and recurring payments + push notifications',
+      premium_perk_banks:'Bank integrations', premium_perk_banks_sub:'Automatic transaction import — in development', premium_soon_badge:'Soon',
       premium_limit_wallets:'The free plan allows up to 3 wallets. Premium removes this limit.',
       premium_limit_categories:'The free plan allows up to 8 categories per type. Premium removes this limit.',
       premium_limit_rules:'The free plan allows up to 3 auto-rules. Premium removes this limit.',
@@ -2547,6 +2566,7 @@ body.amounts-hidden #fx-converter-result{
       analytics_income:'Income', analytics_expense:'Expense', analytics_net:'Net', analytics_savings_rate:'Savings rate',
       analytics_prefix:'You\'re spending', analytics_suffix_more:'more than the previous period', analytics_suffix_less:'less than the previous period',
       analytics_same:'Spending is level with the previous period', analytics_no_data:'No data yet',
+      analytics_cat_insight_prefix:'Spending grew the most on', analytics_cat_insight_suffix:'this period',
       settings_wallets_sub:'Cards, cash, and other accounts', settings_rates_sub:'Automatic updates from NBU',
       settings_categories_sub:'Your own income and expense categories', settings_tags_sub:'Freeform labels for transactions, separate from categories',
       settings_budgets_sub:'Monthly spending limits per category', settings_recurring_sub:'Automatic payments on a schedule',
@@ -2666,15 +2686,41 @@ let subscription = {plan:'free', expiresAt:null};
 // across devices. Budgets isn't here — it already hides itself when the
 // user hasn't set any budget.
 let widgets = {rates:true, converter:true, analytics:true, chart:true, goals:true};
+const WIDGET_SECTION_IDS={rates:'fx-widget-section', converter:'fx-converter-section', analytics:'analytics-section', chart:'finance-chart-section', goals:'goals-section'};
+const WIDGET_ORDER_DEFAULT=['rates','converter','analytics','chart','goals'];
+// User-chosen display order of the 5 toggleable Finance-tab widgets (P2:
+// "personalized dashboard" from the UI audit). Synced/persisted the same
+// way as `widgets` itself — see every call site of sanitizeWidgetOrder().
+let widgetOrder = WIDGET_ORDER_DEFAULT.slice();
+// Guards against corrupt/partial saved data (older save without
+// widgetOrder, a future widget key added later, a duplicate, etc.) by
+// keeping only known keys and appending any missing ones at the end.
+function sanitizeWidgetOrder(arr){
+  const seen=new Set();
+  const out=(Array.isArray(arr)?arr:[]).filter(k=>WIDGET_ORDER_DEFAULT.includes(k)&&!seen.has(k)&&seen.add(k));
+  WIDGET_ORDER_DEFAULT.forEach(k=>{ if(!seen.has(k)){ out.push(k); seen.add(k); } });
+  return out;
+}
 function applyWidgetVisibility(){
-  const map={rates:'fx-widget-section', converter:'fx-converter-section', analytics:'analytics-section', chart:'finance-chart-section'};
-  Object.entries(map).forEach(([key,id])=>{
+  Object.entries(WIDGET_SECTION_IDS).forEach(([key,id])=>{
+    if(key==='goals') return; // goals additionally self-hides when empty — handled inside renderGoals()
     const el=document.getElementById(id);
     if(el) el.style.display = widgets[key]===false ? 'none' : '';
   });
-  // Goals additionally self-hides when there are none to show, same as
-  // budgets — so it's re-rendered rather than just display-toggled.
   renderGoals();
+  applyWidgetOrder();
+}
+// Moves the 5 reorderable sections, in widgetOrder, to sit right before the
+// fixed budgets-section anchor (see the HTML comment above it) — inserting
+// each in turn right before the same anchor naturally builds the correct
+// final sequence without disturbing budgets-section's own position.
+function applyWidgetOrder(){
+  const anchor=document.getElementById('budgets-section');
+  if(!anchor||!anchor.parentNode) return;
+  widgetOrder.forEach(key=>{
+    const el=document.getElementById(WIDGET_SECTION_IDS[key]);
+    if(el) anchor.parentNode.insertBefore(el, anchor);
+  });
 }
 const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
 function isPremium(){ return subscription.plan==='premium' && (!subscription.expiresAt || subscription.expiresAt>Date.now()); }
@@ -3060,7 +3106,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
-      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, shoppingList, goals, profile, subscription, widgets, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, shoppingList, goals, profile, subscription, widgets, widgetOrder, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -3123,6 +3169,7 @@ function seedConfigFromDocs(sData, fData){
   profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
   widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false, goals:fData.widgets.goals!==false} : {rates:true, converter:true, analytics:true, chart:true, goals:true};
+  widgetOrder = sanitizeWidgetOrder(fData && fData.widgetOrder);
   // Merged (not replaced) over the local/localStorage copy, so a value
   // set on another device wins, but nothing here can be missing — the
   // Cloud Function sweep needs a complete object, not a partial one.
@@ -3270,7 +3317,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, widgetOrder, catBackfillDone, catLegacyMerged}));
 }
 
 // Quick-actions row on the Finance tab: jumps straight to an inline
@@ -3630,6 +3677,20 @@ function maybeShowOnboarding(){
   const scr=document.getElementById('onboard-screen');
   if(scr){ scr.style.display='flex'; scr.classList.remove('lock-hide'); }
 }
+// Contextual tip (P2: "soft in-context hints instead of one big onboarding")
+// shown the first time a user opens Settings, pointing at the search/group
+// chips added this session — dismissed permanently per-user, same
+// mx_onboarded_<uid>-style flag pattern as the slide onboarding above.
+function settingsTipKey(){ return currentUser ? `mx_tip_settings_search_${currentUser.uid}` : null; }
+window.dismissSettingsTip=function(){
+  const k=settingsTipKey(); if(k) localStorage.setItem(k,'1');
+  const el=document.getElementById('settings-contextual-tip'); if(el) el.style.display='none';
+};
+function maybeShowSettingsTip(){
+  const k=settingsTipKey();
+  const el=document.getElementById('settings-contextual-tip'); if(!el) return;
+  el.style.display = (k && !localStorage.getItem(k)) ? 'flex' : 'none';
+}
 async function checkPinLock(){
   if(!hasPinSet()){ pinUnlocked=true; return; }
   if(pinUnlocked) return;
@@ -3869,7 +3930,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; goals=Array.isArray(o.goals)?o.goals:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; goals=Array.isArray(o.goals)?o.goals:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -3908,7 +3969,7 @@ function switchTab(tab){
   if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
   if(tab==='shopping') {renderShoppingList();}
-  if(tab==='settings') {window.filterSettings(document.getElementById('settings-search-input')?.value||'');}
+  if(tab==='settings') {window.filterSettings(document.getElementById('settings-search-input')?.value||''); maybeShowSettingsTip();}
 }
 
 // ── UTIL ──────────────────────────────────────────────────────
@@ -4660,25 +4721,47 @@ const WIDGET_DEFS=[
   {key:'chart', icon:'barChart', color:'#f59e0b', titleKey:'widgets_item_chart', subKey:'widgets_item_chart_sub'},
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
 ];
+// Renders widget rows in the user's chosen widgetOrder (not WIDGET_DEFS'
+// fixed order) with up/down reorder buttons — the "personalized dashboard"
+// P2 item from the UI audit, done as ordered move-buttons rather than a
+// drag gesture: same end result (pick your own widget order), far more
+// reliable on touch and to test than simulating a drag.
 function renderWidgetsList(){
   const box=document.getElementById('widgets-list'); if(!box) return;
-  box.innerHTML=WIDGET_DEFS.map(w=>`
+  const defByKey=Object.fromEntries(WIDGET_DEFS.map(w=>[w.key,w]));
+  box.innerHTML=widgetOrder.map((key,i)=>{
+    const w=defByKey[key]; if(!w) return '';
+    return `
     <div class="settings-row" style="cursor:default">
       <span class="icon-badge" style="background:${w.color}">${window.Icon(w.icon)}</span>
       <div class="settings-row-text">
         <div class="settings-row-title">${tr(w.titleKey)}</div>
         <div class="settings-row-sub">${tr(w.subKey)}</div>
       </div>
+      <div class="widget-reorder-col">
+        <button type="button" class="widget-reorder-btn" ${i===0?'disabled':''} onclick="moveWidget('${key}',-1)" aria-label="${tr('widgets_move_up')}">${window.Icon('chevron')}</button>
+        <button type="button" class="widget-reorder-btn widget-reorder-down" ${i===widgetOrder.length-1?'disabled':''} onclick="moveWidget('${key}',1)" aria-label="${tr('widgets_move_down')}">${window.Icon('chevron')}</button>
+      </div>
       <label class="toggle">
-        <input type="checkbox" ${widgets[w.key]!==false?'checked':''} onchange="toggleWidget('${w.key}', this.checked)">
+        <input type="checkbox" ${widgets[key]!==false?'checked':''} onchange="toggleWidget('${key}', this.checked)">
         <span class="toggle-track"></span>
       </label>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 window.toggleWidget=function(key, on){
   widgets[key]=!!on;
   saveConfigLocal(); scheduleSave();
   applyWidgetVisibility();
+};
+window.moveWidget=function(key, dir){
+  const i=widgetOrder.indexOf(key);
+  const j=i+dir;
+  if(i<0||j<0||j>=widgetOrder.length) return;
+  [widgetOrder[i],widgetOrder[j]]=[widgetOrder[j],widgetOrder[i]];
+  saveConfigLocal(); scheduleSave();
+  renderWidgetsList();
+  applyWidgetOrder();
 };
 // Privacy quick-toggle: blurs balances/amounts app-wide (device-only,
 // independent of account) for glancing at the app around other people.
@@ -6049,6 +6132,28 @@ function renderAnalytics(){
   };
   const expenseByCat=byCatAmount(expenseTx);
   const incomeByCat=byCatAmount(incomeTx);
+
+  // P2 "insights" from the UI audit: on top of the total-spend trend above,
+  // call out the single category that grew the most so the user doesn't
+  // have to eyeball the category list to spot it themselves. Skipped for
+  // categories with no prior-period spend (an "infinite" % increase from a
+  // brand-new category isn't a useful insight) and for categories too small
+  // to matter (a materiality floor of 5% of total expense avoids a €2→€10
+  // hobby category reading as a dramatic spike).
+  if(insightEl && prevPred){
+    const prevByCat=Object.fromEntries(byCatAmount(transactions.filter(t=>t.type==='expense'&&prevPred(t))));
+    let topCat=null, topPct=0;
+    expenseByCat.forEach(([cat,amt])=>{
+      const prevAmt=prevByCat[cat]||0;
+      if(prevAmt<=0 || amt<totalExpense*0.05) return;
+      const pct=Math.round(((amt-prevAmt)/prevAmt)*100);
+      if(pct>=20 && pct>topPct){ topPct=pct; topCat=cat; }
+    });
+    if(topCat){
+      const line=`${tr('analytics_cat_insight_prefix')} «${escapeHtml(topCat)}»: <strong style="color:var(--red2)">+${topPct}%</strong> ${tr('analytics_cat_insight_suffix')}`;
+      insightEl.innerHTML = insightEl.innerHTML ? `${insightEl.innerHTML}<div style="margin-top:4px">${line}</div>` : line;
+    }
+  }
 
   const donut=document.getElementById('analytics-donut');
   if(donut){
