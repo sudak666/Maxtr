@@ -3219,7 +3219,7 @@ function setAuthError(msg){
   const el=document.getElementById('auth-error');
   if(el) el.textContent=msg||'';
 }
-function authErrorMessage(code){
+function authErrorMessage(code,isPhoneFlow){
   const map={
     'auth/invalid-email':tr('auth_err_invalid_email'),
     'auth/user-not-found':tr('auth_err_user_not_found'),
@@ -3239,14 +3239,16 @@ function authErrorMessage(code){
     'auth/argument-error':tr('auth_err_captcha'),
     'auth/unauthorized-domain':tr('auth_err_unauthorized_domain'),
     'auth/network-request-failed':tr('auth_err_network'),
-    'auth/internal-error':tr('auth_err_sms_unavailable'),
   };
   if(map[code]) return map[code];
   // Identity Toolkit sometimes fails a phone sendVerificationCode call with a
-  // 503 wrapped as "auth/error-code:<n>" instead of a normal auth/* code —
-  // seen for per-number SMS rate limits and regional/carrier blocks on
-  // Google's side, not something a retry with the same number fixes.
-  if(/^auth\/error-code:/.test(code||'')) return tr('auth_err_sms_unavailable');
+  // 503 wrapped as "auth/internal-error" or "auth/error-code:<n>" instead of
+  // a normal auth/* code — seen for per-number SMS rate limits and
+  // regional/carrier blocks on Google's side, not something a retry with the
+  // same number fixes. Scoped to phone flows only: `auth/internal-error` can
+  // also surface from email/Google sign-in for unrelated backend hiccups,
+  // where the SMS-specific message would be misleading.
+  if(isPhoneFlow && (code==='auth/internal-error' || /^auth\/error-code:/.test(code||''))) return tr('auth_err_sms_unavailable');
   return tr('auth_err_generic');
 }
 document.getElementById('auth-form').addEventListener('submit', async function(e){
@@ -3325,7 +3327,7 @@ window.sendPhoneCode=async function(){
     showToast(tr('auth_phone_code_sent'),'check');
   }catch(err){
     console.error(err);
-    setPhoneError(authErrorMessage(err.code));
+    setPhoneError(authErrorMessage(err.code,true));
     if(recaptchaVerifier){ try{ recaptchaVerifier.clear(); }catch(e){} recaptchaVerifier=null; }
     // .clear() can itself throw mid-way (leaves the widget's DOM node behind),
     // so a retry's new RecaptchaVerifier fails with "already been rendered in
@@ -3345,7 +3347,7 @@ window.verifyPhoneCode=async function(){
     // onAuthStateChanged picks up the new session and hides the lock screen.
   }catch(err){
     console.error(err);
-    setPhoneError(authErrorMessage(err.code));
+    setPhoneError(authErrorMessage(err.code,true));
   }finally{
     btn.disabled=false;
   }
@@ -3392,7 +3394,7 @@ window.sendLinkPhoneCode=async function(){
     showToast(tr('auth_phone_code_sent'),'check');
   }catch(err){
     console.error(err);
-    setLinkPhoneError(authErrorMessage(err.code));
+    setLinkPhoneError(authErrorMessage(err.code,true));
     if(linkRecaptchaVerifier){ try{ linkRecaptchaVerifier.clear(); }catch(e){} linkRecaptchaVerifier=null; }
     resetRecaptchaContainer('link-recaptcha-container');
   }finally{
@@ -3415,7 +3417,7 @@ window.confirmLinkPhoneCode=async function(){
     showToast(tr('settings_phone_linked'),'check');
   }catch(err){
     console.error(err);
-    setLinkPhoneError(authErrorMessage(err.code));
+    setLinkPhoneError(authErrorMessage(err.code,true));
   }finally{
     btn.disabled=false;
   }
