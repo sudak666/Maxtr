@@ -3238,6 +3238,13 @@ function authErrorMessage(code){
     'auth/unauthorized-domain':tr('auth_err_unauthorized_domain'),
     'auth/network-request-failed':tr('auth_err_network'),
   };
+  // Firebase wraps some backend SMS-quota/503 failures as a raw internal
+  // code instead of a normal auth/xxx-yyy string (e.g. "auth/error-code:-39"
+  // when identitytoolkit's sendVerificationCode 503s after too many
+  // sign-in attempts for that specific phone number) — treat those the
+  // same as the too-many-requests case rather than falling through to the
+  // generic "wrong credentials"-sounding message.
+  if(code==='auth/internal-error' || /^auth\/error-code:/.test(code||'')) return tr('auth_err_too_many');
   return map[code]||tr('auth_err_generic');
 }
 document.getElementById('auth-form').addEventListener('submit', async function(e){
