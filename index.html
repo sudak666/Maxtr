@@ -167,6 +167,9 @@ button,input,select,textarea{font-family:inherit}
 .btn-danger:hover{background:var(--red);color:#fff}
 .btn-success{background:rgba(16,185,129,.12);color:var(--green2);border-color:rgba(16,185,129,.3)}
 .btn-success:hover{background:var(--green);color:#fff}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.filter-chip:focus-visible,.settings-row:focus-visible,.day-cell:focus-visible,.quick-action:focus-visible,.tx-item:focus-visible{
+  outline:2px solid var(--purple2);outline-offset:3px;box-shadow:0 0 0 4px rgba(139,92,246,.22)
+}
 
 /* ── TABS ── */
 /* Bottom nav bar (Monobank-style): fixed, floating, icon-in-a-circle that
@@ -248,6 +251,11 @@ button,input,select,textarea{font-family:inherit}
 .settings-row-sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px}
 .settings-row-chevron{color:var(--muted);flex-shrink:0;transform:rotate(-90deg);width:16px;height:16px}
 .settings-row-chevron .ico{margin-right:0}
+.settings-search{position:relative;margin:-6px 0 18px}
+.settings-search input{width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text-strong);padding:12px 42px;border-radius:18px;font-size:14px;font-weight:700;outline:none}
+.settings-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);margin:0}
+.settings-no-results{display:none;background:var(--bg1);border:1px dashed var(--border);border-radius:18px;padding:16px;color:var(--muted);font-size:13px;font-weight:700;text-align:center;margin-bottom:18px}
+.settings-section-hidden{display:none!important}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
@@ -358,6 +366,17 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── CHART ── */
 .chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;margin-bottom:20px}
+.chart-section.collapsible>.chart-title{cursor:pointer;user-select:none}
+.chart-section.collapsed>*:not(.chart-title){display:none!important}
+.chart-section.collapsible>.chart-title::after{content:'⌄';margin-left:auto;color:var(--muted);font-size:16px;line-height:1;transition:transform .2s}
+.chart-section.collapsed>.chart-title::after{transform:rotate(-90deg)}
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 18px;border:1px dashed var(--border);border-radius:22px;background:rgba(255,255,255,.025);color:var(--muted)}
+[data-theme="light"] .empty-state{background:rgba(0,0,0,.02)}
+.empty-state-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 8px 20px rgba(139,92,246,.25)}
+.empty-state-icon .ico{width:23px;height:23px;margin:0}
+.empty-state-title{font-size:15px;font-weight:800;color:var(--text-strong)}
+.empty-state-desc{font-size:12.5px;line-height:1.45;max-width:320px}
+.empty-state .btn{margin-top:2px}
 .chart-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
 .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
@@ -951,6 +970,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
 
       <div class="legend" id="shift-legend"></div>
+      <div id="calendar-empty-state" style="display:none;margin-bottom:14px"></div>
 
       <div class="cal-grid" id="calendar-grid"></div>
     </div>
@@ -966,7 +986,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Баланси -->
     <div class="hero-balance" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
-      <button class="btn btn-ghost" onclick="switchTab('settings')"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Гаманці, категорії, бюджети…</span></button>
+      <button class="btn btn-ghost" onclick="openWidgetsManager()"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Налаштувати екран</span></button>
     </div>
 
     <!-- Швидкі дії: тап одразу відкриває потрібний розділ -->
@@ -1205,8 +1225,13 @@ body.amounts-hidden #fx-converter-result{
       <div class="page-label" data-i18n="settings_kicker">Керування застосунком</div>
       <div class="page-title" data-i18n="settings_title">Налаштування</div>
     </div>
+    <div class="settings-search">
+      <span id="ic-settings-search"></span>
+      <input type="search" id="settings-search-input" data-i18n-placeholder="settings_search_placeholder" placeholder="Пошук: гаманці, категорії, push…" oninput="filterSettings(this.value)">
+    </div>
+    <div class="settings-no-results" id="settings-no-results" data-i18n="settings_search_empty">Нічого не знайдено</div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-profile"></span><span data-i18n="settings_profile">Профіль</span></div>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <div class="profile-avatar" id="profile-avatar-preview" onclick="document.getElementById('profile-avatar-input').click()"></div>
@@ -1223,7 +1248,7 @@ body.amounts-hidden #fx-converter-result{
       <div id="profile-avatar-picker" style="display:flex;gap:10px;flex-wrap:wrap"></div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="settings-row" onclick="document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI()">
         <span id="ic-settings-profiles" class="icon-badge" style="background:#06b6d4"></span>
         <div class="settings-row-text">
@@ -1234,7 +1259,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="settings-row" onclick="showPremiumUpsell()">
         <span id="ic-set-premium" class="icon-badge" style="background:#f59e0b"></span>
         <div class="settings-row-text">
@@ -1245,7 +1270,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
       <div class="settings-row" onclick="openWalletsManager()">
         <span id="ic-set-wallets" class="icon-badge" style="background:#8b5cf6"></span>
@@ -1329,7 +1354,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-security"></span><span data-i18n="settings_security">Безпека</span></div>
       <div class="settings-row" id="settings-pin" onclick="openPinSettings()" style="display:none">
         <span id="ic-set-pin" class="icon-badge" style="background:#525158"></span>
@@ -1341,7 +1366,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
       <div class="settings-row" style="cursor:default">
         <span id="ic-notif-push" class="icon-badge" style="background:var(--purple)"></span>
@@ -1394,7 +1419,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-appearance"></span><span data-i18n="settings_appearance">Зовнішній вигляд</span></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <button type="button" class="type-btn theme-opt" data-theme="dark" onclick="setTheme('dark')" style="flex:0 0 auto;padding:8px 16px" data-i18n="theme_dark">Темна</button>
@@ -1406,7 +1431,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
       <div class="settings-row" id="settings-link-phone" onclick="openLinkPhoneManager()">
         <span id="ic-set-link-phone" class="icon-badge" style="background:var(--blue)"></span>
@@ -1434,7 +1459,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section settings-section">
       <div class="chart-title"><span id="ic-settings-about"></span><span data-i18n="settings_about">Про застосунок</span></div>
       <a href="terms.html" target="_blank" class="settings-row" style="text-decoration:none;color:inherit">
         <span id="ic-set-terms" class="icon-badge" style="background:var(--blue)"></span>
@@ -1935,6 +1960,7 @@ body.amounts-hidden #fx-converter-result{
     setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
   }catch(e){}
   setIcon('ic-goto-settings','gear');
+  setIcon('ic-settings-search','search');
   setIcon('tab-icon-settings','gear');
   setIcon('ic-settings-profile','person');
   setIcon('ic-settings-profiles','people');
@@ -2046,6 +2072,7 @@ body.amounts-hidden #fx-converter-result{
   var I18N={
     uk:{
       settings_kicker:'Керування застосунком', settings_title:'Налаштування',
+      settings_search_placeholder:'Пошук: гаманці, категорії, push…', settings_search_empty:'Нічого не знайдено',
       settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм', settings_avatar_picker_label:'Або обери іконку профілю',
       settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
       settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
@@ -2083,7 +2110,12 @@ body.amounts-hidden #fx-converter-result{
       shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
       finance_kicker:'Особистий бюджет', finance_title:'Гаманці & Фінанси',
       debt_kicker:'Облік розрахунків', debt_title:'Розрахунки',
-      finance_goto_settings:'Гаманці, категорії, бюджети…', finance_budgets_title:'Бюджети цього місяця',
+      finance_goto_settings:'Налаштувати екран', finance_budgets_title:'Бюджети цього місяця',
+      finance_empty_title:'Операцій ще немає', finance_empty_desc:'Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.',
+      shifts_empty_title:'Календар порожній', shifts_empty_desc:'Натисни на день у календарі або застосуй шаблон, щоб швидко заповнити графік.',
+      debt_empty_title:'Платежів ще немає', debt_empty_desc:'Додай перший платіж, щоб бачити залишок, прогрес і історію розрахунку.',
+      debt_empty_no_calc_title:'Розрахунків ще немає', debt_empty_no_calc_desc:'Створи перший розрахунок для позики, розстрочки або спільних витрат.',
+      shopping_empty_title:'Список порожній', shopping_empty_desc:'Додай товари перед походом у магазин і відмічай куплене одним тапом.',
       finance_chart_title:'Баланс за останні 6 місяців', finance_new_tx:'Нова операція', common_cancel:'Скасувати',
       finance_type_income:'+ Дохід', finance_type_expense:'− Витрата', finance_type_transfer:'⇄ Переказ',
       finance_wallet:'Гаманець', finance_wallet_expense:'Звідки списати', finance_wallet_transfer:'Звідки переказати',
@@ -2220,7 +2252,7 @@ body.amounts-hidden #fx-converter-result{
       debt_note:'Нотатка', debt_note_placeholder:'Додаткова нотатка...', debt_currency:'Валюта', debt_delete:'Видалити цей розрахунок',
       debt_new_payment:'Новий платіж', debt_amount:'Сума', debt_amount_placeholder:'напр. 500 або ***68',
       debt_balance_after:'Залишок після оплати', debt_balance_auto:'(рахується автоматично)', debt_auto_placeholder:'авто',
-      debt_date_label:'Дата / мітка', debt_date_placeholder:'напр. 10.02.2026 або Березень', debt_add_payment:'Додати платіж',
+      debt_date_label:'Дата / мітка', debt_date_placeholder:'напр. 10.02.2026 або Березень', debt_add_payment:'Додати платіж', debt_add_calc:'Створити розрахунок',
       debt_history_title:'Історія платежів',
       debt_add_prompt:'Назва розрахунку:', debt_new_default:'Новий розрахунок', debt_added:'Розрахунок додано',
       debt_need_one:'Має лишитись хоча б один розрахунок', debt_delete_confirm:'Видалити цей розрахунок разом з усією історією платежів?', debt_delete_title:'Видалити розрахунок',
@@ -2260,6 +2292,7 @@ body.amounts-hidden #fx-converter-result{
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
+      settings_search_placeholder:'Search: wallets, categories, push…', settings_search_empty:'No settings found',
       settings_profile:'Profile', settings_nickname_placeholder:'Nickname', settings_avatar_picker_label:'Or pick a profile icon',
       settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
       settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
@@ -2297,7 +2330,12 @@ body.amounts-hidden #fx-converter-result{
       shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
       finance_kicker:'Personal budget', finance_title:'Wallets & Finance',
       debt_kicker:'Settlement tracking', debt_title:'Settlements',
-      finance_goto_settings:'Wallets, categories, budgets…', finance_budgets_title:"This month's budgets",
+      finance_goto_settings:'Customize screen', finance_budgets_title:"This month's budgets",
+      finance_empty_title:'No transactions yet', finance_empty_desc:'Add your first income or expense to see balance, history, and analytics.',
+      shifts_empty_title:'Calendar is empty', shifts_empty_desc:'Tap a calendar day or apply a template to fill your schedule faster.',
+      debt_empty_title:'No payments yet', debt_empty_desc:'Add the first payment to track balance, progress, and settlement history.',
+      debt_empty_no_calc_title:'No settlements yet', debt_empty_no_calc_desc:'Create your first settlement for a loan, installment, or shared expense.',
+      shopping_empty_title:'The list is empty', shopping_empty_desc:'Add items before going shopping and check them off with one tap.',
       finance_chart_title:'Balance over the last 6 months', finance_new_tx:'New transaction', common_cancel:'Cancel',
       finance_type_income:'+ Income', finance_type_expense:'− Expense', finance_type_transfer:'⇄ Transfer',
       finance_wallet:'Wallet', finance_wallet_expense:'Pay from', finance_wallet_transfer:'Transfer from',
@@ -2434,7 +2472,7 @@ body.amounts-hidden #fx-converter-result{
       debt_note:'Note', debt_note_placeholder:'Additional note...', debt_currency:'Currency', debt_delete:'Delete this settlement',
       debt_new_payment:'New payment', debt_amount:'Amount', debt_amount_placeholder:'e.g. 500 or ***68',
       debt_balance_after:'Balance after payment', debt_balance_auto:'(calculated automatically)', debt_auto_placeholder:'auto',
-      debt_date_label:'Date / label', debt_date_placeholder:'e.g. 10.02.2026 or March', debt_add_payment:'Add payment',
+      debt_date_label:'Date / label', debt_date_placeholder:'e.g. 10.02.2026 or March', debt_add_payment:'Add payment', debt_add_calc:'Create settlement',
       debt_history_title:'Payment history',
       debt_add_prompt:'Settlement name:', debt_new_default:'New settlement', debt_added:'Settlement added',
       debt_need_one:'At least one settlement must remain', debt_delete_confirm:'Delete this settlement along with its entire payment history?', debt_delete_title:'Delete settlement',
@@ -3765,6 +3803,8 @@ async function init(){
     document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
     // Auto-categorize as the user types the comment, per their rules
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
+    setupAccessibleSettingsRows();
+    setupCollapsibleFinanceSections();
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
@@ -3817,9 +3857,10 @@ function switchTab(tab){
   document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
-  if(tab==='finance') {applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
+  if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
   if(tab==='shopping') {renderShoppingList();}
+  if(tab==='settings') {window.filterSettings(document.getElementById('settings-search-input')?.value||'');}
 }
 
 // ── UTIL ──────────────────────────────────────────────────────
@@ -3828,6 +3869,51 @@ function switchTab(tab){
 const HTML_ESCAPES={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>HTML_ESCAPES[c]);
+}
+function emptyStateHtml({icon='inbox', title='', desc='', action='', onClick=''}){
+  return `<div class="empty-state">
+    <div class="empty-state-icon">${window.Icon(icon)}</div>
+    <div class="empty-state-title">${escapeHtml(title)}</div>
+    ${desc?`<div class="empty-state-desc">${escapeHtml(desc)}</div>`:''}
+    ${action?`<button type="button" class="btn btn-primary" onclick="${escapeHtml(onClick)}">${escapeHtml(action)}</button>`:''}
+  </div>`;
+}
+window.filterSettings=function(q){
+  const needle=String(q||'').trim().toLowerCase();
+  const sections=[...document.querySelectorAll('#tab-settings .settings-section')];
+  let visible=0;
+  sections.forEach(section=>{
+    const text=section.textContent.toLowerCase();
+    const hit=!needle || text.includes(needle);
+    section.classList.toggle('settings-section-hidden', !hit);
+    if(hit) visible++;
+  });
+  const empty=document.getElementById('settings-no-results');
+  if(empty) empty.style.display = sections.length && visible===0 ? 'block' : 'none';
+};
+function setupCollapsibleFinanceSections(){
+  ['analytics-section','budgets-section','goals-section','finance-chart-section','fx-widget-section','fx-converter-section'].forEach(id=>{
+    const section=document.getElementById(id);
+    const title=section&&section.querySelector('.chart-title');
+    if(!section||!title||section.dataset.collapsibleReady) return;
+    section.dataset.collapsibleReady='1';
+    section.classList.add('collapsible');
+    title.setAttribute('tabindex','0');
+    title.setAttribute('role','button');
+    title.addEventListener('click',()=>section.classList.toggle('collapsed'));
+    title.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); section.classList.toggle('collapsed'); }
+    });
+  });
+}
+function setupAccessibleSettingsRows(){
+  document.querySelectorAll('.settings-row[onclick]:not([tabindex])').forEach(row=>{
+    row.tabIndex=0;
+    row.setAttribute('role','button');
+    row.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); row.click(); }
+    });
+  });
 }
 // Hex colour (#rgb or #rrggbb) → rgba() string with the given alpha, for
 // tinted badges/tags built from user-chosen colours.
@@ -4208,7 +4294,9 @@ function renderCalendar(){
     });
 
     cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span>${isToday?'<span class="today-pip"></span>':''}</div>${badges}`;
+    cell.tabIndex=0;
     cell.onclick=()=>openModal(dk,d);
+    cell.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(dk,d); } };
     grid.appendChild(cell);
   }
 
@@ -4218,6 +4306,18 @@ function renderCalendar(){
   S('total-hours',hrs);
   S('count-shifts',cShifts);
   S('count-off',cOff);
+  const empty=document.getElementById('calendar-empty-state');
+  if(empty){
+    const hasAny=(cShifts+cOff)>0;
+    empty.style.display=hasAny?'none':'block';
+    empty.innerHTML=hasAny?'':emptyStateHtml({
+      icon:'calendar',
+      title:tr('shifts_empty_title'),
+      desc:tr('shifts_empty_desc'),
+      action:tr('shifts_quick_fill'),
+      onClick:'toggleQuickFill()'
+    });
+  }
   // Progress bar
   const pct=Math.min(100,Math.round(earn/SALARY_GOAL*100));
   const bar=document.getElementById('salary-bar');
@@ -5971,7 +6071,13 @@ function renderFinance(){
   if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
 
   if(filtered.length===0){
-    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('finance_no_records')}</span></div>`;
+    lc.innerHTML=emptyStateHtml({
+      icon:'wallet',
+      title:tr('finance_empty_title'),
+      desc:tr('finance_empty_desc'),
+      action:tr('finance_new_tx'),
+      onClick:'openNewTxModal()'
+    });
     return;
   }
 
@@ -5990,6 +6096,7 @@ function renderFinance(){
     const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
     const item=document.createElement('div');
     item.className='tx-item';
+    item.tabIndex=0;
     item.style.cursor='pointer';
     item.innerHTML=`
       <div class="tx-left-wrap">
@@ -6006,6 +6113,7 @@ function renderFinance(){
         <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})">${window.Icon('trash')}</button>
       </div>`;
     item.addEventListener('click',()=>editTransaction(t.id));
+    item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
     lc.appendChild(item);
   });
 }
@@ -6069,6 +6177,7 @@ async function addNewDebt(){
   saveDebtLocal(); scheduleSave(); renderDebt();
   showToast(tr('debt_added'),'check');
 }
+window.addNewDebt=addNewDebt;
 
 async function deleteCurrentDebt(){
   if(debts.length<=1){showToast(tr('debt_need_one'),'xmark');return;}
@@ -6186,7 +6295,13 @@ function renderDebt(){
     const lc=document.getElementById('debt-list-container');
     const cc=document.getElementById('debt-entry-count');
     if(cc) cc.textContent='';
-    if(lc) lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('debt_no_payments')}</span></div>`;
+    if(lc) lc.innerHTML=emptyStateHtml({
+      icon:'bank',
+      title:tr('debt_empty_no_calc_title'),
+      desc:tr('debt_empty_no_calc_desc'),
+      action:tr('debt_add_calc'),
+      onClick:'addNewDebt()'
+    });
     return;
   }
   const cur=cd.currency||'у.о.';
@@ -6213,7 +6328,13 @@ function renderDebt(){
   lc.innerHTML='';
 
   if(cd.entries.length===0){
-    lc.innerHTML=`<div class="tx-empty">${window.Icon('inbox')}<span>${tr('debt_no_payments')}</span></div>`;
+    lc.innerHTML=emptyStateHtml({
+      icon:'coin',
+      title:tr('debt_empty_title'),
+      desc:tr('debt_empty_desc'),
+      action:tr('debt_add_payment'),
+      onClick:'document.getElementById("debt-amount")?.focus()'
+    });
     return;
   }
 
@@ -6279,7 +6400,13 @@ function renderShoppingList(){
   if(clearBtn) clearBtn.style.display = bought>0 ? '' : 'none';
   box.innerHTML='';
   if(!shoppingList.length){
-    box.innerHTML=`<div class="mgr-empty">${tr('shopping_empty')}</div>`;
+    box.innerHTML=emptyStateHtml({
+      icon:'cart',
+      title:tr('shopping_empty_title'),
+      desc:tr('shopping_empty_desc'),
+      action:tr('shopping_add_btn'),
+      onClick:'document.getElementById("shopping-name-input")?.focus()'
+    });
     return;
   }
   // Unbought items first, bought ones (dimmed/struck-through) trail behind.
