@@ -413,6 +413,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* ── FINANCE ── */
 .fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
+.fin-form-title-toggle{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;width:100%;text-align:left}
+#debt-info-body{flex-direction:column;gap:12px}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
 .type-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
@@ -547,6 +549,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .fin-fab:active{transform:scale(.92)}
 .fin-fab .ico{width:24px;height:24px;margin-right:0}
 .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.hist-head-toggle{cursor:pointer}
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
@@ -618,6 +621,11 @@ body.amounts-hidden #fx-converter-result{
 .debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
 .debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
+.debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:6px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
+.debt-row-edit .ico{margin-right:0;width:15px;height:15px}
+.debt-row-edit:hover{background:rgba(139,92,246,.12);color:var(--purple)}
+.debt-row-edit-active{background:rgba(139,92,246,.15);color:var(--purple)}
+.debt-field-view{background:transparent;border:1px solid transparent;color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 0;width:100%}
 
 /* ── MODAL (centered, fully rounded) ── */
 .modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
@@ -1162,36 +1170,44 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
-      <div class="fin-form-title"><span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані розрахунку</span></div>
-      <div class="fg">
-        <label data-i18n="debt_name">Назва</label>
-        <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" data-i18n-placeholder="debt_name_placeholder" onchange="updateDebtInfo()">
+      <button type="button" class="fin-form-title fin-form-title-toggle" onclick="toggleDebtInfoPanel()">
+        <span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані розрахунку</span>
+        <span class="tools-toggle-chevron" id="debt-info-chevron"></span>
+      </button>
+      <div id="debt-info-body" style="display:none">
+        <div class="fg">
+          <label data-i18n="debt_name">Назва</label>
+          <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" data-i18n-placeholder="debt_name_placeholder" onchange="updateDebtInfo()">
+        </div>
+        <div class="fg">
+          <label data-i18n="debt_note">Нотатка</label>
+          <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" onchange="updateDebtInfo()">
+        </div>
+        <div class="fg">
+          <label data-i18n="debt_currency">Валюта</label>
+          <select id="debt-currency" onchange="updateDebtInfo()">
+            <option value="у.о.">у.о.</option>
+            <option value="грн">грн</option>
+            <option value="$">$</option>
+            <option value="€">€</option>
+            <option value="£">£</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label data-i18n="debt_stat_start">Початкова сума</label>
+          <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
+        </div>
+        <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()" data-i18n="debt_delete">Видалити цей розрахунок</button>
       </div>
-      <div class="fg">
-        <label data-i18n="debt_note">Нотатка</label>
-        <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" onchange="updateDebtInfo()">
-      </div>
-      <div class="fg">
-        <label data-i18n="debt_currency">Валюта</label>
-        <select id="debt-currency" onchange="updateDebtInfo()">
-          <option value="у.о.">у.о.</option>
-          <option value="грн">грн</option>
-          <option value="$">$</option>
-          <option value="€">€</option>
-          <option value="£">£</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label data-i18n="debt_stat_start">Початкова сума</label>
-        <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
-      </div>
-      <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()" data-i18n="debt_delete">Видалити цей розрахунок</button>
     </div>
 
     <div class="fin-history">
-      <div class="hist-head">
+      <div class="hist-head hist-head-toggle" onclick="toggleDebtHistoryPanel()">
         <div class="hist-title" data-i18n="debt_history_title">Історія платежів</div>
-        <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
+          <span class="tools-toggle-chevron" id="debt-history-chevron" style="transform:rotate(180deg)"></span>
+        </div>
       </div>
       <div class="debt-list" id="debt-list-container"></div>
     </div>
@@ -2057,6 +2073,8 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-debt-paid','check');
   setIcon('ic-debt-count','calendar');
   setIcon('ic-debt-info','doc');
+  setIcon('debt-info-chevron','chevron');
+  setIcon('debt-history-chevron','chevron');
   setIcon('tab-icon-shopping','cart');
   setIcon('ic-shopping-remaining','cart');
   setIcon('ic-shopping-bought','check');
@@ -6471,8 +6489,39 @@ async function deleteDebtEntry(id){
   const cd=getCurrentDebt(); if(!cd) return;
   if(!(await uiConfirm(tr('debt_delete_payment_confirm'),{title:tr('debt_delete_payment_title'),okText:tr('common_delete'),danger:true}))) return;
   cd.entries=cd.entries.filter(x=>x.id!==id);
+  if(debtEntryEditId===id) debtEntryEditId=null;
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
+
+// A payment row is read-only until its pencil button is tapped — this is the
+// gate against accidentally editing amount/balance/date while scrolling the
+// list (the trash button already asks for confirmation; this row only ever
+// has one entry editable at a time, tracked here rather than per-entry state).
+let debtEntryEditId=null;
+window.toggleDebtEntryEdit=function(id){
+  debtEntryEditId = (debtEntryEditId===id) ? null : id;
+  renderDebt();
+};
+
+// "Дані розрахунку" and "Історія платежів" both start collapsed/expanded per
+// their own default (see markup) and stay togglable so records can be tucked
+// away instead of sitting open and one accidental tap from being changed.
+window.toggleDebtInfoPanel=function(){
+  const body=document.getElementById('debt-info-body');
+  const chev=document.getElementById('debt-info-chevron');
+  if(!body) return;
+  const opening = body.style.display==='none';
+  body.style.display = opening ? 'flex' : 'none';
+  if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
+};
+window.toggleDebtHistoryPanel=function(){
+  const body=document.getElementById('debt-list-container');
+  const chev=document.getElementById('debt-history-chevron');
+  if(!body) return;
+  const opening = body.style.display==='none';
+  body.style.display = opening ? 'flex' : 'none';
+  if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
+};
 
 function renderDebtChips(){
   const c=document.getElementById('debt-chips');
@@ -6560,11 +6609,21 @@ function renderDebt(){
     const expected=isCleanNumber?prevBalance-parseFloat(entry.amount):null;
     const hasDiscrepancy=expected!==null&&Math.abs(expected-entry.balance)>0.01;
     const row=document.createElement('div');
+    const editing=debtEntryEditId===entry.id;
     row.className='debt-row'+(hasDiscrepancy?' discrepancy':'');
-    row.innerHTML=`
+    const fieldsHtml = editing ? `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
+      <button class="debt-row-edit debt-row-edit-active" onclick="toggleDebtEntryEdit(${entry.id})">${window.Icon('check')}</button>
+    ` : `
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view">${escapeHtml(entry.amount??'')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${escapeHtml(entry.date??'')}</div></div>
+      <button class="debt-row-edit" onclick="toggleDebtEntryEdit(${entry.id})">${window.Icon('pencil')}</button>
+    `;
+    row.innerHTML=`
+      ${fieldsHtml}
       <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})">${window.Icon('trash')}</button>
       ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
     `;
