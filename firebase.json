@@ -11,12 +11,18 @@
   ],
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "firestore.rules", "**/.*"],
+    "ignore": ["firebase.json", "firestore.rules", "**/.*", "!/.well-known/**"],
     "headers": [
       {
         "source": "**/*.@(html)",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/.well-known/assetlinks.json",
+        "headers": [
+          { "key": "Content-Type", "value": "application/json" }
         ]
       }
     ]

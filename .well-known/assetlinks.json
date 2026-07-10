@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ua.zminka.app",
+      "sha256_cert_fingerprints": [
+        "6D:45:DF:CB:20:4B:7A:B9:47:8C:EB:9A:FB:F0:94:AE:D0:51:86:40:45:86:B1:D7:30:53:67:86:4A:0F:4F:1B"
+      ]
+    }
+  }
+]
