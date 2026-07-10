@@ -4215,6 +4215,14 @@ window.setSettingsGroup=function(group){
   });
   window.filterSettings(document.getElementById('settings-search-input')?.value||'');
 };
+// analytics/rates/converter start collapsed — the Finance tab used to
+// render all six sections fully expanded on every visit, pushing the
+// wallets/recent-transactions a user actually opens the tab for below a
+// wall of secondary widgets. budgets/goals/the income chart stay expanded
+// since those are primary "what's my situation" info, not secondary
+// tools — same "collapsed-by-default secondary panel" convention already
+// used for the Shifts tab's quick-fill panel (see toggleQuickFill above).
+const FINANCE_SECTIONS_COLLAPSED_BY_DEFAULT=['analytics-section','fx-widget-section','fx-converter-section'];
 function setupCollapsibleFinanceSections(){
   ['analytics-section','budgets-section','goals-section','finance-chart-section','fx-widget-section','fx-converter-section'].forEach(id=>{
     const section=document.getElementById(id);
@@ -4222,6 +4230,7 @@ function setupCollapsibleFinanceSections(){
     if(!section||!title||section.dataset.collapsibleReady) return;
     section.dataset.collapsibleReady='1';
     section.classList.add('collapsible');
+    if(FINANCE_SECTIONS_COLLAPSED_BY_DEFAULT.includes(id)) section.classList.add('collapsed');
     title.setAttribute('tabindex','0');
     title.setAttribute('role','button');
     title.addEventListener('click',()=>section.classList.toggle('collapsed'));
