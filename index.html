@@ -5932,7 +5932,7 @@ async function enablePushNotifications(){
   if(!messaging){ showToast(tr('toast_push_unsupported'),'xmark'); renderNotifUI(); return; }
   if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
   try{
-    const reg=await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    const reg=await navigator.serviceWorker.register('sw.js');
     const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
     if(!token) throw new Error('no-token');
     await setDoc(doc(db,'push_tokens',currentUser.uid), {token, updatedAt:Date.now()}, {merge:true});

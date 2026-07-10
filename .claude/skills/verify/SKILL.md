@@ -109,11 +109,12 @@ run it — `playwright` is a global install here, not a project dependency.
   and each feature section for the `window.x=` line before assuming
   something is reachable — plenty of internal helpers (`showToast`,
   `checkBudgetAlerts`) are deliberately not exposed.
-- **Service worker registration for push** (`firebase-messaging-sw.js`) does
-  real `importScripts()` to gstatic — no network here, so it'll fail. Stub
-  `navigator.serviceWorker.register` to return a fake registration object
-  when testing push-enable logic in isolation; that's a sandbox limitation,
-  not a bug to chase.
+- **Service worker registration for push** (`sw.js`, which now also carries
+  the FCM background-message handler — there is no separate
+  `firebase-messaging-sw.js` anymore) does real `importScripts()` to gstatic
+  — no network here, so it'll fail. Stub `navigator.serviceWorker.register`
+  to return a fake registration object when testing push-enable logic in
+  isolation; that's a sandbox limitation, not a bug to chase.
 - **A fresh `uid` per test file** avoids onboarding/localStorage state
   bleeding between runs (the "seen onboarding" flag, PIN, hide-amounts, etc.
   are all keyed by uid).
