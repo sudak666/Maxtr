@@ -37,11 +37,28 @@ function convertCurrency(amount, fromCode, toCode, rates) {
 function toBase(amount, code, rates) {
   return convertCurrency(amount, code || 'UAH', 'UAH', rates);
 }
-function todayStr(d) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+// Resolves a moment in time to the calendar date + hour it represents in a
+// given IANA timeZone (falls back to UTC for a missing/invalid zone, e.g. a
+// notifSettings.timeZone written before this field existed, or corrupted by
+// a direct Firestore write — Firestore rules only check uid ownership, not
+// field validity, so this must not throw and take the whole sweep down).
+function zonedDateParts(date, timeZone) {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: timeZone || 'UTC', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+    });
+    const parts = Object.fromEntries(fmt.formatToParts(date).map((p) => [p.type, p.value]));
+    return { dateStr: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) };
+  } catch (err) {
+    if (timeZone === 'UTC') throw err;
+    return zonedDateParts(date, 'UTC');
+  }
 }
-function monthPrefix(d) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+function todayStr(d, timeZone) {
+  return zonedDateParts(d, timeZone).dateStr;
+}
+function monthPrefix(d, timeZone) {
+  return zonedDateParts(d, timeZone).dateStr.slice(0, 7);
 }
 
 async function sendPush(token, title, body) {
@@ -64,7 +81,7 @@ function financeDocName(profileId) {
 // Runs one profile's three checks (daily reminder, budget exceeded, upcoming
 // recurring payment) against its own dedup state, and returns the updated
 // per-profile state to merge back onto the token doc.
-async function sweepProfile(uid, profileId, token, prevState, now, today, tomorrow, mPrefix) {
+async function sweepProfile(uid, profileId, token, prevState, now) {
   const financeSnap = await db.doc(`users/${uid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
   const f = financeSnap.data();
@@ -77,6 +94,18 @@ async function sweepProfile(uid, profileId, token, prevState, now, today, tomorr
   const rates = f.currencyRates || {};
   const walletCurrency = (id) => (wallets.find((w) => w.id === id) || {}).currency || 'UAH';
 
+  // Each profile carries its own timeZone (captured client-side via
+  // Intl.DateTimeFormat().resolvedOptions().timeZone whenever notification
+  // settings are saved) — the "today"/"tomorrow"/current-month window and
+  // the reminder hour comparison all need to be computed in *that* zone,
+  // not the Cloud Function's own UTC clock, or a 21:00 reminder fires at
+  // 21:00 UTC instead of 21:00 for the user.
+  const timeZone = notif.timeZone || 'UTC';
+  const today = todayStr(now, timeZone);
+  const tomorrow = todayStr(new Date(now.getTime() + 86400000), timeZone);
+  const mPrefix = monthPrefix(now, timeZone);
+  const localHour = zonedDateParts(now, timeZone).hour;
+
   const { sentDaily, sentBudget, sentRecurring } = prevState;
   const updates = {};
 
@@ -84,7 +113,7 @@ async function sweepProfile(uid, profileId, token, prevState, now, today, tomorr
   if (notif.enabled && sentDaily !== today) {
     const [h] = String(notif.time || '21:00').split(':').map(Number);
     const hasTodayTx = transactions.some((t) => t.date === today);
-    if (!hasTodayTx && now.getUTCHours() >= (h || 21)) {
+    if (!hasTodayTx && localHour >= (h || 21)) {
       if (await sendPush(token, 'Zminka', 'Не забудь записати сьогоднішні операції.')) {
         updates.sentDaily = today;
       }
@@ -136,21 +165,18 @@ async function sweepProfile(uid, profileId, token, prevState, now, today, tomorr
 }
 
 // Runs hourly. notif.time is a plain "HH:MM" the client captured from the
-// device's local clock, but this sweep compares it directly against
-// now.getUTCHours() — there's no stored timezone/offset per user, so a
-// reminder set for e.g. 21:00 fires at 21:00 UTC, not 21:00 in whatever
-// timezone the user is actually in. That's an intentional known limitation
-// (best-effort daily reminder, not to-the-minute precise), not a bug to
-// silently work around — fixing it means storing the user's timezone/offset
-// in notifSettings and comparing against local time here instead.
+// device's local clock; notif.timeZone (IANA zone name, e.g. "Europe/Kyiv")
+// is captured alongside it whenever notification settings are saved, and
+// sweepProfile() uses it to compute "today"/"tomorrow"/the current month and
+// the reminder hour in the user's own local time instead of this function's
+// UTC clock. Accounts whose settings predate the timeZone field fall back
+// to UTC (best-effort, not to-the-minute precise) until they next touch
+// their notification settings, at which point the client backfills it.
 exports.notificationSweep = onSchedule('every 60 minutes', async () => {
   const tokensSnap = await db.collection('push_tokens').get();
   if (tokensSnap.empty) return;
 
   const now = new Date();
-  const today = todayStr(now);
-  const tomorrow = todayStr(new Date(now.getTime() + 86400000));
-  const mPrefix = monthPrefix(now);
 
   for (const tokenDoc of tokensSnap.docs) {
     const uid = tokenDoc.id;
@@ -177,7 +203,7 @@ exports.notificationSweep = onSchedule('every 60 minutes', async () => {
       const prevState = profileState?.[profileId]
         ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
 
-      const profileUpdates = await sweepProfile(uid, profileId, token, prevState, now, today, tomorrow, mPrefix);
+      const profileUpdates = await sweepProfile(uid, profileId, token, prevState, now);
       if (profileUpdates) {
         nextProfileState[profileId] = { ...prevState, ...profileUpdates };
         anyChange = true;

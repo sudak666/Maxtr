@@ -2873,7 +2873,7 @@ window.showPremiumUpsell=function(limitKind){
 // Daily reminder ("did you record today's transactions?"). Device-local by
 // design — Notification permission itself is per-browser, so there is no
 // value syncing this across devices like profile/wallets are.
-let notifSettings = {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false};
+let notifSettings = {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, timeZone:'UTC'};
 // When set, the history list only shows this category (set via a
 // category's "Показати транзакції" action); cleared by the chip's ✕.
 let txCategoryFilter = null;
@@ -3309,6 +3309,15 @@ function seedConfigFromDocs(sData, fData){
   // set on another device wins, but nothing here can be missing — the
   // Cloud Function sweep needs a complete object, not a partial one.
   if(fData && fData.notifSettings && typeof fData.notifSettings==='object') notifSettings={...notifSettings, ...fData.notifSettings};
+  // Backfill/refresh timeZone for accounts that enabled reminders before
+  // this field existed, or moved to a different timezone since — without
+  // this, notificationSweep falls back to UTC for anyone whose settings
+  // predate the fix. Only triggers a save if it actually changed, so this
+  // doesn't spam writes for accounts with reminders off.
+  try{
+    const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+    if(notifSettings.enabled && notifSettings.timeZone!==tz){ notifSettings.timeZone=tz; saveNotifSettings(); }
+  }catch(e){}
   catBackfillDone = !!(fData && fData.catBackfillDone);
   catLegacyMerged = !!(fData && fData.catLegacyMerged);
   return seeded;
@@ -5896,6 +5905,10 @@ function loadNotifSettings(){
   try{ const n=localStorage.getItem('xamssNotif'); if(n) notifSettings={...notifSettings, ...JSON.parse(n)}; }catch(e){}
 }
 function saveNotifSettings(){
+  // Captured on every save (not just once) so it tracks whichever device
+  // most recently touched notification settings — the Cloud Function has
+  // no other way to know the user's local time for the daily reminder.
+  try{ notifSettings.timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'; }catch(e){}
   try{ localStorage.setItem('xamssNotif', JSON.stringify(notifSettings)); }catch(e){}
   // Also synced to the finance doc (see setDoc payload) — the scheduled
   // Cloud Function push sweep reads it from there, since it obviously
