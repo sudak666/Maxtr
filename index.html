@@ -757,6 +757,13 @@ body.amounts-hidden #fx-converter-result{
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:7px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
 .mgr-del .ico{margin-right:0;width:16px;height:16px}
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
+/* Pencil toggle that gates a row's fields behind a deliberate tap, so a
+   stray tap in the list can't silently change an already-entered value —
+   same idea as the profile nickname's edit lock. */
+.mgr-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:7px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto}
+.mgr-edit .ico{margin-right:0;width:16px;height:16px}
+.mgr-edit:hover{background:rgba(139,92,246,.12);color:var(--purple2)}
+.mgr-edit.active{background:rgba(139,92,246,.15);color:var(--purple2)}
 .mgr-empty{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:20px}
 
 /* ── SUBCATEGORY CHIPS (inside the categories manager) ── */
@@ -1977,8 +1984,23 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_goals">Цілі</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="goals_desc">Прив'яжи ціль до гаманця — прогрес рахується від його поточного балансу.</div>
-    <div class="debt-list" id="goals-list-mgr" style="max-height:420px"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addGoal()"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
+    <div class="mgr-list" id="goals-list-mgr" style="max-height:420px;overflow-y:auto;padding-right:2px"></div>
+    <div id="goals-new-form" style="display:none;flex-direction:column;gap:10px;margin-top:10px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:22px">
+      <div class="fg">
+        <label data-i18n="finance_wallet">Гаманець</label>
+        <select id="goal-new-wallet"></select>
+      </div>
+      <div class="fg">
+        <label data-i18n="goals_target">Ціль</label>
+        <input type="number" id="goal-new-amount" min="0.01" step="0.01" placeholder="0">
+      </div>
+      <div class="fg">
+        <label data-i18n="goals_target_date">Дата (необов'язково)</label>
+        <input type="text" id="goal-new-date" placeholder="напр. Грудень 2026">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="confirmAddGoal()" data-i18n="goals_add_confirm">Додати</button>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="toggleNewGoalForm()"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
     </div>
@@ -2291,7 +2313,7 @@ body.amounts-hidden #fx-converter-result{
       toast_push_no_vapid:'Push ще не налаштовано (бракує VAPID-ключа)', toast_push_unsupported:'Браузер не підтримує push-сповіщення',
       toast_push_on:'Push-сповіщення увімкнено', toast_push_off:'Push-сповіщення вимкнено', toast_push_fail:'Не вдалося увімкнути push-сповіщення',
       reminder_body:'Ви записали свої операції сьогодні?',
-      common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва', common_save:'Зберегти',
+      common_cancel:'Скасувати', common_done:'Готово', common_delete:'Видалити', common_name:'Назва', common_save:'Зберегти', common_edit:'Редагувати',
       toast_nickname_saved:'Нікнейм збережено',
       common_confirm_title:'Підтвердіть дію', common_yes:'Так', common_got_it:'Зрозуміло',
       cat_income:'Дохід', cat_expense:'Витрата', cat_other:'Інше',
@@ -2386,7 +2408,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
-      goals_add:'Додати ціль', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
+      goals_add:'Додати ціль', goals_add_confirm:'Додати', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
       goals_reached:'Ціль досягнуто!', goals_added:'Ціль додано', goals_need_wallet:'Спочатку додай гаманець',
       goals_delete_confirm:'Видалити цю ціль?', goals_delete_title:'Видалення цілі',
       cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
@@ -2520,7 +2542,7 @@ body.amounts-hidden #fx-converter-result{
       toast_push_no_vapid:'Push isn’t configured yet (missing VAPID key)', toast_push_unsupported:'This browser doesn’t support push notifications',
       toast_push_on:'Push notifications enabled', toast_push_off:'Push notifications disabled', toast_push_fail:'Couldn’t enable push notifications',
       reminder_body:'Did you record your transactions today?',
-      common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name', common_save:'Save',
+      common_cancel:'Cancel', common_done:'Done', common_delete:'Delete', common_name:'Name', common_save:'Save', common_edit:'Edit',
       toast_nickname_saved:'Nickname saved',
       common_confirm_title:'Please confirm', common_yes:'Yes', common_got_it:'Got it',
       cat_income:'Income', cat_expense:'Expense', cat_other:'Other',
@@ -2615,7 +2637,7 @@ body.amounts-hidden #fx-converter-result{
       profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
-      goals_add:'Add a goal', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
+      goals_add:'Add a goal', goals_add_confirm:'Add', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
       goals_reached:'Goal reached!', goals_added:'Goal added', goals_need_wallet:'Add a wallet first',
       goals_delete_confirm:'Delete this goal?', goals_delete_title:'Delete goal',
       cat_empty:'No categories', cat_subcat_short:'Subcat.', cat_this_month:'UAH this month', cat_drag_title:'Drag to reorder',
@@ -4850,26 +4872,51 @@ function closeManagers(e){ window.closeManagers(e); }
 function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 
 // Shift types --------------------------------------------------
+// Collapsed by default to a compact one-line summary (like the categories/
+// budgets/rates managers) — the name/pay/hours fields only become editable
+// once the pencil button expands a row, so a stray tap in the list can't
+// silently overwrite a value the way a permanently-open text field could.
+let expandedShiftTypeId=null;
 window.openShiftTypesManager=function(){
+  expandedShiftTypeId=null;
   renderShiftTypesList();
   document.getElementById('shift-types-modal').style.display='flex';
+};
+window.toggleShiftTypeEdit=function(id){
+  expandedShiftTypeId = expandedShiftTypeId===id ? null : id;
+  renderShiftTypesList();
 };
 function renderShiftTypesList(){
   const box=document.getElementById('shift-types-list'); if(!box) return;
   box.innerHTML='';
   if(!shiftTypes.length){ box.innerHTML=`<div class="mgr-empty">${tr('shifts_types_empty')}</div>`; return; }
   shiftTypes.forEach(t=>{
+    const open=expandedShiftTypeId===t.id;
+    const summary=t.isOff ? tr('shifts_rest') : `${(t.amount||0).toLocaleString('uk-UA')} грн · ${t.hours||0} ${tr('shifts_hours_short')}`;
     const row=document.createElement('div');
     row.className='mgr-row';
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
-      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('shiftType','${t.id}')"></button>
-      <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateShiftType('${t.id}','name',this.value)">
-      <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
-      <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
-      <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
-      <label class="mgr-field" style="flex-direction:row;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
-        <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> ${tr('shifts_type_off_label')}
-      </label>`;
+      <div class="cat-row">
+        <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('shiftType','${t.id}')"></button>
+        <div class="cat-row-body" style="cursor:default">
+          <span class="cat-row-name">${escapeHtml(t.name)}</span>
+          <span class="cat-row-sub">${summary}</span>
+        </div>
+        <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleShiftTypeEdit('${t.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
+      </div>
+      ${open?`
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
+        <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateShiftType('${t.id}','name',this.value)">
+        <div style="display:flex;gap:8px">
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
+          <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> ${tr('shifts_type_off_label')}
+        </label>
+      </div>`:''}`;
     box.appendChild(row);
   });
 }
@@ -4880,7 +4927,7 @@ window.updateShiftType=function(id,field,value){
   else if(field==='name'){ t.name=String(value).trim()||tr('shifts_default_name'); t.short=t.name.slice(0,4); }
   else t[field]=value;
   saveConfigLocal(); scheduleSave();
-  renderCalendar(); renderIncomeChart();
+  renderShiftTypesList(); renderCalendar(); renderIncomeChart();
 };
 window.addShiftType=async function(){
   const name=await uiPrompt(tr('shifts_add_type_prompt'),'',tr('shifts_add_type'));
@@ -5550,37 +5597,86 @@ window.deleteRecurring=async function(id){
 };
 
 // ── GOALS (savings targets linked to a wallet) ─────────────────
+// Same compact-row + pencil-gated-edit pattern as shift types: existing
+// goals show as a one-line summary (wallet + progress), and the "+" button
+// opens a separate inline creation form instead of immediately dropping a
+// half-empty goal into the real list — so the manager always opens showing
+// only actual, already-configured goals.
+let expandedGoalId=null;
+let showNewGoalForm=false;
 window.openGoalsManager=function(){
+  expandedGoalId=null; showNewGoalForm=false;
   renderGoalsManagerList();
   document.getElementById('goals-modal').style.display='flex';
 };
+window.toggleGoalEdit=function(id){
+  expandedGoalId = expandedGoalId===id ? null : id;
+  renderGoalsManagerList();
+};
+window.toggleNewGoalForm=function(){
+  showNewGoalForm=!showNewGoalForm;
+  renderNewGoalForm();
+};
+function renderNewGoalForm(){
+  const box=document.getElementById('goals-new-form'); if(!box) return;
+  box.style.display=showNewGoalForm?'flex':'none';
+  if(!showNewGoalForm) return;
+  const sel=document.getElementById('goal-new-wallet');
+  if(sel) sel.innerHTML=wallets.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join('');
+  const amt=document.getElementById('goal-new-amount'); if(amt) amt.value='';
+  const dt=document.getElementById('goal-new-date'); if(dt) dt.value='';
+}
 function renderGoalsManagerList(){
   const box=document.getElementById('goals-list-mgr'); if(!box) return;
   box.innerHTML='';
-  if(!goals.length){ box.innerHTML=`<div class="mgr-empty">${tr('goals_empty')}</div>`; return; }
-  goals.forEach(g=>{
-    const row=document.createElement('div');
-    row.className='debt-row';
-    row.innerHTML=`
-      <div class="debt-field" style="flex:1 1 140px">
-        <span class="debt-field-label">${tr('finance_wallet')}</span>
-        <select onchange="updateGoal('${g.id}','walletId',this.value)">
-          ${wallets.map(w=>`<option value="${w.id}" ${g.walletId===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="debt-field" style="flex:1 1 110px">
-        <span class="debt-field-label">${tr('goals_target')}</span>
-        <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" onchange="updateGoal('${g.id}','targetAmount',this.value)">
-      </div>
-      <div class="debt-field" style="flex:1 1 150px">
-        <span class="debt-field-label">${tr('goals_target_date')}</span>
-        <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" onchange="updateGoal('${g.id}','targetDate',this.value)">
-      </div>
-      <button class="debt-row-del" onclick="deleteGoal('${g.id}')">${window.Icon('trash')}</button>
-    `;
-    box.appendChild(row);
-    row.querySelectorAll('select').forEach(enhanceSelect);
-  });
+  if(!goals.length){ box.innerHTML=`<div class="mgr-empty">${tr('goals_empty')}</div>`; }
+  else{
+    const wb=computeWalletBalances();
+    goals.forEach(g=>{
+      const w=walletById(g.walletId);
+      const open=expandedGoalId===g.id;
+      const saved=w?Math.max(0, wb[g.walletId]||0):0;
+      const target=g.targetAmount||0;
+      const done=target>0 && saved>=target;
+      const summary=w
+        ? `${saved.toLocaleString('uk-UA')} / ${target.toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}${done?' · '+tr('goals_reached'):''}`
+        : tr('goals_need_wallet');
+      const row=document.createElement('div');
+      row.className='mgr-row';
+      row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
+      row.innerHTML=`
+        <div class="cat-row">
+          <span class="icon-badge icon-badge-sm" style="background:${w?w.color:'var(--muted)'}">${w?window.Icon(w.icon||'card'):''}</span>
+          <div class="cat-row-body" style="cursor:default">
+            <span class="cat-row-name">${w?escapeHtml(w.name):''}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span>
+            <span class="cat-row-sub">${summary}</span>
+          </div>
+          <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleGoalEdit('${g.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+          <button class="mgr-del" onclick="deleteGoal('${g.id}')">${window.Icon('trash')}</button>
+        </div>
+        ${open?`
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
+          <div class="fg">
+            <label>${tr('finance_wallet')}</label>
+            <select onchange="updateGoal('${g.id}','walletId',this.value)">
+              ${wallets.map(w2=>`<option value="${w2.id}" ${g.walletId===w2.id?'selected':''}>${escapeHtml(w2.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg">
+            <label>${tr('goals_target')}</label>
+            <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" onchange="updateGoal('${g.id}','targetAmount',this.value)">
+          </div>
+          <div class="fg">
+            <label>${tr('goals_target_date')}</label>
+            <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" onchange="updateGoal('${g.id}','targetDate',this.value)">
+          </div>
+        </div>`:''}
+      `;
+      box.appendChild(row);
+      if(open) row.querySelectorAll('select').forEach(enhanceSelect);
+    });
+  }
+  renderNewGoalForm();
 }
 window.updateGoal=function(id,field,value){
   const g=goals.find(x=>x.id===id); if(!g) return;
@@ -5590,10 +5686,15 @@ window.updateGoal=function(id,field,value){
   renderGoalsManagerList();
   renderGoals();
 };
-window.addGoal=function(){
+window.confirmAddGoal=function(){
   if(!wallets.length){ showToast(tr('goals_need_wallet'),'xmark'); return; }
-  goals.push({id:uid('goal'), walletId:wallets[0].id, targetAmount:0, targetDate:''});
+  const walletSel=document.getElementById('goal-new-wallet');
+  const walletId=walletSel&&walletSel.value?walletSel.value:wallets[0].id;
+  const targetAmount=parseFloat(document.getElementById('goal-new-amount').value)||0;
+  const targetDate=document.getElementById('goal-new-date').value||'';
+  goals.push({id:uid('goal'), walletId, targetAmount, targetDate});
   saveConfigLocal(); scheduleSave();
+  showNewGoalForm=false;
   renderGoalsManagerList();
   renderGoals();
   showToast(tr('goals_added'),'plus');
