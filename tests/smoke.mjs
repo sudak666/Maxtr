@@ -26,7 +26,12 @@ const { chromium } = fs.existsSync(PLAYWRIGHT_PATH)
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = 8899;
-const CHROMIUM_PATH = '/opt/pw-browsers/chromium';
+// This sandbox has a fixed Chromium binary path outside Playwright's own
+// managed browser cache; CI (and any other environment) won't have that
+// exact path, so fall back to Playwright's own installed browser (requires
+// `playwright install chromium` to have been run) when it's absent.
+const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
+const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
 
 function checkModuleScriptSyntax() {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -81,7 +86,7 @@ async function main() {
   const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', ROOT], { stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 500));
 
-  const browser = await chromium.launch({ executablePath: CHROMIUM_PATH });
+  const browser = await chromium.launch(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {});
   const consoleErrors = [];
   const pageErrors = [];
   try {
