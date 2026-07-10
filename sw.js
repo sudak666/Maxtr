@@ -42,13 +42,35 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v4';
+const CACHE_NAME = 'zminka-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  // Same reasoning as FIREBASE_SDK_ASSETS below: index.html loads app
+  // logic via <script type="module" src="./js/app.js">, which statically
+  // imports these same-origin files — a cold start with no network (first
+  // install offline, or a cache that hasn't picked these up yet via the
+  // fetch handler's opportunistic caching) would otherwise fail the whole
+  // module graph. Keep this list in sync with js/'s actual file list.
+  './js/app.js',
+  './js/state.js',
+  './js/core.js',
+  './js/firebase-sync.js',
+  './js/color-picker.js',
+  './js/auth.js',
+  './js/app-init.js',
+  './js/ui-widgets.js',
+  './js/calendar.js',
+  './js/settings-managers.js',
+  './js/goals-profile.js',
+  './js/notifications.js',
+  './js/finance.js',
+  './js/analytics-csv.js',
+  './js/debt.js',
+  './js/shopping.js',
 ];
 
 // index.html's <script type="module"> statically imports these four SDK

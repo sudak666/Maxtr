@@ -33,13 +33,25 @@ const PORT = 8899;
 const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
 const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
 
+// index.html's app logic is split across js/*.js (see CLAUDE.md's module
+// layout) and loaded via <script type="module" src="./js/app.js">, rather
+// than one inline <script type="module"> block. `node --check` can't
+// resolve bare/relative ES module graphs on its own, so each file is
+// checked independently for syntax errors here; the real cross-file
+// import/export wiring is only meaningfully verified by actually loading
+// the page in a browser, which the rest of this script already does.
 function checkModuleScriptSyntax() {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  const m = html.match(/<script type="module">([\s\S]*?)<\/script>/);
-  if (!m) throw new Error('could not find <script type="module"> in index.html');
-  const tmp = path.join(ROOT, 'tests', '.mod_check.mjs');
-  fs.writeFileSync(tmp, m[1].replace(/https:\/\/www\.gstatic\.com\/[^"]+/g, 'data:text/javascript,export default {}'));
-  return tmp;
+  const inline = html.match(/<script type="module">([\s\S]*?)<\/script>/);
+  if (inline) {
+    const tmp = path.join(ROOT, 'tests', '.mod_check.mjs');
+    fs.writeFileSync(tmp, inline[1].replace(/https:\/\/www\.gstatic\.com\/[^"]+/g, 'data:text/javascript,export default {}'));
+    return [tmp];
+  }
+  const srcMatch = html.match(/<script type="module" src="([^"]+)">/);
+  if (!srcMatch) throw new Error('could not find a <script type="module"> (inline or src=) in index.html');
+  const jsDir = path.join(ROOT, path.dirname(srcMatch[1]));
+  return fs.readdirSync(jsDir).filter((f) => f.endsWith('.js')).map((f) => path.join(jsDir, f));
 }
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
@@ -77,11 +89,25 @@ export async function isSupported(){ return true; }
 `;
 
 async function main() {
-  const modCheckPath = checkModuleScriptSyntax();
+  const modCheckPaths = checkModuleScriptSyntax();
   const { execFileSync } = await import('node:child_process');
-  execFileSync(process.execPath, ['--check', modCheckPath]);
-  fs.unlinkSync(modCheckPath);
-  console.log('[ok] module script syntax check');
+  // `node --check` only treats a file as an ES module by its extension
+  // (.mjs) or a package.json "type" field - js/ has neither (deliberately;
+  // this repo has no root package.json - see CLAUDE.md), so each real
+  // source file is copied to a throwaway .mjs path for the syntax check
+  // only, then removed; the inline-script case's own temp file is always
+  // its own throwaway and gets removed too.
+  for (const p of modCheckPaths) {
+    const isThrowaway = p.endsWith('.mod_check.mjs');
+    const tmp = isThrowaway ? p : `${p}.checktmp.mjs`;
+    if (!isThrowaway) fs.copyFileSync(p, tmp);
+    try {
+      execFileSync(process.execPath, ['--check', tmp]);
+    } finally {
+      fs.unlinkSync(tmp);
+    }
+  }
+  console.log(`[ok] module script syntax check (${modCheckPaths.length} file(s))`);
 
   const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', ROOT], { stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 500));
