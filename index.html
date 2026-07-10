@@ -2765,6 +2765,44 @@ let profilesMeta = {list:[{id:'default', name:''}], updatedAt:0};
 // as the apiKey above). Without it, enabling push fails with a clear error.
 const VAPID_KEY = 'BBcPaLYW4stwLwTHX-2mNXmu86eQeqw1biQXPGv4-FLOZWbUl8BAVgeHxGC2vvlLXkYqOUCyoo8NqnN6n8Usbtw';
 
+// ── ERROR LOGGING ─────────────────────────────────────────────
+// No external error-tracking service wired up (no Sentry/etc. account —
+// see CLAUDE.md's Known gaps). Global catch for whatever wasn't already
+// wrapped in its own try/catch, so a crash doesn't just vanish silently in
+// production: logs structured context to console (findable by anyone
+// checking devtools, e.g. the user reporting a bug over chat/email) and
+// keeps a small capped ring buffer in localStorage per-uid — nothing is
+// ever sent anywhere, so this needs no Firestore rules change and can't be
+// abused for write-spam the way a client-writable Firestore error log
+// could be.
+const ERROR_LOG_MAX = 20;
+function errorLogKey(){ return currentUser ? `mx_errlog_${currentUser.uid}` : 'mx_errlog_anon'; }
+function currentTabName(){
+  const el = document.querySelector('#nav-shifts.active, #nav-finance.active, #nav-debt.active, #nav-shopping.active, #nav-settings.active');
+  return el ? el.id.replace('nav-','') : null;
+}
+function logAppError(kind, detail){
+  const entry = { kind, at: new Date().toISOString(), tab: currentTabName(), ...detail };
+  console.error(`[Zminka:${kind}]`, entry);
+  try{
+    const key = errorLogKey();
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list.push(entry);
+    while(list.length > ERROR_LOG_MAX) list.shift();
+    localStorage.setItem(key, JSON.stringify(list));
+  }catch(e){}
+}
+window.addEventListener('error', e=>{
+  logAppError('uncaught-error', { message: e.message, source: e.filename, line: e.lineno, col: e.colno, stack: e.error && e.error.stack });
+});
+window.addEventListener('unhandledrejection', e=>{
+  const reason = e.reason;
+  logAppError('unhandled-rejection', { message: reason && reason.message || String(reason), stack: reason && reason.stack });
+});
+// Exposed for support/debugging — e.g. asking a user to run this in
+// devtools and paste the result when reporting a bug.
+window.getErrorLog=function(){ try{ return JSON.parse(localStorage.getItem(errorLogKey()) || '[]'); }catch(e){ return []; } };
+
 // ── STATE ─────────────────────────────────────────────────────
 let shifts = {};
 let transactions = [];
