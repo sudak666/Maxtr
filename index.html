@@ -191,11 +191,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   flex:1;border:none;background:transparent;cursor:pointer;font-family:inherit;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   padding:2px;font-size:11px;font-weight:700;color:var(--muted);
-  letter-spacing:-.01em;transition:color .2s;
+  letter-spacing:-.01em;transition:color .2s,transform .18s cubic-bezier(.34,1.56,.64,1);
+  -webkit-tap-highlight-color:transparent;
 }
-.tab-icon-wrap{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s}
+.tab-btn:active{transform:scale(.88)}
+.tab-icon-wrap{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .2s,color .2s,box-shadow .2s}
 .tab-btn .ico{width:20px;height:20px;margin-right:0}
 .tab-btn.active{color:var(--text-strong)}
+@keyframes tabIconPop{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.22)}
+  65%{transform:scale(.92)}
+  100%{transform:scale(1)}
+}
+.tab-icon-wrap.tab-pop{animation:tabIconPop .45s cubic-bezier(.34,1.56,.64,1)}
+@media (prefers-reduced-motion:reduce){
+  .tab-btn{transition:color .2s}
+  .tab-btn:active{transform:none}
+  .tab-icon-wrap.tab-pop{animation:none}
+}
 .tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.4)}
 .tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.4)}
 .tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,.4)}
@@ -3973,6 +3987,12 @@ async function init(){
 
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(tab){
+  const tappedIcon=document.querySelector(`#nav-${tab} .tab-icon-wrap`);
+  if(tappedIcon){
+    tappedIcon.classList.remove('tab-pop');
+    void tappedIcon.offsetWidth;
+    tappedIcon.classList.add('tab-pop');
+  }
   document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
