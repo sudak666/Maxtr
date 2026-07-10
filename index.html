@@ -1202,7 +1202,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section" id="fx-widget-section">
       <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
         <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
-        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()"><span id="ic-fx-widget-refresh"></span></button>
+        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()" aria-label="Оновити"><span id="ic-fx-widget-refresh"></span></button>
       </div>
       <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
       <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
@@ -2475,6 +2475,7 @@ body.amounts-hidden #fx-converter-result{
       settings_pin_sub:'Захисти застосунок кодом і Face ID/Touch ID', settings_notif_title:'Нагадування про облік',
       settings_signout_sub:'Завершити сеанс на цьому пристрої', settings_delete_account_sub:'Остаточно видалити акаунт і всі дані',
       settings_terms_sub:'Правила користування застосунком', settings_privacy_sub:'Як ми обробляємо твої дані',
+      a11y_confirm:'Підтвердити', a11y_remove:'Прибрати', a11y_close:'Закрити', a11y_more:'Більше дій', a11y_prev_month:'Попередній місяць', a11y_next_month:'Наступний місяць',
     },
     en:{
       settings_kicker:'App settings', settings_title:'Settings',
@@ -2704,6 +2705,7 @@ body.amounts-hidden #fx-converter-result{
       settings_pin_sub:'Protect the app with a code and Face ID/Touch ID', settings_notif_title:'Tracking reminder',
       settings_signout_sub:'End the session on this device', settings_delete_account_sub:'Permanently delete the account and all data',
       settings_terms_sub:'Rules for using the app', settings_privacy_sub:'How we handle your data',
+      a11y_confirm:'Confirm', a11y_remove:'Remove', a11y_close:'Close', a11y_more:'More actions', a11y_prev_month:'Previous month', a11y_next_month:'Next month',
     }
   };
   window.currentLang='uk';
@@ -3197,8 +3199,8 @@ function renderProfilesUI(){
       ${isActive
         ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
         : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" onclick="switchProfile('${p.id}')">${tr('profiles_switch_btn')}</button>`}
-      <button class="mgr-del" onclick="renameProfile('${p.id}')">${window.Icon('pencil')}</button>
-      <button class="mgr-del" onclick="deleteProfile('${p.id}')">${window.Icon('trash')}</button>
+      <button class="mgr-del" onclick="renameProfile('${p.id}')" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+      <button class="mgr-del" onclick="deleteProfile('${p.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
   });
@@ -4063,6 +4065,7 @@ async function init(){
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
     setupAccessibleSettingsRows();
     setupCollapsibleFinanceSections();
+    setupModalAccessibility();
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
@@ -4382,7 +4385,7 @@ function enhanceDateInput(inp){
     const first=(new Date(y,m,1).getDay()+6)%7;
     const total=new Date(y,m+1,0).getDate();
     const prevTotal=new Date(y,m,0).getDate();
-    let html=`<div class="dp-nav"><button type="button" class="dp-nav-btn" data-act="prev">${window.Icon('chevron')}</button><div class="dp-month-label">${MONTHS[m]} ${y}</div><button type="button" class="dp-nav-btn" data-act="next">${window.Icon('chevron')}</button></div>`;
+    let html=`<div class="dp-nav"><button type="button" class="dp-nav-btn" data-act="prev" aria-label="${tr('a11y_prev_month')}">${window.Icon('chevron')}</button><div class="dp-month-label">${MONTHS[m]} ${y}</div><button type="button" class="dp-nav-btn" data-act="next" aria-label="${tr('a11y_next_month')}">${window.Icon('chevron')}</button></div>`;
     html+=`<div class="dp-weekdays">${WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div><div class="dp-grid">`;
     for(let i=0;i<first;i++) html+=`<span class="dp-day dp-out">${prevTotal-first+i+1}</span>`;
     for(let d=1;d<=total;d++){
@@ -4889,6 +4892,68 @@ window.closeManagers=function(e){
   });
 };
 function closeManagers(e){ window.closeManagers(e); }
+
+// ── MODAL ACCESSIBILITY (dialog role, focus trap, Escape, focus restore) ──
+// Applies generically to every .modal-overlay/.modal-card pair (all ~20
+// settings-manager modals, tx-form, debt-form, the shift day-detail modal)
+// instead of touching each open*()/close*() call site individually — those
+// are scattered across the file and just flip `.style.display`, so a
+// MutationObserver on that attribute is the one place that sees every
+// open/close regardless of which function triggered it. Modals can stack
+// (e.g. color-pick-modal opens on top of wallets-modal without closing it
+// first), so a call-order stack — not a DOM query — tracks which one is
+// topmost for the focus trap; Escape simply .click()s the topmost overlay,
+// which reuses that modal's own existing backdrop-click handler
+// (closeManagers()/closeModal()) rather than duplicating close logic.
+let openModalStack=[];
+function focusableIn(container){
+  return Array.from(container.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+    .filter(el=>el.offsetParent!==null);
+}
+function setupModalAccessibility(){
+  const overlays=document.querySelectorAll('.modal-overlay');
+  overlays.forEach(overlay=>{
+    const card=overlay.querySelector('.modal-card');
+    if(card && !card.hasAttribute('role')){
+      card.setAttribute('role','dialog');
+      card.setAttribute('aria-modal','true');
+      card.tabIndex=-1;
+    }
+  });
+  const observer=new MutationObserver(mutations=>{
+    mutations.forEach(m=>{
+      const overlay=m.target;
+      if(!(overlay instanceof Element) || !overlay.classList.contains('modal-overlay')) return;
+      const isOpen=overlay.style.display!=='none' && overlay.style.display!=='';
+      const stackIdx=openModalStack.indexOf(overlay);
+      if(isOpen && stackIdx===-1){
+        openModalStack.push(overlay);
+        const returnFocusTo=document.activeElement;
+        overlay._returnFocusTo=(returnFocusTo && returnFocusTo!==document.body)?returnFocusTo:null;
+        const card=overlay.querySelector('.modal-card');
+        if(card) setTimeout(()=>{ (focusableIn(card)[0]||card).focus(); },0);
+      }else if(!isOpen && stackIdx!==-1){
+        openModalStack.splice(stackIdx,1);
+        if(overlay._returnFocusTo && document.contains(overlay._returnFocusTo)) overlay._returnFocusTo.focus();
+        overlay._returnFocusTo=null;
+      }
+    });
+  });
+  overlays.forEach(overlay=>observer.observe(overlay,{attributes:true,attributeFilter:['style']}));
+  document.addEventListener('keydown',e=>{
+    if(!openModalStack.length) return;
+    const top=openModalStack[openModalStack.length-1];
+    if(e.key==='Escape'){ e.preventDefault(); top.click(); return; }
+    if(e.key==='Tab'){
+      const card=top.querySelector('.modal-card');
+      const items=card?focusableIn(card):[];
+      if(!items.length) return;
+      const first=items[0], last=items[items.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    }
+  });
+}
 function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 
 // Shift types --------------------------------------------------
@@ -4924,7 +4989,7 @@ function renderShiftTypesList(){
           <span class="cat-row-sub">${summary}</span>
         </div>
         <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleShiftTypeEdit('${t.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" onclick="deleteShiftType('${t.id}')">${window.Icon('trash')}</button>
+        <button class="mgr-del" onclick="deleteShiftType('${t.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -4988,7 +5053,7 @@ function renderWalletsList(){
       <select style="flex:0 0 82px" onchange="updateWallet('${w.id}','currency',this.value)">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
       </select>
-      <button class="mgr-del" onclick="deleteWallet('${w.id}')">${window.Icon('trash')}</button>`;
+      <button class="mgr-del" onclick="deleteWallet('${w.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
   });
@@ -5324,12 +5389,12 @@ function renderCategoriesList(){
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
         </button>
-        <button class="mgr-del" onclick="openCatActionMenu(${idx})">${window.Icon('more')}</button>
+        <button class="mgr-del" onclick="openCatActionMenu(${idx})" aria-label="${tr('a11y_more')}">${window.Icon('more')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button onclick="deleteSubcategory(${idx},${si})">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
+          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button onclick="deleteSubcategory(${idx},${si})" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
         </div>
         <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:11px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
       </div>`:''}`;
@@ -5582,7 +5647,7 @@ function renderRecurringList(){
           <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
           <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">${tr('recurring_active')}</span>
         </label>
-        <button class="debt-row-del" style="align-self:auto" onclick="deleteRecurring('${r.id}')">${window.Icon('trash')}</button>
+        <button class="debt-row-del" style="align-self:auto" onclick="deleteRecurring('${r.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
     `;
     box.appendChild(row);
@@ -5672,7 +5737,7 @@ function renderGoalsManagerList(){
             <span class="cat-row-sub">${summary}</span>
           </div>
           <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleGoalEdit('${g.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-          <button class="mgr-del" onclick="deleteGoal('${g.id}')">${window.Icon('trash')}</button>
+          <button class="mgr-del" onclick="deleteGoal('${g.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
         </div>
         ${open?`
         <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -6341,7 +6406,7 @@ function renderTagsList(){
     row.innerHTML=`
       <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('tag','${t.id}')"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateTag('${t.id}','name',this.value)">
-      <button class="mgr-del" onclick="deleteTag('${t.id}')">${window.Icon('trash')}</button>`;
+      <button class="mgr-del" onclick="deleteTag('${t.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
 }
@@ -6403,7 +6468,7 @@ function renderAutoRulesList(){
           ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
         </select>
       </div>
-      <button class="debt-row-del" onclick="deleteAutoRule('${r.id}')">${window.Icon('trash')}</button>
+      <button class="debt-row-del" onclick="deleteAutoRule('${r.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
@@ -6710,8 +6775,8 @@ function renderFinance(){
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
-        <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)">${window.Icon('pencil')}</button>
-        <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})">${window.Icon('trash')}</button>
+        <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+        <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>`;
     item.addEventListener('click',()=>editTransaction(t.id));
     item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
@@ -6993,16 +7058,16 @@ function renderDebt(){
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
-      <button class="debt-row-edit debt-row-edit-active" onclick="toggleDebtEntryEdit(${entry.id})">${window.Icon('check')}</button>
+      <button class="debt-row-edit debt-row-edit-active" onclick="toggleDebtEntryEdit(${entry.id})" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
     ` : `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view">${escapeHtml(entry.amount??'')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${escapeHtml(entry.date??'')}</div></div>
-      <button class="debt-row-edit" onclick="toggleDebtEntryEdit(${entry.id})">${window.Icon('pencil')}</button>
+      <button class="debt-row-edit" onclick="toggleDebtEntryEdit(${entry.id})" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
     row.innerHTML=`
       ${fieldsHtml}
-      <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})">${window.Icon('trash')}</button>
+      <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
     `;
     lc.appendChild(row);
@@ -7071,7 +7136,7 @@ function renderShoppingList(){
       <input type="checkbox" class="rchk" ${it.done?'checked':''} onchange="toggleShoppingItem('${it.id}', this.checked)">
       <div class="mgr-name-inline" style="${it.done?'text-decoration:line-through;opacity:.55':''}">${escapeHtml(it.name)}</div>
       ${it.qty>1?`<span style="font-size:12px;font-weight:700;color:var(--muted);flex:0 0 auto">×${it.qty}</span>`:''}
-      <button class="mgr-del" onclick="deleteShoppingItem('${it.id}')">${window.Icon('trash')}</button>
+      <button class="mgr-del" onclick="deleteShoppingItem('${it.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
   });
