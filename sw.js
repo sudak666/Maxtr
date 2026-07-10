@@ -47,12 +47,37 @@ const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+];
+
+// index.html's <script type="module"> statically imports these four SDK
+// files directly from gstatic — a static ES module import is all-or-nothing,
+// so on a cold start with no network (offline first launch, or a cache that
+// never got these yet) the whole module fails to evaluate and the entire
+// app (not just Firebase-dependent features) goes dead, even though the
+// index.html shell itself rendered fine from cache. Must match the exact
+// URLs/version index.html imports — bump both together if the SDK version
+// ever changes (see SETUP.md's note on the pinned 12.11.0 version).
+const FIREBASE_SDK_ASSETS = [
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js',
 ];
 
 // Встановлення — кешуємо статику
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => Promise.all([
+      cache.addAll(STATIC_ASSETS),
+      // Best-effort: a fresh install with no network yet (or gstatic
+      // blocked) shouldn't fail the whole install and lose basic asset
+      // caching just because the SDK precache didn't work this time — it'll
+      // get cached opportunistically by the fetch handler below on the next
+      // successful online load instead.
+      cache.addAll(FIREBASE_SDK_ASSETS).catch(err => console.warn('sw.js: Firebase SDK precache failed, will retry on next online fetch', err)),
+    ]))
   );
   self.skipWaiting();
 });
@@ -81,6 +106,24 @@ self.addEventListener('notificationclick', event => {
 // Fetch — Network First для HTML, Cache First для решти
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // The four Firebase SDK module scripts specifically (see
+  // FIREBASE_SDK_ASSETS above) get cache-first treatment despite being
+  // cross-origin — this is a narrow, exact-URL allowlist, not a general
+  // cross-origin fetch override, so it doesn't reintroduce the reCAPTCHA
+  // no-cors/redirect bug the blanket bail-out below was added to fix.
+  if (FIREBASE_SDK_ASSETS.includes(event.request.url)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+        if (response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }))
+    );
+    return;
+  }
 
   // Сторонні (крос-origin) запити — Firebase, reCAPTCHA, шрифти тощо —
   // не чіпаємо взагалі й лишаємо браузеру, ніби сервіс-воркера немає.
