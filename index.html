@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <script>try{if(localStorage.getItem('xamssTheme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
+<!-- iOS Safari only applies :active CSS states to a tap when at least one
+     touch listener is registered somewhere in the document — without this,
+     every :active-based press animation in the app (bottom nav, buttons,
+     FAB) silently never shows on iPhone. -->
+<script>document.addEventListener('touchstart', function(){}, {passive:true});</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1c1c1f">
 <meta name="color-scheme" content="dark light">
@@ -1032,6 +1037,38 @@ body.amounts-hidden #fx-converter-result{
           <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
           <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
         </div>
+
+        <div style="border-top:1px dashed var(--border);margin:4px 0"></div>
+        <div class="settings-row" style="cursor:default;padding:2px 0">
+          <div class="settings-row-text">
+            <div class="settings-row-title" data-i18n="shifts_autofill_title">Автозаповнення кожного дня</div>
+            <div class="settings-row-sub" data-i18n="shifts_autofill_hint">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="autofill-toggle-checkbox" onchange="toggleAutoFill(this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div id="autofill-config" style="display:none;flex-direction:column;gap:10px">
+          <div class="fg">
+            <label data-i18n="shifts_template_type">Тип зміни</label>
+            <select id="autofill-shift"></select>
+          </div>
+          <div class="fg">
+            <label data-i18n="shifts_template_pattern">Періодичність</label>
+            <select id="autofill-pattern">
+              <option value="every" data-i18n="shifts_pattern_every">Щодня</option>
+              <option value="alt" data-i18n="shifts_pattern_alt">День через день</option>
+              <option value="2_2" data-i18n="shifts_pattern_2_2">2 через 2</option>
+              <option value="3_3" data-i18n="shifts_pattern_3_3">3 через 3</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label data-i18n="shifts_autofill_anchor">Перша робоча зміна від</label>
+            <input type="date" id="autofill-anchor">
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveAutoFillConfig()" data-i18n="common_save">Зберегти</button>
+        </div>
       </div>
     </div>
 
@@ -1329,7 +1366,8 @@ body.amounts-hidden #fx-converter-result{
         <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
         <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:6px;min-width:180px">
           <div style="display:flex;gap:6px">
-            <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" style="flex:1 1 auto;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none" oninput="onNicknameInput(this.value)">
+            <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" readonly oninput="onNicknameInput(this.value)" onblur="onNicknameBlur()" style="flex:1 1 auto;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none">
+            <button type="button" class="btn btn-ghost" id="profile-nickname-edit-btn" onclick="enableNicknameEdit()" style="flex-shrink:0;padding:9px 12px" aria-label="Редагувати нікнейм"><span id="ic-nickname-edit"></span></button>
             <button class="btn btn-primary" id="profile-save-btn" onclick="saveNickname()" style="display:none;flex-shrink:0" data-i18n="common_save">Зберегти</button>
           </div>
           <div style="font-size:11px;color:var(--muted);font-weight:600" id="profile-signed-as"></div>
@@ -2077,6 +2115,7 @@ body.amounts-hidden #fx-converter-result{
   setIcon('ic-settings-tip-close','xmark');
   setIcon('tab-icon-settings','gear');
   setIcon('ic-settings-profile','person');
+  setIcon('ic-nickname-edit','pencil');
   setIcon('ic-settings-profiles','people');
   setIcon('ic-settings-finance','wallet');
   setIcon('ic-settings-security','lock');
@@ -2304,6 +2343,9 @@ body.amounts-hidden #fx-converter-result{
       shifts_clear_confirm:'Видалити всі зміни за цей місяць?', shifts_clear_ok:'Очистити', shifts_month_cleared:'Місяць очищено',
       shifts_add_type_first:'Спершу додай тип зміни', shifts_template_confirm:'Заповнити місяць шаблоном? Поточні зміни цього місяця буде замінено.',
       shifts_template_ok:'Заповнити', shifts_template_applied:'Шаблон застосовано',
+      shifts_autofill_title:'Автозаповнення кожного дня', shifts_autofill_hint:'Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.',
+      shifts_autofill_anchor:'Перша робоча зміна від', shifts_autofill_on:'Автозаповнення увімкнено', shifts_autofill_off:'Автозаповнення вимкнено',
+      shifts_autofill_saved:'Налаштування збережено', shifts_autofill_added:'Автоматично заповнено змін:',
       wallets_empty:'Немає гаманців', wallets_default_name:'Гаманець', wallets_add_prompt:'Назва гаманця:', wallets_new_default:'Новий гаманець',
       wallets_need_one:'Має лишитись хоча б один гаманець', wallets_in_use:'Гаманець використовується в операціях',
       wallets_delete_confirm:'Видалити цей гаманець?', wallets_delete_title:'Видалити гаманець', wallets_add:'Додати гаманець',
@@ -2530,6 +2572,9 @@ body.amounts-hidden #fx-converter-result{
       shifts_clear_confirm:'Delete all shifts for this month?', shifts_clear_ok:'Clear', shifts_month_cleared:'Month cleared',
       shifts_add_type_first:'Add a shift type first', shifts_template_confirm:'Fill the month with this template? The current shifts this month will be replaced.',
       shifts_template_ok:'Fill', shifts_template_applied:'Template applied',
+      shifts_autofill_title:'Auto-fill every day', shifts_autofill_hint:'When a new day starts, the right shift is added automatically — no need to fill in the whole month by hand.',
+      shifts_autofill_anchor:'First work shift from', shifts_autofill_on:'Auto-fill turned on', shifts_autofill_off:'Auto-fill turned off',
+      shifts_autofill_saved:'Settings saved', shifts_autofill_added:'Auto-filled shifts:',
       wallets_empty:'No wallets', wallets_default_name:'Wallet', wallets_add_prompt:'Wallet name:', wallets_new_default:'New wallet',
       wallets_need_one:'At least one wallet must remain', wallets_in_use:'This wallet is used in transactions',
       wallets_delete_confirm:'Delete this wallet?', wallets_delete_title:'Delete wallet', wallets_add:'Add wallet',
@@ -2717,6 +2762,11 @@ const SALARY_GOAL = 20000;
 // wallets:    [{id,name,color,icon}]
 // categories: {income:[names], expense:[names]}
 let shiftTypes = [];
+// Daily auto-fill schedule: when enabled, each new calendar day that has no
+// manual entry yet gets `typeId` auto-assigned if it falls on an "on" day of
+// `pattern`, counted continuously from `anchorDate` (never resets at a month
+// boundary, unlike the one-off "Швидке заповнення" month template below).
+let autoFillSchedule = {enabled:false, typeId:'', pattern:'every', anchorDate:''};
 let wallets = [];
 let categories = {income:[], expense:[]};
 // Monthly spend limit per expense category: {categoryName: limit}. Missing
@@ -3168,7 +3218,7 @@ async function fbSaveNow(){
     }
     const now=Date.now();
     await Promise.all([
-      setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, updatedAt:now},       {merge:false}),
+      setDoc(userDoc('shifts'),  {data:shifts, shiftTypes, autoFillSchedule, updatedAt:now}, {merge:false}),
       setDoc(userDoc('finance'), {data:transactions, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, recurring, shoppingList, goals, profile, subscription, widgets, widgetOrder, notifSettings, catBackfillDone, catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts, currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
@@ -3276,6 +3326,9 @@ async function fbLoadNow(){
     const fData=fS.exists()?fS.data():null;
     shifts=sData?(sData.data||{}):{};
     const sk=lsKey('shifts'); if(sk) localStorage.setItem(sk,JSON.stringify(shifts));
+    autoFillSchedule=(sData&&sData.autoFillSchedule&&typeof sData.autoFillSchedule==='object')
+      ? {enabled:!!sData.autoFillSchedule.enabled, typeId:sData.autoFillSchedule.typeId||'', pattern:sData.autoFillSchedule.pattern||'every', anchorDate:sData.autoFillSchedule.anchorDate||''}
+      : {enabled:false, typeId:'', pattern:'every', anchorDate:''};
     transactions=fData?(fData.data||[]):[];
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(transactions));
     recurring=fData?(fData.recurring||[]):[];
@@ -3293,6 +3346,7 @@ async function fbLoadNow(){
     const backfilled=backfillCategories();
     saveConfigLocal();
     const recurAdded=processRecurring();
+    const autoFillAdded=processAutoFillShifts();
     lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
       finance: fS.exists()?(fS.data().updatedAt||0):0,
@@ -3303,6 +3357,7 @@ async function fbLoadNow(){
     // Sync itself stays silent — only surfaced to the user when something
     // actually needs their attention (a conflict, or being offline below).
     if(recurAdded) showToast(`${tr('sync_recur_added')} ${recurAdded} ${tr('sync_recur_suffix')}`,'repeat');
+    if(autoFillAdded) showToast(`${tr('shifts_autofill_added')} ${autoFillAdded}`,'bolt');
     // Persist newly-seeded config, keeping a one-time raw backup first so
     // the original docs can always be recovered if anything looks wrong.
     if(seeded){
@@ -3313,7 +3368,7 @@ async function fbLoadNow(){
         }, {merge:false});
       }catch(be){ console.error('backup failed', be); }
     }
-    if(seeded||backfilled||recurAdded) await fbSaveNow();
+    if(seeded||backfilled||recurAdded||autoFillAdded) await fbSaveNow();
   }catch(e){
     console.error(e);
     fbSetStatus('error',tr('sync_offline'));
@@ -3380,7 +3435,7 @@ function processRecurring(){
 }
 
 function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, widgetOrder, catBackfillDone, catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes, autoFillSchedule, wallets, categories, budgets, subcategories, currencyRates, tags, autoRules, goals, profile, subscription, widgets, widgetOrder, catBackfillDone, catLegacyMerged}));
 }
 
 // Quick-actions row on the Finance tab: jumps straight to an inline
@@ -3980,8 +4035,8 @@ async function init(){
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') runNotificationChecks(); });
-    setInterval(runNotificationChecks, 5*60*1000);
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ runNotificationChecks(); runAutoFillCheck(); } });
+    setInterval(()=>{ runNotificationChecks(); runAutoFillCheck(); }, 5*60*1000);
   }
   // Local cache first (namespaced to the signed-in user)
   try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) shifts=JSON.parse(s);}catch{}
@@ -3993,7 +4048,7 @@ async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; goals=Array.isArray(o.goals)?o.goals:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){shiftTypes=o.shiftTypes; autoFillSchedule=(o.autoFillSchedule&&typeof o.autoFillSchedule==='object')?{enabled:!!o.autoFillSchedule.enabled, typeId:o.autoFillSchedule.typeId||'', pattern:o.autoFillSchedule.pattern||'every', anchorDate:o.autoFillSchedule.anchorDate||''}:{enabled:false,typeId:'',pattern:'every',anchorDate:''}; wallets=o.wallets; categories=o.categories; budgets=o.budgets||{}; subcategories=o.subcategories||{}; currencyRates=o.currencyRates||{}; tags=Array.isArray(o.tags)?o.tags:[]; autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; goals=Array.isArray(o.goals)?o.goals:[]; profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); catBackfillDone=!!o.catBackfillDone; catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -4458,6 +4513,7 @@ function renderCalendar(){
   const grid=document.getElementById('calendar-grid');
   if(!grid) return;
   renderTemplateShiftOptions();
+  renderAutoFillUI();
   // Legend from current shift types
   const leg=document.getElementById('shift-legend');
   if(leg){
@@ -4651,6 +4707,8 @@ window.toggleQuickFill=function(){
   body.style.display = opening ? 'flex' : 'none';
   if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
 };
+// on/off cycle length by pattern; "on" days get the chosen type, others stay empty
+const SHIFT_PATTERN_CYCLES={every:[1,0], alt:[1,1], '2_2':[2,2], '3_3':[3,3]};
 async function applyTemplate(){
   const typeId=document.getElementById('template-shift').value;
   const pattern=document.getElementById('template-pattern').value;
@@ -4662,9 +4720,7 @@ async function applyTemplate(){
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(shifts).forEach(k=>{if(k.startsWith(p))delete shifts[k];});
   const dk=d=>`${p}${String(d).padStart(2,'0')}`;
-  // on/off cycle length by pattern; "on" days get the chosen type, others stay empty
-  const cycles={every:[1,0], alt:[1,1], '2_2':[2,2], '3_3':[3,3]};
-  const [on,off]=cycles[pattern]||cycles.every;
+  const [on,off]=SHIFT_PATTERN_CYCLES[pattern]||SHIFT_PATTERN_CYCLES.every;
   const period=on+off;
   for(let d=1;d<=total;d++){
     if(((d-1)%period)<on) shifts[dk(d)]=[typeId];
@@ -4672,6 +4728,116 @@ async function applyTemplate(){
   saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
   showToast(tr('shifts_template_applied'),'bolt');
 }
+
+// ── DAILY AUTO-FILL ───────────────────────────────────────────
+// Unlike applyTemplate() above (a one-off bulk fill for the *currently
+// viewed* month), this keeps running forever: once configured, each new
+// calendar day gets checked and — if it has no manual entry yet and falls
+// on an "on" day of the pattern — auto-assigned, so a rotating shift
+// schedule never needs the user to open the app and fill anything in.
+function todayDateKey(){
+  const t=new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+// Cycle position is counted continuously from anchorDate so it survives
+// month boundaries correctly (applyTemplate's per-month modulo would
+// otherwise restart the on/off cycle on the 1st of every month, breaking
+// any real rotation that doesn't happen to align with the calendar).
+function autoFillTypeForDate(dateKey){
+  const s=autoFillSchedule;
+  if(!s||!s.enabled||!s.typeId||!s.anchorDate||!shiftType(s.typeId)) return null;
+  const [on,off]=SHIFT_PATTERN_CYCLES[s.pattern]||SHIFT_PATTERN_CYCLES.every;
+  const period=on+off;
+  if(period<=0) return null;
+  const anchor=new Date(s.anchorDate+'T00:00:00');
+  const target=new Date(dateKey+'T00:00:00');
+  const diffDays=Math.round((target-anchor)/86400000);
+  if(diffDays<0) return null;
+  return (diffDays%period)<on ? s.typeId : null;
+}
+// Catches up on any days since the schedule's anchor that are still empty
+// (capped to a lookback window so a long-forgotten schedule can't suddenly
+// backfill months of history) — mirrors processRecurring()'s catch-up-while-
+// closed behaviour. Never touches a day the user has already set by hand.
+function processAutoFillShifts(){
+  if(!autoFillSchedule||!autoFillSchedule.enabled||!autoFillSchedule.anchorDate) return 0;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const earliest=new Date(today); earliest.setDate(earliest.getDate()-60);
+  let cursor=new Date(autoFillSchedule.anchorDate+'T00:00:00');
+  if(cursor<earliest) cursor=earliest;
+  let added=0, guard=0;
+  while(cursor<=today && guard<60){
+    const key=`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
+    if(!shifts[key]){
+      const typeId=autoFillTypeForDate(key);
+      if(typeId){ shifts[key]=[typeId]; added++; }
+    }
+    cursor.setDate(cursor.getDate()+1);
+    guard++;
+  }
+  if(added) saveLocal();
+  return added;
+}
+// Runs from the same visibility/interval checks as notifications, so a day
+// rollover while the app is left open (or reopened later that day) fills
+// today's shift without waiting for the next full sign-in cloud load.
+function runAutoFillCheck(){
+  const added=processAutoFillShifts();
+  if(added){ scheduleSave(); renderCalendar(); renderIncomeChart(); }
+}
+function renderAutoFillUI(){
+  const cb=document.getElementById('autofill-toggle-checkbox');
+  if(!cb) return;
+  cb.checked=!!autoFillSchedule.enabled;
+  const cfgBox=document.getElementById('autofill-config');
+  if(cfgBox) cfgBox.style.display=cb.checked?'flex':'none';
+  const sel=document.getElementById('autofill-shift');
+  if(sel){
+    const prev=autoFillSchedule.typeId||sel.value;
+    sel.innerHTML='';
+    shiftTypes.filter(t=>!t.isOff).forEach(t=>{
+      const o=document.createElement('option'); o.value=t.id; o.textContent=t.name;
+      sel.appendChild(o);
+    });
+    if(prev&&shiftTypes.some(t=>t.id===prev)) sel.value=prev;
+  }
+  const pat=document.getElementById('autofill-pattern');
+  if(pat){ pat.value=autoFillSchedule.pattern||'every'; csSync(pat); }
+  const anchor=document.getElementById('autofill-anchor');
+  if(anchor && document.activeElement!==anchor){ anchor.value=autoFillSchedule.anchorDate||''; csSync(anchor); }
+}
+window.toggleAutoFill=function(checked){
+  autoFillSchedule.enabled=checked;
+  if(checked){
+    if(!autoFillSchedule.typeId){
+      const first=shiftTypes.find(t=>!t.isOff);
+      autoFillSchedule.typeId=first?first.id:'';
+    }
+    if(!autoFillSchedule.anchorDate) autoFillSchedule.anchorDate=todayDateKey();
+  }
+  saveConfigLocal(); scheduleSave();
+  renderAutoFillUI();
+  if(checked){
+    const added=processAutoFillShifts();
+    if(added){ renderCalendar(); renderIncomeChart(); }
+    showToast(tr('shifts_autofill_on'),'bolt');
+  }else{
+    showToast(tr('shifts_autofill_off'),'check');
+  }
+};
+window.saveAutoFillConfig=function(){
+  const sel=document.getElementById('autofill-shift');
+  const pat=document.getElementById('autofill-pattern');
+  const anchor=document.getElementById('autofill-anchor');
+  if(!sel||!sel.value){ showToast(tr('shifts_add_type_first'),'xmark'); return; }
+  autoFillSchedule.typeId=sel.value;
+  autoFillSchedule.pattern=pat?pat.value:'every';
+  if(anchor&&anchor.value) autoFillSchedule.anchorDate=anchor.value;
+  saveConfigLocal(); scheduleSave();
+  const added=processAutoFillShifts();
+  if(added){ renderCalendar(); renderIncomeChart(); }
+  showToast(tr('shifts_autofill_saved'),'check');
+};
 
 // ── SETTINGS MANAGERS (shift types / wallets / categories) ─────
 window.closeManagers=function(e){
@@ -5544,7 +5710,27 @@ window.saveNickname=function(){
   updateNickname(ni?ni.value:'');
   const btn=document.getElementById('profile-save-btn');
   if(btn) btn.style.display='none';
+  if(ni) ni.readOnly=true;
   showToast(tr('toast_nickname_saved'),'check');
+};
+// Nickname is read-only until the pencil button is tapped, so a stray tap/
+// scroll on the field can't silently start editing it by accident.
+window.enableNicknameEdit=function(){
+  const ni=document.getElementById('profile-nickname-input');
+  if(!ni) return;
+  ni.readOnly=false;
+  ni.focus();
+  ni.select();
+};
+// Re-locks the field on blur, but only if there's no unsaved edit pending
+// (the Save button is hidden) — otherwise tapping "Зберегти" itself would
+// get cut off by the field re-locking out from under it.
+window.onNicknameBlur=function(){
+  setTimeout(()=>{
+    const ni=document.getElementById('profile-nickname-input');
+    const btn=document.getElementById('profile-save-btn');
+    if(ni && (!btn || btn.style.display==='none')) ni.readOnly=true;
+  },150);
 };
 // Fills any avatar-circle element (topbar logo, profile picker) with the
 // user's uploaded photo, or their nickname/email initial as a fallback.
@@ -5567,7 +5753,7 @@ function renderProfileUI(){
   fillAvatarEl(document.getElementById('topbar-avatar'));
   renderAvatarPicker();
   const ni=document.getElementById('profile-nickname-input');
-  if(ni && document.activeElement!==ni) ni.value=profile.nickname||'';
+  if(ni && document.activeElement!==ni){ ni.value=profile.nickname||''; ni.readOnly=true; }
   const who=document.getElementById('profile-signed-as');
   if(who){
     if(!currentUser){ who.textContent=''; }
