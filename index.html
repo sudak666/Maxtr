@@ -603,7 +603,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.filter-chip{padding:5px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
+.filter-chip{padding:9px 13px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
 .filter-chip.active{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple2)}
 
 .tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px}
@@ -634,7 +634,7 @@ body.amounts-hidden .chip-stat-val,
 body.amounts-hidden #fx-converter-result{
   filter:blur(7px);user-select:none;transition:filter .15s;
 }
-.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:9px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
+.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:15px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
 .tx-del .ico{margin-right:0;width:15px;height:15px}
 .tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
@@ -651,11 +651,11 @@ body.amounts-hidden #fx-converter-result{
 .debt-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .debt-chip{padding:9px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--chip-color,var(--border2));background:var(--bg1);color:var(--muted);transition:all .15s;font-family:inherit}
 .debt-chip.active{background:var(--chip-color,var(--purple));border-color:var(--chip-color,var(--purple));color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.debt-chip-add{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-style:dashed;border-radius:50%}
+.debt-chip-add{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-style:dashed;border-radius:50%}
 .debt-chip-add .ico{margin-right:0;width:16px;height:16px}
 .debt-chip-add-labeled{width:auto;height:auto;padding:9px 18px 9px 14px;border-radius:999px;gap:7px}
 .debt-chip-add-labeled .ico{width:14px;height:14px}
-.debt-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;border-radius:50%;display:inline-flex;transition:all .15s}
+.debt-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;transition:all .15s}
 .debt-chip-del .ico{margin-right:0;width:14px;height:14px}
 .debt-chip-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;padding-right:2px}
@@ -668,10 +668,10 @@ body.amounts-hidden #fx-converter-result{
 .debt-row input:focus,.debt-row select:focus{border-color:var(--purple)}
 .debt-row.recur-paused{opacity:.55}
 .debt-hint{flex-basis:100%;font-size:11px;color:var(--red2);font-weight:700;margin-top:-2px}
-.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:9px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
+.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
 .debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
-.debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:9px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
+.debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-edit .ico{margin-right:0;width:15px;height:15px}
 .debt-row-edit:hover{background:rgba(139,92,246,.12);color:var(--purple)}
 .debt-row-edit-active{background:rgba(139,92,246,.15);color:var(--purple)}
@@ -754,13 +754,13 @@ body.amounts-hidden #fx-converter-result{
 .profile-row-avatar .ico{margin-right:0}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
-.mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:10px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+.mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:14px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
 .mgr-del .ico{margin-right:0;width:16px;height:16px}
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 /* Pencil toggle that gates a row's fields behind a deliberate tap, so a
    stray tap in the list can't silently change an already-entered value —
    same idea as the profile nickname's edit lock. */
-.mgr-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:10px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto}
+.mgr-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:14px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto}
 .mgr-edit .ico{margin-right:0;width:16px;height:16px}
 .mgr-edit:hover{background:rgba(139,92,246,.12);color:var(--purple2)}
 .mgr-edit.active{background:rgba(139,92,246,.15);color:var(--purple2)}
@@ -975,11 +975,11 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <!-- TOP BAR -->
-<div class="topbar">
+<header class="topbar">
   <div class="topbar-brand">
     <div class="topbar-logo" id="topbar-avatar" onclick="switchTab('settings')" aria-label="Профіль">Z</div>
     <div>
-      <div class="topbar-title">Zminka</div>
+      <h1 class="topbar-title">Zminka</h1>
       <div class="topbar-sub" data-i18n="topbar_sub">Зміни · Фінанси · Хмара</div>
     </div>
   </div>
@@ -987,14 +987,14 @@ body.amounts-hidden #fx-converter-result{
     <button class="btn btn-ghost" id="btn-hide-amounts" onclick="toggleHideAmounts()" aria-label="Сховати суми"></button>
     <button class="btn btn-ghost" id="btn-refresh" onclick="fbLoadNow()" aria-label="Оновити"></button>
   </div>
-</div>
+</header>
 
-<div class="app">
+<main class="app">
   <!-- ═══ ЗМІНИ ═══ -->
-  <div id="tab-shifts" style="display:none">
+  <section id="tab-shifts" style="display:none" aria-labelledby="shifts-title">
     <div class="page-head">
       <div class="page-label" data-i18n="shifts_kicker">Особистий робочий календар</div>
-      <div class="page-title" data-i18n="shifts_title">Робочі зміни</div>
+      <h2 class="page-title" id="shifts-title" data-i18n="shifts_title">Робочі зміни</h2>
     </div>
 
     <!-- Статистика -->
@@ -1097,13 +1097,13 @@ body.amounts-hidden #fx-converter-result{
 
       <div class="cal-grid" id="calendar-grid"></div>
     </div>
-  </div>
+  </section>
 
   <!-- ═══ ФІНАНСИ ═══ -->
-  <div id="tab-finance">
+  <section id="tab-finance" aria-labelledby="finance-title">
     <div class="page-head">
       <div class="page-label" data-i18n="finance_kicker">Особистий бюджет</div>
-      <div class="page-title" data-i18n="finance_title">Гаманці & Фінанси</div>
+      <h2 class="page-title" id="finance-title" data-i18n="finance_title">Гаманці & Фінанси</h2>
     </div>
 
     <!-- Баланси -->
@@ -1237,13 +1237,13 @@ body.amounts-hidden #fx-converter-result{
       <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
       <div id="budgets-list"></div>
     </div>
-  </div>
+  </section>
 
   <!-- ═══ РОЗРАХУНКИ ═══ -->
-  <div id="tab-debt" style="display:none">
+  <section id="tab-debt" style="display:none" aria-labelledby="debt-title">
     <div class="page-head">
       <div class="page-label" data-i18n="debt_kicker">Облік розрахунків</div>
-      <div class="page-title" data-i18n="debt_title">Розрахунки</div>
+      <h2 class="page-title" id="debt-title" data-i18n="debt_title">Розрахунки</h2>
     </div>
 
     <div class="debt-chips" id="debt-chips"></div>
@@ -1304,13 +1304,13 @@ body.amounts-hidden #fx-converter-result{
     <button type="button" class="fin-fab" onclick="openNewDebtEntryModal()" aria-label="Новий платіж">
       <span id="ic-debt-fab"></span>
     </button>
-  </div>
+  </section>
 
   <!-- ═══ СПИСОК ПОКУПОК ═══ -->
-  <div id="tab-shopping" style="display:none">
+  <section id="tab-shopping" style="display:none" aria-labelledby="shopping-title">
     <div class="page-head">
       <div class="page-label" data-i18n="shopping_kicker">Ваші покупки</div>
-      <div class="page-title" data-i18n="shopping_title">Список покупок</div>
+      <h2 class="page-title" id="shopping-title" data-i18n="shopping_title">Список покупок</h2>
     </div>
 
     <div class="chip-stat-row">
@@ -1339,13 +1339,13 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="mgr-list" id="shopping-list-container"></div>
     </div>
-  </div>
+  </section>
 
   <!-- ═══ НАЛАШТУВАННЯ ═══ -->
-  <div id="tab-settings" style="display:none">
+  <section id="tab-settings" style="display:none" aria-labelledby="settings-title">
     <div class="page-head">
       <div class="page-label" data-i18n="settings_kicker">Керування застосунком</div>
-      <div class="page-title" data-i18n="settings_title">Налаштування</div>
+      <h2 class="page-title" id="settings-title" data-i18n="settings_title">Налаштування</h2>
     </div>
     <div class="settings-search">
       <span id="ic-settings-search"></span>
@@ -1615,18 +1615,18 @@ body.amounts-hidden #fx-converter-result{
       </a>
       <div style="font-size:11px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Zminka — трекер змін, фінансів і розрахунків</div>
     </div>
-  </div>
+  </section>
 
-</div><!-- /app -->
+</main><!-- /app -->
 
 <!-- BOTTOM NAV -->
-<div class="tabs">
+<nav class="tabs" aria-label="Основна навігація">
   <button id="nav-finance" class="tab-btn tab-c-finance active" onclick="switchTab('finance')"><span class="tab-icon-wrap"><span id="tab-icon-finance"></span></span><span data-i18n="nav_finance">Фінанси</span></button>
   <button id="nav-shifts" class="tab-btn tab-c-shifts" onclick="switchTab('shifts')"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
   <button id="nav-debt" class="tab-btn tab-c-debt" onclick="switchTab('debt')"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
   <button id="nav-shopping" class="tab-btn tab-c-shopping" onclick="switchTab('shopping')"><span class="tab-icon-wrap"><span id="tab-icon-shopping"></span></span><span data-i18n="nav_shopping">Покупки</span></button>
   <button id="nav-settings" class="tab-btn tab-c-settings" onclick="switchTab('settings')"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
-</div>
+</nav>
 
 <!-- MODAL ЗМІНИ -->
 <div class="modal-overlay" id="shift-modal" onclick="closeModal()">
