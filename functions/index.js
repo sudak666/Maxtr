@@ -14,6 +14,16 @@
  * Deploy with: firebase deploy --only functions
  * (requires the project to be on the Blaze plan and firebase-tools logged
  * in with access to the project — see ../SETUP.md).
+ *
+ * Redeployed 2026-07-11 with no logic change, specifically to force
+ * firebase-tools past its "no changes detected" skip and re-run the Cloud
+ * Scheduler trigger reconciliation step: a direct API check that day found
+ * zero Cloud Scheduler jobs in us-central1 for this project, meaning this
+ * function's hourly trigger had likely never been (re)created since the
+ * claude-deploy@ service account lost (and only that day regained)
+ * roles/cloudscheduler.admin — see CLAUDE.md's "Known gaps" for the full
+ * incident. The function itself was ACTIVE and serving the whole time;
+ * only the thing that's supposed to call it hourly was missing.
  */
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
