@@ -61,24 +61,24 @@ function renderGoalsManagerList(){
             <span class="cat-row-name">${w?escapeHtml(w.name):''}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span>
             <span class="cat-row-sub">${summary}</span>
           </div>
-          <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleGoalEdit('${g.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-          <button class="mgr-del" onclick="deleteGoal('${g.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+          <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${g.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+          <button class="mgr-del" data-action="delete-goal" data-id="${g.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
         </div>
         ${open?`
         <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
           <div class="fg">
             <label>${tr('finance_wallet')}</label>
-            <select onchange="updateGoal('${g.id}','walletId',this.value)">
+            <select data-action="update-goal" data-id="${g.id}" data-field="walletId">
               ${AppState.wallets.map(w2=>`<option value="${w2.id}" ${g.walletId===w2.id?'selected':''}>${escapeHtml(w2.name)}</option>`).join('')}
             </select>
           </div>
           <div class="fg">
             <label>${tr('goals_target')}</label>
-            <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" onchange="updateGoal('${g.id}','targetAmount',this.value)">
+            <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" data-action="update-goal" data-id="${g.id}" data-field="targetAmount">
           </div>
           <div class="fg">
             <label>${tr('goals_target_date')}</label>
-            <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" onchange="updateGoal('${g.id}','targetDate',this.value)">
+            <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" data-action="update-goal" data-id="${g.id}" data-field="targetDate">
           </div>
         </div>`:''}
       `;
@@ -168,7 +168,7 @@ const selectBuiltinAvatar = function(id){
 
 function renderAvatarPicker(){
   const box=document.getElementById('profile-avatar-picker'); if(!box) return;
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${AppState.profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectBuiltinAvatar('${a.id}')">${window.Icon(a.icon)}</div>`).join('');
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${AppState.profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" data-action="select-builtin-avatar" data-id="${a.id}">${window.Icon(a.icon)}</div>`).join('');
   setupAccessibleClickableDivs(box);
 }
 
@@ -281,17 +281,44 @@ export function renderProfileUI(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_goals_profile__(){
-window.openGoalsManager = openGoalsManager;
-window.toggleGoalEdit = toggleGoalEdit;
-window.toggleNewGoalForm = toggleNewGoalForm;
-window.updateGoal = updateGoal;
-window.confirmAddGoal = confirmAddGoal;
-window.deleteGoal = deleteGoal;
-window.selectBuiltinAvatar = selectBuiltinAvatar;
-window.handleAvatarUpload = handleAvatarUpload;
-window.updateNickname = updateNickname;
-window.onNicknameInput = onNicknameInput;
-window.saveNickname = saveNickname;
-window.enableNicknameEdit = enableNicknameEdit;
-window.onNicknameBlur = onNicknameBlur;
+// Phase 6 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// all 13 of this file's window.* exports existed only for onclick/onchange/
+// oninput/onblur attributes (its own goal-row/avatar-picker templates plus
+// static ones in index.html). Converted to a data-action attribute
+// dispatched through delegated listeners, same CLICK_ACTIONS/FIELD_ACTIONS
+// pattern as phases 3-5. `blur` doesn't bubble (unlike input/change/click),
+// so the nickname-input's onblur uses a separate `data-blur-action`
+// attribute matched by a `focusout` listener (focusout is blur's bubbling
+// equivalent) instead of reusing `data-action`.
+const CLICK_ACTIONS = {
+  'open-goals-manager': ()=>openGoalsManager(),
+  'toggle-goal-edit': ds=>toggleGoalEdit(ds.id),
+  'delete-goal': ds=>deleteGoal(ds.id),
+  'toggle-new-goal-form': ()=>toggleNewGoalForm(),
+  'confirm-add-goal': ()=>confirmAddGoal(),
+  'select-builtin-avatar': ds=>selectBuiltinAvatar(ds.id),
+  'save-nickname': ()=>saveNickname(),
+  'enable-nickname-edit': ()=>enableNicknameEdit(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+const FIELD_ACTIONS = {
+  'update-goal': (ds,el)=>updateGoal(ds.id, ds.field, el.value),
+  'handle-avatar-upload': (ds,el,e)=>handleAvatarUpload(e),
+  'on-nickname-input': (ds,el)=>onNicknameInput(el.value),
+};
+function dispatchFieldAction(e){
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el, e);
+}
+document.addEventListener('change', dispatchFieldAction);
+document.addEventListener('input', dispatchFieldAction);
+
+document.addEventListener('focusout', e=>{
+  const el=e.target.closest('[data-blur-action]');
+  if(el && el.dataset.blurAction==='on-nickname-blur') onNicknameBlur();
+});
 }

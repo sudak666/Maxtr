@@ -1127,7 +1127,7 @@ body.amounts-hidden #fx-converter-result{
         <span class="quick-action-icon" id="ic-qa-budgets"></span>
         <span class="quick-action-label" data-i18n="settings_budgets">Бюджети</span>
       </button>
-      <button type="button" class="quick-action" onclick="openGoalsManager()">
+      <button type="button" class="quick-action" data-action="open-goals-manager">
         <span class="quick-action-icon" id="ic-qa-goals"></span>
         <span class="quick-action-label" data-i18n="settings_goals">Цілі</span>
       </button>
@@ -1370,12 +1370,12 @@ body.amounts-hidden #fx-converter-result{
       <div class="chart-title"><span id="ic-settings-profile"></span><span data-i18n="settings_profile">Профіль</span></div>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <div class="profile-avatar" id="profile-avatar-preview" onclick="document.getElementById('profile-avatar-input').click()"></div>
-        <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+        <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" data-action="handle-avatar-upload">
         <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:6px;min-width:180px">
           <div style="display:flex;gap:6px">
-            <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" readonly oninput="onNicknameInput(this.value)" onblur="onNicknameBlur()" style="flex:1 1 auto;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none">
-            <button type="button" class="btn btn-ghost" id="profile-nickname-edit-btn" onclick="enableNicknameEdit()" style="flex-shrink:0;padding:9px 12px" aria-label="Редагувати нікнейм"><span id="ic-nickname-edit"></span></button>
-            <button class="btn btn-primary" id="profile-save-btn" onclick="saveNickname()" style="display:none;flex-shrink:0" data-i18n="common_save">Зберегти</button>
+            <input type="text" id="profile-nickname-input" placeholder="Нікнейм" data-i18n-placeholder="settings_nickname_placeholder" readonly data-action="on-nickname-input" data-blur-action="on-nickname-blur" style="flex:1 1 auto;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:9px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none">
+            <button type="button" class="btn btn-ghost" id="profile-nickname-edit-btn" data-action="enable-nickname-edit" style="flex-shrink:0;padding:9px 12px" aria-label="Редагувати нікнейм"><span id="ic-nickname-edit"></span></button>
+            <button class="btn btn-primary" id="profile-save-btn" data-action="save-nickname" style="display:none;flex-shrink:0" data-i18n="common_save">Зберегти</button>
           </div>
           <div style="font-size:11px;color:var(--muted);font-weight:600" id="profile-signed-as"></div>
         </div>
@@ -1456,7 +1456,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openGoalsManager()">
+      <div class="settings-row" data-action="open-goals-manager">
         <span id="ic-set-goals" class="icon-badge" style="background:#10b981"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_goals">Цілі</div>
@@ -1998,9 +1998,9 @@ body.amounts-hidden #fx-converter-result{
         <label data-i18n="goals_target_date">Дата (необов'язково)</label>
         <input type="text" id="goal-new-date" placeholder="напр. Грудень 2026">
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="confirmAddGoal()" data-i18n="goals_add_confirm">Додати</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="confirm-add-goal" data-i18n="goals_add_confirm">Додати</button>
     </div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="toggleNewGoalForm()"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="toggle-new-goal-form"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
