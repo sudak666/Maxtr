@@ -19,7 +19,7 @@ export function emptyStateHtml({icon='inbox', title='', desc='', action='', onCl
   </div>`;
 }
 
-const filterSettings = function(q){
+export const filterSettings = function(q){
   const needle=String(q||'').trim().toLowerCase();
   const sections=[...document.querySelectorAll('#tab-settings .settings-section')];
   let visible=0;
@@ -39,7 +39,7 @@ const setSettingsGroup = function(group){
   document.querySelectorAll('.settings-group-chip').forEach(chip=>{
     chip.classList.toggle('active', chip.dataset.group===AppState.activeSettingsGroup);
   });
-  window.filterSettings(document.getElementById('settings-search-input')?.value||'');
+  filterSettings(document.getElementById('settings-search-input')?.value||'');
 };
 
 const FINANCE_SECTIONS_COLLAPSED_BY_DEFAULT=['analytics-section','fx-widget-section','fx-converter-section'];
@@ -62,12 +62,17 @@ export function setupCollapsibleFinanceSections(){
 }
 
 export function setupAccessibleClickableDivs(root){
-  (root||document).querySelectorAll('div[onclick]:not([tabindex])').forEach(el=>{
+  // Matches both div[onclick] (older, not-yet-converted rows) and
+  // div[data-action] (rows already converted to the delegated
+  // data-action dispatch by the window.*/onclick-removal audit item —
+  // see CLAUDE.md) so a row doesn't lose keyboard accessibility the
+  // moment its onclick="" attribute gets replaced.
+  (root||document).querySelectorAll('div[onclick]:not([tabindex]), div[data-action]:not([tabindex])').forEach(el=>{
     if(el.classList.contains('modal-overlay')) return;
     // Wrapper divs whose only onclick is "don't let this bubble to the
     // backdrop" aren't a real action — skip them, or every modal/dialog
     // card would become a pointless, empty tab stop before its real controls.
-    if(el.getAttribute('onclick').trim()==='event.stopPropagation()') return;
+    if(el.hasAttribute('onclick') && el.getAttribute('onclick').trim()==='event.stopPropagation()') return;
     el.tabIndex=0;
     el.setAttribute('role','button');
     el.addEventListener('keydown',e=>{
@@ -327,11 +332,28 @@ export const uiPrompt = function(message,defaultValue,title){ return uiDialog({t
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_ui_widgets__(){
-window.filterSettings = filterSettings;
-window.setSettingsGroup = setSettingsGroup;
-window.uiConfirm = uiConfirm;
-window.uiAlert = uiAlert;
-window.uiPrompt = uiPrompt;
+// Phase 12 of the window.*/inline-onclick removal audit item (see
+// CLAUDE.md): this file's own remaining onclick/oninput sites — the
+// settings search input and the 5 .settings-group-chip buttons, all in
+// index.html — replaced with a data-action dispatch, same
+// CLICK_ACTIONS/FIELD_ACTIONS-on-the-capture-phase pattern earlier phases
+// used (settings-managers.js, etc.). uiConfirm/uiAlert/uiPrompt were
+// already dead as window.* (every call site is a real `import`, never a
+// literal onclick="uiConfirm(...)") so those exports were dropped outright.
+const CLICK_ACTIONS = {
+  'set-settings-group': ds=>setSettingsGroup(ds.group),
+};
+const FIELD_ACTIONS = {
+  'filter-settings': (ds,el)=>filterSettings(el.value),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+document.addEventListener('input', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+});
 (function bindDlg(){
   const ok=document.getElementById('ui-dlg-ok');
   const cancel=document.getElementById('ui-dlg-cancel');

@@ -1349,15 +1349,15 @@ body.amounts-hidden #fx-converter-result{
     </div>
     <div class="settings-search">
       <span id="ic-settings-search"></span>
-      <input type="search" id="settings-search-input" data-i18n-placeholder="settings_search_placeholder" placeholder="Пошук: гаманці, категорії, push…" oninput="filterSettings(this.value)">
+      <input type="search" id="settings-search-input" data-i18n-placeholder="settings_search_placeholder" placeholder="Пошук: гаманці, категорії, push…" data-action="filter-settings">
     </div>
     <div class="settings-no-results" id="settings-no-results" data-i18n="settings_search_empty">Нічого не знайдено</div>
     <div class="settings-group-row" id="settings-group-row">
-      <button type="button" class="settings-group-chip active" data-group="all" onclick="setSettingsGroup('all')" data-i18n="settings_group_all">Усі</button>
-      <button type="button" class="settings-group-chip" data-group="account" onclick="setSettingsGroup('account')" data-i18n="settings_group_account">Акаунт</button>
-      <button type="button" class="settings-group-chip" data-group="finance" onclick="setSettingsGroup('finance')" data-i18n="settings_group_finance">Фінанси</button>
-      <button type="button" class="settings-group-chip" data-group="security" onclick="setSettingsGroup('security')" data-i18n="settings_group_security">Безпека</button>
-      <button type="button" class="settings-group-chip" data-group="app" onclick="setSettingsGroup('app')" data-i18n="settings_group_app">Вигляд</button>
+      <button type="button" class="settings-group-chip active" data-group="all" data-action="set-settings-group" data-i18n="settings_group_all">Усі</button>
+      <button type="button" class="settings-group-chip" data-group="account" data-action="set-settings-group" data-i18n="settings_group_account">Акаунт</button>
+      <button type="button" class="settings-group-chip" data-group="finance" data-action="set-settings-group" data-i18n="settings_group_finance">Фінанси</button>
+      <button type="button" class="settings-group-chip" data-group="security" data-action="set-settings-group" data-i18n="settings_group_security">Безпека</button>
+      <button type="button" class="settings-group-chip" data-group="app" data-action="set-settings-group" data-i18n="settings_group_app">Вигляд</button>
     </div>
 
     <div class="contextual-tip" id="settings-contextual-tip" style="display:none">
@@ -1396,7 +1396,7 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
-      <div class="settings-row" onclick="showPremiumUpsell()">
+      <div class="settings-row" data-action="show-premium-upsell">
         <span id="ic-set-premium" class="icon-badge" style="background:#f59e0b"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_premium">Преміум</div>
@@ -1511,7 +1511,7 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_notif_push_hint">Приходять навіть коли застосунок закрито.</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" id="notif-push-checkbox" onchange="togglePushNotifications()">
+          <input type="checkbox" id="notif-push-checkbox" data-action="toggle-push-notifications">
           <span class="toggle-track"></span>
         </label>
       </div>
@@ -1522,14 +1522,14 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_notif_hint">Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" id="notif-toggle-checkbox" onchange="toggleReminders()">
+          <input type="checkbox" id="notif-toggle-checkbox" data-action="toggle-reminders">
           <span class="toggle-track"></span>
         </label>
       </div>
       <div style="display:flex;align-items:center;gap:4px;padding:2px 0 4px 46px">
-        <select id="notif-time-hour" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+        <select id="notif-time-hour" class="tool-select" data-action="update-notif-time"></select>
         <span style="font-weight:800;color:var(--muted)">:</span>
-        <select id="notif-time-minute" class="tool-select" onchange="updateNotifTimeFromSelects()"></select>
+        <select id="notif-time-minute" class="tool-select" data-action="update-notif-time"></select>
       </div>
       <div class="settings-row" style="cursor:default">
         <span id="ic-notif-budget" class="icon-badge" style="background:var(--red)"></span>
@@ -1538,7 +1538,7 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_notif_budget_hint">Сповістимо, коли витрати за категорією перевищать місячний бюджет.</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" id="notif-budget-checkbox" onchange="toggleBudgetAlerts()">
+          <input type="checkbox" id="notif-budget-checkbox" data-action="toggle-budget-alerts">
           <span class="toggle-track"></span>
         </label>
       </div>
@@ -1549,7 +1549,7 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_notif_recurring_hint">Попередимо за день до автододавання повторюваної операції.</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" id="notif-recurring-checkbox" onchange="toggleRecurringAlerts()">
+          <input type="checkbox" id="notif-recurring-checkbox" data-action="toggle-recurring-alerts">
           <span class="toggle-track"></span>
         </label>
       </div>

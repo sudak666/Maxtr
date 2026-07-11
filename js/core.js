@@ -65,8 +65,6 @@ function logAppError(kind, detail){
   }catch(e){}
 }
 
-const getErrorLog = function(){ try{ return JSON.parse(localStorage.getItem(errorLogKey()) || '[]'); }catch(e){ return []; } };
-
 export const SALARY_GOAL = 20000;
 
 export function subKey(type,name){ return type+':'+name; }
@@ -247,9 +245,24 @@ window.addEventListener('unhandledrejection', e=>{
   const reason = e.reason;
   logAppError('unhandled-rejection', { message: reason && reason.message || String(reason), stack: reason && reason.stack });
 });
-window.getErrorLog = getErrorLog;
-window.showPremiumUpsell = showPremiumUpsell;
+// window.__applyLangDynamic deliberately kept — it's the one hook back
+// from the inline classic script's setLang() (genuinely outside the js/
+// module graph, see CLAUDE.md's "index.html script structure"), not an
+// onclick attribute, so it's out of scope for this audit item.
 window.__applyLangDynamic = __applyLangDynamic;
+// Phase 13 of the window.*/inline-onclick removal audit item (see
+// CLAUDE.md): this file's one static onclick="" site in index.html
+// (the premium-upsell settings row) converted to a data-action dispatch.
+// window.getErrorLog was dropped outright — grepped every call site
+// across index.html/js/*.js and found zero, dead since whenever this
+// file was split out.
+const CLICK_ACTIONS = {
+  'show-premium-upsell': ()=>showPremiumUpsell(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
 }
 
 // Re-exports of this file's own imported (not locally declared) bindings
