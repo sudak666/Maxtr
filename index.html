@@ -1158,7 +1158,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Плаваюча кнопка: відкриває форму нової операції в шторці замість
          постійно розгорнутої форми, щоб типовий "просто перевірити баланс"
          візит не починався з форми на чверть екрана. -->
-    <button type="button" class="fin-fab" onclick="openNewTxModal()" aria-label="Нова операція">
+    <button type="button" class="fin-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
       <span id="ic-fin-fab"></span>
     </button>
 
@@ -1440,7 +1440,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openTagsManager()">
+      <div class="settings-row" data-action="open-tags-manager">
         <span id="ic-set-tags" class="icon-badge" style="background:#06b6d4"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_tags">Теги</div>
@@ -1472,7 +1472,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openRulesManager()">
+      <div class="settings-row" data-action="open-rules-manager">
         <span id="ic-set-rules" class="icon-badge" style="background:#a78bfa"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_rules">Автоматичні правила</div>
@@ -1684,7 +1684,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="fin-form" style="border:none;background:none;padding:0">
       <div class="fin-form-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
         <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
-        <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" onclick="closeTxModal()" data-i18n="common_cancel">Скасувати</button>
+        <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg">
         <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')" data-i18n="finance_type_income">+ Дохід</button>
@@ -1845,7 +1845,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" data-i18n="settings_tags">Теги</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="tags_desc">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
     <div class="mgr-list" id="tags-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-tag"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
@@ -1954,7 +1954,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" data-i18n="settings_rules">Автоматичні правила</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="rules_desc">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</div>
     <div class="debt-list" id="rules-list" style="max-height:420px"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addAutoRule()"><span id="ic-add-rule"></span><span data-i18n="rules_add">Додати правило</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-auto-rule"><span id="ic-add-rule"></span><span data-i18n="rules_add">Додати правило</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
