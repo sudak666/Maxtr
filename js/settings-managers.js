@@ -19,7 +19,7 @@ import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, showToast, uiConfi
 // below purely because *assigning* to window is a side effect that needs
 // ordering against the rest of the circular import graph.
 export function closeManagers(){
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 }
@@ -213,10 +213,19 @@ const openRatesManager = function(){
   document.getElementById('rates-modal').style.display='flex';
 };
 
+// Analytics/rates-widget/converter used to always render inline in the
+// Finance tab's scroll; renderFinance() (called on every tab switch/data
+// change) already keeps their content current regardless of where they
+// live in the DOM, so opening this modal just needs to show it.
+const openToolsManager = function(){
+  document.getElementById('tools-modal').style.display='flex';
+};
+
+// Rates/converter/analytics are no longer toggleable widgets here — they
+// moved into #tools-modal (see openToolsManager above) and are always
+// reachable from there, so only the two sections still living inline in
+// the Finance tab's scroll (chart/goals) need a show/hide+reorder toggle.
 const WIDGET_DEFS=[
-  {key:'rates', icon:'swap', color:'#3b82f6', titleKey:'widgets_item_rates', subKey:'widgets_item_rates_sub'},
-  {key:'converter', icon:'swap', color:'#0ea5e9', titleKey:'widgets_item_converter', subKey:'widgets_item_converter_sub'},
-  {key:'analytics', icon:'pie', color:'#ec4899', titleKey:'widgets_item_analytics', subKey:'widgets_item_analytics_sub'},
   {key:'chart', icon:'barChart', color:'#f59e0b', titleKey:'widgets_item_chart', subKey:'widgets_item_chart_sub'},
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
 ];
@@ -844,6 +853,7 @@ const CLICK_ACTIONS = {
   'delete-wallet': ds=>deleteWallet(ds.id),
   'open-rates-manager': ()=>openRatesManager(),
   'open-widgets-manager': ()=>openWidgetsManager(),
+  'open-tools-manager': ()=>openToolsManager(),
   'move-widget': ds=>moveWidget(ds.key, Number(ds.dir)),
   'set-rates-source': ds=>setRatesSource(ds.source),
   'update-rates-online': ()=>updateRatesOnline(),

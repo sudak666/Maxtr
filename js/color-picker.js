@@ -381,10 +381,6 @@ export function saveConfigLocal(){
   const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
 }
 
-const scrollToSection = function(id){
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
-};
-
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
@@ -395,13 +391,12 @@ const scrollToSection = function(id){
 export function __init_color_picker__(){
 // Phase 4 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
 // this file's own 6 dynamic onclick sites (color swatches, avatar picker,
-// profile row buttons) plus 4 static ones in index.html (add-profile,
-// open-profiles-manager, the two scroll-to-section quick actions) replaced
-// with a data-action attribute dispatched through one delegated listener,
-// same pattern as js/settings-managers.js's phase 3. CAPTURE phase for the
-// same reason as there: several of these buttons sit inside a .modal-card
-// whose own onclick="event.stopPropagation()" would otherwise swallow a
-// bubble-phase document listener.
+// profile row buttons) plus static ones in index.html (add-profile,
+// open-profiles-manager) replaced with a data-action attribute dispatched
+// through one delegated listener, same pattern as js/settings-managers.js's
+// phase 3. CAPTURE phase for the same reason as there: several of these
+// buttons sit inside a .modal-card whose own onclick="event.stopPropagation()"
+// would otherwise swallow a bubble-phase document listener.
 const CLICK_ACTIONS = {
   'select-picked-color': ds=>selectPickedColor(ds.color),
   'select-profile-avatar': ds=>selectProfileAvatar(ds.avatarId),
@@ -410,7 +405,6 @@ const CLICK_ACTIONS = {
   'rename-profile': ds=>renameProfile(ds.id),
   'delete-profile': ds=>deleteProfile(ds.id),
   'add-profile': ()=>addProfile(),
-  'scroll-to-section': ds=>scrollToSection(ds.target),
   'open-profiles-manager': ()=>{ document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI(); },
 };
 document.addEventListener('click', e=>{
