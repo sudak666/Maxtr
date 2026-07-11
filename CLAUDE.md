@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session logging convention
+
+**Every session that takes a real action — a deploy, an IAM/config change, a merged PR, a fix — must record it in a `.md` file in this repo (this file's "Known gaps / pending work" section for anything future sessions need context on, or a more specific doc like `AUDIT.md` when one already exists for that topic) before ending the turn.** This repo has no other persistent memory between sessions — a container restart wipes everything not committed. Follow the style already used throughout "Known gaps / pending work" below: what was done, why, the exact commit/PR reference, and any gotcha hit along the way (e.g. the IAM-propagation-delay note, the CI-fix root cause) — terse enough to skim, complete enough that a future session doesn't have to re-derive it from git log or re-discover the same bug. Do this even for actions that felt routine (a redeploy with "no changes detected", a docs-only PR) — the point is a continuous written record, not just documenting surprises.
+
 ## Project overview
 
 **Zminka** (formerly "Xamss") is a static PWA: a personal tracker for work shifts, multi-currency finances, and debt/settlement schedules. It's Ukrainian-first (`uk`/`en` toggle), backed by Firebase (Auth + Firestore + Cloud Messaging + one scheduled Cloud Function), and deployed as static files via Firebase Hosting — there is no build step, bundler, or frontend framework; native browser ES modules do the file splitting instead. `index.html` holds the markup/CSS/two small classic scripts; almost all app logic lives under `js/*.js`, loaded via `<script type="module" src="./js/app.js">` (see "`js/` module layout" below). It used to be one 7000-line inline `<script type="module">` — split apart specifically so a change to (say) the debt tab doesn't require reading through finance/calendar/settings code to get there; see that section for why this was safe to do without a bundler and what to watch for when editing across files.
