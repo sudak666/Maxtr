@@ -20,37 +20,30 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const logger = require('firebase-functions/logger');
+const { toBase, zonedDateParts, todayStr, monthPrefix } = require('./lib/pure');
 
 initializeApp();
 const db = getFirestore();
 const messaging = getMessaging();
 
 const DCOL = 'max_tracker';
-const SEED_RATES = { USD: 41, EUR: 44, GBP: 51, PLN: 10.5 };
 
-function convertCurrency(amount, fromCode, toCode, rates) {
-  if (fromCode === toCode) return amount;
-  const fromRate = rates[fromCode] ?? SEED_RATES[fromCode] ?? 1;
-  const toRate = rates[toCode] ?? SEED_RATES[toCode] ?? 1;
-  return (amount * fromRate) / toRate;
-}
-function toBase(amount, code, rates) {
-  return convertCurrency(amount, code || 'UAH', 'UAH', rates);
-}
-function todayStr(d) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-}
-function monthPrefix(d) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
+// registration-token-not-registered means the token is permanently dead
+// (app uninstalled, browser data cleared, push permission revoked) — FCM
+// itself will never accept it again, so the caller should stop retrying it
+// and delete the push_tokens doc rather than re-attempting (and re-logging
+// the same failure) every hour indefinitely.
+const TOKEN_INVALID_CODES = new Set([
+  'messaging/registration-token-not-registered',
+  'messaging/invalid-registration-token',
+]);
 async function sendPush(token, title, body) {
   try {
     await messaging.send({ token, notification: { title, body }, webpush: { fcmOptions: { link: '/' } } });
-    return true;
+    return { ok: true, invalid: false };
   } catch (err) {
     logger.warn('push send failed', { code: err.code, message: err.message });
-    return false;
+    return { ok: false, invalid: TOKEN_INVALID_CODES.has(err.code) };
   }
 }
 
@@ -64,7 +57,7 @@ function financeDocName(profileId) {
 // Runs one profile's three checks (daily reminder, budget exceeded, upcoming
 // recurring payment) against its own dedup state, and returns the updated
 // per-profile state to merge back onto the token doc.
-async function sweepProfile(uid, profileId, token, prevState, now, today, tomorrow, mPrefix) {
+async function sweepProfile(uid, profileId, token, prevState, now) {
   const financeSnap = await db.doc(`users/${uid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
   const f = financeSnap.data();
@@ -77,25 +70,43 @@ async function sweepProfile(uid, profileId, token, prevState, now, today, tomorr
   const rates = f.currencyRates || {};
   const walletCurrency = (id) => (wallets.find((w) => w.id === id) || {}).currency || 'UAH';
 
+  // Each profile carries its own timeZone (captured client-side via
+  // Intl.DateTimeFormat().resolvedOptions().timeZone whenever notification
+  // settings are saved) — the "today"/"tomorrow"/current-month window and
+  // the reminder hour comparison all need to be computed in *that* zone,
+  // not the Cloud Function's own UTC clock, or a 21:00 reminder fires at
+  // 21:00 UTC instead of 21:00 for the user.
+  const timeZone = notif.timeZone || 'UTC';
+  const today = todayStr(now, timeZone);
+  const tomorrow = todayStr(new Date(now.getTime() + 86400000), timeZone);
+  const mPrefix = monthPrefix(now, timeZone);
+  const localHour = zonedDateParts(now, timeZone).hour;
+
   const { sentDaily, sentBudget, sentRecurring } = prevState;
   const updates = {};
+  // Once a send reports the token as permanently dead, stop attempting
+  // further sends for the rest of this profile's checks (and the caller
+  // stops for any remaining profiles too) — no point re-hitting FCM with a
+  // token it's already told us it will never accept again.
+  let tokenInvalid = false;
 
   // 1. Daily reminder — hasn't logged anything today, past their set time.
   if (notif.enabled && sentDaily !== today) {
     const [h] = String(notif.time || '21:00').split(':').map(Number);
     const hasTodayTx = transactions.some((t) => t.date === today);
-    if (!hasTodayTx && now.getUTCHours() >= (h || 21)) {
-      if (await sendPush(token, 'Zminka', 'Не забудь записати сьогоднішні операції.')) {
-        updates.sentDaily = today;
-      }
+    if (!hasTodayTx && localHour >= (h || 21)) {
+      const res = await sendPush(token, 'Zminka', 'Не забудь записати сьогоднішні операції.');
+      if (res.ok) updates.sentDaily = today;
+      if (res.invalid) tokenInvalid = true;
     }
   }
 
   // 2. Budget exceeded — once per category per month.
-  if (notif.budgetAlerts) {
+  if (!tokenInvalid && notif.budgetAlerts) {
     const sent = { ...(sentBudget || {}) };
     let changed = false;
     for (const [cat, limit] of Object.entries(budgets)) {
+      if (tokenInvalid) break;
       if (!(limit > 0) || !(categories.expense || []).includes(cat)) continue;
       const key = `${mPrefix}_${cat}`;
       if (sent[key]) continue;
@@ -106,86 +117,106 @@ async function sweepProfile(uid, profileId, token, prevState, now, today, tomorr
         return s;
       }, 0);
       if (spent > limit) {
-        if (await sendPush(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`)) {
-          sent[key] = true;
-          changed = true;
-        }
+        const res = await sendPush(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`);
+        if (res.ok) { sent[key] = true; changed = true; }
+        if (res.invalid) tokenInvalid = true;
       }
     }
     if (changed) updates.sentBudget = sent;
   }
 
   // 3. Upcoming recurring payment — one day ahead of auto-add.
-  if (notif.recurringAlerts) {
+  if (!tokenInvalid && notif.recurringAlerts) {
     const sent = { ...(sentRecurring || {}) };
     let changed = false;
     for (const r of recurring) {
+      if (tokenInvalid) break;
       if (r.active === false || r.nextDate !== tomorrow || !r.amount) continue;
       const key = `${r.id}_${tomorrow}`;
       if (sent[key]) continue;
       const amountStr = `${r.amount.toLocaleString('uk-UA')} ${walletCurrency(r.wallet)}`;
-      if (await sendPush(token, 'Наближається платіж', `Завтра автоматично додасться операція "${r.category || 'Інше'}" на ${amountStr}.`)) {
-        sent[key] = true;
-        changed = true;
-      }
+      const res = await sendPush(token, 'Наближається платіж', `Завтра автоматично додасться операція "${r.category || 'Інше'}" на ${amountStr}.`);
+      if (res.ok) { sent[key] = true; changed = true; }
+      if (res.invalid) tokenInvalid = true;
     }
     if (changed) updates.sentRecurring = sent;
   }
 
-  return Object.keys(updates).length ? updates : null;
+  return { updates: Object.keys(updates).length ? updates : null, tokenInvalid };
 }
 
 // Runs hourly. notif.time is a plain "HH:MM" the client captured from the
-// device's local clock, but this sweep compares it directly against
-// now.getUTCHours() — there's no stored timezone/offset per user, so a
-// reminder set for e.g. 21:00 fires at 21:00 UTC, not 21:00 in whatever
-// timezone the user is actually in. That's an intentional known limitation
-// (best-effort daily reminder, not to-the-minute precise), not a bug to
-// silently work around — fixing it means storing the user's timezone/offset
-// in notifSettings and comparing against local time here instead.
+// device's local clock; notif.timeZone (IANA zone name, e.g. "Europe/Kyiv")
+// is captured alongside it whenever notification settings are saved, and
+// sweepProfile() uses it to compute "today"/"tomorrow"/the current month and
+// the reminder hour in the user's own local time instead of this function's
+// UTC clock. Accounts whose settings predate the timeZone field fall back
+// to UTC (best-effort, not to-the-minute precise) until they next touch
+// their notification settings, at which point the client backfills it.
+// One token doc's full sweep (every profile on that account) — pulled out
+// of the main loop so notificationSweep can run every user's sweep
+// concurrently (Promise.allSettled below) instead of one uid at a time,
+// which is what actually doesn't scale past a handful of users: each
+// iteration was a fully sequential chain of Firestore reads/FCM sends with
+// nothing overlapping.
+async function sweepToken(tokenDoc, now) {
+  const uid = tokenDoc.id;
+  const data = tokenDoc.data();
+  const { token, sentDaily, sentBudget, sentRecurring, profileState } = data;
+  if (!token) return;
+
+  // profiles_meta lists every profile on the account (including 'default');
+  // accounts that never created extra profiles just have the one default
+  // entry, so single-profile users are swept exactly as before.
+  const metaSnap = await db.doc(`users/${uid}/${DCOL}/profiles_meta`).get();
+  const profileIds = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
+    ? metaSnap.data().list.map((p) => p.id).filter(Boolean)
+    : ['default'];
+
+  const nextProfileState = { ...(profileState || {}) };
+  let anyChange = false;
+  let tokenInvalid = false;
+
+  for (const profileId of profileIds) {
+    // Pre-existing token docs kept their dedup fields flat (sentDaily/
+    // sentBudget/sentRecurring) because there was only ever one profile.
+    // Fall back to those for 'default' until this sweep has written a
+    // profileState.default at least once — no migration step needed.
+    const prevState = profileState?.[profileId]
+      ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
+
+    const { updates: profileUpdates, tokenInvalid: invalid } = await sweepProfile(uid, profileId, token, prevState, now);
+    if (profileUpdates) {
+      nextProfileState[profileId] = { ...prevState, ...profileUpdates };
+      anyChange = true;
+    }
+    if (invalid) { tokenInvalid = true; break; }
+  }
+
+  if (tokenInvalid) {
+    // Permanently dead token (app uninstalled, data cleared, permission
+    // revoked) — FCM will keep rejecting it forever, so stop tracking it
+    // instead of re-attempting (and re-logging) the same failure hourly.
+    // The client re-creates this doc itself next time it enables push.
+    await tokenDoc.ref.delete();
+    logger.info('deleted invalid push token', { uid });
+    return;
+  }
+
+  if (anyChange) {
+    await tokenDoc.ref.set({ profileState: nextProfileState }, { merge: true });
+  }
+}
+
 exports.notificationSweep = onSchedule('every 60 minutes', async () => {
   const tokensSnap = await db.collection('push_tokens').get();
   if (tokensSnap.empty) return;
 
   const now = new Date();
-  const today = todayStr(now);
-  const tomorrow = todayStr(new Date(now.getTime() + 86400000));
-  const mPrefix = monthPrefix(now);
-
-  for (const tokenDoc of tokensSnap.docs) {
-    const uid = tokenDoc.id;
-    const data = tokenDoc.data();
-    const { token, sentDaily, sentBudget, sentRecurring, profileState } = data;
-    if (!token) continue;
-
-    // profiles_meta lists every profile on the account (including
-    // 'default'); accounts that never created extra profiles just have the
-    // one default entry, so single-profile users are swept exactly as before.
-    const metaSnap = await db.doc(`users/${uid}/${DCOL}/profiles_meta`).get();
-    const profileIds = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
-      ? metaSnap.data().list.map((p) => p.id).filter(Boolean)
-      : ['default'];
-
-    const nextProfileState = { ...(profileState || {}) };
-    let anyChange = false;
-
-    for (const profileId of profileIds) {
-      // Pre-existing token docs kept their dedup fields flat (sentDaily/
-      // sentBudget/sentRecurring) because there was only ever one profile.
-      // Fall back to those for 'default' until this sweep has written a
-      // profileState.default at least once — no migration step needed.
-      const prevState = profileState?.[profileId]
-        ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
-
-      const profileUpdates = await sweepProfile(uid, profileId, token, prevState, now, today, tomorrow, mPrefix);
-      if (profileUpdates) {
-        nextProfileState[profileId] = { ...prevState, ...profileUpdates };
-        anyChange = true;
-      }
+  const results = await Promise.allSettled(tokensSnap.docs.map((tokenDoc) => sweepToken(tokenDoc, now)));
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      logger.error('sweepToken failed', { uid: tokensSnap.docs[i].id, error: r.reason?.message || String(r.reason) });
     }
-
-    if (anyChange) {
-      await tokenDoc.ref.set({ profileState: nextProfileState }, { merge: true });
-    }
-  }
+  });
 });

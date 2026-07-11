@@ -1,15 +1,105 @@
-// sw.js — Zminka PWA Service Worker v3.0
-const CACHE_NAME = 'zminka-v3';
+// sw.js — Zminka PWA Service Worker v4.0
+// Handles BOTH plain asset caching AND Firebase Cloud Messaging background
+// push. These used to be two separate service worker files (sw.js +
+// firebase-messaging-sw.js) both registered at the site's root scope —
+// since a single scope can only ever have one active worker, registering
+// firebase-messaging-sw.js after sw.js silently replaced sw.js at that
+// scope (it has no 'fetch' handler), which disabled asset caching/offline
+// support the moment a user enabled push notifications. Merged into one
+// file so there is exactly one registration, one scope, no conflict.
+//
+// The importScripts() calls below fetch Firebase's compat SDK from gstatic
+// at SW-script-evaluation time — if that fetch fails (offline first
+// install, gstatic unreachable, ad blocker, sandboxed test), an uncaught
+// error there would fail the *entire* script evaluation, taking the
+// install/fetch handlers below down with it and losing asset caching too,
+// not just push. Wrapped in try/catch so a Firebase/network hiccup only
+// costs background push, never the core offline-caching behavior.
+let messaging = null;
+try {
+  importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging-compat.js');
+
+  firebase.initializeApp({
+    apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
+    authDomain: "maxtr-c238f.firebaseapp.com",
+    projectId: "maxtr-c238f",
+    storageBucket: "maxtr-c238f.firebasestorage.app",
+    messagingSenderId: "311094677098",
+    appId: "1:311094677098:web:7a3797c99fad2874340413"
+  });
+
+  messaging = firebase.messaging();
+  messaging.onBackgroundMessage((payload) => {
+    const { title, body } = payload.notification || {};
+    self.registration.showNotification(title || 'Zminka', {
+      body: body || '',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+    });
+  });
+} catch (err) {
+  console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
+}
+
+const CACHE_NAME = 'zminka-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  // Same reasoning as FIREBASE_SDK_ASSETS below: index.html loads app
+  // logic via <script type="module" src="./js/app.js">, which statically
+  // imports these same-origin files — a cold start with no network (first
+  // install offline, or a cache that hasn't picked these up yet via the
+  // fetch handler's opportunistic caching) would otherwise fail the whole
+  // module graph. Keep this list in sync with js/'s actual file list.
+  './js/app.js',
+  './js/state.js',
+  './js/core.js',
+  './js/firebase-sync.js',
+  './js/color-picker.js',
+  './js/auth.js',
+  './js/app-init.js',
+  './js/ui-widgets.js',
+  './js/calendar.js',
+  './js/settings-managers.js',
+  './js/goals-profile.js',
+  './js/notifications.js',
+  './js/finance.js',
+  './js/analytics-csv.js',
+  './js/debt.js',
+  './js/shopping.js',
+];
+
+// index.html's <script type="module"> statically imports these four SDK
+// files directly from gstatic — a static ES module import is all-or-nothing,
+// so on a cold start with no network (offline first launch, or a cache that
+// never got these yet) the whole module fails to evaluate and the entire
+// app (not just Firebase-dependent features) goes dead, even though the
+// index.html shell itself rendered fine from cache. Must match the exact
+// URLs/version index.html imports — bump both together if the SDK version
+// ever changes (see SETUP.md's note on the pinned 12.11.0 version).
+const FIREBASE_SDK_ASSETS = [
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js',
 ];
 
 // Встановлення — кешуємо статику
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => Promise.all([
+      cache.addAll(STATIC_ASSETS),
+      // Best-effort: a fresh install with no network yet (or gstatic
+      // blocked) shouldn't fail the whole install and lose basic asset
+      // caching just because the SDK precache didn't work this time — it'll
+      // get cached opportunistically by the fetch handler below on the next
+      // successful online load instead.
+      cache.addAll(FIREBASE_SDK_ASSETS).catch(err => console.warn('sw.js: Firebase SDK precache failed, will retry on next online fetch', err)),
+    ]))
   );
   self.skipWaiting();
 });
@@ -38,6 +128,24 @@ self.addEventListener('notificationclick', event => {
 // Fetch — Network First для HTML, Cache First для решти
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // The four Firebase SDK module scripts specifically (see
+  // FIREBASE_SDK_ASSETS above) get cache-first treatment despite being
+  // cross-origin — this is a narrow, exact-URL allowlist, not a general
+  // cross-origin fetch override, so it doesn't reintroduce the reCAPTCHA
+  // no-cors/redirect bug the blanket bail-out below was added to fix.
+  if (FIREBASE_SDK_ASSETS.includes(event.request.url)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+        if (response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }))
+    );
+    return;
+  }
 
   // Сторонні (крос-origin) запити — Firebase, reCAPTCHA, шрифти тощо —
   // не чіпаємо взагалі й лишаємо браузеру, ніби сервіс-воркера немає.

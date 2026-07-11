@@ -1,0 +1,9 @@
+{
+  "name": "zminka-scripts",
+  "description": "One-off manual operator scripts (not part of the app or CI). Run individually with real Firebase Admin credentials — see each script's own header comment.",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}

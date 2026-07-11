@@ -1,0 +1,37 @@
+name: Smoke test
+
+# Runs tests/smoke.mjs against index.html on every push/PR. There is
+# deliberately no root package.json in this repo (see CLAUDE.md — plain
+# static HTML/CSS/JS, no build step), so Playwright is installed globally
+# in this job rather than as a project dependency, matching how it's set
+# up in the maintainer's local/sandbox environment.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: npm install -g playwright@1.56.1
+
+      - name: Install Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Run unit tests
+        run: node tests/unit.mjs
+
+      - name: Run smoke test
+        run: node tests/smoke.mjs
+
+      - name: Syntax-check Cloud Function
+        run: node --check functions/index.js

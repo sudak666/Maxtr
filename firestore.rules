@@ -1,21 +1,62 @@
 rules_version = '2';
 
-// Zminka — per-user data isolation.
+// Zminka — per-user data isolation, plus basic structural validation.
 // Every signed-in user can only read/write their own documents under
 // users/{uid}/max_tracker/{doc}. Anonymous or cross-account access is denied.
 // Deploy with: firebase deploy --only firestore:rules
+//
+// The validation below is deliberately shallow, not a full per-field
+// schema: the `finance` doc in particular grows new top-level keys as
+// features ship (see index.html's userDoc()/lsKey() comment, which already
+// flagged that this file — not client code — is what actually has to
+// enforce doc-name scoping). A strict field-by-field schema here would need
+// updating on every new feature and risks silently breaking real users'
+// sync the moment it drifts out of date with the client, which is worse
+// than the gap it closes. Instead this guards against the concrete,
+// low-maintenance risks: writing to an unexpected document name/path,
+// wildly oversized documents, and malformed updatedAt/token fields that
+// other logic (optimistic-concurrency conflict detection, the push sweep)
+// relies on being the right type.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid}/max_tracker/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    // Known doc names: shifts, finance, debt, backup_v2, profiles_meta —
+    // the first four also appear suffixed "@<profileId>" for non-default
+    // profiles (profileId is always an app-generated `uid('profile')` id:
+    // alphanumeric + underscore, see index.html); profiles_meta itself is
+    // account-wide and never suffixed. A single path segment (not `**`) —
+    // there are no subcollections under max_tracker, so this also closes
+    // off writing to arbitrary nested paths a client could otherwise reach
+    // under their own uid.
+    match /users/{uid}/max_tracker/{document} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && document.matches('^(shifts|finance|debt|backup_v2)(@[A-Za-z0-9_]+)?$|^profiles_meta$')
+        // Generous headroom over the ~19 top-level keys the `finance` doc
+        // currently has — catches a malformed/injected payload without
+        // needing to be updated for every ordinary new feature field.
+        && request.resource.data.keys().size() < 60
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
+        && (!('at' in request.resource.data) || request.resource.data.at is number);
     }
 
     // FCM push token per account, written by the client when the user
     // enables push notifications. Read by the notificationSweep Cloud
     // Function via the Admin SDK (which bypasses these rules entirely) —
-    // this rule only governs direct client access.
+    // this rule only governs direct client access. The Admin SDK also
+    // writes its own dedup fields (profileState, legacy sentDaily/
+    // sentBudget/sentRecurring) onto this same doc, so validation here only
+    // type/size-checks the client-writable fields when present rather than
+    // allowlisting the doc's full key set, which would reject a client
+    // token-refresh write after the sweep has already added its fields.
     match /push_tokens/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && (!('token' in request.resource.data) || (
+          request.resource.data.token is string &&
+          request.resource.data.token.size() > 0 &&
+          request.resource.data.token.size() < 4096
+        ))
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number);
     }
 
     // Deny everything else by default (including the old shared

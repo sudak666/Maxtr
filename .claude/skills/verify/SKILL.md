@@ -17,30 +17,43 @@ leak across turns in this sandbox otherwise.
 
 ## 2. Syntax-check before you even launch a browser
 
-`index.html` has a `<script type="module">` that a naive
-`node --check index.html` never sees (it's HTML, not JS) and that a regex
-for plain `<script>` also misses (module scripts have an attribute). Pull
-it out first:
+App logic now lives under `js/*.js` (16 native ES modules, loaded via
+`<script type="module" src="./js/app.js">` — see CLAUDE.md's "`js/`
+module layout"), not one inline `<script type="module">` block. `node
+--check` only treats a file as an ES module by its extension (`.mjs`) or a
+`package.json` "type" field — there's neither here (no root `package.json`
+— see CLAUDE.md) — so copy each file to a throwaway `.mjs` path first,
+same trick `tests/smoke.mjs`'s `checkModuleScriptSyntax()` already
+automates (read that function if you want the exact loop rather than
+reimplementing it by hand):
 
 ```bash
 node -e "
 const fs=require('fs');
-const html=fs.readFileSync('index.html','utf8');
-const m=html.match(/<script type=\"module\">([\s\S]*?)<\/script>/);
-fs.writeFileSync('/tmp/mod_check.mjs', m[1].replace(/https:\/\/www\.gstatic\.com\/[^\"]+/g, 'data:text/javascript,export default {}'));
+for(const f of fs.readdirSync('js').filter(f=>f.endsWith('.js'))){
+  const tmp='/tmp/'+f+'.check.mjs';
+  fs.copyFileSync('js/'+f, tmp);
+}
 "
-node --check /tmp/mod_check.mjs && echo OK
+for f in /tmp/*.js.check.mjs; do node --check "$f" || echo "FAIL: $f"; done
 ```
 This catches typos before you burn time on a browser session that fails
-to boot for a silly reason.
+to boot for a silly reason. It does **not** catch cross-file wiring bugs
+(a missing `import`, a name only one file exports) — `node --check` parses
+each file in isolation, it doesn't resolve the import graph. The only real
+check for that is actually loading the page in a browser (step 4) and
+watching for `pageerror` events — a missing/wrong export shows up as
+`The requested module './x.js' does not provide an export named 'y'` or a
+`ReferenceError`, not a syntax error.
 
 ## 3. Stub the Firebase SDK
 
-The module script imports three (sometimes four) `firebasejs` URLs by
-exact path. Intercept each with Playwright's `page.route` and fulfill
-with a minimal ES module — real network access to gstatic.com/Firebase
-does not exist in this sandbox, and you don't want a real project write
-anyway.
+`js/core.js`, `js/auth.js`, and `js/notifications.js` (Firebase init, auth
+methods, and Cloud Messaging respectively) import three-to-four
+`firebasejs` URLs by exact path. Intercept each with Playwright's
+`page.route` and fulfill with a minimal ES module — real network access to
+gstatic.com/Firebase does not exist in this sandbox, and you don't want a
+real project write anyway.
 
 ```js
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
@@ -109,11 +122,12 @@ run it — `playwright` is a global install here, not a project dependency.
   and each feature section for the `window.x=` line before assuming
   something is reachable — plenty of internal helpers (`showToast`,
   `checkBudgetAlerts`) are deliberately not exposed.
-- **Service worker registration for push** (`firebase-messaging-sw.js`) does
-  real `importScripts()` to gstatic — no network here, so it'll fail. Stub
-  `navigator.serviceWorker.register` to return a fake registration object
-  when testing push-enable logic in isolation; that's a sandbox limitation,
-  not a bug to chase.
+- **Service worker registration for push** (`sw.js`, which now also carries
+  the FCM background-message handler — there is no separate
+  `firebase-messaging-sw.js` anymore) does real `importScripts()` to gstatic
+  — no network here, so it'll fail. Stub `navigator.serviceWorker.register`
+  to return a fake registration object when testing push-enable logic in
+  isolation; that's a sandbox limitation, not a bug to chase.
 - **A fresh `uid` per test file** avoids onboarding/localStorage state
   bleeding between runs (the "seen onboarding" flag, PIN, hide-amounts, etc.
   are all keyed by uid).
