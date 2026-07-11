@@ -42,7 +42,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v8';
+const CACHE_NAME = 'zminka-v9';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -71,6 +71,13 @@ const STATIC_ASSETS = [
   './js/analytics-csv.js',
   './js/debt.js',
   './js/shopping.js',
+  // Classic (non-module) scripts index.html now loads via <script src=""> —
+  // externalized from inline <script> blocks as part of the CSP hardening
+  // pass (see CLAUDE.md) so script-src doesn't need 'unsafe-inline'/hashes.
+  './js/theme-preinit.js',
+  './js/touch-active-fix.js',
+  './js/sw-register.js',
+  './js/classic-globals.js',
 ];
 
 // index.html's <script type="module"> statically imports these four SDK
