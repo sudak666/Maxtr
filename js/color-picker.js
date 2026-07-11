@@ -7,7 +7,7 @@ import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { applyTemplate, clearCurrentMonth, closeModal, goToday, openModal, processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart, saveModalSelection, shiftMonth, validateModalSelection } from './calendar.js';
 import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
-import { addDebtEntry, deleteCurrentDebt, deleteDebtEntry, renderDebt, updateDebtEntry, updateDebtInfo } from './debt.js';
+import { renderDebt } from './debt.js';
 import { addTransaction, deleteTransaction, setFinanceType, setTxFilter, updateTag } from './finance.js';
 import { activeProfileLsKey, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
@@ -437,9 +437,9 @@ window.deleteTransaction=deleteTransaction;
 window.setTxFilter=setTxFilter;
 window.shiftMonth=shiftMonth;
 window.goToday=goToday;
-window.updateDebtInfo=updateDebtInfo;
-window.addDebtEntry=addDebtEntry;
-window.updateDebtEntry=updateDebtEntry;
-window.deleteDebtEntry=deleteDebtEntry;
-window.deleteCurrentDebt=deleteCurrentDebt;
+// updateDebtInfo/addDebtEntry/updateDebtEntry/deleteDebtEntry/
+// deleteCurrentDebt used to be re-exported here too (a leftover of the
+// original mechanical split landing debt.js's window.* assignments in this
+// file's chunk) - moved to js/debt.js's own __init_debt__() as part of
+// phase 8 of the window.*/onclick removal audit item, see CLAUDE.md.
 }

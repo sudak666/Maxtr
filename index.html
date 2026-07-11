@@ -1259,22 +1259,22 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
-      <button type="button" class="fin-form-title fin-form-title-toggle" onclick="toggleDebtInfoPanel()">
+      <button type="button" class="fin-form-title fin-form-title-toggle" data-action="toggle-debt-info-panel">
         <span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані розрахунку</span>
         <span class="tools-toggle-chevron" id="debt-info-chevron"></span>
       </button>
       <div id="debt-info-body" style="display:none">
         <div class="fg">
           <label data-i18n="debt_name">Назва</label>
-          <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" data-i18n-placeholder="debt_name_placeholder" onchange="updateDebtInfo()">
+          <input type="text" id="debt-name" placeholder="Напр. Позика, Розстрочка…" data-i18n-placeholder="debt_name_placeholder" data-action="update-debt-info">
         </div>
         <div class="fg">
           <label data-i18n="debt_note">Нотатка</label>
-          <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" onchange="updateDebtInfo()">
+          <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" data-action="update-debt-info">
         </div>
         <div class="fg">
           <label data-i18n="debt_currency">Валюта</label>
-          <select id="debt-currency" onchange="updateDebtInfo()">
+          <select id="debt-currency" data-action="update-debt-info">
             <option value="у.о.">у.о.</option>
             <option value="грн">грн</option>
             <option value="$">$</option>
@@ -1284,14 +1284,14 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <div class="fg">
           <label data-i18n="debt_stat_start">Початкова сума</label>
-          <input type="number" id="debt-start" placeholder="0" step="0.01" onchange="updateDebtInfo()">
+          <input type="number" id="debt-start" placeholder="0" step="0.01" data-action="update-debt-info">
         </div>
-        <button class="btn btn-danger" style="align-self:flex-start" onclick="deleteCurrentDebt()" data-i18n="debt_delete">Видалити цей розрахунок</button>
+        <button class="btn btn-danger" style="align-self:flex-start" data-action="delete-current-debt" data-i18n="debt_delete">Видалити цей розрахунок</button>
       </div>
     </div>
 
     <div class="fin-history">
-      <div class="hist-head hist-head-toggle" onclick="toggleDebtHistoryPanel()">
+      <div class="hist-head hist-head-toggle" data-action="toggle-debt-history-panel">
         <div class="hist-title" data-i18n="debt_history_title">Історія платежів</div>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="font-size:12px;color:var(--muted);font-weight:600" id="debt-entry-count"></div>
@@ -1301,7 +1301,7 @@ body.amounts-hidden #fx-converter-result{
       <div class="debt-list" id="debt-list-container"></div>
     </div>
 
-    <button type="button" class="fin-fab" onclick="openNewDebtEntryModal()" aria-label="Новий платіж">
+    <button type="button" class="fin-fab" data-action="open-new-debt-entry-modal" aria-label="Новий платіж">
       <span id="ic-debt-fab"></span>
     </button>
   </section>
@@ -1738,7 +1738,7 @@ body.amounts-hidden #fx-converter-result{
       <div class="fin-form-title"><span id="ic-debt-plus"></span><span data-i18n="debt_new_payment">Новий платіж</span></div>
       <div class="fg">
         <label data-i18n="debt_amount">Сума</label>
-        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68" data-i18n-placeholder="debt_amount_placeholder" oninput="autoFillDebtBalance()">
+        <input type="text" id="debt-amount" placeholder="напр. 500 або ***68" data-i18n-placeholder="debt_amount_placeholder" data-action="auto-fill-debt-balance">
       </div>
       <div class="fg">
         <label><span data-i18n="debt_balance_after">Залишок після оплати</span> <span style="color:var(--muted2);font-weight:600;text-transform:none;letter-spacing:0" data-i18n="debt_balance_auto">(рахується автоматично)</span></label>
@@ -1748,7 +1748,7 @@ body.amounts-hidden #fx-converter-result{
         <label data-i18n="debt_date_label">Дата / мітка</label>
         <input type="text" id="debt-date" placeholder="напр. 10.02.2026 або Березень" data-i18n-placeholder="debt_date_placeholder">
       </div>
-      <button class="add-btn" onclick="addDebtEntry()" data-i18n="debt_add_payment">Додати платіж</button>
+      <button class="add-btn" data-action="add-debt-entry" data-i18n="debt_add_payment">Додати платіж</button>
     </div>
    </div>
   </div>
