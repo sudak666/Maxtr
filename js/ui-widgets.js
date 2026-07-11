@@ -62,17 +62,14 @@ export function setupCollapsibleFinanceSections(){
 }
 
 export function setupAccessibleClickableDivs(root){
-  // Matches both div[onclick] (older, not-yet-converted rows) and
-  // div[data-action] (rows already converted to the delegated
-  // data-action dispatch by the window.*/onclick-removal audit item —
-  // see CLAUDE.md) so a row doesn't lose keyboard accessibility the
-  // moment its onclick="" attribute gets replaced.
-  (root||document).querySelectorAll('div[onclick]:not([tabindex]), div[data-action]:not([tabindex])').forEach(el=>{
+  // No <div> anywhere in this codebase carries a literal onclick=""
+  // attribute anymore (the last ones — every .modal-card/.dlg-card's
+  // event.stopPropagation() backdrop guard — were converted to a real
+  // addEventListener in js/classic-globals.js as part of the CSP
+  // hardening pass; see CLAUDE.md), so this only needs to grant keyboard
+  // accessibility to div[data-action] rows now.
+  (root||document).querySelectorAll('div[data-action]:not([tabindex])').forEach(el=>{
     if(el.classList.contains('modal-overlay')) return;
-    // Wrapper divs whose only onclick is "don't let this bubble to the
-    // backdrop" aren't a real action — skip them, or every modal/dialog
-    // card would become a pointless, empty tab stop before its real controls.
-    if(el.hasAttribute('onclick') && el.getAttribute('onclick').trim()==='event.stopPropagation()') return;
     el.tabIndex=0;
     el.setAttribute('role','button');
     el.addEventListener('keydown',e=>{

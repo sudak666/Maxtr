@@ -245,6 +245,14 @@ window.addEventListener('unhandledrejection', e=>{
   const reason = e.reason;
   logAppError('unhandled-rejection', { message: reason && reason.message || String(reason), stack: reason && reason.stack });
 });
+// Surfaces Content-Security-Policy-Report-Only violations (see
+// firebase.json) into the same local error log, since this app has no
+// backend to send CSP reports to — lets the account owner check
+// localStorage (or a future Settings-tab viewer) for anything the policy
+// missed before it ever gets flipped from report-only to enforcing.
+document.addEventListener('securitypolicyviolation', e=>{
+  logAppError('csp-violation', { message: `${e.violatedDirective} blocked ${e.blockedURI}`, source: e.sourceFile, line: e.lineNumber, col: e.columnNumber });
+});
 // window.__applyLangDynamic deliberately kept — it's the one hook back
 // from the inline classic script's setLang() (genuinely outside the js/
 // module graph, see CLAUDE.md's "index.html script structure"), not an
