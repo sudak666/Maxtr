@@ -36,6 +36,9 @@ jobs:
       - name: Run E2E CRUD test
         run: node tests/e2e-crud.mjs
 
+      - name: Run E2E modals test
+        run: node tests/e2e-modals.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 

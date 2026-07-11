@@ -942,7 +942,7 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <!-- MANAGER: PIN SETTINGS -->
-<div class="modal-overlay" id="pin-settings-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="pin-settings-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -968,7 +968,7 @@ body.amounts-hidden #fx-converter-result{
       <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a> · <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
     </div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1647,7 +1647,7 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <!-- MANAGER: SHIFT TYPES -->
-<div class="modal-overlay" id="shift-types-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="shift-types-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1655,14 +1655,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="mgr-list" id="shift-types-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addShiftType()"><span id="ic-add-st"></span><span data-i18n="shifts_add_type">Додати тип зміни</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: WALLETS -->
-<div class="modal-overlay" id="wallets-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="wallets-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1670,14 +1670,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="mgr-list" id="wallets-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- НОВА ОПЕРАЦІЯ (шторка, відкривається плаваючою кнопкою на вкладці Фінанси) -->
-<div class="modal-overlay" id="tx-form-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="tx-form-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1730,7 +1730,7 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <!-- MANAGER: NEW DEBT PAYMENT (opened from the Розрахунки FAB) -->
-<div class="modal-overlay" id="debt-form-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="debt-form-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1755,7 +1755,7 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <!-- MANAGER: CATEGORIES -->
-<div class="modal-overlay" id="categories-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="categories-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1767,14 +1767,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="mgr-list" id="categories-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span><span data-i18n="cat_add">Додати категорію</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: CURRENCY RATES -->
-<div class="modal-overlay" id="rates-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="rates-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1790,14 +1790,14 @@ body.amounts-hidden #fx-converter-result{
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="rates-updated-hint"></div>
     <div class="mgr-list" id="rates-list"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: WIDGETS -->
-<div class="modal-overlay" id="widgets-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="widgets-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1805,14 +1805,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="widgets_desc">Увімкни чи вимкни блоки на вкладці "Фінанси".</div>
     <div id="widgets-list"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- PREMIUM UPSELL -->
-<div class="modal-overlay" id="premium-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="premium-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1831,14 +1831,14 @@ body.amounts-hidden #fx-converter-result{
       <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
     </div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="modal-save" style="width:100%" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="width:100%" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: TAGS -->
-<div class="modal-overlay" id="tags-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="tags-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1847,13 +1847,13 @@ body.amounts-hidden #fx-converter-result{
     <div class="mgr-list" id="tags-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addTag()"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="profiles-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="profiles-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1861,13 +1861,13 @@ body.amounts-hidden #fx-converter-result{
     <div class="mgr-list" id="profiles-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addProfile()"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="link-phone-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="link-phone-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1896,40 +1896,40 @@ body.amounts-hidden #fx-converter-result{
     <div id="link-recaptcha-container"></div>
 
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="profile-avatar-pick-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="profile-avatar-pick-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="profiles_avatar_pick">Оберіть аватар</div></div>
     <div id="profile-avatar-pick-grid" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="color-pick-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="color-pick-modal">
   <div class="modal-card" onclick="event.stopPropagation()" style="max-width:320px">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="color_pick_title">Оберіть колір</div></div>
     <div id="color-pick-grid" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- CATEGORY ACTION MENU -->
-<div class="modal-overlay" id="cat-action-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="cat-action-modal">
   <div class="modal-card" onclick="event.stopPropagation()" style="max-width:320px">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1940,14 +1940,14 @@ body.amounts-hidden #fx-converter-result{
       <button class="btn btn-danger" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionDelete()"><span id="ic-cat-act-del" class="icon-badge icon-badge-sm" style="background:var(--red)"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
     </div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-cancel" style="flex:1" onclick="closeManagers()" data-i18n="common_cancel">Скасувати</button>
+      <button class="modal-cancel" style="flex:1" data-close-modal data-i18n="common_cancel">Скасувати</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: AUTO-CATEGORIZATION RULES -->
-<div class="modal-overlay" id="rules-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="rules-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1956,14 +1956,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="debt-list" id="rules-list" style="max-height:420px"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addAutoRule()"><span id="ic-add-rule"></span><span data-i18n="rules_add">Додати правило</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: BUDGETS -->
-<div class="modal-overlay" id="budgets-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="budgets-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1971,14 +1971,14 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="budgets_desc">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</div>
     <div class="mgr-list" id="budgets-list-mgr"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: GOALS -->
-<div class="modal-overlay" id="goals-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="goals-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -2002,14 +2002,14 @@ body.amounts-hidden #fx-converter-result{
     </div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="toggleNewGoalForm()"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
 </div>
 
 <!-- MANAGER: RECURRING TRANSACTIONS -->
-<div class="modal-overlay" id="recurring-modal" onclick="closeManagers(event)">
+<div class="modal-overlay" id="recurring-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -2018,7 +2018,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="debt-list" id="recurring-list" style="max-height:420px"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addRecurring()"><span id="ic-add-recur"></span><span data-i18n="recurring_add">Додати повторювану операцію</span></button>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" onclick="closeManagers()" data-i18n="common_done">Готово</button>
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>

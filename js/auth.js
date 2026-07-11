@@ -6,6 +6,7 @@ import { AppState } from './state.js';
 import { init } from './app-init.js';
 import { EmailAuthProvider, RecaptchaVerifier, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, googleProvider, linkWithPhoneNumber, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signOut, unlink } from './core.js';
 import { loadActiveProfileId, userDoc } from './firebase-sync.js';
+import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 const setAuthMode = function(mode){
@@ -412,20 +413,20 @@ const setPin = async function(){
   const k=pinKey(); if(!k) return;
   localStorage.setItem(k, hash);
   AppState.pinUnlocked=true;
-  window.closeManagers();
+  closeManagers();
   showToast(tr('pin_set_success'),'check');
 };
 
 const removePin = function(){
   const k=pinKey(); if(k) localStorage.removeItem(k);
   const bk=bioKey(); if(bk) localStorage.removeItem(bk); // biometric requires a PIN fallback to exist
-  window.closeManagers();
+  closeManagers();
   showToast(tr('pin_removed'),'check');
 };
 
 const lockNow = function(){
   if(!hasPinSet()){ showToast(tr('pin_set_first'),'xmark'); return; }
-  window.closeManagers();
+  closeManagers();
   AppState.pinUnlocked=false;
   checkPinLock();
 };
