@@ -5,10 +5,10 @@
 import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
-import { applyTemplate, clearCurrentMonth, closeModal, goToday, openModal, processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart, saveModalSelection, shiftMonth, validateModalSelection } from './calendar.js';
+import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
-import { addTransaction, deleteTransaction, setFinanceType, setTxFilter, updateTag } from './finance.js';
+import { updateTag } from './finance.js';
 import { activeProfileLsKey, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
@@ -424,22 +424,12 @@ document.addEventListener('click', e=>{
 // by name rather than through a data-action, so the export has to stay
 // until those templates are converted too.
 window.openColorPicker = openColorPicker;
-window.openModal=openModal;
-window.closeModal=closeModal;
-window.saveModalSelection=saveModalSelection;
-window.validateModalSelection=validateModalSelection;
-window.applyTemplate=applyTemplate;
-window.clearCurrentMonth=clearCurrentMonth;
-window.renderCalendar=renderCalendar;
-window.setFinanceType=setFinanceType;
-window.addTransaction=addTransaction;
-window.deleteTransaction=deleteTransaction;
-window.setTxFilter=setTxFilter;
-window.shiftMonth=shiftMonth;
-window.goToday=goToday;
-// updateDebtInfo/addDebtEntry/updateDebtEntry/deleteDebtEntry/
-// deleteCurrentDebt used to be re-exported here too (a leftover of the
-// original mechanical split landing debt.js's window.* assignments in this
-// file's chunk) - moved to js/debt.js's own __init_debt__() as part of
-// phase 8 of the window.*/onclick removal audit item, see CLAUDE.md.
+// openModal/closeModal/saveModalSelection/validateModalSelection/
+// applyTemplate/clearCurrentMonth/renderCalendar/shiftMonth/goToday
+// (calendar.js's own functions) and setFinanceType/addTransaction/
+// deleteTransaction/setTxFilter (finance.js's own) used to be re-exported
+// here too (a leftover of the original mechanical split landing other
+// files' window.* assignments in this file's chunk) - moved to
+// js/calendar.js's and js/finance.js's own __init_*__() functions as part
+// of phases 8-9 of the window.*/onclick removal audit item, see CLAUDE.md.
 }

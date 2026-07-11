@@ -365,6 +365,10 @@ export function __init_finance__(){
 // by color-picker.js, a separate target. `cancelEditTransaction` had zero
 // external call sites (window-exposed but never actually referenced from
 // index.html or any onclick) — dropped entirely rather than converted.
+// setFinanceType/addTransaction/setTxFilter's window.* used to live in
+// js/color-picker.js's __init_color_picker__ (same leftover-from-the-split
+// situation phase 8 found for debt.js and phase 9 found for calendar.js) -
+// moved here and converted as part of phase 9, see CLAUDE.md.
 const CLICK_ACTIONS = {
   'toggle-fin-tag': ds=>toggleFinTag(ds.id),
   'open-new-tx-modal': ()=>openNewTxModal(),
@@ -375,6 +379,9 @@ const CLICK_ACTIONS = {
   'open-rules-manager': ()=>openRulesManager(),
   'delete-auto-rule': ds=>deleteAutoRule(ds.id),
   'add-auto-rule': ()=>addAutoRule(),
+  'set-finance-type': ds=>setFinanceType(ds.type),
+  'add-transaction': ()=>addTransaction(),
+  'set-tx-filter': ds=>setTxFilter(ds.filter),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
@@ -391,10 +398,11 @@ document.addEventListener('change', e=>{
 });
 
 // Still window-exposed: js/analytics-csv.js's transaction-row template
-// calls both by a literal onclick/string reference (tx-del's
-// onclick="event.stopPropagation();editTransaction(...)" and the
-// onboarding-checklist/toast's onclick="openNewTxModal()"), a separate,
-// still-untouched phase-7+ target.
+// calls all three by a literal onclick/string reference (tx-del's
+// onclick="event.stopPropagation();editTransaction(...)"/
+// "deleteTransaction(...)" and the onboarding-checklist/toast's
+// onclick="openNewTxModal()"), a separate, still-untouched target.
 window.editTransaction = editTransaction;
+window.deleteTransaction = deleteTransaction;
 window.openNewTxModal = openNewTxModal;
 }
