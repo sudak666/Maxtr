@@ -30,6 +30,9 @@ jobs:
       - name: Run unit tests
         run: node tests/unit.mjs
 
+      - name: Run Cloud Function sweep tests
+        run: node tests/functions-sweep.mjs
+
       - name: Run smoke test
         run: node tests/smoke.mjs
 
