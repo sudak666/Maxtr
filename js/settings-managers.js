@@ -4,6 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
+import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
@@ -11,7 +12,17 @@ import { fillCats, refreshWalletSelects } from './finance.js';
 import { lsKey } from './firebase-sync.js';
 import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
-export function closeManagers(e){ window.closeManagers(e); }
+// A plain function declaration is safe to call immediately at import time
+// from any other module (hoisted, no temporal-dead-zone risk — see
+// CLAUDE.md's "js/ module layout" point 2), unlike the window.closeManagers
+// assignment this replaced, which had to live inside __init_settings_managers__
+// below purely because *assigning* to window is a side effect that needs
+// ordering against the rest of the circular import graph.
+export function closeManagers(){
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+}
 
 function focusableIn(container){
   return Array.from(container.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
@@ -250,7 +261,7 @@ const moveWidget = function(key, dir){
   applyWidgetOrder();
 };
 
-const toggleHideAmounts = function(){
+export const toggleHideAmounts = function(){
   const on=!document.body.classList.contains('amounts-hidden');
   document.body.classList.toggle('amounts-hidden', on);
   try{ localStorage.setItem('xamssHideAmounts', on?'1':'0'); }catch(e){}
@@ -618,7 +629,7 @@ const openCatActionMenu = function(idx){
 
 const catActionEdit = async function(){
   const idx=AppState.catActionIdx; const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
-  window.closeManagers();
+  closeManagers();
   const newName=await uiPrompt(tr('cat_add_prompt'), name, tr('cat_act_edit'));
   if(newName===null) return;
   window.renameCategory(idx, newName);
@@ -626,16 +637,16 @@ const catActionEdit = async function(){
 
 const catActionShowTx = function(){
   const idx=AppState.catActionIdx; const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
-  window.closeManagers();
+  closeManagers();
   AppState.txCategoryFilter=name;
-  window.switchTab('finance');
+  switchTab('finance');
   renderFinance();
   showToast(`${tr('cat_showing')} ${name}`,'search');
 };
 
 const catActionDelete = async function(){
   const idx=AppState.catActionIdx;
-  window.closeManagers();
+  closeManagers();
   await window.deleteCategory(idx);
 };
 
@@ -797,12 +808,23 @@ const deleteRecurring = async function(id){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_settings_managers__(){
-window.closeManagers=function(e){
-  if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.style.display='none';
-  });
-};
+// Delegated instead of one addEventListener per modal: closeManagers() used
+// to be wired via 36 separate onclick="" HTML attributes (one per
+// modal-overlay backdrop plus one per in-card "Done"/"Cancel" button) — a
+// single document-level listener covers all of them, present and future,
+// without touching index.html again for the next new modal. Registered on
+// the CAPTURE phase deliberately: every .modal-card has its own
+// onclick="event.stopPropagation()" so a click inside the card doesn't
+// bubble up and match the modal-overlay backdrop check below, but that
+// same stopPropagation() also silently swallowed this listener's own
+// bubble-phase clicks on in-card [data-close-modal] buttons ("Готово"/
+// "Скасувати") — caught by manual testing (the button visibly did nothing).
+// Capture fires top-down before any bubble-phase stopPropagation() runs, so
+// it sees every click while still correctly no-op'ing on any other click
+// inside the card (the target/closest check below is unaffected either way).
+document.addEventListener('click', (e)=>{
+  if(e.target.classList.contains('modal-overlay') || e.target.closest('[data-close-modal]')) closeManagers();
+}, true);
 window.openShiftTypesManager = openShiftTypesManager;
 window.toggleShiftTypeEdit = toggleShiftTypeEdit;
 window.updateShiftType = updateShiftType;
@@ -815,7 +837,6 @@ window.deleteWallet = deleteWallet;
 window.openRatesManager = openRatesManager;
 window.toggleWidget = toggleWidget;
 window.moveWidget = moveWidget;
-window.toggleHideAmounts = toggleHideAmounts;
 window.openWidgetsManager = openWidgetsManager;
 window.updateCurrencyRate = updateCurrencyRate;
 try{ const s=localStorage.getItem(ratesSourceKey()); if(s==='privat'||s==='nbu') AppState.ratesSource=s; }catch(e){}

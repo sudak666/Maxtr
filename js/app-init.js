@@ -13,7 +13,7 @@ import { applyAutoRuleToForm, fillSubcats, setFinanceType, updateAmountLabel } f
 import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
-import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility } from './settings-managers.js';
+import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
 import { enhanceAllSelects, setupAccessibleSettingsRows, setupCollapsibleFinanceSections } from './ui-widgets.js';
 
@@ -124,4 +124,18 @@ document.addEventListener('click', (e)=>{
   void el.offsetWidth;
   el.classList.add('ui-pop');
 });
+
+// Topbar + bottom-nav wiring — these used to be inline onclick="" HTML
+// attributes (which need window.foo globals to resolve, see CLAUDE.md's
+// "js/ module layout" point 3); real addEventListener wiring here means
+// switchTab/toggleHideAmounts/fbLoadNow only need to be real module
+// exports, not also attached to window.
+document.getElementById('topbar-avatar')?.addEventListener('click', ()=>switchTab('settings'));
+document.getElementById('btn-hide-amounts')?.addEventListener('click', ()=>toggleHideAmounts());
+document.getElementById('btn-refresh')?.addEventListener('click', ()=>fbLoadNow());
+document.getElementById('nav-finance')?.addEventListener('click', ()=>switchTab('finance'));
+document.getElementById('nav-shifts')?.addEventListener('click', ()=>switchTab('shifts'));
+document.getElementById('nav-debt')?.addEventListener('click', ()=>switchTab('debt'));
+document.getElementById('nav-shopping')?.addEventListener('click', ()=>switchTab('shopping'));
+document.getElementById('nav-settings')?.addEventListener('click', ()=>switchTab('settings'));
 }
