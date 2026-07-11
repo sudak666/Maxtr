@@ -522,7 +522,51 @@ const tryBioUnlock = async function(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_auth__(){
-window.setAuthMode = setAuthMode;
+// Phase 5 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// this file has no dynamic per-row templates of its own (unlike the earlier
+// phases) — all 25 window.* exports below existed purely so a static
+// onclick="fn()" attribute in index.html could resolve `fn` as a global.
+// Replaced with a data-action attribute dispatched through one capture-phase
+// click listener (same CLICK_ACTIONS pattern as phases 3-4; capture matters
+// here too since several of these buttons sit inside a .modal-card with its
+// own onclick="event.stopPropagation()", e.g. the PIN settings and
+// link-phone modals).
+const CLICK_ACTIONS = {
+  'set-auth-mode': ds=>setAuthMode(ds.mode),
+  'google-sign-in': ()=>googleSignIn(),
+  'reset-password': ()=>resetPassword(),
+  'show-phone-auth': ()=>showPhoneAuth(),
+  'hide-phone-auth': ()=>hidePhoneAuth(),
+  'send-phone-code': ()=>sendPhoneCode(),
+  'verify-phone-code': ()=>verifyPhoneCode(),
+  'open-link-phone-manager': ()=>openLinkPhoneManager(),
+  'send-link-phone-code': ()=>sendLinkPhoneCode(),
+  'confirm-link-phone-code': ()=>confirmLinkPhoneCode(),
+  'unlink-phone': ()=>unlinkPhone(),
+  'sign-out-user': ()=>signOutUser(),
+  'delete-account-user': ()=>deleteAccountUser(),
+  'onboard-next': ()=>onboardNext(),
+  'finish-onboarding': ()=>finishOnboarding(),
+  'dismiss-settings-tip': ()=>dismissSettingsTip(),
+  'try-unlock-pin': ()=>tryUnlockPin(),
+  'forgot-pin': ()=>forgotPin(),
+  'open-pin-settings': ()=>openPinSettings(),
+  'set-pin': ()=>setPin(),
+  'remove-pin': ()=>removePin(),
+  'lock-now': ()=>lockNow(),
+  'enable-biometric': ()=>enableBiometric(),
+  'disable-biometric': ()=>disableBiometric(),
+  'try-bio-unlock': ()=>tryBioUnlock(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+// Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
+// tests/e2e-modals.mjs all call window.finishOnboarding() directly to
+// dismiss the onboarding overlay, rather than clicking the button.
+window.finishOnboarding = finishOnboarding;
 document.getElementById('auth-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const email=document.getElementById('auth-email').value.trim();
@@ -539,34 +583,10 @@ document.getElementById('auth-form').addEventListener('submit', async function(e
     btn.disabled=false;
   }
 });
-window.googleSignIn = googleSignIn;
-window.resetPassword = resetPassword;
-window.showPhoneAuth = showPhoneAuth;
-window.hidePhoneAuth = hidePhoneAuth;
-window.sendPhoneCode = sendPhoneCode;
-window.verifyPhoneCode = verifyPhoneCode;
-window.openLinkPhoneManager = openLinkPhoneManager;
-window.sendLinkPhoneCode = sendLinkPhoneCode;
-window.confirmLinkPhoneCode = confirmLinkPhoneCode;
-window.unlinkPhone = unlinkPhone;
-window.signOutUser = signOutUser;
-window.deleteAccountUser = deleteAccountUser;
-window.onboardNext = onboardNext;
-window.finishOnboarding = finishOnboarding;
-window.dismissSettingsTip = dismissSettingsTip;
-window.tryUnlockPin = tryUnlockPin;
-window.forgotPin = forgotPin;
-window.openPinSettings = openPinSettings;
-window.setPin = setPin;
-window.removePin = removePin;
-window.lockNow = lockNow;
 (function bindPinEnter(){
   const inp=document.getElementById('pin-unlock-input');
-  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); window.tryUnlockPin(); } });
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); tryUnlockPin(); } });
 })();
-window.enableBiometric = enableBiometric;
-window.disableBiometric = disableBiometric;
-window.tryBioUnlock = tryBioUnlock;
 onAuthStateChanged(auth, async (user)=>{
   AppState.currentUser=user;
   if(user) loadActiveProfileId();
@@ -594,7 +614,7 @@ onAuthStateChanged(auth, async (user)=>{
     if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
     const form=document.getElementById('auth-form'); if(form) form.reset();
     setAuthError('');
-    if(document.getElementById('auth-phone-section')?.style.display!=='none') window.hidePhoneAuth();
+    if(document.getElementById('auth-phone-section')?.style.display!=='none') hidePhoneAuth();
   }
 });
 }

@@ -867,8 +867,8 @@ body.amounts-hidden #fx-converter-result{
   <div class="auth-card">
     <div id="auth-email-section">
       <div class="auth-tabs">
-        <button type="button" class="auth-tab active" id="auth-tab-login" onclick="setAuthMode('login')" data-i18n="auth_login_tab">Вхід</button>
-        <button type="button" class="auth-tab" id="auth-tab-register" onclick="setAuthMode('register')" data-i18n="auth_register_tab">Реєстрація</button>
+        <button type="button" class="auth-tab active" id="auth-tab-login" data-action="set-auth-mode" data-mode="login" data-i18n="auth_login_tab">Вхід</button>
+        <button type="button" class="auth-tab" id="auth-tab-register" data-action="set-auth-mode" data-mode="register" data-i18n="auth_register_tab">Реєстрація</button>
       </div>
       <form id="auth-form" autocomplete="on">
         <div class="fg" style="margin-bottom:10px">
@@ -882,11 +882,11 @@ body.amounts-hidden #fx-converter-result{
         <div class="auth-error" id="auth-error"></div>
         <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px" data-i18n="auth_login_btn">Увійти</button>
       </form>
-      <button type="button" class="auth-link" id="auth-reset" onclick="resetPassword()" data-i18n="auth_forgot">Забули пароль?</button>
+      <button type="button" class="auth-link" id="auth-reset" data-action="reset-password" data-i18n="auth_forgot">Забули пароль?</button>
       <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
-      <button type="button" class="btn btn-ghost auth-google" onclick="googleSignIn()"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
+      <button type="button" class="btn btn-ghost auth-google" data-action="google-sign-in"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
       <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
-      <button type="button" class="btn btn-ghost" onclick="showPhoneAuth()"><span id="ic-phone"></span><span data-i18n="auth_phone_btn">Увійти за номером телефону</span></button>
+      <button type="button" class="btn btn-ghost" data-action="show-phone-auth"><span id="ic-phone"></span><span data-i18n="auth_phone_btn">Увійти за номером телефону</span></button>
     </div>
     <div id="auth-phone-section" style="display:none">
       <div class="fg" style="margin-bottom:10px">
@@ -894,15 +894,15 @@ body.amounts-hidden #fx-converter-result{
         <input type="tel" id="auth-phone-input" placeholder="+380XXXXXXXXX">
       </div>
       <div class="auth-error" id="auth-phone-error"></div>
-      <button type="button" class="add-btn" id="auth-phone-send-btn" style="width:100%;margin-top:6px" onclick="sendPhoneCode()" data-i18n="auth_phone_send">Надіслати код</button>
+      <button type="button" class="add-btn" id="auth-phone-send-btn" style="width:100%;margin-top:6px" data-action="send-phone-code" data-i18n="auth_phone_send">Надіслати код</button>
       <div id="auth-phone-code-group" style="display:none;margin-top:14px">
         <div class="fg" style="margin-bottom:10px">
           <label for="auth-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
           <input type="text" id="auth-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
         </div>
-        <button type="button" class="add-btn" id="auth-phone-verify-btn" style="width:100%" onclick="verifyPhoneCode()" data-i18n="auth_phone_verify">Підтвердити</button>
+        <button type="button" class="add-btn" id="auth-phone-verify-btn" style="width:100%" data-action="verify-phone-code" data-i18n="auth_phone_verify">Підтвердити</button>
       </div>
-      <button type="button" class="auth-link" onclick="hidePhoneAuth()" data-i18n="auth_phone_back">← Назад</button>
+      <button type="button" class="auth-link" data-action="hide-phone-auth" data-i18n="auth_phone_back">← Назад</button>
     </div>
     <div id="recaptcha-container"></div>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:2px">
@@ -923,21 +923,21 @@ body.amounts-hidden #fx-converter-result{
       <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="auth-error" id="pin-unlock-error"></div>
-    <button type="button" class="add-btn" style="width:100%;margin-top:6px" onclick="tryUnlockPin()" data-i18n="pin_unlock">Розблокувати</button>
-    <button type="button" class="btn btn-ghost" id="pin-bio-unlock-btn" style="width:100%;justify-content:center;margin-top:8px;display:none" onclick="tryBioUnlock()"><span id="ic-bio-unlock"></span>Face ID / Touch ID</button>
-    <button type="button" class="auth-link" onclick="forgotPin()" data-i18n="pin_forgot">Забув PIN?</button>
+    <button type="button" class="add-btn" style="width:100%;margin-top:6px" data-action="try-unlock-pin" data-i18n="pin_unlock">Розблокувати</button>
+    <button type="button" class="btn btn-ghost" id="pin-bio-unlock-btn" style="width:100%;justify-content:center;margin-top:8px;display:none" data-action="try-bio-unlock"><span id="ic-bio-unlock"></span>Face ID / Touch ID</button>
+    <button type="button" class="auth-link" data-action="forgot-pin" data-i18n="pin_forgot">Забув PIN?</button>
   </div>
 </div>
 
 <!-- ONBOARDING (first launch after sign-in, shown once per device/account) -->
 <div class="onboard-screen" id="onboard-screen" style="display:none">
-  <div class="onboard-skip" id="onboard-skip" onclick="finishOnboarding()" data-i18n="onboard_skip">Пропустити</div>
+  <div class="onboard-skip" id="onboard-skip" data-action="finish-onboarding" data-i18n="onboard_skip">Пропустити</div>
   <div class="onboard-icon" id="onboard-icon"></div>
   <div class="onboard-title" id="onboard-title"></div>
   <div class="onboard-desc" id="onboard-desc"></div>
   <div class="onboard-dots" id="onboard-dots"></div>
   <div class="onboard-actions">
-    <button class="add-btn" style="width:100%" id="onboard-next-btn" onclick="onboardNext()"></button>
+    <button class="add-btn" style="width:100%" id="onboard-next-btn" data-action="onboard-next"></button>
   </div>
 </div>
 
@@ -956,13 +956,13 @@ body.amounts-hidden #fx-converter-result{
       <label data-i18n="pin_repeat">Повторіть PIN</label>
       <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
     </div>
-    <button class="add-btn" style="width:100%" onclick="setPin()" data-i18n="pin_set">Встановити PIN</button>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" onclick="lockNow()" data-i18n="pin_lock_now">Заблокувати зараз</button>
+    <button class="add-btn" style="width:100%" data-action="set-pin" data-i18n="pin_set">Встановити PIN</button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" data-action="lock-now" data-i18n="pin_lock_now">Заблокувати зараз</button>
     <div id="pin-bio-section" style="display:none">
-      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-enable-btn" onclick="enableBiometric()"><span id="ic-bio-enable"></span><span data-i18n="pin_bio_enable">Увімкнути Face ID / Touch ID</span></button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-disable-btn" onclick="disableBiometric()"><span id="ic-bio-disable"></span><span data-i18n="pin_bio_disable">Вимкнути Face ID / Touch ID</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-enable-btn" data-action="enable-biometric"><span id="ic-bio-enable"></span><span data-i18n="pin_bio_enable">Увімкнути Face ID / Touch ID</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-bio-disable-btn" data-action="disable-biometric"><span id="ic-bio-disable"></span><span data-i18n="pin_bio_disable">Вимкнути Face ID / Touch ID</span></button>
     </div>
-    <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" onclick="removePin()" data-i18n="pin_remove">Прибрати PIN</button>
+    <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" data-action="remove-pin" data-i18n="pin_remove">Прибрати PIN</button>
     <div class="chk-desc" style="text-align:center;margin-top:12px" data-i18n="pin_disclaimer">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">
       <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a> · <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
@@ -1363,7 +1363,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="contextual-tip" id="settings-contextual-tip" style="display:none">
       <span class="contextual-tip-icon" id="ic-settings-tip"></span>
       <div class="contextual-tip-text" data-i18n="settings_tip_search">Порада: скористайся пошуком або групами вище, щоб швидко знайти потрібний розділ.</div>
-      <button type="button" class="contextual-tip-close" onclick="dismissSettingsTip()" aria-label="Закрити"><span id="ic-settings-tip-close"></span></button>
+      <button type="button" class="contextual-tip-close" data-action="dismiss-settings-tip" aria-label="Закрити"><span id="ic-settings-tip-close"></span></button>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -1492,7 +1492,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section settings-section" data-settings-group="security">
       <div class="chart-title"><span id="ic-settings-security"></span><span data-i18n="settings_security">Безпека</span></div>
-      <div class="settings-row" id="settings-pin" onclick="openPinSettings()" style="display:none">
+      <div class="settings-row" id="settings-pin" data-action="open-pin-settings" style="display:none">
         <span id="ic-set-pin" class="icon-badge" style="background:#525158"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_pin">PIN-код доступу</div>
@@ -1569,7 +1569,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section settings-section" data-settings-group="account">
       <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
-      <div class="settings-row" id="settings-link-phone" onclick="openLinkPhoneManager()">
+      <div class="settings-row" id="settings-link-phone" data-action="open-link-phone-manager">
         <span id="ic-set-link-phone" class="icon-badge" style="background:var(--blue)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_phone">Номер телефону</div>
@@ -1577,7 +1577,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" id="settings-signout" onclick="signOutUser()" style="display:none">
+      <div class="settings-row" id="settings-signout" data-action="sign-out-user" style="display:none">
         <span id="ic-set-signout" class="icon-badge" style="background:#525158"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_signout">Вийти з акаунту</div>
@@ -1585,7 +1585,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" id="settings-delete-account" onclick="deleteAccountUser()" style="display:none">
+      <div class="settings-row" id="settings-delete-account" data-action="delete-account-user" style="display:none">
         <span id="ic-set-delete" class="icon-badge" style="background:var(--red)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" style="color:var(--red2)" data-i18n="settings_delete_account">Видалити акаунт</div>
@@ -1875,7 +1875,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div id="link-phone-current" style="display:none;text-align:center;margin-bottom:14px">
       <div style="font-size:16px;font-weight:800;color:var(--text-strong)" id="link-phone-current-number"></div>
-      <button class="btn btn-danger" style="margin-top:12px" onclick="unlinkPhone()" data-i18n="settings_phone_remove">Прибрати номер</button>
+      <button class="btn btn-danger" style="margin-top:12px" data-action="unlink-phone" data-i18n="settings_phone_remove">Прибрати номер</button>
     </div>
 
     <div id="link-phone-form">
@@ -1884,13 +1884,13 @@ body.amounts-hidden #fx-converter-result{
         <input type="tel" id="link-phone-input" placeholder="+380XXXXXXXXX">
       </div>
       <div class="auth-error" id="link-phone-error"></div>
-      <button type="button" class="add-btn" id="link-phone-send-btn" style="width:100%;margin-top:6px" onclick="sendLinkPhoneCode()" data-i18n="auth_phone_send">Надіслати код</button>
+      <button type="button" class="add-btn" id="link-phone-send-btn" style="width:100%;margin-top:6px" data-action="send-link-phone-code" data-i18n="auth_phone_send">Надіслати код</button>
       <div id="link-phone-code-group" style="display:none;margin-top:14px">
         <div class="fg" style="margin-bottom:10px">
           <label for="link-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
           <input type="text" id="link-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
         </div>
-        <button type="button" class="add-btn" id="link-phone-verify-btn" style="width:100%" onclick="confirmLinkPhoneCode()" data-i18n="auth_phone_verify">Підтвердити</button>
+        <button type="button" class="add-btn" id="link-phone-verify-btn" style="width:100%" data-action="confirm-link-phone-code" data-i18n="auth_phone_verify">Підтвердити</button>
       </div>
     </div>
     <div id="link-recaptcha-container"></div>
