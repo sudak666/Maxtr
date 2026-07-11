@@ -222,9 +222,19 @@ function checkRecurringAlerts(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_notifications__(){
-window.togglePushNotifications = togglePushNotifications;
-window.toggleReminders = toggleReminders;
-window.toggleBudgetAlerts = toggleBudgetAlerts;
-window.toggleRecurringAlerts = toggleRecurringAlerts;
-window.updateNotifTimeFromSelects = updateNotifTimeFromSelects;
+// Phase 13 of the window.*/inline-onclick removal audit item (see
+// CLAUDE.md): this file's 5 static onchange="" sites in index.html
+// (push/reminders/budget/recurring toggles, hour+minute time selects)
+// converted to a data-action dispatch, same pattern earlier phases used.
+const FIELD_ACTIONS = {
+  'toggle-push-notifications': ()=>togglePushNotifications(),
+  'toggle-reminders': ()=>toggleReminders(),
+  'toggle-budget-alerts': ()=>toggleBudgetAlerts(),
+  'toggle-recurring-alerts': ()=>toggleRecurringAlerts(),
+  'update-notif-time': ()=>updateNotifTimeFromSelects(),
+};
+document.addEventListener('change', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+});
 }

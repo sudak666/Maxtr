@@ -15,7 +15,7 @@ import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
-import { enhanceAllSelects, setupAccessibleSettingsRows, setupCollapsibleFinanceSections } from './ui-widgets.js';
+import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections } from './ui-widgets.js';
 
 export async function init(){
   const now=new Date();
@@ -106,7 +106,7 @@ export function switchTab(tab){
   if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
   if(tab==='shopping') {renderShoppingList();}
-  if(tab==='settings') {window.filterSettings(document.getElementById('settings-search-input')?.value||''); maybeShowSettingsTip();}
+  if(tab==='settings') {filterSettings(document.getElementById('settings-search-input')?.value||''); maybeShowSettingsTip();}
 }
 
 // Top-level statements that DO something immediately (as opposed to a
