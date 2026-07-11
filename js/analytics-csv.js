@@ -191,10 +191,27 @@ export function renderFinance(){
   // once wallets stop sharing one currency.
   let bal=0;
   AppState.wallets.forEach(w=>{ bal+=toBase(wb[w.id]||0, w.currency||'UAH'); });
-  // Balance cards (total + one per wallet)
+  // This month's income/expense, for the two highlighted mini-stat cards
+  // (matching the two-mini-card dashboard pattern the user asked for) —
+  // computed the same way renderFinanceChart() computes its monthly totals.
+  const now=new Date();
+  const curPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  let monthInc=0,monthExp=0;
+  AppState.transactions.forEach(t=>{
+    if(!t.date||!t.date.startsWith(curPrefix)) return;
+    if(t.type==='income') monthInc+=toBase(t.amount,t.currency||'UAH');
+    else if(t.type==='expense') monthExp+=toBase(t.amount,t.currency||'UAH');
+  });
+
+  // Balance cards (total + this month's income/expense + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="hero-balance-label">Загальний баланс (у грн)</div><div class="hero-balance-val">${bal.toLocaleString('uk-UA')} грн</div><div class="wallet-chip-row">`;
+    let html=`<div class="hero-balance-label">Загальний баланс (у грн)</div><div class="hero-balance-val">${bal.toLocaleString('uk-UA')} грн</div>`;
+    html+=`<div class="fin-mini-stat-row">
+      <div class="fin-mini-stat income"><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
+      <div class="fin-mini-stat expense"><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
+    </div>`;
+    html+='<div class="wallet-chip-row">';
     AppState.wallets.forEach(w=>{
       html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span></span>`;
     });
