@@ -69,7 +69,10 @@ export const SALARY_GOAL = 20000;
 
 export function subKey(type,name){ return type+':'+name; }
 
-const WIDGET_SECTION_IDS={rates:'fx-widget-section', converter:'fx-converter-section', analytics:'analytics-section', chart:'finance-chart-section', goals:'goals-section'};
+// rates/converter/analytics moved into #tools-modal (see CLAUDE.md's
+// Finance-tab-widgets section) — no longer part of the toggleable
+// show/hide+reorder set, so only chart/goals remain here.
+const WIDGET_SECTION_IDS={chart:'finance-chart-section', goals:'goals-section'};
 
 export function sanitizeWidgetOrder(arr){
   const seen=new Set();

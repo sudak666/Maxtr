@@ -42,16 +42,18 @@ const setSettingsGroup = function(group){
   filterSettings(document.getElementById('settings-search-input')?.value||'');
 };
 
-const FINANCE_SECTIONS_COLLAPSED_BY_DEFAULT=['analytics-section','fx-widget-section','fx-converter-section'];
-
+// analytics-section/fx-widget-section/fx-converter-section used to be
+// collapsed-by-default here; they've since moved into #tools-modal (see
+// CLAUDE.md's Finance-tab-widgets section) and must always render fully
+// expanded there — the modal itself is now their show/hide gate, so they
+// no longer go through this collapsible treatment at all.
 export function setupCollapsibleFinanceSections(){
-  ['analytics-section','budgets-section','goals-section','finance-chart-section','fx-widget-section','fx-converter-section'].forEach(id=>{
+  ['budgets-section','goals-section','finance-chart-section'].forEach(id=>{
     const section=document.getElementById(id);
     const title=section&&section.querySelector('.chart-title');
     if(!section||!title||section.dataset.collapsibleReady) return;
     section.dataset.collapsibleReady='1';
     section.classList.add('collapsible');
-    if(FINANCE_SECTIONS_COLLAPSED_BY_DEFAULT.includes(id)) section.classList.add('collapsed');
     title.setAttribute('tabindex','0');
     title.setAttribute('role','button');
     title.addEventListener('click',()=>section.classList.toggle('collapsed'));

@@ -422,7 +422,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .day-num.weekend-num{color:rgba(239,68,68,.6)}
 .today-pip{width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0}
 
-.badge{font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center}
+.badge{font-size:11px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center}
 .b-day  {background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#93c5fd}
 .b-day19{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#6ee7b7}
 .b-night{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.5);color:#c4b5fd}
@@ -457,7 +457,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
 .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
 .chart-bar{width:100%;border-radius:6px 6px 2px 2px;transition:height .5s ease;cursor:default;min-height:2px;position:relative}
-.chart-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;z-index:10;pointer-events:none}
+.chart-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;z-index:10;pointer-events:none}
 .chart-bar-label{font-size:11.5px;font-weight:700;color:var(--muted2);text-align:center}
 
 /* ── FINANCE ── */
@@ -832,7 +832,7 @@ body.amounts-hidden #fx-converter-result{
   .cal-grid{gap:3px}
   .day-cell{min-height:64px;padding:4px;border-radius:14px}
   .day-num{font-size:11px}
-  .badge{font-size:9px;padding:1px 4px}
+  .badge{padding:1px 4px}
   .stat-big{grid-column:span 1}
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
@@ -1120,9 +1120,9 @@ body.amounts-hidden #fx-converter-result{
         <span class="quick-action-icon" id="ic-qa-rates"></span>
         <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
       </button>
-      <button type="button" class="quick-action" data-action="scroll-to-section" data-target="fx-converter-section">
-        <span class="quick-action-icon" id="ic-qa-converter"></span>
-        <span class="quick-action-label" data-i18n="qa_converter">Конвертер</span>
+      <button type="button" class="quick-action" data-action="open-tools-manager">
+        <span class="quick-action-icon" id="ic-qa-tools"></span>
+        <span class="quick-action-label" data-i18n="qa_tools">Інструменти</span>
       </button>
       <button type="button" class="quick-action" data-action="open-budgets-manager">
         <span class="quick-action-icon" id="ic-qa-budgets"></span>
@@ -1131,10 +1131,6 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="quick-action" data-action="open-goals-manager">
         <span class="quick-action-icon" id="ic-qa-goals"></span>
         <span class="quick-action-label" data-i18n="settings_goals">Цілі</span>
-      </button>
-      <button type="button" class="quick-action" data-action="scroll-to-section" data-target="analytics-section">
-        <span class="quick-action-icon" id="ic-qa-analytics"></span>
-        <span class="quick-action-label" data-i18n="qa_analytics">Аналітика</span>
       </button>
     </div>
 
@@ -1164,28 +1160,11 @@ body.amounts-hidden #fx-converter-result{
     </button>
 
     <!-- Аналітика витрат і доходів -->
-    <div class="chart-section" id="analytics-section">
-      <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
-      <div class="filter-row" id="analytics-period-filter">
-        <div class="filter-chip active" data-period="month" data-action="set-analytics-period" data-i18n="analytics_period_month">Цей місяць</div>
-        <div class="filter-chip" data-period="prev" data-action="set-analytics-period" data-i18n="analytics_period_prev">Минулий місяць</div>
-        <div class="filter-chip" data-period="3m" data-action="set-analytics-period" data-i18n="analytics_period_3m">3 місяці</div>
-        <div class="filter-chip" data-period="all" data-action="set-analytics-period" data-i18n="analytics_period_all">Весь час</div>
-      </div>
-      <div class="stats-row" id="analytics-stats"></div>
-      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
-      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
-        <div class="analytics-donut" id="analytics-donut"></div>
-        <div style="flex:1 1 220px;min-width:220px">
-          <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
-          <div id="analytics-expense-list"></div>
-        </div>
-      </div>
-      <div style="margin-top:18px">
-        <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_income_category">Доходи за категоріями</div>
-        <div id="analytics-income-list"></div>
-      </div>
-    </div>
+    <!-- Аналітика, курси валют і конвертер live in #tools-modal now (see
+         below, near the other modals) — moved out of this always-visible
+         scroll into an on-demand modal opened via the "Інструменти"
+         quick-action, so the Finance tab reads as balance+list+FAB by
+         default instead of several extra chart sections. -->
 
     <!-- Цілі накопичення -->
     <div class="chart-section" id="goals-section" style="display:none">
@@ -1199,41 +1178,10 @@ body.amounts-hidden #fx-converter-result{
       <div class="chart-bars" id="finance-chart"></div>
     </div>
 
-    <!-- Курси валют -->
-    <div class="chart-section" id="fx-widget-section">
-      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
-        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" data-action="refresh-fx-widget" aria-label="Оновити"><span id="ic-fx-widget-refresh"></span></button>
-      </div>
-      <div id="fx-widget-list" data-action="open-rates-manager" style="cursor:pointer"></div>
-      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
-    </div>
-
-    <!-- Конвертер валют -->
-    <div class="chart-section" id="fx-converter-section">
-      <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-        <div class="fg" style="flex:1 1 110px;margin:0">
-          <label data-i18n="fx_converter_amount">Сума</label>
-          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" data-action="render-fx-converter">
-        </div>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_from">З</label>
-          <select id="fx-conv-from" data-action="render-fx-converter"></select>
-        </div>
-        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" data-action="swap-fx-converter" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_to">В</label>
-          <select id="fx-conv-to" data-action="render-fx-converter"></select>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
-    </div>
-
     <!-- Бюджети по категоріях: не входить у widgetOrder (завжди сама
          ховається за відсутності бюджету), тож навмисно останній елемент
          блоку — слугує нерухомим "якорем", відносно якого applyWidgetOrder()
-         переставляє решту 5 віджетів через insertBefore. -->
+         переставляє решту 2 віджетів (chart/goals) через insertBefore. -->
     <div class="chart-section" id="budgets-section" style="display:none">
       <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
       <div id="budgets-list"></div>
@@ -1812,6 +1760,79 @@ body.amounts-hidden #fx-converter-result{
   </div>
 </div>
 
+<!-- ІНСТРУМЕНТИ: аналітика, курси валют, конвертер — усі три раніше
+     завжди відображались у прокрутці вкладки "Фінанси"; тепер зібрані в
+     одну модалку, яку відкриває квік-екшн "Інструменти", щоб основний
+     екран лишався компактним (баланс + список операцій + FAB). -->
+<div class="modal-overlay" id="tools-modal">
+  <div class="modal-card">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="tools_modal_title">Інструменти</div></div>
+
+    <div class="chart-section" id="analytics-section" style="padding:0;border:none;background:none">
+      <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
+      <div class="filter-row" id="analytics-period-filter">
+        <div class="filter-chip active" data-period="month" data-action="set-analytics-period" data-i18n="analytics_period_month">Цей місяць</div>
+        <div class="filter-chip" data-period="prev" data-action="set-analytics-period" data-i18n="analytics_period_prev">Минулий місяць</div>
+        <div class="filter-chip" data-period="3m" data-action="set-analytics-period" data-i18n="analytics_period_3m">3 місяці</div>
+        <div class="filter-chip" data-period="all" data-action="set-analytics-period" data-i18n="analytics_period_all">Весь час</div>
+      </div>
+      <div class="stats-row" id="analytics-stats"></div>
+      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+        <div class="analytics-donut" id="analytics-donut"></div>
+        <div style="flex:1 1 220px;min-width:220px">
+          <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
+          <div id="analytics-expense-list"></div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_income_category">Доходи за категоріями</div>
+        <div id="analytics-income-list"></div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+    <div class="chart-section" id="fx-widget-section" style="padding:0;border:none;background:none">
+      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
+        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" data-action="refresh-fx-widget" aria-label="Оновити"><span id="ic-fx-widget-refresh"></span></button>
+      </div>
+      <div id="fx-widget-list" data-action="open-rates-manager" style="cursor:pointer"></div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+    <div class="chart-section" id="fx-converter-section" style="padding:0;border:none;background:none">
+      <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="flex:1 1 110px;margin:0">
+          <label data-i18n="fx_converter_amount">Сума</label>
+          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" data-action="render-fx-converter">
+        </div>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_from">З</label>
+          <select id="fx-conv-from" data-action="render-fx-converter"></select>
+        </div>
+        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" data-action="swap-fx-converter" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
+        <div class="fg" style="flex:1 1 100px;margin:0">
+          <label data-i18n="fx_converter_to">В</label>
+          <select id="fx-conv-to" data-action="render-fx-converter"></select>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
 <!-- PREMIUM UPSELL -->
 <div class="modal-overlay" id="premium-modal">
   <div class="modal-card">
@@ -1829,7 +1850,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="settings-row" style="border-top:none">
       <span class="icon-badge icon-badge-sm" style="background:var(--orange)" id="ic-premium-bank"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_banks">Інтеграція з банками</div><div class="settings-row-sub" data-i18n="premium_perk_banks_sub">Автоматичне підвантаження операцій — у розробці</div></div>
-      <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
+      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
     </div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="modal-save" style="width:100%" data-close-modal data-i18n="common_done">Готово</button>

@@ -15,7 +15,10 @@
 // depending on module evaluation order. Keeping this file dependency-free
 // avoids that class of bug entirely rather than relying on getting the
 // evaluation order right.
-export const WIDGET_ORDER_DEFAULT = ['rates','converter','analytics','chart','goals'];
+// rates/converter/analytics moved into #tools-modal (see CLAUDE.md's
+// Finance-tab-widgets section) and are no longer part of the
+// show/hide+reorder widget system — only chart/goals remain toggleable.
+export const WIDGET_ORDER_DEFAULT = ['chart','goals'];
 export const LANG_CALENDAR = {
   uk:{
     months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
