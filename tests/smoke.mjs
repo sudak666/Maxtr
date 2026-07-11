@@ -9,20 +9,30 @@
 // stubs, and sign-in is simulated by firing the stubbed onAuthStateChanged
 // callback directly.
 //
-// playwright is a global install in this sandbox, not a project dependency
-// (there's no root package.json — see CLAUDE.md), and Node's ESM resolver
-// doesn't consult NODE_PATH the way CJS require() does, so it's imported
-// here by its absolute install path rather than by bare specifier.
+// playwright is a global install (not a project dependency — there's no
+// root package.json, see CLAUDE.md), so it can't be resolved by a bare
+// specifier from this file's own location (Node's ESM resolver doesn't
+// consult NODE_PATH the way CJS require() does, and createRequire().resolve()
+// only walks up from this file's directory, which never finds a global
+// install either). This sandbox happens to have a fixed absolute path for
+// it, but CI (GitHub Actions' `npm install -g playwright`) puts it somewhere
+// else entirely, so ask npm itself where global packages live and build the
+// path from that, falling back to the sandbox path if npm isn't on PATH.
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 
-const PLAYWRIGHT_PATH = '/opt/node22/lib/node_modules/playwright/index.mjs';
-const { chromium } = fs.existsSync(PLAYWRIGHT_PATH)
-  ? await import(PLAYWRIGHT_PATH)
-  : await import(createRequire(import.meta.url).resolve('playwright'));
+function resolveGlobalPlaywrightPath() {
+  const sandboxPath = '/opt/node22/lib/node_modules/playwright/index.mjs';
+  if (fs.existsSync(sandboxPath)) return sandboxPath;
+  const globalRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim();
+  const globalPath = path.join(globalRoot, 'playwright', 'index.mjs');
+  if (fs.existsSync(globalPath)) return globalPath;
+  throw new Error(`could not locate a global playwright install (checked ${sandboxPath} and ${globalPath})`);
+}
+
+const { chromium } = await import(resolveGlobalPlaywrightPath());
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = 8899;
@@ -90,7 +100,6 @@ export async function isSupported(){ return true; }
 
 async function main() {
   const modCheckPaths = checkModuleScriptSyntax();
-  const { execFileSync } = await import('node:child_process');
   // `node --check` only treats a file as an ES module by its extension
   // (.mjs) or a package.json "type" field - js/ has neither (deliberately;
   // this repo has no root package.json - see CLAUDE.md), so each real
