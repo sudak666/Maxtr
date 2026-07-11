@@ -1119,7 +1119,7 @@ body.amounts-hidden #fx-converter-result{
         <span class="quick-action-icon" id="ic-qa-rates"></span>
         <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
       </button>
-      <button type="button" class="quick-action" onclick="scrollToSection('fx-converter-section')">
+      <button type="button" class="quick-action" data-action="scroll-to-section" data-target="fx-converter-section">
         <span class="quick-action-icon" id="ic-qa-converter"></span>
         <span class="quick-action-label" data-i18n="qa_converter">Конвертер</span>
       </button>
@@ -1131,7 +1131,7 @@ body.amounts-hidden #fx-converter-result{
         <span class="quick-action-icon" id="ic-qa-goals"></span>
         <span class="quick-action-label" data-i18n="settings_goals">Цілі</span>
       </button>
-      <button type="button" class="quick-action" onclick="scrollToSection('analytics-section')">
+      <button type="button" class="quick-action" data-action="scroll-to-section" data-target="analytics-section">
         <span class="quick-action-icon" id="ic-qa-analytics"></span>
         <span class="quick-action-label" data-i18n="qa_analytics">Аналітика</span>
       </button>
@@ -1385,7 +1385,7 @@ body.amounts-hidden #fx-converter-result{
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
-      <div class="settings-row" onclick="document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI()">
+      <div class="settings-row" data-action="open-profiles-manager">
         <span id="ic-settings-profiles" class="icon-badge" style="background:#06b6d4"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_profiles">Профілі</div>
@@ -1859,7 +1859,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="profiles_manager_title">Профілі</div></div>
     <div class="mgr-list" id="profiles-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addProfile()"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-profile"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>

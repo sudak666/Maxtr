@@ -33,7 +33,7 @@ function currentPickedColor(){
 function renderColorPickerGrid(){
   const box=document.getElementById('color-pick-grid'); if(!box) return;
   const current=currentPickedColor();
-  box.innerHTML=PALETTE.map(c=>`<div class="color-opt${c===current?' sel':''}" style="background:${c}" onclick="selectPickedColor('${c}')"></div>`).join('');
+  box.innerHTML=PALETTE.map(c=>`<div class="color-opt${c===current?' sel':''}" style="background:${c}" data-action="select-picked-color" data-color="${c}"></div>`).join('');
   setupAccessibleClickableDivs(box);
 }
 
@@ -76,7 +76,7 @@ const openProfileAvatarPicker = function(id){
 function renderProfileAvatarPickerGrid(){
   const box=document.getElementById('profile-avatar-pick-grid'); if(!box) return;
   const p=AppState.profilesMeta.list.find(x=>x.id===AppState.avatarPickTargetProfileId);
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" onclick="selectProfileAvatar('${a.id}')">${window.Icon(a.icon)}</div>`).join('');
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" data-action="select-profile-avatar" data-avatar-id="${a.id}">${window.Icon(a.icon)}</div>`).join('');
   setupAccessibleClickableDivs(box);
 }
 
@@ -129,13 +129,13 @@ export function renderProfilesUI(){
     const avatarBg=builtin ? builtin.gradient : PALETTE[i%PALETTE.length];
     const avatarContent=builtin ? window.Icon(builtin.icon) : escapeHtml(initial);
     row.innerHTML=`
-      <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" onclick="openProfileAvatarPicker('${p.id}')">${avatarContent}</div>
+      <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${p.id}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${isActive
         ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
-        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" onclick="switchProfile('${p.id}')">${tr('profiles_switch_btn')}</button>`}
-      <button class="mgr-del" onclick="renameProfile('${p.id}')" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-      <button class="mgr-del" onclick="deleteProfile('${p.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}">${tr('profiles_switch_btn')}</button>`}
+      <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+      <button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
   });
@@ -393,16 +393,37 @@ const scrollToSection = function(id){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_color_picker__(){
+// Phase 4 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// this file's own 6 dynamic onclick sites (color swatches, avatar picker,
+// profile row buttons) plus 4 static ones in index.html (add-profile,
+// open-profiles-manager, the two scroll-to-section quick actions) replaced
+// with a data-action attribute dispatched through one delegated listener,
+// same pattern as js/settings-managers.js's phase 3. CAPTURE phase for the
+// same reason as there: several of these buttons sit inside a .modal-card
+// whose own onclick="event.stopPropagation()" would otherwise swallow a
+// bubble-phase document listener.
+const CLICK_ACTIONS = {
+  'select-picked-color': ds=>selectPickedColor(ds.color),
+  'select-profile-avatar': ds=>selectProfileAvatar(ds.avatarId),
+  'open-profile-avatar-picker': ds=>openProfileAvatarPicker(ds.id),
+  'switch-profile': ds=>switchProfile(ds.id),
+  'rename-profile': ds=>renameProfile(ds.id),
+  'delete-profile': ds=>deleteProfile(ds.id),
+  'add-profile': ()=>addProfile(),
+  'scroll-to-section': ds=>scrollToSection(ds.target),
+  'open-profiles-manager': ()=>{ document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI(); },
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+// Still window-exposed: js/finance.js's and js/settings-managers.js's own
+// dynamic onclick="openColorPicker(...)" templates (tag/shiftType/wallet
+// color swatches — a separate, still-untouched phase-4+ target) call this
+// by name rather than through a data-action, so the export has to stay
+// until those templates are converted too.
 window.openColorPicker = openColorPicker;
-window.selectPickedColor = selectPickedColor;
-window.addProfile = addProfile;
-window.renameProfile = renameProfile;
-window.openProfileAvatarPicker = openProfileAvatarPicker;
-window.selectProfileAvatar = selectProfileAvatar;
-window.deleteProfile = deleteProfile;
-window.switchProfile = switchProfile;
-window.renderProfilesUI=renderProfilesUI;
-window.scrollToSection = scrollToSection;
 window.openModal=openModal;
 window.closeModal=closeModal;
 window.saveModalSelection=saveModalSelection;
