@@ -68,10 +68,10 @@ export function renderShoppingList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <input type="checkbox" class="rchk" ${it.done?'checked':''} onchange="toggleShoppingItem('${it.id}', this.checked)">
+      <input type="checkbox" class="rchk" ${it.done?'checked':''} data-action="toggle-shopping-item" data-id="${it.id}">
       <div class="mgr-name-inline" style="${it.done?'text-decoration:line-through;opacity:.55':''}">${escapeHtml(it.name)}</div>
       ${it.qty>1?`<span style="font-size:12px;font-weight:700;color:var(--muted);flex:0 0 auto">×${it.qty}</span>`:''}
-      <button class="mgr-del" onclick="deleteShoppingItem('${it.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+      <button class="mgr-del" data-action="delete-shopping-item" data-id="${it.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
   });
@@ -85,8 +85,32 @@ export function renderShoppingList(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_shopping__(){
-window.addShoppingItem = addShoppingItem;
-window.toggleShoppingItem = toggleShoppingItem;
-window.deleteShoppingItem = deleteShoppingItem;
-window.clearBoughtShopping = clearBoughtShopping;
+// Phase 10 of the window.*/inline-onclick removal audit item (see
+// CLAUDE.md): converts this file's own 2 dynamic onclick/onchange sites
+// (item checkbox/delete) plus 3 static index.html ones (add button, the
+// two name/qty inputs' Enter-to-submit onkeydown, clear-bought button) to
+// data-action, same pattern as phases 3-9. The Enter-key shortcut on the
+// two inputs needed its own keydown listener rather than fitting the
+// existing click/change dispatchers — scoped to `input[data-action]`
+// specifically so it doesn't double-fire on buttons (which already
+// synthesize a click event on Enter via native browser behavior).
+const CLICK_ACTIONS = {
+  'add-shopping-item': ()=>addShoppingItem(),
+  'clear-bought-shopping': ()=>clearBoughtShopping(),
+  'delete-shopping-item': ds=>deleteShoppingItem(ds.id),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter') return;
+  const el=e.target.closest('input[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+});
+
+document.addEventListener('change', e=>{
+  const el=e.target.closest('[data-action="toggle-shopping-item"]');
+  if(el) toggleShoppingItem(el.dataset.id, el.checked);
+});
 }

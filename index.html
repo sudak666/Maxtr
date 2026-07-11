@@ -1322,20 +1322,20 @@ body.amounts-hidden #fx-converter-result{
       <div style="display:flex;flex-wrap:wrap;gap:10px">
         <div class="fg" style="flex:1 1 200px">
           <label data-i18n="shopping_add_placeholder">Назва товару</label>
-          <input type="text" id="shopping-name-input" placeholder="напр. Молоко" data-i18n-placeholder="shopping_add_placeholder" onkeydown="if(event.key==='Enter') addShoppingItem()">
+          <input type="text" id="shopping-name-input" placeholder="напр. Молоко" data-i18n-placeholder="shopping_add_placeholder" data-action="add-shopping-item">
         </div>
         <div class="fg" style="flex:0 1 90px">
           <label data-i18n="shopping_qty_placeholder">К-сть</label>
-          <input type="number" id="shopping-qty-input" placeholder="1" min="1" step="1" onkeydown="if(event.key==='Enter') addShoppingItem()">
+          <input type="number" id="shopping-qty-input" placeholder="1" min="1" step="1" data-action="add-shopping-item">
         </div>
       </div>
-      <button class="add-btn" onclick="addShoppingItem()"><span id="ic-shopping-add"></span><span data-i18n="shopping_add_btn">Додати</span></button>
+      <button class="add-btn" data-action="add-shopping-item"><span id="ic-shopping-add"></span><span data-i18n="shopping_add_btn">Додати</span></button>
     </div>
 
     <div class="fin-history">
       <div class="hist-head">
         <div class="hist-title" data-i18n="shopping_title">Список покупок</div>
-        <button class="btn btn-ghost" id="shopping-clear-btn" style="display:none;padding:6px 12px;font-size:12px" onclick="clearBoughtShopping()" data-i18n="shopping_clear_bought">Очистити куплені</button>
+        <button class="btn btn-ghost" id="shopping-clear-btn" style="display:none;padding:6px 12px;font-size:12px" data-action="clear-bought-shopping" data-i18n="shopping_clear_bought">Очистити куплені</button>
       </div>
       <div class="mgr-list" id="shopping-list-container"></div>
     </div>
