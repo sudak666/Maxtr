@@ -1041,7 +1041,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="applyTemplate()" data-i18n="shifts_apply">Застосувати</button>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" onclick="openShiftTypesManager()"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
+          <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" data-action="open-shift-types-manager"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
           <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
         </div>
 
@@ -1109,13 +1109,13 @@ body.amounts-hidden #fx-converter-result{
     <!-- Баланси -->
     <div class="hero-balance" id="fin-balances"></div>
     <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
-      <button class="btn btn-ghost" onclick="openWidgetsManager()"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Налаштувати екран</span></button>
+      <button class="btn btn-ghost" data-action="open-widgets-manager"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Налаштувати екран</span></button>
     </div>
     <div id="finance-start-guide" style="display:none"></div>
 
     <!-- Швидкі дії: тап одразу відкриває потрібний розділ -->
     <div class="quick-actions">
-      <button type="button" class="quick-action" onclick="openRatesManager()">
+      <button type="button" class="quick-action" data-action="open-rates-manager">
         <span class="quick-action-icon" id="ic-qa-rates"></span>
         <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
       </button>
@@ -1123,7 +1123,7 @@ body.amounts-hidden #fx-converter-result{
         <span class="quick-action-icon" id="ic-qa-converter"></span>
         <span class="quick-action-label" data-i18n="qa_converter">Конвертер</span>
       </button>
-      <button type="button" class="quick-action" onclick="openBudgetsManager()">
+      <button type="button" class="quick-action" data-action="open-budgets-manager">
         <span class="quick-action-icon" id="ic-qa-budgets"></span>
         <span class="quick-action-label" data-i18n="settings_budgets">Бюджети</span>
       </button>
@@ -1202,9 +1202,9 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section" id="fx-widget-section">
       <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
         <span><span id="ic-fx-widget"></span><span data-i18n="fx_widget_title">Курси валют</span></span>
-        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" onclick="refreshFxWidget()" aria-label="Оновити"><span id="ic-fx-widget-refresh"></span></button>
+        <button class="btn btn-ghost" id="fx-widget-refresh-btn" style="padding:6px 10px;font-size:12px" data-action="refresh-fx-widget" aria-label="Оновити"><span id="ic-fx-widget-refresh"></span></button>
       </div>
-      <div id="fx-widget-list" onclick="openRatesManager()" style="cursor:pointer"></div>
+      <div id="fx-widget-list" data-action="open-rates-manager" style="cursor:pointer"></div>
       <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="fx-widget-updated-hint"></div>
     </div>
 
@@ -1214,16 +1214,16 @@ body.amounts-hidden #fx-converter-result{
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
         <div class="fg" style="flex:1 1 110px;margin:0">
           <label data-i18n="fx_converter_amount">Сума</label>
-          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" oninput="renderFxConverter()">
+          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" data-action="render-fx-converter">
         </div>
         <div class="fg" style="flex:1 1 100px;margin:0">
           <label data-i18n="fx_converter_from">З</label>
-          <select id="fx-conv-from" onchange="renderFxConverter()"></select>
+          <select id="fx-conv-from" data-action="render-fx-converter"></select>
         </div>
-        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" onclick="swapFxConverter()" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
+        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" data-action="swap-fx-converter" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
         <div class="fg" style="flex:1 1 100px;margin:0">
           <label data-i18n="fx_converter_to">В</label>
-          <select id="fx-conv-to" onchange="renderFxConverter()"></select>
+          <select id="fx-conv-to" data-action="render-fx-converter"></select>
         </div>
       </div>
       <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
@@ -1408,7 +1408,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section settings-section" data-settings-group="finance">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
-      <div class="settings-row" onclick="openWalletsManager()">
+      <div class="settings-row" data-action="open-wallets-manager">
         <span id="ic-set-wallets" class="icon-badge" style="background:#8b5cf6"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_wallets">Гаманці</div>
@@ -1416,7 +1416,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openRatesManager()">
+      <div class="settings-row" data-action="open-rates-manager">
         <span id="ic-set-rates" class="icon-badge" style="background:#3b82f6"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_rates">Курси валют</div>
@@ -1424,7 +1424,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openWidgetsManager()">
+      <div class="settings-row" data-action="open-widgets-manager">
         <span id="ic-set-widgets" class="icon-badge" style="background:#14b8a6"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_widgets">Віджети</div>
@@ -1432,7 +1432,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openCategoriesManager()">
+      <div class="settings-row" data-action="open-categories-manager">
         <span id="ic-set-cats" class="icon-badge" style="background:#ec4899"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_categories">Категорії</div>
@@ -1448,7 +1448,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openBudgetsManager()">
+      <div class="settings-row" data-action="open-budgets-manager">
         <span id="ic-set-budgets" class="icon-badge" style="background:#f59e0b"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_budgets">Бюджети</div>
@@ -1464,7 +1464,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="openRecurringManager()">
+      <div class="settings-row" data-action="open-recurring-manager">
         <span id="ic-set-recurring" class="icon-badge" style="background:#10b981"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_recurring">Повторювані операції</div>
@@ -1653,7 +1653,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="shifts_types_btn">Типи змін</div></div>
     <div class="mgr-list" id="shift-types-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addShiftType()"><span id="ic-add-st"></span><span data-i18n="shifts_add_type">Додати тип зміни</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-shift-type"><span id="ic-add-st"></span><span data-i18n="shifts_add_type">Додати тип зміни</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
@@ -1668,7 +1668,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_wallets">Гаманці</div></div>
     <div class="mgr-list" id="wallets-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addWallet()"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-wallet"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
@@ -1761,11 +1761,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_categories">Категорії</div></div>
     <div class="type-seg" style="margin-bottom:12px">
-      <button class="type-btn active" id="catmgr-inc" onclick="setCatMgrType('income')" data-i18n="cat_income">Дохід</button>
-      <button class="type-btn" id="catmgr-exp" onclick="setCatMgrType('expense')" data-i18n="cat_expense">Витрата</button>
+      <button class="type-btn active" id="catmgr-inc" data-action="set-cat-mgr-type" data-type="income" data-i18n="cat_income">Дохід</button>
+      <button class="type-btn" id="catmgr-exp" data-action="set-cat-mgr-type" data-type="expense" data-i18n="cat_expense">Витрата</button>
     </div>
     <div class="mgr-list" id="categories-list"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addCategory()"><span id="ic-add-cat"></span><span data-i18n="cat_add">Додати категорію</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-category"><span id="ic-add-cat"></span><span data-i18n="cat_add">Додати категорію</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
@@ -1782,11 +1782,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="rates_desc">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:6px" data-i18n="rates_source_label">Джерело курсу</div>
     <div class="filter-row" id="rates-source-filter" style="margin-bottom:6px">
-      <div class="filter-chip active" data-source="nbu" onclick="setRatesSource('nbu')" data-i18n="rates_source_nbu">НБУ (офіційний)</div>
-      <div class="filter-chip" data-source="privat" onclick="setRatesSource('privat')" data-i18n="rates_source_privat">ПриватБанк (готівка)</div>
+      <div class="filter-chip active" data-source="nbu" data-action="set-rates-source" data-i18n="rates_source_nbu">НБУ (офіційний)</div>
+      <div class="filter-chip" data-source="privat" data-action="set-rates-source" data-i18n="rates_source_privat">ПриватБанк (готівка)</div>
     </div>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" data-i18n="rates_source_hint">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</div>
-    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" onclick="updateRatesOnline()"><span id="ic-rates-update"></span><span data-i18n="rates_update_btn">Оновити онлайн</span></button>
+    <button class="btn btn-ghost" id="rates-update-btn" style="width:100%;justify-content:center;margin-bottom:6px" data-action="update-rates-online"><span id="ic-rates-update"></span><span data-i18n="rates_update_btn">Оновити онлайн</span></button>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px" id="rates-updated-hint"></div>
     <div class="mgr-list" id="rates-list"></div>
     <div class="modal-actions" style="margin-top:12px">
@@ -1935,9 +1935,9 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" id="cat-action-title">Категорія</div></div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionEdit()"><span id="ic-cat-act-edit" class="icon-badge icon-badge-sm" style="background:var(--blue)"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionShowTx()"><span id="ic-cat-act-show" class="icon-badge icon-badge-sm" style="background:var(--purple)"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
-      <button class="btn btn-danger" style="width:100%;justify-content:flex-start;gap:10px" onclick="catActionDelete()"><span id="ic-cat-act-del" class="icon-badge icon-badge-sm" style="background:var(--red)"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-edit"><span id="ic-cat-act-edit" class="icon-badge icon-badge-sm" style="background:var(--blue)"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-show-tx"><span id="ic-cat-act-show" class="icon-badge icon-badge-sm" style="background:var(--purple)"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-delete"><span id="ic-cat-act-del" class="icon-badge icon-badge-sm" style="background:var(--red)"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
     </div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-cancel" style="flex:1" data-close-modal data-i18n="common_cancel">Скасувати</button>
@@ -2016,7 +2016,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" data-i18n="settings_recurring">Повторювані операції</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="recurring_desc">Автоматично додаються при вході в застосунок, коли настає дата.</div>
     <div class="debt-list" id="recurring-list" style="max-height:420px"></div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="addRecurring()"><span id="ic-add-recur"></span><span data-i18n="recurring_add">Додати повторювану операцію</span></button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-recurring"><span id="ic-add-recur"></span><span data-i18n="recurring_add">Додати повторювану операцію</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>

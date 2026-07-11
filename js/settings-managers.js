@@ -104,18 +104,18 @@ function renderShiftTypesList(){
           <span class="cat-row-name">${escapeHtml(t.name)}</span>
           <span class="cat-row-sub">${summary}</span>
         </div>
-        <button type="button" class="mgr-edit${open?' active':''}" onclick="toggleShiftTypeEdit('${t.id}')" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" onclick="deleteShiftType('${t.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-shift-type-edit" data-id="${t.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-shift-type" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
-        <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateShiftType('${t.id}','name',this.value)">
+        <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-shift-type" data-id="${t.id}" data-field="name">
         <div style="display:flex;gap:8px">
-          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" onchange="updateShiftType('${t.id}','amount',this.value)"></div>
-          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" onchange="updateShiftType('${t.id}','hours',this.value)"></div>
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" data-action="update-shift-type" data-id="${t.id}" data-field="amount"></div>
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" data-action="update-shift-type" data-id="${t.id}" data-field="hours"></div>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:700">
-          <input type="checkbox" class="rchk" ${t.isOff?'checked':''} onchange="updateShiftType('${t.id}','isOff',this.checked)"> ${tr('shifts_type_off_label')}
+          <input type="checkbox" class="rchk" ${t.isOff?'checked':''} data-action="update-shift-type" data-id="${t.id}" data-field="isOff"> ${tr('shifts_type_off_label')}
         </label>
       </div>`:''}`;
     box.appendChild(row);
@@ -169,11 +169,11 @@ function renderWalletsList(){
     row.className='mgr-row';
     row.innerHTML=`
       <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" onclick="openColorPicker('wallet','${w.id}')"></button>
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" onchange="updateWallet('${w.id}','name',this.value)">
-      <select style="flex:0 0 82px" onchange="updateWallet('${w.id}','currency',this.value)">
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" data-action="update-wallet" data-id="${w.id}" data-field="name">
+      <select style="flex:0 0 82px" data-action="update-wallet" data-id="${w.id}" data-field="currency">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
       </select>
-      <button class="mgr-del" onclick="deleteWallet('${w.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <button class="mgr-del" data-action="delete-wallet" data-id="${w.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
   });
@@ -234,11 +234,11 @@ function renderWidgetsList(){
         <div class="settings-row-sub">${tr(w.subKey)}</div>
       </div>
       <div class="widget-reorder-col">
-        <button type="button" class="widget-reorder-btn" ${i===0?'disabled':''} onclick="moveWidget('${key}',-1)" aria-label="${tr('widgets_move_up')}">${window.Icon('chevron')}</button>
-        <button type="button" class="widget-reorder-btn widget-reorder-down" ${i===AppState.widgetOrder.length-1?'disabled':''} onclick="moveWidget('${key}',1)" aria-label="${tr('widgets_move_down')}">${window.Icon('chevron')}</button>
+        <button type="button" class="widget-reorder-btn" ${i===0?'disabled':''} data-action="move-widget" data-key="${key}" data-dir="-1" aria-label="${tr('widgets_move_up')}">${window.Icon('chevron')}</button>
+        <button type="button" class="widget-reorder-btn widget-reorder-down" ${i===AppState.widgetOrder.length-1?'disabled':''} data-action="move-widget" data-key="${key}" data-dir="1" aria-label="${tr('widgets_move_down')}">${window.Icon('chevron')}</button>
       </div>
       <label class="toggle">
-        <input type="checkbox" ${AppState.widgets[key]!==false?'checked':''} onchange="toggleWidget('${key}', this.checked)">
+        <input type="checkbox" ${AppState.widgets[key]!==false?'checked':''} data-action="toggle-widget" data-key="${key}">
         <span class="toggle-track"></span>
       </label>
     </div>`;
@@ -287,7 +287,7 @@ function renderRatesList(){
         <span class="rate-row-code">${code}</span>
         <span class="rate-row-sub">${tr('rates_per_unit')} ${code}</span>
       </span>
-      <input type="number" class="rate-row-input" min="0" step="0.01" value="${rate}" onchange="updateCurrencyRate('${code}',this.value)">`;
+      <input type="number" class="rate-row-input" min="0" step="0.01" value="${rate}" data-action="update-currency-rate" data-code="${code}">`;
     box.appendChild(row);
   });
 }
@@ -311,7 +311,7 @@ const setRatesSource = function(source){
   AppState.ratesSource = source==='privat' ? 'privat' : 'nbu';
   try{ localStorage.setItem(ratesSourceKey(), AppState.ratesSource); }catch(e){}
   renderRatesSourceUI();
-  window.updateRatesOnline(true);
+  updateRatesOnline(true);
 };
 
 function renderRatesSourceUI(){
@@ -443,14 +443,14 @@ const swapFxConverter = function(){
 };
 
 const refreshFxWidget = function(){
-  window.updateRatesOnline();
+  updateRatesOnline();
 };
 
 export function maybeAutoUpdateRates(){
   let at=0;
   try{ at=Number(localStorage.getItem(ratesUpdatedAtKey())||0); }catch(e){}
   if(Date.now()-at < 24*60*60*1000) return;
-  window.updateRatesOnline(true);
+  updateRatesOnline(true);
 }
 
 const openCategoriesManager = function(){
@@ -496,16 +496,16 @@ function renderCategoriesList(){
       <div class="cat-row">
         <button type="button" class="drag-handle" aria-label="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
         <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
-        <button type="button" class="cat-row-body" onclick="toggleSubcatPanel(${idx})">
+        <button type="button" class="cat-row-body" data-action="toggle-subcat-panel" data-idx="${idx}">
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(AppState.catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
         </button>
-        <button class="mgr-del" onclick="openCatActionMenu(${idx})" aria-label="${tr('a11y_more')}">${window.Icon('more')}</button>
+        <button class="mgr-del" data-action="open-cat-action-menu" data-idx="${idx}" aria-label="${tr('a11y_more')}">${window.Icon('more')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(AppState.catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button onclick="deleteSubcategory(${idx},${si})" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
+          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(AppState.catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button data-action="delete-subcategory" data-idx="${idx}" data-si="${si}" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
         </div>
         <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:11px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
       </div>`:''}`;
@@ -632,7 +632,7 @@ const catActionEdit = async function(){
   closeManagers();
   const newName=await uiPrompt(tr('cat_add_prompt'), name, tr('cat_act_edit'));
   if(newName===null) return;
-  window.renameCategory(idx, newName);
+  renameCategory(idx, newName);
 };
 
 const catActionShowTx = function(){
@@ -647,7 +647,7 @@ const catActionShowTx = function(){
 const catActionDelete = async function(){
   const idx=AppState.catActionIdx;
   closeManagers();
-  await window.deleteCategory(idx);
+  await deleteCategory(idx);
 };
 
 const openBudgetsManager = function(){
@@ -667,7 +667,7 @@ function renderBudgetsManagerList(){
     row.innerHTML=`
       <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
       <span class="budget-row-name">${escapeHtml(name)}</span>
-      <input type="number" class="mgr-num budget-row-input" min="0" step="0.01" placeholder="0" value="${val}" data-cat="${escapeHtml(name)}" onchange="updateBudget(this.dataset.cat,this.value)">
+      <input type="number" class="mgr-num budget-row-input" min="0" step="0.01" placeholder="0" value="${val}" data-action="update-budget" data-cat="${escapeHtml(name)}">
     `;
     box.appendChild(row);
   });
@@ -725,30 +725,30 @@ function renderRecurringList(){
     row.innerHTML=`
       <div class="debt-field" style="flex:1 1 100px">
         <span class="debt-field-label">${tr('recurring_type')}</span>
-        <select onchange="updateRecurring('${r.id}','type',this.value)">
+        <select data-action="update-recurring" data-id="${r.id}" data-field="type">
           <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
           <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 90px">
         <span class="debt-field-label">${tr('recurring_amount')}</span>
-        <input type="number" min="0.01" step="0.01" value="${r.amount||''}" onchange="updateRecurring('${r.id}','amount',this.value)">
+        <input type="number" min="0.01" step="0.01" value="${r.amount||''}" data-action="update-recurring" data-id="${r.id}" data-field="amount">
       </div>
       <div class="debt-field" style="flex:1 1 130px">
         <span class="debt-field-label">${tr('finance_category')}</span>
-        <select onchange="updateRecurring('${r.id}','category',this.value)">
+        <select data-action="update-recurring" data-id="${r.id}" data-field="category">
           ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 120px">
         <span class="debt-field-label">${tr('finance_wallet')}</span>
-        <select onchange="updateRecurring('${r.id}','wallet',this.value)">
+        <select data-action="update-recurring" data-id="${r.id}" data-field="wallet">
           ${AppState.wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 110px">
         <span class="debt-field-label">${tr('recurring_frequency')}</span>
-        <select onchange="updateRecurring('${r.id}','frequency',this.value)">
+        <select data-action="update-recurring" data-id="${r.id}" data-field="frequency">
           <option value="daily" ${r.frequency==='daily'?'selected':''}>${tr('recurring_daily')}</option>
           <option value="weekly" ${r.frequency==='weekly'?'selected':''}>${tr('recurring_weekly')}</option>
           <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>${tr('recurring_monthly')}</option>
@@ -756,14 +756,14 @@ function renderRecurringList(){
       </div>
       <div class="debt-field" style="flex:1 1 132px">
         <span class="debt-field-label">${tr('recurring_next_date')}</span>
-        <input type="date" value="${r.nextDate||''}" onchange="updateRecurring('${r.id}','nextDate',this.value)">
+        <input type="date" value="${r.nextDate||''}" data-action="update-recurring" data-id="${r.id}" data-field="nextDate">
       </div>
       <div class="debt-field" style="flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;gap:10px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0">
-          <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} onchange="updateRecurring('${r.id}','active',this.checked)">
+          <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} data-action="update-recurring" data-id="${r.id}" data-field="active">
           <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">${tr('recurring_active')}</span>
         </label>
-        <button class="debt-row-del" style="align-self:auto" onclick="deleteRecurring('${r.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <button class="debt-row-del" style="align-self:auto" data-action="delete-recurring" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
     `;
     box.appendChild(row);
@@ -825,42 +825,74 @@ export function __init_settings_managers__(){
 document.addEventListener('click', (e)=>{
   if(e.target.classList.contains('modal-overlay') || e.target.closest('[data-close-modal]')) closeManagers();
 }, true);
-window.openShiftTypesManager = openShiftTypesManager;
-window.toggleShiftTypeEdit = toggleShiftTypeEdit;
-window.updateShiftType = updateShiftType;
-window.addShiftType = addShiftType;
-window.deleteShiftType = deleteShiftType;
+
+// Phase 3 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// every remaining button/row/input in this file's own templates, plus this
+// file's static open-manager buttons in index.html, used to be wired via a
+// dedicated onclick="fn(...)"/onchange="fn(...)" HTML attribute (~50 sites
+// total). Replaced with two delegated listeners keyed by a shared
+// data-action attribute, same idea as the closeManagers listener above — a
+// new manager row/input just needs a data-action(+data-*) pair, no further
+// init-time wiring here.
+const CLICK_ACTIONS = {
+  'open-shift-types-manager': ()=>openShiftTypesManager(),
+  'add-shift-type': ()=>addShiftType(),
+  'toggle-shift-type-edit': ds=>toggleShiftTypeEdit(ds.id),
+  'delete-shift-type': ds=>deleteShiftType(ds.id),
+  'open-wallets-manager': ()=>openWalletsManager(),
+  'add-wallet': ()=>addWallet(),
+  'delete-wallet': ds=>deleteWallet(ds.id),
+  'open-rates-manager': ()=>openRatesManager(),
+  'open-widgets-manager': ()=>openWidgetsManager(),
+  'move-widget': ds=>moveWidget(ds.key, Number(ds.dir)),
+  'set-rates-source': ds=>setRatesSource(ds.source),
+  'update-rates-online': ()=>updateRatesOnline(),
+  'swap-fx-converter': ()=>swapFxConverter(),
+  'refresh-fx-widget': ()=>refreshFxWidget(),
+  'open-categories-manager': ()=>openCategoriesManager(),
+  'set-cat-mgr-type': ds=>setCatMgrType(ds.type),
+  'toggle-subcat-panel': ds=>toggleSubcatPanel(Number(ds.idx)),
+  'open-cat-action-menu': ds=>openCatActionMenu(Number(ds.idx)),
+  'delete-subcategory': ds=>deleteSubcategory(Number(ds.idx), Number(ds.si)),
+  'add-category': ()=>addCategory(),
+  'cat-action-edit': ()=>catActionEdit(),
+  'cat-action-show-tx': ()=>catActionShowTx(),
+  'cat-action-delete': ()=>catActionDelete(),
+  'open-budgets-manager': ()=>openBudgetsManager(),
+  'open-recurring-manager': ()=>openRecurringManager(),
+  'add-recurring': ()=>addRecurring(),
+  'delete-recurring': ds=>deleteRecurring(ds.id),
+};
+const FIELD_ACTIONS = {
+  'update-shift-type': (ds,el)=>updateShiftType(ds.id, ds.field, ds.field==='isOff'?el.checked:el.value),
+  'update-wallet': (ds,el)=>updateWallet(ds.id, ds.field, el.value),
+  'toggle-widget': (ds,el)=>toggleWidget(ds.key, el.checked),
+  'update-currency-rate': (ds,el)=>updateCurrencyRate(ds.code, el.value),
+  'update-budget': (ds,el)=>updateBudget(ds.cat, el.value),
+  'update-recurring': (ds,el)=>updateRecurring(ds.id, ds.field, ds.field==='active'?el.checked:el.value),
+  'render-fx-converter': ()=>renderFxConverter(),
+};
+// CAPTURE phase, same reason as the closeManagers listener above: several
+// of these live inside a .modal-card, whose own onclick="event.
+// stopPropagation()" would otherwise swallow a bubble-phase document
+// listener's click before it ever saw the event.
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+function dispatchFieldAction(e){
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+}
+document.addEventListener('change', dispatchFieldAction);
+document.addEventListener('input', dispatchFieldAction);
+
+// Still window-exposed: js/analytics-csv.js's onboarding checklist template
+// (a separate file, out of this phase's scope) and tests/e2e-modals.mjs
+// both call these two by name via a literal onclick="..."/window.foo()
+// reference rather than a data-action, so the export has to stay until
+// that template is converted too.
 window.openWalletsManager = openWalletsManager;
-window.updateWallet = updateWallet;
-window.addWallet = addWallet;
-window.deleteWallet = deleteWallet;
-window.openRatesManager = openRatesManager;
-window.toggleWidget = toggleWidget;
-window.moveWidget = moveWidget;
 window.openWidgetsManager = openWidgetsManager;
-window.updateCurrencyRate = updateCurrencyRate;
 try{ const s=localStorage.getItem(ratesSourceKey()); if(s==='privat'||s==='nbu') AppState.ratesSource=s; }catch(e){}
-window.setRatesSource = setRatesSource;
-window.updateRatesOnline = updateRatesOnline;
-window.renderFxConverter=renderFxConverter;
-window.swapFxConverter = swapFxConverter;
-window.refreshFxWidget = refreshFxWidget;
-window.openCategoriesManager = openCategoriesManager;
-window.setCatMgrType = setCatMgrType;
-window.toggleSubcatPanel = toggleSubcatPanel;
-window.addSubcategory = addSubcategory;
-window.deleteSubcategory = deleteSubcategory;
-window.renameCategory = renameCategory;
-window.addCategory = addCategory;
-window.deleteCategory = deleteCategory;
-window.openCatActionMenu = openCatActionMenu;
-window.catActionEdit = catActionEdit;
-window.catActionShowTx = catActionShowTx;
-window.catActionDelete = catActionDelete;
-window.openBudgetsManager = openBudgetsManager;
-window.updateBudget = updateBudget;
-window.openRecurringManager = openRecurringManager;
-window.updateRecurring = updateRecurring;
-window.addRecurring = addRecurring;
-window.deleteRecurring = deleteRecurring;
 }
