@@ -4,6 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
+import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
@@ -250,7 +251,7 @@ const moveWidget = function(key, dir){
   applyWidgetOrder();
 };
 
-const toggleHideAmounts = function(){
+export const toggleHideAmounts = function(){
   const on=!document.body.classList.contains('amounts-hidden');
   document.body.classList.toggle('amounts-hidden', on);
   try{ localStorage.setItem('xamssHideAmounts', on?'1':'0'); }catch(e){}
@@ -628,7 +629,7 @@ const catActionShowTx = function(){
   const idx=AppState.catActionIdx; const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   window.closeManagers();
   AppState.txCategoryFilter=name;
-  window.switchTab('finance');
+  switchTab('finance');
   renderFinance();
   showToast(`${tr('cat_showing')} ${name}`,'search');
 };
@@ -815,7 +816,6 @@ window.deleteWallet = deleteWallet;
 window.openRatesManager = openRatesManager;
 window.toggleWidget = toggleWidget;
 window.moveWidget = moveWidget;
-window.toggleHideAmounts = toggleHideAmounts;
 window.openWidgetsManager = openWidgetsManager;
 window.updateCurrencyRate = updateCurrencyRate;
 try{ const s=localStorage.getItem(ratesSourceKey()); if(s==='privat'||s==='nbu') AppState.ratesSource=s; }catch(e){}
