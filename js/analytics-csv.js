@@ -318,7 +318,25 @@ const exportTransactionsCSV = function(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_analytics_csv__(){
-window.setAnalyticsPeriod = setAnalyticsPeriod;
-window.clearTxCategoryFilter = clearTxCategoryFilter;
-window.exportTransactionsCSV = exportTransactionsCSV;
+// Phase 11 of the window.*/inline-onclick removal audit item (see
+// CLAUDE.md): this file's own dynamic templates never call its own
+// functions via onclick (the 5 onclick sites inside renderFinanceStartGuide/
+// renderFinance call OTHER files' functions - openWalletsManager/
+// openNewTxModal/openWidgetsManager/editTransaction/deleteTransaction -
+// which already correctly stay window-exported in settings-managers.js/
+// finance.js, out of scope here). All 3 of this file's own window.*
+// existed only for static index.html onclick attributes, converted to
+// data-action, same pattern as phases 3-10. The analytics-period chips
+// already carried a data-period attribute matching the value, so
+// set-analytics-period reads ds.period directly instead of adding a
+// redundant attribute.
+const CLICK_ACTIONS = {
+  'set-analytics-period': ds=>setAnalyticsPeriod(ds.period),
+  'clear-tx-category-filter': ()=>clearTxCategoryFilter(),
+  'export-transactions-csv': ()=>exportTransactionsCSV(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
 }

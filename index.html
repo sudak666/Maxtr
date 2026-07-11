@@ -1150,7 +1150,7 @@ body.amounts-hidden #fx-converter-result{
         <div class="filter-chip"        data-filter="transfer" data-action="set-tx-filter" data-i18n="finance_type_transfer">⇄ Переказ</div>
       </div>
       <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
-        <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
+        <span class="filter-chip active" style="cursor:pointer" data-action="clear-tx-category-filter"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
       </div>
       <div class="tx-list" id="tx-list-container"></div>
     </div>
@@ -1166,10 +1166,10 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section" id="analytics-section">
       <div class="chart-title"><span id="ic-analytics"></span><span data-i18n="analytics_title">Аналітика витрат і доходів</span></div>
       <div class="filter-row" id="analytics-period-filter">
-        <div class="filter-chip active" data-period="month" onclick="setAnalyticsPeriod('month')" data-i18n="analytics_period_month">Цей місяць</div>
-        <div class="filter-chip" data-period="prev" onclick="setAnalyticsPeriod('prev')" data-i18n="analytics_period_prev">Минулий місяць</div>
-        <div class="filter-chip" data-period="3m" onclick="setAnalyticsPeriod('3m')" data-i18n="analytics_period_3m">3 місяці</div>
-        <div class="filter-chip" data-period="all" onclick="setAnalyticsPeriod('all')" data-i18n="analytics_period_all">Весь час</div>
+        <div class="filter-chip active" data-period="month" data-action="set-analytics-period" data-i18n="analytics_period_month">Цей місяць</div>
+        <div class="filter-chip" data-period="prev" data-action="set-analytics-period" data-i18n="analytics_period_prev">Минулий місяць</div>
+        <div class="filter-chip" data-period="3m" data-action="set-analytics-period" data-i18n="analytics_period_3m">3 місяці</div>
+        <div class="filter-chip" data-period="all" data-action="set-analytics-period" data-i18n="analytics_period_all">Весь час</div>
       </div>
       <div class="stats-row" id="analytics-stats"></div>
       <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
@@ -1480,7 +1480,7 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <span class="settings-row-chevron"></span>
       </div>
-      <div class="settings-row" onclick="exportTransactionsCSV()" style="border-top:none">
+      <div class="settings-row" data-action="export-transactions-csv" style="border-top:none">
         <span id="ic-set-export" class="icon-badge" style="background:#ef4444"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_export">Експорт CSV</div>
