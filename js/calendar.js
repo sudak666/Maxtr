@@ -419,6 +419,15 @@ const CLICK_ACTIONS = {
   'save-autofill-config': ()=>saveAutoFillConfig(),
 };
 document.addEventListener('click', e=>{
+  // #shift-modal's backdrop close is a plain exact-target check (same
+  // idea as closeManagers()'s `e.target.classList.contains('modal-overlay')`
+  // in settings-managers.js), not a data-action on the overlay itself: a
+  // data-action="close-modal" on the overlay div previously matched via
+  // closest() for ANY click inside the modal that didn't have its own
+  // data-action (e.g. a shift-type checkbox), closing the modal the
+  // instant you tried to pick a shift. Real bug, found by a user report
+  // ("shifts aren't selectable") plus a Playwright repro.
+  if(e.target.id==='shift-modal'){ closeModal(); return; }
   const el=e.target.closest('[data-action]');
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
 }, true);
