@@ -39,4 +39,29 @@ function monthPrefix(d, timeZone) {
   return zonedDateParts(d, timeZone).dateStr.slice(0, 7);
 }
 
-module.exports = { SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix };
+// Runs fn(item, index) over items with at most `limit` in flight at once,
+// resolving to the same shape as Promise.allSettled (never rejects itself).
+// notificationSweep used a bare Promise.allSettled over every push_tokens
+// doc, which fires every user's Firestore reads + FCM send at once with no
+// cap — fine at a handful of users, a burst risk once the account count
+// grows. A fixed-size worker pool avoids adding a dependency for something
+// this small.
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      try {
+        results[i] = { status: 'fulfilled', value: await fn(items[i], i) };
+      } catch (error) {
+        results[i] = { status: 'rejected', reason: error };
+      }
+    }
+  }
+  const workerCount = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return results;
+}
+
+module.exports = { SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency };

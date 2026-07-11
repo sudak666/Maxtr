@@ -35,3 +35,49 @@ jobs:
 
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
+
+  firestore-rules:
+    runs-on: ubuntu-latest
+    # A separate job, not folded into `smoke` above: needs a JDK + the
+    # Firestore emulator (downloads the emulator jar on first use) + two npm
+    # packages this repo intentionally doesn't vendor as a root package.json
+    # (see CLAUDE.md — no build step for the app itself). This asserts
+    # against a real emulator's evaluation of firestore.rules, which
+    # tests/smoke.mjs never touches (it stubs the Firebase SDK entirely).
+    # Added after a real bug shipped to main and passed every check that
+    # existed at the time: firestore.rules denied every deleteDoc() (a
+    # `request.resource.data` field access in the same allow block as
+    # delete, where request.resource is null on delete) — invisible to a
+    # read-through and to smoke.mjs, only visible against the emulator.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install rules-test dependencies
+        run: |
+          mkdir -p /tmp/rules-test
+          cd /tmp/rules-test
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @firebase/rules-unit-testing firebase
+          ln -s /tmp/rules-test/node_modules "$GITHUB_WORKSPACE/tests/node_modules"
+
+      - name: Start Firestore emulator
+        working-directory: /tmp/rules-test
+        run: |
+          nohup npx --yes firebase-tools emulators:start --only firestore --project zminka-rules-test > emulator.log 2>&1 &
+          for i in $(seq 1 60); do
+            (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null && break
+            sleep 1
+          done
+          cat emulator.log
+
+      - name: Run Firestore rules tests
+        run: node tests/firestore-rules.mjs

@@ -20,7 +20,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const logger = require('firebase-functions/logger');
-const { toBase, zonedDateParts, todayStr, monthPrefix } = require('./lib/pure');
+const { toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency } = require('./lib/pure');
 
 initializeApp();
 const db = getFirestore();
@@ -155,10 +155,11 @@ async function sweepProfile(uid, profileId, token, prevState, now) {
 // their notification settings, at which point the client backfills it.
 // One token doc's full sweep (every profile on that account) — pulled out
 // of the main loop so notificationSweep can run every user's sweep
-// concurrently (Promise.allSettled below) instead of one uid at a time,
-// which is what actually doesn't scale past a handful of users: each
-// iteration was a fully sequential chain of Firestore reads/FCM sends with
-// nothing overlapping.
+// concurrently (mapWithConcurrency below, capped rather than unbounded —
+// see that function's comment) instead of one uid at a time, which is what
+// actually doesn't scale past a handful of users: each iteration was a
+// fully sequential chain of Firestore reads/FCM sends with nothing
+// overlapping.
 async function sweepToken(tokenDoc, now) {
   const uid = tokenDoc.id;
   const data = tokenDoc.data();
@@ -208,12 +209,18 @@ async function sweepToken(tokenDoc, now) {
   }
 }
 
+// Capped rather than unbounded: an uncapped Promise.allSettled over every
+// push_tokens doc fires every user's Firestore reads + FCM send at once,
+// which is fine at a handful of users but an uncontrolled burst against
+// Firestore/FCM once the account count grows.
+const SWEEP_CONCURRENCY = 25;
+
 exports.notificationSweep = onSchedule('every 60 minutes', async () => {
   const tokensSnap = await db.collection('push_tokens').get();
   if (tokensSnap.empty) return;
 
   const now = new Date();
-  const results = await Promise.allSettled(tokensSnap.docs.map((tokenDoc) => sweepToken(tokenDoc, now)));
+  const results = await mapWithConcurrency(tokensSnap.docs, SWEEP_CONCURRENCY, (tokenDoc) => sweepToken(tokenDoc, now));
   results.forEach((r, i) => {
     if (r.status === 'rejected') {
       logger.error('sweepToken failed', { uid: tokensSnap.docs[i].id, error: r.reason?.message || String(r.reason) });

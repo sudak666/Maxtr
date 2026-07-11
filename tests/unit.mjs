@@ -10,11 +10,11 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix } = require('../functions/lib/pure.js');
+const { convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency } = require('../functions/lib/pure.js');
 
 let passed = 0;
-function test(name, fn) {
-  fn();
+async function test(name, fn) {
+  await fn();
   passed++;
   console.log(`[ok] ${name}`);
 }
@@ -76,6 +76,41 @@ test('todayStr / monthPrefix: consistent with zonedDateParts', () => {
   const d = new Date('2026-07-10T18:05:00Z');
   assert.equal(todayStr(d, 'Europe/Kyiv'), '2026-07-10');
   assert.equal(monthPrefix(d, 'Europe/Kyiv'), '2026-07');
+});
+
+await test('mapWithConcurrency: runs every item and preserves result order', async () => {
+  const items = [5, 1, 4, 2, 3];
+  const results = await mapWithConcurrency(items, 2, async (n) => {
+    await new Promise((r) => setTimeout(r, n));
+    return n * 10;
+  });
+  assert.deepEqual(results.map((r) => r.value), [50, 10, 40, 20, 30]);
+  assert.ok(results.every((r) => r.status === 'fulfilled'));
+});
+
+await test('mapWithConcurrency: never runs more than `limit` items at once', async () => {
+  let active = 0;
+  let maxActive = 0;
+  const items = Array.from({ length: 10 }, (_, i) => i);
+  await mapWithConcurrency(items, 3, async () => {
+    active++;
+    maxActive = Math.max(maxActive, active);
+    await new Promise((r) => setTimeout(r, 5));
+    active--;
+  });
+  assert.ok(maxActive <= 3, `expected max 3 concurrent, saw ${maxActive}`);
+});
+
+await test('mapWithConcurrency: a rejected item is reported without aborting the rest', async () => {
+  const items = [1, 2, 3];
+  const results = await mapWithConcurrency(items, 2, async (n) => {
+    if (n === 2) throw new Error('boom');
+    return n;
+  });
+  assert.equal(results[0].status, 'fulfilled');
+  assert.equal(results[1].status, 'rejected');
+  assert.equal(results[1].reason.message, 'boom');
+  assert.equal(results[2].status, 'fulfilled');
 });
 
 console.log(`\n${passed} unit test(s) passed`);
