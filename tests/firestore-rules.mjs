@@ -20,7 +20,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebas
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { setDoc, doc, getDoc } from 'firebase/firestore';
+import { setDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
@@ -115,6 +115,17 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(adminDb, `push_tokens/${uidA}`), { profileState: { default: { sentDaily: '2026-07-10' } } }, { merge: true });
 });
 await check('client token refresh still succeeds after admin-written fields exist', setDoc(doc(asA, `push_tokens/${uidA}`), { token: 'b'.repeat(150), updatedAt: Date.now() }, { merge: true }), 'allow');
+
+// 10. deleteDoc() must not be blocked by the create/update field validation
+// (request.resource.data is null on delete — a rule that references it in
+// the same allow block as delete denies every delete unconditionally).
+await check('owner can delete their finance doc', deleteDoc(doc(asA, `users/${uidA}/max_tracker/finance`)), 'allow');
+await check('owner can delete their shifts doc', deleteDoc(doc(asA, `users/${uidA}/max_tracker/shifts`)), 'allow');
+await check('owner can delete their debt doc', deleteDoc(doc(asA, `users/${uidA}/max_tracker/debt`)), 'allow');
+await check('other user cannot delete uidA finance doc', deleteDoc(doc(asB, `users/${uidA}/max_tracker/finance`)), 'deny');
+await check('unauthenticated cannot delete finance doc', deleteDoc(doc(anon, `users/${uidA}/max_tracker/finance`)), 'deny');
+await check('owner can delete their push token', deleteDoc(doc(asA, `push_tokens/${uidA}`)), 'allow');
+await check('other user cannot delete uidA push token', deleteDoc(doc(asB, `push_tokens/${uidA}`)), 'deny');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 await testEnv.cleanup();
