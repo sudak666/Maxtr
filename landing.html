@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zminka — фінанси, зміни та борги в одному застосунку</title>
+<meta name="description" content="Zminka — безкоштовний трекер робочих змін, багатовалютних фінансів, боргів і покупок. Працює офлайн, встановлюється як застосунок, дані захищені PIN та Face ID.">
+<meta property="og:title" content="Zminka — фінанси, зміни та борги в одному застосунку">
+<meta property="og:description" content="Безкоштовний трекер робочих змін, фінансів, боргів і покупок. Працює офлайн, встановлюється як застосунок.">
+<meta property="og:image" content="./landing/screenshots/finance-dark.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<script src="./landing/js/theme-preinit.js"></script>
+<style>
+:root{
+  --bg:#1c1c1f; --bg1:#242327; --bg2:#2c2b30; --bg3:#38373d;
+  --border:#403f45; --border2:#525158;
+  --text:#e9e8ea; --text-strong:#ffffff; --muted:#96959c; --muted2:#68676e;
+  --purple:#8b5cf6; --purple2:#a78bfa; --purple3:#6d28d9;
+  --green:#10b981; --green2:#34d399;
+  --pink:#ec4899; --blue:#3b82f6; --orange:#f59e0b; --cyan:#06b6d4;
+}
+[data-theme="light"]{
+  --bg:#f2f2f7; --bg1:#ffffff; --bg2:#f2f2f7; --bg3:#eaeaef;
+  --border:#e4e4e9; --border2:#d1d1d6;
+  --text:#1c1c1e; --text-strong:#0b0b0d; --muted:#6b6b70; --muted2:#75757b;
+  --purple2:#7c3aed;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f2f2f7; --bg1:#ffffff; --bg2:#f2f2f7; --bg3:#eaeaef;
+    --border:#e4e4e9; --border2:#d1d1d6;
+    --text:#1c1c1e; --text-strong:#0b0b0d; --muted:#6b6b70; --muted2:#75757b;
+    --purple2:#7c3aed;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;overflow-x:hidden;transition:background .25s ease,color .25s ease}
+img{max-width:100%;display:block}
+a{color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.ico{width:1em;height:1em;display:inline-block;vertical-align:-0.15em}
+
+/* ── topbar ── */
+.topbar{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:color-mix(in srgb, var(--bg) 82%, transparent);border-bottom:1px solid var(--border)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;max-width:1100px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--text-strong)}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
+.topnav{display:flex;align-items:center;gap:24px}
+.topnav a{font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;transition:color .15s}
+.topnav a:hover{color:var(--text)}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.theme-toggle{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;border:none;text-decoration:none;white-space:nowrap;transition:transform .15s,box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.35)}
+.btn-primary:hover{box-shadow:0 10px 28px rgba(139,92,246,.5)}
+.btn-ghost{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+@media (max-width:760px){ .topnav{display:none} }
+
+/* ── hero ── */
+.hero{padding:64px 0 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+@media (max-width:860px){ .hero{grid-template-columns:1fr;padding:36px 0 20px;text-align:center} }
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--purple2);background:color-mix(in srgb, var(--purple) 16%, transparent);border:1px solid color-mix(in srgb, var(--purple) 35%, transparent);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:44px;line-height:1.12;font-weight:900;margin:0 0 18px;color:var(--text-strong);letter-spacing:-.02em}
+@media (max-width:860px){ .hero h1{font-size:32px} }
+.hero p{font-size:17px;line-height:1.6;color:var(--muted);margin:0 0 28px;max-width:480px}
+@media (max-width:860px){ .hero p{margin-left:auto;margin-right:auto} }
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+@media (max-width:860px){ .hero-ctas{justify-content:center} }
+.hero-note{margin-top:16px;font-size:12.5px;color:var(--muted2);display:flex;align-items:center;gap:8px}
+@media (max-width:860px){ .hero-note{justify-content:center} }
+.phone-frame{position:relative;margin:0 auto;width:290px;border-radius:38px;background:linear-gradient(160deg,var(--bg3),var(--bg1));border:8px solid var(--bg3);box-shadow:0 30px 70px -20px rgba(0,0,0,.5), 0 0 0 1px var(--border);overflow:hidden}
+.phone-frame img{width:100%;display:block}
+.phone-notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:18px;border-radius:12px;background:var(--bg3);z-index:2}
+.hero-glow{position:absolute;width:420px;height:420px;background:radial-gradient(circle,rgba(139,92,246,.35),transparent 70%);filter:blur(20px);z-index:-1;top:-80px;right:-100px}
+@media (max-width:860px){ .hero-glow{display:none} }
+
+/* ── sections ── */
+section{padding:64px 0}
+.section-head{text-align:center;max-width:640px;margin:0 auto 44px}
+.section-head h2{font-size:30px;font-weight:900;color:var(--text-strong);margin:0 0 12px;letter-spacing:-.01em}
+.section-head p{color:var(--muted);font-size:15.5px;line-height:1.6;margin:0}
+
+/* ── features ── */
+.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:900px){ .features-grid{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:520px){ .features-grid{grid-template-columns:1fr} }
+.feature-card{background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:22px}
+.feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:#fff}
+.feature-card h3{font-size:15.5px;font-weight:800;margin:0 0 6px;color:var(--text-strong)}
+.feature-card p{font-size:13px;color:var(--muted);line-height:1.55;margin:0}
+
+/* ── screenshots ── */
+.shots-scroll{display:flex;gap:20px;overflow-x:auto;padding:8px 4px 20px;scrollbar-width:thin}
+.shot-card{flex:0 0 auto;width:220px;text-align:center}
+.shot-card .phone-frame{width:220px;border-radius:30px;border-width:6px}
+.shot-card figcaption{margin-top:14px;font-size:13.5px;font-weight:700;color:var(--muted)}
+
+/* ── pricing ── */
+.pricing-card{max-width:420px;margin:0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:36px 32px;text-align:center;position:relative;overflow:hidden}
+.pricing-card::before{content:'';position:absolute;top:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 70%)}
+.pricing-badge{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--purple2);background:color-mix(in srgb, var(--purple) 14%, transparent);padding:5px 12px;border-radius:999px;margin-bottom:14px}
+.price{font-size:46px;font-weight:900;color:var(--text-strong);margin:6px 0 4px}
+.price span{font-size:16px;font-weight:700;color:var(--muted)}
+.pricing-list{list-style:none;margin:26px 0;padding:0;text-align:left;display:grid;gap:12px}
+.pricing-list li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text)}
+.pricing-list .ico{color:var(--green2);flex-shrink:0}
+
+/* ── faq ── */
+.faq{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 4px;cursor:pointer;font-weight:700;font-size:15px;color:var(--text-strong)}
+.faq-q .chev{transition:transform .2s;color:var(--muted);flex-shrink:0}
+.faq-item.open .faq-q .chev{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.faq-a p{margin:0 0 20px;padding:0 4px;color:var(--muted);font-size:14px;line-height:1.6}
+.faq-item.open .faq-a{max-height:220px}
+
+/* ── footer ── */
+footer{border-top:1px solid var(--border);padding:32px 0;margin-top:20px}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-links{display:flex;gap:20px;font-size:13px;color:var(--muted)}
+.footer-links a{text-decoration:none;color:var(--muted)}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-size:12.5px;color:var(--muted2)}
+
+/* ── final CTA ── */
+.final-cta{text-align:center;background:linear-gradient(135deg,var(--purple3),var(--purple));border-radius:28px;padding:56px 32px;color:#fff;margin:0 20px}
+.final-cta h2{font-size:28px;font-weight:900;margin:0 0 12px}
+.final-cta p{font-size:15px;opacity:.9;margin:0 0 26px}
+.final-cta .btn-primary{background:#fff;color:var(--purple3);box-shadow:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-mark">Z</span> Zminka</div>
+    <nav class="topnav">
+      <a href="#features">Можливості</a>
+      <a href="#screenshots">Скріншоти</a>
+      <a href="#pricing">Ціна</a>
+      <a href="#faq">Питання</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Перемкнути тему" type="button">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M20 14.6A8.6 8.6 0 1 1 9.4 4a7.1 7.1 0 0 0 10.6 10.6Z"/></svg>
+      </button>
+      <a class="btn btn-primary" href="./index.html">Спробувати</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="hero" style="position:relative">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div>
+      <div class="eyebrow">Безкоштовно · Працює офлайн</div>
+      <h1>Зміни, фінанси й борги — в одному застосунку, а не в трьох таблицях</h1>
+      <p>Zminka рахує заробіток за графіком змін, веде багатовалютний бюджет, стежить за боргами й покупками — і працює навіть без інтернету. Встановлюється як звичайний застосунок, дані захищені PIN та Face ID.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="./index.html">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>
+          Почати безкоштовно
+        </a>
+        <a class="btn btn-ghost" href="#screenshots">Дивитись скріншоти</a>
+      </div>
+      <div class="hero-note">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+        Дані зберігаються під вашим акаунтом і захищені правилами доступу Firebase — ніхто інший їх не бачить.
+      </div>
+    </div>
+    <div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <img src="./landing/screenshots/finance-dark.png" alt="Скріншот екрану «Фінанси» в застосунку Zminka" width="290">
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="section-head">
+      <h2>Все, що потрібно для контролю над грошима й графіком</h2>
+      <p>Жодних окремих таблиць чи нотаток — усе в одному місці, синхронізовано між пристроями.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M3 10.6h18"/><circle cx="16.6" cy="14.4" r="1" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3>Багатовалютні фінанси</h3>
+        <p>Кілька гаманців, категорії з іконками й кольорами, авто-конвертація за курсом НБУ та ПриватБанку.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="3.5" y="5" width="17" height="15" rx="3.2"/><path d="M3.5 9.6h17M8 3v3.4M16 3v3.4"/></svg>
+        </div>
+        <h3>Графік змін</h3>
+        <p>Позначай робочі дні прямо в календарі — застосунок сам порахує заробіток, години та вихідні.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M3 10 12 4l9 6"/><path d="M4 10h16v9H4Z"/><path d="M4 19h16M7 13v4M12 13v4M17 13v4"/></svg>
+        </div>
+        <h3>Розрахунки та борги</h3>
+        <p>Веди кілька розрахунків окремо, додавай платежі й дивись залишок — без плутанини в датах.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M3 4h2l2.4 12.2A2 2 0 0 0 9.3 18H18a2 2 0 0 0 2-1.6L21.5 8H6"/><circle cx="10" cy="21" r="1.3"/><circle cx="18" cy="21" r="1.3"/></svg>
+        </div>
+        <h3>Список покупок</h3>
+        <p>Спільний список на щотижневі покупки — познач куплене одним дотиком.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#10b981,#34d399)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M6 10.2a6 6 0 0 1 12 0c0 4.1 1.5 5.6 2 6.1H4c.5-.5 2-2 2-6.1Z"/><path d="M9.3 19a2.7 2.7 0 0 0 5.4 0"/></svg>
+        </div>
+        <h3>Нагадування</h3>
+        <p>Push-сповіщення про перевищення бюджету, наближення платежу чи «сьогодні нічого не внесено».</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+        </div>
+        <h3>PIN і Face ID</h3>
+        <p>Локальний код-пароль і біометрія додатково захищають застосунок на самому пристрої.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#06b6d4,#22d3ee)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.7 2.2 4.2 5.2 4.2 8.4s-1.5 6.2-4.2 8.4c-2.7-2.2-4.2-5.2-4.2-8.4S9.3 5.8 12 3.6Z"/></svg>
+        </div>
+        <h3>Працює офлайн</h3>
+        <p>PWA — встановлюється на телефон чи комп'ютер як звичайний застосунок і працює без інтернету.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+        </div>
+        <h3>Темна й світла тема</h3>
+        <p>Автоматично за системною темою або вручну — плюс кольорова персоналізація гаманців і категорій.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <div class="section-head">
+      <h2>Як це виглядає</h2>
+      <p>Реальні екрани застосунку — без макетів і фотошопу.</p>
+    </div>
+    <div class="shots-scroll">
+      <figure class="shot-card">
+        <div class="phone-frame"><img src="./landing/screenshots/finance-dark.png" alt="Екран Фінанси" width="220"></div>
+        <figcaption>Фінанси</figcaption>
+      </figure>
+      <figure class="shot-card">
+        <div class="phone-frame"><img src="./landing/screenshots/shifts-dark.png" alt="Екран Графік змін" width="220"></div>
+        <figcaption>Графік змін</figcaption>
+      </figure>
+      <figure class="shot-card">
+        <div class="phone-frame"><img src="./landing/screenshots/debt-dark.png" alt="Екран Розрахунки" width="220"></div>
+        <figcaption>Розрахунки</figcaption>
+      </figure>
+      <figure class="shot-card">
+        <div class="phone-frame"><img src="./landing/screenshots/shopping-dark.png" alt="Екран Покупки" width="220"></div>
+        <figcaption>Покупки</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="section-head">
+      <h2>Ціна</h2>
+      <p>Без прихованих платежів і без обмежень на кількість гаманців чи категорій.</p>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-badge">Free</div>
+      <div class="price">0 грн<span> / назавжди</span></div>
+      <ul class="pricing-list">
+        <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg> Необмежена кількість гаманців і категорій</li>
+        <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg> Графік змін, борги, покупки та аналітика</li>
+        <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg> Push-сповіщення та синхронізація між пристроями</li>
+        <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg> PIN, Face ID / Touch ID, офлайн-режим</li>
+        <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg> Кілька профілів на одному акаунті</li>
+      </ul>
+      <a class="btn btn-primary" style="width:100%;justify-content:center" href="./index.html">Почати безкоштовно</a>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="section-head">
+      <h2>Питання, які часто запитують</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q" data-faq-toggle>Це справді повністю безкоштовно?<svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Так. Усі функції — гаманці, графік змін, борги, покупки, сповіщення — доступні безкоштовно, без обмежень і без прихованих умов.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" data-faq-toggle>Чи бачить хтось мої дані?<svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Ні. Дані зберігаються у Firebase під вашим акаунтом, і правила доступу дозволяють читати й змінювати їх лише вам.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" data-faq-toggle>Чи працює застосунок без інтернету?<svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Так — це PWA (Progressive Web App). Після першого відкриття застосунок можна встановити на телефон чи комп'ютер і користуватись офлайн; дані синхронізуються, коли з'явиться інтернет.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" data-faq-toggle>На яких пристроях це працює?<svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>У будь-якому сучасному браузері на телефоні чи комп'ютері. Публікація в Google Play вже готується.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" data-faq-toggle>Чи можна вести кілька бюджетів (наприклад, свій і сімейний)?<svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Так — один акаунт може мати кілька незалежних профілів зі своїми фінансами, змінами та боргами, і перемикатись між ними за один дотик.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="final-cta">
+      <h2>Спробуй Zminka прямо зараз</h2>
+      <p>Без реєстрації кредитної картки, без обмежень — просто відкрий і почни вести облік.</p>
+      <a class="btn btn-primary" href="./index.html">Відкрити застосунок</a>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-links">
+      <a href="./privacy.html">Політика конфіденційності</a>
+      <a href="./terms.html">Умови використання</a>
+    </div>
+    <div class="footer-copy">© 2026 Zminka</div>
+  </div>
+</footer>
+
+<script src="./landing/js/landing.js"></script>
+</body>
+</html>
