@@ -15,7 +15,7 @@ import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
-import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections } from './ui-widgets.js';
+import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
 
 export async function init(){
   const now=new Date();
@@ -132,7 +132,13 @@ document.addEventListener('click', (e)=>{
 // exports, not also attached to window.
 document.getElementById('topbar-avatar')?.addEventListener('click', ()=>switchTab('settings'));
 document.getElementById('btn-hide-amounts')?.addEventListener('click', ()=>toggleHideAmounts());
-document.getElementById('btn-refresh')?.addEventListener('click', ()=>fbLoadNow());
+document.getElementById('btn-refresh')?.addEventListener('click', async (e)=>{
+  const btn=e.currentTarget;
+  if(btn.classList.contains('spinning')) return;
+  btn.classList.add('spinning');
+  try{ await fbLoadNow(); showToast(tr('sync_synced'),'check'); }
+  finally{ btn.classList.remove('spinning'); }
+});
 document.getElementById('nav-finance')?.addEventListener('click', ()=>switchTab('finance'));
 document.getElementById('nav-shifts')?.addEventListener('click', ()=>switchTab('shifts'));
 document.getElementById('nav-debt')?.addEventListener('click', ()=>switchTab('debt'));
