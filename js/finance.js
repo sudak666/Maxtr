@@ -54,7 +54,7 @@ function renderFinTagChips(){
   box.innerHTML=AppState.tags.map(t=>{
     const on=AppState.selectedTagIds.includes(t.id);
     const style=on?`border-color:${t.color};background:${hexA(t.color,.18)};color:${t.color}`:'';
-    return `<div class="filter-chip${on?' active':''}" style="${style}" onclick="toggleFinTag('${t.id}')">${escapeHtml(t.name)}</div>`;
+    return `<div class="filter-chip${on?' active':''}" style="${style}" data-action="toggle-fin-tag" data-id="${t.id}">${escapeHtml(t.name)}</div>`;
   }).join('');
   setupAccessibleClickableDivs(box);
 }
@@ -232,8 +232,8 @@ function renderTagsList(){
     row.className='mgr-row';
     row.innerHTML=`
       <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('tag','${t.id}')"></button>
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" onchange="updateTag('${t.id}','name',this.value)">
-      <button class="mgr-del" onclick="deleteTag('${t.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-tag" data-id="${t.id}" data-field="name">
+      <button class="mgr-del" data-action="delete-tag" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
     box.appendChild(row);
   });
 }
@@ -283,22 +283,22 @@ function renderAutoRulesList(){
     row.innerHTML=`
       <div class="debt-field" style="flex:1 1 100px">
         <span class="debt-field-label">${tr('recurring_type')}</span>
-        <select onchange="updateAutoRule('${r.id}','type',this.value)">
+        <select data-action="update-auto-rule" data-id="${r.id}" data-field="type">
           <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
           <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
         </select>
       </div>
       <div class="debt-field" style="flex:1 1 140px">
         <span class="debt-field-label">${tr('rules_keyword')}</span>
-        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" onchange="updateAutoRule('${r.id}','keyword',this.value)">
+        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" data-action="update-auto-rule" data-id="${r.id}" data-field="keyword">
       </div>
       <div class="debt-field" style="flex:1 1 140px">
         <span class="debt-field-label">${tr('finance_category')}</span>
-        <select onchange="updateAutoRule('${r.id}','category',this.value)">
+        <select data-action="update-auto-rule" data-id="${r.id}" data-field="category">
           ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
         </select>
       </div>
-      <button class="debt-row-del" onclick="deleteAutoRule('${r.id}')" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+      <button class="debt-row-del" data-action="delete-auto-rule" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
@@ -356,17 +356,45 @@ export function applyAutoRuleToForm(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_finance__(){
-window.toggleFinTag = toggleFinTag;
+// Phase 7 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// this file's own 7 dynamic onclick/onchange sites (tag filter chips, tag
+// manager rows, auto-rule rows) plus 6 static index.html ones (new-tx FAB,
+// tx-form cancel, open-tags-manager, add-tag, open-rules-manager,
+// add-auto-rule) converted to data-action, same pattern as phases 3-6.
+// `openColorPicker(...)` in renderTagsList() stays inline onclick — owned
+// by color-picker.js, a separate target. `cancelEditTransaction` had zero
+// external call sites (window-exposed but never actually referenced from
+// index.html or any onclick) — dropped entirely rather than converted.
+const CLICK_ACTIONS = {
+  'toggle-fin-tag': ds=>toggleFinTag(ds.id),
+  'open-new-tx-modal': ()=>openNewTxModal(),
+  'close-tx-modal': ()=>closeTxModal(),
+  'open-tags-manager': ()=>openTagsManager(),
+  'delete-tag': ds=>deleteTag(ds.id),
+  'add-tag': ()=>addTag(),
+  'open-rules-manager': ()=>openRulesManager(),
+  'delete-auto-rule': ds=>deleteAutoRule(ds.id),
+  'add-auto-rule': ()=>addAutoRule(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+const FIELD_ACTIONS = {
+  'update-tag': (ds,el)=>updateTag(ds.id, ds.field, el.value),
+  'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
+};
+document.addEventListener('change', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+});
+
+// Still window-exposed: js/analytics-csv.js's transaction-row template
+// calls both by a literal onclick/string reference (tx-del's
+// onclick="event.stopPropagation();editTransaction(...)" and the
+// onboarding-checklist/toast's onclick="openNewTxModal()"), a separate,
+// still-untouched phase-7+ target.
 window.editTransaction = editTransaction;
-window.cancelEditTransaction = cancelEditTransaction;
 window.openNewTxModal = openNewTxModal;
-window.closeTxModal = closeTxModal;
-window.openTagsManager = openTagsManager;
-window.updateTag = updateTag;
-window.addTag = addTag;
-window.deleteTag = deleteTag;
-window.openRulesManager = openRulesManager;
-window.updateAutoRule = updateAutoRule;
-window.addAutoRule = addAutoRule;
-window.deleteAutoRule = deleteAutoRule;
 }
