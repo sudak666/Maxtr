@@ -87,7 +87,7 @@ export function addDebtEntry(){
   saveDebtLocal(); scheduleSave();
   if(ai)ai.value=''; if(bi)bi.value=''; if(di)di.value=todayLabel();
   renderDebt();
-  window.closeDebtEntryModal();
+  closeDebtEntryModal();
   showToast(tr('debt_payment_added'),'check');
 }
 
@@ -228,19 +228,19 @@ export function renderDebt(){
     const editing=AppState.debtEntryEditId===entry.id;
     row.className='debt-row'+(hasDiscrepancy?' discrepancy':'');
     const fieldsHtml = editing ? `
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" onchange="updateDebtEntry(${entry.id},'amount',this.value)"></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" onchange="updateDebtEntry(${entry.id},'balance',this.value)"></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" onchange="updateDebtEntry(${entry.id},'date',this.value)"></div>
-      <button class="debt-row-edit debt-row-edit-active" onclick="toggleDebtEntryEdit(${entry.id})" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" data-action="update-debt-entry" data-id="${entry.id}" data-field="amount"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" data-action="update-debt-entry" data-id="${entry.id}" data-field="balance"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" data-action="update-debt-entry" data-id="${entry.id}" data-field="date"></div>
+      <button class="debt-row-edit debt-row-edit-active" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
     ` : `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view">${escapeHtml(entry.amount??'')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${escapeHtml(entry.date??'')}</div></div>
-      <button class="debt-row-edit" onclick="toggleDebtEntryEdit(${entry.id})" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+      <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
     row.innerHTML=`
       ${fieldsHtml}
-      <button class="debt-row-del" onclick="deleteDebtEntry(${entry.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+      <button class="debt-row-del" data-action="delete-debt-entry" data-id="${entry.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
     `;
     lc.appendChild(row);
@@ -256,11 +256,52 @@ export function renderDebt(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_debt__(){
+// Phase 8 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// converts this file's own 6 dynamic onclick/onchange sites (debt-entry
+// edit/delete/fields) plus 8 static index.html ones (new-debt-entry FAB,
+// info/history panel toggles, debt-info fields, add-payment, delete-debt)
+// to data-action, same pattern as phases 3-7. Also folds in 5 window.*
+// assignments that were exports of THIS file's own functions
+// (updateDebtInfo/addDebtEntry/deleteCurrentDebt/updateDebtEntry/
+// deleteDebtEntry) but physically lived in js/color-picker.js's
+// __init_color_picker__ — a leftover of the original mechanical split
+// phase 4 deliberately left alone (see that entry in CLAUDE.md); now that
+// this file is the one being worked, those 5 lines move here and get the
+// same data-action treatment instead of staying as dead weight in a
+// different file's init function.
+const CLICK_ACTIONS = {
+  'open-new-debt-entry-modal': ()=>openNewDebtEntryModal(),
+  'toggle-debt-info-panel': ()=>toggleDebtInfoPanel(),
+  'toggle-debt-history-panel': ()=>toggleDebtHistoryPanel(),
+  'toggle-debt-entry-edit': ds=>toggleDebtEntryEdit(Number(ds.id)),
+  'delete-debt-entry': ds=>deleteDebtEntry(Number(ds.id)),
+  'add-debt-entry': ()=>addDebtEntry(),
+  'delete-current-debt': ()=>deleteCurrentDebt(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+const FIELD_ACTIONS = {
+  'auto-fill-debt-balance': ()=>autoFillDebtBalance(),
+  'update-debt-info': ()=>updateDebtInfo(),
+  'update-debt-entry': (ds,el)=>updateDebtEntry(Number(ds.id), ds.field, el.value),
+};
+function dispatchFieldAction(e){
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+}
+document.addEventListener('change', dispatchFieldAction);
+document.addEventListener('input', dispatchFieldAction);
+
+// Still window-exposed: renderDebt()'s own emptyStateHtml({onClick:'...'})
+// calls (ui-widgets.js's shared empty-state helper bakes onClick straight
+// into a literal onclick="" attribute string, not a data-action) reference
+// both by name for the "no debts yet"/"no payments yet" empty states.
+// Converting emptyStateHtml itself to data-action would touch every file
+// that calls it (shopping.js, analytics-csv.js's onboarding checklist,
+// etc.), out of scope for this single-file phase.
 window.addNewDebt=addNewDebt;
-window.autoFillDebtBalance = autoFillDebtBalance;
 window.openNewDebtEntryModal = openNewDebtEntryModal;
-window.closeDebtEntryModal = closeDebtEntryModal;
-window.toggleDebtEntryEdit = toggleDebtEntryEdit;
-window.toggleDebtInfoPanel = toggleDebtInfoPanel;
-window.toggleDebtHistoryPanel = toggleDebtHistoryPanel;
 }
