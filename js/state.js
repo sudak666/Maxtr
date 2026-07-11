@@ -43,6 +43,7 @@ export const AppState = {
   currentFinanceType: 'income',
   editingTxId: null,
   selectedDateKey: null,
+  financeChartSeries: 'net',
   txFilter: 'all',
   fbTimer: null,
   shiftTypes: [],

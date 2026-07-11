@@ -467,6 +467,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chart-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;z-index:10;pointer-events:none}
 .chart-bar-label{font-size:11.5px;font-weight:700;color:var(--muted2);text-align:center}
 
+/* ── Finance dashboard chart (line/area, with forecast) ── */
+.fin-chart-toggle{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border);margin-bottom:14px}
+.fin-chart-toggle-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:11.5px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
+.fin-chart-toggle-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
+.fin-chart-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.fin-chart-total{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--text-strong)}
+.fin-chart-trend{font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;display:flex;align-items:center;gap:3px}
+.fin-chart-trend.up{color:var(--green2);background:rgba(16,185,129,.14)}
+.fin-chart-trend.down{color:var(--red2);background:rgba(239,68,68,.14)}
+.fin-chart-trend .ico{width:11px;height:11px;margin-right:0}
+.fin-chart-wrap{position:relative;height:150px}
+.fin-chart-wrap svg{width:100%;height:100%;display:block;overflow:visible}
+.fin-chart-point{cursor:pointer}
+.fin-chart-point-hit{fill:transparent;cursor:pointer}
+.fin-chart-tooltip{position:absolute;transform:translate(-50%,-100%);background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;white-space:nowrap;pointer-events:none;z-index:10;margin-top:-10px}
+.fin-chart-labels{display:flex;justify-content:space-between;margin-top:6px}
+.fin-chart-labels span{font-size:11px;font-weight:700;color:var(--muted2);flex:1;text-align:center}
+.fin-chart-labels span.forecast{color:var(--purple2)}
+
 /* ── FINANCE ── */
 .fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .fin-form-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-strong)}
@@ -1181,10 +1200,24 @@ body.amounts-hidden #fx-converter-result{
       <div id="goals-list"></div>
     </div>
 
-    <!-- Графік витрат по місяцях -->
+    <!-- Графік динаміки по місяцях -->
     <div class="chart-section" id="finance-chart-section">
       <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
-      <div class="chart-bars" id="finance-chart"></div>
+      <div class="fin-chart-toggle">
+        <button type="button" class="fin-chart-toggle-btn active" data-action="set-fin-chart-series" data-series="net" data-i18n="finance_chart_net">Баланс</button>
+        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="income" data-i18n="finance_chart_income">Дохід</button>
+        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="expense" data-i18n="finance_chart_expense">Витрата</button>
+      </div>
+      <div class="fin-chart-head">
+        <div class="fin-chart-total" id="fin-chart-total">0 грн</div>
+        <div class="fin-chart-trend" id="fin-chart-trend"></div>
+      </div>
+      <div class="fin-chart-wrap" id="fin-chart-wrap">
+        <svg id="fin-chart-svg" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+        <div class="fin-chart-tooltip" id="fin-chart-tooltip" style="display:none"></div>
+      </div>
+      <div class="fin-chart-labels" id="fin-chart-labels"></div>
+      <div class="chip-stat-row" id="fin-chart-metrics" style="margin-top:14px;margin-bottom:0"></div>
     </div>
 
     <!-- Бюджети по категоріях: не входить у widgetOrder (завжди сама

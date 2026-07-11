@@ -193,10 +193,47 @@ export function renderIncomeChart(){
   });
 }
 
+export function setFinChartSeries(series){
+  AppState.financeChartSeries=series;
+  document.querySelectorAll('.fin-chart-toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.series===series));
+  renderFinanceChart();
+}
+
+function hideFinChartTooltip(){
+  const tip=document.getElementById('fin-chart-tooltip');
+  if(tip) tip.style.display='none';
+}
+
+function showFinChartTooltip(pointEl){
+  const tip=document.getElementById('fin-chart-tooltip');
+  if(!tip) return;
+  tip.textContent=pointEl.dataset.tip;
+  tip.style.left=pointEl.dataset.xPct+'%';
+  tip.style.top=pointEl.dataset.yPct+'%';
+  tip.style.display='block';
+}
+
+// Catmull-Rom-derived cubic bezier smoothing — gives a natural curve through
+// every point without needing an external charting library, consistent with
+// this repo's no-build-step/no-dependency approach.
+function smoothPath(pts){
+  if(pts.length<2) return '';
+  let d=`M${pts[0].x},${pts[0].y}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    d+=` C${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
+
 export function renderFinanceChart(){
-  const container=document.getElementById('finance-chart');
-  if(!container) return;
-  container.innerHTML='';
+  const svg=document.getElementById('fin-chart-svg');
+  if(!svg) return;
+  const series=AppState.financeChartSeries||'net';
+  document.querySelectorAll('.fin-chart-toggle-btn').forEach(b=>b.classList.toggle('active', b.dataset.series===series));
+
   const now=new Date();
   const months=[];
   for(let i=5;i>=0;i--){
@@ -204,7 +241,7 @@ export function renderFinanceChart(){
     if(m<0){m+=12;y--;}
     months.push({m,y,label:AppState.MONTHS_SHORT[m]});
   }
-  const vals=months.map(({m,y})=>{
+  const raw=months.map(({m,y})=>{
     const prefix=`${y}-${String(m+1).padStart(2,'0')}`;
     let inc=0,exp=0;
     AppState.transactions.forEach(t=>{
@@ -214,23 +251,89 @@ export function renderFinanceChart(){
     });
     return {inc,exp,net:inc-exp};
   });
-  const maxVal=Math.max(...vals.map(v=>Math.max(v.inc,v.exp)),1);
+  const vals=raw.map(v=>series==='income'?v.inc:series==='expense'?v.exp:v.net);
 
-  months.forEach(({label},i)=>{
-    const v=vals[i];
-    const pctInc=Math.round(v.inc/maxVal*100);
-    const pctExp=Math.round(v.exp/maxVal*100);
-    const wrap=document.createElement('div');
-    wrap.className='chart-bar-wrap';
-    wrap.style.gap='2px';
-    wrap.innerHTML=`
-      <div style="width:100%;display:flex;align-items:flex-end;gap:2px;flex:1">
-        <div class="chart-bar" style="flex:1;height:${pctInc}%;background:rgba(16,185,129,.5)" data-tip="+${v.inc.toLocaleString('uk-UA')} грн"></div>
-        <div class="chart-bar" style="flex:1;height:${pctExp}%;background:rgba(239,68,68,.4)" data-tip="-${v.exp.toLocaleString('uk-UA')} грн"></div>
-      </div>
-      <div class="chart-bar-label">${label}</div>`;
-    container.appendChild(wrap);
+  // Simple, offline trend forecast (no AI/LLM call): average of the last up
+  // to 3 month-over-month deltas, projected one month past the real data.
+  const deltas=[];
+  for(let i=Math.max(1,vals.length-3);i<vals.length;i++) deltas.push(vals[i]-vals[i-1]);
+  const avgDelta=deltas.length?deltas.reduce((a,b)=>a+b,0)/deltas.length:0;
+  const forecastVal=vals[vals.length-1]+avgDelta;
+
+  const fmt=v=>Math.round(v).toLocaleString('uk-UA')+' грн';
+  const totalEl=document.getElementById('fin-chart-total');
+  if(totalEl) totalEl.textContent=fmt(vals[vals.length-1]);
+
+  const trendEl=document.getElementById('fin-chart-trend');
+  if(trendEl){
+    const prev=vals[vals.length-2];
+    if(prev){
+      const pct=Math.round(((vals[vals.length-1]-prev)/Math.abs(prev))*100);
+      trendEl.className='fin-chart-trend '+(pct>=0?'up':'down');
+      trendEl.textContent=(pct>=0?'↑ ':'↓ ')+Math.abs(pct)+'%';
+    } else {
+      trendEl.className='fin-chart-trend';
+      trendEl.textContent='';
+    }
+  }
+
+  const allVals=[...vals,forecastVal];
+  const minV=Math.min(0,...allVals), maxV=Math.max(0,...allVals);
+  const range=(maxV-minV)||1;
+  const W=320,H=150,padTop=14,padBottom=14,plotH=H-padTop-padBottom;
+  const n=allVals.length;
+  const stepX=W/(n-1);
+  const points=allVals.map((v,i)=>({
+    x:i*stepX,
+    y:padTop+plotH-((v-minV)/range)*plotH,
+    v,
+  }));
+  const realPts=points.slice(0,n-1);
+  const forecastPts=points.slice(n-2);
+  const realPath=smoothPath(realPts);
+  const forecastPath=smoothPath(forecastPts);
+  const areaPath=`${realPath} L${realPts[realPts.length-1].x},${H-padBottom} L${realPts[0].x},${H-padBottom} Z`;
+
+  const circles=points.map((p,i)=>{
+    const isForecast=i===n-1;
+    const label=isForecast?tr('finance_chart_forecast_tip'):months[i].label;
+    const tip=`${label}: ${isForecast?'≈ ':''}${fmt(p.v)}`;
+    // The invisible hit-circle is drawn AFTER (SVG paints later elements on
+    // top) the small visible dot, not before — otherwise the visible dot
+    // itself intercepts pointer events with no handler attached, and only
+    // taps landing in the ring around it (never the dot itself) would work.
+    return `<circle class="fin-chart-point" cx="${p.x}" cy="${p.y}" r="${isForecast?3.5:4}" fill="${isForecast?'var(--bg1)':'var(--purple2)'}" stroke="var(--purple2)" stroke-width="2"></circle>
+      <circle class="fin-chart-point-hit" cx="${p.x}" cy="${p.y}" r="10" data-tip="${escapeHtml(tip)}" data-x-pct="${(p.x/W*100).toFixed(2)}" data-y-pct="${(p.y/H*100).toFixed(2)}"></circle>`;
+  }).join('');
+
+  svg.innerHTML=`
+    <defs>
+      <linearGradient id="fin-chart-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${hexA('#8b5cf6',.35)}"/>
+        <stop offset="100%" stop-color="${hexA('#8b5cf6',0)}"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#fin-chart-grad)" stroke="none"></path>
+    <path d="${realPath}" fill="none" stroke="var(--purple2)" stroke-width="2.5" stroke-linecap="round"></path>
+    <path d="${forecastPath}" fill="none" stroke="var(--purple2)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5,5" opacity=".7"></path>
+    ${circles}`;
+  svg.querySelectorAll('.fin-chart-point-hit').forEach(c=>{
+    c.onclick=(e)=>{ e.stopPropagation(); showFinChartTooltip(c); };
   });
+
+  const labelsEl=document.getElementById('fin-chart-labels');
+  if(labelsEl) labelsEl.innerHTML=months.map(m=>`<span>${m.label}</span>`).join('')+`<span class="forecast">${tr('finance_chart_forecast')}</span>`;
+
+  const metricsEl=document.getElementById('fin-chart-metrics');
+  if(metricsEl){
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    let bestI=0,worstI=0;
+    vals.forEach((v,i)=>{ if(v>vals[bestI])bestI=i; if(v<vals[worstI])worstI=i; });
+    metricsEl.innerHTML=`
+      <span class="chip-stat"><span class="chip-stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg></span><span class="chip-stat-val">${fmt(avg)}</span><span class="chip-stat-lbl">${tr('finance_chart_avg')}</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--green),var(--green2))"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg></span><span class="chip-stat-val">${fmt(vals[bestI])}</span><span class="chip-stat-lbl">${tr('finance_chart_best')} · ${months[bestI].label}</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--red),var(--red2))"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg></span><span class="chip-stat-val">${fmt(vals[worstI])}</span><span class="chip-stat-lbl">${tr('finance_chart_worst')} · ${months[worstI].label}</span></span>`;
+  }
 }
 
 export async function clearCurrentMonth(){
@@ -417,6 +520,7 @@ const CLICK_ACTIONS = {
   'go-today': ()=>goToday(),
   'toggle-quick-fill': ()=>toggleQuickFill(),
   'save-autofill-config': ()=>saveAutoFillConfig(),
+  'set-fin-chart-series': ds=>setFinChartSeries(ds.series),
 };
 document.addEventListener('click', e=>{
   // #shift-modal's backdrop close is a plain exact-target check (same
@@ -428,6 +532,7 @@ document.addEventListener('click', e=>{
   // instant you tried to pick a shift. Real bug, found by a user report
   // ("shifts aren't selectable") plus a Playwright repro.
   if(e.target.id==='shift-modal'){ closeModal(); return; }
+  if(!e.target.closest('#fin-chart-wrap')) hideFinChartTooltip();
   const el=e.target.closest('[data-action]');
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
 }, true);
