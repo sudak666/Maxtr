@@ -394,7 +394,48 @@ const saveAutoFillConfig = function(){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_calendar__(){
+// Phase 9 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
+// this file has no dynamic per-row templates of its own (day cells wire
+// openModal via a real cell.onclick=()=>... closure, not a literal onclick
+// string) - all these window.* exports existed only for static onclick/
+// onchange attributes in index.html. Converted to data-action, same
+// pattern as phases 3-8. Also folds in 9 window.* assignments for this
+// file's own functions that were sitting in js/color-picker.js's
+// __init_color_picker__ (a leftover of the original mechanical split,
+// same situation phase 8 found for debt.js's functions) - moved here and
+// converted, except openModal/validateModalSelection which turned out to
+// have **zero** callers of any kind (openModal is only ever invoked via
+// the real cell.onclick closure above; validateModalSelection is an empty
+// stub never called anywhere) and were dropped from window.* entirely
+// rather than given a pointless data-action.
+const CLICK_ACTIONS = {
+  'close-modal': ()=>closeModal(),
+  'save-modal-selection': ()=>saveModalSelection(),
+  'apply-template': ()=>applyTemplate(),
+  'clear-current-month': ()=>clearCurrentMonth(),
+  'shift-month': ds=>shiftMonth(Number(ds.dir)),
+  'go-today': ()=>goToday(),
+  'toggle-quick-fill': ()=>toggleQuickFill(),
+  'save-autofill-config': ()=>saveAutoFillConfig(),
+};
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+}, true);
+
+const FIELD_ACTIONS = {
+  'render-calendar': ()=>renderCalendar(),
+  'toggle-auto-fill': (ds,el)=>toggleAutoFill(el.checked),
+};
+document.addEventListener('change', e=>{
+  const el=e.target.closest('[data-action]');
+  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+});
+
+// Still window-exposed: renderCalendar()'s own emptyStateHtml({onClick:
+// 'toggleQuickFill()'}) call (the "no shifts yet" empty state) bakes the
+// name into a literal onclick="" string via the shared ui-widgets.js
+// helper, not a data-action - same reasoning as phase 8's addNewDebt/
+// openNewDebtEntryModal.
 window.toggleQuickFill = toggleQuickFill;
-window.toggleAutoFill = toggleAutoFill;
-window.saveAutoFillConfig = saveAutoFillConfig;
 }

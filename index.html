@@ -1021,7 +1021,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Інструменти: згорнуто за замовчуванням, щоб календар (головний
          об'єкт вкладки) не був відсунутий вниз цією панеллю щоразу. -->
     <div class="tools-panel">
-      <button type="button" class="tools-label tools-label-toggle" onclick="toggleQuickFill()">
+      <button type="button" class="tools-label tools-label-toggle" data-action="toggle-quick-fill">
         <span id="ic-bolt"></span><span data-i18n="shifts_quick_fill">Швидке заповнення</span>
         <span class="tools-toggle-chevron" id="tools-toggle-chevron"></span>
       </button>
@@ -1039,10 +1039,10 @@ body.amounts-hidden #fx-converter-result{
             <option value="3_3" data-i18n="shifts_pattern_3_3">3 через 3</option>
           </select>
         </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="applyTemplate()" data-i18n="shifts_apply">Застосувати</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="apply-template" data-i18n="shifts_apply">Застосувати</button>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" data-action="open-shift-types-manager"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
-          <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" onclick="clearCurrentMonth()"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
+          <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" data-action="clear-current-month"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
         </div>
 
         <div style="border-top:1px dashed var(--border);margin:4px 0"></div>
@@ -1052,7 +1052,7 @@ body.amounts-hidden #fx-converter-result{
             <div class="settings-row-sub" data-i18n="shifts_autofill_hint">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</div>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="autofill-toggle-checkbox" onchange="toggleAutoFill(this.checked)">
+            <input type="checkbox" id="autofill-toggle-checkbox" data-action="toggle-auto-fill">
             <span class="toggle-track"></span>
           </label>
         </div>
@@ -1074,7 +1074,7 @@ body.amounts-hidden #fx-converter-result{
             <label data-i18n="shifts_autofill_anchor">Перша робоча зміна від</label>
             <input type="date" id="autofill-anchor">
           </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveAutoFillConfig()" data-i18n="common_save">Зберегти</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="save-autofill-config" data-i18n="common_save">Зберегти</button>
         </div>
       </div>
     </div>
@@ -1083,11 +1083,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="cal-wrap">
       <div class="cal-controls">
         <div class="cal-nav">
-          <button class="btn btn-ghost" onclick="shiftMonth(-1)" style="padding:8px 10px">‹</button>
-          <select id="select-month" onchange="renderCalendar()"></select>
-          <select id="select-year"  onchange="renderCalendar()"></select>
-          <button class="btn btn-ghost" onclick="shiftMonth(1)"  style="padding:8px 10px">›</button>
-          <button class="btn btn-ghost cal-today-btn" onclick="goToday()" style="font-size:11px" data-i18n="shifts_today">Сьогодні</button>
+          <button class="btn btn-ghost" data-action="shift-month" data-dir="-1" style="padding:8px 10px">‹</button>
+          <select id="select-month" data-action="render-calendar"></select>
+          <select id="select-year"  data-action="render-calendar"></select>
+          <button class="btn btn-ghost" data-action="shift-month" data-dir="1"  style="padding:8px 10px">›</button>
+          <button class="btn btn-ghost cal-today-btn" data-action="go-today" style="font-size:11px" data-i18n="shifts_today">Сьогодні</button>
         </div>
         <div class="cal-hint" data-i18n="shifts_hint">Натисни на день щоб редагувати зміни</div>
       </div>
@@ -1144,10 +1144,10 @@ body.amounts-hidden #fx-converter-result{
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
       </div>
       <div class="filter-row">
-        <div class="filter-chip active" data-filter="all"      onclick="setTxFilter('all')" data-i18n="finance_filter_all">Всі</div>
-        <div class="filter-chip"        data-filter="income"   onclick="setTxFilter('income')" data-i18n="finance_type_income">+ Дохід</div>
-        <div class="filter-chip"        data-filter="expense"  onclick="setTxFilter('expense')" data-i18n="finance_type_expense">− Витрата</div>
-        <div class="filter-chip"        data-filter="transfer" onclick="setTxFilter('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</div>
+        <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>
+        <div class="filter-chip"        data-filter="income"   data-action="set-tx-filter" data-i18n="finance_type_income">+ Дохід</div>
+        <div class="filter-chip"        data-filter="expense"  data-action="set-tx-filter" data-i18n="finance_type_expense">− Витрата</div>
+        <div class="filter-chip"        data-filter="transfer" data-action="set-tx-filter" data-i18n="finance_type_transfer">⇄ Переказ</div>
       </div>
       <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
         <span class="filter-chip active" style="cursor:pointer" onclick="clearTxCategoryFilter()"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>
@@ -1629,7 +1629,7 @@ body.amounts-hidden #fx-converter-result{
 </nav>
 
 <!-- MODAL ЗМІНИ -->
-<div class="modal-overlay" id="shift-modal" onclick="closeModal()">
+<div class="modal-overlay" id="shift-modal" data-action="close-modal">
   <div class="modal-card" onclick="event.stopPropagation()">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
@@ -1639,8 +1639,8 @@ body.amounts-hidden #fx-converter-result{
     </div>
     <div class="modal-opts" id="modal-opts"></div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal()" data-i18n="common_cancel">Скасувати</button>
-      <button class="modal-save" id="btn-save" onclick="saveModalSelection()" data-i18n="common_done">Готово</button>
+      <button class="modal-cancel" data-action="close-modal" data-i18n="common_cancel">Скасувати</button>
+      <button class="modal-save" id="btn-save" data-action="save-modal-selection" data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>
@@ -1687,9 +1687,9 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg">
-        <button id="btn-inc" class="type-btn active inc" onclick="setFinanceType('income')" data-i18n="finance_type_income">+ Дохід</button>
-        <button id="btn-exp" class="type-btn exp"        onclick="setFinanceType('expense')" data-i18n="finance_type_expense">− Витрата</button>
-        <button id="btn-trn" class="type-btn trn"        onclick="setFinanceType('transfer')" data-i18n="finance_type_transfer">⇄ Переказ</button>
+        <button id="btn-inc" class="type-btn active inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>
       </div>
       <div class="fg">
         <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
@@ -1723,7 +1723,7 @@ body.amounts-hidden #fx-converter-result{
         <label data-i18n="finance_comment">Коментар</label>
         <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
       </div>
-      <button class="add-btn" id="fin-submit-btn" onclick="addTransaction()" data-i18n="finance_add_btn">Додати запис</button>
+      <button class="add-btn" id="fin-submit-btn" data-action="add-transaction" data-i18n="finance_add_btn">Додати запис</button>
     </div>
    </div>
   </div>
