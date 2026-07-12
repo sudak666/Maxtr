@@ -78,7 +78,19 @@ async function enablePushNotifications(){
 async function disablePushNotifications(){
   try{
     const messaging=await getMessagingInstance();
-    if(messaging) await deleteToken(messaging);
+    if(messaging){
+      // deleteToken() (unlike getToken()) takes no options argument — it
+      // only checks messaging.swRegistration, and if that's not already
+      // set (e.g. a fresh page load that never called getToken() this
+      // session), it auto-registers a separate firebase-messaging-sw.js
+      // at the root scope. That file doesn't exist in this repo — push
+      // handling was merged into sw.js itself, see CLAUDE.md's Layout
+      // section — so the lookup 404s and deleteToken() throws. Setting
+      // this property directly (the same one getToken() sets internally
+      // when passed an explicit serviceWorkerRegistration) heads that off.
+      if(!messaging.swRegistration) messaging.swRegistration=await navigator.serviceWorker.register('sw.js');
+      await deleteToken(messaging);
+    }
   }catch(err){ console.warn('deleteToken failed', err); }
   try{ await deleteDoc(doc(db,'push_tokens',AppState.currentUser.uid)); }catch(err){ console.warn('deleting push token doc failed', err); }
   const k=pushEnabledKey(); if(k) localStorage.removeItem(k);
