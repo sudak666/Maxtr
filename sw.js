@@ -42,7 +42,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v21';
+const CACHE_NAME = 'zminka-v22';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -160,6 +160,12 @@ self.addEventListener('fetch', event => {
   // ламало деякі no-cors/redirect-запити (напр. внутрішній CSP-звіт
   // reCAPTCHA), викликаючи "TypeError: Failed to fetch" в консолі.
   if (url.origin !== self.location.origin) return;
+
+  // Same-origin dynamic API endpoints (Hosting rewrites to a Cloud
+  // Function, e.g. /api/privat-rates) must always hit the network —
+  // caching them with the generic same-origin rule below would serve
+  // stale exchange rates forever after the first successful fetch.
+  if (url.pathname.startsWith('/api/')) return;
 
   // HTML файли — Network First (завжди свіжий код)
   if (event.request.destination === 'document' || url.pathname.endsWith('.html')) {
