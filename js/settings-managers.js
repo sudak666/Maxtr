@@ -314,6 +314,8 @@ const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComp
 
 const PRIVAT_RATES_URL='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
 
+const PRIVAT_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent(PRIVAT_RATES_URL);
+
 function ratesSourceKey(){ return 'xamssRatesSource'; }
 
 const setRatesSource = function(source){
@@ -328,9 +330,17 @@ function renderRatesSourceUI(){
 }
 
 async function fetchPrivatCashRates(){
-  const res=await fetch(PRIVAT_RATES_URL);
-  if(!res.ok) throw new Error('PrivatBank HTTP '+res.status);
-  const list=await res.json();
+  let list;
+  try{
+    const res=await fetch(PRIVAT_RATES_URL);
+    if(!res.ok) throw new Error('PrivatBank HTTP '+res.status);
+    list=await res.json();
+  }catch(primaryErr){
+    console.warn('primary PrivatBank endpoint failed (likely CORS), trying relay fallback', primaryErr);
+    const res=await fetch(PRIVAT_RATES_FALLBACK_URL);
+    if(!res.ok) throw new Error('PrivatBank fallback HTTP '+res.status);
+    list=await res.json();
+  }
   if(!Array.isArray(list)) throw new Error('unexpected PrivatBank response');
   let updated=0;
   list.forEach(entry=>{
