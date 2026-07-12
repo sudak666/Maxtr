@@ -9,6 +9,20 @@ import { renderGoals } from './goals-profile.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
 import { emptyStateHtml, escapeHtml, showToast } from './ui-widgets.js';
 
+// Transient (not persisted, resets on reload) — whether the transaction
+// history below the filters is showing everything or just the collapsed
+// TX_LIST_COLLAPSED_COUNT preview. Deliberately a plain module-level flag
+// rather than an AppState field: nothing outside this file needs to read
+// or persist it, same category as e.g. AppState.expandedCatIdx being
+// per-file transient state, just without even needing cross-file access.
+let txListExpanded=false;
+const TX_LIST_COLLAPSED_COUNT=3;
+
+const toggleTxListExpanded = function(){
+  txListExpanded=!txListExpanded;
+  renderFinance();
+};
+
 const setAnalyticsPeriod = function(period){
   AppState.analyticsPeriod=period;
   document.querySelectorAll('#analytics-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.period===period));
@@ -252,7 +266,10 @@ export function renderFinance(){
     return;
   }
 
-  filtered.forEach(t=>{
+  const showAll=txListExpanded || filtered.length<=TX_LIST_COLLAPSED_COUNT;
+  const visible=showAll?filtered:filtered.slice(0,TX_LIST_COLLAPSED_COUNT);
+
+  visible.forEach(t=>{
     const df=t.date?t.date.split('-').reverse().join('.'):'';
     const cur=currencySymbol(t.currency||'UAH');
     let cls='',amtStr='';
@@ -289,6 +306,15 @@ export function renderFinance(){
     item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
     lc.appendChild(item);
   });
+
+  if(filtered.length>TX_LIST_COLLAPSED_COUNT){
+    const moreBtn=document.createElement('button');
+    moreBtn.type='button';
+    moreBtn.className='btn btn-ghost tx-view-all-btn';
+    moreBtn.dataset.action='toggle-tx-list-expanded';
+    moreBtn.textContent=showAll ? tr('finance_show_less') : `${tr('finance_view_all')} (${filtered.length})`;
+    lc.appendChild(moreBtn);
+  }
 }
 
 const clearTxCategoryFilter = function(){
@@ -353,6 +379,7 @@ const CLICK_ACTIONS = {
   'set-analytics-period': ds=>setAnalyticsPeriod(ds.period),
   'clear-tx-category-filter': ()=>clearTxCategoryFilter(),
   'export-transactions-csv': ()=>exportTransactionsCSV(),
+  'toggle-tx-list-expanded': ()=>toggleTxListExpanded(),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
