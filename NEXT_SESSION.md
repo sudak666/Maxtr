@@ -5,8 +5,8 @@ Short pointer doc. Full history/root-causes/verification for everything below al
 ## Repo state as of 2026-07-12
 
 - `main` is fully merged, tested, and deployed to all live targets (Firebase Hosting `maxtr-c238f.web.app`, GitHub Pages mirror, Firestore Rules, Cloud Functions). Nothing pending in flight.
-- `sw.js` `CACHE_NAME` is at **`zminka-v20`**. If you change any `js/*.js` or `index.html` behavior, bump this again — it's the single most-often-forgotten step in this repo (see the standing rule in CLAUDE.md, flagged repeatedly).
-- Designated working branch: `claude/mobile-app-buttons-broken-i2ahtn`, currently reset to match `origin/main` (no unmerged work sitting on it).
+- `sw.js` `CACHE_NAME` is at **`zminka-v21`**. If you change any `js/*.js` or `index.html` behavior, bump this again — it's the single most-often-forgotten step in this repo (see the standing rule in CLAUDE.md, flagged repeatedly).
+- Designated working branch: `claude/mobile-app-buttons-broken-i2ahtn`, currently reset to match `origin/main` (no unmerged work sitting on it). (This particular fix landed via a separate branch, `claude/untitled-session-x1ofpo`, PR #142 — also already merged/deployed.)
 
 ## The one open decision waiting on the user
 
@@ -24,6 +24,7 @@ All merged, deployed, and logged in CLAUDE.md with root cause + verification met
 - **PR #135** — calendar shift-badge overflow (added ellipsis truncation) + dropped `umbrella` from the random category-icon fallback pool (a category was hashing onto it, looked like a bug).
 - **PR #137** — quick-action row: 4 buttons now `justify-content:space-between` instead of clustering left with dead space on the right.
 - **PR #139** — disabling push notifications threw a 404 (`firebase-messaging-sw.js` doesn't exist — merged into `sw.js` long ago). Root cause confirmed by reading the actual Firebase JS SDK source on GitHub: `deleteToken()` takes no options argument, only checks `messaging.swRegistration`; fixed by setting that property directly before calling it.
+- **PR #142** — "ПриватБанк (готівка)" rates source always silently failed (CORS, no fallback). Fixed by adding the same `api.allorigins.win` relay fallback `fetchLiveRates()` already uses for NBU.
 
 Each of these came from the user pointing a phone camera/screenshot at a real, specific problem — the standing lesson (documented multiple times in CLAUDE.md already) is to **measure real rendered widths / read the actual SDK source** rather than guessing from the CSS or API docs alone; several of these bugs were invisible from a read-through and only surfaced that way.
 
