@@ -80,7 +80,7 @@ await test('sweepProfile: sends the daily reminder once past the set hour with n
   };
   const sent = [];
   const sendPushFn = async (token, title, body) => { sent.push({ token, title, body }); return { ok: true, invalid: false }; };
-  const result = await sweepProfile(null, sendPushFn, uid, 'default', 'tok1', {}, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, uid, 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(sent.length, 1);
   assert.equal(sent[0].title, 'Zminka');
   assert.deepEqual(result.updates, { sentDaily: '2026-07-15' });
@@ -93,7 +93,7 @@ await test('sweepProfile: does not re-send the daily reminder once already sent 
     data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
   };
   const sendPushFn = async () => { throw new Error('should not be called'); };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', { sentDaily: '2026-07-15' }, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', { sentDaily: '2026-07-15' }, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(result.updates, null);
 });
 
@@ -104,7 +104,7 @@ await test('sweepProfile: does not send the daily reminder if a transaction was 
     wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
   };
   const sendPushFn = async () => { throw new Error('should not be called'); };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(result.updates, null);
 });
 
@@ -119,7 +119,7 @@ await test('sweepProfile: sends a budget-exceeded push once per category per mon
   };
   const sent = [];
   const sendPushFn = async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(sent.length, 1);
   assert.equal(sent[0].title, 'Бюджет перевищено');
   assert.deepEqual(result.updates, { sentBudget: { '2026-07_Кава': true } });
@@ -132,7 +132,7 @@ await test('sweepProfile: skips a budget category already flagged this month (de
     wallets: [], budgets: { Кава: 1000 }, categories: { expense: ['Кава'] }, recurring: [], currencyRates: {},
   };
   const sendPushFn = async () => { throw new Error('should not be called'); };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', { sentBudget: { '2026-07_Кава': true } }, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', { sentBudget: { '2026-07_Кава': true } }, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(result.updates, null);
 });
 
@@ -145,10 +145,59 @@ await test('sweepProfile: sends an upcoming-recurring-payment push exactly one d
   };
   const sent = [];
   const sendPushFn = async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(sent.length, 1);
   assert.equal(sent[0].title, 'Наближається платіж');
   assert.deepEqual(result.updates, { sentRecurring: { 'r1_2026-07-16': true } });
+});
+
+await test('sweepProfile: sends an upcoming-debt-due-date push exactly one day ahead', async () => {
+  const financeData = {
+    notifSettings: { debtAlerts: true, timeZone: 'UTC' },
+    data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const debtData = { debts: [{ id: 'd1', name: 'Позика в банку', dueDate: '2026-07-16' }] };
+  const sent = [];
+  const sendPushFn = async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; };
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(debtData));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].title, 'Наближається термін боргу');
+  assert.match(sent[0].body, /Позика в банку/);
+  assert.deepEqual(result.updates, { sentDebt: { 'd1_2026-07-16': true } });
+});
+
+await test('sweepProfile: skips a debt already flagged for its due date (dedup)', async () => {
+  const financeData = {
+    notifSettings: { debtAlerts: true, timeZone: 'UTC' },
+    data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const debtData = { debts: [{ id: 'd1', name: 'Позика', dueDate: '2026-07-16' }] };
+  const sendPushFn = async () => { throw new Error('should not be called'); };
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', { sentDebt: { 'd1_2026-07-16': true } }, NOW, snap(financeData), snap(debtData));
+  assert.equal(result.updates, null);
+});
+
+await test('sweepProfile: does not send a debt-due push when dueDate is not exactly tomorrow, or debtAlerts is off', async () => {
+  const debtData = { debts: [{ id: 'd1', name: 'Позика', dueDate: '2026-07-20' }] };
+  const sendPushFn = async () => { throw new Error('should not be called'); };
+  const alertsOn = { notifSettings: { debtAlerts: true, timeZone: 'UTC' }, data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {} };
+  let result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(alertsOn), snap(debtData));
+  assert.equal(result.updates, null);
+
+  const alertsOff = { notifSettings: { debtAlerts: false, timeZone: 'UTC' }, data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {} };
+  const debtDueTomorrow = { debts: [{ id: 'd2', name: 'Позика', dueDate: '2026-07-16' }] };
+  result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(alertsOff), snap(debtDueTomorrow));
+  assert.equal(result.updates, null);
+});
+
+await test('sweepProfile: a missing debt doc for a profile is treated as no debts (no throw)', async () => {
+  const financeData = {
+    notifSettings: { debtAlerts: true, timeZone: 'UTC' },
+    data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const sendPushFn = async () => { throw new Error('should not be called'); };
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(null));
+  assert.equal(result.updates, null);
 });
 
 await test('sweepProfile: a permanently-invalid token stops later checks in the same profile', async () => {
@@ -163,7 +212,7 @@ await test('sweepProfile: a permanently-invalid token stops later checks in the 
   financeData.data.push({ date: '2026-07-01', type: 'expense', category: 'Кава', amount: 999, currency: 'UAH' });
   let calls = 0;
   const sendPushFn = async () => { calls++; return { ok: false, invalid: true }; };
-  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData));
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(calls, 1); // daily reminder attempted, found invalid, budget check never ran
   assert.equal(result.tokenInvalid, true);
 });
@@ -236,6 +285,26 @@ await test('sweepToken: multi-profile account sweeps every profile independently
   assert.equal(sendCount, 1); // only 'default' fires; 'p2' already has a transaction logged today
   assert.equal(tokenDoc.ref._written.profileState.default.sentDaily, '2026-07-15');
   assert.equal(tokenDoc.ref._written.profileState.p2, undefined);
+});
+
+await test('sweepToken: fetches the debt doc alongside the finance doc and fires an upcoming-due-date push', async () => {
+  const uid = 'u4b';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/profiles_meta`, undefined],
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { debtAlerts: true, timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    [`users/${uid}/max_tracker/debt`, { debts: [{ id: 'd1', name: 'Позика', dueDate: '2026-07-16' }] }],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(uid, { token: 'tok4b' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].title, 'Наближається термін боргу');
+  assert.deepEqual(tokenDoc.ref._written.profileState.default.sentDebt, { 'd1_2026-07-16': true });
 });
 
 await test('sweepToken: deletes the push_tokens doc when the token turns out to be permanently invalid', async () => {

@@ -123,6 +123,7 @@
   setIcon('ic-notif-toggle','bell');
   setIcon('ic-notif-budget','warning');
   setIcon('ic-notif-recurring','repeat');
+  setIcon('ic-notif-debt','bell');
   setIcon('ic-settings-appearance','sun');
   setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-about','info');
@@ -155,6 +156,7 @@
   setIcon('ic-debt-balance','coin');
   setIcon('ic-debt-paid','check');
   setIcon('ic-debt-count','calendar');
+  setIcon('ic-debt-due','bell');
   setIcon('ic-debt-info','doc');
   setIcon('debt-info-chevron','chevron');
   setIcon('debt-history-chevron','chevron');
@@ -237,9 +239,11 @@
       settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
       settings_notif_budget_title:'Бюджет перевищено', settings_notif_budget_hint:'Сповістимо, коли витрати за категорією перевищать місячний бюджет.',
       settings_notif_recurring_title:'Наближається платіж', settings_notif_recurring_hint:'Попередимо за день до автододавання повторюваної операції.',
+      settings_notif_debt_title:'Наближається термін боргу', settings_notif_debt_hint:'Попередимо за день до дати, до якої треба віддати борг.',
       settings_notif_push_title:'Push-сповіщення', settings_notif_push_hint:'Приходять навіть коли застосунок закрито.',
       notif_budget_title:'Бюджет перевищено', notif_budget_body:'Витрати за категорією "{category}" перевищили місячний бюджет.',
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
+      notif_debt_title:'Наближається термін боргу', notif_debt_body:'Завтра настає дата, до якої треба віддати "{name}".',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
@@ -417,6 +421,8 @@
       rules_delete_confirm:'Видалити це правило?', rules_delete_title:'Видалити правило', rules_auto_applied:'Категорія визначена автоматично:',
       rules_desc:'Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.', rules_add:'Додати правило',
       debt_stat_start:'Початкова сума', debt_stat_balance:'Поточний залишок', debt_stat_paid:'Сплачено', debt_stat_count:'Платежів',
+      debt_stat_due:'Термін сплати', debt_due_date:'Дата, до якої треба віддати',
+      debt_due_in_days:'через {n} дн.', debt_due_today:'сьогодні', debt_due_overdue_days:'прострочено на {n} дн.',
       debt_info_title:'Дані розрахунку', debt_name:'Назва', debt_name_placeholder:'Напр. Позика, Розстрочка…',
       debt_note:'Нотатка', debt_note_placeholder:'Додаткова нотатка...', debt_currency:'Валюта', debt_delete:'Видалити цей розрахунок',
       debt_new_payment:'Новий платіж', debt_amount:'Сума', debt_amount_placeholder:'напр. 500 або ***68',
@@ -475,9 +481,11 @@
       settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
       settings_notif_budget_title:'Budget exceeded', settings_notif_budget_hint:"We'll notify you when a category's spending goes over its monthly budget.",
       settings_notif_recurring_title:'Upcoming payment', settings_notif_recurring_hint:"We'll warn you a day before a recurring transaction auto-adds.",
+      settings_notif_debt_title:'Debt due soon', settings_notif_debt_hint:"We'll warn you a day before a debt's due date.",
       settings_notif_push_title:'Push notifications', settings_notif_push_hint:'Delivered even when the app is closed.',
       notif_budget_title:'Budget exceeded', notif_budget_body:'Spending in "{category}" has gone over its monthly budget.',
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
+      notif_debt_title:'Debt due soon', notif_debt_body:'Tomorrow is the due date to pay off "{name}".',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
@@ -655,6 +663,8 @@
       rules_delete_confirm:'Delete this rule?', rules_delete_title:'Delete rule', rules_auto_applied:'Category auto-detected:',
       rules_desc:'If the comment contains a keyword, the category fills in automatically while you enter the transaction.', rules_add:'Add rule',
       debt_stat_start:'Starting amount', debt_stat_balance:'Current balance', debt_stat_paid:'Paid', debt_stat_count:'Payments',
+      debt_stat_due:'Due date', debt_due_date:'Date it needs to be paid off by',
+      debt_due_in_days:'in {n} d.', debt_due_today:'today', debt_due_overdue_days:'overdue by {n} d.',
       debt_info_title:'Settlement details', debt_name:'Name', debt_name_placeholder:'E.g. Loan, Installment plan…',
       debt_note:'Note', debt_note_placeholder:'Additional note...', debt_currency:'Currency', debt_delete:'Delete this settlement',
       debt_new_payment:'New payment', debt_amount:'Amount', debt_amount_placeholder:'e.g. 500 or ***68',

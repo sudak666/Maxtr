@@ -1275,6 +1275,7 @@ body.amounts-hidden #fx-converter-result{
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-start"></span><span class="chip-stat-val" id="debt-start-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_start">Початкова сума</span></span>
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-paid"></span><span class="chip-stat-val" id="debt-paid-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_paid">Сплачено</span></span>
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-count"></span><span class="chip-stat-val" id="debt-count-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_count">Платежів</span></span>
+      <span class="chip-stat" id="debt-due-chip" style="display:none"><span class="chip-stat-icon" id="ic-debt-due"></span><span class="chip-stat-val" id="debt-due-val">—</span><span class="chip-stat-lbl" data-i18n="debt_stat_due">Термін сплати</span></span>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">
@@ -1304,6 +1305,10 @@ body.amounts-hidden #fx-converter-result{
         <div class="fg">
           <label data-i18n="debt_stat_start">Початкова сума</label>
           <input type="number" id="debt-start" placeholder="0" step="0.01" data-action="update-debt-info">
+        </div>
+        <div class="fg">
+          <label data-i18n="debt_due_date">Дата, до якої треба віддати</label>
+          <input type="date" id="debt-due-date" data-action="update-debt-info">
         </div>
         <button class="btn btn-danger" style="align-self:flex-start" data-action="delete-current-debt" data-i18n="debt_delete">Видалити цей розрахунок</button>
       </div>
@@ -1569,6 +1574,17 @@ body.amounts-hidden #fx-converter-result{
         </div>
         <label class="toggle">
           <input type="checkbox" id="notif-recurring-checkbox" data-action="toggle-recurring-alerts">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="cursor:default">
+        <span id="ic-notif-debt" class="icon-badge" style="background:var(--purple)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_notif_debt_title">Наближається термін боргу</div>
+          <div class="settings-row-sub" data-i18n="settings_notif_debt_hint">Попередимо за день до дати, до якої треба віддати борг.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notif-debt-checkbox" data-action="toggle-debt-alerts">
           <span class="toggle-track"></span>
         </label>
       </div>
