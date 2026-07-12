@@ -346,6 +346,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:var(--text-strong);margin:4px 0 0;line-height:1}
 .chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
 .chip-stat-row::-webkit-scrollbar{display:none}
+.debt-progress-wrap{margin-bottom:14px}
+.debt-progress-label{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.debt-progress-label #debt-progress-text{color:var(--text-strong)}
 .chip-stat{display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:999px;padding:8px 14px 8px 8px;white-space:nowrap}
 .chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
@@ -1270,6 +1273,13 @@ body.amounts-hidden #fx-converter-result{
     <div class="hero-metric">
       <div class="hero-metric-label" data-i18n="debt_stat_balance">Поточний залишок</div>
       <div class="hero-metric-val" id="debt-balance-val">0</div>
+    </div>
+    <div class="debt-progress-wrap" id="debt-progress-wrap" style="display:none">
+      <div class="debt-progress-label">
+        <span data-i18n="debt_progress_label">Сплачено</span>
+        <span id="debt-progress-text">0%</span>
+      </div>
+      <div class="salary-bar-wrap"><div class="salary-bar-fill" id="debt-progress-fill" style="width:0%"></div></div>
     </div>
     <div class="chip-stat-row">
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-start"></span><span class="chip-stat-val" id="debt-start-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_start">Початкова сума</span></span>
