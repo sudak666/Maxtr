@@ -136,6 +136,18 @@ const toggleRecurringAlerts = async function(){
   checkRecurringAlerts();
 };
 
+const toggleDebtAlerts = async function(){
+  if(AppState.notifSettings.debtAlerts){
+    AppState.notifSettings.debtAlerts=false;
+    saveNotifSettings(); renderNotifUI();
+    return;
+  }
+  if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
+  AppState.notifSettings.debtAlerts=true;
+  saveNotifSettings(); renderNotifUI();
+  checkDebtAlerts();
+};
+
 export function populateNotifTimeSelects(){
   const h=document.getElementById('notif-time-hour');
   const m=document.getElementById('notif-time-minute');
@@ -166,6 +178,8 @@ export function renderNotifUI(){
   if(bcb) bcb.checked=!!AppState.notifSettings.budgetAlerts;
   const rcb=document.getElementById('notif-recurring-checkbox');
   if(rcb) rcb.checked=!!AppState.notifSettings.recurringAlerts;
+  const dcb=document.getElementById('notif-debt-checkbox');
+  if(dcb) dcb.checked=!!AppState.notifSettings.debtAlerts;
   const pcb=document.getElementById('notif-push-checkbox');
   const pk=pushEnabledKey();
   if(pcb) pcb.checked=!!(pk && localStorage.getItem(pk)==='1');
@@ -180,6 +194,7 @@ export function runNotificationChecks(){
   maybeShowDailyReminder();
   checkBudgetAlerts();
   checkRecurringAlerts();
+  checkDebtAlerts();
 }
 
 function maybeShowDailyReminder(){
@@ -226,6 +241,25 @@ function checkRecurringAlerts(){
   });
 }
 
+// One day ahead of a debt's dueDate — same "fires exactly one calendar day
+// before" convention checkRecurringAlerts() already uses, not a
+// configurable lead time (see CLAUDE.md for why this field didn't exist
+// until now: debts previously had no structured date field, only a
+// freeform text label per payment entry).
+function checkDebtAlerts(){
+  if(!AppState.notifSettings.debtAlerts) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=`${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+  AppState.debts.forEach(d=>{
+    if(d.dueDate!==tomorrowStr) return;
+    const shownKey=`xamssDebtAlert_${d.id}_${tomorrowStr}`;
+    if(localStorage.getItem(shownKey)) return;
+    showLocalNotification(tr('notif_debt_title'), tr('notif_debt_body').replace('{name}',d.name||tr('debt_default_name')));
+    localStorage.setItem(shownKey,'1');
+  });
+}
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
@@ -243,6 +277,7 @@ const FIELD_ACTIONS = {
   'toggle-reminders': ()=>toggleReminders(),
   'toggle-budget-alerts': ()=>toggleBudgetAlerts(),
   'toggle-recurring-alerts': ()=>toggleRecurringAlerts(),
+  'toggle-debt-alerts': ()=>toggleDebtAlerts(),
   'update-notif-time': ()=>updateNotifTimeFromSelects(),
 };
 document.addEventListener('change', e=>{

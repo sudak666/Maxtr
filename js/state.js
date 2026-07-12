@@ -65,7 +65,7 @@ export const AppState = {
   subscription: {plan:'free', expiresAt:null},
   widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
-  notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, timeZone:'UTC'},
+  notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, timeZone:'UTC'},
   txCategoryFilter: null,
   autoRules: [],
   goals: [],

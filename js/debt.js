@@ -19,7 +19,7 @@ function switchDebt(id){
 async function addNewDebt(){
   const name=await uiPrompt(tr('debt_add_prompt'),'',tr('debt_new_default'));
   if(name===null) return;
-  const nd={id:Date.now(), name:name.trim()||tr('debt_new_default'), note:'', currency:'грн', startAmount:0, entries:[]};
+  const nd={id:Date.now(), name:name.trim()||tr('debt_new_default'), note:'', currency:'грн', startAmount:0, dueDate:'', entries:[]};
   AppState.debts.push(nd);
   AppState.currentDebtId=nd.id;
   saveDebtLocal(); scheduleSave(); renderDebt();
@@ -40,10 +40,12 @@ export function updateDebtInfo(){
   const noi=document.getElementById('debt-note');
   const ci=document.getElementById('debt-currency');
   const si=document.getElementById('debt-start');
+  const dui=document.getElementById('debt-due-date');
   cd.name=ni?.value.trim()||tr('debt_default_name');
   cd.note=noi?.value.trim()||'';
   cd.currency=ci?.value||'у.о.';
   cd.startAmount=parseFloat(si?.value)||0;
+  cd.dueDate=dui?.value||'';
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
@@ -161,6 +163,36 @@ function renderDebtChips(){
   c.appendChild(addChip);
 }
 
+function formatDueDate(iso){
+  const d=new Date(iso+'T00:00:00');
+  if(isNaN(d)) return '';
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+
+// Shows/hides the "Термін сплати" chip based on whether the current debt has
+// a dueDate set, and colors its icon amber/red as the date approaches or
+// passes — the same value checkDebtAlerts() in js/notifications.js (and the
+// server-side sweepProfile() in functions/lib/sweep.js) uses to decide when
+// to actually fire a reminder, just rendered for the user to see at a
+// glance rather than only ever surfacing as a push/local notification.
+function renderDebtDueChip(cd){
+  const chip=document.getElementById('debt-due-chip');
+  const val=document.getElementById('debt-due-val');
+  const icon=document.getElementById('ic-debt-due');
+  if(!chip||!val) return;
+  if(!cd.dueDate){ chip.style.display='none'; return; }
+  chip.style.display='';
+  const today=new Date(); today.setHours(0,0,0,0);
+  const due=new Date(cd.dueDate+'T00:00:00');
+  const diffDays=Math.round((due-today)/86400000);
+  let suffix;
+  if(diffDays<0) suffix=tr('debt_due_overdue_days').replace('{n}',Math.abs(diffDays));
+  else if(diffDays===0) suffix=tr('debt_due_today');
+  else suffix=tr('debt_due_in_days').replace('{n}',diffDays);
+  val.textContent=`${formatDueDate(cd.dueDate)} · ${suffix}`;
+  if(icon) icon.style.background = diffDays<=3 ? 'var(--red)' : 'var(--purple)';
+}
+
 export function renderDebt(){
   renderDebtChips();
   const cd=getCurrentDebt();
@@ -171,6 +203,8 @@ export function renderDebt(){
     const noi=document.getElementById('debt-note'); if(noi) noi.value='';
     const ci=document.getElementById('debt-currency'); if(ci) ci.value='у.о.';
     const si=document.getElementById('debt-start'); if(si) si.value='';
+    const dui=document.getElementById('debt-due-date'); if(dui) dui.value='';
+    const dueChip=document.getElementById('debt-due-chip'); if(dueChip) dueChip.style.display='none';
     const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
     S('debt-start-val','0'); S('debt-balance-val','0'); S('debt-paid-val','0'); S('debt-count-val','0');
     const lc=document.getElementById('debt-list-container');
@@ -191,6 +225,7 @@ export function renderDebt(){
   const noi=document.getElementById('debt-note'); if(noi) noi.value=cd.note||'';
   const ci=document.getElementById('debt-currency'); if(ci) ci.value=cur;
   const si=document.getElementById('debt-start'); if(si) si.value=cd.startAmount||0;
+  const dui=document.getElementById('debt-due-date'); if(dui) dui.value=cd.dueDate||'';
   // Prefill today's date for the next payment if the field is empty
   const ddi=document.getElementById('debt-date'); if(ddi&&!ddi.value) ddi.value=todayLabel();
 
@@ -201,6 +236,7 @@ export function renderDebt(){
   S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' '+cur);
   S('debt-paid-val',paid.toLocaleString('uk-UA')+' '+cur);
   S('debt-count-val',cd.entries.length);
+  renderDebtDueChip(cd);
 
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');

@@ -17,13 +17,20 @@ function financeDocName(profileId) {
   return profileId && profileId !== 'default' ? `finance@${profileId}` : 'finance';
 }
 
-// Runs one profile's three checks (daily reminder, budget exceeded, upcoming
-// recurring payment) against its own dedup state, and returns the updated
-// per-profile state to merge back onto the token doc. `financeSnap` is
-// optional: sweepToken() already has the default profile's snapshot on hand
-// from its own upfront parallel fetch, so it passes that through here
-// instead of this function re-fetching the same document.
-async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap) {
+// Same suffixing convention, for the separate "debt" doc (debts/dueDate
+// don't live in the finance doc — see CLAUDE.md's Firestore data model).
+function debtDocName(profileId) {
+  return profileId && profileId !== 'default' ? `debt@${profileId}` : 'debt';
+}
+
+// Runs one profile's four checks (daily reminder, budget exceeded, upcoming
+// recurring payment, upcoming debt due date) against its own dedup state,
+// and returns the updated per-profile state to merge back onto the token
+// doc. `financeSnap`/`debtSnap` are optional: sweepToken() already has the
+// default profile's snapshots on hand from its own upfront parallel fetch,
+// so it passes those through here instead of this function re-fetching the
+// same documents.
+async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap) {
   if (!financeSnap) financeSnap = await db.doc(`users/${uid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
   const f = financeSnap.data();
@@ -35,6 +42,8 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   const recurring = Array.isArray(f.recurring) ? f.recurring : [];
   const rates = f.currencyRates || {};
   const walletCurrency = (id) => (wallets.find((w) => w.id === id) || {}).currency || 'UAH';
+  if (!debtSnap) debtSnap = await db.doc(`users/${uid}/${DCOL}/${debtDocName(profileId)}`).get();
+  const debts = debtSnap.exists && Array.isArray(debtSnap.data().debts) ? debtSnap.data().debts : [];
 
   // Each profile carries its own timeZone (captured client-side via
   // Intl.DateTimeFormat().resolvedOptions().timeZone whenever notification
@@ -48,7 +57,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   const mPrefix = monthPrefix(now, timeZone);
   const localHour = zonedDateParts(now, timeZone).hour;
 
-  const { sentDaily, sentBudget, sentRecurring } = prevState;
+  const { sentDaily, sentBudget, sentRecurring, sentDebt } = prevState;
   const updates = {};
   // Once a send reports the token as permanently dead, stop attempting
   // further sends for the rest of this profile's checks (and the caller
@@ -114,6 +123,22 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     if (changed) updates.sentRecurring = sent;
   }
 
+  // 4. Upcoming debt due date — one day ahead, same convention as recurring.
+  if (!tokenInvalid && notif.debtAlerts) {
+    const sent = { ...(sentDebt || {}) };
+    let changed = false;
+    for (const d of debts) {
+      if (tokenInvalid) break;
+      if (d.dueDate !== tomorrow) continue;
+      const key = `${d.id}_${tomorrow}`;
+      if (sent[key]) continue;
+      const res = await sendPushFn(token, 'Наближається термін боргу', `Завтра настає дата, до якої треба віддати "${d.name || 'Розрахунок'}".`);
+      if (res.ok) { sent[key] = true; changed = true; }
+      if (res.invalid) tokenInvalid = true;
+    }
+    if (changed) updates.sentDebt = sent;
+  }
+
   return { updates: Object.keys(updates).length ? updates : null, tokenInvalid };
 }
 
@@ -142,25 +167,32 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // invocation can get through before its own execution timeout as the
   // user base grows (each doc read here was previously a fully sequential
   // round trip, one profile at a time).
-  const [metaSnap, defaultFinanceSnap] = await Promise.all([
+  const [metaSnap, defaultFinanceSnap, defaultDebtSnap] = await Promise.all([
     db.doc(`users/${uid}/${DCOL}/profiles_meta`).get(),
     db.doc(`users/${uid}/${DCOL}/${financeDocName('default')}`).get(),
+    db.doc(`users/${uid}/${DCOL}/${debtDocName('default')}`).get(),
   ]);
   const profileIds = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
     ? metaSnap.data().list.map((p) => p.id).filter(Boolean)
     : ['default'];
 
   // For accounts with more than one profile, fetch every *other* profile's
-  // finance doc in parallel too (rather than one at a time inside the loop
-  // below) — the loop itself still runs sequentially since a dead token
-  // found partway through must stop the remaining profiles, but there's no
-  // reason the reads themselves can't all be in flight together first.
+  // finance/debt docs in parallel too (rather than one at a time inside the
+  // loop below) — the loop itself still runs sequentially since a dead
+  // token found partway through must stop the remaining profiles, but
+  // there's no reason the reads themselves can't all be in flight together
+  // first.
   const otherProfileIds = profileIds.filter((id) => id !== 'default');
-  const otherFinanceSnaps = await Promise.all(
-    otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${financeDocName(id)}`).get()),
-  );
+  const [otherFinanceSnaps, otherDebtSnaps] = await Promise.all([
+    Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${financeDocName(id)}`).get())),
+    Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${debtDocName(id)}`).get())),
+  ]);
   const financeSnapByProfile = { default: defaultFinanceSnap };
-  otherProfileIds.forEach((id, i) => { financeSnapByProfile[id] = otherFinanceSnaps[i]; });
+  const debtSnapByProfile = { default: defaultDebtSnap };
+  otherProfileIds.forEach((id, i) => {
+    financeSnapByProfile[id] = otherFinanceSnaps[i];
+    debtSnapByProfile[id] = otherDebtSnaps[i];
+  });
 
   const nextProfileState = { ...(profileState || {}) };
   let anyChange = false;
@@ -175,7 +207,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
       ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
 
     const { updates: profileUpdates, tokenInvalid: invalid } = await sweepProfile(
-      db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId],
+      db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId],
     );
     if (profileUpdates) {
       // prevState's legacy fallback ({sentDaily, sentBudget, sentRecurring}
@@ -211,4 +243,4 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   }
 }
 
-module.exports = { DCOL, financeDocName, sweepProfile, sweepToken };
+module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken };
