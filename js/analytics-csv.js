@@ -280,8 +280,10 @@ export function renderFinance(){
       </div>
       <div class="tx-right">
         <span class="tx-amount ${cls}">${amtStr}</span>
-        <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-        <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <div class="tx-actions">
+          <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+          <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        </div>
       </div>`;
     item.addEventListener('click',()=>editTransaction(t.id));
     item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
