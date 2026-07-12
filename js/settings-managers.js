@@ -314,7 +314,14 @@ const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComp
 
 const PRIVAT_RATES_URL='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
 
-const PRIVAT_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent(PRIVAT_RATES_URL);
+// api.privatbank.ua never sends CORS headers for our origin, so the direct
+// call above always fails in a browser. A third-party CORS relay
+// (api.allorigins.win) was tried here first but turned out unreliable for
+// this specific endpoint (intermittent 500s from the relay itself) — this
+// same-origin Hosting rewrite to our own Cloud Function proxy (see
+// functions/index.js's privatRates + firebase.json's rewrites) avoids CORS
+// entirely instead of depending on a third party. See CLAUDE.md.
+const PRIVAT_RATES_FALLBACK_URL='/api/privat-rates';
 
 function ratesSourceKey(){ return 'xamssRatesSource'; }
 
@@ -336,9 +343,9 @@ async function fetchPrivatCashRates(){
     if(!res.ok) throw new Error('PrivatBank HTTP '+res.status);
     list=await res.json();
   }catch(primaryErr){
-    console.warn('primary PrivatBank endpoint failed (likely CORS), trying relay fallback', primaryErr);
+    console.warn('primary PrivatBank endpoint failed (likely CORS), trying our own proxy', primaryErr);
     const res=await fetch(PRIVAT_RATES_FALLBACK_URL);
-    if(!res.ok) throw new Error('PrivatBank fallback HTTP '+res.status);
+    if(!res.ok) throw new Error('PrivatBank proxy HTTP '+res.status);
     list=await res.json();
   }
   if(!Array.isArray(list)) throw new Error('unexpected PrivatBank response');

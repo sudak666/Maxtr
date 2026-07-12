@@ -31,6 +31,7 @@
  * only the thing that's supposed to call it hourly was missing.
  */
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onRequest } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -78,4 +79,36 @@ exports.notificationSweep = onSchedule('every 60 minutes', async () => {
       logger.error('sweepToken failed', { uid: tokensSnap.docs[i].id, error: r.reason?.message || String(r.reason) });
     }
   });
+});
+
+// Server-side proxy for PrivatBank's cash-exchange-rate API.
+//
+// The client used to call api.privatbank.ua directly, which always failed —
+// that host never sends CORS headers for our origin. A public CORS-relay
+// (api.allorigins.win) was tried as a fallback, but turned out unreliable
+// for this specific endpoint too (observed intermittent 500s from the
+// relay itself, likely PrivatBank rate-limiting/blocking the relay's IP —
+// see CLAUDE.md). Proxying through our own Cloud Function avoids CORS
+// entirely (this is a server-to-server fetch, not a browser one) and is
+// under our own control instead of a third party's.
+//
+// Exposed to the client via a Hosting rewrite (see firebase.json:
+// "/api/privat-rates" -> this function) so the browser sees it as a
+// same-origin request — no CORS headers needed on the response at all.
+const PRIVAT_RATES_URL = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
+
+exports.privatRates = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const upstream = await fetch(PRIVAT_RATES_URL);
+    if (!upstream.ok) {
+      res.status(502).json({ error: `PrivatBank HTTP ${upstream.status}` });
+      return;
+    }
+    const data = await upstream.json();
+    res.set('Cache-Control', 'public, max-age=300');
+    res.status(200).json(data);
+  } catch (err) {
+    logger.warn('privatRates proxy failed', { message: err.message });
+    res.status(502).json({ error: 'PrivatBank fetch failed' });
+  }
 });
