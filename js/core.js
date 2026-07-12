@@ -158,7 +158,11 @@ const CAT_ICON = {
   'Здоров\'я':'coin','Аптека':'coin','Цигарки':'cigarette','Внутрішній переказ':'swap',
 };
 
-const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift','umbrella'];
+// 'umbrella' deliberately excluded — it's used elsewhere for vacation/day-off
+// (setIcon('ic-vacation','umbrella')), which reads fine there, but as a
+// random fallback for an arbitrary category name (e.g. a bank fee category
+// hashing onto it) it looks nonsensical with no thematic connection.
+const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift'];
 
 export function categoryIcon(name){
   if(CAT_ICON[name]) return CAT_ICON[name];
