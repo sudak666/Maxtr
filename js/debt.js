@@ -193,6 +193,26 @@ function renderDebtDueChip(cd){
   if(icon) icon.style.background = diffDays<=3 ? 'var(--red)' : 'var(--purple)';
 }
 
+// A "savings goal"-style payoff progress bar for the current debt, the same
+// visual pattern renderGoals() (js/goals-profile.js) already uses for
+// savings-wallet goals (a % filled bar, green once reached) — applied here
+// to "% of startAmount already paid off" instead of "% of a savings target
+// saved". Hidden when startAmount isn't set (a 0/0 bar is meaningless).
+function renderDebtProgress(cd,paid){
+  const wrap=document.getElementById('debt-progress-wrap');
+  const text=document.getElementById('debt-progress-text');
+  const fill=document.getElementById('debt-progress-fill');
+  if(!wrap||!text||!fill) return;
+  const target=cd.startAmount||0;
+  if(target<=0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const pct=Math.max(0,Math.min(100,Math.round((paid/target)*100)));
+  const done=pct>=100;
+  text.textContent=pct+'%';
+  fill.style.width=pct+'%';
+  fill.style.background=done?'linear-gradient(90deg,var(--green),var(--green2))':'linear-gradient(90deg,var(--purple),var(--purple2))';
+}
+
 export function renderDebt(){
   renderDebtChips();
   const cd=getCurrentDebt();
@@ -205,6 +225,7 @@ export function renderDebt(){
     const si=document.getElementById('debt-start'); if(si) si.value='';
     const dui=document.getElementById('debt-due-date'); if(dui) dui.value='';
     const dueChip=document.getElementById('debt-due-chip'); if(dueChip) dueChip.style.display='none';
+    const progWrap=document.getElementById('debt-progress-wrap'); if(progWrap) progWrap.style.display='none';
     const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
     S('debt-start-val','0'); S('debt-balance-val','0'); S('debt-paid-val','0'); S('debt-count-val','0');
     const lc=document.getElementById('debt-list-container');
@@ -237,6 +258,7 @@ export function renderDebt(){
   S('debt-paid-val',paid.toLocaleString('uk-UA')+' '+cur);
   S('debt-count-val',cd.entries.length);
   renderDebtDueChip(cd);
+  renderDebtProgress(cd,paid);
 
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');
