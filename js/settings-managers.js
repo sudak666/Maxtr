@@ -312,16 +312,15 @@ const NBU_RATES_URL='https://bank.gov.ua/NBUStatService/v1/statdirectory/exchang
 
 const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent('https://bank.gov.ua/NBU_Exchange/exchange?json');
 
-const PRIVAT_RATES_URL='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
-
-// api.privatbank.ua never sends CORS headers for our origin, so the direct
-// call above always fails in a browser. A third-party CORS relay
-// (api.allorigins.win) was tried here first but turned out unreliable for
-// this specific endpoint (intermittent 500s from the relay itself) — this
-// same-origin Hosting rewrite to our own Cloud Function proxy (see
-// functions/index.js's privatRates + firebase.json's rewrites) avoids CORS
-// entirely instead of depending on a third party. See CLAUDE.md.
-const PRIVAT_RATES_FALLBACK_URL='/api/privat-rates';
+// api.privatbank.ua never sends CORS headers for our origin, so a direct
+// browser fetch to it always fails — permanently, not intermittently (see
+// CLAUDE.md), so there's no point attempting it first and eating a
+// guaranteed console-logged CORS error on every load. Go straight through
+// our own same-origin Cloud Function proxy instead (functions/index.js's
+// privatRates + firebase.json's Hosting rewrite), which avoids CORS
+// entirely. A third-party relay (api.allorigins.win) was tried before this
+// proxy existed but turned out unreliable for this specific endpoint.
+const PRIVAT_RATES_PROXY_URL='/api/privat-rates';
 
 function ratesSourceKey(){ return 'xamssRatesSource'; }
 
@@ -337,17 +336,9 @@ function renderRatesSourceUI(){
 }
 
 async function fetchPrivatCashRates(){
-  let list;
-  try{
-    const res=await fetch(PRIVAT_RATES_URL);
-    if(!res.ok) throw new Error('PrivatBank HTTP '+res.status);
-    list=await res.json();
-  }catch(primaryErr){
-    console.warn('primary PrivatBank endpoint failed (likely CORS), trying our own proxy', primaryErr);
-    const res=await fetch(PRIVAT_RATES_FALLBACK_URL);
-    if(!res.ok) throw new Error('PrivatBank proxy HTTP '+res.status);
-    list=await res.json();
-  }
+  const res=await fetch(PRIVAT_RATES_PROXY_URL);
+  if(!res.ok) throw new Error('PrivatBank proxy HTTP '+res.status);
+  const list=await res.json();
   if(!Array.isArray(list)) throw new Error('unexpected PrivatBank response');
   let updated=0;
   list.forEach(entry=>{
