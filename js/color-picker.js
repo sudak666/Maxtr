@@ -171,7 +171,7 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:AppState.shifts, shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, updatedAt:now}, {merge:false}),
-      setDoc(userDoc('finance'), {data:AppState.transactions, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {data:AppState.transactions, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -219,6 +219,7 @@ export function seedConfigFromDocs(sData, fData){
   }
   AppState.budgets = (fData && fData.budgets) ? {...fData.budgets} : {};
   AppState.subcategories = (fData && fData.subcategories) ? {...fData.subcategories} : {};
+  AppState.categoryIcons = (fData && fData.categoryIcons) ? {...fData.categoryIcons} : {};
   AppState.currencyRates = (fData && fData.currencyRates) ? {...fData.currencyRates} : {};
   AppState.tags = (fData && Array.isArray(fData.tags)) ? fData.tags : [];
   AppState.autoRules = (fData && Array.isArray(fData.autoRules)) ? fData.autoRules : [];
@@ -378,7 +379,7 @@ function processRecurring(){
 }
 
 export function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
 }
 
 // Top-level statements that DO something immediately (as opposed to a

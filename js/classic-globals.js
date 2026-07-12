@@ -78,6 +78,15 @@
     var d = ICON_PATHS[name] || '';
     return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
   };
+  // Curated subset of ICON_PATHS suitable for a user-facing "pick a category
+  // icon" grid — deliberately excludes pure UI/action glyphs (trash, plus,
+  // check, xmark, chevron, gear, search, pencil, grip, lock, etc.) that make
+  // sense as button icons but not as a thing-you'd-pick-to-represent-a-
+  // spending-category. Exposed on window (like Icon/setIcon above) since
+  // this is a classic script outside the js/ ES module graph — see
+  // CLAUDE.md's "index.html script structure" section. Add new entries here
+  // when adding a new icon to ICON_PATHS that's thematically category-like.
+  window.ICON_NAMES = ['calendar','wallet','clock','umbrella','trendUp','barChart','bolt','coin','card','banknote','inbox','sparkle','swap','bank','cart','car','house','bag','coffee','burger','cigarette','gift','briefcase','person','box','tag','target','repeat','star','bell','camera','globe','pie','doc','flag','phone','calculator','idCard','people'];
   function setIcon(id, name){
     var el = document.getElementById(id);
     if(el) el.innerHTML = window.Icon(name);
@@ -379,6 +388,7 @@
       profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
       profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
       profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
+      cat_icon_pick_title:'Оберіть іконку',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
       goals_add:'Додати ціль', goals_add_confirm:'Додати', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
@@ -615,6 +625,7 @@
       profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
       profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
       profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
+      cat_icon_pick_title:'Choose an icon',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
       goals_add:'Add a goal', goals_add_confirm:'Add', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',

@@ -52,6 +52,12 @@ export const AppState = {
   categories: {income:[], expense:[]},
   budgets: {},
   subcategories: {},
+  // Manual per-category icon override, keyed by category name (same
+  // name-only keying categoryColor/categoryIcon already use — see
+  // categoryIcon() in core.js, which checks this before its own
+  // exact-name/keyword/hash fallbacks). Set via the icon picker in
+  // settings-managers.js.
+  categoryIcons: {},
   currencyRates: {},
   tags: [],
   selectedTagIds: [],
