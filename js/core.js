@@ -158,15 +158,45 @@ const CAT_ICON = {
   'Здоров\'я':'coin','Аптека':'coin','Цигарки':'cigarette','Внутрішній переказ':'swap',
 };
 
-// 'umbrella' deliberately excluded — it's used elsewhere for vacation/day-off
-// (setIcon('ic-vacation','umbrella')), which reads fine there, but as a
-// random fallback for an arbitrary category name (e.g. a bank fee category
-// hashing onto it) it looks nonsensical with no thematic connection.
+// Keyword/substring match, tried after CAT_ICON's exact-name lookup and
+// before the hash-based fallback pool below — a category typed by the user
+// (e.g. "Мобільний зв'язок", "Оренда квартири") is never going to be in
+// CAT_ICON (that map only covers DEFAULT_CATEGORIES' exact strings), but is
+// still very likely to contain one of these common Ukrainian finance words,
+// so this gets a thematically sensible icon for far more real-world
+// category names than the exact map alone, without needing the user to
+// manually pick one via AppState.categoryIcons (openCategoryIconPicker in
+// settings-managers.js) first.
+const CAT_ICON_KEYWORDS = [
+  [/телефон|мобільн|зв'язок/i, 'phone'],
+  [/оренда|квартир|житло/i, 'house'],
+  [/кредит/i, 'bank'],
+  [/борг/i, 'coin'],
+  [/продукт|харч/i, 'cart'],
+  [/транспорт|таксі|бензин|паливо/i, 'car'],
+  [/розваг|кіно|хобі/i, 'gift'],
+  [/кава/i, 'coffee'],
+  [/кафе|ресторан|фастфуд/i, 'burger'],
+  [/подар/i, 'gift'],
+  [/зарплат|аванс|дохід/i, 'briefcase'],
+  [/переказ/i, 'swap'],
+  [/цигарк|сигарет/i, 'cigarette'],
+];
+
+// 'umbrella' deliberately excluded from the hash pool below — it's used
+// elsewhere for vacation/day-off (setIcon('ic-vacation','umbrella')), which
+// reads fine there, but as a blind fallback for an arbitrary category name
+// (e.g. a bank fee category hashing onto it) it looks nonsensical with no
+// thematic connection. (Still selectable manually via the icon picker,
+// which offers the full window.ICON_NAMES set — this exclusion only
+// applies to this last-resort automatic guess.)
 const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift'];
 
 export function categoryIcon(name){
+  if(AppState.categoryIcons && AppState.categoryIcons[name]) return AppState.categoryIcons[name];
   if(CAT_ICON[name]) return CAT_ICON[name];
   const s=String(name||'');
+  for(const [re,icon] of CAT_ICON_KEYWORDS){ if(re.test(s)) return icon; }
   let h=0;
   for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
   return CAT_ICON_FALLBACK_POOL[h%CAT_ICON_FALLBACK_POOL.length];

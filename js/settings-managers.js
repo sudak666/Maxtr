@@ -19,7 +19,7 @@ import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, showToast, uiConfi
 // below purely because *assigning* to window is a side effect that needs
 // ordering against the rest of the circular import graph.
 export function closeManagers(){
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 }
@@ -512,7 +512,7 @@ function renderCategoriesList(){
     row.innerHTML=`
       <div class="cat-row">
         <button type="button" class="drag-handle" aria-label="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
-        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
+        <button type="button" class="icon-badge icon-badge-sm cat-icon-btn" style="background:${categoryColor(name)}" data-action="open-category-icon-picker" data-idx="${idx}" aria-label="${tr('cat_icon_pick_title')}">${window.Icon(categoryIcon(name))}</button>
         <button type="button" class="cat-row-body" data-action="toggle-subcat-panel" data-idx="${idx}">
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(AppState.catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
@@ -535,6 +535,31 @@ function renderCategoriesList(){
     box.appendChild(row);
   });
 }
+
+let catIconPickIdx=null;
+
+const openCategoryIconPicker = function(idx){
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
+  catIconPickIdx=idx;
+  renderCategoryIconGrid();
+  document.getElementById('category-icon-modal').style.display='flex';
+};
+
+function renderCategoryIconGrid(){
+  const box=document.getElementById('category-icon-grid'); if(!box) return;
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx];
+  const current=name?categoryIcon(name):'';
+  const names=window.ICON_NAMES||[];
+  box.innerHTML=names.map(n=>`<button type="button" class="icon-opt${n===current?' sel':''}" data-action="select-category-icon" data-icon="${n}">${window.Icon(n)}</button>`).join('');
+}
+
+const selectCategoryIcon = function(iconName){
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx]; if(!name) return;
+  AppState.categoryIcons[name]=iconName;
+  saveConfigLocal(); scheduleSave();
+  document.getElementById('category-icon-modal').style.display='none';
+  renderCategoriesList(); renderBudgetsManagerList(); renderFinance(); renderFinanceChart();
+};
 
 function attachCategoryDragHandle(handle, row){
   handle.addEventListener('pointerdown', e=>{
@@ -608,6 +633,7 @@ const renameCategory = function(idx,value){
   if(AppState.budgets[oldName]!==undefined){ AppState.budgets[newName]=AppState.budgets[oldName]; delete AppState.budgets[oldName]; }
   const oldKey=subKey(AppState.catMgrType,oldName);
   if(AppState.subcategories[oldKey]!==undefined){ AppState.subcategories[subKey(AppState.catMgrType,newName)]=AppState.subcategories[oldKey]; delete AppState.subcategories[oldKey]; }
+  if(AppState.categoryIcons[oldName]!==undefined){ AppState.categoryIcons[newName]=AppState.categoryIcons[oldName]; delete AppState.categoryIcons[oldName]; }
   saveConfigLocal(); saveRecurringLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
   scheduleSave();
@@ -632,6 +658,7 @@ const deleteCategory = async function(idx){
   list.splice(idx,1);
   delete AppState.budgets[removed];
   delete AppState.subcategories[subKey(AppState.catMgrType,removed)];
+  delete AppState.categoryIcons[removed];
   AppState.expandedCatIdx=null;
   saveConfigLocal(); scheduleSave();
   renderCategoriesList(); fillCats(AppState.currentFinanceType); renderBudgets();
@@ -873,6 +900,8 @@ const CLICK_ACTIONS = {
   'open-cat-action-menu': ds=>openCatActionMenu(Number(ds.idx)),
   'delete-subcategory': ds=>deleteSubcategory(Number(ds.idx), Number(ds.si)),
   'add-category': ()=>addCategory(),
+  'open-category-icon-picker': ds=>openCategoryIconPicker(Number(ds.idx)),
+  'select-category-icon': ds=>selectCategoryIcon(ds.icon),
   'cat-action-edit': ()=>catActionEdit(),
   'cat-action-show-tx': ()=>catActionShowTx(),
   'cat-action-delete': ()=>catActionDelete(),
