@@ -78,10 +78,25 @@ function isPopupUnreliableContext(){
   return false;
 }
 
+// Marks that this session actually initiated a signInWithRedirect() round
+// trip, so the getRedirectResult() check below (which runs unconditionally
+// on every app load, not just after a real attempt) knows whether a
+// failure is worth surfacing. Found the hard way on a real device: some
+// TWA/WebView environments have getRedirectResult() reject with
+// auth/internal-error on *every* load (likely an IndexedDB/persistence
+// access restriction specific to that WebView, unrelated to any actual
+// sign-in attempt) — without this guard, every user saw a scary "sign-in
+// failed" banner the instant they opened the app, whether they'd ever
+// touched the Google button or not.
+const GOOGLE_REDIRECT_PENDING_KEY = 'zminkaGoogleRedirectPending';
+
 const googleSignIn = async function(){
   setAuthError('');
   try{
-    if(isPopupUnreliableContext()) await signInWithRedirect(auth, googleProvider);
+    if(isPopupUnreliableContext()){
+      try{ sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, '1'); }catch(e){}
+      await signInWithRedirect(auth, googleProvider);
+    }
     else await signInWithPopup(auth, googleProvider);
   }
   catch(err){ console.error(err); setAuthError(authErrorMessage(err.code)); }
@@ -592,10 +607,18 @@ document.addEventListener('click', e=>{
 // above) after the full-page navigation back from Google. onAuthStateChanged
 // below already reacts to the resulting sign-in on success, so this only
 // needs to surface an error — a redirect-flow failure otherwise has no
-// synchronous try/catch to report through, unlike the popup path.
+// synchronous try/catch to report through, unlike the popup path. Only
+// shown to the user if GOOGLE_REDIRECT_PENDING_KEY confirms a redirect was
+// actually attempted this session — see that constant's comment above for
+// why an unconditional getRedirectResult() call can reject on every load
+// in some environments regardless of whether sign-in was ever attempted.
 getRedirectResult(auth).catch(err=>{
   console.error(err);
-  setAuthError(authErrorMessage(err.code));
+  let wasPending=false;
+  try{ wasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)==='1'; }catch(e){}
+  if(wasPending) setAuthError(authErrorMessage(err.code));
+}).finally(()=>{
+  try{ sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY); }catch(e){}
 });
 
 // Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
