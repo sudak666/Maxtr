@@ -80,6 +80,23 @@
   --shadow-chip-active:0 4px 14px rgba(var(--shadow-color),.25);
   --shadow-drag:0 8px 24px rgba(var(--shadow-color),.4);
   --shadow-toast:0 8px 24px rgba(var(--shadow-color),.5);
+  /* Batch 2 of the light-theme shadow retune: purple-tinted glow shadows.
+     Unlike batch 1's plain black shadows (which look muddy on white), a
+     saturated color glow doesn't have that problem — it looks *louder* on
+     white instead, since white doesn't recede the way near-black does. A
+     milder alpha reduction (~0.55-0.6 ratio, vs. batch 1's ~0.33) is enough;
+     the RGB stays fixed at the literal --purple value in both themes, since
+     these shadows sit under elements that are that exact purple themselves
+     (lock-logo, FAB, accent buttons) — only the intensity needs taming, not
+     the hue itself. */
+  --shadow-lock-logo:0 10px 30px rgba(139,92,246,.35);
+  --shadow-empty-icon:0 8px 20px rgba(139,92,246,.25);
+  --shadow-accent-btn:0 4px 12px rgba(139,92,246,.3);
+  --shadow-accent-btn-hover:0 6px 20px rgba(139,92,246,.4);
+  --shadow-fab:0 10px 24px rgba(139,92,246,.45);
+  --ring-today:0 0 0 1px rgba(139,92,246,.2);
+  --tab-glow-shadow-alpha:.4;
+  --tab-glow-ripple-alpha:.55;
 }
 
 [data-theme="light"]{
@@ -112,6 +129,14 @@
   --shadow-chip-active:0 4px 14px rgba(var(--shadow-color),.08);
   --shadow-drag:0 8px 24px rgba(var(--shadow-color),.13);
   --shadow-toast:0 8px 24px rgba(var(--shadow-color),.16);
+  --shadow-lock-logo:0 10px 30px rgba(139,92,246,.2);
+  --shadow-empty-icon:0 8px 20px rgba(139,92,246,.15);
+  --shadow-accent-btn:0 4px 12px rgba(139,92,246,.18);
+  --shadow-accent-btn-hover:0 6px 20px rgba(139,92,246,.24);
+  --shadow-fab:0 10px 24px rgba(139,92,246,.26);
+  --ring-today:0 0 0 1px rgba(139,92,246,.14);
+  --tab-glow-shadow-alpha:.22;
+  --tab-glow-ripple-alpha:.3;
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
 [data-theme="light"] .b-day19{color:#047857}
@@ -169,7 +194,7 @@ button,input,select,textarea{font-family:inherit}
 .onboard-dot{width:7px;height:7px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);transition:all .2s}
 .onboard-dot.active{width:20px;border-radius:4px;background:var(--purple);border-color:var(--purple)}
 .onboard-actions{width:100%;max-width:320px}
-.lock-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(139,92,246,.35), 0 0 0 1px rgba(255,255,255,.08) inset}
+.lock-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:var(--shadow-lock-logo), 0 0 0 1px rgba(255,255,255,.08) inset}
 .lock-title{font-size:20px;font-weight:800;color:var(--text-strong);letter-spacing:-.02em}
 .lock-tagline{font-size:12.5px;color:var(--muted);font-weight:600;text-align:center;max-width:260px;line-height:1.5;margin-top:-2px}
 .lock-sub{font-size:13px;color:var(--muted);font-weight:600;min-height:18px;text-align:center}
@@ -286,7 +311,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   100%{transform:scale(1) translateY(0)}
 }
 @keyframes tabRipple{
-  0%{box-shadow:0 0 0 0 rgba(var(--tab-glow),.55)}
+  0%{box-shadow:0 0 0 0 rgba(var(--tab-glow),var(--tab-glow-ripple-alpha))}
   100%{box-shadow:0 0 0 15px rgba(var(--tab-glow),0)}
 }
 @keyframes tabLabelIn{
@@ -301,11 +326,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .tab-btn:active{transform:none}
   .tab-icon-wrap.tab-pop,.tab-icon-wrap.tab-pop::after,.tab-btn.active span:last-child{animation:none}
 }
-.tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.4);--tab-glow:139,92,246}
-.tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,.4);--tab-glow:16,185,129}
-.tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,.4);--tab-glow:245,158,11}
-.tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,.4);--tab-glow:100,116,139}
-.tab-btn.tab-c-shopping.active .tab-icon-wrap{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 14px rgba(236,72,153,.4);--tab-glow:236,72,153}
+.tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,var(--tab-glow-shadow-alpha));--tab-glow:139,92,246}
+.tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,var(--tab-glow-shadow-alpha));--tab-glow:16,185,129}
+.tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,var(--tab-glow-shadow-alpha));--tab-glow:245,158,11}
+.tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,var(--tab-glow-shadow-alpha));--tab-glow:100,116,139}
+.tab-btn.tab-c-shopping.active .tab-icon-wrap{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 14px rgba(236,72,153,var(--tab-glow-shadow-alpha));--tab-glow:236,72,153}
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
@@ -483,7 +508,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .day-cell:hover{border-color:var(--purple2);background:var(--bg3);transform:scale(1.02)}
 .day-cell:active{transform:scale(.98)}
 .day-cell.empty{background:transparent;border:none;cursor:default;min-height:auto;pointer-events:none}
-.day-cell.today{border-color:var(--purple)!important;background:rgba(139,92,246,.07)!important;box-shadow:0 0 0 1px rgba(139,92,246,.2)}
+.day-cell.today{border-color:var(--purple)!important;background:rgba(139,92,246,.07)!important;box-shadow:var(--ring-today)}
 .day-cell.today .day-num{color:var(--text-strong);font-weight:800}
 .day-cell.has-shifts{border-color:var(--border2)}
 .day-cell.has-shifts .day-num{color:var(--text-strong)}
@@ -510,7 +535,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chart-section.collapsed>.chart-title::after{transform:rotate(-90deg)}
 .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 18px;border:1px dashed var(--border);border-radius:22px;background:rgba(255,255,255,.025);color:var(--muted)}
 [data-theme="light"] .empty-state{background:rgba(0,0,0,.02)}
-.empty-state-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 8px 20px rgba(139,92,246,.25)}
+.empty-state-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:var(--shadow-empty-icon)}
 .empty-state-icon .ico{width:23px;height:23px;margin:0}
 .empty-state-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 .empty-state-desc{font-size:12.5px;line-height:1.45;max-width:320px}
@@ -681,9 +706,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .add-btn{
   padding:12px;border-radius:999px;border:none;font-size:13px;font-weight:800;cursor:pointer;
   background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;
-  font-family:inherit;transition:all .15s;box-shadow:0 4px 12px rgba(139,92,246,.3);
+  font-family:inherit;transition:all .15s;box-shadow:var(--shadow-accent-btn);
 }
-.add-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.4)}
+.add-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-accent-btn-hover)}
 .add-btn:active{transform:scale(.98)}
 
 /* ── HISTORY ── */
@@ -695,7 +720,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:#fff;
   background:linear-gradient(135deg,var(--purple),var(--purple3));
-  box-shadow:0 10px 24px rgba(139,92,246,.45);transition:transform .15s;
+  box-shadow:var(--shadow-fab);transition:transform .15s;
 }
 .fin-fab:active{transform:scale(.92)}
 .fin-fab .ico{width:24px;height:24px;margin-right:0}
@@ -847,7 +872,7 @@ body.amounts-hidden #fx-converter-result{
 .modal-actions{display:flex;gap:8px}
 .modal-cancel{flex:1;padding:12px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .modal-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
-.modal-save{flex:2;padding:12px;border-radius:999px;border:none;background:var(--purple);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 4px 12px rgba(139,92,246,.3)}
+.modal-save{flex:2;padding:12px;border-radius:999px;border:none;background:var(--purple);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:var(--shadow-accent-btn)}
 .modal-save:hover{background:var(--purple3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
@@ -862,7 +887,7 @@ body.amounts-hidden #fx-converter-result{
 .dlg-btn{flex:1;padding:12px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid transparent}
 .dlg-cancel{background:transparent;border-color:var(--border2);color:var(--muted)}
 .dlg-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
-.dlg-ok{background:var(--purple);color:#fff;box-shadow:0 4px 12px rgba(139,92,246,.3)}
+.dlg-ok{background:var(--purple);color:#fff;box-shadow:var(--shadow-accent-btn)}
 .dlg-ok:hover{background:var(--purple3)}
 .dlg-ok.danger{background:var(--red);box-shadow:0 4px 12px rgba(239,68,68,.3)}
 .dlg-ok.danger:hover{background:#dc2626}
