@@ -1,0 +1,19 @@
+# Jekyll config for the GitHub Pages mirror (Settings -> Pages -> "Deploy
+# from a branch" -> main / root). This repo has no other use for Jekyll --
+# index.html/js/*.js/manifest.json/sw.js have no front matter, so Jekyll
+# copies them through untouched; this file exists solely to keep internal,
+# non-app files out of the built site, matching firebase.json's hosting
+# "ignore" list for the same reason (see CHANGELOG.md's repo-housekeeping
+# entry). Do not add a .nojekyll file -- that would disable this exclude
+# list entirely and go back to publishing everything below.
+exclude:
+  - "*.md"
+  - docs
+  - scripts
+  - tests
+  - functions
+  - firebase.json
+  - firestore.rules
+  - _config.yml
+  - Gemfile
+  - Gemfile.lock
