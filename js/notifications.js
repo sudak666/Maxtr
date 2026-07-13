@@ -8,7 +8,7 @@ import { VAPID_KEY, currencySymbol, db, deleteDoc, deleteToken, doc, fbApp, getM
 import { csSync, showToast } from './ui-widgets.js';
 
 export function loadNotifSettings(){
-  try{ const n=localStorage.getItem('xamssNotif'); if(n) AppState.notifSettings={...AppState.notifSettings, ...JSON.parse(n)}; }catch(e){}
+  try{ const n=localStorage.getItem('mxNotif'); if(n) AppState.notifSettings={...AppState.notifSettings, ...JSON.parse(n)}; }catch(e){}
 }
 
 export function saveNotifSettings(){
@@ -16,7 +16,7 @@ export function saveNotifSettings(){
   // most recently touched notification settings — the Cloud Function has
   // no other way to know the user's local time for the daily reminder.
   try{ AppState.notifSettings.timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'; }catch(e){}
-  try{ localStorage.setItem('xamssNotif', JSON.stringify(AppState.notifSettings)); }catch(e){}
+  try{ localStorage.setItem('mxNotif', JSON.stringify(AppState.notifSettings)); }catch(e){}
   // Also synced to the finance doc (see setDoc payload) — the scheduled
   // Cloud Function push sweep reads it from there, since it obviously
   // can't see this device's localStorage.
@@ -201,13 +201,13 @@ function maybeShowDailyReminder(){
   if(!AppState.notifSettings.enabled) return;
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   const today=todayStr();
-  if(localStorage.getItem('xamssReminderShown')===today) return;
+  if(localStorage.getItem('mxReminderShown')===today) return;
   const now=new Date();
   const [h,m]=(AppState.notifSettings.time||'21:00').split(':').map(Number);
   if(now.getHours()<h || (now.getHours()===h && now.getMinutes()<(m||0))) return;
   if(AppState.transactions.some(tx=>tx.date===today)) return;
   showLocalNotification('Zminka', tr('reminder_body'));
-  localStorage.setItem('xamssReminderShown', today);
+  localStorage.setItem('mxReminderShown', today);
 }
 
 function checkBudgetAlerts(){
@@ -219,7 +219,7 @@ function checkBudgetAlerts(){
     if(!(limit>0) || !(AppState.categories.expense||[]).includes(cat)) return;
     const spent=AppState.transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(prefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
     if(spent<=limit) return;
-    const shownKey=`xamssBudgetAlert_${prefix}_${cat}`;
+    const shownKey=`mxBudgetAlert_${prefix}_${cat}`;
     if(localStorage.getItem(shownKey)) return;
     showLocalNotification(tr('notif_budget_title'), tr('notif_budget_body').replace('{category}',cat));
     localStorage.setItem(shownKey,'1');
@@ -233,7 +233,7 @@ function checkRecurringAlerts(){
   const tomorrowStr=`${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
   AppState.recurring.forEach(r=>{
     if(r.active===false || r.nextDate!==tomorrowStr || !r.amount) return;
-    const shownKey=`xamssRecurAlert_${r.id}_${tomorrowStr}`;
+    const shownKey=`mxRecurAlert_${r.id}_${tomorrowStr}`;
     if(localStorage.getItem(shownKey)) return;
     const amountStr=r.amount.toLocaleString('uk-UA')+' '+currencySymbol(walletCurrency(r.wallet));
     showLocalNotification(tr('notif_recurring_title'), tr('notif_recurring_body').replace('{category}',r.category||tr('cat_other')).replace('{amount}',amountStr));
@@ -253,7 +253,7 @@ function checkDebtAlerts(){
   const tomorrowStr=`${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
   AppState.debts.forEach(d=>{
     if(d.dueDate!==tomorrowStr) return;
-    const shownKey=`xamssDebtAlert_${d.id}_${tomorrowStr}`;
+    const shownKey=`mxDebtAlert_${d.id}_${tomorrowStr}`;
     if(localStorage.getItem(shownKey)) return;
     showLocalNotification(tr('notif_debt_title'), tr('notif_debt_body').replace('{name}',d.name||tr('debt_default_name')));
     localStorage.setItem(shownKey,'1');
