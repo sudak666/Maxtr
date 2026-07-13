@@ -270,8 +270,12 @@ export function enhanceDateInput(inp){
 
 export function enhanceAllSelects(){
   if(AppState.selectsEnhanced) return; AppState.selectsEnhanced=true;
-  document.querySelectorAll('.app select').forEach(enhanceSelect);
-  document.querySelectorAll('.app input[type=date]').forEach(enhanceDateInput);
+  // Not scoped to .app: several selects/date inputs (e.g. #fin-date in
+  // #tx-form-modal) live in modals that are DOM siblings of <main class="app">,
+  // not descendants of it — scoping to .app silently left those as unstyled
+  // native controls.
+  document.querySelectorAll('select').forEach(enhanceSelect);
+  document.querySelectorAll('input[type=date]').forEach(enhanceDateInput);
   const closeAllPanels=()=>document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
   document.addEventListener('click',closeAllPanels);
   // Fixed-position panels don't move with their trigger, so close them on
@@ -323,6 +327,76 @@ export const uiAlert = function(message,title){ return uiDialog({title:title||''
 
 export const uiPrompt = function(message,defaultValue,title){ return uiDialog({title:title||'',message,input:true,defaultValue,okText:tr('common_done')}); };
 
+// Adds a sliding "thumb" behind the active button of a fixed 2-3 option
+// segmented control (income/expense/transfer, auth login/register, the
+// finance-chart series toggle) instead of the plain background-swap every
+// .type-seg/.auth-tabs/.fin-chart-toggle used to have. Deliberately opt-in
+// per container (not a global .type-btn.active rule) — the category-manager
+// type toggle and the theme/lang chip rows keep the old plain style, since
+// this only makes sense for a fixed-width equal-segment pill, not a
+// variable-width wrapping chip row. A ResizeObserver (not manual calls from
+// every toggle handler) is what makes this safe to init once and forget:
+// it fires correctly when the container goes from display:none to visible
+// (e.g. a modal opening) with no extra wiring needed at each call site.
+export function initSegThumb(container, opts={}){
+  if(!container || container.dataset.segThumb) return;
+  container.dataset.segThumb='1';
+  container.classList.add('seg-thumbed');
+  const thumb=document.createElement('div');
+  thumb.className='seg-thumb';
+  container.insertBefore(thumb, container.firstChild);
+  function position(){
+    const active=container.querySelector(':scope > .active');
+    if(!active || !active.offsetWidth){ thumb.style.opacity='0'; return; }
+    thumb.style.opacity='1';
+    thumb.style.width=active.offsetWidth+'px';
+    thumb.style.transform=`translateX(${active.offsetLeft}px)`;
+    if(opts.tint) thumb.style.background=opts.tint(active)||'';
+  }
+  new MutationObserver(position).observe(container,{subtree:true,attributes:true,attributeFilter:['class']});
+  new ResizeObserver(position).observe(container);
+  position();
+}
+
+// Drag-to-dismiss for the bottom-sheet presentation .modal-card gets under
+// the 600px breakpoint (see index.html's "BOTTOM SHEET" CSS block) — only
+// active on the .sheet-grabber handle itself, never the surrounding
+// .modal-card-body, so it can never fight that body's own vertical scroll.
+// onDismiss is passed in by the caller (closeManagers() in
+// settings-managers.js) rather than imported here, so this file doesn't
+// need a new cross-file edge back to settings-managers.js.
+export function initSheetDrag(card, onDismiss){
+  const grabber=card.querySelector('.sheet-grabber');
+  if(!grabber || grabber.dataset.dragInit) return;
+  grabber.dataset.dragInit='1';
+  const DISMISS_PX=110;
+  let dragging=false, startY=0, dy=0;
+  grabber.addEventListener('pointerdown', e=>{
+    if(getComputedStyle(grabber).display==='none') return; // desktop width — sheet mode is off
+    dragging=true; startY=e.clientY; dy=0;
+    card.classList.add('sheet-dragging');
+    try{ grabber.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  grabber.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    dy=Math.max(0, e.clientY-startY);
+    card.style.transform=`translateY(${dy}px)`;
+  });
+  function endDrag(){
+    if(!dragging) return;
+    dragging=false;
+    card.classList.remove('sheet-dragging');
+    if(dy>DISMISS_PX){
+      card.style.transform='translateY(100%)';
+      setTimeout(()=>{ onDismiss(); card.style.transform=''; }, 220);
+    } else {
+      card.style.transform='';
+    }
+  }
+  grabber.addEventListener('pointerup', endDrag);
+  grabber.addEventListener('pointercancel', endDrag);
+}
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
@@ -363,4 +437,14 @@ document.addEventListener('input', e=>{
   if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) __closeDlg(null); });
   if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); __closeDlg(inp.value);} if(e.key==='Escape'){__closeDlg(null);} });
 })();
+const TINT_PURPLE=()=>'linear-gradient(135deg,var(--purple),var(--purple3))';
+const finTypeSeg=document.getElementById('fin-type-seg');
+if(finTypeSeg) initSegThumb(finTypeSeg, {tint:btn=>
+  btn.classList.contains('inc') ? 'rgba(16,185,129,.15)' :
+  btn.classList.contains('exp') ? 'rgba(239,68,68,.15)' :
+  btn.classList.contains('trn') ? 'rgba(59,130,246,.15)' : ''});
+const authTabs=document.querySelector('.auth-tabs');
+if(authTabs) initSegThumb(authTabs, {tint:TINT_PURPLE});
+const finChartToggle=document.querySelector('.fin-chart-toggle');
+if(finChartToggle) initSegThumb(finChartToggle, {tint:TINT_PURPLE});
 }

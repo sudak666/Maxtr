@@ -5,7 +5,7 @@
 import { AppState } from './state.js';
 import { saveConfigLocal, saveLocal, scheduleSave } from './color-picker.js';
 import { SALARY_GOAL, shiftType, toBase } from './core.js';
-import { csSync, emptyStateHtml, escapeHtml, hexA, showToast, uiConfirm } from './ui-widgets.js';
+import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm } from './ui-widgets.js';
 
 export function shiftMonth(d){
   const ms=document.getElementById('select-month');
@@ -560,4 +560,11 @@ document.addEventListener('change', e=>{
 // helper, not a data-action - same reasoning as phase 8's addNewDebt/
 // openNewDebtEntryModal.
 window.toggleQuickFill = toggleQuickFill;
+
+// #shift-modal isn't in closeManagers()'s id list (it has its own
+// closeModal() above, see the exact-target-check comment near the click
+// listener) so it needs its own initSheetDrag() call rather than the
+// blanket one settings-managers.js does for every other .modal-card.
+const shiftModalCard=document.querySelector('#shift-modal .modal-card');
+if(shiftModalCard) initSheetDrag(shiftModalCard, closeModal);
 }
