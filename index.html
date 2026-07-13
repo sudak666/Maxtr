@@ -58,7 +58,7 @@
   /* type scale — new components should use these instead of ad-hoc font-size values */
   --text-2xs:10.5px; --text-xs:11.5px; --text-sm:13px; --text-base:14px;
   --text-md:16px; --text-lg:22px; --text-xl:30px; --text-2xl:36px;
-  --weight-body:600; --weight-strong:700; --weight-display:800; --weight-mega:900;
+  --weight-body:500; --weight-strong:700; --weight-display:800; --weight-mega:900;
 
   /* elevation — tinted shadow tokens instead of hardcoded rgba() per component */
   --shadow-color:0,0,0;
@@ -101,6 +101,16 @@
   --ring-today:0 0 0 1px rgba(139,92,246,.2);
   --tab-glow-shadow-alpha:.4;
   --tab-glow-ripple-alpha:.55;
+
+  /* 3-tier surface system, batch 1: hero cards (hero-metric/hero-balance —
+     the single primary number of a screen) get a subtle tonal gradient fill
+     plus a thin gradient-stroke ring instead of the flat single-tone
+     bg1+1px-border every other card uses. Structural containers
+     (.chart-section, .cal-wrap, .fin-form, etc.) and nested chips
+     (.mgr-row, .wallet-chip, etc.) are unchanged — this is additive, not a
+     replacement of --bg1/--bg2/--bg3. */
+  --surface-hero:linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 130%);
+  --stroke-hero:linear-gradient(135deg, rgba(139,92,246,.35), rgba(139,92,246,0) 60%);
 }
 
 [data-theme="light"]{
@@ -141,6 +151,7 @@
   --ring-today:0 0 0 1px rgba(139,92,246,.14);
   --tab-glow-shadow-alpha:.22;
   --tab-glow-ripple-alpha:.3;
+  --stroke-hero:linear-gradient(135deg, rgba(124,58,237,.22), rgba(124,58,237,0) 60%);
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
 [data-theme="light"] .b-day19{color:#047857}
@@ -222,7 +233,12 @@ button,input,select,textarea{font-family:inherit}
 .auth-link:hover{text-decoration:underline}
 
 /* ── LAYOUT ── */
-.app{max-width:1200px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom))}
+.app{
+  max-width:1200px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom));
+  background:radial-gradient(480px circle at 50% 0%, rgba(139,92,246,.06), transparent 60%);
+  background-repeat:no-repeat;
+}
+[data-theme="light"] .app{background:radial-gradient(480px circle at 50% 0%, rgba(124,58,237,.035), transparent 60%)}
 
 /* ── TOP NAV ── */
 .topbar{
@@ -336,6 +352,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,var(--tab-glow-shadow-alpha));--tab-glow:100,116,139}
 .tab-btn.tab-c-shopping.active .tab-icon-wrap{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 14px rgba(236,72,153,var(--tab-glow-shadow-alpha));--tab-glow:236,72,153}
 
+/* ── TAB SWITCH CROSSFADE ── */
+/* .tab-in is toggled by switchTab() (remove + forced reflow + re-add,
+   same restart trick as .donut-anim) each time a tab becomes visible, so
+   switching feels like one continuous surface instead of a hard cut. */
+@keyframes tabContentIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.tab-content.tab-in{animation:tabContentIn .18s ease-out both}
+@media(prefers-reduced-motion:reduce){.tab-content.tab-in{animation:none}}
+
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
 .page-label{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--purple2);margin-bottom:4px}
@@ -381,8 +405,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
 .settings-row+.settings-row{border-top:1px dashed var(--border)}
 .settings-row-text{flex:1 1 auto;min-width:0}
-.settings-row-title{font-size:13.5px;font-weight:700;color:var(--text-strong)}
-.settings-row-sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px}
+.settings-row-title{font-size:13.5px;font-weight:600;color:var(--text-strong)}
+.settings-row-sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
 .settings-row-chevron{color:var(--muted);flex-shrink:0;transform:rotate(-90deg);width:16px;height:16px}
 .settings-row-chevron .ico{margin-right:0}
 .settings-search{position:relative;margin:-6px 0 18px}
@@ -408,14 +432,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .widget-reorder-btn:not(:disabled):hover{border-color:var(--purple2);color:var(--purple2)}
 .stat-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:500}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:400}
 .stat-big{grid-column:span 2}
 
 /* ── HERO METRIC + CHIP ROW (replaces a row of equal-weight stat cards
    with one primary number and a compact scrollable strip of the rest) ── */
-.hero-metric{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow-raised)}
+.hero-metric{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow-raised);position:relative}
+.hero-metric::before,.hero-balance::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:var(--stroke-hero);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;
+}
 .hero-metric-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:var(--text-strong);margin:4px 0 0;line-height:1}
+.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 0;line-height:1}
 .chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
 .chip-stat-row::-webkit-scrollbar{display:none}
 .debt-progress-wrap{margin-bottom:14px}
@@ -425,10 +456,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:13px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
-.chip-stat-lbl{font-size:11px;font-weight:600;color:var(--muted)}
-.hero-balance{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised)}
+.chip-stat-lbl{font-size:11px;font-weight:500;color:var(--muted)}
+.hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised);position:relative}
 .hero-balance-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:900;color:var(--text-strong);margin:4px 0 14px;line-height:1}
+.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 14px;line-height:1}
 .wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .wallet-chip-row::-webkit-scrollbar{display:none}
 .wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
@@ -439,7 +470,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .fin-mini-stat{flex:1;min-width:0;border-radius:18px;padding:14px 16px}
 .fin-mini-stat.income{background:linear-gradient(135deg,rgba(16,185,129,.22),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.28)}
 .fin-mini-stat.expense{background:linear-gradient(135deg,rgba(239,68,68,.22),rgba(239,68,68,.03));border:1px solid rgba(239,68,68,.28)}
-.fin-mini-stat-label{font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-mini-stat-label{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fin-mini-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800}
 .fin-mini-stat.income .fin-mini-stat-val{color:var(--green2)}
 .fin-mini-stat.expense .fin-mini-stat-val{color:var(--red2)}
@@ -468,7 +499,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .analytics-cat-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:4px}
 .analytics-cat-name{display:flex;align-items:center;gap:6px;color:var(--text-strong);min-width:0;overflow:hidden}
 .analytics-cat-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.analytics-cat-amt{white-space:nowrap;color:var(--muted);font-weight:600}
+.analytics-cat-amt{white-space:nowrap;color:var(--muted);font-weight:500}
 
 /* ── TOOLS PANEL ── */
 .tools-panel{
@@ -596,6 +627,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .type-btn.active.inc{background:rgba(16,185,129,.15);color:var(--green2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.3)}
 .type-btn.active.exp{background:rgba(239,68,68,.15);color:var(--red2);box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
 .type-btn.active.trn{background:rgba(59,130,246,.15);color:var(--blue2);box-shadow:inset 0 0 0 1px rgba(59,130,246,.3)}
+
+/* ── SLIDING SEGMENT INDICATOR ── */
+/* Opt-in per container via initSegThumb() (js/ui-widgets.js) — only
+   income/expense/transfer, auth login/register, and the finance-chart
+   series toggle get it. The category-manager type toggle and the
+   theme/lang chip rows deliberately keep the plain background-swap style,
+   since a sliding thumb only makes sense for a fixed equal-width pill, not
+   a variable-width wrapping chip row. */
+.seg-thumbed{position:relative}
+.seg-thumbed>button{position:relative;z-index:1}
+.seg-thumb{
+  position:absolute;top:0;bottom:0;left:0;border-radius:999px;
+  background:var(--bg3);box-shadow:inset 0 0 0 1px var(--border2);
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1),width .32s cubic-bezier(.34,1.56,.64,1),opacity .15s ease;
+  z-index:0;opacity:0;pointer-events:none;
+}
+.seg-thumbed>.type-btn.active,.seg-thumbed>.auth-tab.active,.seg-thumbed>.fin-chart-toggle-btn.active{
+  background:transparent!important;box-shadow:none!important;
+}
+@media(prefers-reduced-motion:reduce){.seg-thumb{transition:opacity .15s ease}}
 
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -770,7 +821,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
 .tx-left{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tx-meta{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+.tx-meta{font-size:11px;color:var(--muted);font-weight:400;margin-top:1px}
 .tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .tx-actions{display:flex;align-items:center;gap:2px}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap}
@@ -849,6 +900,31 @@ body.amounts-hidden #fx-converter-result{
 .modal-card-body{padding:22px 24px;overflow-y:auto}
 @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 .sheet-grabber{display:none}
+/* ── BOTTOM SHEET (mobile only) ──
+   Below the same 600px breakpoint the rest of the mobile-redesign pass
+   uses (see CLAUDE.md), .modal-card presents as a sheet sliding up from
+   the bottom edge instead of a centered scale-in popup — the .sheet-grabber
+   element already existed in every modal's markup (21 instances) but was
+   unconditionally hidden; this is what turns it on. Drag-to-dismiss is
+   wired in js/ui-widgets.js (initSheetDrag), scoped to pointer events
+   starting on the grabber or header so it never fights scrolling inside
+   .modal-card-body. */
+@media(max-width:600px){
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal-card{
+    max-width:none;border-radius:26px 26px 0 0;max-height:92vh;
+    animation:sheetUp .32s cubic-bezier(.22,1,.36,1);
+  }
+  .modal-card.sheet-dragging{transition:none}
+  .sheet-grabber{
+    display:block;width:36px;height:4px;border-radius:99px;flex-shrink:0;
+    background:var(--border2);margin:10px auto 2px;cursor:grab;
+  }
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+  .modal-card{animation:none!important}
+}
 .modal-header{text-align:center;margin-bottom:18px}
 .modal-icon{width:30px;height:30px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--purple2)}
 .modal-icon .ico{width:30px;height:30px;margin-right:0}
@@ -1156,7 +1232,7 @@ body.amounts-hidden #fx-converter-result{
 
 <main class="app">
   <!-- ═══ ЗМІНИ ═══ -->
-  <section id="tab-shifts" style="display:none" aria-labelledby="shifts-title">
+  <section id="tab-shifts" class="tab-content" style="display:none" aria-labelledby="shifts-title">
     <div class="page-head">
       <div class="page-label" data-i18n="shifts_kicker">Особистий робочий календар</div>
       <h2 class="page-title" id="shifts-title" data-i18n="shifts_title">Робочі зміни</h2>
@@ -1265,7 +1341,7 @@ body.amounts-hidden #fx-converter-result{
   </section>
 
   <!-- ═══ ФІНАНСИ ═══ -->
-  <section id="tab-finance" aria-labelledby="finance-title">
+  <section id="tab-finance" class="tab-content" aria-labelledby="finance-title">
     <div class="page-head">
       <div class="page-label" data-i18n="finance_kicker">Особистий бюджет</div>
       <h2 class="page-title" id="finance-title" data-i18n="finance_title">Гаманці & Фінанси</h2>
@@ -1367,7 +1443,7 @@ body.amounts-hidden #fx-converter-result{
   </section>
 
   <!-- ═══ РОЗРАХУНКИ ═══ -->
-  <section id="tab-debt" style="display:none" aria-labelledby="debt-title">
+  <section id="tab-debt" class="tab-content" style="display:none" aria-labelledby="debt-title">
     <div class="page-head">
       <div class="page-label" data-i18n="debt_kicker">Облік розрахунків</div>
       <h2 class="page-title" id="debt-title" data-i18n="debt_title">Розрахунки</h2>
@@ -1446,7 +1522,7 @@ body.amounts-hidden #fx-converter-result{
   </section>
 
   <!-- ═══ СПИСОК ПОКУПОК ═══ -->
-  <section id="tab-shopping" style="display:none" aria-labelledby="shopping-title">
+  <section id="tab-shopping" class="tab-content" style="display:none" aria-labelledby="shopping-title">
     <div class="page-head">
       <div class="page-label" data-i18n="shopping_kicker">Ваші покупки</div>
       <h2 class="page-title" id="shopping-title" data-i18n="shopping_title">Список покупок</h2>
@@ -1481,7 +1557,7 @@ body.amounts-hidden #fx-converter-result{
   </section>
 
   <!-- ═══ НАЛАШТУВАННЯ ═══ -->
-  <section id="tab-settings" style="display:none" aria-labelledby="settings-title">
+  <section id="tab-settings" class="tab-content" style="display:none" aria-labelledby="settings-title">
     <div class="page-head">
       <div class="page-label" data-i18n="settings_kicker">Керування застосунком</div>
       <h2 class="page-title" id="settings-title" data-i18n="settings_title">Налаштування</h2>
@@ -1836,7 +1912,7 @@ body.amounts-hidden #fx-converter-result{
         <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
-      <div class="type-seg">
+      <div class="type-seg" id="fin-type-seg">
         <button id="btn-inc" class="type-btn active inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
         <button id="btn-exp" class="type-btn exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
         <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>

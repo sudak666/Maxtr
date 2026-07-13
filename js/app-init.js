@@ -109,6 +109,8 @@ export function switchTab(tab){
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
   document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
+  const shownTab=document.getElementById(`tab-${tab}`);
+  if(shownTab){ shownTab.classList.remove('tab-in'); void shownTab.offsetWidth; shownTab.classList.add('tab-in'); }
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}

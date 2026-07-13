@@ -10,7 +10,7 @@ import { saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { lsKey } from './firebase-sync.js';
-import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // A plain function declaration is safe to call immediately at import time
 // from any other module (hoisted, no temporal-dead-zone risk — see
@@ -438,6 +438,7 @@ export function populateFxConverterSelects(){
   const optHtml=CURRENCY_LIST.map(c=>`<option value="${c}">${c}</option>`).join('');
   from.innerHTML=optHtml; to.innerHTML=optHtml;
   from.value='USD'; to.value='UAH';
+  enhanceSelect(from); enhanceSelect(to);
 }
 
 export function renderFxConverter(){
@@ -869,6 +870,11 @@ export function __init_settings_managers__(){
 document.addEventListener('click', (e)=>{
   if(e.target.classList.contains('modal-overlay') || e.target.closest('[data-close-modal]')) closeManagers();
 }, true);
+
+// Bottom-sheet drag-to-dismiss (see index.html's "BOTTOM SHEET" CSS block)
+// for every manager modal except #shift-modal, which has its own
+// closeModal() and is wired separately in calendar.js's own init.
+document.querySelectorAll('.modal-overlay:not(#shift-modal) .modal-card').forEach(card=>initSheetDrag(card, closeManagers));
 
 // Phase 3 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
 // every remaining button/row/input in this file's own templates, plus this
