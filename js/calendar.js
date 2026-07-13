@@ -113,6 +113,14 @@ export function renderCalendar(){
 
     const cell=document.createElement('div');
     cell.className='day-cell'+(ds.length?' has-shifts':'')+(isToday?' today':'')+(isWeekend?' weekend-cell':'');
+    // Faint background tint from the day's first shift type, so a month
+    // reads as color patches at a glance instead of relying purely on the
+    // small badge pill's text — same .07 alpha .day-cell.today already
+    // uses for its own tint, kept subtle enough not to fight the badge.
+    if(ds.length){
+      const firstType=shiftType(ds[0]);
+      if(firstType) cell.style.setProperty('--cell-tint',hexA(firstType.color,.07));
+    }
 
     let badges='';
     ds.forEach(id=>{
