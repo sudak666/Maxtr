@@ -64,9 +64,10 @@ export function renderShoppingList(){
   }
   // Unbought items first, bought ones (dimmed/struck-through) trail behind.
   const sorted=[...AppState.shoppingList].sort((a,b)=>(a.done===b.done)?0:(a.done?1:-1));
-  sorted.forEach(it=>{
+  sorted.forEach((it,idx)=>{
     const row=document.createElement('div');
-    row.className='mgr-row';
+    row.className='mgr-row shop-row';
+    row.style.animationDelay=Math.min(idx*35,280)+'ms';
     row.innerHTML=`
       <input type="checkbox" class="rchk" ${it.done?'checked':''} data-action="toggle-shopping-item" data-id="${it.id}">
       <div class="mgr-name-inline" style="${it.done?'text-decoration:line-through;opacity:.55':''}">${escapeHtml(it.name)}</div>

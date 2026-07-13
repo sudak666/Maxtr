@@ -64,6 +64,7 @@
   --shadow-color:0,0,0;
   --shadow-modal:0 24px 70px rgba(var(--shadow-color),.55);
   --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 26px -12px rgba(139,92,246,.32);
+  --donut-glow:rgba(139,92,246,.28);
 }
 
 [data-theme="light"]{
@@ -86,6 +87,7 @@
   --shadow-color:20,15,10;
   --shadow-modal:0 20px 50px -12px rgba(var(--shadow-color),.18);
   --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 10px 24px -12px rgba(124,58,237,.22);
+  --donut-glow:rgba(124,58,237,.16);
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
 [data-theme="light"] .b-day19{color:#047857}
@@ -397,7 +399,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .salary-bar-label{font-size:11px;color:var(--muted);margin-top:4px}
 
 /* ── ANALYTICS DONUT (conic-gradient, no chart library) ── */
-.analytics-donut{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;background:var(--bg3)}
+@keyframes donutIn{from{opacity:0;transform:scale(.85) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.analytics-donut{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;background:var(--bg3);filter:drop-shadow(0 8px 20px var(--donut-glow))}
+/* .donut-anim is toggled by renderAnalytics() (removed + reflowed + re-added)
+   each time the chart's data changes, since a CSS animation only fires once
+   for an element that stays in the DOM — see js/analytics-csv.js. */
+.analytics-donut.donut-anim{animation:donutIn .6s cubic-bezier(.22,1,.36,1) both}
+@media(prefers-reduced-motion:reduce){.analytics-donut.donut-anim{animation:none}}
 .analytics-donut-hole{position:absolute;inset:20px;border-radius:50%;background:var(--bg1)}
 .analytics-donut-center{position:absolute;inset:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px}
 .analytics-donut-total{font-size:14px;font-weight:800;color:var(--text-strong);line-height:1.2}
@@ -677,6 +685,15 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 
 .tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px}
 .tx-view-all-btn{justify-content:center;width:100%;margin-top:4px}
+/* Stagger-in for freshly-rendered list rows: the JS side sets a per-row
+   animation-delay (see renderFinance()/renderShoppingList()) so rows cascade
+   in instead of all appearing at once. .shop-row is a marker class added
+   alongside .mgr-row (which shopping rows share with every other manager
+   list) so this animation stays scoped to the shopping list, not every
+   settings manager. */
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tx-item,.shop-row{animation:rowIn .32s cubic-bezier(.22,1,.36,1) both}
+@media(prefers-reduced-motion:reduce){.tx-item,.shop-row{animation:none}}
 .tx-item{
   display:flex;justify-content:space-between;align-items:flex-start;
   padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;

@@ -136,6 +136,13 @@ function renderAnalytics(){
       donut.style.background=`conic-gradient(${stops})`;
       donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-total">${totalExpense.toLocaleString('uk-UA')}</span><span class="analytics-donut-label">${tr('finance_amount_prefix')}</span></div>`;
     }
+    // Retrigger the CSS entrance animation on every data change, not just
+    // the first paint — a CSS animation only fires once for an element that
+    // stays in the DOM, so the class has to be removed, the removal forced
+    // to take effect (reading offsetWidth forces a reflow), then re-added.
+    donut.classList.remove('donut-anim');
+    void donut.offsetWidth;
+    donut.classList.add('donut-anim');
   }
 
   const renderCatList=(entries,total)=>{
@@ -269,7 +276,7 @@ export function renderFinance(){
   const showAll=txListExpanded || filtered.length<=TX_LIST_COLLAPSED_COUNT;
   const visible=showAll?filtered:filtered.slice(0,TX_LIST_COLLAPSED_COUNT);
 
-  visible.forEach(t=>{
+  visible.forEach((t,idx)=>{
     const df=t.date?t.date.split('-').reverse().join('.'):'';
     const cur=currencySymbol(t.currency||'UAH');
     let cls='',amtStr='';
@@ -286,6 +293,7 @@ export function renderFinance(){
     item.className='tx-item';
     item.tabIndex=0;
     item.style.cursor='pointer';
+    item.style.animationDelay=Math.min(idx*35,280)+'ms';
     item.innerHTML=`
       <div class="tx-left-wrap">
         <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
