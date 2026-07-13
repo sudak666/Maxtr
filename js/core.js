@@ -27,7 +27,7 @@ import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessag
 
 export const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
-  authDomain:"maxtr-c238f.web.app",
+  authDomain:"maxtr-c238f.firebaseapp.com",
   projectId:"maxtr-c238f",
   storageBucket:"maxtr-c238f.firebasestorage.app",
   messagingSenderId:"311094677098",
