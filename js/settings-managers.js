@@ -273,7 +273,7 @@ const moveWidget = function(key, dir){
 export const toggleHideAmounts = function(){
   const on=!document.body.classList.contains('amounts-hidden');
   document.body.classList.toggle('amounts-hidden', on);
-  try{ localStorage.setItem('xamssHideAmounts', on?'1':'0'); }catch(e){}
+  try{ localStorage.setItem('mxHideAmounts', on?'1':'0'); }catch(e){}
   const btn=document.getElementById('btn-hide-amounts');
   if(btn) btn.innerHTML=window.Icon(on?'eyeOff':'eye');
 };
@@ -322,7 +322,7 @@ const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComp
 // proxy existed but turned out unreliable for this specific endpoint.
 const PRIVAT_RATES_PROXY_URL='/api/privat-rates';
 
-function ratesSourceKey(){ return 'xamssRatesSource'; }
+function ratesSourceKey(){ return 'mxRatesSource'; }
 
 const setRatesSource = function(source){
   AppState.ratesSource = source==='privat' ? 'privat' : 'nbu';
@@ -350,7 +350,7 @@ async function fetchPrivatCashRates(){
   return updated;
 }
 
-function ratesUpdatedAtKey(){ return 'xamssRatesUpdatedAt'; }
+function ratesUpdatedAtKey(){ return 'mxRatesUpdatedAt'; }
 
 function renderRatesUpdatedHint(){
   const hint=document.getElementById('rates-updated-hint'); if(!hint) return;

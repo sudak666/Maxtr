@@ -11,5 +11,5 @@ document.getElementById('theme-toggle').addEventListener('click', function(){
   var next = isLight ? 'dark' : 'light';
   if(next === 'light') document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
-  try{ localStorage.setItem('xamssTheme', next); }catch(e){}
+  try{ localStorage.setItem('mxTheme', next); }catch(e){}
 });

@@ -104,7 +104,7 @@
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
   try{
-    var hideAmt=localStorage.getItem('xamssHideAmounts')==='1';
+    var hideAmt=localStorage.getItem('mxHideAmounts')==='1';
     document.body.classList.toggle('amounts-hidden', hideAmt);
     setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
   }catch(e){}
@@ -207,7 +207,7 @@
   function applyTheme(theme){
     if(!THEME_ICON[theme]) theme='dark';
     document.documentElement.setAttribute('data-theme', theme);
-    try{localStorage.setItem('xamssTheme', theme);}catch(e){}
+    try{localStorage.setItem('mxTheme', theme);}catch(e){}
     var mc=document.querySelector('meta[name=theme-color]');
     if(mc) mc.setAttribute('content', THEME_COLOR[theme]);
     document.querySelectorAll('.theme-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.theme===theme); });
@@ -713,7 +713,7 @@
     }
   };
   window.currentLang='uk';
-  try{ var savedLang=localStorage.getItem('xamssLang'); if(savedLang==='en'||savedLang==='uk') window.currentLang=savedLang; }catch(e){}
+  try{ var savedLang=localStorage.getItem('mxLang'); if(savedLang==='en'||savedLang==='uk') window.currentLang=savedLang; }catch(e){}
   window.tr=function(key){ return (I18N[window.currentLang]&&I18N[window.currentLang][key]) || I18N.uk[key] || key; };
   window.translateStaticDOM=function(){
     document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=window.tr(el.getAttribute('data-i18n')); });
@@ -724,7 +724,7 @@
   window.setLang=function(lang){
     if(lang!=='en'&&lang!=='uk') return;
     window.currentLang=lang;
-    try{localStorage.setItem('xamssLang', lang);}catch(e){}
+    try{localStorage.setItem('mxLang', lang);}catch(e){}
     window.translateStaticDOM();
     if(window.__applyLangDynamic) window.__applyLangDynamic(lang);
   };
