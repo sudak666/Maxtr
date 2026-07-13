@@ -22,7 +22,7 @@ try {
 
   firebase.initializeApp({
     apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
-    authDomain: "maxtr-c238f.web.app",
+    authDomain: "maxtr-c238f.firebaseapp.com",
     projectId: "maxtr-c238f",
     storageBucket: "maxtr-c238f.firebasestorage.app",
     messagingSenderId: "311094677098",
@@ -42,7 +42,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v32';
+const CACHE_NAME = 'zminka-v33';
 const STATIC_ASSETS = [
   './',
   './index.html',
