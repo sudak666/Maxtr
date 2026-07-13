@@ -81,6 +81,8 @@ export async function createUserWithEmailAndPassword(){ throw new Error('stub');
 export async function signInWithEmailAndPassword(){ throw new Error('stub'); }
 export class GoogleAuthProvider{}
 export async function signInWithPopup(){ throw new Error('stub'); }
+export async function signInWithRedirect(){ throw new Error('stub'); }
+export async function getRedirectResult(){ return null; }
 export async function sendPasswordResetEmail(){ return; }
 export class EmailAuthProvider{ static credential(){ return {}; } }
 export async function reauthenticateWithCredential(){ return; }
