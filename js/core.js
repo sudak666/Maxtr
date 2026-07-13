@@ -18,7 +18,7 @@ import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstati
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail,
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
   RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber, unlink
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -27,7 +27,7 @@ import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessag
 
 export const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
-  authDomain:"maxtr-c238f.firebaseapp.com",
+  authDomain:"maxtr-c238f.web.app",
   projectId:"maxtr-c238f",
   storageBucket:"maxtr-c238f.firebasestorage.app",
   messagingSenderId:"311094677098",
@@ -313,4 +313,4 @@ document.addEventListener('click', e=>{
 // Re-exports of this file's own imported (not locally declared) bindings
 // that other split files also need - can't prefix an ImportDeclaration
 // with `export`, so these are re-exported explicitly instead.
-export { EmailAuthProvider, RecaptchaVerifier, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getMessaging, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signOut, unlink };
+export { EmailAuthProvider, RecaptchaVerifier, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink };

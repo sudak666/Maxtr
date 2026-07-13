@@ -4,7 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { init } from './app-init.js';
-import { EmailAuthProvider, RecaptchaVerifier, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, googleProvider, linkWithPhoneNumber, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signOut, unlink } from './core.js';
+import { EmailAuthProvider, RecaptchaVerifier, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, linkWithPhoneNumber, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink } from './core.js';
 import { loadActiveProfileId, userDoc } from './firebase-sync.js';
 import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
@@ -56,9 +56,34 @@ function authErrorMessage(code,isPhoneFlow){
   return tr('auth_err_generic');
 }
 
+// TWA/APK installs (the app packaged for Google Play, see CLAUDE.md's
+// "Android / Google Play packaging" section) and standalone-launched PWAs
+// don't reliably support window.open()-based popups the way a normal
+// browser tab does — confirmed by a real user report: Google sign-in
+// failed with a generic error from both the installed TWA icon and the
+// sideloaded APK, but worked fine from a plain browser tab/link. A TWA's
+// document.referrer always starts with the android-app:// scheme (the
+// standard, documented way to detect one); display-mode:standalone also
+// catches an installed/Add-to-Home-Screen PWA, where popups are similarly
+// unreliable. Redirect-based sign-in (full-page navigation instead of a
+// second window) sidesteps the whole class of popup/COOP/third-party-
+// cookie fragility, at the cost of a full navigation instead of an
+// instant popup — an acceptable trade for these contexts, where popup
+// sign-in doesn't just degrade, it silently fails outright.
+function isPopupUnreliableContext(){
+  try{
+    if(document.referrer && document.referrer.startsWith('android-app://')) return true;
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  }catch(e){}
+  return false;
+}
+
 const googleSignIn = async function(){
   setAuthError('');
-  try{ await signInWithPopup(auth, googleProvider); }
+  try{
+    if(isPopupUnreliableContext()) await signInWithRedirect(auth, googleProvider);
+    else await signInWithPopup(auth, googleProvider);
+  }
   catch(err){ console.error(err); setAuthError(authErrorMessage(err.code)); }
 };
 
@@ -562,6 +587,16 @@ document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
 }, true);
+
+// Completes a signInWithRedirect() flow (see googleSignIn/isPopupUnreliableContext
+// above) after the full-page navigation back from Google. onAuthStateChanged
+// below already reacts to the resulting sign-in on success, so this only
+// needs to surface an error — a redirect-flow failure otherwise has no
+// synchronous try/catch to report through, unlike the popup path.
+getRedirectResult(auth).catch(err=>{
+  console.error(err);
+  setAuthError(authErrorMessage(err.code));
+});
 
 // Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
 // tests/e2e-modals.mjs all call window.finishOnboarding() directly to
