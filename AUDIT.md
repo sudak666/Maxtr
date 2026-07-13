@@ -17,7 +17,7 @@
 (GitHub Pages, Firebase Hosting, Firestore Rules, Cloud Functions) — PR
 [#79](https://github.com/sudak666/Maxtr/pull/79), змержено як `32f66b7`.
 Деталі кожного фіксу — в git-історії `main` (14 окремих комітів, кожен з
-описом що/чому/як перевірено) і в `CLAUDE.md`'s "Known gaps / pending work":
+описом що/чому/як перевірено) і в `CHANGELOG.md`:
 SW-конфлікт, self-XSS, timezone push-нагадувань, CI/юніт-тести,
 Firestore-валідація, доступність модалок, touch targets, offline cold
 start, оптимізація Cloud Function (видалення невалідних токенів,
