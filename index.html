@@ -683,6 +683,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .filter-chip{padding:9px 13px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
 .filter-chip.active{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple2)}
 
+/* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
+   js/analytics-csv.js). Local cache already gives every returning user an
+   instant paint (see CLAUDE.md's "Client-side caching/sync"), so this only
+   ever shows for a brand-new device/session with nothing cached yet, for
+   the short window before the first fbLoadNow() resolves. ── */
+@keyframes skeletonShimmer{to{background-position:-200% 0}}
+.skeleton-block{background:linear-gradient(100deg,var(--bg2) 30%,var(--bg3) 50%,var(--bg2) 70%);background-size:200% 100%;animation:skeletonShimmer 1.4s ease-in-out infinite;border-radius:10px}
+.skeleton-row{height:56px;border-radius:18px;margin-bottom:6px;background:linear-gradient(100deg,var(--bg2) 30%,var(--bg3) 50%,var(--bg2) 70%);background-size:200% 100%;animation:skeletonShimmer 1.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.skeleton-block,.skeleton-row{animation:none;opacity:.6}}
+
 .tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px}
 .tx-view-all-btn{justify-content:center;width:100%;margin-top:4px}
 /* Stagger-in for freshly-rendered list rows: the JS side sets a per-row

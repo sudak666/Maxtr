@@ -204,6 +204,33 @@ function renderFinanceStartGuide(){
     </div>`;
 }
 
+// Cold-start only: called once from js/app-init.js's init() when there was
+// no local config cache to paint from instantly (a brand-new device/first
+// sign-in — see CLAUDE.md's "Client-side caching/sync"), so the balance
+// hero and transaction list show shimmer placeholders instead of a
+// momentarily-empty/zero state while the first fbLoadNow() round-trip is
+// in flight. fbLoadNow() always calls renderFinance() again once it
+// resolves, which overwrites these placeholders with real content — no
+// separate cleanup call needed.
+export function renderFinanceSkeleton(){
+  const bc=document.getElementById('fin-balances');
+  if(bc){
+    bc.innerHTML=`
+      <div class="skeleton-block" style="width:140px;height:11px;margin-bottom:8px"></div>
+      <div class="skeleton-block" style="width:190px;height:30px;margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <div class="skeleton-block" style="flex:1;height:54px;border-radius:16px"></div>
+        <div class="skeleton-block" style="flex:1;height:54px;border-radius:16px"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="skeleton-block" style="width:100px;height:32px;border-radius:999px"></div>
+        <div class="skeleton-block" style="width:100px;height:32px;border-radius:999px"></div>
+      </div>`;
+  }
+  const lc=document.getElementById('tx-list-container');
+  if(lc) lc.innerHTML=`<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>`;
+}
+
 export function renderFinance(){
   const wb=computeWalletBalances();
   // Total balance is a UAH-equivalent sum across wallets that may each hold
