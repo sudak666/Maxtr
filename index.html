@@ -50,13 +50,27 @@
   --pink:#ec4899;
   --cyan:#06b6d4;
   --overlay:rgba(0,0,0,.75);
+
+  /* spacing scale (4px base) — new components should use these instead of ad-hoc px values */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
+  --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px;
+
+  /* type scale — new components should use these instead of ad-hoc font-size values */
+  --text-2xs:10.5px; --text-xs:11.5px; --text-sm:13px; --text-base:14px;
+  --text-md:16px; --text-lg:22px; --text-xl:30px; --text-2xl:36px;
+  --weight-body:600; --weight-strong:700; --weight-display:800; --weight-mega:900;
+
+  /* elevation — tinted shadow tokens instead of hardcoded rgba() per component */
+  --shadow-color:0,0,0;
+  --shadow-modal:0 24px 70px rgba(var(--shadow-color),.55);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 26px -12px rgba(139,92,246,.32);
 }
 
 [data-theme="light"]{
-  --bg:#f2f2f7;
+  --bg:#f4f3f1;
   --bg1:#ffffff;
-  --bg2:#f2f2f7;
-  --bg3:#eaeaef;
+  --bg2:#ececea;
+  --bg3:#e2e0dd;
   --border:#e4e4e9;
   --border2:#d1d1d6;
   --text:#1c1c1e;
@@ -69,6 +83,9 @@
   --red2:#dc2626;
   --orange2:#c2760a;
   --overlay:rgba(0,0,0,.45);
+  --shadow-color:20,15,10;
+  --shadow-modal:0 20px 50px -12px rgba(var(--shadow-color),.18);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 10px 24px -12px rgba(124,58,237,.22);
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
 [data-theme="light"] .b-day19{color:#047857}
@@ -341,7 +358,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── HERO METRIC + CHIP ROW (replaces a row of equal-weight stat cards
    with one primary number and a compact scrollable strip of the rest) ── */
-.hero-metric{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:12px}
+.hero-metric{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow-raised)}
 .hero-metric-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:var(--text-strong);margin:4px 0 0;line-height:1}
 .chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
@@ -354,7 +371,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:13px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
 .chip-stat-lbl{font-size:11px;font-weight:600;color:var(--muted)}
-.hero-balance{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:16px}
+.hero-balance{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised)}
 .hero-balance-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:900;color:var(--text-strong);margin:4px 0 14px;line-height:1}
 .wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
@@ -740,7 +757,7 @@ body.amounts-hidden #fx-converter-result{
 /* The card clips to the rounded shape (overflow:hidden); the actual
    scrolling happens on .modal-card-body inside it, so the native
    scrollbar's square ends never poke past the rounded corners. */
-.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:460px;max-height:88vh;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .26s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:460px;max-height:88vh;overflow:hidden;box-shadow:var(--shadow-modal);animation:popIn .26s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
 .modal-card-body{padding:22px 24px;overflow-y:auto}
 @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 .sheet-grabber{display:none}
@@ -785,7 +802,7 @@ body.amounts-hidden #fx-converter-result{
 
 /* ── CUSTOM DIALOG ── */
 .dlg-overlay{z-index:3000}
-.dlg-card{background:var(--bg1);border:1px solid var(--border2);border-radius:26px;padding:24px 22px 20px;width:100%;max-width:340px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:popIn .22s cubic-bezier(.32,.72,0,1)}
+.dlg-card{background:var(--bg1);border:1px solid var(--border2);border-radius:26px;padding:24px 22px 20px;width:100%;max-width:340px;text-align:center;box-shadow:var(--shadow-modal);animation:popIn .22s cubic-bezier(.32,.72,0,1)}
 .dlg-title{font-size:16px;font-weight:800;color:var(--text-strong);margin-bottom:6px}
 .dlg-msg{font-size:13.5px;color:var(--muted);font-weight:500;line-height:1.5;margin-bottom:16px}
 .dlg-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:11px 14px;border-radius:16px;font-size:14px;font-weight:600;outline:none;font-family:inherit;margin-bottom:16px;transition:border-color .15s}
