@@ -5,7 +5,7 @@
 import { AppState } from './state.js';
 import { renderFinance, renderFinanceSkeleton } from './analytics-csv.js';
 import { maybeShowSettingsTip } from './auth.js';
-import { renderCalendar, renderFinanceChart, renderIncomeChart, runAutoFillCheck } from './calendar.js';
+import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkeleton, runAutoFillCheck } from './calendar.js';
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
 import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
 import { renderDebt } from './debt.js';
@@ -74,7 +74,11 @@ export async function init(){
   // get overwritten by real data once fbLoadNow() resolves below. Swap in
   // shimmer placeholders instead of showing that empty flash — no explicit
   // cleanup needed, fbLoadNow() always re-renders over this unconditionally.
-  if(!cfgCached) renderFinanceSkeleton();
+  // renderShiftsSkeleton() covers the same window for the Shifts tab, in
+  // case the user taps that nav tab before fbLoadNow() resolves — Shifts
+  // itself isn't the tab switchTab() just activated, but its skeleton still
+  // needs to be in place *before* that could happen.
+  if(!cfgCached){ renderFinanceSkeleton(); renderShiftsSkeleton(); }
   setFinanceType('income');
   populateFxConverterSelects(); renderFxConverter();
   enhanceAllSelects();
