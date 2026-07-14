@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import ua.zminka.app.data.profile.ProfileManager
 
 @Composable
 fun AuthScreen(
@@ -34,7 +35,12 @@ fun AuthScreen(
     // Mirrors index.html's lock-screen: sign-in gates the app, then hands
     // off to the tab UI once Firebase Auth reports a user.
     LaunchedEffect(state.loading) {
-        if (!state.loading && FirebaseAuth.getInstance().currentUser != null) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (!state.loading && uid != null) {
+            // Loads this uid's per-device saved profile choice (see
+            // ProfileManager's own doc comment) before any repository
+            // gets a chance to build a doc path off the stale default.
+            ProfileManager.load(uid)
             onAuthenticated()
         }
     }

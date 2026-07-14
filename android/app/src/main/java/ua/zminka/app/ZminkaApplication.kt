@@ -1,6 +1,7 @@
 package ua.zminka.app
 
 import android.app.Application
+import ua.zminka.app.data.profile.ProfileManager
 
 /**
  * Firebase itself is initialized automatically by the google-services
@@ -9,4 +10,9 @@ import android.app.Application
  * client's js/core.js which does it manually since there's no such
  * plugin machinery in a browser.
  */
-class ZminkaApplication : Application()
+class ZminkaApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        ProfileManager.init(this)
+    }
+}

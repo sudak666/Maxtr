@@ -3,17 +3,21 @@ package ua.zminka.app.data.repository
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.tasks.await
 import ua.zminka.app.data.model.ShiftsDoc
+import ua.zminka.app.data.profile.ProfileManager
 
 /**
  * Mirrors js/color-picker.js's fbLoadNow()/fbSaveNow() handling of the
  * `shifts` doc (users/{uid}/max_tracker/shifts — see CLAUDE.md's Firebase
- * data model section). MVP scope: default profile only, same as
- * FinanceRepository.
+ * data model section). Doc name is suffixed per the active profile via
+ * [ProfileManager.suffixedDocName], same scheme as FinanceRepository;
+ * `observeShifts()` re-subscribes on profile switch the same way too.
  *
  * Writes use Firestore dot-path field updates scoped to `data.<dateKey>`
  * rather than a whole-document {merge:false} overwrite like the web
@@ -30,13 +34,16 @@ class ShiftsRepository(
     }
 
     private fun shiftsDocRef(uid: String): DocumentReference =
-        db.collection("users").document(uid).collection(DCOL).document(SHIFTS_DOC)
+        db.collection("users").document(uid).collection(DCOL).document(ProfileManager.suffixedDocName(SHIFTS_DOC))
 
-    fun observeShifts(uid: String): Flow<ShiftsDoc> = callbackFlow {
-        val reg = shiftsDocRef(uid).addSnapshotListener { snap, _ ->
-            trySend(snap?.toObject(ShiftsDoc::class.java) ?: ShiftsDoc())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeShifts(uid: String): Flow<ShiftsDoc> = ProfileManager.activeProfileId.flatMapLatest {
+        callbackFlow {
+            val reg = shiftsDocRef(uid).addSnapshotListener { snap, _ ->
+                trySend(snap?.toObject(ShiftsDoc::class.java) ?: ShiftsDoc())
+            }
+            awaitClose { reg.remove() }
         }
-        awaitClose { reg.remove() }
     }
 
     suspend fun setDayShiftTypes(uid: String, dateKey: String, shiftTypeIds: List<String>) {

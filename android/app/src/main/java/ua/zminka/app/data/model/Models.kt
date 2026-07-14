@@ -141,3 +141,31 @@ data class DebtDoc(
     val data: DebtData = DebtData(),
     val updatedAt: Long = 0L,
 )
+
+/**
+ * Mirrors a `profiles_meta.list` entry (js/firebase-sync.js's
+ * loadProfilesMeta()) — just a label/avatar for the switcher, not real
+ * data. `avatar` isn't rendered anywhere in this app's MVP yet (no
+ * BUILTIN_AVATARS icon-picker port) but is still modeled so a profile
+ * created on the web client round-trips through this app without losing
+ * the field.
+ */
+data class Profile(
+    val id: String = "",
+    val name: String = "",
+    val avatar: String = "",
+    val createdAt: Long = 0L,
+)
+
+/**
+ * Mirrors the `profiles_meta` doc (users/{uid}/max_tracker/profiles_meta
+ * — see CLAUDE.md's "Multiple profiles per account" section). Unlike
+ * every other doc in this file, this one is **account-wide and never
+ * suffixed** even when a non-default profile is active — ProfileManager
+ * deliberately isn't consulted when building this doc's ref, for exactly
+ * that reason.
+ */
+data class ProfilesMeta(
+    val list: List<Profile> = emptyList(),
+    val updatedAt: Long = 0L,
+)
