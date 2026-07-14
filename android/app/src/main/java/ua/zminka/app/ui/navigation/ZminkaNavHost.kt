@@ -6,30 +6,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ua.zminka.app.ui.auth.AuthScreen
-import ua.zminka.app.ui.finance.FinanceScreen
 
 private object Routes {
     const val AUTH = "auth"
-    const val FINANCE = "finance"
+    const val MAIN = "main"
 }
 
 /**
- * MVP scope only covers Auth -> Finance (see CLAUDE.md's bottom nav: the
- * web app has 5 tabs — Фінанси/Графік змін/Розрахунки/Покупки/Налаштування
- * — the other 4 aren't ported yet).
+ * MVP scope only covers Auth -> Main (Фінанси + Зміни tabs — see
+ * MainScreen.kt's own doc comment for which of the web app's 5 bottom-nav
+ * tabs aren't ported yet).
  */
 @Composable
 fun ZminkaNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Routes.AUTH) {
         composable(Routes.AUTH) {
             AuthScreen(onAuthenticated = {
-                navController.navigate(Routes.FINANCE) {
+                navController.navigate(Routes.MAIN) {
                     popUpTo(Routes.AUTH) { inclusive = true }
                 }
             })
         }
-        composable(Routes.FINANCE) {
-            FinanceScreen()
+        composable(Routes.MAIN) {
+            MainScreen()
         }
     }
 }
