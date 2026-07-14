@@ -2,3 +2,15 @@ firebase-debug.log
 firebase-debug.*.log
 .firebase/
 node_modules/
+
+# android/ — see android/README.md. google-services.json is downloaded per
+# real Android app registration in the Firebase console; not fabricated,
+# so keep the real one out of git until that step happens (the
+# committed .example file documents its shape).
+android/app/google-services.json
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.jks
+android/*.keystore

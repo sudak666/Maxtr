@@ -1,0 +1,5 @@
+<resources>
+    <!-- Mirrors --bg (dark theme) from index.html's CSS custom properties. -->
+    <color name="zminka_bg_dark">#1C1C1F</color>
+    <color name="zminka_bg_light">#F4F3F1</color>
+</resources>

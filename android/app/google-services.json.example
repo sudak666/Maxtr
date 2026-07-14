@@ -1,0 +1,28 @@
+{
+  "_comment": "Placeholder only — not a real Firebase config. Real google-services.json is obtained from Firebase Console > Project settings > Your apps > Add app (Android), package name ua.zminka.app, and MUST be downloaded from there (it embeds an Android-app-specific client id tied to this package name + signing cert, which cannot be fabricated locally). See android/README.md.",
+  "project_info": {
+    "project_number": "311094677098",
+    "project_id": "maxtr-c238f",
+    "storage_bucket": "maxtr-c238f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_WITH_REAL_ANDROID_APP_ID",
+        "android_client_info": {
+          "package_name": "ua.zminka.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REPLACE_WITH_REAL_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {}
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
