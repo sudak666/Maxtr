@@ -83,7 +83,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     const h = Number.isFinite(hRaw) ? hRaw : 21;
     const hasTodayTx = transactions.some((t) => t.date === today);
     if (!hasTodayTx && localHour >= h) {
-      const res = await sendPushFn(token, 'Zminka', 'Не забудь записати сьогоднішні операції.');
+      const res = await sendPushFn(token, 'Zminka', 'Не забудь записати сьогоднішні операції.', 'daily');
       if (res.ok) updates.sentDaily = today;
       if (res.invalid) tokenInvalid = true;
     }
@@ -105,7 +105,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
         return s;
       }, 0);
       if (spent > limit) {
-        const res = await sendPushFn(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`);
+        const res = await sendPushFn(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`, 'budget');
         if (res.ok) { sent[key] = true; changed = true; }
         if (res.invalid) tokenInvalid = true;
       }
@@ -123,7 +123,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       const key = `${r.id}_${tomorrow}`;
       if (sent[key]) continue;
       const amountStr = `${r.amount.toLocaleString('uk-UA')} ${walletCurrency(r.wallet)}`;
-      const res = await sendPushFn(token, 'Наближається платіж', `Завтра автоматично додасться операція "${r.category || 'Інше'}" на ${amountStr}.`);
+      const res = await sendPushFn(token, 'Наближається платіж', `Завтра автоматично додасться операція "${r.category || 'Інше'}" на ${amountStr}.`, 'recurring');
       if (res.ok) { sent[key] = true; changed = true; }
       if (res.invalid) tokenInvalid = true;
     }
@@ -139,7 +139,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       if (d.dueDate !== tomorrow) continue;
       const key = `${d.id}_${tomorrow}`;
       if (sent[key]) continue;
-      const res = await sendPushFn(token, 'Наближається термін боргу', `Завтра настає дата, до якої треба віддати "${d.name || 'Розрахунок'}".`);
+      const res = await sendPushFn(token, 'Наближається термін боргу', `Завтра настає дата, до якої треба віддати "${d.name || 'Розрахунок'}".`, 'debt');
       if (res.ok) { sent[key] = true; changed = true; }
       if (res.invalid) tokenInvalid = true;
     }

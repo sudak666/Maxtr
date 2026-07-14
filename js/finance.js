@@ -282,34 +282,55 @@ const openRulesManager = function(){
   document.getElementById('rules-modal').style.display='flex';
 };
 
+const toggleRuleEdit = function(id){
+  AppState.expandedRuleId = AppState.expandedRuleId===id ? null : id;
+  renderAutoRulesList();
+};
+
+// Compact-manager-row pattern (icon badge + two-line summary + pencil
+// toggle that reveals the full field set, same shape as
+// renderShiftTypesList()/renderCategoriesList()) — replaces the old
+// always-expanded .debt-row stack of labeled fields, see CLAUDE.md's
+// "Unify manager design" note.
 function renderAutoRulesList(){
   const box=document.getElementById('rules-list'); if(!box) return;
   box.innerHTML='';
   if(!AppState.autoRules.length){ box.innerHTML=`<div class="mgr-empty">${tr('rules_empty')}</div>`; return; }
   AppState.autoRules.forEach(r=>{
     const catList=AppState.categories[r.type]||[];
+    const open=AppState.expandedRuleId===r.id;
+    const typeLabel=r.type==='income'?tr('cat_income'):tr('cat_expense');
+    const summary=r.keyword ? `"${escapeHtml(r.keyword)}" → ${escapeHtml(r.category||'')}` : tr('rules_keyword_placeholder');
     const row=document.createElement('div');
-    row.className='debt-row';
+    row.className='mgr-row';
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
-      <div class="debt-field" style="flex:1 1 100px">
-        <span class="debt-field-label">${tr('recurring_type')}</span>
-        <select data-action="update-auto-rule" data-id="${r.id}" data-field="type">
-          <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
-          <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
-        </select>
+      <div class="cat-row">
+        <div class="icon-badge icon-badge-sm" style="background:var(--purple)">${window.Icon('sparkle')}</div>
+        <div class="cat-row-body" style="cursor:default">
+          <span class="cat-row-name">${summary}</span>
+          <span class="cat-row-sub">${typeLabel}</span>
+        </div>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-rule-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-auto-rule" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
-      <div class="debt-field" style="flex:1 1 140px">
-        <span class="debt-field-label">${tr('rules_keyword')}</span>
-        <input type="text" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" data-action="update-auto-rule" data-id="${r.id}" data-field="keyword">
-      </div>
-      <div class="debt-field" style="flex:1 1 140px">
-        <span class="debt-field-label">${tr('finance_category')}</span>
-        <select data-action="update-auto-rule" data-id="${r.id}" data-field="category">
-          ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
-        </select>
-      </div>
-      <button class="debt-row-del" data-action="delete-auto-rule" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
-    `;
+      ${open?`
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
+        <div class="mgr-field"><span class="mgr-field-label">${tr('recurring_type')}</span>
+          <select data-action="update-auto-rule" data-id="${r.id}" data-field="type">
+            <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
+            <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
+          </select>
+        </div>
+        <div class="mgr-field"><span class="mgr-field-label">${tr('rules_keyword')}</span>
+          <input type="text" class="mgr-name" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" data-action="update-auto-rule" data-id="${r.id}" data-field="keyword">
+        </div>
+        <div class="mgr-field"><span class="mgr-field-label">${tr('finance_category')}</span>
+          <select data-action="update-auto-rule" data-id="${r.id}" data-field="category">
+            ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+          </select>
+        </div>
+      </div>`:''}`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
   });
@@ -387,6 +408,7 @@ const CLICK_ACTIONS = {
   'delete-tag': ds=>deleteTag(ds.id),
   'add-tag': ()=>addTag(),
   'open-rules-manager': ()=>openRulesManager(),
+  'toggle-rule-edit': ds=>toggleRuleEdit(ds.id),
   'delete-auto-rule': ds=>deleteAutoRule(ds.id),
   'add-auto-rule': ()=>addAutoRule(),
   'set-finance-type': ds=>setFinanceType(ds.type),

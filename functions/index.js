@@ -52,9 +52,22 @@ const TOKEN_INVALID_CODES = new Set([
   'messaging/registration-token-not-registered',
   'messaging/invalid-registration-token',
 ]);
-async function sendPush(token, title, body) {
+// Per-notification-type themed icon, shown in the notification tray
+// instead of the one fixed icon-192.png every push used before. Same-origin
+// root-relative paths (see sw.js's STATIC_ASSETS for why these are
+// precached alongside every other same-origin asset) — resolved by the
+// service worker against its own scope when it calls showNotification(),
+// see sw.js's onBackgroundMessage handler for the display side of this.
+const NOTIF_ICONS = {
+  daily: '/notif-icon-daily.png',
+  budget: '/notif-icon-budget.png',
+  recurring: '/notif-icon-recurring.png',
+  debt: '/notif-icon-debt.png',
+};
+async function sendPush(token, title, body, type) {
   try {
-    await messaging.send({ token, notification: { title, body }, webpush: { fcmOptions: { link: '/' } } });
+    const icon = NOTIF_ICONS[type] || '/icon-192.png';
+    await messaging.send({ token, notification: { title, body }, webpush: { fcmOptions: { link: '/' }, notification: { icon } } });
     return { ok: true, invalid: false };
   } catch (err) {
     logger.warn('push send failed', { code: err.code, message: err.message });

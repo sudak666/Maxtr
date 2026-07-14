@@ -297,6 +297,63 @@ await test('sweepProfile: an empty transactions subcollection falls back to fina
   assert.equal(result.updates, null);
 });
 
+// ── sweepProfile: passes a per-notification-type 'type' string as
+// sendPushFn's 4th argument, so index.js's real sendPush() can look up a
+// themed icon (see functions/index.js's NOTIF_ICONS) instead of every push
+// showing the same generic app icon.
+
+await test("sweepProfile: passes type='daily' for the daily reminder", async () => {
+  const financeData = {
+    notifSettings: { enabled: true, time: '18:00', timeZone: 'UTC' },
+    data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const calls = [];
+  const sendPushFn = async (...args) => { calls.push(args); return { ok: true, invalid: false }; };
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][3], 'daily');
+});
+
+await test("sweepProfile: passes type='budget' for the budget-exceeded push", async () => {
+  const financeData = {
+    notifSettings: { budgetAlerts: true, timeZone: 'UTC' },
+    data: [{ date: '2026-07-01', type: 'expense', category: 'Кава', amount: 2000, currency: 'UAH' }],
+    wallets: [], budgets: { Кава: 1000 }, categories: { expense: ['Кава'] }, recurring: [], currencyRates: {},
+  };
+  const calls = [];
+  const sendPushFn = async (...args) => { calls.push(args); return { ok: true, invalid: false }; };
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][3], 'budget');
+});
+
+await test("sweepProfile: passes type='recurring' for the upcoming-recurring-payment push", async () => {
+  const financeData = {
+    notifSettings: { recurringAlerts: true, timeZone: 'UTC' },
+    data: [], wallets: [{ id: 'w1', currency: 'UAH' }], budgets: {}, categories: {},
+    recurring: [{ id: 'r1', active: true, nextDate: '2026-07-16', amount: 500, wallet: 'w1', category: 'Оренда' }],
+    currencyRates: {},
+  };
+  const calls = [];
+  const sendPushFn = async (...args) => { calls.push(args); return { ok: true, invalid: false }; };
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][3], 'recurring');
+});
+
+await test("sweepProfile: passes type='debt' for the upcoming-debt-due-date push", async () => {
+  const financeData = {
+    notifSettings: { debtAlerts: true, timeZone: 'UTC' },
+    data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const debtData = { debts: [{ id: 'd1', name: 'Позика', dueDate: '2026-07-16' }] };
+  const calls = [];
+  const sendPushFn = async (...args) => { calls.push(args); return { ok: true, invalid: false }; };
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(debtData));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][3], 'debt');
+});
+
 // ── sweepToken: parallel-fetch + dedup + multi-profile behavior ──
 
 await test('sweepToken: fetches profiles_meta and the default profile\'s finance doc concurrently, not sequentially', async () => {

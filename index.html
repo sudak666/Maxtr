@@ -170,7 +170,7 @@
 [data-theme="light"] .wt-main{color:#6d28d9}
 
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s ease,color .25s ease}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s ease,color .25s ease;overscroll-behavior-y:contain}
 button,input,select,textarea{font-family:inherit}
 
 /* ── ICONS (monochrome, line-style) ── */
@@ -254,6 +254,22 @@ button,input,select,textarea{font-family:inherit}
   position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap;
 }
 [data-theme="light"] .topbar{background:rgba(255,255,255,0.85)}
+.ptr-indicator{
+  position:fixed;top:0;left:0;right:0;height:60px;z-index:150;
+  display:flex;align-items:center;justify-content:center;
+  transform:translateY(-60px);pointer-events:none;
+}
+.ptr-indicator.ptr-settling{transition:transform .25s cubic-bezier(.22,1,.36,1)}
+.ptr-spinner{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--bg1);border:1px solid var(--border2);box-shadow:var(--shadow-drag,0 4px 14px rgba(0,0,0,.25));
+  display:flex;align-items:center;justify-content:center;color:var(--purple2);
+  transition:transform .1s linear;
+}
+.ptr-spinner .ico{width:16px;height:16px;margin-right:0}
+.ptr-indicator.ptr-loading .ptr-spinner{animation:ptrSpin .7s linear infinite}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ptr-indicator.ptr-settling{transition:none}.ptr-indicator.ptr-loading .ptr-spinner{animation:none}}
 .topbar-brand{display:flex;align-items:center;gap:10px}
 .topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;cursor:pointer}
 .topbar-logo img{width:100%;height:100%;object-fit:cover;display:block}
@@ -578,10 +594,24 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chart-section.collapsed>*:not(.chart-title){display:none!important}
 .chart-section.collapsible>.chart-title::after{content:'⌄';margin-left:auto;color:var(--muted);font-size:16px;line-height:1;transition:transform .2s}
 .chart-section.collapsed>.chart-title::after{transform:rotate(-90deg)}
-.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 18px;border:1px dashed var(--border);border-radius:22px;background:rgba(255,255,255,.025);color:var(--muted)}
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 18px;border:1px dashed var(--border);border-radius:22px;background:rgba(255,255,255,.025);color:var(--muted);animation:emptyStatePop .4s cubic-bezier(.22,1,.36,1) both}
 [data-theme="light"] .empty-state{background:rgba(0,0,0,.02)}
-.empty-state-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:var(--shadow-empty-icon)}
-.empty-state-icon .ico{width:23px;height:23px;margin:0}
+/* A larger soft-glow "illustration" scene wrapping the existing monochrome
+   icon (bigger than the old plain icon-badge) + a few floating accent
+   sparks — built entirely from this app's own icon set/palette, not
+   emoji or external artwork, per the no-illustration-artwork convention
+   this deliberately stays inside rather than breaks. */
+.empty-state-illustration{position:relative;width:112px;height:112px;display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.empty-state-illustration::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle, rgba(139,92,246,.16), rgba(139,92,246,0) 70%)}
+.empty-state-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:var(--shadow-empty-icon);position:relative;z-index:1}
+.empty-state-icon .ico{width:30px;height:30px;margin:0}
+.es-spark{position:absolute;border-radius:50%;opacity:.5}
+.es-spark-1{width:8px;height:8px;top:4px;right:14px;background:var(--purple2);animation:esSparkFloat 3.2s ease-in-out infinite}
+.es-spark-2{width:5px;height:5px;bottom:10px;left:6px;background:var(--purple);animation:esSparkFloat 2.6s ease-in-out infinite .4s}
+.es-spark-3{width:6px;height:6px;bottom:20px;right:2px;background:var(--purple3);animation:esSparkFloat 3.6s ease-in-out infinite .8s}
+@keyframes esSparkFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-6px);opacity:.9}}
+@keyframes emptyStatePop{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media(prefers-reduced-motion:reduce){.empty-state{animation:none}.es-spark{animation:none}}
 .empty-state-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 .empty-state-desc{font-size:12.5px;line-height:1.45;max-width:320px}
 .empty-state .btn{margin-top:2px}
@@ -897,7 +927,7 @@ body.amounts-hidden #fx-converter-result{
 .debt-row input,.debt-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
 .debt-row select{cursor:pointer}
 .debt-row input:focus,.debt-row select:focus{border-color:var(--purple)}
-.debt-row.recur-paused{opacity:.55}
+.recur-paused{opacity:.55}
 .debt-hint{flex-basis:100%;font-size:11px;color:var(--red2);font-weight:700;margin-top:-2px}
 .debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-del .ico{margin-right:0;width:15px;height:15px}
@@ -1004,7 +1034,15 @@ body.amounts-hidden #fx-converter-result{
 .mgr-row input:focus{border-color:var(--purple)}
 .mgr-name{flex:1 1 100%}
 .mgr-name-inline{flex:1 1 auto;min-width:0}
-.mgr-num{flex:1 1 90px;width:90px}
+/* Was `flex:1 1 90px;width:90px` — every real usage nests this inside
+   .mgr-field (display:flex;flex-direction:column), where flex-basis:90px
+   applies to the column's main (vertical) axis, not width, making the
+   input 90px *tall* as well as 90px wide (found via live screenshot
+   verification while adding the recurring-manager rows below, but the
+   same bug already existed in the shift-types manager's Pay/Hours inputs
+   too — pre-existing, not introduced here). Plain width is sufficient;
+   flex-grow/shrink weren't doing anything useful in this context anyway. */
+.mgr-num{width:90px}
 .mgr-color{width:44px;height:44px;padding:0;border:1px solid var(--border2);border-radius:10px;cursor:pointer;flex:0 0 auto}
 .profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex:0 0 auto}
 .profile-row-avatar .ico{margin-right:0}
@@ -1232,6 +1270,13 @@ body.amounts-hidden #fx-converter-result{
   </div>
 </div>
 
+<!-- PULL-TO-REFRESH — see setupPullToRefresh() in js/app-init.js. Fixed,
+     sits above the topbar (higher z-index), translated fully out of view by
+     default; dragged into view 1:1 with the user's finger while pulling
+     down from the very top of the page, then either snaps back (pull too
+     short) or stays + spins while fbLoadNow() runs (pull past threshold). -->
+<div class="ptr-indicator" id="ptr-indicator"><span class="ptr-spinner" id="ptr-spinner"></span></div>
+
 <!-- TOP BAR -->
 <header class="topbar">
   <div class="topbar-brand">
@@ -1417,11 +1462,12 @@ body.amounts-hidden #fx-converter-result{
     </button>
 
     <!-- Аналітика витрат і доходів -->
-    <!-- Аналітика, курси валют і конвертер live in #tools-modal now (see
-         below, near the other modals) — moved out of this always-visible
-         scroll into an on-demand modal opened via the "Інструменти"
-         quick-action, so the Finance tab reads as balance+list+FAB by
-         default instead of several extra chart sections. -->
+    <!-- Аналітика, курси валют, конвертер і графік динаміки live in
+         #tools-modal now (see below, near the other modals) — moved out of
+         this always-visible scroll into an on-demand modal opened via the
+         "Інструменти" quick-action, so the Finance tab reads as
+         balance+list+FAB by default instead of several extra chart
+         sections. -->
 
     <!-- Цілі накопичення -->
     <div class="chart-section" id="goals-section" style="display:none">
@@ -1429,30 +1475,10 @@ body.amounts-hidden #fx-converter-result{
       <div id="goals-list"></div>
     </div>
 
-    <!-- Графік динаміки по місяцях -->
-    <div class="chart-section" id="finance-chart-section">
-      <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
-      <div class="fin-chart-toggle">
-        <button type="button" class="fin-chart-toggle-btn active" data-action="set-fin-chart-series" data-series="net" data-i18n="finance_chart_net">Баланс</button>
-        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="income" data-i18n="finance_chart_income">Дохід</button>
-        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="expense" data-i18n="finance_chart_expense">Витрата</button>
-      </div>
-      <div class="fin-chart-head">
-        <div class="fin-chart-total" id="fin-chart-total">0 грн</div>
-        <div class="fin-chart-trend" id="fin-chart-trend"></div>
-      </div>
-      <div class="fin-chart-wrap" id="fin-chart-wrap">
-        <svg id="fin-chart-svg" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
-        <div class="fin-chart-tooltip" id="fin-chart-tooltip" style="display:none"></div>
-      </div>
-      <div class="fin-chart-labels" id="fin-chart-labels"></div>
-      <div class="chip-stat-row" id="fin-chart-metrics" style="margin-top:14px;margin-bottom:0"></div>
-    </div>
-
     <!-- Бюджети по категоріях: не входить у widgetOrder (завжди сама
          ховається за відсутності бюджету), тож навмисно останній елемент
          блоку — слугує нерухомим "якорем", відносно якого applyWidgetOrder()
-         переставляє решту 2 віджетів (chart/goals) через insertBefore. -->
+         переставляє решту 1 віджет (goals) через insertBefore. -->
     <div class="chart-section" id="budgets-section" style="display:none">
       <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
       <div id="budgets-list"></div>
@@ -2118,6 +2144,33 @@ body.amounts-hidden #fx-converter-result{
         </div>
       </div>
       <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+    <!-- Графік динаміки по місяцях — moved here from the main Finance
+         scroll, same reasoning as analytics/rates/converter above.
+         renderFinanceChart() is already called every time the Finance tab
+         is switched to (js/app-init.js's switchTab()), regardless of
+         whether this section is visible in the main scroll or inside this
+         modal, so its content stays current with no extra wiring needed. -->
+    <div class="chart-section" id="finance-chart-section" style="padding:0;border:none;background:none">
+      <div class="chart-title"><span id="ic-barchart"></span><span data-i18n="finance_chart_title">Баланс за останні 6 місяців</span></div>
+      <div class="fin-chart-toggle">
+        <button type="button" class="fin-chart-toggle-btn active" data-action="set-fin-chart-series" data-series="net" data-i18n="finance_chart_net">Баланс</button>
+        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="income" data-i18n="finance_chart_income">Дохід</button>
+        <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="expense" data-i18n="finance_chart_expense">Витрата</button>
+      </div>
+      <div class="fin-chart-head">
+        <div class="fin-chart-total" id="fin-chart-total">0 грн</div>
+        <div class="fin-chart-trend" id="fin-chart-trend"></div>
+      </div>
+      <div class="fin-chart-wrap" id="fin-chart-wrap">
+        <svg id="fin-chart-svg" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+        <div class="fin-chart-tooltip" id="fin-chart-tooltip" style="display:none"></div>
+      </div>
+      <div class="fin-chart-labels" id="fin-chart-labels"></div>
+      <div class="chip-stat-row" id="fin-chart-metrics" style="margin-top:14px;margin-bottom:0"></div>
     </div>
 
     <div class="modal-actions" style="margin-top:12px">
