@@ -16,13 +16,15 @@ Google Play packaging" section. All three now coexist:
 
 ## Current scope (MVP)
 
-Ported so far: email/password sign-in + sign-up, and the Finance tab
-(hero balance, wallet chips, transaction list, add-transaction bottom
-sheet). Everything else the web app has — Shifts/calendar, Debt,
-Shopping, Settings, multi-profile, push notifications, local PIN/biometric
-lock, Google/phone sign-in — is **not yet ported**. See inline `TODO`
-comments (e.g. `data/repository/ZminkaMessagingService.kt`) and the
-per-file doc comments, which point back at the exact web-client
+Ported so far: email/password sign-in + sign-up; the Finance tab (hero
+balance, wallet chips, transaction list, add-transaction bottom sheet);
+and the Shifts tab (month calendar, earned-this-month hero, hours/shifts/
+days-off chips, per-day shift-type picker). A bottom nav (`MainScreen.kt`)
+switches between the two post-auth. Everything else the web app has —
+Debt, Shopping, Settings, multi-profile, push notifications, local
+PIN/biometric lock, Google/phone sign-in — is **not yet ported**. See
+inline `TODO` comments (e.g. `data/repository/ZminkaMessagingService.kt`)
+and the per-file doc comments, which point back at the exact web-client
 file/function each piece mirrors.
 
 The data layer intentionally targets only the **default profile**
