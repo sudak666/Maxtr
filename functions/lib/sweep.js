@@ -29,13 +29,20 @@ function debtDocName(profileId) {
 // doc. `financeSnap`/`debtSnap` are optional: sweepToken() already has the
 // default profile's snapshots on hand from its own upfront parallel fetch,
 // so it passes those through here instead of this function re-fetching the
-// same documents.
-async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap) {
+// same documents. `transactionsSnap` (also optional) is the finance doc's
+// `transactions` subcollection QuerySnapshot — see
+// MIGRATION_PLAN_transactions.md / CLAUDE.md's Firebase data model section.
+// Falls back to the legacy finance.data array whenever transactionsSnap is
+// missing/empty, so a caller (or an existing test) that doesn't pass one
+// still works exactly as before against pre-migration data.
+async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap, transactionsSnap) {
   if (!financeSnap) financeSnap = await db.doc(`users/${uid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
   const f = financeSnap.data();
   const notif = f.notifSettings || {};
-  const transactions = Array.isArray(f.data) ? f.data : [];
+  const transactions = (transactionsSnap && !transactionsSnap.empty)
+    ? transactionsSnap.docs.map((d) => d.data())
+    : (Array.isArray(f.data) ? f.data : []);
   const wallets = Array.isArray(f.wallets) ? f.wallets : [];
   const budgets = f.budgets || {};
   const categories = f.categories || {};
@@ -167,10 +174,11 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // invocation can get through before its own execution timeout as the
   // user base grows (each doc read here was previously a fully sequential
   // round trip, one profile at a time).
-  const [metaSnap, defaultFinanceSnap, defaultDebtSnap] = await Promise.all([
+  const [metaSnap, defaultFinanceSnap, defaultDebtSnap, defaultTransactionsSnap] = await Promise.all([
     db.doc(`users/${uid}/${DCOL}/profiles_meta`).get(),
     db.doc(`users/${uid}/${DCOL}/${financeDocName('default')}`).get(),
     db.doc(`users/${uid}/${DCOL}/${debtDocName('default')}`).get(),
+    db.collection(`users/${uid}/${DCOL}/${financeDocName('default')}/transactions`).get(),
   ]);
   const profileIds = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
     ? metaSnap.data().list.map((p) => p.id).filter(Boolean)
@@ -183,15 +191,18 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // there's no reason the reads themselves can't all be in flight together
   // first.
   const otherProfileIds = profileIds.filter((id) => id !== 'default');
-  const [otherFinanceSnaps, otherDebtSnaps] = await Promise.all([
+  const [otherFinanceSnaps, otherDebtSnaps, otherTransactionsSnaps] = await Promise.all([
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${financeDocName(id)}`).get())),
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${debtDocName(id)}`).get())),
+    Promise.all(otherProfileIds.map((id) => db.collection(`users/${uid}/${DCOL}/${financeDocName(id)}/transactions`).get())),
   ]);
   const financeSnapByProfile = { default: defaultFinanceSnap };
   const debtSnapByProfile = { default: defaultDebtSnap };
+  const transactionsSnapByProfile = { default: defaultTransactionsSnap };
   otherProfileIds.forEach((id, i) => {
     financeSnapByProfile[id] = otherFinanceSnaps[i];
     debtSnapByProfile[id] = otherDebtSnaps[i];
+    transactionsSnapByProfile[id] = otherTransactionsSnaps[i];
   });
 
   const nextProfileState = { ...(profileState || {}) };
@@ -207,7 +218,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
       ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
 
     const { updates: profileUpdates, tokenInvalid: invalid } = await sweepProfile(
-      db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId],
+      db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId], transactionsSnapByProfile[profileId],
     );
     if (profileUpdates) {
       // prevState's legacy fallback ({sentDaily, sentBudget, sentRecurring}

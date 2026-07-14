@@ -24,8 +24,10 @@ service cloud.firestore {
     // profiles (profileId is always an app-generated `uid('profile')` id:
     // alphanumeric + underscore, see index.html); profiles_meta itself is
     // account-wide and never suffixed. A single path segment (not `**`) —
-    // there are no subcollections under max_tracker, so this also closes
-    // off writing to arbitrary nested paths a client could otherwise reach
+    // the only subcollection that exists under max_tracker is `finance`'s
+    // own `transactions` (see the dedicated match block below, added for
+    // MIGRATION_PLAN_transactions.md) — so this still closes off writing to
+    // any *other* arbitrary nested path a client could otherwise reach
     // under their own uid.
     match /users/{uid}/max_tracker/{document} {
       allow read: if request.auth != null && request.auth.uid == uid;
@@ -43,6 +45,28 @@ service cloud.firestore {
         && request.resource.data.keys().size() < 60
         && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
         && (!('at' in request.resource.data) || request.resource.data.at is number);
+    }
+
+    // Per-transaction docs under a `finance`/`finance@<profileId>` doc (see
+    // MIGRATION_PLAN_transactions.md and CLAUDE.md's Firebase data model
+    // section — this replaced the old finance.data array). txId is the
+    // app-generated Date.now()-based id, stringified client-side. Scoped to
+    // financeDoc matching only `finance`(@profileId)? — not shifts/debt/
+    // backup_v2/profiles_meta, none of which ever get a transactions
+    // subcollection.
+    match /users/{uid}/max_tracker/{financeDoc}/transactions/{txId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Same split as the parent doc's rules above: delete has no
+      // request.resource, so it can't share an allow block with the field
+      // validation below.
+      allow delete: if request.auth != null && request.auth.uid == uid
+        && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$');
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
+        && request.resource.data.keys().size() < 20
+        && request.resource.data.type is string
+        && request.resource.data.amount is number
+        && request.resource.data.date is string;
     }
 
     // FCM push token per account, written by the client when the user

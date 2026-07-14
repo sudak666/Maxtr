@@ -7,7 +7,7 @@ import { renderFinance } from './analytics-csv.js';
 import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { PALETTE, convertCurrency, currencySymbol, subKey, toBase, walletById, walletCurrency } from './core.js';
-import { lsKey } from './firebase-sync.js';
+import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
 import { uid } from './settings-managers.js';
 import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
@@ -88,7 +88,7 @@ export function fillSubcats(){
   group.style.display = subs.length ? 'flex' : 'none';
 }
 
-export function addTransaction(){
+export async function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const amount=parseFloat(ai?.value);
   if(isNaN(amount)||amount<=0){showToast(tr('finance_err_amount'),'xmark');return;}
@@ -111,15 +111,19 @@ export function addTransaction(){
     if(t) Object.assign(t,{type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
     cancelEditTransaction();
     const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
-    scheduleSave();
+    // Writes straight to this transaction's own subcollection doc rather
+    // than scheduleSave()'s whole-finance-doc rewrite — see
+    // js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION section.
+    if(t) saveTransactionDoc(t).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
     renderFinance(); renderFinanceChart();
     const m1=document.getElementById('tx-form-modal'); if(m1) m1.style.display='none';
     showToast(tr('toast_tx_updated'),'check');
     return;
   }
-  AppState.transactions.unshift({id:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
+  const newTx={id:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
+  AppState.transactions.unshift(newTx);
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
-  scheduleSave();
+  saveTransactionDoc(newTx).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
   AppState.selectedTagIds=[]; renderFinTagChips();
@@ -145,7 +149,8 @@ export async function deleteTransaction(id){
   if(!(await uiConfirm(tr('finance_delete_confirm'),{title:tr('finance_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.transactions=AppState.transactions.filter(t=>t.id!==id);
   const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
-  scheduleSave(); renderFinance(); renderFinanceChart();
+  deleteTransactionDoc(id).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
+  renderFinance(); renderFinanceChart();
 }
 
 export const editTransaction = function(id){
@@ -260,10 +265,15 @@ const deleteTag = async function(id){
   if(!(await uiConfirm(tr('tags_delete_confirm'),{title:tr('tags_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.tags=AppState.tags.filter(t=>t.id!==id);
   AppState.selectedTagIds=AppState.selectedTagIds.filter(tid=>tid!==id);
-  AppState.transactions.forEach(t=>{ if(Array.isArray(t.tags)) t.tags=t.tags.filter(tid=>tid!==id); });
+  const affected=[];
+  AppState.transactions.forEach(t=>{ if(Array.isArray(t.tags)&&t.tags.includes(id)){ t.tags=t.tags.filter(tid=>tid!==id); affected.push(t); } });
   saveConfigLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
+  // tags[] itself is a finance-doc field (needs scheduleSave()); the
+  // individual transactions that referenced this tag are their own
+  // subcollection docs and get updated directly instead.
   scheduleSave();
+  if(affected.length) batchWriteTransactions(affected).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderTagsList(); renderFinTagChips(); renderFinance();
 };
 

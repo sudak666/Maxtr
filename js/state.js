@@ -71,6 +71,15 @@ export const AppState = {
   goals: [],
   catBackfillDone: false,
   catLegacyMerged: false,
+  // One-time flag: has the finance doc's legacy `data` array already been
+  // copied into the `transactions` Firestore subcollection? See
+  // MIGRATION_PLAN_transactions.md / CLAUDE.md's Firebase data model
+  // section. Same pattern as catBackfillDone/catLegacyMerged above — persisted
+  // in the finance doc so this only ever runs once per account/profile, and
+  // (critically) so an account that migrates and then deletes every
+  // transaction doesn't get its stale legacy `data` array re-migrated back
+  // in on a later load.
+  txMigrated: false,
   debts: [],
   currentDebtId: null,
   MONTHS: LANG_CALENDAR[window.currentLang].months,

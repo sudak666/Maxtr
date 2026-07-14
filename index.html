@@ -816,6 +816,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   display:flex;justify-content:space-between;align-items:flex-start;
   padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
   transition:border-color .15s;gap:8px;
+  /* Virtualization via CSS containment (no bundler here for a real
+     windowed-list library — see CLAUDE.md): renderFinance() in
+     js/analytics-csv.js has no cap on the *expanded* "view all" list, so a
+     heavy account's transaction history can mean thousands of .tx-item
+     nodes in one pass. content-visibility:auto skips layout/paint for rows
+     currently off-screen; contain-intrinsic-size:auto <n>px gives the
+     browser a size estimate for the initial (unmeasured) frame and then
+     remembers each row's real size after it's actually been rendered once,
+     so scrolling doesn't jump once rows are measured. Unsupported browsers
+     just ignore both properties — pure progressive enhancement. */
+  content-visibility:auto;contain-intrinsic-size:auto 84px;
 }
 .tx-item:hover{border-color:var(--border2)}
 .tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}

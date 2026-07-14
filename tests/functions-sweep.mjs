@@ -25,9 +25,19 @@ function snap(data) {
   return { exists: data != null, data: () => data };
 }
 
+// Minimal fake Firestore QuerySnapshot, for the transactions subcollection.
+function qsnap(items) {
+  return { empty: items.length === 0, docs: items.map((d) => ({ data: () => d })) };
+}
+
 // Fake db: a Map of path -> doc data, plus an optional per-path artificial
 // delay (ms) so the parallel-fetch tests can prove two reads actually
-// overlap instead of running one after another.
+// overlap instead of running one after another. `.collection(path).get()`
+// reuses the same Map, keyed by the transactions subcollection's own path,
+// holding a plain array of transaction objects (or nothing, for tests that
+// predate the transactions-subcollection migration and only ever set
+// finance.data) — see functions/lib/sweep.js's sweepProfile()/sweepToken()
+// for how a missing/empty collection falls back to finance.data.
 function fakeDb(docsByPath, delaysByPath = {}) {
   const getCalls = [];
   return {
@@ -47,6 +57,18 @@ function fakeDb(docsByPath, delaysByPath = {}) {
           if (delay) await new Promise((r) => setTimeout(r, delay));
           getCalls.push({ path, startedAt, finishedAt: Date.now() });
           return snap(docsByPath.get(path));
+        },
+      };
+    },
+    collection(path) {
+      return {
+        async get() {
+          const startedAt = Date.now();
+          const delay = delaysByPath[path] || 0;
+          if (delay) await new Promise((r) => setTimeout(r, delay));
+          getCalls.push({ path, startedAt, finishedAt: Date.now() });
+          const arr = docsByPath.get(path) || [];
+          return { empty: arr.length === 0, docs: arr.map((d) => ({ data: () => d })) };
         },
       };
     },
@@ -222,6 +244,59 @@ await test('sweepProfile: a missing finance doc for a profile is skipped (return
   assert.equal(result, null);
 });
 
+// ── sweepProfile: reads from the transactions subcollection (post-migration
+// accounts) instead of finance.data — see MIGRATION_PLAN_transactions.md.
+
+await test('sweepProfile: prefers the transactions subcollection over finance.data when both are present', async () => {
+  const financeData = {
+    notifSettings: { enabled: true, time: '18:00', timeZone: 'UTC' },
+    // Stale legacy array a migrated account's finance doc might still carry
+    // (or might not, since fbSaveNow() stops writing it post-cutover) — must
+    // be ignored once a non-empty transactions subcollection exists.
+    data: [{ date: '2020-01-01', type: 'expense', amount: 1, currency: 'UAH' }],
+    wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const sendPushFn = async () => { throw new Error('should not be called'); };
+  const result = await sweepProfile(
+    null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }),
+    qsnap([{ date: '2026-07-15', type: 'expense', amount: 5, currency: 'UAH' }]), // logged today -> no reminder
+  );
+  assert.equal(result.updates, null);
+});
+
+await test('sweepProfile: budget check sums amounts from the transactions subcollection, not finance.data', async () => {
+  const financeData = {
+    notifSettings: { budgetAlerts: true, timeZone: 'UTC' },
+    data: [], // empty legacy array — a fully-migrated account
+    wallets: [], budgets: { Кава: 1000 }, categories: { expense: ['Кава'] }, recurring: [], currencyRates: {},
+  };
+  const sent = [];
+  const sendPushFn = async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; };
+  const result = await sweepProfile(
+    null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }),
+    qsnap([
+      { date: '2026-07-01', type: 'expense', category: 'Кава', amount: 600, currency: 'UAH' },
+      { date: '2026-07-10', type: 'expense', category: 'Кава', amount: 500, currency: 'UAH' },
+    ]),
+  );
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].title, 'Бюджет перевищено');
+  assert.deepEqual(result.updates, { sentBudget: { '2026-07_Кава': true } });
+});
+
+await test('sweepProfile: an empty transactions subcollection falls back to finance.data (pre-migration account)', async () => {
+  const financeData = {
+    notifSettings: { enabled: true, time: '18:00', timeZone: 'UTC' },
+    data: [{ date: '2026-07-15', type: 'expense', amount: 5, currency: 'UAH' }], // logged today -> no reminder
+    wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+  };
+  const sendPushFn = async () => { throw new Error('should not be called'); };
+  const result = await sweepProfile(
+    null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }), qsnap([]),
+  );
+  assert.equal(result.updates, null);
+});
+
 // ── sweepToken: parallel-fetch + dedup + multi-profile behavior ──
 
 await test('sweepToken: fetches profiles_meta and the default profile\'s finance doc concurrently, not sequentially', async () => {
@@ -285,6 +360,28 @@ await test('sweepToken: multi-profile account sweeps every profile independently
   assert.equal(sendCount, 1); // only 'default' fires; 'p2' already has a transaction logged today
   assert.equal(tokenDoc.ref._written.profileState.default.sentDaily, '2026-07-15');
   assert.equal(tokenDoc.ref._written.profileState.p2, undefined);
+});
+
+await test('sweepToken: fetches the transactions subcollection alongside the finance doc and uses it for the daily check', async () => {
+  const uid = 'u4c';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/profiles_meta`, undefined],
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    // Subcollection path — an array of tx objects, not a doc.
+    [`users/${uid}/max_tracker/finance/transactions`, [{ date: '2026-07-15', type: 'expense', amount: 1, currency: 'UAH' }]],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(uid, { token: 'tok4c' });
+  let sendCount = 0;
+  await sweepToken(db, async () => { sendCount++; return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  // Already logged today per the subcollection -> no reminder, even though
+  // finance.data (the legacy array) is empty and would have fired one.
+  assert.equal(sendCount, 0);
+  assert.ok(db.getCalls.some((c) => c.path === `users/${uid}/max_tracker/finance/transactions`));
 });
 
 await test('sweepToken: fetches the debt doc alongside the finance doc and fires an upcoming-due-date push', async () => {

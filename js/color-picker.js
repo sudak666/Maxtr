@@ -9,7 +9,7 @@ import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncome
 import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
-import { activeProfileLsKey, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
+import { activeProfileLsKey, batchWriteTransactions, loadTransactionsFromSubcollection, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { closeManagers, uid, updateShiftType, updateWallet } from './settings-managers.js';
@@ -171,7 +171,14 @@ async function fbSaveNow(){
     const now=Date.now();
     await Promise.all([
       setDoc(userDoc('shifts'),  {data:AppState.shifts, shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, updatedAt:now}, {merge:false}),
-      setDoc(userDoc('finance'), {data:AppState.transactions, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, updatedAt:now}, {merge:false}),
+      // No `data`/transactions array here anymore — each transaction is its
+      // own doc in the `transactions` subcollection (see the TRANSACTIONS
+      // SUBCOLLECTION section of js/firebase-sync.js) and is written
+      // directly by whatever function mutates it, not batched into this
+      // whole-finance-doc rewrite. `{merge:false}` replacing the whole doc
+      // is exactly what drops any stale legacy `data` field for an
+      // already-migrated account, with no extra cleanup code needed.
+      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -269,7 +276,11 @@ export async function fbLoadNow(){
   if(!AppState.currentUser) return;
   fbSetStatus('loading',tr('sync_loading'));
   try{
-    const [sS,fS,dS]=await Promise.all([getDoc(userDoc('shifts')),getDoc(userDoc('finance')),getDoc(userDoc('debt'))]);
+    // loadTransactionsFromSubcollection() doesn't depend on the finance-doc
+    // fetch below (it only needs userDoc('finance') to build the
+    // subcollection path, not its contents), so it runs in parallel with
+    // the other three doc reads rather than after them.
+    const [sS,fS,dS,subTx]=await Promise.all([getDoc(userDoc('shifts')),getDoc(userDoc('finance')),getDoc(userDoc('debt')),loadTransactionsFromSubcollection()]);
     const sData=sS.exists()?sS.data():null;
     const fData=fS.exists()?fS.data():null;
     AppState.shifts=sData?(sData.data||{}):{};
@@ -277,7 +288,25 @@ export async function fbLoadNow(){
     AppState.autoFillSchedule=(sData&&sData.autoFillSchedule&&typeof sData.autoFillSchedule==='object')
       ? {enabled:!!sData.autoFillSchedule.enabled, typeId:sData.autoFillSchedule.typeId||'', pattern:sData.autoFillSchedule.pattern||'every', anchorDate:sData.autoFillSchedule.anchorDate||''}
       : {enabled:false, typeId:'', pattern:'every', anchorDate:''};
-    AppState.transactions=fData?(fData.data||[]):[];
+    // Transactions live in the `transactions` subcollection now, not
+    // finance.data (see js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION
+    // section). One-time migration for any account/profile that hasn't
+    // been migrated yet: if the subcollection is still empty but the
+    // legacy array has entries, copy them in once and flip txMigrated so
+    // this never runs again for this doc — guards against a later load
+    // (after the account has since deleted every transaction, leaving the
+    // subcollection legitimately empty again) resurrecting the stale array.
+    AppState.txMigrated=!!(fData && fData.txMigrated);
+    const legacyTx=fData?(fData.data||[]):[];
+    let migratedNow=false;
+    if(!AppState.txMigrated && legacyTx.length){
+      await batchWriteTransactions(legacyTx);
+      AppState.transactions=legacyTx;
+      AppState.txMigrated=true;
+      migratedNow=true;
+    }else{
+      AppState.transactions=subTx;
+    }
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
@@ -293,7 +322,7 @@ export async function fbLoadNow(){
     const seeded=seedConfigFromDocs(sData, fData);
     const backfilled=backfillCategories();
     saveConfigLocal();
-    const recurAdded=processRecurring();
+    const recurAdded=await processRecurring();
     const autoFillAdded=processAutoFillShifts();
     AppState.lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
@@ -316,7 +345,7 @@ export async function fbLoadNow(){
         }, {merge:false});
       }catch(be){ console.error('backup failed', be); }
     }
-    if(seeded||backfilled||recurAdded||autoFillAdded) await fbSaveNow();
+    if(seeded||backfilled||recurAdded||autoFillAdded||migratedNow) await fbSaveNow();
   }catch(e){
     console.error(e);
     fbSetStatus('error',tr('sync_offline'));
@@ -354,19 +383,22 @@ function computeNextDate(dateStr, freq){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function processRecurring(){
+async function processRecurring(){
   if(!AppState.recurring.length) return 0;
   const todayStr=new Date().toISOString().split('T')[0];
   let added=0;
+  const newTx=[];
   AppState.recurring.forEach(r=>{
     if(r.active===false || !r.nextDate || !r.amount) return;
     let guard=0;
     while(r.nextDate<=todayStr && guard<24){
-      AppState.transactions.unshift({
+      const t={
         id:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
         wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
         comment:(r.comment?r.comment+' · ':'')+tr('recurring_comment_tag')
-      });
+      };
+      AppState.transactions.unshift(t);
+      newTx.push(t);
       r.nextDate=computeNextDate(r.nextDate, r.frequency||'monthly');
       added++; guard++;
     }
@@ -374,6 +406,7 @@ function processRecurring(){
   if(added){
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
     saveRecurringLocal();
+    await batchWriteTransactions(newTx);
   }
   return added;
 }

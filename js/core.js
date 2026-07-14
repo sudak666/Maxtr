@@ -13,7 +13,7 @@ import { csSync } from './ui-widgets.js';
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 
-import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
@@ -282,11 +282,13 @@ window.addEventListener('unhandledrejection', e=>{
   const reason = e.reason;
   logAppError('unhandled-rejection', { message: reason && reason.message || String(reason), stack: reason && reason.stack });
 });
-// Surfaces Content-Security-Policy-Report-Only violations (see
-// firebase.json) into the same local error log, since this app has no
-// backend to send CSP reports to — lets the account owner check
-// localStorage (or a future Settings-tab viewer) for anything the policy
-// missed before it ever gets flipped from report-only to enforcing.
+// Surfaces Content-Security-Policy violations (see firebase.json — this
+// has been the real enforcing header, not -Report-Only, since the CSP
+// rollout completed; see CHANGELOG.md) into the same local error log,
+// since this app has no backend to send CSP reports to — lets the account
+// owner check localStorage (or a future Settings-tab viewer) for anything
+// a future policy change breaks, since an enforcing violation here means
+// content was actually blocked, not just logged.
 document.addEventListener('securitypolicyviolation', e=>{
   logAppError('csp-violation', { message: `${e.violatedDirective} blocked ${e.blockedURI}`, source: e.sourceFile, line: e.lineNumber, col: e.columnNumber });
 });
@@ -313,4 +315,4 @@ document.addEventListener('click', e=>{
 // Re-exports of this file's own imported (not locally declared) bindings
 // that other split files also need - can't prefix an ImportDeclaration
 // with `export`, so these are re-exported explicitly instead.
-export { EmailAuthProvider, RecaptchaVerifier, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink };
+export { EmailAuthProvider, RecaptchaVerifier, collection, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getDocs, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink, writeBatch };

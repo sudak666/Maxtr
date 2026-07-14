@@ -82,6 +82,33 @@ await check('owner can write a suffixed profile finance doc', setDoc(doc(asA, `u
   data: [], updatedAt: Date.now(),
 }), 'allow');
 
+// 3b. Transactions subcollection under a finance doc (see
+// MIGRATION_PLAN_transactions.md / CLAUDE.md's Firebase data model section
+// — this replaced the old finance.data array).
+await check('owner can write a valid transaction doc', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/12345`), {
+  id: 12345, type: 'expense', amount: 100, currency: 'UAH', category: 'Кава', date: '2026-07-15',
+}), 'allow');
+await check('owner can write a transaction doc under a suffixed profile finance doc', setDoc(doc(asA, `users/${uidA}/max_tracker/finance@profile_1a2b3c4/transactions/999`), {
+  id: 999, type: 'income', amount: 50, currency: 'UAH', date: '2026-07-15',
+}), 'allow');
+await check('other user cannot write a transaction under uidA finance doc', setDoc(doc(asB, `users/${uidA}/max_tracker/finance/transactions/12345`), {
+  id: 12345, type: 'expense', amount: 100, currency: 'UAH', date: '2026-07-15',
+}), 'deny');
+await check('unauthenticated cannot write a transaction doc', setDoc(doc(anon, `users/${uidA}/max_tracker/finance/transactions/12345`), {
+  id: 12345, type: 'expense', amount: 100, currency: 'UAH', date: '2026-07-15',
+}), 'deny');
+await check('transaction doc missing required amount field rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/222`), {
+  id: 222, type: 'expense', date: '2026-07-15',
+}), 'deny');
+await check('transaction doc with non-number amount rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/223`), {
+  id: 223, type: 'expense', amount: '100', date: '2026-07-15',
+}), 'deny');
+await check('transactions subcollection under a non-finance doc rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/shifts/transactions/1`), {
+  id: 1, type: 'expense', amount: 1, date: '2026-07-15',
+}), 'deny');
+await check('owner can delete a transaction doc', deleteDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/12345`)), 'allow');
+await check('other user cannot delete a transaction under uidA finance doc', deleteDoc(doc(asB, `users/${uidA}/max_tracker/finance/transactions/12345`)), 'deny');
+
 // 4. Cross-user access denied
 await check('other user cannot read uidA finance doc', getDoc(doc(asB, `users/${uidA}/max_tracker/finance`)), 'deny');
 await check('other user cannot write uidA finance doc', setDoc(doc(asB, `users/${uidA}/max_tracker/finance`), { updatedAt: Date.now() }), 'deny');
