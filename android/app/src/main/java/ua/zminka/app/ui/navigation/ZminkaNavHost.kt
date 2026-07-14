@@ -12,11 +12,7 @@ private object Routes {
     const val MAIN = "main"
 }
 
-/**
- * MVP scope only covers Auth -> Main (Фінанси + Зміни tabs — see
- * MainScreen.kt's own doc comment for which of the web app's 5 bottom-nav
- * tabs aren't ported yet).
- */
+/** Auth -> Main, and back to Auth on sign-out (see MainScreen.kt/SettingsScreen.kt). */
 @Composable
 fun ZminkaNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Routes.AUTH) {
@@ -28,7 +24,11 @@ fun ZminkaNavHost(navController: NavHostController = rememberNavController()) {
             })
         }
         composable(Routes.MAIN) {
-            MainScreen()
+            MainScreen(onSignedOut = {
+                navController.navigate(Routes.AUTH) {
+                    popUpTo(Routes.MAIN) { inclusive = true }
+                }
+            })
         }
     }
 }

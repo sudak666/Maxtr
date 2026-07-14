@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import ua.zminka.app.data.model.FinanceDoc
+import ua.zminka.app.data.model.ShoppingItem
 import ua.zminka.app.data.model.Transaction
 
 /**
@@ -63,6 +64,20 @@ class FinanceRepository(
 
     suspend fun deleteTransaction(uid: String, id: Long) {
         txCollection(uid).document(id.toString()).delete().await()
+    }
+
+    /**
+     * Field-scoped update — mirrors js/shopping.js's per-action calls
+     * (addShoppingItem()/toggleShoppingItem()/deleteShoppingItem()/
+     * clearBoughtShopping()), which all mutate AppState.shoppingList then
+     * go through the same scheduleSave() as everything else in the
+     * `finance` doc. This client updates just the one field instead of
+     * round-tripping the whole FinanceDoc, since none of this app's
+     * shopping-list callers have (or need) the rest of the doc's fields
+     * in hand.
+     */
+    suspend fun saveShoppingList(uid: String, items: List<ShoppingItem>) {
+        financeDocRef(uid).update(mapOf("shoppingList" to items, "updatedAt" to System.currentTimeMillis())).await()
     }
 
     /** Wallet/category balances, mirroring js/analytics-csv.js's computeWalletBalances(). */

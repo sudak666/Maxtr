@@ -48,7 +48,22 @@ data class FinanceDoc(
         "expense" to emptyList(),
     ),
     val currencyRates: Map<String, Double> = emptyMap(),
+    val shoppingList: List<ShoppingItem> = emptyList(),
     val updatedAt: Long = 0L,
+)
+
+/**
+ * Mirrors AppState.shoppingList entries (js/shopping.js's
+ * addShoppingItem()) — lives inside the `finance` doc's `shoppingList`
+ * field, not its own doc (see CLAUDE.md's Firebase data model section:
+ * "The finance doc still holds everything else... shoppingList...").
+ */
+data class ShoppingItem(
+    val id: String = "",
+    val name: String = "",
+    val qty: Int = 1,
+    val done: Boolean = false,
+    val createdAt: Long = 0L,
 )
 
 /**
@@ -81,5 +96,48 @@ data class ShiftType(
 data class ShiftsDoc(
     val data: Map<String, List<String>> = emptyMap(),
     val shiftTypes: List<ShiftType> = emptyList(),
+    val updatedAt: Long = 0L,
+)
+
+/**
+ * Mirrors a debt's payment-history entry (js/debt.js's addDebtEntry()).
+ * `amount` is deliberately a String, not a number — the web client stores
+ * whatever the user typed verbatim (only using it as a number when it
+ * happens to match `/^\d+(\.\d+)?$/`, to auto-compute `balance`), so a
+ * Double field here would reject entries the web client accepts fine.
+ */
+data class DebtEntry(
+    val id: Long = 0L,
+    val amount: String = "",
+    val balance: Double = 0.0,
+    val date: String = "",
+)
+
+/** Mirrors AppState.debts entries (js/debt.js's addNewDebt()). */
+data class Debt(
+    val id: Long = 0L,
+    val name: String = "",
+    val note: String = "",
+    val currency: String = "у.о.",
+    val startAmount: Double = 0.0,
+    val dueDate: String = "",
+    val entries: List<DebtEntry> = emptyList(),
+)
+
+/** The `data` sub-object inside the `debt` doc — see DebtDoc's own comment. */
+data class DebtData(
+    val debts: List<Debt> = emptyList(),
+    val currentDebtId: Long? = null,
+)
+
+/**
+ * Mirrors the `debt` doc (users/{uid}/max_tracker/debt — see
+ * js/color-picker.js's fbSaveNow(), `setDoc(userDoc('debt'), {data:{debts,
+ * currentDebtId}, updatedAt}, {merge:false})`). Note the extra `data`
+ * nesting level here, unlike `finance`/`shifts` — this is a direct mirror
+ * of the web client's actual document shape, not a modeling choice.
+ */
+data class DebtDoc(
+    val data: DebtData = DebtData(),
     val updatedAt: Long = 0L,
 )
