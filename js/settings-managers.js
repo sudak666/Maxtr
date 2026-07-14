@@ -221,12 +221,11 @@ const openToolsManager = function(){
   document.getElementById('tools-modal').style.display='flex';
 };
 
-// Rates/converter/analytics are no longer toggleable widgets here — they
-// moved into #tools-modal (see openToolsManager above) and are always
-// reachable from there, so only the two sections still living inline in
-// the Finance tab's scroll (chart/goals) need a show/hide+reorder toggle.
+// Rates/converter/analytics/chart are no longer toggleable widgets here —
+// they moved into #tools-modal (see openToolsManager above) and are always
+// reachable from there, so only the one section still living inline in
+// the Finance tab's scroll (goals) needs a show/hide+reorder toggle.
 const WIDGET_DEFS=[
-  {key:'chart', icon:'barChart', color:'#f59e0b', titleKey:'widgets_item_chart', subKey:'widgets_item_chart_sub'},
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
 ];
 
@@ -761,58 +760,81 @@ const openRecurringManager = function(){
   document.getElementById('recurring-modal').style.display='flex';
 };
 
+const toggleRecurringEdit = function(id){
+  AppState.expandedRecurringId = AppState.expandedRecurringId===id ? null : id;
+  renderRecurringList();
+};
+
+const FREQ_LABEL_KEY={daily:'recurring_daily', weekly:'recurring_weekly', monthly:'recurring_monthly'};
+
+// Compact-manager-row pattern (icon badge + two-line summary + pencil
+// toggle that reveals the full field set) — replaces the old
+// always-expanded .debt-row stack of labeled fields, see CLAUDE.md's
+// "Unify manager design" note.
 function renderRecurringList(){
   const box=document.getElementById('recurring-list'); if(!box) return;
   box.innerHTML='';
   if(!AppState.recurring.length){ box.innerHTML=`<div class="mgr-empty">${tr('recurring_empty')}</div>`; return; }
   AppState.recurring.forEach(r=>{
     const catList=AppState.categories[r.type]||[];
+    const open=AppState.expandedRecurringId===r.id;
+    const paused=r.active===false;
+    const freqLabel=tr(FREQ_LABEL_KEY[r.frequency]||'recurring_monthly');
+    const summary=`${escapeHtml(r.category||'')} · ${(r.amount||0).toLocaleString('uk-UA')} грн`;
+    const nextDateFmt=r.nextDate?r.nextDate.split('-').reverse().join('.'):'';
     const row=document.createElement('div');
-    row.className='debt-row'+(r.active===false?' recur-paused':'');
+    row.className='mgr-row'+(paused?' recur-paused':'');
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
-      <div class="debt-field" style="flex:1 1 100px">
-        <span class="debt-field-label">${tr('recurring_type')}</span>
-        <select data-action="update-recurring" data-id="${r.id}" data-field="type">
-          <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
-          <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
-        </select>
+      <div class="cat-row">
+        <div class="icon-badge icon-badge-sm" style="background:var(--purple)">${window.Icon('repeat')}</div>
+        <div class="cat-row-body" style="cursor:default">
+          <span class="cat-row-name">${summary}</span>
+          <span class="cat-row-sub">${freqLabel} · ${nextDateFmt}${paused?' · '+tr('recurring_paused_label'):''}</span>
+        </div>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-recurring-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-recurring" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
       </div>
-      <div class="debt-field" style="flex:1 1 90px">
-        <span class="debt-field-label">${tr('recurring_amount')}</span>
-        <input type="number" min="0.01" step="0.01" value="${r.amount||''}" data-action="update-recurring" data-id="${r.id}" data-field="amount">
-      </div>
-      <div class="debt-field" style="flex:1 1 130px">
-        <span class="debt-field-label">${tr('finance_category')}</span>
-        <select data-action="update-recurring" data-id="${r.id}" data-field="category">
-          ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="debt-field" style="flex:1 1 120px">
-        <span class="debt-field-label">${tr('finance_wallet')}</span>
-        <select data-action="update-recurring" data-id="${r.id}" data-field="wallet">
-          ${AppState.wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="debt-field" style="flex:1 1 110px">
-        <span class="debt-field-label">${tr('recurring_frequency')}</span>
-        <select data-action="update-recurring" data-id="${r.id}" data-field="frequency">
-          <option value="daily" ${r.frequency==='daily'?'selected':''}>${tr('recurring_daily')}</option>
-          <option value="weekly" ${r.frequency==='weekly'?'selected':''}>${tr('recurring_weekly')}</option>
-          <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>${tr('recurring_monthly')}</option>
-        </select>
-      </div>
-      <div class="debt-field" style="flex:1 1 132px">
-        <span class="debt-field-label">${tr('recurring_next_date')}</span>
-        <input type="date" value="${r.nextDate||''}" data-action="update-recurring" data-id="${r.id}" data-field="nextDate">
-      </div>
-      <div class="debt-field" style="flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;gap:10px">
+      ${open?`
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
+        <div style="display:flex;gap:8px">
+          <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_type')}</span>
+            <select data-action="update-recurring" data-id="${r.id}" data-field="type">
+              <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
+              <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
+            </select>
+          </div>
+          <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_amount')}</span>
+            <input type="number" class="mgr-num" min="0.01" step="0.01" value="${r.amount||''}" data-action="update-recurring" data-id="${r.id}" data-field="amount">
+          </div>
+        </div>
+        <div class="mgr-field"><span class="mgr-field-label">${tr('finance_category')}</span>
+          <select data-action="update-recurring" data-id="${r.id}" data-field="category">
+            ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="mgr-field"><span class="mgr-field-label">${tr('finance_wallet')}</span>
+          <select data-action="update-recurring" data-id="${r.id}" data-field="wallet">
+            ${AppState.wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_frequency')}</span>
+            <select data-action="update-recurring" data-id="${r.id}" data-field="frequency">
+              <option value="daily" ${r.frequency==='daily'?'selected':''}>${tr('recurring_daily')}</option>
+              <option value="weekly" ${r.frequency==='weekly'?'selected':''}>${tr('recurring_weekly')}</option>
+              <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>${tr('recurring_monthly')}</option>
+            </select>
+          </div>
+          <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_next_date')}</span>
+            <input type="date" value="${r.nextDate||''}" data-action="update-recurring" data-id="${r.id}" data-field="nextDate">
+          </div>
+        </div>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0">
           <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} data-action="update-recurring" data-id="${r.id}" data-field="active">
-          <span class="debt-field-label" style="text-transform:none;font-size:11px;white-space:nowrap">${tr('recurring_active')}</span>
+          <span class="mgr-field-label" style="text-transform:none">${tr('recurring_active')}</span>
         </label>
-        <button class="debt-row-del" style="align-self:auto" data-action="delete-recurring" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
-      </div>
-    `;
+      </div>`:''}`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
     row.querySelectorAll('input[type=date]').forEach(enhanceDateInput);
@@ -915,6 +937,7 @@ const CLICK_ACTIONS = {
   'cat-action-delete': ()=>catActionDelete(),
   'open-budgets-manager': ()=>openBudgetsManager(),
   'open-recurring-manager': ()=>openRecurringManager(),
+  'toggle-recurring-edit': ds=>toggleRecurringEdit(ds.id),
   'add-recurring': ()=>addRecurring(),
   'delete-recurring': ds=>deleteRecurring(ds.id),
 };

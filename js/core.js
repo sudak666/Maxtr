@@ -69,10 +69,10 @@ export const SALARY_GOAL = 20000;
 
 export function subKey(type,name){ return type+':'+name; }
 
-// rates/converter/analytics moved into #tools-modal (see CLAUDE.md's
-// Finance-tab-widgets section) — no longer part of the toggleable
-// show/hide+reorder set, so only chart/goals remain here.
-const WIDGET_SECTION_IDS={chart:'finance-chart-section', goals:'goals-section'};
+// rates/converter/analytics/chart all moved into #tools-modal (see
+// CLAUDE.md's Finance-tab-widgets section) — no longer part of the
+// toggleable show/hide+reorder set, so only goals remains here.
+const WIDGET_SECTION_IDS={goals:'goals-section'};
 
 export function sanitizeWidgetOrder(arr){
   const seen=new Set();
@@ -82,11 +82,9 @@ export function sanitizeWidgetOrder(arr){
 }
 
 export function applyWidgetVisibility(){
-  Object.entries(WIDGET_SECTION_IDS).forEach(([key,id])=>{
-    if(key==='goals') return; // goals additionally self-hides when empty — handled inside renderGoals()
-    const el=document.getElementById(id);
-    if(el) el.style.display = AppState.widgets[key]===false ? 'none' : '';
-  });
+  // goals is the only entry left in WIDGET_SECTION_IDS, and it self-hides
+  // when empty (handled inside renderGoals()) rather than via the
+  // AppState.widgets show/hide toggle here.
   renderGoals();
   applyWidgetOrder();
 }

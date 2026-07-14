@@ -103,6 +103,7 @@
   setIcon('ic-bio-disable','lock');
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
+  setIcon('ptr-spinner','refresh');
   try{
     var hideAmt=localStorage.getItem('mxHideAmounts')==='1';
     document.body.classList.toggle('amounts-hidden', hideAmt);
@@ -411,7 +412,7 @@
       budgets_title:'Бюджети по категоріях', budgets_desc:'Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.',
       recurring_empty:'Немає повторюваних операцій', recurring_type:'Тип', recurring_amount:'Сума',
       recurring_frequency:'Частота', recurring_daily:'Щодня', recurring_weekly:'Щотижня', recurring_monthly:'Щомісяця',
-      recurring_next_date:'Наступного разу', recurring_active:'активна',
+      recurring_next_date:'Наступного разу', recurring_active:'активна', recurring_paused_label:'на паузі',
       recurring_added:'Шаблон додано — заповни суму', recurring_delete_confirm:'Видалити цю повторювану операцію? Вже додані транзакції залишаться.',
       recurring_delete_title:'Видалити шаблон', recurring_desc:'Автоматично додаються при вході в застосунок, коли настає дата.', recurring_add:'Додати повторювану операцію',
       tags_empty:'Немає тегів', tags_default_name:'Тег', tags_add_prompt:'Назва тегу:', tags_add_title:'Новий тег',
@@ -654,7 +655,7 @@
       budgets_title:'Budgets by category', budgets_desc:'Monthly spending limit per category. Leave blank or 0 for no budget.',
       recurring_empty:'No recurring transactions', recurring_type:'Type', recurring_amount:'Amount',
       recurring_frequency:'Frequency', recurring_daily:'Daily', recurring_weekly:'Weekly', recurring_monthly:'Monthly',
-      recurring_next_date:'Next time', recurring_active:'active',
+      recurring_next_date:'Next time', recurring_active:'active', recurring_paused_label:'paused',
       recurring_added:'Template added — fill in the amount', recurring_delete_confirm:'Delete this recurring transaction? Already-added transactions stay.',
       recurring_delete_title:'Delete template', recurring_desc:'Automatically added when you open the app, once the date arrives.', recurring_add:'Add recurring transaction',
       tags_empty:'No tags', tags_default_name:'Tag', tags_add_prompt:'Tag name:', tags_add_title:'New tag',

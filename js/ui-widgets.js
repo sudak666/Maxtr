@@ -10,9 +10,20 @@ export function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>HTML_ESCAPES[c]);
 }
 
+// A larger soft-gradient "illustration" scene (icon + 3 scattered accent
+// sparks) instead of the old plain 48px icon-badge — still built entirely
+// from this app's existing monochrome icon set and palette (no emoji, no
+// external art assets), per the no-emoji/no-illustration-artwork UI
+// convention this deliberately stays inside rather than breaks. The whole
+// block gets a fade-in+pop entrance animation (.empty-state, CSS).
 export function emptyStateHtml({icon='inbox', title='', desc='', action='', onClick=''}){
   return `<div class="empty-state">
-    <div class="empty-state-icon">${window.Icon(icon)}</div>
+    <div class="empty-state-illustration">
+      <span class="es-spark es-spark-1"></span>
+      <span class="es-spark es-spark-2"></span>
+      <span class="es-spark es-spark-3"></span>
+      <div class="empty-state-icon">${window.Icon(icon)}</div>
+    </div>
     <div class="empty-state-title">${escapeHtml(title)}</div>
     ${desc?`<div class="empty-state-desc">${escapeHtml(desc)}</div>`:''}
     ${action?`<button type="button" class="btn btn-primary" onclick="${escapeHtml(onClick)}">${escapeHtml(action)}</button>`:''}

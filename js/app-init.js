@@ -46,6 +46,7 @@ export async function init(){
     setupAccessibleSettingsRows();
     setupCollapsibleFinanceSections();
     setupModalAccessibility();
+    setupPullToRefresh();
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
@@ -94,6 +95,67 @@ export async function init(){
   // enabled from a previous session (registering the token itself only
   // happens once, in enablePushNotifications()).
   if(localStorage.getItem(pushEnabledKey())==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
+}
+
+// Called once from init()'s cold-init block, same as setupModalAccessibility()
+// above. Pull-to-refresh: dragging down from the very top of the page (not
+// mid-scroll anywhere else, and not while a modal is open) reveals a
+// spinner and, past a threshold, calls the exact same fbLoadNow()+toast
+// flow as the topbar's #btn-refresh tap button (js/app-init.js's
+// __init_app_init__ below) — this is a second entry point to that same
+// refresh, not a separate mechanism. Deliberately uses `{passive:true}`
+// listeners with no preventDefault(): body's `overscroll-behavior-y:contain`
+// (index.html) already suppresses the browser/OS's own native pull-to-
+// refresh bounce at the CSS level, which is what actually lets this coexist
+// with normal scrolling without the touchmove-preventDefault jank cost.
+function setupPullToRefresh(){
+  const indicator=document.getElementById('ptr-indicator');
+  const spinner=document.getElementById('ptr-spinner');
+  if(!indicator||!spinner) return;
+  const THRESHOLD=70, MAX_PULL=100;
+  let startY=null, lastPull=0, refreshing=false;
+
+  document.addEventListener('touchstart', e=>{
+    if(refreshing || AppState.openModalStack.length || (document.scrollingElement||document.documentElement).scrollTop>0){ startY=null; return; }
+    startY=e.touches[0].clientY;
+    lastPull=0;
+    indicator.classList.remove('ptr-settling');
+  }, {passive:true});
+
+  document.addEventListener('touchmove', e=>{
+    if(startY==null || refreshing) return;
+    const dy=e.touches[0].clientY-startY;
+    if(dy<=0){ lastPull=0; indicator.style.transform='translateY(-60px)'; return; }
+    // Damped (×0.5), not 1:1 with the finger — the standard pull-to-refresh
+    // "heavier the further you pull" feel, capped so the indicator can't
+    // travel past MAX_PULL regardless of how far the finger keeps moving.
+    lastPull=Math.min(MAX_PULL, dy*0.5);
+    indicator.style.transform=`translateY(${lastPull-60}px)`;
+    spinner.style.transform=`rotate(${lastPull/MAX_PULL*360}deg)`;
+  }, {passive:true});
+
+  document.addEventListener('touchend', async ()=>{
+    if(startY==null) return;
+    startY=null;
+    if(lastPull<1) return;
+    indicator.classList.add('ptr-settling');
+    if(lastPull>=THRESHOLD){
+      refreshing=true;
+      indicator.classList.add('ptr-loading');
+      indicator.style.transform='translateY(4px)';
+      try{ await fbLoadNow(); showToast(tr('sync_synced'),'check'); }
+      finally{
+        refreshing=false;
+        indicator.classList.remove('ptr-loading');
+        indicator.style.transform='translateY(-60px)';
+        spinner.style.transform='';
+      }
+    }else{
+      indicator.style.transform='translateY(-60px)';
+      spinner.style.transform='';
+    }
+    lastPull=0;
+  }, {passive:true});
 }
 
 export function switchTab(tab){

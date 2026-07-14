@@ -16,7 +16,7 @@ import { emptyStateHtml, escapeHtml, showToast } from './ui-widgets.js';
 // or persist it, same category as e.g. AppState.expandedCatIdx being
 // per-file transient state, just without even needing cross-file access.
 let txListExpanded=false;
-const TX_LIST_COLLAPSED_COUNT=3;
+const TX_LIST_COLLAPSED_COUNT=5;
 
 const toggleTxListExpanded = function(){
   txListExpanded=!txListExpanded;

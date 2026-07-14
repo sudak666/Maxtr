@@ -31,10 +31,14 @@ try {
 
   messaging = firebase.messaging();
   messaging.onBackgroundMessage((payload) => {
-    const { title, body } = payload.notification || {};
+    const { title, body, icon } = payload.notification || {};
+    // icon is the per-notification-type themed PNG (see functions/index.js's
+    // NOTIF_ICONS) sent via webpush.notification.icon — falls back to the
+    // generic app icon for anything that didn't set one (e.g. a manually
+    // sent test push with no icon field).
     self.registration.showNotification(title || 'Zminka', {
       body: body || '',
-      icon: 'icon-192.png',
+      icon: icon || 'icon-192.png',
       badge: 'icon-192.png',
     });
   });
@@ -42,7 +46,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v40';
+const CACHE_NAME = 'zminka-v41';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -51,6 +55,14 @@ const STATIC_ASSETS = [
   './icon-512.png',
   './icon-192-rounded.png',
   './icon-512-rounded.png',
+  // Themed per-notification-type push icons (functions/index.js's
+  // NOTIF_ICONS / sw.js's onBackgroundMessage handler above) — same-origin,
+  // so precached here alongside every other same-origin asset for the same
+  // cold-start-offline reasoning as everything else in this list.
+  './notif-icon-daily.png',
+  './notif-icon-budget.png',
+  './notif-icon-recurring.png',
+  './notif-icon-debt.png',
   // Same reasoning as FIREBASE_SDK_ASSETS below: index.html loads app
   // logic via <script type="module" src="./js/app.js">, which statically
   // imports these same-origin files — a cold start with no network (first

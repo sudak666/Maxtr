@@ -18,7 +18,7 @@
 // rates/converter/analytics moved into #tools-modal (see CLAUDE.md's
 // Finance-tab-widgets section) and are no longer part of the
 // show/hide+reorder widget system — only chart/goals remain toggleable.
-export const WIDGET_ORDER_DEFAULT = ['chart','goals'];
+export const WIDGET_ORDER_DEFAULT = ['goals'];
 export const LANG_CALENDAR = {
   uk:{
     months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
@@ -105,6 +105,8 @@ export const AppState = {
   catMgrType: 'expense',
   expandedCatIdx: null,
   catActionIdx: null,
+  expandedRuleId: null,
+  expandedRecurringId: null,
   expandedGoalId: null,
   showNewGoalForm: false,
   messagingInstance: null,
