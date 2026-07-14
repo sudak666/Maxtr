@@ -231,6 +231,42 @@ export function renderFinanceSkeleton(){
   if(lc) lc.innerHTML=`<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>`;
 }
 
+// Inner HTML for one .tx-item row's content — extracted from renderFinance()
+// so it can be reused both when creating a brand-new row and when
+// refreshing an existing (reused) one's content in place. Does not include
+// the outer .tx-item element itself, which persists across renders for
+// unchanged transactions (see renderFinance()'s targeted-update comment).
+function txItemInnerHtml(t){
+  const df=t.date?t.date.split('-').reverse().join('.'):'';
+  const cur=currencySymbol(t.currency||'UAH');
+  let cls='',amtStr='';
+  if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+  if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+  if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+  const catIcon=window.Icon(categoryIcon(t.category));
+  const wBadge=walletBadge(t.wallet);
+  const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
+    ? `<span style="font-size:11px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
+  const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
+  const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
+  return `
+      <div class="tx-left-wrap">
+        <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
+        <div class="tx-left">
+          <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
+          <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
+          ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
+        </div>
+      </div>
+      <div class="tx-right">
+        <span class="tx-amount ${cls}">${amtStr}</span>
+        <div class="tx-actions">
+          <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+          <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        </div>
+      </div>`;
+}
+
 export function renderFinance(){
   const wb=computeWalletBalances();
   // Total balance is a UAH-equivalent sum across wallets that may each hold
@@ -286,7 +322,6 @@ export function renderFinance(){
     else catChip.style.display='none';
   }
 
-  lc.innerHTML='';
   if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
 
   if(filtered.length===0){
@@ -299,49 +334,76 @@ export function renderFinance(){
     });
     return;
   }
+  // Coming from the empty state (emptyStateHtml() above) or the cold-start
+  // skeleton (renderFinanceSkeleton()) leaves non-.tx-item markup
+  // (.empty-state / .skeleton-row) sitting in lc that the targeted update
+  // below wouldn't otherwise know to remove, since it only tracks
+  // .tx-item/.tx-view-all-btn children — clear anything else out first.
+  lc.querySelectorAll(':scope > :not(.tx-item):not(.tx-view-all-btn)').forEach(node=>node.remove());
 
   const showAll=txListExpanded || filtered.length<=TX_LIST_COLLAPSED_COUNT;
   const visible=showAll?filtered:filtered.slice(0,TX_LIST_COLLAPSED_COUNT);
 
-  visible.forEach((t,idx)=>{
-    const df=t.date?t.date.split('-').reverse().join('.'):'';
-    const cur=currencySymbol(t.currency||'UAH');
-    let cls='',amtStr='';
-    if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-    if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-    if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-    const catIcon=window.Icon(categoryIcon(t.category));
-    const wBadge=walletBadge(t.wallet);
-    const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
-      ? `<span style="font-size:11px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
-    const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
-    const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
-    const item=document.createElement('div');
-    item.className='tx-item';
-    item.tabIndex=0;
-    item.style.cursor='pointer';
-    item.style.animationDelay=Math.min(idx*35,280)+'ms';
-    item.innerHTML=`
-      <div class="tx-left-wrap">
-        <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
-        <div class="tx-left">
-          <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
-          <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
-          ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
-        </div>
-      </div>
-      <div class="tx-right">
-        <span class="tx-amount ${cls}">${amtStr}</span>
-        <div class="tx-actions">
-          <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-          <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
-        </div>
-      </div>`;
-    item.addEventListener('click',()=>editTransaction(t.id));
-    item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
-    lc.appendChild(item);
-  });
+  // Targeted update: reuse existing .tx-item DOM nodes (matched by
+  // data-id) instead of tearing down and rebuilding the whole list on
+  // every renderFinance() call — this function is called from ~20 places
+  // across js/*.js for state changes that often have nothing to do with
+  // any specific transaction (renaming a wallet, editing a budget,
+  // switching tabs back). Reusing nodes means unrelated re-renders don't
+  // replay the .tx-item entrance animation (CSS animations don't restart
+  // on innerHTML/attribute changes to an already-connected node, only on
+  // fresh insertion) and don't need to re-register the click/keydown
+  // listeners, which stay bound to the persisted node. Only actually-new
+  // transactions get a freshly created node — and therefore the pop-in
+  // animation — which is also the more correct UX (a genuinely new
+  // transaction should visibly appear; an unrelated re-render shouldn't
+  // make the whole list flicker). A matched row's *content* is still
+  // always regenerated from the current transaction/wallet/tag/category
+  // state (txItemInnerHtml()), so nothing here risks showing stale data —
+  // this only changes whether the outer element is reused, not what's
+  // computed into it.
+  const existingById=new Map();
+  lc.querySelectorAll(':scope > .tx-item').forEach(node=>{ existingById.set(node.dataset.txId, node); });
 
+  let newNodeCount=0;
+  let prevNode=null;
+  visible.forEach(t=>{
+    const idStr=String(t.id);
+    let item=existingById.get(idStr);
+    const isNew=!item;
+    if(isNew){
+      item=document.createElement('div');
+      item.className='tx-item';
+      item.tabIndex=0;
+      item.style.cursor='pointer';
+      item.dataset.txId=idStr;
+      item.addEventListener('click',()=>editTransaction(t.id));
+      item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
+    }else{
+      existingById.delete(idStr); // consumed — whatever's left afterward gets removed below
+    }
+    item.innerHTML=txItemInnerHtml(t);
+    item.style.animationDelay=isNew?Math.min(newNodeCount*35,280)+'ms':'';
+    if(isNew) newNodeCount++;
+    // Move into position only if it isn't already there — insertBefore on
+    // an already-correctly-placed node is effectively a no-op in the DOM,
+    // but skipping the call entirely avoids even that overhead for the
+    // common case where nothing reordered.
+    if(prevNode){
+      if(prevNode.nextSibling!==item) lc.insertBefore(item, prevNode.nextSibling);
+    }else if(lc.firstChild!==item){
+      lc.insertBefore(item, lc.firstChild);
+    }
+    prevNode=item;
+  });
+  // Whatever's left in existingById is a row for a transaction no longer
+  // in `visible` (deleted, or filtered/collapsed out) — remove it.
+  existingById.forEach(node=>node.remove());
+
+  // The "view all"/"show less" button always goes last; simplest to just
+  // remove and re-append rather than diff a single control element.
+  const oldMoreBtn=lc.querySelector(':scope > .tx-view-all-btn');
+  if(oldMoreBtn) oldMoreBtn.remove();
   if(filtered.length>TX_LIST_COLLAPSED_COUNT){
     const moreBtn=document.createElement('button');
     moreBtn.type='button';

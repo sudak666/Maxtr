@@ -45,6 +45,9 @@ jobs:
       - name: Run stress test (large transaction list)
         run: node tests/stress-tx-list.mjs
 
+      - name: Run transaction list targeted-update test
+        run: node tests/tx-list-targeted-update.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
