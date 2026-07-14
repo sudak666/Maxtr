@@ -9,7 +9,7 @@ import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calenda
 import { saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
-import { lsKey } from './firebase-sync.js';
+import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // A plain function declaration is safe to call immediately at import time
@@ -629,7 +629,8 @@ const renameCategory = function(idx,value){
   if(!newName){ renderCategoriesList(); return; }
   list[idx]=newName;
   // keep existing transactions consistent with the rename
-  AppState.transactions.forEach(t=>{ if(t.type===AppState.catMgrType && t.category===oldName) t.category=newName; });
+  const affected=[];
+  AppState.transactions.forEach(t=>{ if(t.type===AppState.catMgrType && t.category===oldName){ t.category=newName; affected.push(t); } });
   AppState.recurring.forEach(r=>{ if(r.type===AppState.catMgrType && r.category===oldName) r.category=newName; });
   if(AppState.budgets[oldName]!==undefined){ AppState.budgets[newName]=AppState.budgets[oldName]; delete AppState.budgets[oldName]; }
   const oldKey=subKey(AppState.catMgrType,oldName);
@@ -638,6 +639,7 @@ const renameCategory = function(idx,value){
   saveConfigLocal(); saveRecurringLocal();
   const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
   scheduleSave();
+  if(affected.length) batchWriteTransactions(affected).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderCategoriesList(); fillCats(AppState.currentFinanceType); renderFinance();
 };
 

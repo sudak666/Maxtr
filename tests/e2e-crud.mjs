@@ -35,12 +35,47 @@ const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PA
 // Same stubs as tests/smoke.mjs (kept separate per-file rather than shared,
 // matching how firestore-rules.mjs/smoke.mjs are each self-contained here).
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+// A real (if minimal) path-keyed in-memory store, not just no-ops — needed
+// once collection()/getDocs()/writeBatch() exist (added for the
+// transactions-subcollection migration, see CLAUDE.md's Firebase data
+// model section) so a getDocs() on a collection a prior setDoc() wrote into
+// actually returns something, rather than every Firestore call being an
+// inert stub. Module-scoped _docs resets on every fresh page load (this
+// module string is re-evaluated per navigation), so there's no cross-test
+// leakage.
 const STUB_FIRESTORE = `
+const _docs = new Map();
 export function getFirestore(){ return {}; }
-export function doc(){ return {}; }
-export async function getDoc(){ return { exists:()=>false, data:()=>({}) }; }
-export async function setDoc(){ return; }
-export async function deleteDoc(){ return; }
+export function doc(parent, ...rest){
+  if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
+  return { path: rest.join('/') };
+}
+export function collection(parent, name){
+  const base = parent && parent.path !== undefined ? parent.path : '';
+  return { path: (base ? base + '/' : '') + name };
+}
+export async function getDoc(ref){
+  const d = _docs.get(ref.path);
+  return { exists: () => d !== undefined, data: () => d };
+}
+export async function setDoc(ref, data){ _docs.set(ref.path, data); }
+export async function deleteDoc(ref){ _docs.delete(ref.path); }
+export async function getDocs(ref){
+  const prefix = ref.path + '/';
+  const items = [];
+  for (const [k, v] of _docs) {
+    if (k.startsWith(prefix) && !k.slice(prefix.length).includes('/')) items.push({ id: k.slice(prefix.length), data: () => v });
+  }
+  return { docs: items, forEach(fn){ items.forEach(fn); }, empty: items.length === 0, size: items.length };
+}
+export function writeBatch(){
+  const ops = [];
+  return {
+    set(ref, data){ ops.push(() => _docs.set(ref.path, data)); },
+    delete(ref){ ops.push(() => _docs.delete(ref.path)); },
+    async commit(){ ops.forEach((fn) => fn()); },
+  };
+}
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }

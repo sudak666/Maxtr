@@ -5,7 +5,7 @@
 import { AppState } from './state.js';
 import { init } from './app-init.js';
 import { EmailAuthProvider, RecaptchaVerifier, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, linkWithPhoneNumber, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink } from './core.js';
-import { loadActiveProfileId, userDoc } from './firebase-sync.js';
+import { deleteAllTransactionDocs, loadActiveProfileId, userDoc } from './firebase-sync.js';
 import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
 
@@ -298,6 +298,11 @@ const deleteAccountUser = async function(){
       deleteDoc(userDoc('shifts')),
       deleteDoc(userDoc('finance')),
       deleteDoc(userDoc('debt')),
+      // Firestore never cascade-deletes a subcollection when its parent
+      // doc is deleted — without this, every transaction doc would be
+      // orphaned under a finance doc that no longer exists. See
+      // js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION section.
+      deleteAllTransactionDocs(),
     ]);
   }catch(e){
     console.error(e);

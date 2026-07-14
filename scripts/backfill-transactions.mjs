@@ -2,7 +2,13 @@
 // from finance.data (an array on the big finance doc) into a new
 // `transactions` subcollection under that same doc, WITHOUT touching or
 // deleting the original array. See ../MIGRATION_PLAN_transactions.md for
-// the full plan and why this is only step 1 of a larger migration.
+// the full history — the migration itself is now DONE (a direct cutover,
+// not the originally-planned phased rollout this script was written for)
+// and js/color-picker.js's fbLoadNow() now does this same copy
+// automatically, once per account/profile, the next time it loads. This
+// script is optional from here on: still useful for pre-migrating many
+// accounts in bulk ahead of time rather than waiting on each one's next
+// app load, but no longer a required step.
 //
 // This is a manual operator script, not wired into any automated
 // deploy/CI — run it yourself with real Firebase Admin credentials:
