@@ -16,16 +16,20 @@ Google Play packaging" section. All three now coexist:
 
 ## Current scope (MVP)
 
-Ported so far: email/password sign-in + sign-up; the Finance tab (hero
-balance, wallet chips, transaction list, add-transaction bottom sheet);
-and the Shifts tab (month calendar, earned-this-month hero, hours/shifts/
-days-off chips, per-day shift-type picker). A bottom nav (`MainScreen.kt`)
-switches between the two post-auth. Everything else the web app has —
-Debt, Shopping, Settings, multi-profile, push notifications, local
-PIN/biometric lock, Google/phone sign-in — is **not yet ported**. See
-inline `TODO` comments (e.g. `data/repository/ZminkaMessagingService.kt`)
-and the per-file doc comments, which point back at the exact web-client
-file/function each piece mirrors.
+Ported so far: email/password sign-in + sign-up; and all 5 of the web
+app's bottom-nav tabs, in the same order (`MainScreen.kt`):
+
+- **Фінанси** — hero balance, wallet chips, transaction list, add-transaction bottom sheet.
+- **Зміни** — month calendar, earned-this-month hero, hours/shifts/days-off chips, per-day shift-type picker.
+- **Розрахунки** — debt-switcher chips, balance hero, start/paid/count chips, payment history, add-debt/add-payment dialogs.
+- **Покупки** — add row, checkbox list (bought items sort to the bottom), clear-bought, delete.
+- **Налаштування** — MVP-thin: account email + sign-out only. The web app's Settings tab is by far its largest (wallets/categories/budgets/tags/auto-rules/recurring/rates/widgets/PIN/premium/profiles managers) — none of those managers are ported.
+
+Still **not yet ported** at all: multi-profile, push notifications, local
+PIN/biometric lock, Google/phone sign-in. See inline `TODO` comments
+(e.g. `data/repository/ZminkaMessagingService.kt`) and the per-file doc
+comments, which point back at the exact web-client file/function each
+piece mirrors.
 
 The data layer intentionally targets only the **default profile**
 (no `@<profileId>` doc suffix) for now — see `FinanceRepository`'s doc
