@@ -147,6 +147,50 @@ async function main() {
     await page.waitForSelector('#wallets-modal', { state: 'hidden' });
     console.log('[ok] clicking the modal-overlay backdrop closes the modal');
 
+    // ── setupModalAccessibility() (js/settings-managers.js): Escape closes
+    // the topmost modal, focus lands inside the card on open, Tab is
+    // trapped within the card, and focus returns to the triggering element
+    // on close. Verifies the generic MutationObserver-based wiring, not any
+    // one modal's own bespoke logic — see CLAUDE.md's Firebase-data-model-
+    // adjacent UI notes for how this differs from closeManagers()'s id list. ──
+    await page.focus('#nav-settings');
+    await page.evaluate(() => window.openWalletsManager && window.openWalletsManager());
+    await page.waitForSelector('#wallets-modal', { state: 'visible' });
+    await page.waitForTimeout(50); // the initial-focus setTimeout(...,0) in setupModalAccessibility()
+
+    const focusedInsideCard = await page.evaluate(() => !!document.activeElement?.closest('#wallets-modal .modal-card'));
+    if (!focusedInsideCard) throw new Error('expected focus to land inside the modal card on open');
+    console.log('[ok] opening a modal moves focus inside its card');
+
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('#wallets-modal', { state: 'hidden' });
+    console.log('[ok] pressing Escape closes the topmost open modal');
+
+    const focusReturnedToTrigger = await page.evaluate(() => document.activeElement?.id === 'nav-settings');
+    if (!focusReturnedToTrigger) throw new Error(`expected focus to return to #nav-settings after Escape-closing the modal, got #${await page.evaluate(() => document.activeElement?.id)}`);
+    console.log('[ok] closing a modal (via Escape) returns focus to the element that triggered it');
+
+    // Focus trap: Tab from the last focusable element in the card wraps
+    // back to the first, instead of escaping the modal.
+    await page.evaluate(() => window.openWalletsManager && window.openWalletsManager());
+    await page.waitForSelector('#wallets-modal', { state: 'visible' });
+    await page.waitForTimeout(50);
+    const firstFocusableId = await page.evaluate(() => document.activeElement?.id || document.activeElement?.className);
+    await page.evaluate(() => {
+      const card = document.querySelector('#wallets-modal .modal-card');
+      const items = Array.from(card.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter((el) => el.offsetParent !== null);
+      items[items.length - 1].focus();
+    });
+    await page.keyboard.press('Tab');
+    const wrappedToFirst = await page.evaluate((firstId) => {
+      const active = document.activeElement;
+      return !!active?.closest('#wallets-modal .modal-card') && (active.id === firstId || active.className === firstId);
+    }, firstFocusableId);
+    if (!wrappedToFirst) throw new Error('expected Tab from the last focusable element to wrap back to the first, staying inside the modal card');
+    console.log('[ok] Tab from the last focusable element in an open modal wraps back to the first (focus trap)');
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('#wallets-modal', { state: 'hidden' });
+
     if (pageErrors.length) throw new Error(`uncaught page errors during modal flow: ${pageErrors.join(' | ')}`);
     console.log('[ok] no uncaught page errors during the modal open/close flow');
   } finally {

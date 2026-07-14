@@ -7,6 +7,23 @@ import { saveConfigLocal, saveLocal, scheduleSave } from './color-picker.js';
 import { SALARY_GOAL, shiftType, toBase } from './core.js';
 import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm } from './ui-widgets.js';
 
+// Cold-start only: called once from js/app-init.js's init() when there was
+// no local config cache to paint from instantly — same pattern and same
+// call site as renderFinanceSkeleton() in js/analytics-csv.js. Without
+// this, a user who taps the Shifts nav tab before the first fbLoadNow()
+// round-trip resolves would see the "you haven't logged any shifts yet"
+// empty state (AppState.shifts is still {} at that point, see
+// renderCalendar()'s #calendar-empty-state block below), which incorrectly
+// reads as "you have no data" rather than "still loading". renderCalendar()
+// unconditionally overwrites both the grid and the empty-state visibility
+// once real data arrives — no separate cleanup call needed.
+export function renderShiftsSkeleton(){
+  const grid=document.getElementById('calendar-grid');
+  if(grid) grid.innerHTML=Array.from({length:35}).map(()=>'<div class="skeleton-block" style="height:64px"></div>').join('');
+  const empty=document.getElementById('calendar-empty-state');
+  if(empty){ empty.style.display='none'; empty.innerHTML=''; }
+}
+
 export function shiftMonth(d){
   const ms=document.getElementById('select-month');
   const ys=document.getElementById('select-year');
