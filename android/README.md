@@ -25,15 +25,20 @@ app's bottom-nav tabs, in the same order (`MainScreen.kt`):
 - **Покупки** — add row, checkbox list (bought items sort to the bottom), clear-bought, delete.
 - **Налаштування** — MVP-thin: account email + sign-out only. The web app's Settings tab is by far its largest (wallets/categories/budgets/tags/auto-rules/recurring/rates/widgets/PIN/premium/profiles managers) — none of those managers are ported.
 
-Still **not yet ported** at all: multi-profile, push notifications, local
-PIN/biometric lock, Google/phone sign-in. See inline `TODO` comments
-(e.g. `data/repository/ZminkaMessagingService.kt`) and the per-file doc
+**Multi-profile is ported** — `data/profile/ProfileManager.kt` mirrors
+the web client's per-device `activeProfileId`/`@<profileId>` doc-suffix
+scheme; a "Профілі" chip row in Settings switches between profiles
+instantly (every repository's Firestore listener live-resubscribes to
+the new profile's doc paths, no restart). One known gap: unlike the web
+client's `switchProfile()`, this app doesn't auto-seed default wallets/
+categories for a brand-new profile — see `ProfileRepository`'s doc
+comment.
+
+Still **not yet ported** at all: push notifications, local PIN/biometric
+lock, Google/phone sign-in. See inline `TODO` comments (e.g.
+`data/repository/ZminkaMessagingService.kt`) and the per-file doc
 comments, which point back at the exact web-client file/function each
 piece mirrors.
-
-The data layer intentionally targets only the **default profile**
-(no `@<profileId>` doc suffix) for now — see `FinanceRepository`'s doc
-comment for how to extend it once multi-profile support is ported.
 
 ## Why this can't be built from this cloud sandbox
 
