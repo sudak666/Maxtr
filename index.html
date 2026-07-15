@@ -940,6 +940,13 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   position:absolute;top:0;right:0;bottom:0;width:60px;z-index:0;
   display:flex;align-items:center;justify-content:center;
   background:var(--red2);color:#fff;border:none;cursor:pointer;
+  /* Matches .tx-item's own 18px radius. The right side was already visually
+     rounded for free (clipped by .tx-item's overflow:hidden), but the left
+     side — the edge revealed right against .tx-item-inner's now-shrunk flat
+     edge — had no radius of its own, so it read as a jarring sharp-cornered
+     rectangle stuck onto a rounded card instead of one continuous smooth
+     shape. Rounding all four corners here makes both edges consistent. */
+  border-radius:18px;
 }
 .tx-swipe-delete .ico{margin-right:0;width:21px;height:21px}
 .tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
@@ -1040,6 +1047,11 @@ body.amounts-hidden #fx-converter-result{
   position:absolute;top:0;right:0;bottom:0;width:60px;z-index:0;
   display:flex;align-items:center;justify-content:center;
   background:var(--red2);color:#fff;border:none;cursor:pointer;
+  /* Same reasoning as .tx-swipe-delete's identical rule above — rounds the
+     left edge (revealed flush against .debt-row-inner's shrunk flat edge)
+     to match the right edge, which was already rounded for free via
+     .debt-row's own overflow:hidden clip. */
+  border-radius:18px;
 }
 .debt-row-swipe-delete .ico{margin-right:0;width:21px;height:21px}
 .recur-paused{opacity:.55}
@@ -1075,11 +1087,34 @@ body.amounts-hidden #fx-converter-result{
     animation:sheetUp .32s cubic-bezier(.22,1,.36,1);
   }
   .modal-card.sheet-dragging{transition:none}
+  /* The draggable hit-box now spans the full card width (not just the
+     visible 36x4 bar, which used to *also* be the actual hit area — a
+     real-device report was "swipe-down barely works, especially near the
+     corner": starting a drag from the top-left/top-right of the sheet
+     (where a thumb naturally lands, drawn toward the sheet's rounded top
+     corners) missed the centered 36px-wide grabber entirely and fell
+     through to .modal-card-body's bare, listener-less padding — a dead
+     zone with no visual boundary, so it read as "sometimes works,
+     sometimes doesn't" rather than a hard failure. The bar itself is now a
+     ::after pseudo-element so the visible size is unchanged; only the
+     invisible hit-box grew. */
   .sheet-grabber{
-    display:block;width:36px;height:4px;border-radius:99px;flex-shrink:0;
-    background:var(--border2);margin:10px auto 2px;cursor:grab;
+    display:flex;align-items:center;justify-content:center;
+    /* width:100% alone only spans .modal-card-body's *content* box, which
+       is still inset by that element's own 24px left/right padding — the
+       exact same listener-less-padding dead zone this whole change exists
+       to eliminate, just now a vertical strip instead of a corner (caught
+       by a Codex review, PR #200). calc(100% + 48px) + -24px side margins
+       cancels that padding out so the hit-box bleeds all the way to
+       .modal-card's own rounded-corner edge — .modal-card's
+       overflow:hidden still clips it to that rounded shape, it just no
+       longer stops short of it. */
+    width:calc(100% + 48px);height:28px;flex-shrink:0;margin:2px -24px -4px;cursor:grab;touch-action:none;
   }
-  /* Drag-to-dismiss also grabs from here, not just the thin bar above -
+  .sheet-grabber::after{
+    content:'';width:36px;height:4px;border-radius:99px;background:var(--border2);
+  }
+  /* Drag-to-dismiss also grabs from here, not just the bar above -
      see js/ui-widgets.js's initSheetDrag(). */
   .modal-header{cursor:grab;touch-action:none}
 }
