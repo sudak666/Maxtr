@@ -182,6 +182,7 @@
   setIcon('ic-goals','flag');
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
+  setIcon('ic-qa-tx','plus');
   setIcon('ic-qa-tools','grid');
   setIcon('ic-qa-budgets','target');
   setIcon('ic-qa-goals','flag');
@@ -363,7 +364,7 @@
       rates_source_hint:'ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.',
       fx_widget_title:'Курси валют', fx_name_usd:'Долар США', fx_name_eur:'Євро', fx_name_gbp:'Фунт стерлінгів', fx_name_pln:'Злотий',
       fx_converter_title:'Конвертер валют', fx_converter_amount:'Сума', fx_converter_from:'З', fx_converter_to:'В',
-      qa_rates:'Курси', qa_converter:'Конвертер', qa_analytics:'Аналітика', qa_tools:'Інструменти',
+      qa_rates:'Курси', qa_converter:'Конвертер', qa_analytics:'Аналітика', qa_transaction:'Операція', qa_tools:'Інструменти',
       tools_modal_title:'Інструменти',
       settings_widgets:'Віджети', settings_widgets_sub:'Що показувати на вкладці Фінанси', widgets_desc:'Увімкни, вимкни й переставляй блоки на вкладці "Фінанси".',
       widgets_move_up:'Вище', widgets_move_down:'Нижче',
@@ -607,7 +608,7 @@
       rates_source_hint:'PrivatBank only provides cash rates for USD/EUR; other currencies use the NBU rate.',
       fx_widget_title:'Exchange rates', fx_name_usd:'US Dollar', fx_name_eur:'Euro', fx_name_gbp:'British Pound', fx_name_pln:'Polish Zloty',
       fx_converter_title:'Currency converter', fx_converter_amount:'Amount', fx_converter_from:'From', fx_converter_to:'To',
-      qa_rates:'Rates', qa_converter:'Converter', qa_analytics:'Analytics', qa_tools:'Tools',
+      qa_rates:'Rates', qa_converter:'Converter', qa_analytics:'Analytics', qa_transaction:'Transaction', qa_tools:'Tools',
       tools_modal_title:'Tools',
       settings_widgets:'Widgets', settings_widgets_sub:'What shows on the Finance tab', widgets_desc:'Turn Finance-tab blocks on or off, and reorder them.',
       widgets_move_up:'Move up', widgets_move_down:'Move down',
