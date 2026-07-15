@@ -126,6 +126,7 @@
   setIcon('ic-notif-recurring','repeat');
   setIcon('ic-notif-debt','bell');
   setIcon('ic-settings-appearance','sun');
+  setIcon('ic-settings-privacy-cache','lock');
   setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-about','info');
   setIcon('ic-set-premium','star');
@@ -179,6 +180,7 @@
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-fin-fab','plus');
+  setIcon('ic-tx-search','search');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
@@ -246,6 +248,9 @@
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       notif_debt_title:'Наближається термін боргу', notif_debt_body:'Завтра настає дата, до якої треба віддати "{name}".',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
+      privacy_cache_title:'Локальний кеш даних', privacy_cache_hint_on:'Швидший запуск: фінансові дані зберігаються на цьому пристрої.',
+      privacy_cache_hint_off:'Приватний режим: фінансовий кеш очищено, дані завантажуються з хмари після входу.',
+      privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
       settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
@@ -292,6 +297,8 @@
       finance_tags:'Теги', finance_date:'Дата', finance_comment:'Коментар', finance_comment_placeholder:'Деталі операції...',
       finance_amount_prefix:'Сума', finance_add_btn:'Додати запис', finance_history_title:'Історія операцій',
       finance_filter_all:'Всі', finance_filter_reset:'Скинути ✕', finance_records_suffix:'записів', finance_no_records:'Записів немає',
+      finance_search_placeholder:'Пошук за коментарем, категорією, гаманцем…',
+      finance_search_empty_title:'Нічого не знайдено', finance_search_empty_desc:'Зміни фільтр або пошуковий запит, щоб побачити операції.',
       finance_view_all:'Переглянути всі', finance_show_less:'Згорнути',
       toast_tx_updated:'Запис оновлено', toast_transfer_done:'Переказ виконано', toast_tx_added:'Запис додано',
       toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
@@ -495,6 +502,9 @@
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       notif_debt_title:'Debt due soon', notif_debt_body:'Tomorrow is the due date to pay off "{name}".',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
+      privacy_cache_title:'Local data cache', privacy_cache_hint_on:'Faster startup: financial data is stored on this device.',
+      privacy_cache_hint_off:'Private mode: financial cache is cleared and data loads from the cloud after sign-in.',
+      privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
       settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
@@ -541,6 +551,8 @@
       finance_tags:'Tags', finance_date:'Date', finance_comment:'Comment', finance_comment_placeholder:'Transaction details...',
       finance_amount_prefix:'Amount', finance_add_btn:'Add entry', finance_history_title:'Transaction history',
       finance_filter_all:'All', finance_filter_reset:'Reset ✕', finance_records_suffix:'records', finance_no_records:'No records yet',
+      finance_search_placeholder:'Search by comment, category, wallet…',
+      finance_search_empty_title:'Nothing found', finance_search_empty_desc:'Change the filter or search query to see transactions.',
       finance_view_all:'View all', finance_show_less:'Show less',
       toast_tx_updated:'Entry updated', toast_transfer_done:'Transfer completed', toast_tx_added:'Entry added',
       toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',

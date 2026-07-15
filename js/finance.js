@@ -8,8 +8,9 @@ import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { PALETTE, convertCurrency, currencySymbol, subKey, toBase, walletById, walletCurrency } from './core.js';
 import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
+import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
-import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 export function refreshWalletSelects(){
   ['fin-wallet','fin-wallet-target'].forEach((selId,i)=>{
@@ -88,6 +89,13 @@ export function fillSubcats(){
   group.style.display = subs.length ? 'flex' : 'none';
 }
 
+function newTransactionId(){
+  try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return uid('tx');
+}
+
+function sameTxId(a,b){ return String(a)===String(b); }
+
 export async function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const amount=parseFloat(ai?.value);
@@ -107,10 +115,10 @@ export async function addTransaction(){
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
   }
   if(AppState.editingTxId!=null){
-    const t=AppState.transactions.find(x=>x.id===AppState.editingTxId);
+    const t=AppState.transactions.find(x=>sameTxId(x.id,AppState.editingTxId));
     if(t) Object.assign(t,{type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
     cancelEditTransaction();
-    const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
+    const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
     // Writes straight to this transaction's own subcollection doc rather
     // than scheduleSave()'s whole-finance-doc rewrite — see
     // js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION section.
@@ -120,9 +128,9 @@ export async function addTransaction(){
     showToast(tr('toast_tx_updated'),'check');
     return;
   }
-  const newTx={id:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
+  const newTx={id:newTransactionId(),createdAt:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
   AppState.transactions.unshift(newTx);
-  const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
+  const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
   saveTransactionDoc(newTx).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
@@ -147,14 +155,14 @@ export async function addTransaction(){
 
 export async function deleteTransaction(id){
   if(!(await uiConfirm(tr('finance_delete_confirm'),{title:tr('finance_delete_title'),okText:tr('common_delete'),danger:true}))) return;
-  AppState.transactions=AppState.transactions.filter(t=>t.id!==id);
-  const txKey=lsKey('tx'); if(txKey) localStorage.setItem(txKey,JSON.stringify(AppState.transactions));
+  AppState.transactions=AppState.transactions.filter(t=>!sameTxId(t.id,id));
+  const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
   deleteTransactionDoc(id).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderFinance(); renderFinanceChart();
 }
 
 export const editTransaction = function(id){
-  const t=AppState.transactions.find(x=>x.id===id); if(!t) return;
+  const t=AppState.transactions.find(x=>sameTxId(x.id,id)); if(!t) return;
   AppState.editingTxId=id;
   setFinanceType(t.type);
 
@@ -201,11 +209,17 @@ const closeTxModal = function(){
   const m=document.getElementById('tx-form-modal'); if(m) m.style.display='none';
 };
 
+export function setTxSearch(value){
+  AppState.txSearch=String(value||'').trim().toLowerCase();
+  renderFinance();
+}
+
 export function setTxFilter(f){
   AppState.txFilter=f;
   document.querySelectorAll('.filter-chip').forEach(c=>{
     c.classList.toggle('active',c.dataset.filter===f);
   });
+  syncClickableA11yState(document.getElementById('tab-finance'));
   renderFinance();
 }
 
@@ -268,7 +282,7 @@ const deleteTag = async function(id){
   const affected=[];
   AppState.transactions.forEach(t=>{ if(Array.isArray(t.tags)&&t.tags.includes(id)){ t.tags=t.tags.filter(tid=>tid!==id); affected.push(t); } });
   saveConfigLocal();
-  const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
+  const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
   // tags[] itself is a finance-doc field (needs scheduleSave()); the
   // individual transactions that referenced this tag are their own
   // subcollection docs and get updated directly instead.
@@ -423,10 +437,16 @@ document.addEventListener('click', e=>{
 const FIELD_ACTIONS = {
   'update-tag': (ds,el)=>updateTag(ds.id, ds.field, el.value),
   'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
+  'set-tx-search': (ds,el)=>setTxSearch(el.value),
 };
-document.addEventListener('change', e=>{
+function dispatchFinanceFieldAction(e){
   const el=e.target.closest('[data-action]');
   if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+}
+document.addEventListener('change', dispatchFinanceFieldAction);
+document.addEventListener('input', e=>{
+  const el=e.target.closest('[data-action="set-tx-search"]');
+  if(el) setTxSearch(el.value);
 });
 
 // Still window-exposed: js/analytics-csv.js's transaction-row template
