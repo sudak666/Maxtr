@@ -419,6 +419,66 @@ await test('sweepToken: multi-profile account sweeps every profile independently
   assert.equal(tokenDoc.ref._written.profileState.p2, undefined);
 });
 
+// Real report this pair of tests was added for: an account with two
+// profiles enabled on the same device got two literally-identical "Не
+// забудь записати сьогоднішні операції" push notifications at once — the
+// per-profile dedup was working correctly (each profile independently
+// determined it needed reminding), but sending one push per profile to the
+// same token reads as a broken duplicate, not two distinct reminders. See
+// sweep.js's dailyReminderNeeded()/sweepToken() consolidation comment.
+await test('sweepToken: two profiles both due for the daily reminder on the same device get exactly one consolidated push, naming both', async () => {
+  const uid = 'u4b';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/profiles_meta`, { list: [{ id: 'default', name: 'Я' }, { id: 'p2', name: 'Дружина' }] }],
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    [`users/${uid}/max_tracker/finance@p2`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {}, // also no transaction logged today
+    }],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(uid, { token: 'tok4b' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 1); // one push total, not two
+  assert.equal(sent[0].title, 'Zminka');
+  assert.equal(sent[0].type, 'daily');
+  assert.match(sent[0].body, /Я/);
+  assert.match(sent[0].body, /Дружина/);
+  // Both profiles' own dedup state gets marked, even though only one push
+  // was actually sent — next hour's sweep must not re-remind either one.
+  assert.equal(tokenDoc.ref._written.profileState.default.sentDaily, '2026-07-15');
+  assert.equal(tokenDoc.ref._written.profileState.p2.sentDaily, '2026-07-15');
+});
+
+await test('sweepToken: consolidated daily push falls back to the generic single-profile text when a profile has no name in profiles_meta', async () => {
+  const uid = 'u4d';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/profiles_meta`, { list: [{ id: 'default' }, { id: 'p2' }] }], // no `name` on either
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    [`users/${uid}/max_tracker/finance@p2`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(uid, { token: 'tok4d' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 1); // still just one push, even without names to list
+  assert.equal(sent[0].body, 'Не забудь записати сьогоднішні операції.');
+  assert.equal(tokenDoc.ref._written.profileState.default.sentDaily, '2026-07-15');
+  assert.equal(tokenDoc.ref._written.profileState.p2.sentDaily, '2026-07-15');
+});
+
 await test('sweepToken: fetches the transactions subcollection alongside the finance doc and uses it for the daily check', async () => {
   const uid = 'u4c';
   const docs = new Map([

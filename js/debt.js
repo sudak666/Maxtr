@@ -293,7 +293,7 @@ export function renderDebt(){
     ` : `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view">${escapeHtml(entry.amount??'')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${escapeHtml(entry.date??'')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${entry.date?escapeHtml(entry.date):'—'}</div></div>
       <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
     row.innerHTML=`
