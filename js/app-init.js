@@ -168,15 +168,25 @@ function setupPullToRefresh(){
 // after scrolling stops. One listener drives every .fin-fab on the page
 // (there are two — Finance and Debt tabs — but only one is ever visible at
 // a time since switchTab() hides the other's whole tab section).
+// Listens on `document` with useCapture:true, not a plain `window` 'scroll'
+// listener — 'scroll' events never bubble (not even from document up to
+// window), and on a real account with more than a handful of rows, the
+// actual scrolling happens *inside* `#tx-list-container`/`.debt-list`
+// (index.html, both a fixed max-height with their own `overflow-y:auto`,
+// not the page itself), not on window/document. A bubble-phase or
+// window-only listener silently never sees those scrolls, so the FAB never
+// collapses — the capture phase still traverses top-down through every
+// ancestor regardless of bubbling, so this is the only way one listener
+// can catch scrolling in any current or future nested scroll container.
 function setupFabExpandCollapse(){
   const fabs=document.querySelectorAll('.fin-fab');
   if(!fabs.length) return;
   let collapseTimer=null;
-  window.addEventListener('scroll', ()=>{
+  document.addEventListener('scroll', ()=>{
     fabs.forEach(f=>f.classList.add('fab-collapsed'));
     clearTimeout(collapseTimer);
     collapseTimer=setTimeout(()=>{ fabs.forEach(f=>f.classList.remove('fab-collapsed')); }, 600);
-  }, {passive:true});
+  }, {passive:true, capture:true});
 }
 
 export function switchTab(tab){
