@@ -370,42 +370,50 @@ export function initSegThumb(container, opts={}){
 }
 
 // Drag-to-dismiss for the bottom-sheet presentation .modal-card gets under
-// the 600px breakpoint (see index.html's "BOTTOM SHEET" CSS block) — only
-// active on the .sheet-grabber handle itself, never the surrounding
-// .modal-card-body, so it can never fight that body's own vertical scroll.
-// onDismiss is passed in by the caller (closeManagers() in
-// settings-managers.js) rather than imported here, so this file doesn't
-// need a new cross-file edge back to settings-managers.js.
+// the 600px breakpoint (see index.html's "BOTTOM SHEET" CSS block) — active
+// on the .sheet-grabber handle AND the .modal-header title above the
+// scrollable body, never on .modal-card-body itself, so it can never fight
+// that body's own vertical scroll. The header is included (not just the
+// 36x4px grabber bar) because that bar alone is too small a target to
+// reliably grab on a real touchscreen — reported as "I open Інструменти and
+// can't just swipe it down to close it" even though the grabber-only drag
+// was technically already there. onDismiss is passed in by the caller
+// (closeManagers() in settings-managers.js) rather than imported here, so
+// this file doesn't need a new cross-file edge back to settings-managers.js.
 export function initSheetDrag(card, onDismiss){
   const grabber=card.querySelector('.sheet-grabber');
-  if(!grabber || grabber.dataset.dragInit) return;
-  grabber.dataset.dragInit='1';
+  const header=card.querySelector('.modal-header');
+  const handles=[grabber, header].filter(Boolean);
+  if(!handles.length || card.dataset.dragInit) return;
+  card.dataset.dragInit='1';
   const DISMISS_PX=110;
-  let dragging=false, startY=0, dy=0;
-  grabber.addEventListener('pointerdown', e=>{
-    if(getComputedStyle(grabber).display==='none') return; // desktop width — sheet mode is off
-    dragging=true; startY=e.clientY; dy=0;
-    card.classList.add('sheet-dragging');
-    try{ grabber.setPointerCapture(e.pointerId); }catch(err){}
+  let dragging=false, startY=0, dy=0, activeHandle=null;
+  handles.forEach(handle=>{
+    handle.addEventListener('pointerdown', e=>{
+      if(!grabber || getComputedStyle(grabber).display==='none') return; // desktop width — sheet mode is off
+      dragging=true; startY=e.clientY; dy=0; activeHandle=handle;
+      card.classList.add('sheet-dragging');
+      try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    handle.addEventListener('pointermove', e=>{
+      if(!dragging || activeHandle!==handle) return;
+      dy=Math.max(0, e.clientY-startY);
+      card.style.transform=`translateY(${dy}px)`;
+    });
+    const endDrag=()=>{
+      if(!dragging || activeHandle!==handle) return;
+      dragging=false; activeHandle=null;
+      card.classList.remove('sheet-dragging');
+      if(dy>DISMISS_PX){
+        card.style.transform='translateY(100%)';
+        setTimeout(()=>{ onDismiss(); card.style.transform=''; }, 220);
+      } else {
+        card.style.transform='';
+      }
+    };
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
   });
-  grabber.addEventListener('pointermove', e=>{
-    if(!dragging) return;
-    dy=Math.max(0, e.clientY-startY);
-    card.style.transform=`translateY(${dy}px)`;
-  });
-  function endDrag(){
-    if(!dragging) return;
-    dragging=false;
-    card.classList.remove('sheet-dragging');
-    if(dy>DISMISS_PX){
-      card.style.transform='translateY(100%)';
-      setTimeout(()=>{ onDismiss(); card.style.transform=''; }, 220);
-    } else {
-      card.style.transform='';
-    }
-  }
-  grabber.addEventListener('pointerup', endDrag);
-  grabber.addEventListener('pointercancel', endDrag);
 }
 
 // Top-level statements that DO something immediately (as opposed to a

@@ -124,7 +124,7 @@ async function main() {
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
     await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
-    await page.click('#nav-settings');
+    await page.click('#btn-settings');
     await page.waitForTimeout(300);
 
     // ── in-card "Готово" button (data-close-modal) closes the modal ──
@@ -153,7 +153,7 @@ async function main() {
     // on close. Verifies the generic MutationObserver-based wiring, not any
     // one modal's own bespoke logic — see CLAUDE.md's Firebase-data-model-
     // adjacent UI notes for how this differs from closeManagers()'s id list. ──
-    await page.focus('#nav-settings');
+    await page.focus('#btn-settings');
     await page.evaluate(() => window.openWalletsManager && window.openWalletsManager());
     await page.waitForSelector('#wallets-modal', { state: 'visible' });
     await page.waitForTimeout(50); // the initial-focus setTimeout(...,0) in setupModalAccessibility()
@@ -166,8 +166,8 @@ async function main() {
     await page.waitForSelector('#wallets-modal', { state: 'hidden' });
     console.log('[ok] pressing Escape closes the topmost open modal');
 
-    const focusReturnedToTrigger = await page.evaluate(() => document.activeElement?.id === 'nav-settings');
-    if (!focusReturnedToTrigger) throw new Error(`expected focus to return to #nav-settings after Escape-closing the modal, got #${await page.evaluate(() => document.activeElement?.id)}`);
+    const focusReturnedToTrigger = await page.evaluate(() => document.activeElement?.id === 'btn-settings');
+    if (!focusReturnedToTrigger) throw new Error(`expected focus to return to #btn-settings after Escape-closing the modal, got #${await page.evaluate(() => document.activeElement?.id)}`);
     console.log('[ok] closing a modal (via Escape) returns focus to the element that triggered it');
 
     // Focus trap: Tab from the last focusable element in the card wraps

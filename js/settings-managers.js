@@ -701,19 +701,42 @@ const openBudgetsManager = function(){
   document.getElementById('budgets-modal').style.display='flex';
 };
 
+const toggleBudgetEdit = function(cat){
+  AppState.expandedBudgetCat = AppState.expandedBudgetCat===cat ? null : cat;
+  renderBudgetsManagerList();
+};
+
+// Compact-manager-row pattern (icon badge + summary + pencil toggle that
+// reveals the editable field) — matches auto-rules/recurring managers, see
+// CLAUDE.md's "Compact manager row" note. Replaces the old always-visible,
+// always-editable raw <input>, which was also the one amount in the app not
+// covered by the "Сховати суми" privacy toggle (see .budget-row-limit in
+// the body.amounts-hidden CSS list) since a live input can't be blurred.
 function renderBudgetsManagerList(){
   const box=document.getElementById('budgets-list-mgr'); if(!box) return;
   box.innerHTML='';
   const list=AppState.categories.expense||[];
   if(!list.length){ box.innerHTML=`<div class="mgr-empty">${tr('budgets_empty')}</div>`; return; }
   list.forEach(name=>{
-    const val=AppState.budgets[name]||'';
+    const val=AppState.budgets[name]||0;
+    const open=AppState.expandedBudgetCat===name;
     const row=document.createElement('div');
     row.className='mgr-row budget-row';
+    row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
-      <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
-      <span class="budget-row-name">${escapeHtml(name)}</span>
-      <input type="number" class="mgr-num budget-row-input" min="0" step="0.01" placeholder="0" value="${val}" data-action="update-budget" data-cat="${escapeHtml(name)}">
+      <div class="cat-row">
+        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
+        <div class="cat-row-body" style="cursor:default">
+          <span class="cat-row-name">${escapeHtml(name)}</span>
+          <span class="cat-row-sub budget-row-limit">${val>0?val.toLocaleString('uk-UA')+' грн':tr('budgets_no_limit')}</span>
+        </div>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-budget-edit" data-cat="${escapeHtml(name)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+      </div>
+      ${open?`
+      <div class="mgr-field" style="padding-top:6px;border-top:1px dashed var(--border)">
+        <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
+        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${val||''}" data-action="update-budget" data-cat="${escapeHtml(name)}">
+      </div>`:''}
     `;
     box.appendChild(row);
   });
@@ -936,6 +959,7 @@ const CLICK_ACTIONS = {
   'cat-action-show-tx': ()=>catActionShowTx(),
   'cat-action-delete': ()=>catActionDelete(),
   'open-budgets-manager': ()=>openBudgetsManager(),
+  'toggle-budget-edit': ds=>toggleBudgetEdit(ds.cat),
   'open-recurring-manager': ()=>openRecurringManager(),
   'toggle-recurring-edit': ds=>toggleRecurringEdit(ds.id),
   'add-recurring': ()=>addRecurring(),

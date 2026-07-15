@@ -654,6 +654,11 @@ onAuthStateChanged(auth, async (user)=>{
   AppState.currentUser=user;
   if(user) loadActiveProfileId();
   const lockScreen=document.getElementById('lock-screen');
+  // Reveal the real lock-screen content (sign-in form, if we're about to show
+  // it at all) only once the persisted-session check has actually resolved -
+  // see the lock-screen-checking CSS comment in index.html for why this
+  // class starts on by default.
+  lockScreen?.classList.remove('lock-screen-checking');
   const signOutBtn=document.getElementById('settings-signout');
   const deleteBtn=document.getElementById('settings-delete-account');
   const pinBtn=document.getElementById('settings-pin');

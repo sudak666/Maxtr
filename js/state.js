@@ -107,6 +107,7 @@ export const AppState = {
   catActionIdx: null,
   expandedRuleId: null,
   expandedRecurringId: null,
+  expandedBudgetCat: null,
   expandedGoalId: null,
   showNewGoalForm: false,
   messagingInstance: null,
