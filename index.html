@@ -204,9 +204,30 @@ button,input,select,textarea{font-family:inherit}
    that shows only the brand + a spinner (an expected splash, not a wrong
    screen) and hides the auth form/lang toggle until the real state is known -
    see js/auth.js's onAuthStateChanged handler, which removes this class on
-   its very first callback either way. */
+   its very first callback either way.
+   Pure-CSS safety net: sw.js serves js/*.js cache-first, so right after a
+   deploy a client whose service worker hasn't updated yet can load this
+   fresh index.html while still running an old cached auth.js that has never
+   heard of this class and will never remove it - a signed-out user on that
+   stale JS would otherwise be stuck looking at just the spinner forever,
+   unable to reach the sign-in form at all. The delayed animation below
+   force-reveals the form after a few seconds regardless of whether any JS
+   ever removes the class - a no-op in the normal case, since the class is
+   gone (JS removes it well under a second in) long before this fires. The
+   `display:none` MUST live only inside the keyframes (not as a separate
+   static property alongside the animation) with `animation-fill-mode:both`
+   - confirmed by hand: a static `display:none` + a `to{display:block}`-only
+   keyframe never fires at all (animationend never dispatches), while
+   `from{display:none} to{display:block}` + `both` correctly holds `none`
+   through the delay and flips to `block` right after. Relies on modern
+   browsers' discrete `display` keyframe support (Chrome/Safari 2023+);
+   harmlessly does nothing on anything older, same as if this rule weren't
+   here at all. */
 .lock-screen.lock-screen-checking .auth-card,
-.lock-screen.lock-screen-checking > div:first-child{display:none}
+.lock-screen.lock-screen-checking > div:first-child{
+  animation:lockScreenForceReveal .01s 4s both;
+}
+@keyframes lockScreenForceReveal{ from{display:none} to{display:block} }
 .lock-checking-spinner{display:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--border2);border-top-color:var(--purple);animation:spin .8s linear infinite}
 .lock-screen.lock-screen-checking .lock-checking-spinner{display:block}
 @media(prefers-reduced-motion:reduce){.lock-checking-spinner{animation:none}}
@@ -1897,6 +1918,15 @@ body.amounts-hidden #fx-converter-result{
   <button id="nav-shifts" class="tab-btn tab-c-shifts"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
   <button id="nav-debt" class="tab-btn tab-c-debt"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
   <button id="nav-shopping" class="tab-btn tab-c-shopping"><span class="tab-icon-wrap"><span id="tab-icon-shopping"></span></span><span data-i18n="nav_shopping">Покупки</span></button>
+  <!-- Kept in the DOM (not deleted) purely so a stale cached js/app-init.js
+       from before this element was removed from the visible nav - sw.js
+       serves js/*.js cache-first, so a client whose service worker hasn't
+       updated yet can fetch this fresh index.html while still running old
+       JS for a while - doesn't null-deref on the old unguarded
+       document.getElementById('nav-settings').classList.toggle(...) call
+       inside switchTab() and abort init() partway through. Never shown or
+       reachable: #btn-settings in the topbar is the real entry point now. -->
+  <button id="nav-settings" class="tab-btn tab-c-settings" style="display:none" tabindex="-1" aria-hidden="true"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
 </nav>
 
 <!-- MODAL ЗМІНИ -->
