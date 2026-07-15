@@ -181,7 +181,10 @@ async function main() {
     if (!bodyText || bodyText.trim().length === 0) throw new Error('page is blank after sign-in/onboarding');
     console.log('[ok] page not blank after onboarding');
 
-    const tabs = ['finance', 'shifts', 'debt', 'shopping', 'settings'];
+    // "settings" has no #nav-settings bottom-tab button (removed - see
+    // CLAUDE.md's Mobile UI redesign section); it's reached via the topbar
+    // gear button (#btn-settings) instead, so it's driven separately below.
+    const tabs = ['finance', 'shifts', 'debt', 'shopping'];
     for (const tab of tabs) {
       await page.click(`#nav-${tab}`);
       await page.waitForTimeout(300);
@@ -189,6 +192,10 @@ async function main() {
       if (!visible) throw new Error(`#tab-${tab} did not become visible after switching to it`);
       console.log(`[ok] tab "${tab}" renders`);
     }
+    await page.click('#btn-settings');
+    await page.waitForTimeout(300);
+    if (!(await page.isVisible('#tab-settings'))) throw new Error('#tab-settings did not become visible after clicking #btn-settings');
+    console.log('[ok] tab "settings" renders (via topbar gear button)');
 
     // updateRatesOnline() auto-fires on load to fetch live NBU exchange
     // rates from a real external bank API (by design — see CLAUDE.md's

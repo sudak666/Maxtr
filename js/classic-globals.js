@@ -109,11 +109,10 @@
     document.body.classList.toggle('amounts-hidden', hideAmt);
     setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
   }catch(e){}
-  setIcon('ic-goto-settings','gear');
   setIcon('ic-settings-search','search');
   setIcon('ic-settings-tip','sparkle');
   setIcon('ic-settings-tip-close','xmark');
-  setIcon('tab-icon-settings','gear');
+  setIcon('ic-topbar-settings','gear');
   setIcon('ic-settings-profile','person');
   setIcon('ic-nickname-edit','pencil');
   setIcon('ic-settings-profiles','people');
@@ -147,7 +146,6 @@
   setIcon('ic-set-rules','sparkle');
   setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
-  document.querySelectorAll('.settings-row-chevron').forEach(function(el){ el.innerHTML=window.Icon('chevron'); });
   setIcon('ic-set-terms','doc');
   setIcon('ic-set-privacy','lock');
   setIcon('tab-icon-shifts','calendar');
@@ -184,7 +182,6 @@
   setIcon('ic-goals','flag');
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
-  setIcon('ic-qa-rates','swap');
   setIcon('ic-qa-tools','grid');
   setIcon('ic-qa-budgets','target');
   setIcon('ic-qa-goals','flag');
@@ -410,6 +407,7 @@
       cat_showing:'Показано:', cat_add:'Додати категорію',
       budgets_empty:'Немає категорій витрат', budgets_limit_label:'Ліміт/міс, грн', budgets_over_by:'Перевищено на',
       budgets_title:'Бюджети по категоріях', budgets_desc:'Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.',
+      budgets_no_limit:'Без ліміту',
       recurring_empty:'Немає повторюваних операцій', recurring_type:'Тип', recurring_amount:'Сума',
       recurring_frequency:'Частота', recurring_daily:'Щодня', recurring_weekly:'Щотижня', recurring_monthly:'Щомісяця',
       recurring_next_date:'Наступного разу', recurring_active:'активна', recurring_paused_label:'на паузі',
@@ -653,6 +651,7 @@
       cat_showing:'Showing:', cat_add:'Add category',
       budgets_empty:'No expense categories', budgets_limit_label:'Limit/month, UAH', budgets_over_by:'Over by',
       budgets_title:'Budgets by category', budgets_desc:'Monthly spending limit per category. Leave blank or 0 for no budget.',
+      budgets_no_limit:'No limit',
       recurring_empty:'No recurring transactions', recurring_type:'Type', recurring_amount:'Amount',
       recurring_frequency:'Frequency', recurring_daily:'Daily', recurring_weekly:'Weekly', recurring_monthly:'Monthly',
       recurring_next_date:'Next time', recurring_active:'active', recurring_paused_label:'paused',

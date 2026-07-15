@@ -176,10 +176,10 @@ button,input,select,textarea{font-family:inherit}
 /* ── ICONS (monochrome, line-style) ── */
 .ico{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;margin-right:6px}
 .btn .ico,.tab-btn .ico,.chart-title .ico,.tools-label .ico,.fin-form-title .ico,.tx-cat .ico,.wallet-tag .ico,#toast .ico,.chk-name .ico{margin-right:0}
-.btn .ico{width:16px;height:16px}
+.btn .ico{width:18px;height:18px}
 .tab-btn .ico{width:15px;height:15px}
-.chart-title .ico{width:14px;height:14px}
-.tools-label .ico{width:13px;height:13px}
+.chart-title .ico{width:16px;height:16px}
+.tools-label .ico{width:15px;height:15px}
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:6px;height:6px}
@@ -197,6 +197,40 @@ button,input,select,textarea{font-family:inherit}
 }
 .lock-screen.lock-hide{opacity:0;transform:scale(1.04);pointer-events:none}
 .lock-brand{display:flex;flex-direction:column;align-items:center;gap:10px}
+/* Firebase Auth's persisted-session check is asynchronous (onAuthStateChanged
+   fires after a brief IndexedDB read), so on every page refresh the lock-screen
+   would otherwise paint the full sign-in form for a moment even for an already
+   logged-in user before it gets hidden. Start in a "checking session" state
+   that shows only the brand + a spinner (an expected splash, not a wrong
+   screen) and hides the auth form/lang toggle until the real state is known -
+   see js/auth.js's onAuthStateChanged handler, which removes this class on
+   its very first callback either way.
+   Pure-CSS safety net: sw.js serves js/*.js cache-first, so right after a
+   deploy a client whose service worker hasn't updated yet can load this
+   fresh index.html while still running an old cached auth.js that has never
+   heard of this class and will never remove it - a signed-out user on that
+   stale JS would otherwise be stuck looking at just the spinner forever,
+   unable to reach the sign-in form at all. The delayed animation below
+   force-reveals the form after a few seconds regardless of whether any JS
+   ever removes the class - a no-op in the normal case, since the class is
+   gone (JS removes it well under a second in) long before this fires. The
+   `display:none` MUST live only inside the keyframes (not as a separate
+   static property alongside the animation) with `animation-fill-mode:both`
+   - confirmed by hand: a static `display:none` + a `to{display:block}`-only
+   keyframe never fires at all (animationend never dispatches), while
+   `from{display:none} to{display:block}` + `both` correctly holds `none`
+   through the delay and flips to `block` right after. Relies on modern
+   browsers' discrete `display` keyframe support (Chrome/Safari 2023+);
+   harmlessly does nothing on anything older, same as if this rule weren't
+   here at all. */
+.lock-screen.lock-screen-checking .auth-card,
+.lock-screen.lock-screen-checking > div:first-child{
+  animation:lockScreenForceReveal .01s 4s both;
+}
+@keyframes lockScreenForceReveal{ from{display:none} to{display:block} }
+.lock-checking-spinner{display:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--border2);border-top-color:var(--purple);animation:spin .8s linear infinite}
+.lock-screen.lock-screen-checking .lock-checking-spinner{display:block}
+@media(prefers-reduced-motion:reduce){.lock-checking-spinner{animation:none}}
 
 /* ── ONBOARDING ── */
 .onboard-screen{
@@ -342,9 +376,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   -webkit-tap-highlight-color:transparent;
 }
 .tab-btn:active{transform:scale(.88)}
-.tab-icon-wrap{position:relative;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .2s,color .2s,box-shadow .2s;--tab-glow:139,92,246}
+.tab-icon-wrap{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .2s,color .2s,box-shadow .2s;--tab-glow:139,92,246}
 .tab-icon-wrap::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none}
-.tab-btn .ico{width:20px;height:20px;margin-right:0;position:relative;z-index:1}
+.tab-btn .ico{width:23px;height:23px;margin-right:0;position:relative;z-index:1}
 .tab-btn.active{color:var(--text-strong)}
 @keyframes tabIconPop{
   0%{transform:scale(1) translateY(0)}
@@ -398,8 +432,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .quick-actions{display:flex;justify-content:space-between;gap:16px;overflow-x:auto;padding:2px 2px 14px;margin-bottom:6px;scrollbar-width:none}
 .quick-actions::-webkit-scrollbar{display:none}
 .quick-action{display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto;width:auto;min-width:68px;max-width:84px;cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
-.quick-action-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple3));box-shadow:var(--shadow-quick-icon);transition:transform .15s}
-.quick-action-icon .ico{width:24px;height:24px;margin-right:0}
+.quick-action-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple3));box-shadow:var(--shadow-quick-icon);transition:transform .15s}
+.quick-action-icon .ico{width:26px;height:26px;margin-right:0}
 .quick-action:active .quick-action-icon{transform:scale(.9)}
 .quick-action-label{font-size:11.5px;font-weight:700;color:var(--text-strong);text-align:center;line-height:1.2;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
 .stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
@@ -429,8 +463,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-row-text{flex:1 1 auto;min-width:0}
 .settings-row-title{font-size:13.5px;font-weight:600;color:var(--text-strong)}
 .settings-row-sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
-.settings-row-chevron{color:var(--muted);flex-shrink:0;transform:rotate(-90deg);width:16px;height:16px}
-.settings-row-chevron .ico{margin-right:0}
 .settings-search{position:relative;margin:-6px 0 18px}
 .settings-search input{width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text-strong);padding:12px 42px;border-radius:18px;font-size:14px;font-weight:700;outline:none}
 .settings-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);margin:0}
@@ -870,7 +902,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tx-meta{font-size:12px;color:var(--muted);font-weight:400;margin-top:1px}
 .tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-.tx-actions{display:flex;align-items:center;gap:2px}
+/* gap bumped from 2px: with .tx-del's larger touch target below, a near-zero
+   gap made it easy to intend the trash button and land on the pencil one
+   instead (or vice versa) on a real touchscreen - reported as "deleting a
+   transaction opens edit instead". */
+.tx-actions{display:flex;align-items:center;gap:10px}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap}
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
@@ -887,11 +923,12 @@ body.amounts-hidden .chip-stat-val,
 body.amounts-hidden .fin-mini-stat-val,
 body.amounts-hidden .fin-chart-total,
 body.amounts-hidden .fin-chart-tooltip,
+body.amounts-hidden .budget-row-limit,
 body.amounts-hidden #fx-converter-result{
   filter:blur(7px);user-select:none;transition:filter .15s;
 }
-.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:13px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
-.tx-del .ico{margin-right:0;width:19px;height:19px}
+.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:14px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
+.tx-del .ico{margin-right:0;width:22px;height:22px}
 .tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 
 .wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;max-width:100%;overflow:hidden;flex-shrink:0}
@@ -917,7 +954,7 @@ body.amounts-hidden #fx-converter-result{
 .debt-chip-add-labeled{width:auto;height:auto;padding:15px 20px 15px 16px;border-radius:999px;gap:7px}
 .debt-chip-add-labeled .ico{width:14px;height:14px}
 .debt-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:17px;border-radius:50%;display:inline-flex;transition:all .15s}
-.debt-chip-del .ico{margin-right:0;width:14px;height:14px}
+.debt-chip-del .ico{margin-right:0;width:17px;height:17px}
 .debt-chip-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;padding-right:2px}
 .debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;transition:all .15s}
@@ -930,10 +967,10 @@ body.amounts-hidden #fx-converter-result{
 .recur-paused{opacity:.55}
 .debt-hint{flex-basis:100%;font-size:11px;color:var(--red2);font-weight:700;margin-top:-2px}
 .debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
-.debt-row-del .ico{margin-right:0;width:15px;height:15px}
+.debt-row-del .ico{margin-right:0;width:18px;height:18px}
 .debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
-.debt-row-edit .ico{margin-right:0;width:15px;height:15px}
+.debt-row-edit .ico{margin-right:0;width:18px;height:18px}
 .debt-row-edit:hover{background:rgba(139,92,246,.12);color:var(--purple)}
 .debt-row-edit-active{background:rgba(139,92,246,.15);color:var(--purple)}
 .debt-field-view{background:transparent;border:1px solid transparent;color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 0;width:100%}
@@ -967,6 +1004,9 @@ body.amounts-hidden #fx-converter-result{
     display:block;width:36px;height:4px;border-radius:99px;flex-shrink:0;
     background:var(--border2);margin:10px auto 2px;cursor:grab;
   }
+  /* Drag-to-dismiss also grabs from here, not just the thin bar above -
+     see js/ui-widgets.js's initSheetDrag(). */
+  .modal-header{cursor:grab;touch-action:none}
 }
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){
@@ -1049,13 +1089,13 @@ body.amounts-hidden #fx-converter-result{
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
-.mgr-del .ico{margin-right:0;width:16px;height:16px}
+.mgr-del .ico{margin-right:0;width:19px;height:19px}
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 /* Pencil toggle that gates a row's fields behind a deliberate tap, so a
    stray tap in the list can't silently change an already-entered value —
    same idea as the profile nickname's edit lock. */
 .mgr-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto}
-.mgr-edit .ico{margin-right:0;width:16px;height:16px}
+.mgr-edit .ico{margin-right:0;width:19px;height:19px}
 .mgr-edit:hover{background:rgba(139,92,246,.12);color:var(--purple2)}
 .mgr-edit.active{background:rgba(139,92,246,.15);color:var(--purple2)}
 .mgr-empty{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:20px}
@@ -1130,8 +1170,8 @@ body.amounts-hidden #fx-converter-result{
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-sub{display:none}
   .chart-bars{height:60px}
-  .tab-icon-wrap{width:38px;height:38px}
-  .tab-btn .ico{width:18px;height:18px}
+  .tab-icon-wrap{width:44px;height:44px}
+  .tab-btn .ico{width:21px;height:21px}
   .cal-nav{gap:6px}
   .cs.cs-sm{min-width:0;flex:1 1 74px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:12px}
@@ -1149,7 +1189,7 @@ body.amounts-hidden #fx-converter-result{
 <body>
 
 <!-- AUTH SCREEN (real registration / sign-in) -->
-<div class="lock-screen" id="lock-screen">
+<div class="lock-screen lock-screen-checking" id="lock-screen">
   <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px">
     <button type="button" class="btn btn-ghost lang-opt" data-lang="uk" style="padding:6px 14px;font-size:12px">УКР</button>
     <button type="button" class="btn btn-ghost lang-opt" data-lang="en" style="padding:6px 14px;font-size:12px">ENG</button>
@@ -1159,6 +1199,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="lock-title">Zminka</div>
     <div class="lock-tagline" data-i18n="auth_tagline">Фінанси, зміни та борги в одному місці</div>
   </div>
+  <div class="lock-checking-spinner" aria-hidden="true"></div>
   <div class="auth-card">
     <div id="auth-email-section">
       <div class="auth-tabs">
@@ -1289,6 +1330,7 @@ body.amounts-hidden #fx-converter-result{
   <div class="topbar-right">
     <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми"></button>
     <button class="btn btn-ghost" id="btn-refresh" aria-label="Оновити"></button>
+    <button class="btn btn-ghost" id="btn-settings" aria-label="Налаштування"><span id="ic-topbar-settings"></span></button>
   </div>
 </header>
 
@@ -1411,17 +1453,17 @@ body.amounts-hidden #fx-converter-result{
 
     <!-- Баланси -->
     <div class="hero-balance" id="fin-balances"></div>
-    <div style="display:flex;justify-content:flex-end;margin:-8px 0 16px">
-      <button class="btn btn-ghost" data-action="open-widgets-manager"><span id="ic-goto-settings"></span><span data-i18n="finance_goto_settings">Налаштувати екран</span></button>
-    </div>
+    <!-- "Налаштувати екран" ghost button removed from here (duplicated
+         Settings > Віджети, which opens the same widgets-manager modal) -
+         the primary Finance scroll now really is just balance+quick-actions
+         +list+FAB, matching the "balance+FAB+list" redesign target. -->
     <div id="finance-start-guide" style="display:none"></div>
 
-    <!-- Швидкі дії: тап одразу відкриває потрібний розділ -->
+    <!-- Швидкі дії: тап одразу відкриває потрібний розділ. "Курси" quick-
+         action removed - Курси валют already live inside "Інструменти"
+         (#tools-modal's fx-widget-section) and in Settings > Курси валют,
+         so a third standalone entry point was pure duplication. -->
     <div class="quick-actions">
-      <button type="button" class="quick-action" data-action="open-rates-manager">
-        <span class="quick-action-icon" id="ic-qa-rates"></span>
-        <span class="quick-action-label" data-i18n="qa_rates">Курси</span>
-      </button>
       <button type="button" class="quick-action" data-action="open-tools-manager">
         <span class="quick-action-icon" id="ic-qa-tools"></span>
         <span class="quick-action-label" data-i18n="qa_tools">Інструменти</span>
@@ -1649,7 +1691,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_profiles">Профілі</div>
           <div class="settings-row-sub" id="settings-profiles-sub" data-i18n="settings_profiles_sub">Перемикайтеся між окремими наборами даних</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1660,7 +1701,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_premium">Преміум</div>
           <div class="settings-row-sub" id="settings-premium-sub" data-i18n="premium_free_plan">Безкоштовний план</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1672,7 +1712,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_wallets">Гаманці</div>
           <div class="settings-row-sub" data-i18n="settings_wallets_sub">Картки, готівка та інші рахунки</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-rates-manager">
         <span id="ic-set-rates" class="icon-badge" style="background:#3b82f6"></span>
@@ -1680,7 +1719,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_rates">Курси валют</div>
           <div class="settings-row-sub" data-i18n="settings_rates_sub">Автоматичне оновлення з НБУ</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-widgets-manager">
         <span id="ic-set-widgets" class="icon-badge" style="background:#14b8a6"></span>
@@ -1688,7 +1726,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_widgets">Віджети</div>
           <div class="settings-row-sub" data-i18n="settings_widgets_sub">Що показувати на вкладці Фінанси</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-categories-manager">
         <span id="ic-set-cats" class="icon-badge" style="background:#ec4899"></span>
@@ -1696,7 +1733,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_categories">Категорії</div>
           <div class="settings-row-sub" data-i18n="settings_categories_sub">Власні категорії доходів і витрат</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-tags-manager">
         <span id="ic-set-tags" class="icon-badge" style="background:#06b6d4"></span>
@@ -1704,7 +1740,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_tags">Теги</div>
           <div class="settings-row-sub" data-i18n="settings_tags_sub">Мітки для операцій, окремо від категорій</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-budgets-manager">
         <span id="ic-set-budgets" class="icon-badge" style="background:#f59e0b"></span>
@@ -1712,7 +1747,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_budgets">Бюджети</div>
           <div class="settings-row-sub" data-i18n="settings_budgets_sub">Місячні ліміти витрат по категоріях</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-goals-manager">
         <span id="ic-set-goals" class="icon-badge" style="background:#10b981"></span>
@@ -1720,7 +1754,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_goals">Цілі</div>
           <div class="settings-row-sub" data-i18n="settings_goals_sub">Накопичення на гаманці з ціллю</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-recurring-manager">
         <span id="ic-set-recurring" class="icon-badge" style="background:#10b981"></span>
@@ -1728,7 +1761,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_recurring">Повторювані операції</div>
           <div class="settings-row-sub" data-i18n="settings_recurring_sub">Автоматичні платежі за розкладом</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="open-rules-manager">
         <span id="ic-set-rules" class="icon-badge" style="background:#a78bfa"></span>
@@ -1736,7 +1768,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_rules">Автоматичні правила</div>
           <div class="settings-row-sub" data-i18n="settings_rules_sub">Категорія за ключовим словом у коментарі</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" data-action="export-transactions-csv" style="border-top:none">
         <span id="ic-set-export" class="icon-badge" style="background:#ef4444"></span>
@@ -1744,7 +1775,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_export">Експорт CSV</div>
           <div class="settings-row-sub" data-i18n="settings_export_sub">Вивантажити всі операції у файл</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1756,7 +1786,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_pin">PIN-код доступу</div>
           <div class="settings-row-sub" data-i18n="settings_pin_sub">Захисти застосунок кодом і Face ID/Touch ID</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1844,7 +1873,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_phone">Номер телефону</div>
           <div class="settings-row-sub" id="settings-phone-sub" data-i18n="settings_phone_sub_empty">Не додано</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" id="settings-signout" data-action="sign-out-user" style="display:none">
         <span id="ic-set-signout" class="icon-badge" style="background:#525158"></span>
@@ -1852,7 +1880,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_signout">Вийти з акаунту</div>
           <div class="settings-row-sub" data-i18n="settings_signout_sub">Завершити сеанс на цьому пристрої</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
       <div class="settings-row" id="settings-delete-account" data-action="delete-account-user" style="display:none">
         <span id="ic-set-delete" class="icon-badge" style="background:var(--red)"></span>
@@ -1860,7 +1887,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" style="color:var(--red2)" data-i18n="settings_delete_account">Видалити акаунт</div>
           <div class="settings-row-sub" data-i18n="settings_delete_account_sub">Остаточно видалити акаунт і всі дані</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </div>
     </div>
 
@@ -1872,7 +1898,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_terms">Умови використання</div>
           <div class="settings-row-sub" data-i18n="settings_terms_sub">Правила користування застосунком</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </a>
       <a href="privacy.html" target="_blank" class="settings-row" style="text-decoration:none;color:inherit">
         <span id="ic-set-privacy" class="icon-badge" style="background:var(--green)"></span>
@@ -1880,7 +1905,6 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-title" data-i18n="settings_privacy">Політика конфіденційності</div>
           <div class="settings-row-sub" data-i18n="settings_privacy_sub">Як ми обробляємо твої дані</div>
         </div>
-        <span class="settings-row-chevron"></span>
       </a>
       <div style="font-size:11px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Zminka — трекер змін, фінансів і розрахунків</div>
     </div>
@@ -1894,7 +1918,15 @@ body.amounts-hidden #fx-converter-result{
   <button id="nav-shifts" class="tab-btn tab-c-shifts"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
   <button id="nav-debt" class="tab-btn tab-c-debt"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
   <button id="nav-shopping" class="tab-btn tab-c-shopping"><span class="tab-icon-wrap"><span id="tab-icon-shopping"></span></span><span data-i18n="nav_shopping">Покупки</span></button>
-  <button id="nav-settings" class="tab-btn tab-c-settings"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
+  <!-- Kept in the DOM (not deleted) purely so a stale cached js/app-init.js
+       from before this element was removed from the visible nav - sw.js
+       serves js/*.js cache-first, so a client whose service worker hasn't
+       updated yet can fetch this fresh index.html while still running old
+       JS for a while - doesn't null-deref on the old unguarded
+       document.getElementById('nav-settings').classList.toggle(...) call
+       inside switchTab() and abort init() partway through. Never shown or
+       reachable: #btn-settings in the topbar is the real entry point now. -->
+  <button id="nav-settings" class="tab-btn tab-c-settings" style="display:none" tabindex="-1" aria-hidden="true"><span class="tab-icon-wrap"><span id="tab-icon-settings"></span></span><span data-i18n="nav_settings">Налаштування</span></button>
 </nav>
 
 <!-- MODAL ЗМІНИ -->

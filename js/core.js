@@ -49,8 +49,8 @@ const ERROR_LOG_MAX = 20;
 function errorLogKey(){ return AppState.currentUser ? `mx_errlog_${AppState.currentUser.uid}` : 'mx_errlog_anon'; }
 
 function currentTabName(){
-  const el = document.querySelector('#nav-shifts.active, #nav-finance.active, #nav-debt.active, #nav-shopping.active, #nav-settings.active');
-  return el ? el.id.replace('nav-','') : null;
+  const el = Array.from(document.querySelectorAll('.tab-content')).find(t=>t.style.display!=='none');
+  return el ? el.id.replace('tab-','') : null;
 }
 
 function logAppError(kind, detail){

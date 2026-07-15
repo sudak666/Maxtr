@@ -169,7 +169,7 @@ export function switchTab(tab){
   document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
   document.getElementById('nav-shopping').classList.toggle('active',tab==='shopping');
-  document.getElementById('nav-settings').classList.toggle('active',tab==='settings');
+  document.getElementById('btn-settings')?.classList.toggle('active',tab==='settings');
   document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
   document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
   document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
@@ -206,6 +206,7 @@ document.addEventListener('click', (e)=>{
 // switchTab/toggleHideAmounts/fbLoadNow only need to be real module
 // exports, not also attached to window.
 document.getElementById('topbar-avatar')?.addEventListener('click', ()=>switchTab('settings'));
+document.getElementById('btn-settings')?.addEventListener('click', ()=>switchTab('settings'));
 document.getElementById('btn-hide-amounts')?.addEventListener('click', ()=>toggleHideAmounts());
 document.getElementById('btn-refresh')?.addEventListener('click', async (e)=>{
   const btn=e.currentTarget;
@@ -218,5 +219,4 @@ document.getElementById('nav-finance')?.addEventListener('click', ()=>switchTab(
 document.getElementById('nav-shifts')?.addEventListener('click', ()=>switchTab('shifts'));
 document.getElementById('nav-debt')?.addEventListener('click', ()=>switchTab('debt'));
 document.getElementById('nav-shopping')?.addEventListener('click', ()=>switchTab('shopping'));
-document.getElementById('nav-settings')?.addEventListener('click', ()=>switchTab('settings'));
 }
