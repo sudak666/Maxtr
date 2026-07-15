@@ -96,23 +96,48 @@ function newTransactionId(){
 
 function sameTxId(a,b){ return String(a)===String(b); }
 
-export async function addTransaction(){
-  const ai=document.getElementById('fin-amount');
-  const amount=parseFloat(ai?.value);
-  if(isNaN(amount)||amount<=0){showToast(tr('finance_err_amount'),'xmark');return;}
-  const date=document.getElementById('fin-date')?.value;
-  if(!date){showToast(tr('finance_err_date'),'xmark');return;}
-  const ws=document.getElementById('fin-wallet')?.value||(AppState.wallets[0]&&AppState.wallets[0].id);
-  const wt=document.getElementById('fin-wallet-target')?.value||(AppState.wallets[1]&&AppState.wallets[1].id);
-  if(AppState.currentFinanceType==='transfer'&&ws===wt){showToast(tr('finance_err_same_wallet'),'xmark');return;}
+const TX_AMOUNT_MAX=1000000000;
+const TX_COMMENT_MAX=500;
+const TX_DATE_RE=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
+function readTransactionForm(){
+  const ws=document.getElementById('fin-wallet')?.value||(AppState.wallets[0]&&AppState.wallets[0].id)||'';
+  const wt=document.getElementById('fin-wallet-target')?.value||(AppState.wallets[1]&&AppState.wallets[1].id)||'';
+  const amount=Number(document.getElementById('fin-amount')?.value);
+  const date=document.getElementById('fin-date')?.value||'';
   const cat=AppState.currentFinanceType==='transfer'?'Внутрішній переказ':(document.getElementById('fin-category')?.value||'Інше');
   const sub=AppState.currentFinanceType==='transfer'?null:(document.getElementById('fin-subcategory')?.value||null);
   const comment=document.getElementById('fin-comment')?.value.trim()||'';
+  return {amount,date,ws,wt,cat,sub,comment};
+}
+
+function validateTransactionDraft(draft){
+  if(!Number.isFinite(draft.amount)||draft.amount<=0) return 'finance_err_amount';
+  if(draft.amount>=TX_AMOUNT_MAX) return 'finance_err_amount_large';
+  if(!draft.date) return 'finance_err_date';
+  if(!TX_DATE_RE.test(draft.date)) return 'finance_err_date_format';
+  if(!draft.ws) return 'finance_err_wallet';
+  if(draft.comment.length>TX_COMMENT_MAX) return 'finance_err_comment_long';
+  if(String(draft.cat||'').length>120 || String(draft.sub||'').length>120) return 'finance_err_field_long';
+  if(AppState.currentFinanceType==='transfer'){
+    if(!draft.wt) return 'finance_err_wallet';
+    if(draft.ws===draft.wt) return 'finance_err_same_wallet';
+  }
+  return '';
+}
+
+export async function addTransaction(){
+  const ai=document.getElementById('fin-amount');
+  const draft=readTransactionForm();
+  const errKey=validateTransactionDraft(draft);
+  if(errKey){showToast(tr(errKey),'xmark');return;}
+  const {amount,date,ws,wt,cat,sub,comment}=draft;
   const srcCur=walletCurrency(ws);
   let targetAmount=null, targetCurrency=null;
   if(AppState.currentFinanceType==='transfer'){
     targetCurrency=walletCurrency(wt);
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
+    if(!Number.isFinite(targetAmount)||targetAmount<=0||targetAmount>=TX_AMOUNT_MAX){showToast(tr('finance_err_amount_large'),'xmark');return;}
   }
   if(AppState.editingTxId!=null){
     const t=AppState.transactions.find(x=>sameTxId(x.id,AppState.editingTxId));
