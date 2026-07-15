@@ -60,6 +60,7 @@ const setSettingsGroup = function(group){
   document.querySelectorAll('.settings-group-chip').forEach(chip=>{
     chip.classList.toggle('active', chip.dataset.group===AppState.activeSettingsGroup);
   });
+  syncClickableA11yState(document.getElementById('tab-settings'));
   filterSettings(document.getElementById('settings-search-input')?.value||'');
 };
 
@@ -84,8 +85,10 @@ export function setupCollapsibleFinanceSections(){
   });
 }
 
+const PRESSED_ACTION_SELECTOR='.filter-chip[data-action],.settings-group-chip[data-action],[role=button][data-action]';
+
 export function syncClickableA11yState(root){
-  (root||document).querySelectorAll('.filter-chip[data-action]').forEach(el=>{
+  (root||document).querySelectorAll(PRESSED_ACTION_SELECTOR).forEach(el=>{
     el.setAttribute('aria-pressed', el.classList.contains('active') ? 'true' : 'false');
   });
 }
@@ -100,6 +103,7 @@ export function setupAccessibleClickableDivs(root){
     if(el.matches('button,a,input,select,textarea,label') || el.classList.contains('modal-overlay')) return;
     if(!el.hasAttribute('tabindex')) el.tabIndex=0;
     if(!el.hasAttribute('role')) el.setAttribute('role','button');
+    if(!el.hasAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', el.dataset.action||'button');
     if(!el.dataset.a11yKeyReady){
       el.dataset.a11yKeyReady='1';
       el.addEventListener('keydown',e=>{

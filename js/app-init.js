@@ -13,7 +13,7 @@ import { applyAutoRuleToForm, fillSubcats, setFinanceType, updateAmountLabel } f
 import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
-import { getCacheItem } from './privacy-cache.js';
+import { clearSensitiveLocalCacheForAccount, getCacheItem, isSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
 import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
@@ -87,6 +87,7 @@ export async function init(){
   enhanceAllSelects();
   renderProfileUI(); renderPremiumUI();
   try{ await loadProfilesMeta(); }catch(e){ console.error('profiles meta load failed', e); }
+  if(!isSensitiveLocalCacheEnabled() && AppState.currentUser) clearSensitiveLocalCacheForAccount(AppState.currentUser.uid, AppState.profilesMeta);
   renderProfilesUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();

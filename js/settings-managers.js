@@ -10,7 +10,7 @@ import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurri
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
-import { clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
+import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // A plain function declaration is safe to call immediately at import time
@@ -294,7 +294,8 @@ export function renderPrivacyCacheUI(){
 const togglePrivacyCache = function(enabled){
   setSensitiveLocalCacheEnabled(!!enabled);
   if(!enabled){
-    clearSensitiveLocalCacheForUser(lsKey);
+    if(AppState.currentUser) clearSensitiveLocalCacheForAccount(AppState.currentUser.uid, AppState.profilesMeta);
+    else clearSensitiveLocalCacheForUser(lsKey);
     showToast(tr('privacy_cache_cleared'),'check');
   }else{
     saveLocal(); saveDebtLocal(); saveRecurringLocal(); saveConfigLocal();
