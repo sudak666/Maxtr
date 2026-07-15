@@ -432,6 +432,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .quick-actions{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;padding:2px 0 14px;margin-bottom:6px}
 .quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:22px;font-family:inherit;padding:10px 8px;transition:transform .15s,border-color .2s,background .2s}
 .quick-action-primary{align-items:flex-start;padding:12px 14px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-color:rgba(255,255,255,.12);box-shadow:var(--shadow-fab)}
+.quick-action-primary.finance-action-primary{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.34)}
 .quick-action-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.12);box-shadow:none;transition:transform .15s}
 .quick-action:not(.quick-action-primary) .quick-action-icon{color:var(--purple2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.18)}
 .quick-action-icon .ico{width:22px;height:22px;margin-right:0}
@@ -883,6 +884,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   padding:0 20px 0 16px;
   transition:transform .15s,padding .25s ease;
 }
+.fin-fab.finance-fab{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.38)}
 .fin-fab:active{transform:scale(.92)}
 .fin-fab .ico{width:24px;height:24px;margin-right:8px;flex-shrink:0;transition:margin .25s ease}
 .fin-fab-label{font-size:14px;font-weight:700;overflow:hidden;max-width:200px;opacity:1;transition:max-width .25s ease,opacity .15s ease}
@@ -1627,7 +1629,7 @@ body.amounts-hidden #fx-converter-result{
          (#tools-modal's fx-widget-section) and in Settings > Курси валют,
          so a third standalone entry point was pure duplication. -->
     <div class="quick-actions">
-      <button type="button" class="quick-action quick-action-primary" data-action="open-new-tx-modal">
+      <button type="button" class="quick-action quick-action-primary finance-action-primary" data-action="open-new-tx-modal">
         <span class="quick-action-icon" id="ic-qa-tx"></span>
         <span class="quick-action-label" data-i18n="qa_transaction">Операція</span>
       </button>
@@ -1651,6 +1653,10 @@ body.amounts-hidden #fx-converter-result{
         <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
       </div>
+      <div class="settings-search" style="margin:0 0 12px">
+        <span id="ic-tx-search"></span>
+        <input type="search" id="tx-search-input" data-action="set-tx-search" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
+      </div>
       <div class="filter-row">
         <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>
         <div class="filter-chip"        data-filter="income"   data-action="set-tx-filter" data-i18n="finance_type_income">+ Дохід</div>
@@ -1666,7 +1672,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Плаваюча кнопка: відкриває форму нової операції в шторці замість
          постійно розгорнутої форми, щоб типовий "просто перевірити баланс"
          візит не починався з форми на чверть екрана. -->
-    <button type="button" class="fin-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
+    <button type="button" class="fin-fab finance-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
       <span id="ic-fin-fab"></span>
       <span class="fin-fab-label" data-i18n="finance_new_tx">Нова операція</span>
     </button>
@@ -2045,6 +2051,17 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" class="type-btn lang-opt" data-lang="uk" style="flex:0 0 auto;padding:8px 16px">Українська</button>
         <button type="button" class="type-btn lang-opt" data-lang="en" style="flex:0 0 auto;padding:8px 16px">English</button>
       </div>
+      <div class="settings-row" style="cursor:default;margin-top:10px">
+        <span id="ic-settings-privacy-cache" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="privacy_cache_title">Локальний кеш даних</div>
+          <div class="settings-row-sub" id="privacy-cache-sub" data-i18n="privacy_cache_hint_on">Швидший запуск: фінансові дані зберігаються на цьому пристрої.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-cache-checkbox" data-action="toggle-privacy-cache">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -2170,8 +2187,8 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg" id="fin-type-seg">
-        <button id="btn-inc" class="type-btn active inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
-        <button id="btn-exp" class="type-btn exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
         <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>
       </div>
       <div class="fg">
