@@ -296,14 +296,79 @@ export function renderDebt(){
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${entry.date?escapeHtml(entry.date):'—'}</div></div>
       <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
+    row.dataset.entryId=String(entry.id);
     row.innerHTML=`
-      ${fieldsHtml}
-      <button class="debt-row-del" data-action="delete-debt-entry" data-id="${entry.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
-      ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
+      <div class="debt-row-inner">
+        ${fieldsHtml}
+        ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
+      </div>
+      <button class="debt-row-swipe-delete" data-action="delete-debt-entry" data-id="${entry.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
-    lc.appendChild(row);
+    setupDebtRowSwipe(row);
+    // Newest entry first: cd.entries stays in chronological (push) order,
+    // since the running-balance chaining above (prevBalance/expected) and
+    // debtCurrentBalance()'s "last entry = current balance" assumption both
+    // depend on that array order — only the *display* order flips, by
+    // prepending each row instead of appending it (the loop still visits
+    // entries oldest-to-newest, so the row processed last ends up on top).
+    lc.prepend(row);
     prevBalance=entry.balance;
   });
+}
+
+const DEBT_ROW_SWIPE_REVEAL_PX=60;
+const DEBT_ROW_SWIPE_OPEN_THRESHOLD=30;
+
+function closeAllDebtRowSwipes(except){
+  document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
+}
+
+// Touch-swipe-to-reveal-delete for debt payment-history rows — mirrors
+// js/analytics-csv.js's setupTxSwipe() (see that function's comment for the
+// full pointer-event drag rationale); duplicated rather than shared since
+// the two target different outer/inner class names and this repo's
+// established style is per-file self-contained render logic (see e.g. the
+// tests/*.mjs stub-duplication convention in CLAUDE.md). Called fresh on
+// every row every renderDebt() call, since renderDebt() does a full
+// rebuild (lc.innerHTML='' then re-append), unlike renderFinance()'s
+// targeted node-reuse diff — no risk of double-binding listeners on a
+// reused node here.
+function setupDebtRowSwipe(row){
+  let startX=0,startY=0,dx=0,dragging=false,decided=false,horizontal=false;
+  row.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse') return; // mouse gets the CSS :hover reveal instead
+    startX=e.clientX; startY=e.clientY; dx=0; dragging=true; decided=false; horizontal=false;
+  });
+  row.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    const ddx=e.clientX-startX, ddy=e.clientY-startY;
+    if(!decided){
+      if(Math.abs(ddx)<6 && Math.abs(ddy)<6) return;
+      decided=true;
+      horizontal=Math.abs(ddx)>Math.abs(ddy);
+      if(horizontal){
+        try{ row.setPointerCapture(e.pointerId); }catch(err){}
+        row.classList.add('swipe-dragging');
+      }
+    }
+    if(!horizontal) return;
+    dx=Math.max(-DEBT_ROW_SWIPE_REVEAL_PX*1.3, Math.min(0,ddx));
+    const inner=row.querySelector('.debt-row-inner');
+    if(inner) inner.style.width=`calc(100% - ${-dx}px)`;
+  });
+  function endDrag(){
+    if(!dragging) return;
+    dragging=false;
+    row.classList.remove('swipe-dragging');
+    const inner=row.querySelector('.debt-row-inner');
+    if(inner) inner.style.width='';
+    if(horizontal){
+      if(dx<-DEBT_ROW_SWIPE_OPEN_THRESHOLD){ closeAllDebtRowSwipes(row); row.classList.add('swipe-open'); }
+      else row.classList.remove('swipe-open');
+    }
+  }
+  row.addEventListener('pointerup',endDrag);
+  row.addEventListener('pointercancel',endDrag);
 }
 
 // Top-level statements that DO something immediately (as opposed to a
@@ -352,6 +417,15 @@ function dispatchFieldAction(e){
 }
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
+
+// Closes any swiped-open .debt-row (see setupDebtRowSwipe() above) the
+// moment a pointer goes down anywhere outside it — same convention as
+// js/analytics-csv.js's matching listener for .tx-item.
+document.addEventListener('pointerdown', e=>{
+  document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{
+    if(!el.contains(e.target)) el.classList.remove('swipe-open');
+  });
+});
 
 // Still window-exposed: renderDebt()'s own emptyStateHtml({onClick:'...'})
 // calls (ui-widgets.js's shared empty-state helper bakes onClick straight

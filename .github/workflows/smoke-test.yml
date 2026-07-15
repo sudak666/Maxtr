@@ -54,6 +54,9 @@ jobs:
       - name: Run transaction swipe-to-delete test
         run: node tests/tx-swipe-delete.mjs
 
+      - name: Run debt payment-history reorder + swipe-to-delete test
+        run: node tests/debt-swipe-delete.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
