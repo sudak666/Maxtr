@@ -1100,7 +1100,16 @@ body.amounts-hidden #fx-converter-result{
      invisible hit-box grew. */
   .sheet-grabber{
     display:flex;align-items:center;justify-content:center;
-    width:100%;height:28px;flex-shrink:0;margin:2px 0 -4px;cursor:grab;touch-action:none;
+    /* width:100% alone only spans .modal-card-body's *content* box, which
+       is still inset by that element's own 24px left/right padding — the
+       exact same listener-less-padding dead zone this whole change exists
+       to eliminate, just now a vertical strip instead of a corner (caught
+       by a Codex review, PR #200). calc(100% + 48px) + -24px side margins
+       cancels that padding out so the hit-box bleeds all the way to
+       .modal-card's own rounded-corner edge — .modal-card's
+       overflow:hidden still clips it to that rounded shape, it just no
+       longer stops short of it. */
+    width:calc(100% + 48px);height:28px;flex-shrink:0;margin:2px -24px -4px;cursor:grab;touch-action:none;
   }
   .sheet-grabber::after{
     content:'';width:36px;height:4px;border-radius:99px;background:var(--border2);

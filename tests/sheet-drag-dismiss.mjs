@@ -160,6 +160,43 @@ async function main() {
     if (await page.locator('#tools-modal').isVisible()) throw new Error('expected a long drag from the far-right corner of the grabber row to dismiss the sheet too');
     console.log('[ok] a long drag starting from the far-right corner of the grabber row also dismisses the sheet');
 
+    // ── Regression (flagged by a Codex review on this same PR): a drag
+    // starting inside .modal-card-body's own 24px side padding — a real
+    // touch near the sheet's literal rounded corner, well within the
+    // *card's* own bounds but where .sheet-grabber's box used to stop
+    // short before this fix — must also register, not just the grabber's
+    // own edges. Uses elementFromPoint + a real hit-test dispatch (not a
+    // direct dispatch on .sheet-grabber) so this actually exercises the
+    // CSS geometry rather than trivially passing regardless of it. ──
+    await page.click('[data-action="open-tools-manager"]');
+    await page.waitForSelector('#tools-modal', { state: 'visible' });
+    await page.waitForTimeout(250);
+    const cardBox = await page.locator('#tools-modal .modal-card').boundingBox();
+    const grabberBox3 = await page.locator('#tools-modal .sheet-grabber').boundingBox();
+    const paddingStartX = cardBox.x + 8; // inside the card, well within the old 24px dead zone
+    const paddingStartY = grabberBox3.y + grabberBox3.height / 2;
+    const hit = await page.evaluate(({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return el ? { tag: el.tagName, cls: el.className } : null;
+    }, { x: paddingStartX, y: paddingStartY });
+    if (!hit || !String(hit.cls).includes('sheet-grabber')) {
+      throw new Error(`expected the point inside the card's side padding (x=${paddingStartX}) to hit .sheet-grabber, got ${JSON.stringify(hit)}`);
+    }
+    await page.evaluate(({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      const fire = (type, cx, cy) => el.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, cancelable: true, clientX: cx, clientY: cy, pointerId: 7, pointerType: 'touch',
+      }));
+      fire('pointerdown', x, y);
+      for (let i = 1; i <= 8; i++) fire('pointermove', x, y + (150 * i) / 8);
+      fire('pointerup', x, y + 150);
+    }, { x: paddingStartX, y: paddingStartY });
+    await page.waitForTimeout(400);
+    if (await page.locator('#tools-modal').isVisible()) {
+      throw new Error('expected a drag starting inside the card\'s side padding (the old dead zone) to dismiss the sheet too');
+    }
+    console.log('[ok] a drag starting inside the card\'s side padding (previously a dead zone outside .sheet-grabber\'s content-box width) also dismisses the sheet');
+
     if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
     console.log('[ok] no uncaught page errors during the whole flow');
   } finally {
