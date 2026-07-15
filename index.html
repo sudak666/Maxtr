@@ -509,6 +509,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .debt-progress-wrap{margin-bottom:14px}
 .debt-progress-label{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px}
 .debt-progress-label #debt-progress-text{color:var(--text-strong)}
+/* Payoff forecast card: a balance-burndown mini chart + a plain-language
+   "≈ N payments left at this pace" estimate. renderDebtForecast()
+   (js/debt.js) builds the inline SVG and toggles visibility. */
+.debt-forecast{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:16px 16px 14px;margin-bottom:18px}
+.debt-forecast-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
+.debt-forecast-head .ico{width:15px;height:15px;margin:0;color:var(--purple2)}
+.debt-burndown{width:100%;height:88px}
+.debt-burndown svg{display:block;width:100%;height:100%;overflow:visible}
+.debt-forecast-text{margin-top:12px;font-size:13px;font-weight:600;color:var(--muted);line-height:1.5}
+.debt-forecast-text strong{color:var(--text-strong);font-weight:800}
+.debt-forecast-done{color:var(--green2)}
 .chip-stat{display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:999px;padding:8px 14px 8px 8px;white-space:nowrap}
 .chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
@@ -616,6 +627,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .today-pip{width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0}
 
 .badge{font-size:11px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Compact shift markers on a calendar day cell: a colored rounded "keycap"
+   token showing a 1-2 char code (shiftCode() in js/calendar.js) instead of
+   the old wide word-badge, so a month reads as a tidy grid of colored
+   letters (Д/Н/В…). .day-tokens wraps them into a horizontal flow so a day
+   with several shifts stays compact instead of stacking tall words. */
+.day-tokens{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;min-height:0}
+.shift-token{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:21px;height:19px;padding:0 4px;border-radius:7px;box-sizing:border-box;
+  font-size:11px;font-weight:800;line-height:1;letter-spacing:.01em;white-space:nowrap;
+}
 .b-day  {background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#93c5fd}
 .b-day19{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#6ee7b7}
 .b-night{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.5);color:#c4b5fd}
@@ -911,6 +933,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
    bug happen in the first place. */
 .tx-item{
   position:relative;overflow:hidden;border-radius:18px;
+  /* flex-shrink:0 is mandatory here, not cosmetic: .tx-list is a
+     `display:flex;flex-direction:column;max-height:500px;overflow-y:auto`
+     container, and a flex item with any `overflow` other than visible
+     (this row needs `overflow:hidden` for the swipe-clip) gets an
+     automatic minimum size of 0 (CSS flexbox spec). Without this, once
+     the expanded "view all" list's total height exceeds 500px the flex
+     algorithm shrinks every row to a ~12px sliver to fit the cap instead
+     of letting the container scroll — the exact same bug already
+     documented and fixed on `.debt-row` (see CLAUDE.md's swipe-to-delete
+     "Gotcha if you swipe-clip a row inside a flex list container"). This
+     ALSO fixes a linked pull-to-refresh bug: collapsed rows meant the
+     container's scrollHeight never exceeded its clientHeight, so
+     closestScrollableAncestor() (js/app-init.js) couldn't tell it was a
+     scrollable list and PTR fired on every swipe over the list. */
+  flex-shrink:0;
   /* Virtualization via CSS containment (no bundler here for a real
      windowed-list library — see CLAUDE.md): renderFinance() in
      js/analytics-csv.js has no cap on the *expanded* "view all" list, so a
@@ -1683,6 +1720,19 @@ body.amounts-hidden #fx-converter-result{
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-paid"></span><span class="chip-stat-val" id="debt-paid-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_paid">Сплачено</span></span>
       <span class="chip-stat"><span class="chip-stat-icon" id="ic-debt-count"></span><span class="chip-stat-val" id="debt-count-val">0</span><span class="chip-stat-lbl" data-i18n="debt_stat_count">Платежів</span></span>
       <span class="chip-stat" id="debt-due-chip" style="display:none"><span class="chip-stat-icon" id="ic-debt-due"></span><span class="chip-stat-val" id="debt-due-val">—</span><span class="chip-stat-lbl" data-i18n="debt_stat_due">Термін сплати</span></span>
+    </div>
+
+    <!-- Прогноз погашення: burndown-графік динаміки залишку + оцінка,
+         скільки ще платежів лишилось за поточним темпом. Показується лише
+         коли є достатньо даних (≥2 платежі та задана початкова сума) —
+         renderDebtForecast() в js/debt.js керує видимістю. -->
+    <div class="debt-forecast" id="debt-forecast" style="display:none">
+      <div class="debt-forecast-head">
+        <span id="ic-debt-forecast"></span>
+        <span data-i18n="debt_forecast_title">Прогноз погашення</span>
+      </div>
+      <div class="debt-burndown" id="debt-burndown"></div>
+      <div class="debt-forecast-text" id="debt-forecast-text"></div>
     </div>
 
     <div class="fin-form" style="margin-bottom:18px">

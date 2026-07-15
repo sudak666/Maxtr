@@ -200,13 +200,21 @@ export function categoryIcon(name){
   return CAT_ICON_FALLBACK_POOL[h%CAT_ICON_FALLBACK_POOL.length];
 }
 
+// `code` is the compact 1-2 char glyph shown as a colored token on each
+// calendar day cell (see shiftCode()/renderCalendar() in js/calendar.js) —
+// a month then reads as a tidy grid of colored letters (Д/Н/В…) instead of
+// wide wrapped words. `short` stays the readable short label; `name` the
+// full one. Built-ins carry an explicit `code` because several share a
+// first letter (Денна/Денна+ → Д, Нічна/Ніч рання/Ніч пізня → Н) and a
+// naive first-letter derivation would make them indistinguishable; custom
+// types fall back to a derived first letter (shiftCode()).
 export const LEGACY_SHIFT_TYPES = [
-  {id:'day',         name:'Денна зміна',          short:'День', color:'#3b82f6', amount:1000, hours:12},
-  {id:'day1900',     name:'Денна (підвищена)',    short:'День+',color:'#10b981', amount:1900, hours:12},
-  {id:'night',       name:'Нічна повна',          short:'Ніч',  color:'#8b5cf6', amount:900,  hours:12},
-  {id:'night_half1', name:'Ніч рання',            short:'НічР', color:'#ec4899', amount:450,  hours:6},
-  {id:'night_half2', name:'Ніч пізня',            short:'НічП', color:'#06b6d4', amount:450,  hours:6},
-  {id:'vacation',    name:'Вихідний',             short:'Вих',  color:'#f59e0b', amount:0,    hours:0, isOff:true},
+  {id:'day',         name:'Денна зміна',          short:'День', code:'Д',  color:'#3b82f6', amount:1000, hours:12},
+  {id:'day1900',     name:'Денна (підвищена)',    short:'День+',code:'Д+', color:'#10b981', amount:1900, hours:12},
+  {id:'night',       name:'Нічна повна',          short:'Ніч',  code:'Н',  color:'#8b5cf6', amount:900,  hours:12},
+  {id:'night_half1', name:'Ніч рання',            short:'НічР', code:'Нр', color:'#ec4899', amount:450,  hours:6},
+  {id:'night_half2', name:'Ніч пізня',            short:'НічП', code:'Нп', color:'#06b6d4', amount:450,  hours:6},
+  {id:'vacation',    name:'Вихідний',             short:'Вих',  code:'В',  color:'#f59e0b', amount:0,    hours:0, isOff:true},
 ];
 
 export const LEGACY_WALLETS = [
@@ -216,9 +224,9 @@ export const LEGACY_WALLETS = [
 ];
 
 export const DEFAULT_SHIFT_TYPES = [
-  {id:'st_day',   name:'Денна зміна', short:'День', color:'#3b82f6', amount:0, hours:8},
-  {id:'st_night', name:'Нічна зміна', short:'Ніч',  color:'#8b5cf6', amount:0, hours:12},
-  {id:'st_off',   name:'Вихідний',    short:'Вих',  color:'#f59e0b', amount:0, hours:0, isOff:true},
+  {id:'st_day',   name:'Денна зміна', short:'День', code:'Д', color:'#3b82f6', amount:0, hours:8},
+  {id:'st_night', name:'Нічна зміна', short:'Ніч',  code:'Н', color:'#8b5cf6', amount:0, hours:12},
+  {id:'st_off',   name:'Вихідний',    short:'Вих',  code:'В', color:'#f59e0b', amount:0, hours:0, isOff:true},
 ];
 
 export const DEFAULT_WALLETS = [

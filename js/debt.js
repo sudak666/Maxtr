@@ -213,6 +213,79 @@ function renderDebtProgress(cd,paid){
   fill.style.background=done?'linear-gradient(90deg,var(--green),var(--green2))':'linear-gradient(90deg,var(--purple),var(--purple2))';
 }
 
+// Payoff forecast for the current debt: a balance-burndown mini chart plus
+// a plain-language "≈ N payments left at this pace" estimate. Purely
+// derived from the existing entries (each carries the remaining `balance`
+// after that payment) — no new inputs, no schema change. Shown only when
+// there's enough signal to be meaningful: startAmount set, at least 2
+// payments, a positive current balance, and a positive average paydown
+// (i.e. the balance is actually trending down, not a debt that only grew).
+// The pace estimate is by payment *count*, not calendar date, on purpose:
+// entry.date is free-form text ("10.02.2026", "Березень", a label…), so a
+// count-based "≈ N payments to go" is robust where a date projection would
+// often be garbage. Mirrors the burndown/pace view common in loan-payoff
+// trackers, built inline as SVG (no chart lib — see CLAUDE.md).
+function renderDebtForecast(cd, currentBalance){
+  const wrap=document.getElementById('debt-forecast');
+  const chartEl=document.getElementById('debt-burndown');
+  const textEl=document.getElementById('debt-forecast-text');
+  if(!wrap||!chartEl||!textEl) return;
+  const start=cd.startAmount||0;
+  const entries=cd.entries||[];
+  if(start<=0 || entries.length<2){ wrap.style.display='none'; return; }
+  const cur=cd.currency||'у.о.';
+
+  // Burndown series: startAmount, then the remaining balance after each
+  // payment (chronological order — the array's own order, see renderDebt()).
+  const series=[start, ...entries.map(e=>Number(e.balance)||0)];
+  const maxV=Math.max(...series, 1);
+  const minV=Math.min(...series, 0);
+  const W=300, H=76, pad=3;
+  const span=(maxV-minV)||1;
+  const x=i=>pad + (W-2*pad)*(i/(series.length-1));
+  const y=v=>pad + (H-2*pad)*(1-(v-minV)/span);
+  const linePts=series.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const areaPts=`${x(0).toFixed(1)},${(H-pad).toFixed(1)} ${linePts} ${x(series.length-1).toFixed(1)},${(H-pad).toFixed(1)}`;
+  const lastX=x(series.length-1), lastY=y(series[series.length-1]);
+  chartEl.innerHTML=
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${tr('debt_forecast_title')}">`+
+    `<defs><linearGradient id="debtBurnFill" x1="0" y1="0" x2="0" y2="1">`+
+    `<stop offset="0%" stop-color="rgba(139,92,246,.34)"/><stop offset="100%" stop-color="rgba(139,92,246,0)"/>`+
+    `</linearGradient></defs>`+
+    `<polygon points="${areaPts}" fill="url(#debtBurnFill)"/>`+
+    `<polyline points="${linePts}" fill="none" stroke="var(--purple2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`+
+    `<circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="var(--purple2)"/>`+
+    `</svg>`;
+
+  // Average paydown per payment, counting only payments that actually
+  // reduced the balance (a correction that raised it isn't "progress").
+  let prev=start, totalDown=0, downCount=0;
+  entries.forEach(e=>{
+    const bal=Number(e.balance)||0;
+    const d=prev-bal;
+    if(d>0){ totalDown+=d; downCount++; }
+    prev=bal;
+  });
+  const avgDown = downCount ? totalDown/downCount : 0;
+  wrap.style.display='';
+
+  if(currentBalance<=0){
+    textEl.innerHTML=`<span class="debt-forecast-done">${tr('debt_forecast_done')}</span>`;
+    return;
+  }
+  if(avgDown<=0){
+    // Balance never trended down (e.g. only-growing debt) — a pace estimate
+    // would be meaningless/negative, so show the chart without a forecast.
+    textEl.innerHTML=tr('debt_forecast_no_pace');
+    return;
+  }
+  const paymentsLeft=Math.max(1, Math.ceil(currentBalance/avgDown));
+  const avgStr=Math.round(avgDown).toLocaleString('uk-UA')+' '+cur;
+  textEl.innerHTML=
+    tr('debt_forecast_pace').replace('{n}',`<strong>${paymentsLeft}</strong>`)+
+    `<br>`+tr('debt_forecast_avg').replace('{amt}',`<strong>${avgStr}</strong>`);
+}
+
 export function renderDebt(){
   renderDebtChips();
   const cd=getCurrentDebt();
@@ -259,6 +332,7 @@ export function renderDebt(){
   S('debt-count-val',cd.entries.length);
   renderDebtDueChip(cd);
   renderDebtProgress(cd,paid);
+  renderDebtForecast(cd,currentBalance);
 
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');

@@ -19,6 +19,7 @@
     clock:'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.5V12l3.1 1.9"/>',
     umbrella:'<path d="M3 13a9 9 0 0 1 18 0Z"/><path d="M12 4v1.3M12 13v6.4a1.8 1.8 0 0 1-3.5 0"/>',
     trendUp:'<path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/>',
+    trendDown:'<path d="M3 7l6 6 4-4 8 9"/><path d="M15 18h6v-6"/>',
     barChart:'<path d="M4 20V10M10 20V4M16 20v-7"/><path d="M3 20h18"/>',
     bolt:'<path d="M13 2 4 14h6l-1 8 9-12h-6Z" fill="currentColor" stroke="none"/>',
     trash:'<path d="M5 6.5h14"/><path d="M9.5 6.5V4.3A1.3 1.3 0 0 1 10.8 3h2.4a1.3 1.3 0 0 1 1.3 1.3v2.2"/><path d="M6.7 6.5l1 13.2A1.8 1.8 0 0 0 9.5 21.5h5a1.8 1.8 0 0 0 1.8-1.8l1-13.2"/>',
@@ -86,7 +87,7 @@
   // this is a classic script outside the js/ ES module graph — see
   // CLAUDE.md's "index.html script structure" section. Add new entries here
   // when adding a new icon to ICON_PATHS that's thematically category-like.
-  window.ICON_NAMES = ['calendar','wallet','clock','umbrella','trendUp','barChart','bolt','coin','card','banknote','inbox','sparkle','swap','bank','cart','car','house','bag','coffee','burger','cigarette','gift','briefcase','person','box','tag','target','repeat','star','bell','camera','globe','pie','doc','flag','phone','calculator','idCard','people'];
+  window.ICON_NAMES = ['calendar','wallet','clock','umbrella','trendUp','trendDown','barChart','bolt','coin','card','banknote','inbox','sparkle','swap','bank','cart','car','house','bag','coffee','burger','cigarette','gift','briefcase','person','box','tag','target','repeat','star','bell','camera','globe','pie','doc','flag','phone','calculator','idCard','people'];
   function setIcon(id, name){
     var el = document.getElementById(id);
     if(el) el.innerHTML = window.Icon(name);
@@ -156,6 +157,7 @@
   setIcon('ic-debt-paid','check');
   setIcon('ic-debt-count','calendar');
   setIcon('ic-debt-due','bell');
+  setIcon('ic-debt-forecast','trendDown');
   setIcon('ic-debt-info','doc');
   setIcon('debt-info-chevron','chevron');
   setIcon('debt-history-chevron','chevron');
@@ -424,6 +426,11 @@
       debt_stat_due:'Термін сплати', debt_due_date:'Дата, до якої треба віддати',
       debt_due_in_days:'через {n} дн.', debt_due_today:'сьогодні', debt_due_overdue_days:'прострочено на {n} дн.',
       debt_progress_label:'Сплачено',
+      debt_forecast_title:'Прогноз погашення',
+      debt_forecast_pace:'За поточним темпом лишилось ще ≈ {n} платежів.',
+      debt_forecast_avg:'Середній платіж — {amt}.',
+      debt_forecast_done:'Розрахунок повністю погашено.',
+      debt_forecast_no_pace:'Замало даних, щоб оцінити темп погашення.',
       debt_info_title:'Дані розрахунку', debt_name:'Назва', debt_name_placeholder:'Напр. Позика, Розстрочка…',
       debt_note:'Нотатка', debt_note_placeholder:'Додаткова нотатка...', debt_currency:'Валюта', debt_delete:'Видалити цей розрахунок',
       debt_new_payment:'Новий платіж', debt_amount:'Сума', debt_amount_placeholder:'напр. 500 або ***68',
@@ -668,6 +675,11 @@
       debt_stat_due:'Due date', debt_due_date:'Date it needs to be paid off by',
       debt_due_in_days:'in {n} d.', debt_due_today:'today', debt_due_overdue_days:'overdue by {n} d.',
       debt_progress_label:'Paid off',
+      debt_forecast_title:'Payoff forecast',
+      debt_forecast_pace:'At this pace, about {n} payments to go.',
+      debt_forecast_avg:'Average payment — {amt}.',
+      debt_forecast_done:'This debt is fully paid off.',
+      debt_forecast_no_pace:'Not enough data to estimate the payoff pace.',
       debt_info_title:'Settlement details', debt_name:'Name', debt_name_placeholder:'E.g. Loan, Installment plan…',
       debt_note:'Note', debt_note_placeholder:'Additional note...', debt_currency:'Currency', debt_delete:'Delete this settlement',
       debt_new_payment:'New payment', debt_amount:'Amount', debt_amount_placeholder:'e.g. 500 or ***68',
