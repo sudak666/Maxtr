@@ -63,6 +63,9 @@ jobs:
       - name: Run bottom-sheet drag-to-dismiss test
         run: node tests/sheet-drag-dismiss.mjs
 
+      - name: Run CSP inline-handler regression test
+        run: node tests/csp-handlers.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 

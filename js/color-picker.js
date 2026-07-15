@@ -15,7 +15,7 @@ import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { closeManagers, uid, updateShiftType, updateWallet } from './settings-managers.js';
 import { escapeHtml, setupAccessibleClickableDivs, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
-const openColorPicker = function(kind,id){
+export const openColorPicker = function(kind,id){
   AppState.colorPickTarget={kind,id};
   renderColorPickerGrid();
   document.getElementById('color-pick-modal').style.display='flex';

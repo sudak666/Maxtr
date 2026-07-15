@@ -88,9 +88,11 @@ async function main() {
     await page.click('#nav-debt');
     await page.waitForTimeout(300);
 
-    // ── Create a debt calc via the empty-state button (calls addNewDebt(),
-    // a uiPrompt dialog). ──
-    await page.locator('[onclick*="addNewDebt"]').first().click();
+    // ── Create a debt calc via the empty-state button (data-action
+    // "add-new-debt" → addNewDebt(), a uiPrompt dialog). Was an inline
+    // onclick before the CSP-safe conversion (see js/ui-widgets.js's
+    // emptyStateHtml). ──
+    await page.locator('[data-action="add-new-debt"]').first().click();
     await page.waitForSelector('#ui-dialog', { state: 'visible' });
     await page.fill('#ui-dlg-input', 'Swipe-test debt');
     await page.click('#ui-dlg-ok');

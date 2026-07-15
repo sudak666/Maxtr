@@ -16,7 +16,17 @@ export function escapeHtml(str){
 // external art assets), per the no-emoji/no-illustration-artwork UI
 // convention this deliberately stays inside rather than breaks. The whole
 // block gets a fade-in+pop entrance animation (.empty-state, CSS).
-export function emptyStateHtml({icon='inbox', title='', desc='', action='', onClick=''}){
+// `action` is the button label; `actionName` is a registered data-action
+// dispatched by the delegated capture-phase click listeners (finance.js /
+// debt.js / shopping.js / calendar.js / settings-managers.js). This used to
+// bake an arbitrary JS string into an inline onclick="" attribute, which the
+// site's CSP (script-src without 'unsafe-inline') silently blocks — so every
+// empty-state action button (the "add first item" CTA on Finance/Shifts/
+// Debt/Shopping) was dead on the live site. A data-action goes through real
+// addEventListener wiring, which CSP allows. (CSP also blocks eval/new
+// Function, so re-hydrating the old JS string dynamically wasn't an option
+// either — the callers were switched to action names instead.)
+export function emptyStateHtml({icon='inbox', title='', desc='', action='', actionName=''}){
   return `<div class="empty-state">
     <div class="empty-state-illustration">
       <span class="es-spark es-spark-1"></span>
@@ -26,7 +36,7 @@ export function emptyStateHtml({icon='inbox', title='', desc='', action='', onCl
     </div>
     <div class="empty-state-title">${escapeHtml(title)}</div>
     ${desc?`<div class="empty-state-desc">${escapeHtml(desc)}</div>`:''}
-    ${action?`<button type="button" class="btn btn-primary" onclick="${escapeHtml(onClick)}">${escapeHtml(action)}</button>`:''}
+    ${action&&actionName?`<button type="button" class="btn btn-primary" data-action="${escapeHtml(actionName)}">${escapeHtml(action)}</button>`:''}
   </div>`;
 }
 

@@ -194,7 +194,7 @@ export function renderCalendar(){
       title:tr('shifts_empty_title'),
       desc:tr('shifts_empty_desc'),
       action:tr('shifts_quick_fill'),
-      onClick:'toggleQuickFill()'
+      actionName:'toggle-quick-fill'
     });
   }
   // Progress bar

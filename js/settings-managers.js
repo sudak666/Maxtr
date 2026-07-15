@@ -6,7 +6,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
+import { openColorPicker, saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
@@ -99,7 +99,7 @@ function renderShiftTypesList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('shiftType','${t.id}')"></button>
+        <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="shiftType" data-id="${t.id}"></button>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${escapeHtml(t.name)}</span>
           <span class="cat-row-sub">${summary}</span>
@@ -168,7 +168,7 @@ function renderWalletsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" onclick="openColorPicker('wallet','${w.id}')"></button>
+      <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="wallet" data-id="${w.id}"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" data-action="update-wallet" data-id="${w.id}" data-field="name">
       <select style="flex:0 0 82px" data-action="update-wallet" data-id="${w.id}" data-field="currency">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
@@ -939,6 +939,12 @@ const CLICK_ACTIONS = {
   'open-wallets-manager': ()=>openWalletsManager(),
   'add-wallet': ()=>addWallet(),
   'delete-wallet': ds=>deleteWallet(ds.id),
+  // Color swatches on shiftType/wallet/tag manager rows — one handler for
+  // all three (the global delegated listener sees every click regardless of
+  // which file rendered the swatch). Was an inline onclick="openColorPicker
+  // (...)" that the site CSP silently blocked. `data-kind` distinguishes
+  // which list the row belongs to (selectPickedColor() switches on it).
+  'open-color-picker': ds=>openColorPicker(ds.kind, ds.id),
   'open-rates-manager': ()=>openRatesManager(),
   'open-widgets-manager': ()=>openWidgetsManager(),
   'open-tools-manager': ()=>openToolsManager(),
