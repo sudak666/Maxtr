@@ -844,16 +844,32 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 /* ── HISTORY ── */
 .fin-history{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:18px;min-height:400px}
 
-/* ── FLOATING ADD BUTTON (opens the transaction form as a sheet) ── */
+/* ── FLOATING ADD BUTTON (opens the transaction form as a sheet) ──
+   Extended FAB: shows an icon+label pill at rest, collapses to a plain
+   circle while the list is being scrolled (setupFabExpandCollapse() in
+   js/app-init.js toggles .fab-collapsed), re-expanding once scrolling
+   stops. border-radius stays a constant 28px on purpose — on a 56×56
+   collapsed button that's exactly 50% (a circle), and on the wider
+   expanded pill it's exactly height/2 (fully rounded ends), so the shape
+   morphs correctly between states with no separate radius transition. */
 .fin-fab{
   position:fixed;right:20px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:150;
-  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  height:56px;border-radius:28px;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:#fff;
   background:linear-gradient(135deg,var(--purple),var(--purple3));
-  box-shadow:var(--shadow-fab);transition:transform .15s;
+  box-shadow:var(--shadow-fab);white-space:nowrap;
+  padding:0 20px 0 16px;
+  transition:transform .15s,padding .25s ease;
 }
 .fin-fab:active{transform:scale(.92)}
-.fin-fab .ico{width:24px;height:24px;margin-right:0}
+.fin-fab .ico{width:24px;height:24px;margin-right:8px;flex-shrink:0;transition:margin .25s ease}
+.fin-fab-label{font-size:14px;font-weight:700;overflow:hidden;max-width:200px;opacity:1;transition:max-width .25s ease,opacity .15s ease}
+.fin-fab.fab-collapsed{padding:0 16px}
+.fin-fab.fab-collapsed .ico{margin-right:0}
+.fin-fab.fab-collapsed .fin-fab-label{max-width:0;opacity:0}
+@media (prefers-reduced-motion:reduce){
+  .fin-fab,.fin-fab .ico,.fin-fab-label{transition:none}
+}
 .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .hist-head-toggle{cursor:pointer}
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
@@ -1615,6 +1631,7 @@ body.amounts-hidden #fx-converter-result{
          візит не починався з форми на чверть екрана. -->
     <button type="button" class="fin-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
       <span id="ic-fin-fab"></span>
+      <span class="fin-fab-label" data-i18n="finance_new_tx">Нова операція</span>
     </button>
 
     <!-- Аналітика витрат і доходів -->
@@ -1717,6 +1734,7 @@ body.amounts-hidden #fx-converter-result{
 
     <button type="button" class="fin-fab" data-action="open-new-debt-entry-modal" aria-label="Новий платіж">
       <span id="ic-debt-fab"></span>
+      <span class="fin-fab-label" data-i18n="debt_new_payment">Новий платіж</span>
     </button>
   </section>
 
