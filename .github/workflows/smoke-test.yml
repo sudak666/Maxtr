@@ -57,6 +57,9 @@ jobs:
       - name: Run debt payment-history reorder + swipe-to-delete test
         run: node tests/debt-swipe-delete.mjs
 
+      - name: Run transaction list sort-order test
+        run: node tests/tx-list-sort-order.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
