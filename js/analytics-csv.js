@@ -4,7 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { categoryColor, categoryIcon, currencySymbol, toBase, walletById } from './core.js';
-import { editTransaction, tagBadge, walletBadge } from './finance.js';
+import { deleteTransaction, editTransaction, tagBadge, walletBadge } from './finance.js';
 import { renderGoals } from './goals-profile.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
 import { emptyStateHtml, escapeHtml, showToast } from './ui-widgets.js';
@@ -188,15 +188,15 @@ function renderFinanceStartGuide(){
       <div class="start-guide-title">${escapeHtml(tr('finance_start_title'))}</div>
       <div class="start-guide-desc">${escapeHtml(tr('finance_start_desc'))}</div>
       <div class="start-guide-steps">
-        <button type="button" class="start-step ${hasWallet?'done':''}" onclick="openWalletsManager()">
+        <button type="button" class="start-step ${hasWallet?'done':''}" data-action="open-wallets-manager">
           <span class="start-step-index">${hasWallet?window.Icon('check'):'1'}</span>
           <span><span class="start-step-title">${escapeHtml(tr('finance_start_wallet'))}</span><span class="start-step-sub">${escapeHtml(tr('finance_start_wallet_sub'))}</span></span>
         </button>
-        <button type="button" class="start-step" onclick="openNewTxModal()">
+        <button type="button" class="start-step" data-action="open-new-tx-modal">
           <span class="start-step-index">2</span>
           <span><span class="start-step-title">${escapeHtml(tr('finance_start_tx'))}</span><span class="start-step-sub">${escapeHtml(tr('finance_start_tx_sub'))}</span></span>
         </button>
-        <button type="button" class="start-step" onclick="openWidgetsManager()">
+        <button type="button" class="start-step" data-action="open-widgets-manager">
           <span class="start-step-index">3</span>
           <span><span class="start-step-title">${escapeHtml(tr('finance_start_widgets'))}</span><span class="start-step-sub">${escapeHtml(tr('finance_start_widgets_sub'))}</span></span>
         </button>
@@ -271,7 +271,7 @@ function txItemInnerHtml(t){
           <span class="tx-amount ${cls}">${amtStr}</span>
         </div>
       </div>
-      <button class="tx-swipe-delete" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <button class="tx-swipe-delete" data-action="delete-transaction" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
 }
 
 const TX_SWIPE_REVEAL_PX=60;
@@ -404,7 +404,7 @@ export function renderFinance(){
       title:tr('finance_empty_title'),
       desc:tr('finance_empty_desc'),
       action:tr('finance_new_tx'),
-      onClick:'openNewTxModal()'
+      actionName:'open-new-tx-modal'
     });
     return;
   }
@@ -561,10 +561,20 @@ const CLICK_ACTIONS = {
   'clear-tx-category-filter': ()=>clearTxCategoryFilter(),
   'export-transactions-csv': ()=>exportTransactionsCSV(),
   'toggle-tx-list-expanded': ()=>toggleTxListExpanded(),
+  // The swipe-revealed delete button on a .tx-item. Needs stopPropagation
+  // so the tap doesn't bubble to the row's own click→editTransaction
+  // listener (which would open the edit modal instead of deleting). This
+  // used to be an inline onclick="event.stopPropagation();deleteTransaction()"
+  // — silently dead under the site's CSP (script-src has no 'unsafe-inline',
+  // so inline event-handler attributes never execute), which is exactly why
+  // "delete opened edit" on the live site: the inline handler no-op'd and
+  // the tap fell through to the row's edit listener. As a real delegated
+  // handler it runs normally. Dispatcher below passes the event for this.
+  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(Number(ds.id)); },
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset, e);
 }, true);
 
 // Closes any swiped-open .tx-item (see setupTxSwipe() above) the moment a

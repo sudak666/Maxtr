@@ -58,7 +58,7 @@ export function renderShoppingList(){
       title:tr('shopping_empty_title'),
       desc:tr('shopping_empty_desc'),
       action:tr('shopping_add_btn'),
-      onClick:'document.getElementById("shopping-name-input")?.focus()'
+      actionName:'focus-shopping-name'
     });
     return;
   }
@@ -99,6 +99,9 @@ const CLICK_ACTIONS = {
   'add-shopping-item': ()=>addShoppingItem(),
   'clear-bought-shopping': ()=>clearBoughtShopping(),
   'delete-shopping-item': ds=>deleteShoppingItem(ds.id),
+  // The empty-state "add first item" CTA just focuses the name input
+  // (emptyStateHtml, ui-widgets.js) — was an inline onclick the CSP blocked.
+  'focus-shopping-name': ()=>document.getElementById('shopping-name-input')?.focus(),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');

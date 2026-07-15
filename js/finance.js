@@ -236,7 +236,7 @@ function renderTagsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" onclick="openColorPicker('tag','${t.id}')"></button>
+      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="tag" data-id="${t.id}"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-tag" data-id="${t.id}" data-field="name">
       <button class="mgr-del" data-action="delete-tag" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
     box.appendChild(row);

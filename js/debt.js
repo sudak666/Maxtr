@@ -309,7 +309,7 @@ export function renderDebt(){
       title:tr('debt_empty_no_calc_title'),
       desc:tr('debt_empty_no_calc_desc'),
       action:tr('debt_add_calc'),
-      onClick:'addNewDebt()'
+      actionName:'add-new-debt'
     });
     return;
   }
@@ -346,7 +346,7 @@ export function renderDebt(){
       title:tr('debt_empty_title'),
       desc:tr('debt_empty_desc'),
       action:tr('debt_add_payment'),
-      onClick:'openNewDebtEntryModal()'
+      actionName:'open-new-debt-entry-modal'
     });
     return;
   }
@@ -467,6 +467,7 @@ export function __init_debt__(){
 // same data-action treatment instead of staying as dead weight in a
 // different file's init function.
 const CLICK_ACTIONS = {
+  'add-new-debt': ()=>addNewDebt(),
   'open-new-debt-entry-modal': ()=>openNewDebtEntryModal(),
   'toggle-debt-info-panel': ()=>toggleDebtInfoPanel(),
   'toggle-debt-history-panel': ()=>toggleDebtHistoryPanel(),
