@@ -380,6 +380,11 @@ export function renderFinance(){
 
   let filtered=AppState.txFilter==='all'?AppState.transactions:AppState.transactions.filter(t=>t.type===AppState.txFilter);
   if(AppState.txCategoryFilter) filtered=filtered.filter(t=>t.category===AppState.txCategoryFilter);
+  if(AppState.txSearch){
+    const walletName=id=>(walletById(id)?.name||'').toLowerCase();
+    filtered=filtered.filter(t=>[t.comment,t.category,t.subcategory,walletName(t.wallet),walletName(t.targetWallet),t.currency,t.targetCurrency]
+      .some(v=>String(v||'').toLowerCase().includes(AppState.txSearch)));
+  }
   // Newest-first, independent of AppState.transactions' own array order —
   // js/color-picker.js's fbLoadNow() already sorts on load, but re-sorting
   // a copy here too keeps the *displayed* order correct even mid-session
@@ -400,12 +405,13 @@ export function renderFinance(){
   if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
 
   if(filtered.length===0){
+    const isSearching=!!AppState.txSearch || AppState.txFilter!=='all' || !!AppState.txCategoryFilter;
     lc.innerHTML=emptyStateHtml({
-      icon:'wallet',
-      title:tr('finance_empty_title'),
-      desc:tr('finance_empty_desc'),
-      action:tr('finance_new_tx'),
-      actionName:'open-new-tx-modal'
+      icon:isSearching?'search':'wallet',
+      title:tr(isSearching?'finance_search_empty_title':'finance_empty_title'),
+      desc:tr(isSearching?'finance_search_empty_desc':'finance_empty_desc'),
+      action:isSearching?'':tr('finance_new_tx'),
+      actionName:isSearching?'':'open-new-tx-modal'
     });
     return;
   }

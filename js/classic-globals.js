@@ -180,6 +180,7 @@
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-fin-fab','plus');
+  setIcon('ic-tx-search','search');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
@@ -296,6 +297,8 @@
       finance_tags:'Теги', finance_date:'Дата', finance_comment:'Коментар', finance_comment_placeholder:'Деталі операції...',
       finance_amount_prefix:'Сума', finance_add_btn:'Додати запис', finance_history_title:'Історія операцій',
       finance_filter_all:'Всі', finance_filter_reset:'Скинути ✕', finance_records_suffix:'записів', finance_no_records:'Записів немає',
+      finance_search_placeholder:'Пошук за коментарем, категорією, гаманцем…',
+      finance_search_empty_title:'Нічого не знайдено', finance_search_empty_desc:'Зміни фільтр або пошуковий запит, щоб побачити операції.',
       finance_view_all:'Переглянути всі', finance_show_less:'Згорнути',
       toast_tx_updated:'Запис оновлено', toast_transfer_done:'Переказ виконано', toast_tx_added:'Запис додано',
       toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
@@ -548,6 +551,8 @@
       finance_tags:'Tags', finance_date:'Date', finance_comment:'Comment', finance_comment_placeholder:'Transaction details...',
       finance_amount_prefix:'Amount', finance_add_btn:'Add entry', finance_history_title:'Transaction history',
       finance_filter_all:'All', finance_filter_reset:'Reset ✕', finance_records_suffix:'records', finance_no_records:'No records yet',
+      finance_search_placeholder:'Search by comment, category, wallet…',
+      finance_search_empty_title:'Nothing found', finance_search_empty_desc:'Change the filter or search query to see transactions.',
       finance_view_all:'View all', finance_show_less:'Show less',
       toast_tx_updated:'Entry updated', toast_transfer_done:'Transfer completed', toast_tx_added:'Entry added',
       toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',

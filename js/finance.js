@@ -202,6 +202,11 @@ const closeTxModal = function(){
   const m=document.getElementById('tx-form-modal'); if(m) m.style.display='none';
 };
 
+export function setTxSearch(value){
+  AppState.txSearch=String(value||'').trim().toLowerCase();
+  renderFinance();
+}
+
 export function setTxFilter(f){
   AppState.txFilter=f;
   document.querySelectorAll('.filter-chip').forEach(c=>{
@@ -425,10 +430,16 @@ document.addEventListener('click', e=>{
 const FIELD_ACTIONS = {
   'update-tag': (ds,el)=>updateTag(ds.id, ds.field, el.value),
   'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
+  'set-tx-search': (ds,el)=>setTxSearch(el.value),
 };
-document.addEventListener('change', e=>{
+function dispatchFinanceFieldAction(e){
   const el=e.target.closest('[data-action]');
   if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+}
+document.addEventListener('change', dispatchFinanceFieldAction);
+document.addEventListener('input', e=>{
+  const el=e.target.closest('[data-action="set-tx-search"]');
+  if(el) setTxSearch(el.value);
 });
 
 // Still window-exposed: js/analytics-csv.js's transaction-row template

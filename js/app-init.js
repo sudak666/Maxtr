@@ -82,7 +82,7 @@ export async function init(){
   // itself isn't the tab switchTab() just activated, but its skeleton still
   // needs to be in place *before* that could happen.
   if(!cfgCached){ renderFinanceSkeleton(); renderShiftsSkeleton(); }
-  setFinanceType('income');
+  setFinanceType('expense');
   populateFxConverterSelects(); renderFxConverter();
   enhanceAllSelects();
   renderProfileUI(); renderPremiumUI();
