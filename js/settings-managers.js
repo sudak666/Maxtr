@@ -6,11 +6,12 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { openColorPicker, saveConfigLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
+import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
-import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
+import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // A plain function declaration is safe to call immediately at import time
 // from any other module (hoisted, no temporal-dead-zone risk — see
@@ -282,6 +283,29 @@ const openWidgetsManager = function(){
   document.getElementById('widgets-modal').style.display='flex';
 };
 
+export function renderPrivacyCacheUI(){
+  const cb=document.getElementById('privacy-cache-checkbox');
+  const sub=document.getElementById('privacy-cache-sub');
+  const enabled=isSensitiveLocalCacheEnabled();
+  if(cb) cb.checked=enabled;
+  if(sub) sub.textContent=tr(enabled?'privacy_cache_hint_on':'privacy_cache_hint_off');
+}
+
+const togglePrivacyCache = function(enabled){
+  setSensitiveLocalCacheEnabled(!!enabled);
+  if(!enabled){
+    if(AppState.currentUser) clearSensitiveLocalCacheForAccount(AppState.currentUser.uid, AppState.profilesMeta);
+    else clearSensitiveLocalCacheForUser(lsKey);
+    showToast(tr('privacy_cache_cleared'),'check');
+  }else{
+    saveLocal(); saveDebtLocal(); saveRecurringLocal(); saveConfigLocal();
+    const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
+    showToast(tr('privacy_cache_on'),'check');
+  }
+  renderPrivacyCacheUI();
+};
+
+
 function renderRatesList(){
   const box=document.getElementById('rates-list'); if(!box) return;
   box.innerHTML='';
@@ -332,6 +356,7 @@ const setRatesSource = function(source){
 
 function renderRatesSourceUI(){
   document.querySelectorAll('#rates-source-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.source===AppState.ratesSource));
+  syncClickableA11yState(document.getElementById('rates-source-filter'));
 }
 
 async function fetchPrivatCashRates(){
@@ -636,7 +661,7 @@ const renameCategory = function(idx,value){
   if(AppState.subcategories[oldKey]!==undefined){ AppState.subcategories[subKey(AppState.catMgrType,newName)]=AppState.subcategories[oldKey]; delete AppState.subcategories[oldKey]; }
   if(AppState.categoryIcons[oldName]!==undefined){ AppState.categoryIcons[newName]=AppState.categoryIcons[oldName]; delete AppState.categoryIcons[oldName]; }
   saveConfigLocal(); saveRecurringLocal();
-  const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
+  const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
   scheduleSave();
   if(affected.length) batchWriteTransactions(affected).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderCategoriesList(); fillCats(AppState.currentFinanceType); renderFinance();
@@ -979,6 +1004,7 @@ const FIELD_ACTIONS = {
   'update-budget': (ds,el)=>updateBudget(ds.cat, el.value),
   'update-recurring': (ds,el)=>updateRecurring(ds.id, ds.field, ds.field==='active'?el.checked:el.value),
   'render-fx-converter': ()=>renderFxConverter(),
+  'toggle-privacy-cache': (ds,el)=>togglePrivacyCache(el.checked),
 };
 // CAPTURE phase, same reason as the closeManagers listener above: several
 // of these live inside a .modal-card, whose own onclick="event.
@@ -1002,5 +1028,6 @@ document.addEventListener('input', dispatchFieldAction);
 // that template is converted too.
 window.openWalletsManager = openWalletsManager;
 window.openWidgetsManager = openWidgetsManager;
+renderPrivacyCacheUI();
 try{ const s=localStorage.getItem(ratesSourceKey()); if(s==='privat'||s==='nbu') AppState.ratesSource=s; }catch(e){}
 }
