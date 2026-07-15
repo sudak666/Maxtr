@@ -144,8 +144,9 @@ async function main() {
     }
     console.log('[ok] create: new transaction appears in the list with the entered amount');
 
-    // ── EDIT ──
-    await row.locator('.tx-del').first().click(); // pencil (edit) is the first .tx-del
+    // ── EDIT ── (tapping the row itself opens edit - the dedicated pencil
+    // button was removed, see index.html's tx-item-inner/swipe-to-delete note)
+    await row.click();
     await page.waitForSelector('#tx-form-modal', { state: 'visible' });
     const amountField = page.locator('#fin-amount');
     const prefilled = await amountField.inputValue();
@@ -162,8 +163,12 @@ async function main() {
     }
     console.log('[ok] edit: transaction amount updates in place and the row count stays at 1');
 
-    // ── DELETE ──
-    await row.locator('.tx-del').nth(1).click(); // trash (delete) is the second .tx-del
+    // ── DELETE ── (the delete button lives behind a swipe-to-reveal panel
+    // now; a real touch swipe is dispatched in tests/tx-swipe-delete.mjs -
+    // here, hovering reveals it via CSS :hover exactly like a mouse user
+    // would see, which is enough for this test's own CRUD-flow purpose)
+    await row.hover();
+    await row.locator('.tx-swipe-delete').click();
     await page.waitForSelector('#ui-dialog', { state: 'visible' });
     await page.click('#ui-dlg-ok');
     await page.waitForSelector('#ui-dialog', { state: 'hidden' });

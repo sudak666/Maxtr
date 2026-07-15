@@ -249,22 +249,89 @@ function txItemInnerHtml(t){
     ? `<span style="font-size:11px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
   const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
   const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
+  // Pencil dropped on purpose: tapping the row already opens edit (see the
+  // click listener on the outer .tx-item node itself), so a second
+  // always-visible edit button was pure duplication. Delete now lives
+  // behind a swipe-to-reveal panel (Telegram/Gmail-style) instead of an
+  // always-visible icon — .tx-swipe-delete sits *outside* .tx-item-inner
+  // (a sibling, not a child) so the inner wrapper's slide-left transform
+  // (CSS :hover/:focus-within, or JS during a touch swipe — see
+  // setupTxSwipe() below) reveals it without moving it.
   return `
-      <div class="tx-left-wrap">
-        <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
-        <div class="tx-left">
-          <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
-          <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
-          ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
+      <div class="tx-item-inner">
+        <div class="tx-left-wrap">
+          <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
+          <div class="tx-left">
+            <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
+            <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
+            ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
+          </div>
+        </div>
+        <div class="tx-right">
+          <span class="tx-amount ${cls}">${amtStr}</span>
         </div>
       </div>
-      <div class="tx-right">
-        <span class="tx-amount ${cls}">${amtStr}</span>
-        <div class="tx-actions">
-          <button class="tx-del" onclick="event.stopPropagation();editTransaction(${t.id})" style="color:var(--muted)" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-          <button class="tx-del" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
-        </div>
-      </div>`;
+      <button class="tx-swipe-delete" onclick="event.stopPropagation();deleteTransaction(${t.id})" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+}
+
+const TX_SWIPE_REVEAL_PX=60;
+const TX_SWIPE_OPEN_THRESHOLD=30; // half the reveal width - matches most swipe-list conventions ("did you mean to open this?")
+
+function closeAllTxSwipes(except){
+  document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
+}
+
+// Touch-swipe-to-reveal-delete (Telegram/Gmail-style) — mirrors
+// js/ui-widgets.js's initSheetDrag() pointer-event pattern (drag while
+// held, snap to open/closed on release) but horizontal instead of
+// vertical and per-row instead of per-modal. Mouse/keyboard users reach
+// the same .tx-swipe-delete button via CSS :hover/:focus-within instead
+// (see index.html) — this only needs to handle an actual touch/pen drag.
+// Called once per node at creation time (like the click/keydown listeners
+// above); .tx-item-inner is re-queried on every drag rather than cached,
+// since it gets replaced wholesale on every re-render of a reused row.
+function setupTxSwipe(item){
+  let startX=0,startY=0,dx=0,dragging=false,decided=false,horizontal=false;
+  item.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse') return; // mouse gets the CSS :hover reveal instead
+    startX=e.clientX; startY=e.clientY; dx=0; dragging=true; decided=false; horizontal=false;
+  });
+  item.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    const ddx=e.clientX-startX, ddy=e.clientY-startY;
+    if(!decided){
+      // Wait for enough movement to tell a horizontal swipe (this
+      // gesture) from a vertical scroll (must stay untouched) apart -
+      // only takes over (setPointerCapture) once it's clearly horizontal.
+      if(Math.abs(ddx)<6 && Math.abs(ddy)<6) return;
+      decided=true;
+      horizontal=Math.abs(ddx)>Math.abs(ddy);
+      if(horizontal){
+        try{ item.setPointerCapture(e.pointerId); }catch(err){}
+        item.classList.add('swipe-dragging');
+      }
+    }
+    if(!horizontal) return;
+    dx=Math.max(-TX_SWIPE_REVEAL_PX*1.3, Math.min(0,ddx));
+    // Shrinks .tx-item-inner's own width (from its right edge) rather than
+    // translating it — see index.html's .tx-item-inner comment for why a
+    // transform clips the category icon on the left instead.
+    const inner=item.querySelector('.tx-item-inner');
+    if(inner) inner.style.width=`calc(100% - ${-dx}px)`;
+  });
+  function endDrag(){
+    if(!dragging) return;
+    dragging=false;
+    item.classList.remove('swipe-dragging');
+    const inner=item.querySelector('.tx-item-inner');
+    if(inner) inner.style.width=''; // hand off to the .swipe-open CSS class below
+    if(horizontal){
+      if(dx<-TX_SWIPE_OPEN_THRESHOLD){ closeAllTxSwipes(item); item.classList.add('swipe-open'); }
+      else item.classList.remove('swipe-open');
+    }
+  }
+  item.addEventListener('pointerup',endDrag);
+  item.addEventListener('pointercancel',endDrag);
 }
 
 export function renderFinance(){
@@ -377,8 +444,16 @@ export function renderFinance(){
       item.tabIndex=0;
       item.style.cursor='pointer';
       item.dataset.txId=idStr;
-      item.addEventListener('click',()=>editTransaction(t.id));
+      item.addEventListener('click',()=>{
+        // A swiped-open row's first tap just closes it again (matches the
+        // common swipe-list convention, e.g. iOS Mail) instead of also
+        // opening edit right after the drag gesture ends - a touchend can
+        // otherwise register as a click on the same element.
+        if(item.classList.contains('swipe-open')){ item.classList.remove('swipe-open'); return; }
+        editTransaction(t.id);
+      });
       item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
+      setupTxSwipe(item);
     }else{
       existingById.delete(idStr); // consumed — whatever's left afterward gets removed below
     }
@@ -462,13 +537,15 @@ const exportTransactionsCSV = function(){
 export function __init_analytics_csv__(){
 // Phase 11 of the window.*/inline-onclick removal audit item (see
 // CLAUDE.md): this file's own dynamic templates never call its own
-// functions via onclick (the 5 onclick sites inside renderFinanceStartGuide/
+// functions via onclick (the onclick sites inside renderFinanceStartGuide/
 // renderFinance call OTHER files' functions - openWalletsManager/
-// openNewTxModal/openWidgetsManager/editTransaction/deleteTransaction -
-// which already correctly stay window-exported in settings-managers.js/
-// finance.js, out of scope here). All 3 of this file's own window.*
-// existed only for static index.html onclick attributes, converted to
-// data-action, same pattern as phases 3-10. The analytics-period chips
+// openNewTxModal/deleteTransaction (editTransaction moved to a real
+// addEventListener call, see the .tx-item click listener above, so it no
+// longer needs a window.* export at all - see finance.js) - which already
+// correctly stay window-exported in settings-managers.js/finance.js, out
+// of scope here). All 3 of this file's own window.* existed only for
+// static index.html onclick attributes, converted to data-action, same
+// pattern as phases 3-10. The analytics-period chips
 // already carried a data-period attribute matching the value, so
 // set-analytics-period reads ds.period directly instead of adding a
 // redundant attribute.
@@ -482,4 +559,15 @@ document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
 }, true);
+
+// Closes any swiped-open .tx-item (see setupTxSwipe() above) the moment a
+// pointer goes down anywhere outside it — tapping a different row,
+// scrolling, or interacting with anything else on the page all close it,
+// matching how every other swipe-list app behaves (only one row open at a
+// time, and it doesn't linger open once you've moved on).
+document.addEventListener('pointerdown', e=>{
+  document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{
+    if(!el.contains(e.target)) el.classList.remove('swipe-open');
+  });
+});
 }

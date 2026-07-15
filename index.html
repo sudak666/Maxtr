@@ -880,10 +880,18 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .tx-item,.shop-row{animation:rowIn .32s cubic-bezier(.22,1,.36,1) both}
 @media(prefers-reduced-motion:reduce){.tx-item,.shop-row{animation:none}}
+/* Swipe-to-delete (Telegram/Gmail-style): .tx-item is now just the outer
+   positioning/clipping shell (plus the virtualization containment below) -
+   its visible card look (background/border/padding) moved onto the new
+   .tx-item-inner, which is what actually slides left on swipe/hover/focus
+   to reveal .tx-swipe-delete sitting behind it. Pencil was dropped
+   entirely rather than joining the reveal panel: tapping the row already
+   opens edit (see js/analytics-csv.js's node-creation click listener,
+   unchanged), so a separate always-visible edit button was pure
+   duplication - this is also what let the too-small-gap mis-tap-into-edit
+   bug happen in the first place. */
 .tx-item{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
-  transition:border-color .15s;gap:8px;
+  position:relative;overflow:hidden;border-radius:18px;
   /* Virtualization via CSS containment (no bundler here for a real
      windowed-list library — see CLAUDE.md): renderFinance() in
      js/analytics-csv.js has no cap on the *expanded* "view all" list, so a
@@ -896,17 +904,46 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
      just ignore both properties — pure progressive enhancement. */
   content-visibility:auto;contain-intrinsic-size:auto 84px;
 }
-.tx-item:hover{border-color:var(--border2)}
+.tx-item-inner{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
+  transition:width .18s cubic-bezier(.22,1,.36,1),border-color .15s;gap:8px;
+  position:relative;z-index:1;touch-action:pan-y;
+  width:100%;box-sizing:border-box;
+}
+.tx-item:hover .tx-item-inner{border-color:var(--border2)}
+/* Reveal the delete button on hover (mouse) or keyboard focus landing
+   anywhere inside the row (Tab), not just on a touch swipe - a mouse/
+   keyboard user has no swipe gesture available at all, so this is the
+   only way they can reach delete now that the always-visible button is
+   gone. Real touch swiping is handled in JS (setupTxSwipe() adds/removes
+   .swipe-open, see analytics-csv.js) since CSS alone can't do drag-tracking.
+   Deliberately animates *width* (shrinking the box from its own right
+   edge), not a translateX transform: an earlier version translated the
+   whole row left, which reveals space on the right correctly but also
+   pushes the category icon on the *left* past .tx-item's own
+   overflow:hidden boundary, clipping it off entirely (caught via a
+   screenshot, not obvious from the CSS alone) - shrinking the width
+   instead leaves the row's left edge untouched, so nothing on that side
+   ever moves. */
+.tx-item:hover .tx-item-inner,
+.tx-item:focus-within .tx-item-inner,
+.tx-item.swipe-open .tx-item-inner{
+  width:calc(100% - 60px);
+}
+.tx-item.swipe-dragging .tx-item-inner{transition:none}
+@media(prefers-reduced-motion:reduce){.tx-item-inner{transition:none}}
+.tx-swipe-delete{
+  position:absolute;top:0;right:0;bottom:0;width:60px;z-index:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--red2);color:#fff;border:none;cursor:pointer;
+}
+.tx-swipe-delete .ico{margin-right:0;width:21px;height:21px}
 .tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
 .tx-left{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tx-cat{font-size:13px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tx-meta{font-size:12px;color:var(--muted);font-weight:400;margin-top:1px}
 .tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-/* gap bumped from 2px: with .tx-del's larger touch target below, a near-zero
-   gap made it easy to intend the trash button and land on the pencil one
-   instead (or vice versa) on a real touchscreen - reported as "deleting a
-   transaction opens edit instead". */
-.tx-actions{display:flex;align-items:center;gap:10px}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap}
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
@@ -927,10 +964,6 @@ body.amounts-hidden .budget-row-limit,
 body.amounts-hidden #fx-converter-result{
   filter:blur(7px);user-select:none;transition:filter .15s;
 }
-.tx-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:14px;border-radius:50%;transition:all .15s;line-height:1;display:inline-flex}
-.tx-del .ico{margin-right:0;width:22px;height:22px}
-.tx-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
-
 .wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;max-width:100%;overflow:hidden;flex-shrink:0}
 .wallet-tag .ico{width:.9em;height:.9em;flex-shrink:0}
 .wallet-tag-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}

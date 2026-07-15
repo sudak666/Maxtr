@@ -180,7 +180,7 @@ async function main() {
     const firstTxId = markersBefore[0].split(':')[0];
     await page.evaluate((txId) => {
       const row = document.querySelector(`.tx-item[data-tx-id="${txId}"]`);
-      row.querySelectorAll('.tx-del')[1].click(); // trash button
+      row.querySelector('.tx-swipe-delete').click();
     }, firstTxId);
     await page.waitForSelector('#ui-dialog', { state: 'visible' });
     await page.click('#ui-dlg-ok');

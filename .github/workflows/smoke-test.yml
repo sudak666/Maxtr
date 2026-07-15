@@ -51,6 +51,9 @@ jobs:
       - name: Run pull-to-refresh test
         run: node tests/pull-to-refresh.mjs
 
+      - name: Run transaction swipe-to-delete test
+        run: node tests/tx-swipe-delete.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
