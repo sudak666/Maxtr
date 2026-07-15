@@ -98,17 +98,44 @@ export async function init(){
   if(localStorage.getItem(pushEnabledKey())==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
 }
 
+// Walks up from `el` looking for a nested `overflow-y:auto`/`scroll`
+// container that actually has something to scroll (its own scrollHeight
+// exceeds its clientHeight) — e.g. #tx-list-container, .debt-list,
+// .modal-card-body. Stops at body/documentElement, since the *page's* own
+// scroll position is checked separately by the caller. Used by
+// setupPullToRefresh() below to tell "the user is scrolling a nested list"
+// apart from "the user is pulling the whole page down from its top" — the
+// two are otherwise indistinguishable from document.scrollingElement's
+// scrollTop alone, since these containers commonly hold enough content to
+// scroll internally while the *page* itself never needs to move (the
+// exact blind spot that also broke the FAB's expand/collapse-on-scroll
+// detection until it was fixed to use capture-phase document listening;
+// this is the same root cause showing up as the opposite failure mode —
+// here PTR needs to *not* react to a nested scroll, not *react* to one).
+function closestScrollableAncestor(el){
+  let node=el;
+  while(node && node!==document.body && node!==document.documentElement){
+    if(node.nodeType===1){
+      const cs=getComputedStyle(node);
+      if((cs.overflowY==='auto'||cs.overflowY==='scroll') && node.scrollHeight>node.clientHeight+1) return node;
+    }
+    node=node.parentElement;
+  }
+  return null;
+}
+
 // Called once from init()'s cold-init block, same as setupModalAccessibility()
 // above. Pull-to-refresh: dragging down from the very top of the page (not
-// mid-scroll anywhere else, and not while a modal is open) reveals a
-// spinner and, past a threshold, calls the exact same fbLoadNow()+toast
-// flow as the topbar's #btn-refresh tap button (js/app-init.js's
-// __init_app_init__ below) — this is a second entry point to that same
-// refresh, not a separate mechanism. Deliberately uses `{passive:true}`
-// listeners with no preventDefault(): body's `overscroll-behavior-y:contain`
-// (index.html) already suppresses the browser/OS's own native pull-to-
-// refresh bounce at the CSS level, which is what actually lets this coexist
-// with normal scrolling without the touchmove-preventDefault jank cost.
+// mid-scroll anywhere else, not inside a nested scrollable list/modal body,
+// and not while a modal is open) reveals a spinner and, past a threshold,
+// calls the exact same fbLoadNow()+toast flow as the topbar's #btn-refresh
+// tap button (js/app-init.js's __init_app_init__ below) — this is a second
+// entry point to that same refresh, not a separate mechanism. Deliberately
+// uses `{passive:true}` listeners with no preventDefault(): body's
+// `overscroll-behavior-y:contain` (index.html) already suppresses the
+// browser/OS's own native pull-to-refresh bounce at the CSS level, which is
+// what actually lets this coexist with normal scrolling without the
+// touchmove-preventDefault jank cost.
 function setupPullToRefresh(){
   const indicator=document.getElementById('ptr-indicator');
   const spinner=document.getElementById('ptr-spinner');
@@ -117,7 +144,18 @@ function setupPullToRefresh(){
   let startY=null, lastPull=0, refreshing=false;
 
   document.addEventListener('touchstart', e=>{
-    if(refreshing || AppState.openModalStack.length || (document.scrollingElement||document.documentElement).scrollTop>0){ startY=null; return; }
+    // Reported directly by the account owner: swiping inside the
+    // transaction-form bottom sheet (or any long transaction/debt list)
+    // triggered a page refresh instead of just scrolling. Root cause: this
+    // guard only ever checked the *page's* scrollTop, never whether the
+    // touch actually started inside one of the app's several independently
+    // scrollable nested containers — closestScrollableAncestor() closes
+    // that gap. The openModalStack check alone doesn't cover it either:
+    // .modal-card-body has its own scroll, so even the pre-existing
+    // "no PTR while a modal is open" guard was never the actual issue for
+    // the in-modal case, it just happened to also be true whenever the
+    // report involved a modal specifically.
+    if(refreshing || AppState.openModalStack.length || (document.scrollingElement||document.documentElement).scrollTop>0 || closestScrollableAncestor(e.target)){ startY=null; return; }
     startY=e.touches[0].clientY;
     lastPull=0;
     indicator.classList.remove('ptr-settling');
@@ -207,7 +245,26 @@ export function switchTab(tab){
   document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
   document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
   const shownTab=document.getElementById(`tab-${tab}`);
-  if(shownTab){ shownTab.classList.remove('tab-in'); void shownTab.offsetWidth; shownTab.classList.add('tab-in'); }
+  // .tab-in's entrance animation uses animation-fill-mode:both (index.html),
+  // which keeps its `transform` applied indefinitely once the animation
+  // finishes playing — even though the end-state transform is a no-op
+  // (translateY(0)) visually, any non-`none` transform value establishes a
+  // new containing block for `position:fixed` descendants per the CSS
+  // spec. #tab-finance/#tab-debt each host a .fin-fab, so leaving .tab-in
+  // attached broke position:fixed for the FAB, silently trapping it inside
+  // the tab section instead of the viewport (it "scrolled with the
+  // screen" instead of staying pinned — reported directly by the account
+  // owner, confirmed via a real boundingBox() measurement showing the
+  // FAB's rect hundreds of px below the viewport). Removing the class
+  // right after its one-shot animation finishes restores transform:none,
+  // closing the containing-block leak with no visible change (the
+  // animation has already finished playing by then).
+  if(shownTab){
+    shownTab.classList.remove('tab-in');
+    void shownTab.offsetWidth;
+    shownTab.classList.add('tab-in');
+    shownTab.addEventListener('animationend', ()=>shownTab.classList.remove('tab-in'), {once:true});
+  }
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
