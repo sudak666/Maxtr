@@ -1005,7 +1005,17 @@ body.amounts-hidden #fx-converter-result{
    right next to edit with only muted-grey styling and no visual "this is
    destructive" cue until :hover, which never fires on touch) moved behind
    the swipe. */
-.debt-row{position:relative;overflow:hidden;border-radius:18px}
+/* flex-shrink:0 is load-bearing, not decoration: .debt-list is a column
+   flexbox, and a flex item with any overflow other than visible gets an
+   automatic minimum size of 0 instead of "size of its content" (a well-known
+   CSS flexbox gotcha) — without this, the browser was free to shrink each
+   .debt-row (which needs overflow:hidden for the swipe-clip below) down to
+   a sliver once total row height exceeded .debt-list's max-height, clipping
+   almost all of every row's content down to a single visible word. Caught
+   via a live screenshot from a real production report, not visible from
+   reading the CSS alone. .tx-item never hit this because
+   #tx-list-container isn't a flex container. */
+.debt-row{position:relative;overflow:hidden;border-radius:18px;flex-shrink:0}
 .debt-row-inner{
   display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;
   padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;

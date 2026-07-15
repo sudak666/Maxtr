@@ -307,6 +307,19 @@ export async function fbLoadNow(){
     }else{
       AppState.transactions=subTx;
     }
+    // Firestore's getDocs() on the transactions subcollection has no
+    // orderBy — document order is unspecified, not "insertion order" or
+    // "newest first" the way addTransaction()'s unshift() makes a
+    // *locally-added* transaction land at index 0. Without this explicit
+    // sort, a loaded account's history could render in essentially
+    // arbitrary order (confirmed by a real account owner screenshot
+    // showing oldest-first) even though renderFinance() has always sliced
+    // "the first N" for the collapsed view assuming that meant "newest N".
+    // Sorted once here (not per-render) so every array-order consumer
+    // (renderFinance, the cached localStorage copy read back on next cold
+    // start, etc.) sees a consistent newest-first order without each call
+    // site needing its own sort.
+    AppState.transactions.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
     const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();

@@ -146,6 +146,28 @@ async function main() {
     if (hasDiscrepancy) throw new Error('expected no discrepancy hints for internally-consistent entries (order flip must not affect balance-chain math)');
     console.log('[ok] reversing display order did not disturb the running-balance-chain calculation');
 
+    // ── Regression test: .debt-list is a column flexbox (display:flex;
+    // flex-direction:column;max-height:560px;overflow-y:auto). A flex item
+    // with any overflow other than visible gets an automatic minimum size
+    // of 0 instead of "size of its content" (a well-known CSS flexbox
+    // gotcha) — .debt-row needs overflow:hidden for the swipe-clip, so
+    // without an explicit flex-shrink:0, the browser was free to shrink
+    // every row down to a sliver once total content height exceeded the
+    // list's max-height, clipping almost all of each row's fields down to
+    // a single visible word. Only reproduces with enough rows to actually
+    // overflow the 560px cap, hence the extra entries added here. ──
+    for (let i = 0; i < 8; i++) await addEntry('10', String(640 - i * 10), `0${(i % 9) + 1}.05.2026`);
+    await page.waitForTimeout(200);
+    const rowGeom = await page.evaluate(() => {
+      const row = document.querySelector('.debt-row');
+      const inner = row.querySelector('.debt-row-inner');
+      return { rowH: row.getBoundingClientRect().height, innerH: inner.getBoundingClientRect().height };
+    });
+    if (rowGeom.rowH < rowGeom.innerH - 1) {
+      throw new Error(`expected .debt-row's height (${rowGeom.rowH}px) to match its content's height (${rowGeom.innerH}px) even when the list overflows its max-height — got clipped, the flex-shrink regression`);
+    }
+    console.log('[ok] .debt-row does not collapse below its content height once the payment-history list has enough rows to overflow its max-height');
+
     // ── Swipe-to-delete: a real touch drag on the *newest* (top) row ──
     async function swipeLeft(row, totalDx, steps) {
       const entryId = await row.getAttribute('data-entry-id');
@@ -163,6 +185,7 @@ async function main() {
       }, { entryId, startX, y, totalDx, steps });
     }
 
+    const rowCountBeforeSwipeDelete = await page.locator('.debt-row').count();
     const topRow = page.locator('.debt-row').first();
     await topRow.scrollIntoViewIfNeeded();
 
@@ -190,7 +213,9 @@ async function main() {
     await page.waitForTimeout(200);
 
     const rowCountAfterDelete = await page.locator('.debt-row').count();
-    if (rowCountAfterDelete !== 2) throw new Error(`expected 2 remaining debt-row entries after delete, found ${rowCountAfterDelete}`);
+    if (rowCountAfterDelete !== rowCountBeforeSwipeDelete - 1) {
+      throw new Error(`expected ${rowCountBeforeSwipeDelete - 1} remaining debt-row entries after delete, found ${rowCountAfterDelete}`);
+    }
     console.log('[ok] deleting via the swipe-revealed button removes the row');
 
     // The pencil (edit) button is still always-visible and unambiguous —

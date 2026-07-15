@@ -379,6 +379,13 @@ export function renderFinance(){
 
   let filtered=AppState.txFilter==='all'?AppState.transactions:AppState.transactions.filter(t=>t.type===AppState.txFilter);
   if(AppState.txCategoryFilter) filtered=filtered.filter(t=>t.category===AppState.txCategoryFilter);
+  // Newest-first, independent of AppState.transactions' own array order —
+  // js/color-picker.js's fbLoadNow() already sorts on load, but re-sorting
+  // a copy here too keeps the *displayed* order correct even mid-session
+  // (e.g. right after editing a transaction to a backdated date, with no
+  // reload in between) without needing every mutation site to maintain a
+  // sorted-array invariant by hand.
+  filtered=[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   const lc=document.getElementById('tx-list-container');
   const tc=document.getElementById('tx-count');
   if(!lc) return;
