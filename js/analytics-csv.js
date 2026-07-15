@@ -7,7 +7,7 @@ import { categoryColor, categoryIcon, currencySymbol, toBase, walletById } from 
 import { deleteTransaction, editTransaction, tagBadge, walletBadge } from './finance.js';
 import { renderGoals } from './goals-profile.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
-import { emptyStateHtml, escapeHtml, showToast } from './ui-widgets.js';
+import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState } from './ui-widgets.js';
 
 // Transient (not persisted, resets on reload) — whether the transaction
 // history below the filters is showing everything or just the collapsed
@@ -26,6 +26,7 @@ const toggleTxListExpanded = function(){
 const setAnalyticsPeriod = function(period){
   AppState.analyticsPeriod=period;
   document.querySelectorAll('#analytics-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.period===period));
+  syncClickableA11yState(document.getElementById('analytics-period-filter'));
   renderAnalytics();
 };
 

@@ -12,6 +12,7 @@ import { updateTag } from './finance.js';
 import { activeProfileLsKey, batchWriteTransactions, loadTransactionsFromSubcollection, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
+import { setCacheItem } from './privacy-cache.js';
 import { closeManagers, uid, updateShiftType, updateWallet } from './settings-managers.js';
 import { escapeHtml, setupAccessibleClickableDivs, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
@@ -284,7 +285,7 @@ export async function fbLoadNow(){
     const sData=sS.exists()?sS.data():null;
     const fData=fS.exists()?fS.data():null;
     AppState.shifts=sData?(sData.data||{}):{};
-    const sk=lsKey('shifts'); if(sk) localStorage.setItem(sk,JSON.stringify(AppState.shifts));
+    const sk=lsKey('shifts'); if(sk) setCacheItem(sk,JSON.stringify(AppState.shifts));
     AppState.autoFillSchedule=(sData&&sData.autoFillSchedule&&typeof sData.autoFillSchedule==='object')
       ? {enabled:!!sData.autoFillSchedule.enabled, typeId:sData.autoFillSchedule.typeId||'', pattern:sData.autoFillSchedule.pattern||'every', anchorDate:sData.autoFillSchedule.anchorDate||''}
       : {enabled:false, typeId:'', pattern:'every', anchorDate:''};
@@ -320,7 +321,7 @@ export async function fbLoadNow(){
     // start, etc.) sees a consistent newest-first order without each call
     // site needing its own sort.
     AppState.transactions.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
-    const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
+    const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
     AppState.shoppingList=fData?(fData.shoppingList||[]):[];
@@ -373,15 +374,15 @@ export function scheduleSave(){
 }
 
 export function saveLocal(){
-  const k=lsKey('shifts'); if(k) localStorage.setItem(k,JSON.stringify(AppState.shifts));
+  const k=lsKey('shifts'); if(k) setCacheItem(k,JSON.stringify(AppState.shifts));
 }
 
 export function saveDebtLocal(){
-  const k=lsKey('debt'); if(k) localStorage.setItem(k, JSON.stringify({debts: AppState.debts, currentDebtId: AppState.currentDebtId}));
+  const k=lsKey('debt'); if(k) setCacheItem(k, JSON.stringify({debts: AppState.debts, currentDebtId: AppState.currentDebtId}));
 }
 
 export function saveRecurringLocal(){
-  const k=lsKey('recurring'); if(k) localStorage.setItem(k, JSON.stringify(AppState.recurring));
+  const k=lsKey('recurring'); if(k) setCacheItem(k, JSON.stringify(AppState.recurring));
 }
 
 export function saveShoppingLocal(){
@@ -417,7 +418,7 @@ async function processRecurring(){
     }
   });
   if(added){
-    const tk=lsKey('tx'); if(tk) localStorage.setItem(tk,JSON.stringify(AppState.transactions));
+    const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     saveRecurringLocal();
     await batchWriteTransactions(newTx);
   }
@@ -425,7 +426,7 @@ async function processRecurring(){
 }
 
 export function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) localStorage.setItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) setCacheItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
 }
 
 // Top-level statements that DO something immediately (as opposed to a

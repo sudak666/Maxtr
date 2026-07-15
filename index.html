@@ -2045,6 +2045,17 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" class="type-btn lang-opt" data-lang="uk" style="flex:0 0 auto;padding:8px 16px">Українська</button>
         <button type="button" class="type-btn lang-opt" data-lang="en" style="flex:0 0 auto;padding:8px 16px">English</button>
       </div>
+      <div class="settings-row" style="cursor:default;margin-top:10px">
+        <span id="ic-settings-privacy-cache" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="privacy_cache_title">Локальний кеш даних</div>
+          <div class="settings-row-sub" id="privacy-cache-sub" data-i18n="privacy_cache_hint_on">Швидший запуск: фінансові дані зберігаються на цьому пристрої.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-cache-checkbox" data-action="toggle-privacy-cache">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">

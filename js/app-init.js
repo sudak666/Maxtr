@@ -13,6 +13,7 @@ import { applyAutoRuleToForm, fillSubcats, setFinanceType, updateAmountLabel } f
 import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
+import { getCacheItem } from './privacy-cache.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
 import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
@@ -55,15 +56,15 @@ export async function init(){
     setInterval(()=>{ runNotificationChecks(); runAutoFillCheck(); }, 5*60*1000);
   }
   // Local cache first (namespaced to the signed-in user)
-  try{const k=lsKey('shifts'); const s=k&&localStorage.getItem(k); if(s) AppState.shifts=JSON.parse(s);}catch{}
-  try{const k=lsKey('tx'); const t=k&&localStorage.getItem(k); if(t) AppState.transactions=JSON.parse(t);}catch{}
-  try{const k=lsKey('recurring'); const r=k&&localStorage.getItem(k); if(r) AppState.recurring=JSON.parse(r);}catch{}
+  try{const k=lsKey('shifts'); const s=k&&getCacheItem(k); if(s) AppState.shifts=JSON.parse(s);}catch{}
+  try{const k=lsKey('tx'); const t=k&&getCacheItem(k); if(t) AppState.transactions=JSON.parse(t);}catch{}
+  try{const k=lsKey('recurring'); const r=k&&getCacheItem(k); if(r) AppState.recurring=JSON.parse(r);}catch{}
   try{const k=lsKey('shopping'); const s2=k&&localStorage.getItem(k); if(s2) AppState.shoppingList=JSON.parse(s2);}catch{}
-  try{const k=lsKey('debt'); const d=k&&localStorage.getItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){AppState.debts=norm.debts; AppState.currentDebtId=norm.currentDebtId;}}}catch{}
+  try{const k=lsKey('debt'); const d=k&&getCacheItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){AppState.debts=norm.debts; AppState.currentDebtId=norm.currentDebtId;}}}catch{}
   // Config cache (shift types / wallets / categories); seed sane defaults
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
-  try{const k=lsKey('cfg'); const c=k&&localStorage.getItem(k); if(c){const o=JSON.parse(c);
+  try{const k=lsKey('cfg'); const c=k&&getCacheItem(k); if(c){const o=JSON.parse(c);
     if(o&&o.shiftTypes&&o.wallets&&o.categories){AppState.shiftTypes=o.shiftTypes; AppState.autoFillSchedule=(o.autoFillSchedule&&typeof o.autoFillSchedule==='object')?{enabled:!!o.autoFillSchedule.enabled, typeId:o.autoFillSchedule.typeId||'', pattern:o.autoFillSchedule.pattern||'every', anchorDate:o.autoFillSchedule.anchorDate||''}:{enabled:false,typeId:'',pattern:'every',anchorDate:''}; AppState.wallets=o.wallets; AppState.categories=o.categories; AppState.budgets=o.budgets||{}; AppState.subcategories=o.subcategories||{}; AppState.categoryIcons=o.categoryIcons||{}; AppState.currencyRates=o.currencyRates||{}; AppState.tags=Array.isArray(o.tags)?o.tags:[]; AppState.autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; AppState.goals=Array.isArray(o.goals)?o.goals:[]; AppState.profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; AppState.subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; AppState.widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; AppState.widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); AppState.catBackfillDone=!!o.catBackfillDone; AppState.catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
