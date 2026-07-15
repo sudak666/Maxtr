@@ -19,7 +19,7 @@ Google Play packaging" section. All three now coexist:
 Ported so far: email/password sign-in + sign-up; and all 5 of the web
 app's bottom-nav tabs, in the same order (`MainScreen.kt`):
 
-- **Фінанси** — hero balance, wallet chips, transaction list, add-transaction bottom sheet.
+- **Фінанси** — hero balance, wallet chips, transaction list (newest-first, already sorted the same way the web client's later `fbLoadNow()`/`renderFinance()` fix ended up doing — see the root `CLAUDE.md`), add-transaction bottom sheet, swipe-to-delete on each row (`SwipeToDismissBox`, see below).
 - **Зміни** — month calendar, earned-this-month hero, hours/shifts/days-off chips, per-day shift-type picker.
 - **Розрахунки** — debt-switcher chips, balance hero, start/paid/count chips, payment history, add-debt/add-payment dialogs.
 - **Покупки** — add row, checkbox list (bought items sort to the bottom), clear-bought, delete.
@@ -62,6 +62,23 @@ a plain placeholder bell, not a themed set, for the same reason.
 `ZminkaApplication.onCreate()` creates the one notification channel this
 needs (mandatory on this app's `minSdk = 26`, or `notify()` silently
 does nothing).
+
+**Finance transaction swipe-to-delete is ported** (native equivalent, not a
+literal port) — `FinanceScreen.kt`'s `TransactionRow` wraps each row in
+Material3's own `SwipeToDismissBox` (`onDelete` was already threaded all
+the way down from `FinanceScreen` through `TransactionList` before this,
+but nothing inside `TransactionRow` ever actually called it — a genuinely
+dead parameter, unlike the web client's `.tx-swipe-delete` which mirrors
+this same gesture with a hand-rolled pointer-drag implementation since CSS
+has no built-in swipe-to-dismiss primitive; Compose does, so this uses that
+instead of porting the web version's drag math). `Debt`'s payment-history
+`EntryList` has no delete affordance at all yet, ported or otherwise — the
+web client's Debt-entry delete/swipe-UX fixes this session were about
+*existing* functionality (bug fixes to how delete already looked/worked on
+that tab), and this app's Debt tab never had a delete action to begin with,
+so there's nothing to "keep in sync" there yet — adding delete to
+`DebtViewModel`/`EntryList` would be new-feature work, not a port, and
+hasn't been done.
 
 Still **not yet ported** at all: local PIN/biometric lock, Google/phone
 sign-in. See inline doc comments, which point back at the exact

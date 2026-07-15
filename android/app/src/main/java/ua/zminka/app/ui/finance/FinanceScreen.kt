@@ -1,5 +1,6 @@
 package ua.zminka.app.ui.finance
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,16 +14,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -143,6 +150,19 @@ private fun TransactionList(
     }
 }
 
+// Native equivalent of the web client's .tx-item/.tx-swipe-delete
+// swipe-to-delete pattern (see CLAUDE.md's Mobile UI redesign section) —
+// uses Compose Material3's own SwipeToDismissBox rather than a hand-rolled
+// pointer-drag port of the web version, since that's the idiomatic API for
+// this exact gesture on Android. onDelete was already threaded all the way
+// down from FinanceScreen -> TransactionList -> TransactionRow but never
+// actually invoked from inside this composable — the parameter was dead
+// weight until this. confirmValueChange (not a LaunchedEffect on
+// currentValue) is what actually triggers the delete, matching Material3's
+// documented pattern: returning true commits the swipe-away animation,
+// false snaps the row back (used for the unsupported StartToEnd direction
+// below, disabled via enableDismissFromStartToEnd).
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TransactionRow(tx: Transaction, walletName: String, onDelete: (Long) -> Unit) {
     val sign = when (tx.type) {
@@ -155,24 +175,54 @@ private fun TransactionRow(tx: Transaction, walletName: String, onDelete: (Long)
         "expense" -> ua.zminka.app.ui.theme.ZminkaExpense
         else -> MaterialTheme.colorScheme.onSurface
     }
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column {
-                Text(tx.category, style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    "$walletName · ${tx.date}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete(tx.id)
+                true
+            } else {
+                false
+            }
+        },
+    )
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.error, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Видалити",
+                    tint = MaterialTheme.colorScheme.onError,
                 )
             }
-            Text(
-                "$sign${formatAmount(tx.amount)} ${tx.currency}",
-                color = color,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+        },
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(tx.category, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "$walletName · ${tx.date}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    )
+                }
+                Text(
+                    "$sign${formatAmount(tx.amount)} ${tx.currency}",
+                    color = color,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
         }
     }
 }
