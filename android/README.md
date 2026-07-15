@@ -23,7 +23,7 @@ app's bottom-nav tabs, in the same order (`MainScreen.kt`):
 - **Зміни** — month calendar, earned-this-month hero, hours/shifts/days-off chips, per-day shift-type picker.
 - **Розрахунки** — debt-switcher chips, balance hero, start/paid/count chips, payment history, add-debt/add-payment dialogs.
 - **Покупки** — add row, checkbox list (bought items sort to the bottom), clear-bought, delete.
-- **Налаштування** — MVP-thin: account email + sign-out only. The web app's Settings tab is by far its largest (wallets/categories/budgets/tags/auto-rules/recurring/rates/widgets/PIN/premium/profiles managers) — none of those managers are ported.
+- **Налаштування** — MVP-thin: account email + sign-out only (reached via a topbar gear icon, not a bottom-nav tab — see "Bottom nav" below). The web app's Settings tab is by far its largest (wallets/categories/budgets/tags/auto-rules/recurring/rates/widgets/PIN/premium/profiles managers) — none of those managers are ported.
 
 **Multi-profile is ported** — `data/profile/ProfileManager.kt` mirrors
 the web client's per-device `activeProfileId`/`@<profileId>` doc-suffix
@@ -34,11 +34,38 @@ client's `switchProfile()`, this app doesn't auto-seed default wallets/
 categories for a brand-new profile — see `ProfileRepository`'s doc
 comment.
 
-Still **not yet ported** at all: push notifications, local PIN/biometric
-lock, Google/phone sign-in. See inline `TODO` comments (e.g.
-`data/repository/ZminkaMessagingService.kt`) and the per-file doc
-comments, which point back at the exact web-client file/function each
-piece mirrors.
+**Bottom nav is 4 tabs, not 5** — `MainScreen.kt` mirrors the web client's
+own bottom-nav simplification (see root `CLAUDE.md`'s "Mobile UI redesign"
+section): Фінанси/Зміни/Розрахунки/Покупки are `NavigationBarItem`s;
+Налаштування is reached via a gear `IconButton` in a `TopAppBar` instead,
+same idea as the web client's `#btn-settings`. Kept in sync specifically so
+the two clients' navigation *model* matches, independent of how much of
+Settings itself is actually ported on either side.
+
+**Push notifications are ported** — `ZminkaMessagingService.onNewToken()`
+writes to `push_tokens/{uid}` (via the new `data/repository/PushRepository.kt`,
+`merge:true` so the Cloud Function's own dedup fields on that doc survive),
+mirroring `js/notifications.js`'s `enablePushNotifications()`. `MainScreen.kt`
+also calls `registerCurrentToken()` once per screen entry (covers a token
+that was minted before this callback existed, or before the user was
+signed in) — unlike the web client, there's no separate in-app on/off
+toggle; `POST_NOTIFICATIONS` (requested at runtime from `MainActivity` on
+Android 13+) is the one real gate, matching how most native apps handle
+push rather than the PWA's explicit switch. `onMessageReceived()` builds
+and shows a local notification for foreground-delivered pushes exactly
+like `js/notifications.js`'s own `onMessage` handler does — a backgrounded
+app gets the system tray notification automatically from the FCM SDK
+using this app's default icon, since `functions/index.js`'s
+`webpush.notification.icon` (the themed per-type PNGs) is a web-push-only
+field the Android FCM path ignores; `res/drawable/ic_notification.xml` is
+a plain placeholder bell, not a themed set, for the same reason.
+`ZminkaApplication.onCreate()` creates the one notification channel this
+needs (mandatory on this app's `minSdk = 26`, or `notify()` silently
+does nothing).
+
+Still **not yet ported** at all: local PIN/biometric lock, Google/phone
+sign-in. See inline doc comments, which point back at the exact
+web-client file/function each piece mirrors.
 
 ## Why this can't be built from this cloud sandbox
 
