@@ -89,6 +89,13 @@ export function fillSubcats(){
   group.style.display = subs.length ? 'flex' : 'none';
 }
 
+function newTransactionId(){
+  try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return uid('tx');
+}
+
+function sameTxId(a,b){ return String(a)===String(b); }
+
 export async function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const amount=parseFloat(ai?.value);
@@ -108,7 +115,7 @@ export async function addTransaction(){
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
   }
   if(AppState.editingTxId!=null){
-    const t=AppState.transactions.find(x=>x.id===AppState.editingTxId);
+    const t=AppState.transactions.find(x=>sameTxId(x.id,AppState.editingTxId));
     if(t) Object.assign(t,{type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment});
     cancelEditTransaction();
     const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
@@ -121,7 +128,7 @@ export async function addTransaction(){
     showToast(tr('toast_tx_updated'),'check');
     return;
   }
-  const newTx={id:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
+  const newTx={id:newTransactionId(),createdAt:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
   AppState.transactions.unshift(newTx);
   const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
   saveTransactionDoc(newTx).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
@@ -148,14 +155,14 @@ export async function addTransaction(){
 
 export async function deleteTransaction(id){
   if(!(await uiConfirm(tr('finance_delete_confirm'),{title:tr('finance_delete_title'),okText:tr('common_delete'),danger:true}))) return;
-  AppState.transactions=AppState.transactions.filter(t=>t.id!==id);
+  AppState.transactions=AppState.transactions.filter(t=>!sameTxId(t.id,id));
   const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
   deleteTransactionDoc(id).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderFinance(); renderFinanceChart();
 }
 
 export const editTransaction = function(id){
-  const t=AppState.transactions.find(x=>x.id===id); if(!t) return;
+  const t=AppState.transactions.find(x=>sameTxId(x.id,id)); if(!t) return;
   AppState.editingTxId=id;
   setFinanceType(t.type);
 

@@ -320,7 +320,7 @@ export async function fbLoadNow(){
     // (renderFinance, the cached localStorage copy read back on next cold
     // start, etc.) sees a consistent newest-first order without each call
     // site needing its own sort.
-    AppState.transactions.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+    AppState.transactions.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||((b.createdAt||Number(b.id)||0)-(a.createdAt||Number(a.id)||0)));
     const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
@@ -407,7 +407,7 @@ async function processRecurring(){
     let guard=0;
     while(r.nextDate<=todayStr && guard<24){
       const t={
-        id:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
+        id:uid('tx'), createdAt:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
         wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
         comment:(r.comment?r.comment+' · ':'')+tr('recurring_comment_tag')
       };

@@ -391,7 +391,7 @@ export function renderFinance(){
   // (e.g. right after editing a transaction to a backdated date, with no
   // reload in between) without needing every mutation site to maintain a
   // sorted-array invariant by hand.
-  filtered=[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  filtered=[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||((b.createdAt||Number(b.id)||0)-(a.createdAt||Number(a.id)||0)));
   const lc=document.getElementById('tx-list-container');
   const tc=document.getElementById('tx-count');
   if(!lc) return;
@@ -577,7 +577,7 @@ const CLICK_ACTIONS = {
   // "delete opened edit" on the live site: the inline handler no-op'd and
   // the tap fell through to the row's edit listener. As a real delegated
   // handler it runs normally. Dispatcher below passes the event for this.
-  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(Number(ds.id)); },
+  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(ds.id); },
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
