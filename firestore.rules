@@ -47,10 +47,48 @@ service cloud.firestore {
         && (!('at' in request.resource.data) || request.resource.data.at is number);
     }
 
+    function nullableString(d, field, maxLen) {
+      return !(field in d) || d[field] == null || (d[field] is string && d[field].size() <= maxLen);
+    }
+
+    function validTxTags(d) {
+      return !('tags' in d) || d.tags == null || (d.tags is list && d.tags.size() <= 20);
+    }
+
+    function validTransferFields(d) {
+      return d.type != 'transfer' || (
+        ('targetWallet' in d) && d.targetWallet is string && d.targetWallet.size() > 0 &&
+        ('targetAmount' in d) && d.targetAmount is number && d.targetAmount > 0 && d.targetAmount < 1000000000 &&
+        ('targetCurrency' in d) && d.targetCurrency is string && d.targetCurrency.matches('^[A-Z]{3}$')
+      );
+    }
+
+    function validTransaction(d, txId) {
+      return txId.matches('^[A-Za-z0-9_-]{1,80}$')
+        && d.keys().size() < 24
+        && d.type is string
+        && d.type in ['income', 'expense', 'transfer']
+        && d.amount is number
+        && d.amount > 0
+        && d.amount < 1000000000
+        && d.date is string
+        && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && nullableString(d, 'category', 120)
+        && nullableString(d, 'subcategory', 120)
+        && nullableString(d, 'comment', 500)
+        && nullableString(d, 'wallet', 120)
+        && nullableString(d, 'targetWallet', 120)
+        && (!('currency' in d) || d.currency == null || (d.currency is string && d.currency.matches('^[A-Z]{3}$')))
+        && (!('targetCurrency' in d) || d.targetCurrency == null || (d.targetCurrency is string && d.targetCurrency.matches('^[A-Z]{3}$')))
+        && (!('createdAt' in d) || d.createdAt is number)
+        && validTxTags(d)
+        && validTransferFields(d);
+    }
+
     // Per-transaction docs under a `finance`/`finance@<profileId>` doc (see
     // MIGRATION_PLAN_transactions.md and CLAUDE.md's Firebase data model
     // section — this replaced the old finance.data array). txId is the
-    // app-generated Date.now()-based id, stringified client-side. Scoped to
+    // app-generated transaction id, stringified client-side. Scoped to
     // financeDoc matching only `finance`(@profileId)? — not shifts/debt/
     // backup_v2/profiles_meta, none of which ever get a transactions
     // subcollection.
@@ -60,13 +98,11 @@ service cloud.firestore {
       // request.resource, so it can't share an allow block with the field
       // validation below.
       allow delete: if request.auth != null && request.auth.uid == uid
-        && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$');
+        && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
+        && txId.matches('^[A-Za-z0-9_-]{1,80}$');
       allow create, update: if request.auth != null && request.auth.uid == uid
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
-        && request.resource.data.keys().size() < 20
-        && request.resource.data.type is string
-        && request.resource.data.amount is number
-        && request.resource.data.date is string;
+        && validTransaction(request.resource.data, txId);
     }
 
     // FCM push token per account, written by the client when the user
