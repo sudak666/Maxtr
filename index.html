@@ -993,18 +993,47 @@ body.amounts-hidden #fx-converter-result{
 .debt-chip-del .ico{margin-right:0;width:17px;height:17px}
 .debt-chip-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;padding-right:2px}
-.debt-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;transition:all .15s}
-.debt-row.discrepancy{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
+/* Swipe-to-delete (same Telegram/Gmail-style pattern as .tx-item/
+   .tx-item-inner/.tx-swipe-delete in js/analytics-csv.js — see that block's
+   comment above for the full rationale). .debt-row is now just the outer
+   positioning/clipping shell; its visible card look moved onto
+   .debt-row-inner, which slides left on swipe/hover/focus to reveal
+   .debt-row-swipe-delete sitting behind it. Unlike the transaction row, the
+   pencil (edit) button stays always-visible inside .debt-row-inner — a debt
+   entry has no "tap the row to edit" affordance to deduplicate against, so
+   only delete (the one genuinely easy-to-mis-tap action, previously sitting
+   right next to edit with only muted-grey styling and no visual "this is
+   destructive" cue until :hover, which never fires on touch) moved behind
+   the swipe. */
+.debt-row{position:relative;overflow:hidden;border-radius:18px}
+.debt-row-inner{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;
+  padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
+  transition:width .18s cubic-bezier(.22,1,.36,1),border-color .15s;
+  position:relative;z-index:1;touch-action:pan-y;
+  width:100%;box-sizing:border-box;
+}
+.debt-row.discrepancy .debt-row-inner{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06)}
 .debt-field{display:flex;flex-direction:column;gap:3px;flex:1 1 84px;min-width:70px}
 .debt-field-label{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
-.debt-row input,.debt-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
-.debt-row select{cursor:pointer}
-.debt-row input:focus,.debt-row select:focus{border-color:var(--purple)}
+.debt-row-inner input,.debt-row-inner select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
+.debt-row-inner select{cursor:pointer}
+.debt-row-inner input:focus,.debt-row-inner select:focus{border-color:var(--purple)}
+.debt-row:hover .debt-row-inner,
+.debt-row:focus-within .debt-row-inner,
+.debt-row.swipe-open .debt-row-inner{
+  width:calc(100% - 60px);
+}
+.debt-row.swipe-dragging .debt-row-inner{transition:none}
+@media(prefers-reduced-motion:reduce){.debt-row-inner{transition:none}}
+.debt-row-swipe-delete{
+  position:absolute;top:0;right:0;bottom:0;width:60px;z-index:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--red2);color:#fff;border:none;cursor:pointer;
+}
+.debt-row-swipe-delete .ico{margin-right:0;width:21px;height:21px}
 .recur-paused{opacity:.55}
 .debt-hint{flex-basis:100%;font-size:11px;color:var(--red2);font-weight:700;margin-top:-2px}
-.debt-row-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
-.debt-row-del .ico{margin-right:0;width:18px;height:18px}
-.debt-row-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 .debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-edit .ico{margin-right:0;width:18px;height:18px}
 .debt-row-edit:hover{background:rgba(139,92,246,.12);color:var(--purple)}
