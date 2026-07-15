@@ -42,6 +42,7 @@ Firebase Auth/Firestore calls hit the real project unless you intercept the SDK'
 
 ```bash
 node tests/unit.mjs           # pure helpers (currency conversion, timezone/date logic)
+node tests/privacy-cache.mjs  # local privacy-cache helper behavior (no browser/Firebase)
 node tests/smoke.mjs          # stubbed-Firebase Playwright pass: all 5 tabs render, no console errors
 node tests/e2e-crud.mjs       # Finance tab: create/edit/delete a transaction end-to-end
 node tests/e2e-modals.mjs     # settings-manager modal open/close behavior
