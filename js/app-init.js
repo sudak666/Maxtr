@@ -47,6 +47,7 @@ export async function init(){
     setupCollapsibleFinanceSections();
     setupModalAccessibility();
     setupPullToRefresh();
+    setupFabExpandCollapse();
     loadNotifSettings();
     populateNotifTimeSelects();
     renderNotifUI();
@@ -155,6 +156,26 @@ function setupPullToRefresh(){
       spinner.style.transform='';
     }
     lastPull=0;
+  }, {passive:true});
+}
+
+// Called once from init()'s cold-init block, same as setupPullToRefresh()
+// above. Extended-FAB behavior: the "Нова операція"/"Новий платіж" floating
+// buttons (.fin-fab, index.html) show an icon+label pill at rest and
+// collapse to a plain icon-only circle while the page is being actively
+// scrolled (CSS handles the actual pill↔circle morph via .fab-collapsed —
+// see the comment on .fin-fab in index.html), re-expanding a short beat
+// after scrolling stops. One listener drives every .fin-fab on the page
+// (there are two — Finance and Debt tabs — but only one is ever visible at
+// a time since switchTab() hides the other's whole tab section).
+function setupFabExpandCollapse(){
+  const fabs=document.querySelectorAll('.fin-fab');
+  if(!fabs.length) return;
+  let collapseTimer=null;
+  window.addEventListener('scroll', ()=>{
+    fabs.forEach(f=>f.classList.add('fab-collapsed'));
+    clearTimeout(collapseTimer);
+    collapseTimer=setTimeout(()=>{ fabs.forEach(f=>f.classList.remove('fab-collapsed')); }, 600);
   }, {passive:true});
 }
 
