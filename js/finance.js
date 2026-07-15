@@ -430,11 +430,13 @@ document.addEventListener('change', e=>{
 });
 
 // Still window-exposed: js/analytics-csv.js's transaction-row template
-// calls all three by a literal onclick/string reference (tx-del's
-// onclick="event.stopPropagation();editTransaction(...)"/
-// "deleteTransaction(...)" and the onboarding-checklist/toast's
-// onclick="openNewTxModal()"), a separate, still-untouched target.
-window.editTransaction = editTransaction;
+// calls both by a literal onclick/string reference (.tx-swipe-delete's
+// onclick="event.stopPropagation();deleteTransaction(...)" and the
+// onboarding-checklist/start-guide's onclick="openNewTxModal()"), a
+// separate, still-untouched target. editTransaction no longer needs this -
+// its one remaining caller (the .tx-item click listener in
+// analytics-csv.js) is a real addEventListener callback, not an onclick
+// string, so the real `import { editTransaction }` there is enough.
 window.deleteTransaction = deleteTransaction;
 window.openNewTxModal = openNewTxModal;
 }
