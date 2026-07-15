@@ -84,21 +84,30 @@ export function setupCollapsibleFinanceSections(){
   });
 }
 
-export function setupAccessibleClickableDivs(root){
-  // No <div> anywhere in this codebase carries a literal onclick=""
-  // attribute anymore (the last ones — every .modal-card/.dlg-card's
-  // event.stopPropagation() backdrop guard — were converted to a real
-  // addEventListener in js/classic-globals.js as part of the CSP
-  // hardening pass; see CLAUDE.md), so this only needs to grant keyboard
-  // accessibility to div[data-action] rows now.
-  (root||document).querySelectorAll('div[data-action]:not([tabindex])').forEach(el=>{
-    if(el.classList.contains('modal-overlay')) return;
-    el.tabIndex=0;
-    el.setAttribute('role','button');
-    el.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }
-    });
+export function syncClickableA11yState(root){
+  (root||document).querySelectorAll('.filter-chip[data-action]').forEach(el=>{
+    el.setAttribute('aria-pressed', el.classList.contains('active') ? 'true' : 'false');
   });
+}
+
+export function setupAccessibleClickableDivs(root){
+  // Any non-native element with data-action acts like a button through the
+  // delegated listeners in js/*.js. Give those pseudo-buttons keyboard and
+  // screen-reader semantics in one place instead of relying on each template
+  // remembering tabindex/role by hand. Native controls already expose the
+  // right semantics and are intentionally skipped.
+  (root||document).querySelectorAll('[data-action]').forEach(el=>{
+    if(el.matches('button,a,input,select,textarea,label') || el.classList.contains('modal-overlay')) return;
+    if(!el.hasAttribute('tabindex')) el.tabIndex=0;
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+    if(!el.dataset.a11yKeyReady){
+      el.dataset.a11yKeyReady='1';
+      el.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }
+      });
+    }
+  });
+  syncClickableA11yState(root);
 }
 
 export function setupAccessibleSettingsRows(){ setupAccessibleClickableDivs(); }
