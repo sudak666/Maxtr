@@ -89,6 +89,30 @@ export function saveModalSelection(){
   saveLocal(); scheduleSave(); closeModal(); renderCalendar(); renderIncomeChart();
 }
 
+// The compact 1-2 char glyph shown on a calendar day cell for a shift
+// type. Prefers an explicit `code` (set on the built-ins, see
+// LEGACY_SHIFT_TYPES/DEFAULT_SHIFT_TYPES in js/core.js). For a type with no
+// `code` — a user-created type, or a built-in already saved to an existing
+// account's config before `code` existed (pre-launch testing devices) — it
+// derives one from `short`/`name`: the first letter, plus a distinguishing
+// tail char when the label carries one, so the built-in `short` values
+// still map cleanly without any data migration:
+//   День→Д  День+→Д+  Ніч→Н  НічР→Нр  НічП→Нп  Вих→В
+// A `+` suffix is kept as-is; otherwise an interior/trailing uppercase
+// letter (the convention those legacy shorts use to distinguish variants)
+// becomes a lowercased second char. `[...str]` (not str[0]) so a multi-byte
+// first glyph isn't split mid-character.
+function shiftCode(t){
+  if(t.code) return t.code;
+  const src=(t.short||t.name||'').trim();
+  if(!src) return '?';
+  const chars=[...src];
+  const first=chars[0].toUpperCase();
+  if(src.includes('+')) return first+'+';
+  const tail=chars.slice(1).find(ch=>/\p{L}/u.test(ch) && ch===ch.toUpperCase() && ch!==ch.toLowerCase());
+  return tail ? first+tail.toLowerCase() : first;
+}
+
 export function renderCalendar(){
   const grid=document.getElementById('calendar-grid');
   if(!grid) return;
@@ -143,12 +167,12 @@ export function renderCalendar(){
     ds.forEach(id=>{
       const t=shiftType(id);
       if(!t) return; // unknown/removed type — skip gracefully
-      badges+=`<div class="badge" style="background:${hexA(t.color,.2)};border:1px solid ${hexA(t.color,.5)};color:${t.color}">${escapeHtml(t.short||t.name)}</div>`;
+      badges+=`<div class="shift-token" style="background:${hexA(t.color,.22)};border:1px solid ${hexA(t.color,.55)};color:${t.color}" aria-label="${escapeHtml(t.name)}">${escapeHtml(shiftCode(t))}</div>`;
       earn+=t.amount||0; hrs+=t.hours||0;
       if(t.isOff) cOff++; else cShifts++;
     });
 
-    cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span>${isToday?'<span class="today-pip"></span>':''}</div>${badges}`;
+    cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span>${isToday?'<span class="today-pip"></span>':''}</div>${badges?`<div class="day-tokens">${badges}</div>`:''}`;
     cell.tabIndex=0;
     cell.onclick=()=>openModal(dk,d);
     cell.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(dk,d); } };

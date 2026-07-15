@@ -46,7 +46,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v51';
+const CACHE_NAME = 'zminka-v52';
 const STATIC_ASSETS = [
   './',
   './index.html',

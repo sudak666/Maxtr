@@ -168,6 +168,26 @@ async function main() {
     if (cv !== 'auto') throw new Error(`expected .tx-item's computed content-visibility to be "auto", got "${cv}" (browser may not support it, or the CSS rule didn't apply)`);
     console.log('[ok] content-visibility:auto is live on a rendered .tx-item row');
 
+    // Regression guard for the flex-shrink collapse bug (see CLAUDE.md's
+    // swipe-to-delete "Gotcha if you swipe-clip a row inside a flex list
+    // container"): #tx-list-container is a flex column with a fixed
+    // max-height + overflow-y:auto, and .tx-item carries overflow:hidden for
+    // its swipe-clip — which, without an explicit flex-shrink:0, makes the
+    // flex algorithm crush every row to a ~12px sliver once the expanded
+    // list exceeds the container's max-height, instead of scrolling. This
+    // shipped once (rows rendered as thin lines) and ALSO silently broke
+    // pull-to-refresh (a non-overflowing container reads as non-scrollable,
+    // so PTR fired on swipes over the list). Assert a real row keeps its
+    // content height and the container genuinely overflows/scrolls.
+    const listGeom = await page.evaluate(() => {
+      const lc = document.getElementById('tx-list-container');
+      const row = lc.querySelector('.tx-item');
+      return { rowH: Math.round(row.getBoundingClientRect().height), clientH: lc.clientHeight, scrollH: lc.scrollHeight };
+    });
+    if (listGeom.rowH < 40) throw new Error(`.tx-item collapsed to ${listGeom.rowH}px — flex-shrink regression (expected a full-height row, ~60px)`);
+    if (listGeom.scrollH <= listGeom.clientH + 1) throw new Error(`#tx-list-container did not overflow (scrollH ${listGeom.scrollH} ≤ clientH ${listGeom.clientH}) — rows were crushed to fit instead of scrolling, which also disables the pull-to-refresh nested-scroll guard`);
+    console.log(`[ok] .tx-item rows keep full height (${listGeom.rowH}px) and the container scrolls (scrollH ${listGeom.scrollH} > clientH ${listGeom.clientH}) — no flex-shrink collapse`);
+
     if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
     const realConsoleErrors = consoleErrors.filter((e) => !/live rates|ERR_|net::/.test(e));
     if (realConsoleErrors.length) throw new Error(`unexpected console errors: ${realConsoleErrors.join(' | ')}`);
