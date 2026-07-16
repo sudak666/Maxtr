@@ -78,9 +78,12 @@ export function setupCollapsibleFinanceSections(){
     section.classList.add('collapsible');
     title.setAttribute('tabindex','0');
     title.setAttribute('role','button');
-    title.addEventListener('click',()=>section.classList.toggle('collapsed'));
+    const syncExpanded=()=>title.setAttribute('aria-expanded', section.classList.contains('collapsed')?'false':'true');
+    const toggle=()=>{ section.classList.toggle('collapsed'); syncExpanded(); };
+    syncExpanded();
+    title.addEventListener('click',toggle);
     title.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); section.classList.toggle('collapsed'); }
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); }
     });
   });
 }
