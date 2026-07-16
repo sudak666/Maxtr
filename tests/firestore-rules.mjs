@@ -169,6 +169,16 @@ await check('unauthenticated cannot delete finance doc', deleteDoc(doc(anon, `us
 await check('owner can delete their push token', deleteDoc(doc(asA, `push_tokens/${uidA}`)), 'allow');
 await check('other user cannot delete uidA push token', deleteDoc(doc(asB, `push_tokens/${uidA}`)), 'deny');
 
+// 11. error_reports: owner-only crash-log mirror (js/core.js's logAppError())
+await check('owner can write their error log', setDoc(doc(asA, `error_reports/${uidA}`), { entries: [{ kind: 'uncaught-error', at: 'x' }], updatedAt: Date.now() }), 'allow');
+await check('other user cannot write to uidA error log', setDoc(doc(asB, `error_reports/${uidA}`), { entries: [], updatedAt: Date.now() }), 'deny');
+await check('unauthenticated cannot write error log', setDoc(doc(anon, `error_reports/${uidA}`), { entries: [], updatedAt: Date.now() }), 'deny');
+await check('non-list entries field rejected', setDoc(doc(asA, `error_reports/${uidA}`), { entries: 'nope', updatedAt: Date.now() }), 'deny');
+await check('oversized entries list rejected', setDoc(doc(asA, `error_reports/${uidA}`), { entries: Array.from({ length: 21 }, () => ({ kind: 'x' })), updatedAt: Date.now() }), 'deny');
+await check('missing updatedAt rejected', setDoc(doc(asA, `error_reports/${uidA}`), { entries: [] }), 'deny');
+await check('owner can delete their error log', deleteDoc(doc(asA, `error_reports/${uidA}`)), 'allow');
+await check('other user cannot delete uidA error log', deleteDoc(doc(asB, `error_reports/${uidA}`)), 'deny');
+
 console.log(`\n${passed} passed, ${failed} failed`);
 await testEnv.cleanup();
 if (failed > 0) process.exit(1);

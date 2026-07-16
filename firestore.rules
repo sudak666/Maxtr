@@ -128,6 +128,24 @@ service cloud.firestore {
         && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number);
     }
 
+    // Client-side crash/error breadcrumbs (js/core.js's logAppError()) —
+    // mirrors the same capped list already kept in localStorage so the
+    // account owner can check the Firebase console for a crash on a real
+    // user's device instead of waiting for a screenshot report. Whole-doc
+    // replace, same as profiles_meta/error list is small and rewritten
+    // together, not appended field-by-field. Nothing reads this from the
+    // client — the account owner reads it via the Admin SDK/console, which
+    // bypasses these rules — so this only needs to gate writes.
+    match /error_reports/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().size() < 5
+        && request.resource.data.entries is list
+        && request.resource.data.entries.size() <= 20
+        && request.resource.data.updatedAt is number;
+    }
+
     // Deny everything else by default (including the old shared
     // max_tracker/{doc} path used before per-user auth was added — its
     // one-time recovery window is closed, see git history for details).

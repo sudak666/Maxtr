@@ -45,6 +45,12 @@ export const DCOL = 'max_tracker';
 export const VAPID_KEY = 'BBcPaLYW4stwLwTHX-2mNXmu86eQeqw1biQXPGv4-FLOZWbUl8BAVgeHxGC2vvlLXkYqOUCyoo8NqnN6n8Usbtw';
 
 const ERROR_LOG_MAX = 20;
+// Only sync to Firestore this often — an error loop (e.g. a render bug
+// that throws on every frame) would otherwise turn into a write storm
+// against error_reports/{uid}. The full capped list is still kept and
+// re-synced on the next allowed tick, so nothing is lost, just delayed.
+const ERROR_SYNC_MIN_INTERVAL_MS = 30000;
+let lastErrorSyncAt = 0;
 
 function errorLogKey(){ return AppState.currentUser ? `mx_errlog_${AppState.currentUser.uid}` : 'mx_errlog_anon'; }
 
@@ -53,16 +59,37 @@ function currentTabName(){
   return el ? el.id.replace('tab-','') : null;
 }
 
+// Firestore stack traces get truncated — this is a diagnostic breadcrumb
+// (which file/line/kind), not a full crash dump, and Firestore field
+// values have their own size limits.
+const ERROR_STACK_MAX_CHARS = 500;
+
 function logAppError(kind, detail){
   const entry = { kind, at: new Date().toISOString(), tab: currentTabName(), ...detail };
   console.error(`[Rytm:${kind}]`, entry);
+  let list = [];
   try{
     const key = errorLogKey();
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list = JSON.parse(localStorage.getItem(key) || '[]');
     list.push(entry);
     while(list.length > ERROR_LOG_MAX) list.shift();
     localStorage.setItem(key, JSON.stringify(list));
   }catch(e){}
+  // Local-only logging means a crash on a real user's phone is invisible
+  // until they screenshot it. Mirroring the capped list to Firestore (own
+  // uid only, see firestore.rules' error_reports match block) lets the
+  // account owner check the Firebase console instead of waiting for a
+  // report. Signed-out/anonymous errors stay local-only (no uid to scope
+  // a write to) — not worth relaxing the per-uid rule for.
+  if(AppState.currentUser && list.length){
+    const now=Date.now();
+    if(now-lastErrorSyncAt >= ERROR_SYNC_MIN_INTERVAL_MS){
+      lastErrorSyncAt=now;
+      const trimmed=list.map(e=>({...e, stack: e.stack ? String(e.stack).slice(0,ERROR_STACK_MAX_CHARS) : undefined}));
+      setDoc(doc(db,'error_reports',AppState.currentUser.uid), {entries:trimmed, updatedAt:Date.now()}, {merge:false})
+        .catch(()=>{ /* best-effort — a failed sync just retries on the next logged error */ });
+    }
+  }
 }
 
 export const SALARY_GOAL = 20000;
