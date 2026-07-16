@@ -395,25 +395,51 @@ export function initSegThumb(container, opts={}){
 // Drag-to-dismiss for the bottom-sheet presentation .modal-card gets under
 // the 600px breakpoint (see index.html's "BOTTOM SHEET" CSS block) — active
 // on the .sheet-grabber handle AND the .modal-header title above the
-// scrollable body, never on .modal-card-body itself, so it can never fight
-// that body's own vertical scroll. The header is included (not just the
-// 36x4px grabber bar) because that bar alone is too small a target to
-// reliably grab on a real touchscreen — reported as "I open Інструменти and
-// can't just swipe it down to close it" even though the grabber-only drag
-// was technically already there. onDismiss is passed in by the caller
-// (closeManagers() in settings-managers.js) rather than imported here, so
-// this file doesn't need a new cross-file edge back to settings-managers.js.
+// scrollable body (Pointer Events; unconditional — grabbing either always
+// starts a drag), PLUS a second, conditional gesture on .modal-card-body
+// itself (real touchstart/touchmove, not Pointer Events — see below): a
+// downward pull starting from exactly scrollTop===0 also dismisses the
+// sheet, the same "pull past the top" gesture most native bottom sheets
+// support (Apple/Google Maps, etc.) — reported directly: for a
+// content-heavy sheet like Інструменти, the header/grabber strip is a thin
+// sliver at the very top and almost the entire visible sheet is
+// .modal-card-body, so a swipe-down starting anywhere in that (the natural
+// place to try) did nothing. The body-level gesture is careful to never
+// fight a real scroll: it only ever activates when the very first
+// unambiguous movement (past an 8px slop, matching the slop the
+// tx-swipe/debt-row-swipe "decided" gesture pattern elsewhere in this repo
+// already uses) is downward AND the body was already at its own scroll top
+// when the touch started — scrolling further into content (an upward drag)
+// or any drag starting mid-scroll is left completely alone, never even
+// calls preventDefault, so native scrolling is untouched in every other
+// case. Real `touchstart`/`touchmove` (not Pointer Events) specifically
+// because only a non-passive `touchmove` listener can actually cancel the
+// browser's native overscroll bounce once JS decides to take over — Pointer
+// Events don't reliably suppress an already-armed native touch-scroll the
+// same way. onDismiss is passed in by the caller (closeManagers() in
+// settings-managers.js) rather than imported here, so this file doesn't
+// need a new cross-file edge back to settings-managers.js.
 export function initSheetDrag(card, onDismiss){
   const grabber=card.querySelector('.sheet-grabber');
   const header=card.querySelector('.modal-header');
+  const body=card.querySelector('.modal-card-body');
   const handles=[grabber, header].filter(Boolean);
   if(!handles.length || card.dataset.dragInit) return;
   card.dataset.dragInit='1';
   const DISMISS_PX=110;
+  const sheetModeOff=()=>!grabber || getComputedStyle(grabber).display==='none'; // desktop width — sheet mode is off
+  function settle(dy){
+    if(dy>DISMISS_PX){
+      card.style.transform='translateY(100%)';
+      setTimeout(()=>{ onDismiss(); card.style.transform=''; }, 220);
+    } else {
+      card.style.transform='';
+    }
+  }
   let dragging=false, startY=0, dy=0, activeHandle=null;
   handles.forEach(handle=>{
     handle.addEventListener('pointerdown', e=>{
-      if(!grabber || getComputedStyle(grabber).display==='none') return; // desktop width — sheet mode is off
+      if(sheetModeOff()) return;
       dragging=true; startY=e.clientY; dy=0; activeHandle=handle;
       card.classList.add('sheet-dragging');
       try{ handle.setPointerCapture(e.pointerId); }catch(err){}
@@ -427,16 +453,44 @@ export function initSheetDrag(card, onDismiss){
       if(!dragging || activeHandle!==handle) return;
       dragging=false; activeHandle=null;
       card.classList.remove('sheet-dragging');
-      if(dy>DISMISS_PX){
-        card.style.transform='translateY(100%)';
-        setTimeout(()=>{ onDismiss(); card.style.transform=''; }, 220);
-      } else {
-        card.style.transform='';
-      }
+      settle(dy);
     };
     handle.addEventListener('pointerup', endDrag);
     handle.addEventListener('pointercancel', endDrag);
   });
+
+  if(body){
+    let bodyActive=false, bodyDecided=false, bodyIsDismiss=false, bodyStartY=0, bodyDy=0;
+    body.addEventListener('touchstart', e=>{
+      if(sheetModeOff() || e.touches.length!==1){ bodyActive=false; return; }
+      bodyActive=true; bodyDecided=false; bodyIsDismiss=false;
+      bodyStartY=e.touches[0].clientY; bodyDy=0;
+    }, {passive:true});
+    body.addEventListener('touchmove', e=>{
+      if(!bodyActive) return;
+      bodyDy=e.touches[0].clientY-bodyStartY;
+      if(!bodyDecided){
+        if(Math.abs(bodyDy)<8) return; // wait for unambiguous movement, same slop as the swipe-delete rows
+        bodyDecided=true;
+        bodyIsDismiss = bodyDy>0 && body.scrollTop<=0;
+        if(bodyIsDismiss) card.classList.add('sheet-dragging');
+      }
+      if(!bodyIsDismiss) return; // let native scrolling happen untouched
+      e.preventDefault();
+      card.style.transform=`translateY(${Math.max(0,bodyDy)}px)`;
+    }, {passive:false});
+    const endBodyDrag=()=>{
+      if(!bodyActive) return;
+      bodyActive=false;
+      if(bodyIsDismiss){
+        card.classList.remove('sheet-dragging');
+        settle(bodyDy);
+      }
+      bodyIsDismiss=false; bodyDecided=false;
+    };
+    body.addEventListener('touchend', endBodyDrag);
+    body.addEventListener('touchcancel', endBodyDrag);
+  }
 }
 
 // Top-level statements that DO something immediately (as opposed to a
