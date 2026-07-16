@@ -78,6 +78,9 @@ jobs:
       - name: Run CSV import/export round-trip test
         run: node tests/csv-import-export.mjs
 
+      - name: Run on-device AI category suggestion test
+        run: node tests/ai-category-suggestion.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 

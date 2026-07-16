@@ -9,7 +9,7 @@ import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkel
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
 import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
 import { renderDebt } from './debt.js';
-import { applyAutoRuleToForm, fillSubcats, setFinanceType, updateAmountLabel } from './finance.js';
+import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
 import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
@@ -45,6 +45,11 @@ export async function init(){
     document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
     // Auto-categorize as the user types the comment, per their rules
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
+    // Runs after applyAutoRuleToForm above on the same keystroke — a
+    // deterministic keyword-rule match always wins, this only fires when
+    // one didn't (see maybeSuggestCategoryWithAI()'s own findMatchingRule
+    // check for why calling both unconditionally here is still safe).
+    document.getElementById('fin-comment')?.addEventListener('input', maybeSuggestCategoryWithAI);
     setupAccessibleSettingsRows();
     setupCollapsibleFinanceSections();
     setupModalAccessibility();

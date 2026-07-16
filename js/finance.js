@@ -494,6 +494,75 @@ export function applyAutoRuleToForm(){
   showToast(`${tr('rules_auto_applied')} ${rule.category}`,'sparkle');
 }
 
+// ── ON-DEVICE AI CATEGORY SUGGESTION ──────────────────────────────
+// Chrome's built-in Prompt API (self.LanguageModel, stable from Chrome
+// 138) runs a small model entirely on-device: no network call, no API key,
+// no per-request cost, and the transaction comment never leaves the
+// browser. Feature-detected and a silent no-op everywhere it's
+// unsupported — every browser this app is actually tested against,
+// including this repo's own Playwright/Chromium sandbox, which has no
+// on-device model installed — so this can never block or break the form,
+// only enhance it where available. Runs only when findMatchingRule() above
+// found nothing: a user-authored keyword rule is deterministic and always
+// takes priority over a probabilistic AI guess.
+let aiSessionPromise=null;
+function getAISession(){
+  if(!aiSessionPromise){
+    aiSessionPromise=(async()=>{
+      if(typeof self==='undefined' || !self.LanguageModel) return null;
+      try{
+        const availability=await self.LanguageModel.availability();
+        if(availability==='unavailable') return null;
+        return await self.LanguageModel.create({
+          initialPrompts:[{role:'system', content:'You categorize personal-finance transactions for a budgeting app. Reply with only the exact category name from the list given to you, nothing else — no punctuation, no explanation.'}],
+        });
+      }catch(e){ return null; }
+    })();
+  }
+  return aiSessionPromise;
+}
+
+let aiSuggestTimer=null;
+export function maybeSuggestCategoryWithAI(){
+  clearTimeout(aiSuggestTimer);
+  if(AppState.currentFinanceType==='transfer') return;
+  const ci=document.getElementById('fin-comment');
+  const text=ci?ci.value.trim():'';
+  // Short comments ("кава", "хліб") are exactly what the deterministic
+  // keyword rules above already handle well; the model adds real value on
+  // longer, less structured notes, and skipping short ones avoids firing a
+  // session-create + prompt round-trip on every couple of keystrokes.
+  if(text.length<8) return;
+  if(findMatchingRule(AppState.currentFinanceType, text)) return;
+  const categories=(AppState.categories[AppState.currentFinanceType]||[]).slice();
+  if(categories.length<2) return;
+  aiSuggestTimer=setTimeout(async()=>{
+    // Re-checked at every stage below: typing more, switching income/
+    // expense, or picking a category by hand while the (possibly slow)
+    // session setup / model call is still in flight should never let a
+    // stale suggestion land on top of what the user's doing right now.
+    const stillFresh=()=>{
+      const c=document.getElementById('fin-comment');
+      return AppState.currentFinanceType!=='transfer' && c && c.value.trim()===text;
+    };
+    if(!stillFresh()) return;
+    const session=await getAISession();
+    if(!session || !stillFresh()) return;
+    let answer;
+    try{
+      answer=await session.prompt(`Categories: ${categories.join(', ')}\nTransaction note: "${text}"\nWhich single category best matches? Reply with only the exact category name from the list above.`);
+    }catch(e){ return; }
+    if(!stillFresh()) return;
+    const picked=categories.find(c=>c.trim().toLowerCase()===String(answer||'').trim().toLowerCase());
+    const catSel=document.getElementById('fin-category');
+    if(!picked || !catSel || catSel.value===picked) return;
+    catSel.value=picked;
+    catSel.dispatchEvent(new Event('change',{bubbles:true}));
+    csSync(catSel);
+    showToast(`${tr('ai_category_suggested')} ${picked}`,'sparkle');
+  }, 700);
+}
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
