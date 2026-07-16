@@ -460,12 +460,8 @@ document.addEventListener('click', e=>{
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
 }, true);
 
-// Still window-exposed: js/finance.js's and js/settings-managers.js's own
-// dynamic onclick="openColorPicker(...)" templates (tag/shiftType/wallet
-// color swatches — a separate, still-untouched phase-4+ target) call this
-// by name rather than through a data-action, so the export has to stay
-// until those templates are converted too.
-window.openColorPicker = openColorPicker;
+// Color swatches now call openColorPicker through imported data-action
+// handlers, so no CSP-sensitive window.* export is needed here.
 // openModal/closeModal/saveModalSelection/validateModalSelection/
 // applyTemplate/clearCurrentMonth/renderCalendar/shiftMonth/goToday
 // (calendar.js's own functions) and setFinanceType/addTransaction/
