@@ -104,7 +104,15 @@
   --shadow-fab:0 10px 22px rgba(139,92,246,.38);
   --ring-today:0 0 0 1px rgba(139,92,246,.2);
   --tab-glow-shadow-alpha:.32;
-  --tab-glow-ripple-alpha:.42;
+  /* Trimmed from .42 (audit-followup session): the ripple is a *transient*
+     tap-feedback layer stacking on top of the active tab's own persistent
+     glow (--tab-glow-shadow-alpha, left alone — that's the steady-state
+     branding, part of the deliberately-tuned 3-tier surface system above,
+     not excess) plus the icon-pop scale animation firing at the same
+     moment. Dialing back just the ripple's peak alpha softens that
+     three-effects-at-once moment without touching the icon's resting glow
+     or any gradient. */
+  --tab-glow-ripple-alpha:.34;
 
   /* 3-tier surface system, batch 1: hero cards (hero-metric/hero-balance —
      the single primary number of a screen) get a subtle tonal gradient fill
@@ -156,7 +164,7 @@
   --shadow-fab:0 10px 22px rgba(139,92,246,.22);
   --ring-today:0 0 0 1px rgba(139,92,246,.14);
   --tab-glow-shadow-alpha:.18;
-  --tab-glow-ripple-alpha:.24;
+  --tab-glow-ripple-alpha:.19;
   --stroke-hero:linear-gradient(135deg, rgba(124,58,237,.22), rgba(124,58,237,0) 60%);
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
