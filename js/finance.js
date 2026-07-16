@@ -38,6 +38,7 @@ export function updateTransferHint(){
   if(!hint) return;
   if(AppState.currentFinanceType!=='transfer'){
     hint.style.display='none';
+    hint.classList.remove('warning');
     hint.textContent='';
     return;
   }
@@ -48,14 +49,22 @@ export function updateTransferHint(){
   const targetCur=walletCurrency(wt);
   const sampleAmount=amount>0?amount:1;
   const converted=convertCurrency(sampleAmount, srcCur, targetCur);
-  if(!ws||!wt||ws===wt||!Number.isFinite(converted)){
+  if(!ws||!wt||!Number.isFinite(converted)){
     hint.style.display='none';
+    hint.classList.remove('warning');
     hint.textContent='';
+    return;
+  }
+  if(ws===wt){
+    hint.style.display='flex';
+    hint.classList.add('warning');
+    hint.textContent=tr('finance_transfer_same_wallet_hint');
     return;
   }
   const sourceText=amount>0?`${sampleAmount.toFixed(2)} ${srcCur}`:`1 ${srcCur}`;
   const targetText=`${converted.toFixed(2)} ${targetCur}`;
   hint.style.display='flex';
+  hint.classList.remove('warning');
   hint.innerHTML=`<span>≈</span><span>${tr('finance_transfer_hint')} <strong>${escapeHtml(sourceText)}</strong> → <strong>${escapeHtml(targetText)}</strong></span>`;
 }
 
