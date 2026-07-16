@@ -2002,6 +2002,14 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_export_sub">Вивантажити всі операції у файл</div>
         </div>
       </div>
+      <div class="settings-row" data-action="trigger-import-csv">
+        <span id="ic-set-import" class="icon-badge" style="background:#22c55e"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_import">Імпорт CSV</div>
+          <div class="settings-row-sub" data-i18n="settings_import_sub">Завантажити операції з файлу, експортованого звідси</div>
+        </div>
+      </div>
+      <input type="file" id="csv-import-input" accept=".csv,text/csv" style="display:none" data-action="handle-import-csv-file">
     </div>
 
     <div class="chart-section settings-section" data-settings-group="security">

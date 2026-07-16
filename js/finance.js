@@ -134,7 +134,7 @@ export function fillSubcats(){
   group.style.display = subs.length ? 'flex' : 'none';
 }
 
-function newTransactionId(){
+export function newTransactionId(){
   try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
   return uid('tx');
 }

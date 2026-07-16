@@ -75,6 +75,9 @@ jobs:
       - name: Run PWA launch-params test (shortcuts + share_target)
         run: node tests/pwa-launch-params.mjs
 
+      - name: Run CSV import/export round-trip test
+        run: node tests/csv-import-export.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
