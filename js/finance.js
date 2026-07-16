@@ -10,6 +10,7 @@ import { PALETTE, convertCurrency, currencySymbol, subKey, toBase, walletById, w
 import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
+import { TX_AMOUNT_MAX, TX_COMMENT_MAX, validateTransactionDraft } from './tx-validation.js';
 import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 export function refreshWalletSelects(){
@@ -140,10 +141,6 @@ function newTransactionId(){
 
 function sameTxId(a,b){ return String(a)===String(b); }
 
-const TX_AMOUNT_MAX=1000000000;
-const TX_COMMENT_MAX=500;
-const TX_DATE_RE=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
-
 function txToday(){
   return new Date().toISOString().split('T')[0];
 }
@@ -180,25 +177,10 @@ function readTransactionForm(){
   return {amount,date,ws,wt,cat,sub,comment};
 }
 
-function validateTransactionDraft(draft){
-  if(!Number.isFinite(draft.amount)||draft.amount<=0) return 'finance_err_amount';
-  if(draft.amount>=TX_AMOUNT_MAX) return 'finance_err_amount_large';
-  if(!draft.date) return 'finance_err_date';
-  if(!TX_DATE_RE.test(draft.date)) return 'finance_err_date_format';
-  if(!draft.ws) return 'finance_err_wallet';
-  if(draft.comment.length>TX_COMMENT_MAX) return 'finance_err_comment_long';
-  if(String(draft.cat||'').length>120 || String(draft.sub||'').length>120) return 'finance_err_field_long';
-  if(AppState.currentFinanceType==='transfer'){
-    if(!draft.wt) return 'finance_err_wallet';
-    if(draft.ws===draft.wt) return 'finance_err_same_wallet';
-  }
-  return '';
-}
-
 export async function addTransaction(){
   const ai=document.getElementById('fin-amount');
   const draft=readTransactionForm();
-  const errKey=validateTransactionDraft(draft);
+  const errKey=validateTransactionDraft(draft, AppState.currentFinanceType==='transfer');
   if(errKey){showToast(tr(errKey),'xmark');return;}
   const {amount,date,ws,wt,cat,sub,comment}=draft;
   const srcCur=walletCurrency(ws);

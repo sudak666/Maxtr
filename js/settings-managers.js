@@ -30,14 +30,33 @@ function focusableIn(container){
     .filter(el=>el.offsetParent!==null);
 }
 
+let modalTitleIdSeq=0;
+// Finds this modal's visible title element — `.modal-date`/`.fin-form-title`
+// cover every `.modal-card` modal, `.dlg-title` covers `#ui-dialog`'s
+// `.dlg-card` (see index.html), but a screen reader would otherwise
+// announce a bare "dialog" with no name at all for any modal missing all
+// three, so this intentionally has no further fallback: better to silently
+// skip aria-labelledby for a title-less modal (there are none today) than
+// to grab an unrelated element and mislabel it.
+function findModalTitleEl(card){
+  return card.querySelector('.modal-date, .fin-form-title, .dlg-title');
+}
+
 export function setupModalAccessibility(){
   const overlays=document.querySelectorAll('.modal-overlay');
   overlays.forEach(overlay=>{
-    const card=overlay.querySelector('.modal-card');
+    // #ui-dialog (uiConfirm/uiPrompt) uses .dlg-card, not .modal-card —
+    // same generic dialog role handling needed for both card shapes.
+    const card=overlay.querySelector('.modal-card, .dlg-card');
     if(card && !card.hasAttribute('role')){
       card.setAttribute('role','dialog');
       card.setAttribute('aria-modal','true');
       card.tabIndex=-1;
+      const titleEl=findModalTitleEl(card);
+      if(titleEl){
+        if(!titleEl.id) titleEl.id=`modal-title-auto-${++modalTitleIdSeq}`;
+        card.setAttribute('aria-labelledby',titleEl.id);
+      }
     }
   });
   const observer=new MutationObserver(mutations=>{

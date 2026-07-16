@@ -162,6 +162,19 @@ async function main() {
     if (!focusedInsideCard) throw new Error('expected focus to land inside the modal card on open');
     console.log('[ok] opening a modal moves focus inside its card');
 
+    // aria-labelledby wiring: a screen reader announcing this dialog should
+    // get its real visible title (the "Гаманці" .modal-date text), not a
+    // bare unnamed "dialog" role.
+    const a11yLabel = await page.evaluate(() => {
+      const card = document.querySelector('#wallets-modal .modal-card');
+      const labelledby = card?.getAttribute('aria-labelledby');
+      const labelEl = labelledby ? document.getElementById(labelledby) : null;
+      return { role: card?.getAttribute('role'), ariaModal: card?.getAttribute('aria-modal'), labelText: labelEl?.textContent };
+    });
+    if (a11yLabel.role !== 'dialog' || a11yLabel.ariaModal !== 'true') throw new Error(`expected role="dialog" aria-modal="true" on the modal card, got ${JSON.stringify(a11yLabel)}`);
+    if (!a11yLabel.labelText || !a11yLabel.labelText.trim()) throw new Error(`expected aria-labelledby to point at a real title element with text, got ${JSON.stringify(a11yLabel)}`);
+    console.log('[ok] the modal card has role="dialog"/aria-modal="true" and aria-labelledby pointing at its visible title');
+
     await page.keyboard.press('Escape');
     await page.waitForSelector('#wallets-modal', { state: 'hidden' });
     console.log('[ok] pressing Escape closes the topmost open modal');
