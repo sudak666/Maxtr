@@ -114,7 +114,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   if (!skipDaily) {
     const daily = dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now);
     if (daily.needed) {
-      const res = await sendPushFn(token, 'Zminka', 'Не забудь записати сьогоднішні операції.', 'daily');
+      const res = await sendPushFn(token, 'Rytm', 'Не забудь записати сьогоднішні операції.', 'daily');
       if (res.ok) updates.sentDaily = daily.today;
       if (res.invalid) tokenInvalid = true;
     }
@@ -280,7 +280,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     const body = dailyNeededProfileIds.length > 1 && names.every(Boolean)
       ? `Не забудь записати сьогоднішні операції: ${names.join(', ')}.`
       : 'Не забудь записати сьогоднішні операції.';
-    const res = await sendPushFn(token, 'Zminka', body, 'daily');
+    const res = await sendPushFn(token, 'Rytm', body, 'daily');
     if (res.invalid) {
       tokenInvalid = true;
     } else if (res.ok) {

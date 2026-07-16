@@ -88,7 +88,7 @@ function isPopupUnreliableContext(){
 // sign-in attempt) — without this guard, every user saw a scary "sign-in
 // failed" banner the instant they opened the app, whether they'd ever
 // touched the Google button or not.
-const GOOGLE_REDIRECT_PENDING_KEY = 'zminkaGoogleRedirectPending';
+const GOOGLE_REDIRECT_PENDING_KEY = 'mxGoogleRedirectPending';
 
 const googleSignIn = async function(){
   setAuthError('');
@@ -513,8 +513,8 @@ const enableBiometric = async function(){
     const cred=await navigator.credentials.create({
       publicKey:{
         challenge: randBytes(32),
-        rp:{ name:'Zminka' },
-        user:{ id: randBytes(16), name: (AppState.currentUser&&AppState.currentUser.email)||'user', displayName:'Zminka' },
+        rp:{ name:'Rytm' },
+        user:{ id: randBytes(16), name: (AppState.currentUser&&AppState.currentUser.email)||'user', displayName:'Rytm' },
         pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
         authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required' },
         timeout:60000,

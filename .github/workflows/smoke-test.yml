@@ -105,7 +105,7 @@ jobs:
       - name: Start Firestore emulator
         working-directory: /tmp/rules-test
         run: |
-          nohup npx --yes firebase-tools emulators:start --only firestore --project zminka-rules-test > emulator.log 2>&1 &
+          nohup npx --yes firebase-tools emulators:start --only firestore --project rytm-rules-test > emulator.log 2>&1 &
           for i in $(seq 1 60); do
             (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null && break
             sleep 1

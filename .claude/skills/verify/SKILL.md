@@ -1,4 +1,4 @@
-# Verify recipe for this repo (Zminka)
+# Verify recipe for this repo (Rytm)
 
 No build step, no test runner (see `CLAUDE.md`). The app is one static
 `index.html` that talks to real Firebase (`maxtr-c238f`) over the network.

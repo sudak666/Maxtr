@@ -5,9 +5,9 @@
 // vendor (no root package.json — see CLAUDE.md). Run manually before any
 // firestore.rules change:
 //
-//   mkdir -p /tmp/zminka-rules-test && cd /tmp/zminka-rules-test
+//   mkdir -p /tmp/rytm-rules-test && cd /tmp/rytm-rules-test
 //   npm init -y >/dev/null && npm install --no-audit --no-fund @firebase/rules-unit-testing firebase
-//   npx --yes firebase-tools emulators:start --only firestore --project zminka-rules-test &
+//   npx --yes firebase-tools emulators:start --only firestore --project rytm-rules-test &
 //   node /path/to/this/repo/tests/firestore-rules.mjs
 //
 // This caught a real bug during development: firestore.rules had two
@@ -26,7 +26,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
 
 const testEnv = await initializeTestEnvironment({
-  projectId: 'zminka-rules-test',
+  projectId: 'rytm-rules-test',
   firestore: { rules, host: '127.0.0.1', port: 8080 },
 });
 

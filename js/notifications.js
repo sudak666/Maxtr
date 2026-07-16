@@ -45,7 +45,7 @@ export async function getMessagingInstance(){
   AppState.messagingInstance=getMessaging(fbApp);
   onMessage(AppState.messagingInstance, payload=>{
     const n=payload.notification||{};
-    showLocalNotification(n.title||'Zminka', n.body||'');
+    showLocalNotification(n.title||'Rytm', n.body||'');
   });
   return AppState.messagingInstance;
 }
@@ -206,7 +206,7 @@ function maybeShowDailyReminder(){
   const [h,m]=(AppState.notifSettings.time||'21:00').split(':').map(Number);
   if(now.getHours()<h || (now.getHours()===h && now.getMinutes()<(m||0))) return;
   if(AppState.transactions.some(tx=>tx.date===today)) return;
-  showLocalNotification('Zminka', tr('reminder_body'));
+  showLocalNotification('Rytm', tr('reminder_body'));
   localStorage.setItem('mxReminderShown', today);
 }
 

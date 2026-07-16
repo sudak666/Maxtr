@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "ua.zminka.app",
+      "package_name": "ua.rytm.app",
       "sha256_cert_fingerprints": [
         "7C:A2:AF:88:A4:AB:6C:8D:A3:2E:09:EE:82:AF:2B:EC:8E:CB:1B:10:09:DC:3C:0C:25:05:81:A6:94:F3:17:4A"
       ]

@@ -1,4 +1,4 @@
-// Minimal smoke test for Zminka (see /home/user/Maxtr/.claude/skills/verify
+// Minimal smoke test for Rytm (see /home/user/Maxtr/.claude/skills/verify
 // for the full recipe this follows). No build step / test runner in this
 // repo by design (see CLAUDE.md) — this is a plain node script, run with:
 //
