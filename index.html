@@ -915,6 +915,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 .transfer-rate-hint{display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);color:var(--muted);font-size:12px;font-weight:750;line-height:1.35}
 .transfer-rate-hint strong{color:var(--text-strong)}
+.field-help{display:flex;justify-content:flex-end;margin-top:6px;color:var(--muted);font-size:11px;font-weight:750}
 
 /* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
    js/analytics-csv.js). Local cache already gives every returning user an
@@ -2244,7 +2245,8 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg">
         <label data-i18n="finance_comment">Коментар</label>
-        <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+        <input type="text" id="fin-comment" data-action="update-comment-counter" maxlength="500" aria-describedby="fin-comment-counter" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+        <div class="field-help" id="fin-comment-counter" aria-live="polite">0/500</div>
       </div>
       <button class="add-btn" id="fin-submit-btn" data-action="add-transaction" data-i18n="finance_add_btn">Додати запис</button>
     </div>

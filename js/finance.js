@@ -129,6 +129,15 @@ const TX_AMOUNT_MAX=1000000000;
 const TX_COMMENT_MAX=500;
 const TX_DATE_RE=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 
+export function updateCommentCounter(){
+  const input=document.getElementById('fin-comment');
+  const counter=document.getElementById('fin-comment-counter');
+  if(!input||!counter) return;
+  const used=input.value.length;
+  counter.textContent=`${used}/${TX_COMMENT_MAX}`;
+  counter.style.color=used>TX_COMMENT_MAX*0.9?'var(--orange)':'var(--muted)';
+}
+
 function readTransactionForm(){
   const ws=document.getElementById('fin-wallet')?.value||(AppState.wallets[0]&&AppState.wallets[0].id)||'';
   const wt=document.getElementById('fin-wallet-target')?.value||(AppState.wallets[1]&&AppState.wallets[1].id)||'';
@@ -188,6 +197,7 @@ export async function addTransaction(){
   saveTransactionDoc(newTx).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   if(ai)ai.value='';
   const ci=document.getElementById('fin-comment');if(ci)ci.value='';
+  updateCommentCounter();
   AppState.selectedTagIds=[]; renderFinTagChips();
   renderFinance(); renderFinanceChart();
   const m2=document.getElementById('tx-form-modal'); if(m2) m2.style.display='none';
@@ -232,9 +242,11 @@ export const editTransaction = function(id){
     if(subsel){ subsel.value=t.subcategory||''; subsel.dispatchEvent(new Event('change',{bubbles:true})); }
   }
   const ai=document.getElementById('fin-amount'); if(ai) ai.value=t.amount;
+  updateTransferHint();
   const dsel=document.getElementById('fin-date');
   if(dsel){ dsel.value=t.date||''; dsel.dispatchEvent(new Event('change',{bubbles:true})); }
   const ci=document.getElementById('fin-comment'); if(ci) ci.value=t.comment||'';
+  updateCommentCounter();
   AppState.selectedTagIds=(t.tags||[]).slice(); renderFinTagChips();
 
   const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_edit_title');
@@ -247,6 +259,7 @@ const cancelEditTransaction = function(){
   AppState.editingTxId=null;
   const ai=document.getElementById('fin-amount'); if(ai) ai.value='';
   const ci=document.getElementById('fin-comment'); if(ci) ci.value='';
+  updateCommentCounter();
   AppState.selectedTagIds=[]; renderFinTagChips();
   const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_new_tx');
   const submitBtn=document.getElementById('fin-submit-btn'); if(submitBtn) submitBtn.textContent=tr('finance_add_btn');
@@ -515,6 +528,7 @@ const FIELD_ACTIONS = {
   'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
   'set-tx-search': (ds,el)=>setTxSearch(el.value),
   'update-transfer-hint': ()=>updateTransferHint(),
+  'update-comment-counter': ()=>updateCommentCounter(),
 };
 function dispatchFinanceFieldAction(e){
   const el=e.target.closest('[data-action]');
