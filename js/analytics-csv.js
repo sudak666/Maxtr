@@ -7,7 +7,7 @@ import { categoryColor, categoryIcon, currencySymbol, toBase, walletById } from 
 import { deleteTransaction, editTransaction, tagBadge, walletBadge } from './finance.js';
 import { renderGoals } from './goals-profile.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
-import { emptyStateHtml, escapeHtml, showToast } from './ui-widgets.js';
+import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState } from './ui-widgets.js';
 
 // Transient (not persisted, resets on reload) — whether the transaction
 // history below the filters is showing everything or just the collapsed
@@ -26,6 +26,7 @@ const toggleTxListExpanded = function(){
 const setAnalyticsPeriod = function(period){
   AppState.analyticsPeriod=period;
   document.querySelectorAll('#analytics-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', c.dataset.period===period));
+  syncClickableA11yState(document.getElementById('analytics-period-filter'));
   renderAnalytics();
 };
 
@@ -357,7 +358,10 @@ export function renderFinance(){
   // Balance cards (total + this month's income/expense + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="hero-balance-label">Загальний баланс (у грн)</div><div class="hero-balance-val">${bal.toLocaleString('uk-UA')} грн</div>`;
+    const walletCurrencies=new Set(AppState.wallets.map(w=>w.currency||'UAH'));
+    const multiCurrency=walletCurrencies.size>1;
+    let html=`<div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
+    if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
       <div class="fin-mini-stat expense"><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
@@ -379,13 +383,18 @@ export function renderFinance(){
 
   let filtered=AppState.txFilter==='all'?AppState.transactions:AppState.transactions.filter(t=>t.type===AppState.txFilter);
   if(AppState.txCategoryFilter) filtered=filtered.filter(t=>t.category===AppState.txCategoryFilter);
+  if(AppState.txSearch){
+    const walletName=id=>(walletById(id)?.name||'').toLowerCase();
+    filtered=filtered.filter(t=>[t.comment,t.category,t.subcategory,walletName(t.wallet),walletName(t.targetWallet),t.currency,t.targetCurrency]
+      .some(v=>String(v||'').toLowerCase().includes(AppState.txSearch)));
+  }
   // Newest-first, independent of AppState.transactions' own array order —
   // js/color-picker.js's fbLoadNow() already sorts on load, but re-sorting
   // a copy here too keeps the *displayed* order correct even mid-session
   // (e.g. right after editing a transaction to a backdated date, with no
   // reload in between) without needing every mutation site to maintain a
   // sorted-array invariant by hand.
-  filtered=[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  filtered=[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||((b.createdAt||Number(b.id)||0)-(a.createdAt||Number(a.id)||0)));
   const lc=document.getElementById('tx-list-container');
   const tc=document.getElementById('tx-count');
   if(!lc) return;
@@ -399,12 +408,13 @@ export function renderFinance(){
   if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
 
   if(filtered.length===0){
+    const isSearching=!!AppState.txSearch || AppState.txFilter!=='all' || !!AppState.txCategoryFilter;
     lc.innerHTML=emptyStateHtml({
-      icon:'wallet',
-      title:tr('finance_empty_title'),
-      desc:tr('finance_empty_desc'),
-      action:tr('finance_new_tx'),
-      actionName:'open-new-tx-modal'
+      icon:isSearching?'search':'wallet',
+      title:tr(isSearching?'finance_search_empty_title':'finance_empty_title'),
+      desc:tr(isSearching?'finance_search_empty_desc':'finance_empty_desc'),
+      action:isSearching?'':tr('finance_new_tx'),
+      actionName:isSearching?'':'open-new-tx-modal'
     });
     return;
   }
@@ -570,7 +580,7 @@ const CLICK_ACTIONS = {
   // "delete opened edit" on the live site: the inline handler no-op'd and
   // the tap fell through to the row's edit listener. As a real delegated
   // handler it runs normally. Dispatcher below passes the event for this.
-  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(Number(ds.id)); },
+  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(ds.id); },
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
