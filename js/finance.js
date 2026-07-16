@@ -234,6 +234,13 @@ const closeTxModal = function(){
   const m=document.getElementById('tx-form-modal'); if(m) m.style.display='none';
 };
 
+const setTxAmount = function(amount){
+  const ai=document.getElementById('fin-amount');
+  if(!ai) return;
+  ai.value=String(amount||'');
+  ai.focus();
+};
+
 export function setTxSearch(value){
   AppState.txSearch=String(value||'').trim().toLowerCase();
   renderFinance();
@@ -451,6 +458,7 @@ const CLICK_ACTIONS = {
   'delete-auto-rule': ds=>deleteAutoRule(ds.id),
   'add-auto-rule': ()=>addAutoRule(),
   'set-finance-type': ds=>setFinanceType(ds.type),
+  'set-tx-amount': ds=>setTxAmount(ds.amount),
   'add-transaction': ()=>addTransaction(),
   'set-tx-filter': ds=>setTxFilter(ds.filter),
 };
