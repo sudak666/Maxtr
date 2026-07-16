@@ -310,6 +310,11 @@ button,input,select,textarea{font-family:inherit}
 .topbar-title{font-size:16px;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em}
 .topbar-sub{font-size:11px;color:var(--muted);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sync-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-size:11.5px;font-weight:800;white-space:nowrap}
+.sync-chip::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 3px rgba(150,149,156,.12)}
+.sync-chip.ok::before{background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.16)}
+.sync-chip.loading::before{background:var(--orange);box-shadow:0 0 0 3px rgba(245,158,11,.16)}
+.sync-chip.error::before{background:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.16)}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit}
@@ -432,6 +437,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .quick-actions{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;padding:2px 0 14px;margin-bottom:6px}
 .quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:22px;font-family:inherit;padding:10px 8px;transition:transform .15s,border-color .2s,background .2s}
 .quick-action-primary{align-items:flex-start;padding:12px 14px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-color:rgba(255,255,255,.12);box-shadow:var(--shadow-fab)}
+.quick-action-primary.finance-action-primary{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.34)}
 .quick-action-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.12);box-shadow:none;transition:transform .15s}
 .quick-action:not(.quick-action-primary) .quick-action-icon{color:var(--purple2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.18)}
 .quick-action-icon .ico{width:22px;height:22px;margin-right:0}
@@ -528,6 +534,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised);position:relative}
 .hero-balance-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 14px;line-height:1}
+.hero-balance-hint{font-size:12px;font-weight:700;color:var(--muted);line-height:1.35;margin:-8px 0 14px}
 .wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .wallet-chip-row::-webkit-scrollbar{display:none}
 .wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
@@ -883,6 +890,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   padding:0 20px 0 16px;
   transition:transform .15s,padding .25s ease;
 }
+.fin-fab.finance-fab{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.38)}
 .fin-fab:active{transform:scale(.92)}
 .fin-fab .ico{width:24px;height:24px;margin-right:8px;flex-shrink:0;transition:margin .25s ease}
 .fin-fab-label{font-size:14px;font-weight:700;overflow:hidden;max-width:200px;opacity:1;transition:max-width .25s ease,opacity .15s ease}
@@ -899,6 +907,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .filter-chip{padding:15px 16px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
 .filter-chip.active{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple2)}
+.quick-amount-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.quick-amount-chip{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+.quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 
 /* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
    js/analytics-csv.js). Local cache already gives every returning user an
@@ -1491,6 +1502,7 @@ body.amounts-hidden #fx-converter-result{
     </div>
   </div>
   <div class="topbar-right">
+    <div class="sync-chip" id="fb-status" aria-live="polite"><span id="fb-text" data-i18n="sync_synced">Синхронізовано</span></div>
     <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми"></button>
     <button class="btn btn-ghost" id="btn-refresh" aria-label="Оновити"></button>
     <button class="btn btn-ghost" id="btn-settings" aria-label="Налаштування"><span id="ic-topbar-settings"></span></button>
@@ -1627,7 +1639,7 @@ body.amounts-hidden #fx-converter-result{
          (#tools-modal's fx-widget-section) and in Settings > Курси валют,
          so a third standalone entry point was pure duplication. -->
     <div class="quick-actions">
-      <button type="button" class="quick-action quick-action-primary" data-action="open-new-tx-modal">
+      <button type="button" class="quick-action quick-action-primary finance-action-primary" data-action="open-new-tx-modal">
         <span class="quick-action-icon" id="ic-qa-tx"></span>
         <span class="quick-action-label" data-i18n="qa_transaction">Операція</span>
       </button>
@@ -1651,6 +1663,10 @@ body.amounts-hidden #fx-converter-result{
         <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
       </div>
+      <div class="settings-search" style="margin:0 0 12px">
+        <span id="ic-tx-search"></span>
+        <input type="search" id="tx-search-input" data-action="set-tx-search" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
+      </div>
       <div class="filter-row">
         <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>
         <div class="filter-chip"        data-filter="income"   data-action="set-tx-filter" data-i18n="finance_type_income">+ Дохід</div>
@@ -1666,7 +1682,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Плаваюча кнопка: відкриває форму нової операції в шторці замість
          постійно розгорнутої форми, щоб типовий "просто перевірити баланс"
          візит не починався з форми на чверть екрана. -->
-    <button type="button" class="fin-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
+    <button type="button" class="fin-fab finance-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
       <span id="ic-fin-fab"></span>
       <span class="fin-fab-label" data-i18n="finance_new_tx">Нова операція</span>
     </button>
@@ -2045,6 +2061,17 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" class="type-btn lang-opt" data-lang="uk" style="flex:0 0 auto;padding:8px 16px">Українська</button>
         <button type="button" class="type-btn lang-opt" data-lang="en" style="flex:0 0 auto;padding:8px 16px">English</button>
       </div>
+      <div class="settings-row" style="cursor:default;margin-top:10px">
+        <span id="ic-settings-privacy-cache" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="privacy_cache_title">Локальний кеш даних</div>
+          <div class="settings-row-sub" id="privacy-cache-sub" data-i18n="privacy_cache_hint_on">Швидший запуск: фінансові дані зберігаються на цьому пристрої.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-cache-checkbox" data-action="toggle-privacy-cache">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -2170,8 +2197,8 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg" id="fin-type-seg">
-        <button id="btn-inc" class="type-btn active inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
-        <button id="btn-exp" class="type-btn exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
         <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>
       </div>
       <div class="fg">
@@ -2185,6 +2212,12 @@ body.amounts-hidden #fx-converter-result{
       <div class="fg">
         <label id="fin-amount-label">Сума (грн)</label>
         <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
+        <div class="quick-amount-row" aria-label="Швидкі суми">
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="50">50</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="100">100</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="200">200</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="500">500</button>
+        </div>
       </div>
       <div class="fg" id="category-group">
         <label data-i18n="finance_category">Категорія</label>

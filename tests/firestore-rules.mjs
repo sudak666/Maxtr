@@ -103,6 +103,21 @@ await check('transaction doc missing required amount field rejected', setDoc(doc
 await check('transaction doc with non-number amount rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/223`), {
   id: 223, type: 'expense', amount: '100', date: '2026-07-15',
 }), 'deny');
+await check('transaction doc with unsupported type rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/224`), {
+  id: 224, type: 'refund', amount: 100, currency: 'UAH', date: '2026-07-15',
+}), 'deny');
+await check('transaction doc with non-positive amount rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/225`), {
+  id: 225, type: 'expense', amount: 0, currency: 'UAH', date: '2026-07-15',
+}), 'deny');
+await check('transaction doc with malformed date rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/226`), {
+  id: 226, type: 'expense', amount: 100, currency: 'UAH', date: '15.07.2026',
+}), 'deny');
+await check('transfer transaction missing target fields rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/227`), {
+  id: 227, type: 'transfer', amount: 100, currency: 'UAH', date: '2026-07-15', wallet: 'w1',
+}), 'deny');
+await check('owner can write a valid transfer transaction doc', setDoc(doc(asA, `users/${uidA}/max_tracker/finance/transactions/tx_abc-123`), {
+  id: 'tx_abc-123', type: 'transfer', amount: 100, currency: 'UAH', date: '2026-07-15', wallet: 'w1', targetWallet: 'w2', targetAmount: 2.5, targetCurrency: 'USD', createdAt: Date.now(),
+}), 'allow');
 await check('transactions subcollection under a non-finance doc rejected', setDoc(doc(asA, `users/${uidA}/max_tracker/shifts/transactions/1`), {
   id: 1, type: 'expense', amount: 1, date: '2026-07-15',
 }), 'deny');

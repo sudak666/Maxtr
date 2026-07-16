@@ -45,6 +45,7 @@ export const AppState = {
   selectedDateKey: null,
   financeChartSeries: 'net',
   txFilter: 'all',
+  txSearch: '',
   fbTimer: null,
   shiftTypes: [],
   autoFillSchedule: {enabled:false, typeId:'', pattern:'every', anchorDate:''},
