@@ -50,7 +50,9 @@
     logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
     chevron:'<path d="M6 9l6 6 6-6"/>',
+    caretDown:'<path d="M7 9.5 12 14.5 17 9.5Z" fill="currentColor" stroke="none"/>',
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+    sliders:'<path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 17h10"/><path d="M18 17h2"/><circle cx="16" cy="17" r="2" fill="var(--bg2)" stroke="currentColor"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
@@ -113,7 +115,7 @@
   setIcon('ic-settings-search','search');
   setIcon('ic-settings-tip','sparkle');
   setIcon('ic-settings-tip-close','xmark');
-  setIcon('ic-topbar-settings','gear');
+  setIcon('ic-topbar-settings','sliders');
   setIcon('ic-settings-profile','person');
   setIcon('ic-nickname-edit','pencil');
   setIcon('ic-settings-profiles','people');
@@ -160,8 +162,8 @@
   setIcon('ic-debt-due','bell');
   setIcon('ic-debt-forecast','trendDown');
   setIcon('ic-debt-info','doc');
-  setIcon('debt-info-chevron','chevron');
-  setIcon('debt-history-chevron','chevron');
+  setIcon('debt-info-chevron','caretDown');
+  setIcon('debt-history-chevron','caretDown');
   setIcon('tab-icon-shopping','cart');
   setIcon('ic-shopping-remaining','cart');
   setIcon('ic-shopping-bought','check');
@@ -174,7 +176,7 @@
   setIcon('ic-vacation','umbrella');
   setIcon('ic-trend','trendUp');
   setIcon('ic-bolt','bolt');
-  setIcon('tools-toggle-chevron','chevron');
+  setIcon('tools-toggle-chevron','caretDown');
   setIcon('ic-shift-types','gear');
   setIcon('ic-trash-month','trash');
   setIcon('ic-barchart','barChart');
