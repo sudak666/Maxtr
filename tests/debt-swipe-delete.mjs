@@ -114,7 +114,7 @@ async function main() {
     await page.waitForTimeout(150);
 
     async function addEntry(amount, balance, dateLabel) {
-      await page.evaluate(() => window.openNewDebtEntryModal && window.openNewDebtEntryModal());
+      await page.locator('[data-action="open-new-debt-entry-modal"]').first().click();
       await page.waitForSelector('#debt-form-modal', { state: 'visible' });
       await page.fill('#debt-date', dateLabel);
       await page.fill('#debt-amount', amount);
