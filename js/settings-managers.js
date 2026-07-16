@@ -1030,11 +1030,8 @@ function dispatchFieldAction(e){
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
 
-// Still window-exposed: js/analytics-csv.js's onboarding checklist template
-// (a separate file, out of this phase's scope) and tests/e2e-modals.mjs
-// both call these two by name via a literal onclick="..."/window.foo()
-// reference rather than a data-action, so the export has to stay until
-// that template is converted too.
+// Still window-exposed for tests/e2e-modals.mjs, which drives these modals
+// directly through window.openWalletsManager(). Runtime UI uses data-action.
 window.openWalletsManager = openWalletsManager;
 window.openWidgetsManager = openWidgetsManager;
 renderPrivacyCacheUI();

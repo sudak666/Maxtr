@@ -46,9 +46,25 @@ export function sensitiveProfileIds(profilesMeta){
 }
 
 export function clearSensitiveLocalCacheForAccount(uid, profilesMeta){
+  if(!uid) return;
   sensitiveProfileIds(profilesMeta).forEach(profileId=>{
     SENSITIVE_CACHE_NAMES.forEach(name=>removeCacheItem(cacheKeyFor(uid, name, profileId)));
   });
+  // deleteProfile() only filters profilesMeta.list - it never sweeps that
+  // profile's own localStorage cache - so a profile removed from the list
+  // before this ran would otherwise keep its mx_<name>_<uid>_<profileId>
+  // cache on-device forever, silently surviving a "clear sensitive cache"
+  // action. Enumerate real keys instead of trusting the current profile
+  // list, so an orphaned entry from an already-deleted profile is caught too.
+  try{
+    const prefixes=SENSITIVE_CACHE_NAMES.map(name=>`mx_${name}_${uid}`);
+    const toRemove=[];
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key && prefixes.some(p=>key===p || key.startsWith(p+'_'))) toRemove.push(key);
+    }
+    toRemove.forEach(removeCacheItem);
+  }catch(e){}
 }
 
 export function clearSensitiveLocalCacheForUser(lsKeyForName){

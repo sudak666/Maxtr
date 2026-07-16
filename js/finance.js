@@ -150,7 +150,14 @@ function txToday(){
 
 const setTxDateToday = function(){
   const input=document.getElementById('fin-date');
-  if(input) input.value=txToday();
+  if(!input) return;
+  input.value=txToday();
+  // enhanceDateInput() (js/ui-widgets.js) only refreshes the visible
+  // .dp-val label on a real 'change'/'cs-sync' event — setting .value
+  // directly leaves the picker showing the old date while the hidden
+  // input already holds today's, so the form can submit a date the user
+  // never saw selected.
+  input.dispatchEvent(new Event('change',{bubbles:true}));
 };
 
 export function updateCommentCounter(){
@@ -518,10 +525,9 @@ export function __init_finance__(){
 // manager rows, auto-rule rows) plus 6 static index.html ones (new-tx FAB,
 // tx-form cancel, open-tags-manager, add-tag, open-rules-manager,
 // add-auto-rule) converted to data-action, same pattern as phases 3-6.
-// `openColorPicker(...)` in renderTagsList() stays inline onclick — owned
-// by color-picker.js, a separate target. `cancelEditTransaction` had zero
-// external call sites (window-exposed but never actually referenced from
-// index.html or any onclick) — dropped entirely rather than converted.
+// Color swatches and transaction actions are data-action based now. The old
+// `cancelEditTransaction` window export had zero external call sites and stays
+// dropped.
 // setFinanceType/addTransaction/setTxFilter's window.* used to live in
 // js/color-picker.js's __init_color_picker__ (same leftover-from-the-split
 // situation phase 8 found for debt.js and phase 9 found for calendar.js) -
@@ -565,14 +571,6 @@ document.addEventListener('input', e=>{
   dispatchFinanceFieldAction(e);
 });
 
-// Still window-exposed: js/analytics-csv.js's transaction-row template
-// calls both by a literal onclick/string reference (.tx-swipe-delete's
-// onclick="event.stopPropagation();deleteTransaction(...)" and the
-// onboarding-checklist/start-guide's onclick="openNewTxModal()"), a
-// separate, still-untouched target. editTransaction no longer needs this -
-// its one remaining caller (the .tx-item click listener in
-// analytics-csv.js) is a real addEventListener callback, not an onclick
-// string, so the real `import { editTransaction }` there is enough.
-window.deleteTransaction = deleteTransaction;
-window.openNewTxModal = openNewTxModal;
+// deleteTransaction/openNewTxModal are consumed through ES imports and
+// data-action dispatch now; no CSP-sensitive window.* exports are needed here.
 }

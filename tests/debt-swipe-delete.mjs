@@ -114,7 +114,15 @@ async function main() {
     await page.waitForTimeout(150);
 
     async function addEntry(amount, balance, dateLabel) {
-      await page.evaluate(() => window.openNewDebtEntryModal && window.openNewDebtEntryModal());
+      // The empty-state CTA (shown before any entries exist) shares the same
+      // data-action as the persistent FAB (both open the same modal, by
+      // design) but sits further down the page than the 844px test
+      // viewport, so a plain `[data-action=...]` selector's .first() can
+      // resolve to that off-screen CTA instead of the always-on-screen FAB,
+      // and Playwright's coordinate-based click misses it even though a
+      // real device would just scroll to tap it. Scope to the FAB
+      // specifically so this works whether or not the empty state is showing.
+      await page.locator('.fin-fab[data-action="open-new-debt-entry-modal"]').click();
       await page.waitForSelector('#debt-form-modal', { state: 'visible' });
       await page.fill('#debt-date', dateLabel);
       await page.fill('#debt-amount', amount);
