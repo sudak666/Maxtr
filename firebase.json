@@ -33,6 +33,19 @@
         ]
       },
       {
+        "comment": "sw.js + the js/ module graph must always revalidate, or Firebase Hosting's default max-age=3600 lets the browser HTTP-cache them for an hour — which delays the service-worker update check AND lets a freshly-installed worker's cache.addAll() re-cache stale JS. no-cache means 'revalidate before use' (a tiny 304 when unchanged), not 'never cache', so offline still works via the SW cache.",
+        "source": "sw.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/js/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
         "source": "**",
         "headers": [
           { "key": "X-Content-Type-Options", "value": "nosniff" },
