@@ -595,12 +595,8 @@ document.addEventListener('change', e=>{
   if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
 });
 
-// Still window-exposed: renderCalendar()'s own emptyStateHtml({onClick:
-// 'toggleQuickFill()'}) call (the "no shifts yet" empty state) bakes the
-// name into a literal onclick="" string via the shared ui-widgets.js
-// helper, not a data-action - same reasoning as phase 8's addNewDebt/
-// openNewDebtEntryModal.
-window.toggleQuickFill = toggleQuickFill;
+// Empty-state quick-fill uses data-action now (CSP-safe), so no window.*
+// export is needed for toggleQuickFill.
 
 // #shift-modal isn't in closeManagers()'s id list (it has its own
 // closeModal() above, see the exact-target-check comment near the click

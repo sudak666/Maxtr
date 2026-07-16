@@ -502,13 +502,6 @@ document.addEventListener('pointerdown', e=>{
   });
 });
 
-// Still window-exposed: renderDebt()'s own emptyStateHtml({onClick:'...'})
-// calls (ui-widgets.js's shared empty-state helper bakes onClick straight
-// into a literal onclick="" attribute string, not a data-action) reference
-// both by name for the "no debts yet"/"no payments yet" empty states.
-// Converting emptyStateHtml itself to data-action would touch every file
-// that calls it (shopping.js, analytics-csv.js's onboarding checklist,
-// etc.), out of scope for this single-file phase.
-window.addNewDebt=addNewDebt;
-window.openNewDebtEntryModal = openNewDebtEntryModal;
+// Empty-state actions are data-action based now (CSP-safe), so no window.*
+// exports are needed for addNewDebt/openNewDebtEntryModal.
 }
