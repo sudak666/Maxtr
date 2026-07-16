@@ -30,6 +30,12 @@ jobs:
       - name: Run unit tests
         run: node tests/unit.mjs
 
+      - name: Run transaction validation tests
+        run: node tests/tx-validation.mjs
+
+      - name: Run privacy-cache tests
+        run: node tests/privacy-cache.mjs
+
       - name: Run Cloud Function sweep tests
         run: node tests/functions-sweep.mjs
 
