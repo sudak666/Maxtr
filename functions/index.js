@@ -1,5 +1,5 @@
 /**
- * Scheduled push-notification sweep for Zminka.
+ * Scheduled push-notification sweep for Rytm.
  *
  * The client already does the same three checks (daily reminder, budget
  * exceeded, upcoming recurring payment) locally via local Notifications,

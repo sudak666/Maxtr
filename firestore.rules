@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Zminka — per-user data isolation, plus basic structural validation.
+// Rytm — per-user data isolation, plus basic structural validation.
 // Every signed-in user can only read/write their own documents under
 // users/{uid}/max_tracker/{doc}. Anonymous or cross-account access is denied.
 // Deploy with: firebase deploy --only firestore:rules
