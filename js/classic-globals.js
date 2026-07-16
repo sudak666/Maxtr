@@ -126,6 +126,7 @@
   setIcon('ic-notif-recurring','repeat');
   setIcon('ic-notif-debt','bell');
   setIcon('ic-settings-appearance','sun');
+  setIcon('ic-settings-privacy-cache','lock');
   setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-about','info');
   setIcon('ic-set-premium','star');
@@ -179,6 +180,8 @@
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-fin-fab','plus');
+  setIcon('ic-tx-search','search');
+  setIcon('ic-tx-search-clear','xmark');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
@@ -246,6 +249,9 @@
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       notif_debt_title:'Наближається термін боргу', notif_debt_body:'Завтра настає дата, до якої треба віддати "{name}".',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
+      privacy_cache_title:'Локальний кеш даних', privacy_cache_hint_on:'Швидший запуск: фінансові дані зберігаються на цьому пристрої.',
+      privacy_cache_hint_off:'Приватний режим: фінансовий кеш очищено, дані завантажуються з хмари після входу.',
+      privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
       settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
@@ -285,6 +291,7 @@
       finance_chart_net:'Баланс', finance_chart_income:'Дохід', finance_chart_expense:'Витрата',
       finance_chart_forecast:'Прогноз', finance_chart_forecast_tip:'прогноз', finance_chart_avg:'Середнє',
       finance_chart_best:'Найкращий', finance_chart_worst:'Найгірший',
+      finance_total_balance:'Загальний баланс (у грн)', finance_total_balance_approx:'Орієнтовний баланс (у грн)', finance_total_balance_hint:'Сума перерахована в гривню за поточними курсами гаманців.',
       finance_month_income:'Дохід цього місяця', finance_month_expense:'Витрата цього місяця',
       finance_type_income:'+ Дохід', finance_type_expense:'− Витрата', finance_type_transfer:'⇄ Переказ',
       finance_wallet:'Гаманець', finance_wallet_expense:'Звідки списати', finance_wallet_transfer:'Звідки переказати',
@@ -292,6 +299,8 @@
       finance_tags:'Теги', finance_date:'Дата', finance_comment:'Коментар', finance_comment_placeholder:'Деталі операції...',
       finance_amount_prefix:'Сума', finance_add_btn:'Додати запис', finance_history_title:'Історія операцій',
       finance_filter_all:'Всі', finance_filter_reset:'Скинути ✕', finance_records_suffix:'записів', finance_no_records:'Записів немає',
+      finance_search_placeholder:'Пошук за коментарем, категорією, гаманцем…',
+      finance_search_empty_title:'Нічого не знайдено', finance_search_empty_desc:'Зміни фільтр або пошуковий запит, щоб побачити операції.',
       finance_view_all:'Переглянути всі', finance_show_less:'Згорнути',
       toast_tx_updated:'Запис оновлено', toast_transfer_done:'Переказ виконано', toast_tx_added:'Запис додано',
       toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
@@ -332,7 +341,7 @@
       auth_delete_needs_login:'Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.',
       auth_account_deleted:'Акаунт видалено',
       finance_pick_date:'Обери дату',
-      finance_err_amount:'Введіть коректну суму', finance_err_date:'Оберіть дату', finance_err_same_wallet:'Однакові рахунки',
+      finance_err_amount:'Введіть коректну суму', finance_err_amount_large:'Сума завелика', finance_err_date:'Оберіть дату', finance_err_date_format:'Некоректний формат дати', finance_err_wallet:'Оберіть гаманець', finance_err_comment_long:'Коментар занадто довгий', finance_err_field_long:'Назва категорії або підкатегорії занадто довга', finance_err_same_wallet:'Однакові рахунки',
       finance_delete_confirm:'Видалити цей запис?', finance_delete_title:'Видалити операцію',
       finance_edit_title:'Редагування операції', finance_save_changes:'Зберегти зміни',
       csv_empty:'Немає операцій для експорту', csv_date:'Дата', csv_type:'Тип', csv_currency:'Валюта',
@@ -495,6 +504,9 @@
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       notif_debt_title:'Debt due soon', notif_debt_body:'Tomorrow is the due date to pay off "{name}".',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
+      privacy_cache_title:'Local data cache', privacy_cache_hint_on:'Faster startup: financial data is stored on this device.',
+      privacy_cache_hint_off:'Private mode: financial cache is cleared and data loads from the cloud after sign-in.',
+      privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
       settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
@@ -534,6 +546,7 @@
       finance_chart_net:'Balance', finance_chart_income:'Income', finance_chart_expense:'Expense',
       finance_chart_forecast:'Forecast', finance_chart_forecast_tip:'forecast', finance_chart_avg:'Average',
       finance_chart_best:'Best', finance_chart_worst:'Worst',
+      finance_total_balance:'Total balance (UAH)', finance_total_balance_approx:'Approx. balance (UAH)', finance_total_balance_hint:'Converted to UAH using the current wallet exchange rates.',
       finance_month_income:'Income this month', finance_month_expense:'Expense this month',
       finance_type_income:'+ Income', finance_type_expense:'− Expense', finance_type_transfer:'⇄ Transfer',
       finance_wallet:'Wallet', finance_wallet_expense:'Pay from', finance_wallet_transfer:'Transfer from',
@@ -541,6 +554,8 @@
       finance_tags:'Tags', finance_date:'Date', finance_comment:'Comment', finance_comment_placeholder:'Transaction details...',
       finance_amount_prefix:'Amount', finance_add_btn:'Add entry', finance_history_title:'Transaction history',
       finance_filter_all:'All', finance_filter_reset:'Reset ✕', finance_records_suffix:'records', finance_no_records:'No records yet',
+      finance_search_placeholder:'Search by comment, category, wallet…',
+      finance_search_empty_title:'Nothing found', finance_search_empty_desc:'Change the filter or search query to see transactions.',
       finance_view_all:'View all', finance_show_less:'Show less',
       toast_tx_updated:'Entry updated', toast_transfer_done:'Transfer completed', toast_tx_added:'Entry added',
       toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',
@@ -581,7 +596,7 @@
       auth_delete_needs_login:'Data deleted, but deleting the account needs a recent sign-in. Sign in again and repeat the account deletion right away.',
       auth_account_deleted:'Account deleted',
       finance_pick_date:'Pick a date',
-      finance_err_amount:'Enter a valid amount', finance_err_date:'Choose a date', finance_err_same_wallet:'Same account',
+      finance_err_amount:'Enter a valid amount', finance_err_amount_large:'Amount is too large', finance_err_date:'Choose a date', finance_err_date_format:'Invalid date format', finance_err_wallet:'Choose a wallet', finance_err_comment_long:'Comment is too long', finance_err_field_long:'Category or subcategory name is too long', finance_err_same_wallet:'Same account',
       finance_delete_confirm:'Delete this entry?', finance_delete_title:'Delete transaction',
       finance_edit_title:'Edit transaction', finance_save_changes:'Save changes',
       csv_empty:'No transactions to export', csv_date:'Date', csv_type:'Type', csv_currency:'Currency',
