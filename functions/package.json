@@ -1,6 +1,6 @@
 {
-  "name": "zminka-functions",
-  "description": "Scheduled push-notification sweep for Zminka (budget/recurring/daily reminders while the app is closed).",
+  "name": "rytm-functions",
+  "description": "Scheduled push-notification sweep for Rytm (budget/recurring/daily reminders while the app is closed).",
   "engines": { "node": "20" },
   "main": "index.js",
   "scripts": {

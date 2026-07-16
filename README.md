@@ -1,4 +1,4 @@
-# Zminka
+# Rytm
 
 A mobile-first personal tracker for work shifts, multi-currency finances, and
 debt/settlement schedules — Ukrainian-first (`uk`/`en` toggle), installable as

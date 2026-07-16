@@ -104,7 +104,7 @@ await test('sweepProfile: sends the daily reminder once past the set hour with n
   const sendPushFn = async (token, title, body) => { sent.push({ token, title, body }); return { ok: true, invalid: false }; };
   const result = await sweepProfile(null, sendPushFn, uid, 'default', 'tok1', {}, NOW, snap(financeData), snap({ debts: [] }));
   assert.equal(sent.length, 1);
-  assert.equal(sent[0].title, 'Zminka');
+  assert.equal(sent[0].title, 'Rytm');
   assert.deepEqual(result.updates, { sentDaily: '2026-07-15' });
   assert.equal(result.tokenInvalid, false);
 });
@@ -445,7 +445,7 @@ await test('sweepToken: two profiles both due for the daily reminder on the same
   const sent = [];
   await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
   assert.equal(sent.length, 1); // one push total, not two
-  assert.equal(sent[0].title, 'Zminka');
+  assert.equal(sent[0].title, 'Rytm');
   assert.equal(sent[0].type, 'daily');
   assert.match(sent[0].body, /Я/);
   assert.match(sent[0].body, /Дружина/);

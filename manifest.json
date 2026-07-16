@@ -1,6 +1,6 @@
 {
-  "name": "Zminka — Графік та Фінанси",
-  "short_name": "Zminka",
+  "name": "Rytm — Графік та Фінанси",
+  "short_name": "Rytm",
   "description": "Трекер робочих змін, фінансів і розрахунків з налаштовуваними типами змін, гаманцями та категоріями",
   "start_url": "./index.html",
   "display": "standalone",

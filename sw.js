@@ -1,4 +1,4 @@
-// sw.js — Zminka PWA Service Worker v4.0
+// sw.js — Rytm PWA Service Worker v4.0
 // Handles BOTH plain asset caching AND Firebase Cloud Messaging background
 // push. These used to be two separate service worker files (sw.js +
 // firebase-messaging-sw.js) both registered at the site's root scope —
@@ -36,7 +36,7 @@ try {
     // NOTIF_ICONS) sent via webpush.notification.icon — falls back to the
     // generic app icon for anything that didn't set one (e.g. a manually
     // sent test push with no icon field).
-    self.registration.showNotification(title || 'Zminka', {
+    self.registration.showNotification(title || 'Rytm', {
       body: body || '',
       icon: icon || 'icon-192.png',
       badge: 'icon-192.png',
@@ -46,7 +46,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v56';
+const CACHE_NAME = 'rytm-v57';
 const STATIC_ASSETS = [
   './',
   './index.html',

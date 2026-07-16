@@ -55,7 +55,7 @@ function currentTabName(){
 
 function logAppError(kind, detail){
   const entry = { kind, at: new Date().toISOString(), tab: currentTabName(), ...detail };
-  console.error(`[Zminka:${kind}]`, entry);
+  console.error(`[Rytm:${kind}]`, entry);
   try{
     const key = errorLogKey();
     const list = JSON.parse(localStorage.getItem(key) || '[]');
