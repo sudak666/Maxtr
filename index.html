@@ -310,12 +310,18 @@ button,input,select,textarea{font-family:inherit}
 .topbar-title{font-size:16px;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em}
 .topbar-sub{font-size:11px;color:var(--muted);font-weight:500}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sync-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-size:11.5px;font-weight:800;white-space:nowrap}
+.sync-chip::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 3px rgba(150,149,156,.12)}
+.sync-chip.ok::before{background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.16)}
+.sync-chip.loading::before{background:var(--orange);box-shadow:0 0 0 3px rgba(245,158,11,.16)}
+.sync-chip.error::before{background:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.16)}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit}
 .btn:active{transform:scale(.97)}
 .btn-ghost{background:var(--bg2);color:var(--muted);border-color:var(--border)}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-ghost.is-active{background:rgba(139,92,246,.16);color:var(--purple2);border-color:var(--purple)}
 .lang-opt.active{background:rgba(139,92,246,.15);color:var(--purple2);border-color:var(--purple)}
 .btn-primary{background:var(--purple);color:#fff;border-color:transparent}
 /* Springy tap feedback shared by the FAB, primary buttons and list icon
@@ -432,6 +438,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .quick-actions{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;padding:2px 0 14px;margin-bottom:6px}
 .quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:22px;font-family:inherit;padding:10px 8px;transition:transform .15s,border-color .2s,background .2s}
 .quick-action-primary{align-items:flex-start;padding:12px 14px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-color:rgba(255,255,255,.12);box-shadow:var(--shadow-fab)}
+.quick-action-primary.finance-action-primary{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.34)}
 .quick-action-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.12);box-shadow:none;transition:transform .15s}
 .quick-action:not(.quick-action-primary) .quick-action-icon{color:var(--purple2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.18)}
 .quick-action-icon .ico{width:22px;height:22px;margin-right:0}
@@ -469,6 +476,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-search{position:relative;margin:-6px 0 18px}
 .settings-search input{width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text-strong);padding:12px 42px;border-radius:18px;font-size:14px;font-weight:700;outline:none}
 .settings-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);margin:0}
+.search-clear-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:50%;background:transparent;color:var(--muted);display:none;align-items:center;justify-content:center;cursor:pointer}
+.search-clear-btn:hover{background:var(--bg3);color:var(--text-strong)}
+.search-clear-btn .ico{position:static;transform:none;width:14px;height:14px}
 .settings-no-results{display:none;background:var(--bg1);border:1px dashed var(--border);border-radius:18px;padding:16px;color:var(--muted);font-size:13px;font-weight:700;text-align:center;margin-bottom:18px}
 .settings-section-hidden{display:none!important}
 .settings-group-row{display:flex;gap:8px;overflow-x:auto;padding:0 2px 14px;margin-top:-6px;scrollbar-width:none}
@@ -528,6 +538,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised);position:relative}
 .hero-balance-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 14px;line-height:1}
+.hero-balance-hint{font-size:12px;font-weight:700;color:var(--muted);line-height:1.35;margin:-8px 0 14px}
 .wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .wallet-chip-row::-webkit-scrollbar{display:none}
 .wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
@@ -649,8 +660,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chart-section{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;margin-bottom:20px}
 .chart-section.collapsible>.chart-title{cursor:pointer;user-select:none}
 .chart-section.collapsed>*:not(.chart-title){display:none!important}
-.chart-section.collapsible>.chart-title::after{content:'⌄';margin-left:auto;color:var(--muted);font-size:16px;line-height:1;transition:transform .2s}
-.chart-section.collapsed>.chart-title::after{transform:rotate(-90deg)}
+.chart-section.collapsible>.chart-title::after{content:'';margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;color:var(--muted);transform:rotate(45deg);transition:transform .2s,color .15s}
+.chart-section.collapsible>.chart-title:hover::after{color:var(--text-strong)}
+.chart-section.collapsed>.chart-title::after{transform:rotate(-45deg)}
 .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 18px;border:1px dashed var(--border);border-radius:22px;background:rgba(255,255,255,.025);color:var(--muted);animation:emptyStatePop .4s cubic-bezier(.22,1,.36,1) both}
 [data-theme="light"] .empty-state{background:rgba(0,0,0,.02)}
 /* A larger soft-glow "illustration" scene wrapping the existing monochrome
@@ -883,6 +895,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   padding:0 20px 0 16px;
   transition:transform .15s,padding .25s ease;
 }
+.fin-fab.finance-fab{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.38)}
 .fin-fab:active{transform:scale(.92)}
 .fin-fab .ico{width:24px;height:24px;margin-right:8px;flex-shrink:0;transition:margin .25s ease}
 .fin-fab-label{font-size:14px;font-weight:700;overflow:hidden;max-width:200px;opacity:1;transition:max-width .25s ease,opacity .15s ease}
@@ -899,6 +912,17 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .filter-chip{padding:15px 16px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
 .filter-chip.active{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple2)}
+.quick-amount-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.quick-amount-chip{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+.quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
+.transfer-rate-hint{display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);color:var(--muted);font-size:12px;font-weight:750;line-height:1.35}
+.transfer-rate-hint strong{color:var(--text-strong)}
+.transfer-rate-hint.warning{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.24);color:var(--orange)}
+.field-help{display:flex;justify-content:flex-end;margin-top:6px;color:var(--muted);font-size:11px;font-weight:750}
+.date-field-row{display:flex;gap:8px;align-items:center}
+.date-field-row input{flex:1 1 auto}
+.date-today-btn{flex:0 0 auto;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);border-radius:14px;padding:12px 13px;font-size:12px;font-weight:850;font-family:inherit;cursor:pointer}
+.date-today-btn:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 
 /* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
    js/analytics-csv.js). Local cache already gives every returning user an
@@ -1491,7 +1515,8 @@ body.amounts-hidden #fx-converter-result{
     </div>
   </div>
   <div class="topbar-right">
-    <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми"></button>
+    <div class="sync-chip" id="fb-status" aria-live="polite"><span id="fb-text" data-i18n="sync_synced">Синхронізовано</span></div>
+    <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми" aria-pressed="false"></button>
     <button class="btn btn-ghost" id="btn-refresh" aria-label="Оновити"></button>
     <button class="btn btn-ghost" id="btn-settings" aria-label="Налаштування"><span id="ic-topbar-settings"></span></button>
   </div>
@@ -1627,7 +1652,7 @@ body.amounts-hidden #fx-converter-result{
          (#tools-modal's fx-widget-section) and in Settings > Курси валют,
          so a third standalone entry point was pure duplication. -->
     <div class="quick-actions">
-      <button type="button" class="quick-action quick-action-primary" data-action="open-new-tx-modal">
+      <button type="button" class="quick-action quick-action-primary finance-action-primary" data-action="open-new-tx-modal">
         <span class="quick-action-icon" id="ic-qa-tx"></span>
         <span class="quick-action-label" data-i18n="qa_transaction">Операція</span>
       </button>
@@ -1651,6 +1676,11 @@ body.amounts-hidden #fx-converter-result{
         <div class="hist-title" data-i18n="finance_history_title">Історія операцій</div>
         <div style="font-size:12px;color:var(--muted);font-weight:600" id="tx-count"></div>
       </div>
+      <div class="settings-search" style="margin:0 0 12px">
+        <span id="ic-tx-search"></span>
+        <input type="search" id="tx-search-input" data-action="set-tx-search" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
+        <button type="button" class="search-clear-btn" id="tx-search-clear" data-action="clear-tx-search" aria-label="Очистити пошук"><span id="ic-tx-search-clear"></span></button>
+      </div>
       <div class="filter-row">
         <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>
         <div class="filter-chip"        data-filter="income"   data-action="set-tx-filter" data-i18n="finance_type_income">+ Дохід</div>
@@ -1666,7 +1696,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Плаваюча кнопка: відкриває форму нової операції в шторці замість
          постійно розгорнутої форми, щоб типовий "просто перевірити баланс"
          візит не починався з форми на чверть екрана. -->
-    <button type="button" class="fin-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
+    <button type="button" class="fin-fab finance-fab" data-action="open-new-tx-modal" aria-label="Нова операція">
       <span id="ic-fin-fab"></span>
       <span class="fin-fab-label" data-i18n="finance_new_tx">Нова операція</span>
     </button>
@@ -2045,6 +2075,17 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" class="type-btn lang-opt" data-lang="uk" style="flex:0 0 auto;padding:8px 16px">Українська</button>
         <button type="button" class="type-btn lang-opt" data-lang="en" style="flex:0 0 auto;padding:8px 16px">English</button>
       </div>
+      <div class="settings-row" style="cursor:default;margin-top:10px">
+        <span id="ic-settings-privacy-cache" class="icon-badge" style="background:var(--blue)"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="privacy_cache_title">Локальний кеш даних</div>
+          <div class="settings-row-sub" id="privacy-cache-sub" data-i18n="privacy_cache_hint_on">Швидший запуск: фінансові дані зберігаються на цьому пристрої.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-cache-checkbox" data-action="toggle-privacy-cache">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -2170,21 +2211,28 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg" id="fin-type-seg">
-        <button id="btn-inc" class="type-btn active inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
-        <button id="btn-exp" class="type-btn exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
-        <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>
+        <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" aria-pressed="false" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" aria-pressed="true" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" aria-pressed="false" data-i18n="finance_type_transfer">⇄ Переказ</button>
       </div>
       <div class="fg">
         <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
-        <select id="fin-wallet"></select>
+        <select id="fin-wallet" data-action="update-transfer-hint"></select>
       </div>
       <div class="fg" id="wallet-target-group" style="display:none">
         <label data-i18n="finance_wallet_target">Куди переказати</label>
-        <select id="fin-wallet-target"></select>
+        <select id="fin-wallet-target" data-action="update-transfer-hint"></select>
+        <div class="transfer-rate-hint" id="transfer-rate-hint" aria-live="polite"></div>
       </div>
       <div class="fg">
         <label id="fin-amount-label">Сума (грн)</label>
-        <input type="number" id="fin-amount" placeholder="0.00" min="0.01" step="0.01">
+        <input type="number" id="fin-amount" data-action="update-transfer-hint" placeholder="0.00" min="0.01" step="0.01">
+        <div class="quick-amount-row" aria-label="Швидкі суми">
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="50">50</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="100">100</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="200">200</button>
+          <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="500">500</button>
+        </div>
       </div>
       <div class="fg" id="category-group">
         <label data-i18n="finance_category">Категорія</label>
@@ -2200,11 +2248,15 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg">
         <label data-i18n="finance_date">Дата</label>
-        <input type="date" id="fin-date">
+        <div class="date-field-row">
+          <input type="date" id="fin-date">
+          <button type="button" class="date-today-btn" data-action="set-tx-date-today" data-i18n="shifts_today">Сьогодні</button>
+        </div>
       </div>
       <div class="fg">
         <label data-i18n="finance_comment">Коментар</label>
-        <input type="text" id="fin-comment" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+        <input type="text" id="fin-comment" data-action="update-comment-counter" maxlength="500" aria-describedby="fin-comment-counter" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+        <div class="field-help" id="fin-comment-counter" aria-live="polite">0/500</div>
       </div>
       <button class="add-btn" id="fin-submit-btn" data-action="add-transaction" data-i18n="finance_add_btn">Додати запис</button>
     </div>
