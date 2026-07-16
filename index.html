@@ -917,6 +917,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .transfer-rate-hint strong{color:var(--text-strong)}
 .transfer-rate-hint.warning{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.24);color:var(--orange)}
 .field-help{display:flex;justify-content:flex-end;margin-top:6px;color:var(--muted);font-size:11px;font-weight:750}
+.date-field-row{display:flex;gap:8px;align-items:center}
+.date-field-row input{flex:1 1 auto}
+.date-today-btn{flex:0 0 auto;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);border-radius:14px;padding:12px 13px;font-size:12px;font-weight:850;font-family:inherit;cursor:pointer}
+.date-today-btn:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 
 /* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
    js/analytics-csv.js). Local cache already gives every returning user an
@@ -2242,7 +2246,10 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg">
         <label data-i18n="finance_date">Дата</label>
-        <input type="date" id="fin-date">
+        <div class="date-field-row">
+          <input type="date" id="fin-date">
+          <button type="button" class="date-today-btn" data-action="set-tx-date-today" data-i18n="shifts_today">Сьогодні</button>
+        </div>
       </div>
       <div class="fg">
         <label data-i18n="finance_comment">Коментар</label>

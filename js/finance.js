@@ -138,6 +138,15 @@ const TX_AMOUNT_MAX=1000000000;
 const TX_COMMENT_MAX=500;
 const TX_DATE_RE=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 
+function txToday(){
+  return new Date().toISOString().split('T')[0];
+}
+
+const setTxDateToday = function(){
+  const input=document.getElementById('fin-date');
+  if(input) input.value=txToday();
+};
+
 export function updateCommentCounter(){
   const input=document.getElementById('fin-comment');
   const counter=document.getElementById('fin-comment-counter');
@@ -268,6 +277,7 @@ const cancelEditTransaction = function(){
   AppState.editingTxId=null;
   const ai=document.getElementById('fin-amount'); if(ai) ai.value='';
   const ci=document.getElementById('fin-comment'); if(ci) ci.value='';
+  setTxDateToday();
   updateCommentCounter();
   AppState.selectedTagIds=[]; renderFinTagChips();
   const titleText=document.getElementById('fin-form-title-text'); if(titleText) titleText.textContent=tr('finance_new_tx');
@@ -523,6 +533,7 @@ const CLICK_ACTIONS = {
   'add-auto-rule': ()=>addAutoRule(),
   'set-finance-type': ds=>setFinanceType(ds.type),
   'set-tx-amount': ds=>setTxAmount(ds.amount),
+  'set-tx-date-today': ()=>setTxDateToday(),
   'add-transaction': ()=>addTransaction(),
   'set-tx-filter': ds=>setTxFilter(ds.filter),
   'clear-tx-search': ()=>clearTxSearch(),
