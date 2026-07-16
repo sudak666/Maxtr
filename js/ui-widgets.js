@@ -76,8 +76,11 @@ export function setupCollapsibleFinanceSections(){
     if(!section||!title||section.dataset.collapsibleReady) return;
     section.dataset.collapsibleReady='1';
     section.classList.add('collapsible');
+    if(!title.id) title.id=`${id}-toggle`;
+    section.setAttribute('aria-labelledby', title.id);
     title.setAttribute('tabindex','0');
     title.setAttribute('role','button');
+    title.setAttribute('aria-controls', id);
     const syncExpanded=()=>title.setAttribute('aria-expanded', section.classList.contains('collapsed')?'false':'true');
     const toggle=()=>{ section.classList.toggle('collapsed'); syncExpanded(); };
     syncExpanded();
