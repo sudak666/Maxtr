@@ -1678,7 +1678,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="settings-search" style="margin:0 0 12px">
         <span id="ic-tx-search"></span>
-        <input type="search" id="tx-search-input" data-action="set-tx-search" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
+        <input type="search" id="tx-search-input" data-action="set-tx-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
         <button type="button" class="search-clear-btn" id="tx-search-clear" data-action="clear-tx-search" aria-label="Очистити пошук"><span id="ic-tx-search-clear"></span></button>
       </div>
       <div class="filter-row">
@@ -2226,7 +2226,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg">
         <label id="fin-amount-label">Сума (грн)</label>
-        <input type="number" id="fin-amount" data-action="update-transfer-hint" placeholder="0.00" min="0.01" step="0.01">
+        <input type="number" id="fin-amount" data-action="update-transfer-hint" inputmode="decimal" placeholder="0.00" min="0.01" step="0.01">
         <div class="quick-amount-row" aria-label="Швидкі суми">
           <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="50">50</button>
           <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="100">100</button>
@@ -2255,7 +2255,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg">
         <label data-i18n="finance_comment">Коментар</label>
-        <input type="text" id="fin-comment" data-action="update-comment-counter" maxlength="500" aria-describedby="fin-comment-counter" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
+        <input type="text" id="fin-comment" data-action="update-comment-counter" maxlength="500" autocomplete="off" aria-describedby="fin-comment-counter" placeholder="Деталі операції..." data-i18n-placeholder="finance_comment_placeholder">
         <div class="field-help" id="fin-comment-counter" aria-live="polite">0/500</div>
       </div>
       <button class="add-btn" id="fin-submit-btn" data-action="add-transaction" data-i18n="finance_add_btn">Додати запис</button>
