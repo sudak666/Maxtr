@@ -60,6 +60,7 @@ const setSettingsGroup = function(group){
   document.querySelectorAll('.settings-group-chip').forEach(chip=>{
     chip.classList.toggle('active', chip.dataset.group===AppState.activeSettingsGroup);
   });
+  syncClickableA11yState(document.getElementById('tab-settings'));
   filterSettings(document.getElementById('settings-search-input')?.value||'');
 };
 
@@ -75,30 +76,48 @@ export function setupCollapsibleFinanceSections(){
     if(!section||!title||section.dataset.collapsibleReady) return;
     section.dataset.collapsibleReady='1';
     section.classList.add('collapsible');
+    if(!title.id) title.id=`${id}-toggle`;
+    section.setAttribute('aria-labelledby', title.id);
     title.setAttribute('tabindex','0');
     title.setAttribute('role','button');
-    title.addEventListener('click',()=>section.classList.toggle('collapsed'));
+    title.setAttribute('aria-controls', id);
+    const syncExpanded=()=>title.setAttribute('aria-expanded', section.classList.contains('collapsed')?'false':'true');
+    const toggle=()=>{ section.classList.toggle('collapsed'); syncExpanded(); };
+    syncExpanded();
+    title.addEventListener('click',toggle);
     title.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); section.classList.toggle('collapsed'); }
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); }
     });
   });
 }
 
-export function setupAccessibleClickableDivs(root){
-  // No <div> anywhere in this codebase carries a literal onclick=""
-  // attribute anymore (the last ones — every .modal-card/.dlg-card's
-  // event.stopPropagation() backdrop guard — were converted to a real
-  // addEventListener in js/classic-globals.js as part of the CSP
-  // hardening pass; see CLAUDE.md), so this only needs to grant keyboard
-  // accessibility to div[data-action] rows now.
-  (root||document).querySelectorAll('div[data-action]:not([tabindex])').forEach(el=>{
-    if(el.classList.contains('modal-overlay')) return;
-    el.tabIndex=0;
-    el.setAttribute('role','button');
-    el.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }
-    });
+const PRESSED_ACTION_SELECTOR='.filter-chip[data-action],.settings-group-chip[data-action],[role=button][data-action]';
+
+export function syncClickableA11yState(root){
+  (root||document).querySelectorAll(PRESSED_ACTION_SELECTOR).forEach(el=>{
+    el.setAttribute('aria-pressed', el.classList.contains('active') ? 'true' : 'false');
   });
+}
+
+export function setupAccessibleClickableDivs(root){
+  // Any non-native element with data-action acts like a button through the
+  // delegated listeners in js/*.js. Give those pseudo-buttons keyboard and
+  // screen-reader semantics in one place instead of relying on each template
+  // remembering tabindex/role by hand. Native controls already expose the
+  // right semantics and are intentionally skipped.
+  (root||document).querySelectorAll('[data-action]').forEach(el=>{
+    if(el.matches('button,a,input,select,textarea,label') || el.classList.contains('modal-overlay')) return;
+    if(!el.hasAttribute('tabindex')) el.tabIndex=0;
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+    if(!el.hasAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', el.dataset.action||'button');
+    if(!el.dataset.a11yKeyReady){
+      el.dataset.a11yKeyReady='1';
+      el.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }
+      });
+    }
+  });
+  syncClickableA11yState(root);
 }
 
 export function setupAccessibleSettingsRows(){ setupAccessibleClickableDivs(); }
