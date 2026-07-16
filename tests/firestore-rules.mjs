@@ -20,7 +20,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebas
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { setDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { setDoc, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
@@ -29,6 +29,14 @@ const testEnv = await initializeTestEnvironment({
   projectId: 'rytm-rules-test',
   firestore: { rules, host: '127.0.0.1', port: 8080 },
 });
+// The emulator process (unlike testEnv itself) persists across separate
+// `node tests/firestore-rules.mjs` runs against the same long-lived
+// instance (see the manual recipe above) — without this, a second run in
+// the same emulator session would see e.g. profile_invites left over
+// already-`usedBy` from the first run's shared-profiles section, and its
+// single-use-code assertions would fail for reasons that have nothing to
+// do with firestore.rules itself.
+await testEnv.clearFirestore();
 
 let passed = 0, failed = 0;
 async function check(name, promise, expect) {
@@ -178,6 +186,51 @@ await check('oversized entries list rejected', setDoc(doc(asA, `error_reports/${
 await check('missing updatedAt rejected', setDoc(doc(asA, `error_reports/${uidA}`), { entries: [] }), 'deny');
 await check('owner can delete their error log', deleteDoc(doc(asA, `error_reports/${uidA}`)), 'allow');
 await check('other user cannot delete uidA error log', deleteDoc(doc(asB, `error_reports/${uidA}`)), 'deny');
+
+// 12. Shared profiles (audit-followup session) — uidA owns a profile
+// "profX", invites uidB to join it via a code, uidC is an uninvolved
+// stranger throughout. Covers the full invite-redeem-join-leave lifecycle
+// against the real emulator, not just individual rule branches in
+// isolation, since the join step depends on a separate prior write
+// (redeeming the invite) actually having committed first.
+const uidC = 'userC';
+const asC = testEnv.authenticatedContext(uidC).firestore();
+const PROFILE_ID = 'profX';
+const financeDocPath = `users/${uidA}/max_tracker/finance@${PROFILE_ID}`;
+const sharedMembersPath = `users/${uidA}/max_tracker/shared_members@${PROFILE_ID}`;
+
+await check('owner can create shared_members@profX for their own profile', setDoc(doc(asA, sharedMembersPath), { members: [uidA], updatedAt: Date.now() }), 'allow');
+await check('owner can seed the shared profile\'s finance doc', setDoc(doc(asA, financeDocPath), { wallets: [], updatedAt: Date.now() }), 'allow');
+await check('a non-member cannot read the shared profile\'s finance doc yet', getDoc(doc(asB, financeDocPath)), 'deny');
+
+let expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+const CODE = 'TESTCODE1';
+await check('owner can create an invite for profX', setDoc(doc(asA, `profile_invites/${CODE}`), { ownerUid: uidA, createdBy: uidA, profileId: PROFILE_ID, profileName: 'Сім\'я', createdAt: Date.now(), expiresAt, usedBy: null }), 'allow');
+await check('owner cannot redeem their own invite', updateDoc(doc(asA, `profile_invites/${CODE}`), { usedBy: uidA }), 'deny');
+await check('a stranger cannot self-add to shared_members without ever redeeming an invite', updateDoc(doc(asC, sharedMembersPath), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: 'BOGUSCODE' }), 'deny');
+await check('joiner cannot join shared_members before redeeming the invite (usedBy still null)', updateDoc(doc(asB, sharedMembersPath), { members: arrayUnion(uidB), updatedAt: Date.now(), lastJoinInviteCode: CODE }), 'deny');
+await check('joiner can redeem the invite (usedBy null -> self)', updateDoc(doc(asB, `profile_invites/${CODE}`), { usedBy: uidB, ownerUid: uidA, profileId: PROFILE_ID, createdBy: uidA, createdAt: (await getDoc(doc(asB, `profile_invites/${CODE}`))).data().createdAt, expiresAt }), 'allow');
+await check('joiner cannot redeem the same invite twice', updateDoc(doc(asB, `profile_invites/${CODE}`), { usedBy: uidB }), 'deny');
+await check('a stranger cannot reuse joiner\'s already-redeemed invite to also self-add', updateDoc(doc(asC, sharedMembersPath), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE }), 'deny');
+await check('joiner can now join shared_members, referencing the redeemed invite', updateDoc(doc(asB, sharedMembersPath), { members: arrayUnion(uidB), updatedAt: Date.now(), lastJoinInviteCode: CODE }), 'allow');
+
+await check('joiner can now read the shared profile\'s finance doc', getDoc(doc(asB, financeDocPath)), 'allow');
+await check('joiner can now write the shared profile\'s finance doc', setDoc(doc(asB, financeDocPath), { wallets: [{ id: 'w1' }], updatedAt: Date.now() }), 'allow');
+await check('joiner can read the shared profile\'s shifts doc', getDoc(doc(asB, `users/${uidA}/max_tracker/shifts@${PROFILE_ID}`)), 'allow');
+await check('joiner can write the shared profile\'s debt doc', setDoc(doc(asB, `users/${uidA}/max_tracker/debt@${PROFILE_ID}`), { data: {}, updatedAt: Date.now() }), 'allow');
+await check('joiner cannot delete the shared profile\'s finance doc (delete stays owner-only)', deleteDoc(doc(asB, financeDocPath)), 'deny');
+await check('a stranger still cannot read the shared profile\'s finance doc', getDoc(doc(asC, financeDocPath)), 'deny');
+await check('joiner cannot read the owner\'s unrelated profiles_meta', getDoc(doc(asB, `users/${uidA}/max_tracker/profiles_meta`)), 'deny');
+await check('joiner cannot read the owner\'s unrelated backup_v2@profX', getDoc(doc(asB, `users/${uidA}/max_tracker/backup_v2@${PROFILE_ID}`)), 'deny');
+
+const sharedTxPath = `${financeDocPath}/transactions/tx1`;
+await check('joiner can write a transaction under the shared profile', setDoc(doc(asB, sharedTxPath), { type: 'expense', amount: 42, date: '2026-07-16', category: 'Продукти' }), 'allow');
+await check('joiner can read a transaction under the shared profile', getDoc(doc(asB, sharedTxPath)), 'allow');
+await check('a stranger cannot read a transaction under the shared profile', getDoc(doc(asC, sharedTxPath)), 'deny');
+
+await check('a member cannot remove someone else instead of themselves', updateDoc(doc(asB, sharedMembersPath), { members: arrayRemove(uidA), updatedAt: Date.now() }), 'deny');
+await check('joiner can leave the shared profile (self-remove only)', updateDoc(doc(asB, sharedMembersPath), { members: arrayRemove(uidB), updatedAt: Date.now() }), 'allow');
+await check('after leaving, joiner can no longer read the shared profile\'s finance doc', getDoc(doc(asB, financeDocPath)), 'deny');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 await testEnv.cleanup();

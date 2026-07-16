@@ -205,6 +205,8 @@
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
   setIcon('ic-add-profile','plus');
+  setIcon('ic-share-profile','people');
+  setIcon('ic-join-profile','idCard');
   setIcon('ic-set-link-phone','phone');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
@@ -414,6 +416,17 @@
       profiles_delete_last_blocked:'Повинен залишитися хоча б один профіль.',
       profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
       profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
+      profiles_share_btn:'Поділитись поточним профілем', profiles_join_btn:'Приєднатися за кодом',
+      profiles_shared_badge:'Спільний', profiles_share_not_owner:'Не можна поділитись чужим спільним профілем',
+      profiles_share_code_title:'Профіль тепер спільний', profiles_share_code_msg:'Надішли цей код тому, з ким хочеш поділитись профілем:',
+      profiles_share_code_hint:'Код діє 24 години й одноразовий. Приєднатись можна через "Приєднатися за кодом" у Профілях.',
+      profiles_join_title:'Приєднатися за кодом', profiles_join_prompt:'Введи код запрошення',
+      profiles_join_err_own:'Це твій власний профіль', profiles_join_err_used:'Цей код уже використано',
+      profiles_join_err_expired:'Код прострочено — попроси новий', profiles_join_err_generic:'Код не знайдено',
+      profiles_join_success:'Ви приєднались до спільного профілю',
+      profiles_leave_title:'Покинути спільний профіль', profiles_leave_btn:'Покинути',
+      profiles_leave_confirm:'Покинути цей спільний профіль? Ти втратиш доступ до його даних, поки тебе не запросять знову.',
+      profiles_left_toast:'Ви покинули спільний профіль',
       profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
       cat_icon_pick_title:'Оберіть іконку',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
@@ -679,6 +692,17 @@
       profiles_delete_last_blocked:'At least one profile must remain.',
       profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
       profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
+      profiles_share_btn:'Share current profile', profiles_join_btn:'Join via code',
+      profiles_shared_badge:'Shared', profiles_share_not_owner:'Can\'t share a profile that isn\'t yours',
+      profiles_share_code_title:'Profile is now shared', profiles_share_code_msg:'Send this code to whoever you want to share the profile with:',
+      profiles_share_code_hint:'The code is valid for 24 hours and works once. They can join via "Join via code" in Profiles.',
+      profiles_join_title:'Join via code', profiles_join_prompt:'Enter the invite code',
+      profiles_join_err_own:'That\'s your own profile', profiles_join_err_used:'This code has already been used',
+      profiles_join_err_expired:'The code expired — ask for a new one', profiles_join_err_generic:'Code not found',
+      profiles_join_success:'You joined the shared profile',
+      profiles_leave_title:'Leave shared profile', profiles_leave_btn:'Leave',
+      profiles_leave_confirm:'Leave this shared profile? You\'ll lose access to its data until invited again.',
+      profiles_left_toast:'You left the shared profile',
       profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
       cat_icon_pick_title:'Choose an icon',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',

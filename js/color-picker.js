@@ -9,12 +9,12 @@ import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncome
 import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
-import { activeProfileLsKey, batchWriteTransactions, loadTransactionsFromSubcollection, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
+import { batchWriteTransactions, leaveSharedProfile, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, shareCurrentProfile, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { setCacheItem } from './privacy-cache.js';
 import { closeManagers, uid, updateShiftType, updateWallet } from './settings-managers.js';
-import { escapeHtml, setupAccessibleClickableDivs, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { escapeHtml, setupAccessibleClickableDivs, showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 export const openColorPicker = function(kind,id){
   AppState.colorPickTarget={kind,id};
@@ -90,22 +90,37 @@ const selectProfileAvatar = async function(avatarId){
 };
 
 const deleteProfile = async function(id){
-  if(id===AppState.activeProfileId){ showToast(tr('profiles_delete_active_blocked'),'warning'); return; }
-  if(AppState.profilesMeta.list.length<=1){ showToast(tr('profiles_delete_last_blocked'),'warning'); return; }
+  // Only ever meant for one of this account's own profiles — a shared
+  // profile reference is removed via leaveSharedProfileUI() instead
+  // (renderProfilesUI() wires the two to different buttons), but guard
+  // here too rather than trust the caller.
+  const target=AppState.profilesMeta.list.find(p=>p.id===id && p.kind!=='shared');
+  if(!target) return;
+  if(id===AppState.activeProfileId && !AppState.activeProfileOwnerUid){ showToast(tr('profiles_delete_active_blocked'),'warning'); return; }
+  const ownProfiles=AppState.profilesMeta.list.filter(p=>p.kind!=='shared');
+  if(ownProfiles.length<=1){ showToast(tr('profiles_delete_last_blocked'),'warning'); return; }
   if(!(await uiConfirm(tr('profiles_delete_confirm'),{title:tr('profiles_delete_title'),okText:tr('common_delete'),danger:true}))) return;
-  AppState.profilesMeta.list=AppState.profilesMeta.list.filter(p=>p.id!==id);
+  AppState.profilesMeta.list=AppState.profilesMeta.list.filter(p=>p.id!==id || p.kind==='shared');
   await saveProfilesMeta();
   renderProfilesUI();
 };
 
-const switchProfile = async function(id){
-  if(id===AppState.activeProfileId) return;
-  if(!AppState.profilesMeta.list.some(p=>p.id===id)) return;
+// id + ownerUid together identify a profile: ownerUid is null/omitted for
+// one of this account's own profiles, or the sharing account's uid for a
+// shared one (see state.js's activeProfileOwnerUid comment).
+const switchProfile = async function(id, ownerUid){
+  ownerUid = ownerUid || null;
+  if(id===AppState.activeProfileId && ownerUid===AppState.activeProfileOwnerUid) return;
+  const known = ownerUid
+    ? AppState.profilesMeta.list.some(p=>p.id===id && p.kind==='shared' && p.ownerUid===ownerUid)
+    : AppState.profilesMeta.list.some(p=>p.id===id && p.kind!=='shared');
+  if(!known) return;
   if(!(await uiConfirm(tr('profiles_switch_confirm'),{title:tr('profiles_switch_title'),okText:tr('profiles_switch_btn')}))) return;
   clearTimeout(AppState.fbTimer);
   await fbSaveNow();
   AppState.activeProfileId=id;
-  try{ const k=activeProfileLsKey(); if(k) localStorage.setItem(k, AppState.activeProfileId); }catch(e){}
+  AppState.activeProfileOwnerUid=ownerUid;
+  saveActiveProfileId();
   closeManagers();
   await fbLoadNow();
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
@@ -113,30 +128,91 @@ const switchProfile = async function(id){
   showToast(tr('profiles_switched_toast'),'check');
 };
 
+// Turns the *current* profile into a shared one and shows the resulting
+// invite code in a dialog for the owner to copy/read out to whoever
+// should join — plain uiAlert rather than a dedicated share sheet/modal,
+// matching this repo's preference for reusing the existing dialog
+// primitives over building single-purpose UI for something this simple.
+const shareCurrentProfileUI = async function(){
+  if(AppState.activeProfileOwnerUid){ showToast(tr('profiles_share_not_owner'),'warning'); return; }
+  try{
+    const code=await shareCurrentProfile();
+    await uiAlert(`${tr('profiles_share_code_msg')}\n\n${code}\n\n${tr('profiles_share_code_hint')}`, tr('profiles_share_code_title'));
+  }catch(e){
+    console.error(e);
+    showToast(tr('sync_autosave_error'),'xmark');
+  }
+};
+
+const joinSharedProfileUI = async function(){
+  const code=await uiPrompt(tr('profiles_join_prompt'), '', tr('profiles_join_title'));
+  if(code===null) return;
+  const clean=code.trim(); if(!clean) return;
+  const result=await redeemSharedInvite(clean);
+  if(!result.ok){
+    const reasonKey = result.reason==='own-profile' ? 'profiles_join_err_own'
+      : result.reason==='used' ? 'profiles_join_err_used'
+      : result.reason==='expired' ? 'profiles_join_err_expired'
+      : 'profiles_join_err_generic';
+    showToast(tr(reasonKey),'xmark');
+    return;
+  }
+  renderProfilesUI();
+  showToast(tr('profiles_join_success'),'check');
+};
+
+const leaveSharedProfileUI = async function(id, ownerUid){
+  if(!(await uiConfirm(tr('profiles_leave_confirm'),{title:tr('profiles_leave_title'),okText:tr('profiles_leave_btn'),danger:true}))) return;
+  const wasActive = AppState.activeProfileId===id && AppState.activeProfileOwnerUid===ownerUid;
+  try{
+    await leaveSharedProfile(ownerUid, id);
+  }catch(e){
+    console.error(e);
+    showToast(tr('sync_autosave_error'),'xmark');
+    return;
+  }
+  if(wasActive){
+    const fallback=AppState.profilesMeta.list.find(p=>p.kind!=='shared') || {id:'default'};
+    await switchProfile(fallback.id, null);
+  }else{
+    renderProfilesUI();
+  }
+  showToast(tr('profiles_left_toast'),'check');
+};
+
 export function renderProfilesUI(){
   const sub=document.getElementById('settings-profiles-sub');
   if(sub){
-    const active=AppState.profilesMeta.list.find(p=>p.id===AppState.activeProfileId);
+    const active=AppState.profilesMeta.list.find(p=>p.id===AppState.activeProfileId && (p.kind==='shared'?p.ownerUid===AppState.activeProfileOwnerUid:!AppState.activeProfileOwnerUid));
     sub.textContent = (active && active.name) ? active.name : tr('settings_profiles_sub');
   }
   const box=document.getElementById('profiles-list'); if(!box) return;
   box.innerHTML='';
   AppState.profilesMeta.list.forEach((p,i)=>{
-    const isActive=p.id===AppState.activeProfileId;
+    const isShared=p.kind==='shared';
+    const isActive=p.id===AppState.activeProfileId && (isShared?p.ownerUid===AppState.activeProfileOwnerUid:!AppState.activeProfileOwnerUid);
     const row=document.createElement('div');
     row.className='mgr-row';
     const builtin=p.avatar && p.avatar.startsWith('builtin:') ? BUILTIN_AVATARS.find(a=>'builtin:'+a.id===p.avatar) : null;
     const initial=(p.name||'?').trim().charAt(0).toUpperCase()||'?';
     const avatarBg=builtin ? builtin.gradient : PALETTE[i%PALETTE.length];
     const avatarContent=builtin ? window.Icon(builtin.icon) : escapeHtml(initial);
+    // A shared-profile reference's name/avatar are still this account's
+    // own cosmetic copy in its own profilesMeta (see redeemSharedInvite())
+    // — editable the same way as any other profile, just additionally
+    // tagged so it's clear this data isn't solely this account's own.
+    const sharedBadge=isShared?`<span style="font-weight:800;font-size:11px;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
     row.innerHTML=`
       <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${p.id}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
+      ${sharedBadge}
       ${isActive
         ? `<span style="font-weight:800;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
-        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}">${tr('profiles_switch_btn')}</button>`}
+        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
       <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-      <button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+      ${isShared
+        ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
+        : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`}
     `;
     box.appendChild(row);
   });
@@ -449,11 +525,14 @@ const CLICK_ACTIONS = {
   'select-picked-color': ds=>selectPickedColor(ds.color),
   'select-profile-avatar': ds=>selectProfileAvatar(ds.avatarId),
   'open-profile-avatar-picker': ds=>openProfileAvatarPicker(ds.id),
-  'switch-profile': ds=>switchProfile(ds.id),
+  'switch-profile': ds=>switchProfile(ds.id, ds.ownerUid||null),
   'rename-profile': ds=>renameProfile(ds.id),
   'delete-profile': ds=>deleteProfile(ds.id),
   'add-profile': ()=>addProfile(),
   'open-profiles-manager': ()=>{ document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI(); },
+  'share-current-profile': ()=>shareCurrentProfileUI(),
+  'join-shared-profile': ()=>joinSharedProfileUI(),
+  'leave-shared-profile': ds=>leaveSharedProfileUI(ds.id, ds.ownerUid),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');

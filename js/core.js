@@ -15,7 +15,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/fireba
 
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js";
 
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
@@ -388,4 +388,4 @@ document.addEventListener('click', e=>{
 // Re-exports of this file's own imported (not locally declared) bindings
 // that other split files also need - can't prefix an ImportDeclaration
 // with `export`, so these are re-exported explicitly instead.
-export { EmailAuthProvider, RecaptchaVerifier, collection, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getDocs, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink, writeBatch };
+export { EmailAuthProvider, RecaptchaVerifier, arrayRemove, arrayUnion, collection, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getDocs, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink, updateDoc, writeBatch };

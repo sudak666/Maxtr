@@ -83,6 +83,27 @@ export function writeBatch(){
     async commit(){ ops.forEach((fn) => fn()); },
   };
 }
+
+export async function updateDoc(ref, data){
+  const existing = _docs.get(ref.path) || {};
+  const merged = { ...existing };
+  for (const k in data) {
+    const v = data[k];
+    if (v && v.__isArrayUnion) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      v.items.forEach((item) => { if (!arr.includes(item)) arr.push(item); });
+      merged[k] = arr;
+    } else if (v && v.__isArrayRemove) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      merged[k] = arr.filter((item) => !v.items.includes(item));
+    } else {
+      merged[k] = v;
+    }
+  }
+  _docs.set(ref.path, merged);
+}
+export function arrayUnion(...items){ return { __isArrayUnion: true, items }; }
+export function arrayRemove(...items){ return { __isArrayRemove: true, items }; }
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
