@@ -22,6 +22,7 @@ export function refreshWalletSelects(){
     else if(selId==='fin-wallet-target'&&AppState.wallets[1]) sel.value=AppState.wallets[1].id;
   });
   updateAmountLabel();
+  updateTransferHint();
 }
 
 export function updateAmountLabel(){
@@ -29,6 +30,33 @@ export function updateAmountLabel(){
   const ws=document.getElementById('fin-wallet');
   const cur=ws?walletCurrency(ws.value):'UAH';
   lbl.textContent=`${tr('finance_amount_prefix')} (${currencySymbol(cur)})`;
+  updateTransferHint();
+}
+
+export function updateTransferHint(){
+  const hint=document.getElementById('transfer-rate-hint');
+  if(!hint) return;
+  if(AppState.currentFinanceType!=='transfer'){
+    hint.style.display='none';
+    hint.textContent='';
+    return;
+  }
+  const ws=document.getElementById('fin-wallet')?.value;
+  const wt=document.getElementById('fin-wallet-target')?.value;
+  const amount=Number(document.getElementById('fin-amount')?.value)||0;
+  const srcCur=walletCurrency(ws);
+  const targetCur=walletCurrency(wt);
+  const sampleAmount=amount>0?amount:1;
+  const converted=convertCurrency(sampleAmount, srcCur, targetCur);
+  if(!ws||!wt||ws===wt||!Number.isFinite(converted)){
+    hint.style.display='none';
+    hint.textContent='';
+    return;
+  }
+  const sourceText=amount>0?`${sampleAmount.toFixed(2)} ${srcCur}`:`1 ${srcCur}`;
+  const targetText=`${converted.toFixed(2)} ${targetCur}`;
+  hint.style.display='flex';
+  hint.innerHTML=`<span>≈</span><span>${tr('finance_transfer_hint')} <strong>${escapeHtml(sourceText)}</strong> → <strong>${escapeHtml(targetText)}</strong></span>`;
 }
 
 export function setFinanceType(type){
@@ -43,6 +71,7 @@ export function setFinanceType(type){
   if(type==='income')  {if(wsl)wsl.textContent=tr('finance_wallet');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
   if(type==='expense') {if(wsl)wsl.textContent=tr('finance_wallet_expense');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
   if(type==='transfer'){if(wsl)wsl.textContent=tr('finance_wallet_transfer');if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
+  updateTransferHint();
   renderFinTagChips();
 }
 
@@ -239,6 +268,7 @@ const setTxAmount = function(amount){
   if(!ai) return;
   ai.value=String(amount||'');
   ai.focus();
+  updateTransferHint();
 };
 
 function renderTxSearchControls(){
@@ -484,6 +514,7 @@ const FIELD_ACTIONS = {
   'update-tag': (ds,el)=>updateTag(ds.id, ds.field, el.value),
   'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
   'set-tx-search': (ds,el)=>setTxSearch(el.value),
+  'update-transfer-hint': ()=>updateTransferHint(),
 };
 function dispatchFinanceFieldAction(e){
   const el=e.target.closest('[data-action]');
@@ -491,8 +522,7 @@ function dispatchFinanceFieldAction(e){
 }
 document.addEventListener('change', dispatchFinanceFieldAction);
 document.addEventListener('input', e=>{
-  const el=e.target.closest('[data-action="set-tx-search"]');
-  if(el) setTxSearch(el.value);
+  dispatchFinanceFieldAction(e);
 });
 
 // Still window-exposed: js/analytics-csv.js's transaction-row template
