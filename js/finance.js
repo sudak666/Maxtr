@@ -70,8 +70,14 @@ export function updateTransferHint(){
 
 export function setFinanceType(type){
   AppState.currentFinanceType=type;
-  ['inc','exp','trn'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('active'));
-  document.getElementById('btn-'+{income:'inc',expense:'exp',transfer:'trn'}[type])?.classList.add('active');
+  const btnByType={income:'inc',expense:'exp',transfer:'trn'};
+  Object.entries(btnByType).forEach(([btnType,suffix])=>{
+    const btn=document.getElementById('btn-'+suffix);
+    if(!btn) return;
+    const active=btnType===type;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active?'true':'false');
+  });
   const wsl=document.getElementById('wallet-source-label');
   const tg=document.getElementById('wallet-target-group');
   const cg=document.getElementById('category-group');

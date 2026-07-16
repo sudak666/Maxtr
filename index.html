@@ -2209,9 +2209,9 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
       <div class="type-seg" id="fin-type-seg">
-        <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" data-i18n="finance_type_income">+ Дохід</button>
-        <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" data-i18n="finance_type_expense">− Витрата</button>
-        <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" data-i18n="finance_type_transfer">⇄ Переказ</button>
+        <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" aria-pressed="false" data-i18n="finance_type_income">+ Дохід</button>
+        <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" aria-pressed="true" data-i18n="finance_type_expense">− Витрата</button>
+        <button id="btn-trn" class="type-btn trn"        data-action="set-finance-type" data-type="transfer" aria-pressed="false" data-i18n="finance_type_transfer">⇄ Переказ</button>
       </div>
       <div class="fg">
         <label id="wallet-source-label" data-i18n="finance_wallet">Гаманець</label>
