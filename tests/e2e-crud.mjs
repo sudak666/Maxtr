@@ -35,6 +35,7 @@ const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PA
 // Same stubs as tests/smoke.mjs (kept separate per-file rather than shared,
 // matching how firestore-rules.mjs/smoke.mjs are each self-contained here).
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 // A real (if minimal) path-keyed in-memory store, not just no-ops — needed
 // once collection()/getDocs()/writeBatch() exist (added for the
 // transactions-subcollection migration, see CLAUDE.md's Firebase data
@@ -116,6 +117,7 @@ async function main() {
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));

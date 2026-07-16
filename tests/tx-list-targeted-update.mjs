@@ -49,6 +49,7 @@ const seedEntries = [1, 2].map((i) => {
 });
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
 const _docs = new Map(${JSON.stringify(seedEntries)});
 export function getFirestore(){ return {}; }
@@ -122,6 +123,7 @@ async function main() {
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));

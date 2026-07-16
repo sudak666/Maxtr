@@ -48,6 +48,7 @@ const UID = 'stress-test-uid';
 // fbLoadNow() -> loadTransactionsFromSubcollection() picks them up on the
 // very first load, same as a real heavy account would.
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const seedEntries = Array.from({ length: TX_COUNT }, (_, i) => {
   const id = 1700000000000 + i;
   const tx = {
@@ -133,6 +134,7 @@ async function main() {
     page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));

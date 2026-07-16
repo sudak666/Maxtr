@@ -13,6 +13,8 @@ import { csSync } from './ui-widgets.js';
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js";
+
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import {
@@ -32,6 +34,34 @@ export const fbApp = initializeApp({
   storageBucket:"maxtr-c238f.firebasestorage.app",
   messagingSenderId:"311094677098",
   appId:"1:311094677098:web:7a3797c99fad2874340413"
+});
+
+// App Check attests that requests come from this real, unmodified app
+// instance rather than a script hitting the Firebase APIs directly with a
+// copied API key (the Firebase apiKey above was never a secret — Firebase
+// API keys just identify the project, they don't authorize anything on
+// their own — this is what actually gates
+// abuse). The site key below is a reCAPTCHA Enterprise *public* key (like
+// the Firebase apiKey, meant to ship in client code, not a secret) created
+// for this project's own web app (audit-followup session, see CLAUDE.md's
+// App Check section for the exact provisioning steps and IAM roles used).
+// initializeAppCheck() must run before any Firestore/Auth call, so it sits
+// right after initializeApp() here, ahead of getFirestore()/getAuth()
+// below. **Deliberately left in monitor mode**: Firebase's own
+// `services/*` enforcementMode is still UNENFORCED for both Firestore and
+// Identity Toolkit (checked live via the App Check Management API, not
+// assumed) — a request without a valid App Check token, or one running on
+// a domain outside the reCAPTCHA key's allowedDomains (e.g. this repo's
+// local/sandbox test recipe, serving from localhost), still goes through
+// exactly as before. Flipping either service to ENFORCED is a deliberate
+// follow-up decision for the account owner to make after watching the App
+// Check metrics in the Firebase console for a while, not something to flip
+// unilaterally from here — enforcing before confirming real traffic is
+// getting valid tokens risks locking the account owner out of their own
+// app.
+export const appCheck = initializeAppCheck(fbApp, {
+  provider: new ReCaptchaEnterpriseProvider('6LdDGlctAAAAAB3lX0HQS9ao_B4Bn8w0O_KFJDYk'),
+  isTokenAutoRefreshEnabled: true,
 });
 
 export const db = getFirestore(fbApp);
