@@ -197,6 +197,70 @@ async function main() {
     }
     console.log('[ok] a drag starting inside the card\'s side padding (previously a dead zone outside .sheet-grabber\'s content-box width) also dismisses the sheet');
 
+    // ── Body-level dismiss: a downward swipe starting inside
+    // .modal-card-body itself (not the grabber/header) also dismisses the
+    // sheet, as long as the body is scrolled to its own top when the touch
+    // starts — a real account-owner report: for a content-heavy sheet like
+    // Інструменти, the grabber/header is a thin strip and almost the whole
+    // visible sheet is body content, so a natural swipe-down there used to
+    // do nothing. Uses real TouchEvents (not PointerEvents) since that's
+    // what the body-level listener in initSheetDrag() actually listens for
+    // (a non-passive touchmove is what lets it preventDefault() the native
+    // scroll/bounce once it decides to take over — see that function's own
+    // comment for why Pointer Events aren't used for this specific path). ──
+    async function swipeBody(totalDy, steps) {
+      if (!(await page.locator('#tools-modal').isVisible())) {
+        await page.evaluate(() => document.querySelector('[data-action="open-tools-manager"]').click());
+        await page.waitForSelector('#tools-modal', { state: 'visible' });
+        await page.waitForTimeout(250);
+      }
+      const bodyBox = await page.locator('#tools-modal .modal-card-body').boundingBox();
+      const x = bodyBox.x + bodyBox.width / 2;
+      const y = bodyBox.y + 40; // well inside the body, below the header/grabber
+      await page.evaluate(({ x, y, totalDy, steps }) => {
+        const target = document.elementFromPoint(x, y);
+        const mk = (type, cy) => {
+          const t = new Touch({ identifier: 42, target, clientX: x, clientY: cy, pageX: x, pageY: cy });
+          const list = type === 'touchend' ? [] : [t];
+          return new TouchEvent(type, { bubbles: true, cancelable: true, touches: list, targetTouches: list, changedTouches: [t] });
+        };
+        target.dispatchEvent(mk('touchstart', y));
+        for (let i = 1; i <= steps; i++) target.dispatchEvent(mk('touchmove', y + (totalDy * i) / steps));
+        target.dispatchEvent(mk('touchend', y + totalDy));
+      }, { x, y, totalDy, steps });
+      await page.waitForTimeout(400);
+      return page.locator('#tools-modal').isVisible();
+    }
+
+    const visibleAfterBodySwipe = await swipeBody(150, 8);
+    if (visibleAfterBodySwipe) throw new Error('expected a downward swipe starting inside .modal-card-body (scrolled to its top) to dismiss the sheet too, not just the grabber/header');
+    console.log('[ok] a downward swipe starting inside the modal body (scrolled to top) also dismisses the sheet (the reported "swipe down does nothing in Інструменти" bug)');
+
+    // ── The body-level gesture must never hijack a real scroll: force the
+    // body to actually overflow, scroll it away from the top, then swipe
+    // down from inside it — the sheet must stay open (this is a normal
+    // scroll-back-toward-top gesture, not a dismiss). Reopens via a direct
+    // DOM click (not page.click()) — Playwright's actionability re-check
+    // races with the modal's own open animation immediately covering the
+    // trigger button, which is a Playwright/CSS-animation-timing quirk in
+    // this test, not a real app bug (the button works fine for a real
+    // user's single tap; every other open in this file uses page.click()
+    // fine too, just not reliably back-to-back with zero gap after a
+    // just-closed modal). ──
+    await page.evaluate(() => document.querySelector('[data-action="open-tools-manager"]').click());
+    await page.waitForSelector('#tools-modal', { state: 'visible' });
+    await page.waitForTimeout(250);
+    const scrollState = await page.evaluate(() => {
+      const body = document.querySelector('#tools-modal .modal-card-body');
+      body.style.paddingBottom = '2000px'; // force real overflow regardless of seeded data
+      body.scrollTop = 50;
+      return { scrollTop: body.scrollTop, overflows: body.scrollHeight > body.clientHeight };
+    });
+    if (!scrollState.overflows || scrollState.scrollTop <= 0) throw new Error(`test setup failed to force a real mid-scroll state: ${JSON.stringify(scrollState)}`);
+    const visibleAfterMidScrollSwipe = await swipeBody(150, 8);
+    if (!visibleAfterMidScrollSwipe) throw new Error('a downward swipe starting mid-scroll (not at the body\'s own top) incorrectly dismissed the sheet — it should have been left alone as a normal scroll gesture');
+    console.log('[ok] a downward swipe starting mid-scroll (not at the body\'s own top) does NOT dismiss the sheet');
+
     if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
     console.log('[ok] no uncaught page errors during the whole flow');
   } finally {

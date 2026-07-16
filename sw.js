@@ -46,7 +46,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'zminka-v53';
+const CACHE_NAME = 'zminka-v56';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -85,6 +85,7 @@ const STATIC_ASSETS = [
   './js/analytics-csv.js',
   './js/debt.js',
   './js/shopping.js',
+  './js/privacy-cache.js',
   // Classic (non-module) scripts index.html now loads via <script src=""> —
   // externalized from inline <script> blocks as part of the CSP hardening
   // pass (see CLAUDE.md) so script-src doesn't need 'unsafe-inline'/hashes.
@@ -181,13 +182,26 @@ self.addEventListener('fetch', event => {
   // stale exchange rates forever after the first successful fetch.
   if (url.pathname.startsWith('/api/')) return;
 
-  // HTML файли — Network First (завжди свіжий код)
-  if (event.request.destination === 'document' || url.pathname.endsWith('.html')) {
+  // HTML + same-origin JS — Network First (always the freshest code), with
+  // the SW cache as an offline-only fallback. JS was previously cache-first
+  // like every other static asset, which meant a long-lived PWA/TWA could
+  // keep serving a stale copy of the app's modules from the SW cache for a
+  // whole cache-version lifetime even while online — so a shipped-and-
+  // deployed fix looked "not applied" on the device (reported repeatedly by
+  // the account owner). Network-first for .js kills that entire class of
+  // "stale JS delivery" bug: whenever the device is online, every module is
+  // fetched fresh from the network (which the no-cache header on /js/**
+  // keeps un-stale), and the cache only ever serves JS when truly offline.
+  // Icons/fonts/etc. stay cache-first below — they rarely change and don't
+  // carry app logic.
+  if (event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
           return response;
         })
         .catch(() => caches.match(event.request))
