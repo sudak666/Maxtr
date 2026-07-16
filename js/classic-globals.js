@@ -50,7 +50,9 @@
     logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     tag:'<path d="M3 12V5.5A2.5 2.5 0 0 1 5.5 3H12l8.5 8.5a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3 12Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/>',
     chevron:'<path d="M6 9l6 6 6-6"/>',
+    caretDown:'<path d="M7 9.5 12 14.5 17 9.5Z" fill="currentColor" stroke="none"/>',
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+    sliders:'<path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 17h10"/><path d="M18 17h2"/><circle cx="16" cy="17" r="2" fill="var(--bg2)" stroke="currentColor"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
@@ -109,11 +111,17 @@
     var hideAmt=localStorage.getItem('mxHideAmounts')==='1';
     document.body.classList.toggle('amounts-hidden', hideAmt);
     setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
+    var hideBtn=document.getElementById('btn-hide-amounts');
+    if(hideBtn){
+      hideBtn.classList.toggle('is-active', hideAmt);
+      hideBtn.setAttribute('aria-pressed', hideAmt?'true':'false');
+      hideBtn.setAttribute('aria-label', hideAmt?'Показати суми':'Сховати суми');
+    }
   }catch(e){}
   setIcon('ic-settings-search','search');
   setIcon('ic-settings-tip','sparkle');
   setIcon('ic-settings-tip-close','xmark');
-  setIcon('ic-topbar-settings','gear');
+  setIcon('ic-topbar-settings','sliders');
   setIcon('ic-settings-profile','person');
   setIcon('ic-nickname-edit','pencil');
   setIcon('ic-settings-profiles','people');
@@ -126,6 +134,7 @@
   setIcon('ic-notif-recurring','repeat');
   setIcon('ic-notif-debt','bell');
   setIcon('ic-settings-appearance','sun');
+  setIcon('ic-settings-privacy-cache','lock');
   setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-about','info');
   setIcon('ic-set-premium','star');
@@ -159,8 +168,8 @@
   setIcon('ic-debt-due','bell');
   setIcon('ic-debt-forecast','trendDown');
   setIcon('ic-debt-info','doc');
-  setIcon('debt-info-chevron','chevron');
-  setIcon('debt-history-chevron','chevron');
+  setIcon('debt-info-chevron','caretDown');
+  setIcon('debt-history-chevron','caretDown');
   setIcon('tab-icon-shopping','cart');
   setIcon('ic-shopping-remaining','cart');
   setIcon('ic-shopping-bought','check');
@@ -173,12 +182,14 @@
   setIcon('ic-vacation','umbrella');
   setIcon('ic-trend','trendUp');
   setIcon('ic-bolt','bolt');
-  setIcon('tools-toggle-chevron','chevron');
+  setIcon('tools-toggle-chevron','caretDown');
   setIcon('ic-shift-types','gear');
   setIcon('ic-trash-month','trash');
   setIcon('ic-barchart','barChart');
   setIcon('ic-plus','plus');
   setIcon('ic-fin-fab','plus');
+  setIcon('ic-tx-search','search');
+  setIcon('ic-tx-search-clear','xmark');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
@@ -246,6 +257,9 @@
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
       notif_debt_title:'Наближається термін боргу', notif_debt_body:'Завтра настає дата, до якої треба віддати "{name}".',
       settings_appearance:'Зовнішній вигляд', theme_dark:'Темна', theme_light:'Світла',
+      privacy_cache_title:'Локальний кеш даних', privacy_cache_hint_on:'Швидший запуск: фінансові дані зберігаються на цьому пристрої.',
+      privacy_cache_hint_off:'Приватний режим: фінансовий кеш очищено, дані завантажуються з хмари після входу.',
+      privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
       settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
@@ -285,13 +299,17 @@
       finance_chart_net:'Баланс', finance_chart_income:'Дохід', finance_chart_expense:'Витрата',
       finance_chart_forecast:'Прогноз', finance_chart_forecast_tip:'прогноз', finance_chart_avg:'Середнє',
       finance_chart_best:'Найкращий', finance_chart_worst:'Найгірший',
+      finance_total_balance:'Загальний баланс (у грн)', finance_total_balance_approx:'Орієнтовний баланс (у грн)', finance_total_balance_hint:'Сума перерахована в гривню за поточними курсами гаманців.',
       finance_month_income:'Дохід цього місяця', finance_month_expense:'Витрата цього місяця',
       finance_type_income:'+ Дохід', finance_type_expense:'− Витрата', finance_type_transfer:'⇄ Переказ',
       finance_wallet:'Гаманець', finance_wallet_expense:'Звідки списати', finance_wallet_transfer:'Звідки переказати',
       finance_wallet_target:'Куди переказати', finance_category:'Категорія', finance_subcategory:'Підкатегорія',
+      finance_transfer_hint:'Орієнтовно за поточним курсом:', finance_transfer_same_wallet_hint:'Оберіть інший гаманець для переказу.',
       finance_tags:'Теги', finance_date:'Дата', finance_comment:'Коментар', finance_comment_placeholder:'Деталі операції...',
       finance_amount_prefix:'Сума', finance_add_btn:'Додати запис', finance_history_title:'Історія операцій',
       finance_filter_all:'Всі', finance_filter_reset:'Скинути ✕', finance_records_suffix:'записів', finance_no_records:'Записів немає',
+      finance_search_placeholder:'Пошук за коментарем, категорією, гаманцем…',
+      finance_search_empty_title:'Нічого не знайдено', finance_search_empty_desc:'Зміни фільтр або пошуковий запит, щоб побачити операції.',
       finance_view_all:'Переглянути всі', finance_show_less:'Згорнути',
       toast_tx_updated:'Запис оновлено', toast_transfer_done:'Переказ виконано', toast_tx_added:'Запис додано',
       toast_avatar_bad_file:'Оберіть зображення', toast_avatar_updated:'Аватар оновлено',
@@ -332,7 +350,7 @@
       auth_delete_needs_login:'Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.',
       auth_account_deleted:'Акаунт видалено',
       finance_pick_date:'Обери дату',
-      finance_err_amount:'Введіть коректну суму', finance_err_date:'Оберіть дату', finance_err_same_wallet:'Однакові рахунки',
+      finance_err_amount:'Введіть коректну суму', finance_err_amount_large:'Сума завелика', finance_err_date:'Оберіть дату', finance_err_date_format:'Некоректний формат дати', finance_err_wallet:'Оберіть гаманець', finance_err_comment_long:'Коментар занадто довгий', finance_err_field_long:'Назва категорії або підкатегорії занадто довга', finance_err_same_wallet:'Однакові рахунки',
       finance_delete_confirm:'Видалити цей запис?', finance_delete_title:'Видалити операцію',
       finance_edit_title:'Редагування операції', finance_save_changes:'Зберегти зміни',
       csv_empty:'Немає операцій для експорту', csv_date:'Дата', csv_type:'Тип', csv_currency:'Валюта',
@@ -495,6 +513,9 @@
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
       notif_debt_title:'Debt due soon', notif_debt_body:'Tomorrow is the due date to pay off "{name}".',
       settings_appearance:'Appearance', theme_dark:'Dark', theme_light:'Light',
+      privacy_cache_title:'Local data cache', privacy_cache_hint_on:'Faster startup: financial data is stored on this device.',
+      privacy_cache_hint_off:'Private mode: financial cache is cleared and data loads from the cloud after sign-in.',
+      privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
       settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
@@ -534,13 +555,17 @@
       finance_chart_net:'Balance', finance_chart_income:'Income', finance_chart_expense:'Expense',
       finance_chart_forecast:'Forecast', finance_chart_forecast_tip:'forecast', finance_chart_avg:'Average',
       finance_chart_best:'Best', finance_chart_worst:'Worst',
+      finance_total_balance:'Total balance (UAH)', finance_total_balance_approx:'Approx. balance (UAH)', finance_total_balance_hint:'Converted to UAH using the current wallet exchange rates.',
       finance_month_income:'Income this month', finance_month_expense:'Expense this month',
       finance_type_income:'+ Income', finance_type_expense:'− Expense', finance_type_transfer:'⇄ Transfer',
       finance_wallet:'Wallet', finance_wallet_expense:'Pay from', finance_wallet_transfer:'Transfer from',
       finance_wallet_target:'Transfer to', finance_category:'Category', finance_subcategory:'Subcategory',
+      finance_transfer_hint:'Approx. at current rate:', finance_transfer_same_wallet_hint:'Choose a different wallet for the transfer.',
       finance_tags:'Tags', finance_date:'Date', finance_comment:'Comment', finance_comment_placeholder:'Transaction details...',
       finance_amount_prefix:'Amount', finance_add_btn:'Add entry', finance_history_title:'Transaction history',
       finance_filter_all:'All', finance_filter_reset:'Reset ✕', finance_records_suffix:'records', finance_no_records:'No records yet',
+      finance_search_placeholder:'Search by comment, category, wallet…',
+      finance_search_empty_title:'Nothing found', finance_search_empty_desc:'Change the filter or search query to see transactions.',
       finance_view_all:'View all', finance_show_less:'Show less',
       toast_tx_updated:'Entry updated', toast_transfer_done:'Transfer completed', toast_tx_added:'Entry added',
       toast_avatar_bad_file:'Please choose an image', toast_avatar_updated:'Avatar updated',
@@ -581,7 +606,7 @@
       auth_delete_needs_login:'Data deleted, but deleting the account needs a recent sign-in. Sign in again and repeat the account deletion right away.',
       auth_account_deleted:'Account deleted',
       finance_pick_date:'Pick a date',
-      finance_err_amount:'Enter a valid amount', finance_err_date:'Choose a date', finance_err_same_wallet:'Same account',
+      finance_err_amount:'Enter a valid amount', finance_err_amount_large:'Amount is too large', finance_err_date:'Choose a date', finance_err_date_format:'Invalid date format', finance_err_wallet:'Choose a wallet', finance_err_comment_long:'Comment is too long', finance_err_field_long:'Category or subcategory name is too long', finance_err_same_wallet:'Same account',
       finance_delete_confirm:'Delete this entry?', finance_delete_title:'Delete transaction',
       finance_edit_title:'Edit transaction', finance_save_changes:'Save changes',
       csv_empty:'No transactions to export', csv_date:'Date', csv_type:'Type', csv_currency:'Currency',
