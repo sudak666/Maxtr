@@ -259,6 +259,16 @@ export function normalizeWallets(){
   AppState.wallets.forEach(w=>{ if(!w.currency) w.currency='UAH'; });
 }
 
+function txCreatedAt(t){
+  return Number.isFinite(Number(t&&t.createdAt)) ? Number(t.createdAt) : 0;
+}
+
+export function compareTransactionsNewest(a,b){
+  return (b.date||'').localeCompare(a.date||'')
+    || (txCreatedAt(b)-txCreatedAt(a))
+    || String(b.id||'').localeCompare(String(a.id||''));
+}
+
 export const DEFAULT_CATEGORIES = {
   income:  ['Зарплата','Аванс','Підробіток','Інше'],
   expense: ['Продукти','Кафе','Транспорт','Покупки','Комуналка','Здоров\'я','Розваги','Інше'],
