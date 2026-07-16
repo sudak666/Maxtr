@@ -150,7 +150,14 @@ function txToday(){
 
 const setTxDateToday = function(){
   const input=document.getElementById('fin-date');
-  if(input) input.value=txToday();
+  if(!input) return;
+  input.value=txToday();
+  // enhanceDateInput() (js/ui-widgets.js) only refreshes the visible
+  // .dp-val label on a real 'change'/'cs-sync' event — setting .value
+  // directly leaves the picker showing the old date while the hidden
+  // input already holds today's, so the form can submit a date the user
+  // never saw selected.
+  input.dispatchEvent(new Event('change',{bubbles:true}));
 };
 
 export function updateCommentCounter(){
