@@ -6,7 +6,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
+import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
 import { activeProfileLsKey, batchWriteTransactions, loadTransactionsFromSubcollection, lsKey, saveProfilesMeta, userDoc } from './firebase-sync.js';
@@ -320,7 +320,7 @@ export async function fbLoadNow(){
     // (renderFinance, the cached localStorage copy read back on next cold
     // start, etc.) sees a consistent newest-first order without each call
     // site needing its own sort.
-    AppState.transactions.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||((b.createdAt||Number(b.id)||0)-(a.createdAt||Number(a.id)||0)));
+    AppState.transactions.sort(compareTransactionsNewest);
     const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
