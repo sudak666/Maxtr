@@ -270,12 +270,21 @@ const moveWidget = function(key, dir){
   applyWidgetOrder();
 };
 
+export function syncHideAmountsButton(on=document.body.classList.contains('amounts-hidden')){
+  const btn=document.getElementById('btn-hide-amounts');
+  if(btn){
+    btn.innerHTML=window.Icon(on?'eyeOff':'eye');
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-pressed', on?'true':'false');
+    btn.setAttribute('aria-label', on?'Показати суми':'Сховати суми');
+  }
+}
+
 export const toggleHideAmounts = function(){
   const on=!document.body.classList.contains('amounts-hidden');
   document.body.classList.toggle('amounts-hidden', on);
   try{ localStorage.setItem('mxHideAmounts', on?'1':'0'); }catch(e){}
-  const btn=document.getElementById('btn-hide-amounts');
-  if(btn) btn.innerHTML=window.Icon(on?'eyeOff':'eye');
+  syncHideAmountsButton(on);
 };
 
 const openWidgetsManager = function(){

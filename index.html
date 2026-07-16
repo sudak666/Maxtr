@@ -321,6 +321,7 @@ button,input,select,textarea{font-family:inherit}
 .btn:active{transform:scale(.97)}
 .btn-ghost{background:var(--bg2);color:var(--muted);border-color:var(--border)}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-ghost.is-active{background:rgba(139,92,246,.16);color:var(--purple2);border-color:var(--purple)}
 .lang-opt.active{background:rgba(139,92,246,.15);color:var(--purple2);border-color:var(--purple)}
 .btn-primary{background:var(--purple);color:#fff;border-color:transparent}
 /* Springy tap feedback shared by the FAB, primary buttons and list icon
@@ -1514,7 +1515,7 @@ body.amounts-hidden #fx-converter-result{
   </div>
   <div class="topbar-right">
     <div class="sync-chip" id="fb-status" aria-live="polite"><span id="fb-text" data-i18n="sync_synced">Синхронізовано</span></div>
-    <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми"></button>
+    <button class="btn btn-ghost" id="btn-hide-amounts" aria-label="Сховати суми" aria-pressed="false"></button>
     <button class="btn btn-ghost" id="btn-refresh" aria-label="Оновити"></button>
     <button class="btn btn-ghost" id="btn-settings" aria-label="Налаштування"><span id="ic-topbar-settings"></span></button>
   </div>

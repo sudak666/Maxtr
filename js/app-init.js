@@ -14,7 +14,7 @@ import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { clearSensitiveLocalCacheForAccount, getCacheItem, isSensitiveLocalCacheEnabled } from './privacy-cache.js';
-import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, toggleHideAmounts } from './settings-managers.js';
+import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, syncHideAmountsButton, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
 import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
 
@@ -47,6 +47,7 @@ export async function init(){
     setupAccessibleSettingsRows();
     setupCollapsibleFinanceSections();
     setupModalAccessibility();
+    syncHideAmountsButton();
     setupPullToRefresh();
     setupFabExpandCollapse();
     loadNotifSettings();

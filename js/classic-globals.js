@@ -111,6 +111,12 @@
     var hideAmt=localStorage.getItem('mxHideAmounts')==='1';
     document.body.classList.toggle('amounts-hidden', hideAmt);
     setIcon('btn-hide-amounts', hideAmt?'eyeOff':'eye');
+    var hideBtn=document.getElementById('btn-hide-amounts');
+    if(hideBtn){
+      hideBtn.classList.toggle('is-active', hideAmt);
+      hideBtn.setAttribute('aria-pressed', hideAmt?'true':'false');
+      hideBtn.setAttribute('aria-label', hideAmt?'Показати суми':'Сховати суми');
+    }
   }catch(e){}
   setIcon('ic-settings-search','search');
   setIcon('ic-settings-tip','sparkle');
