@@ -56,6 +56,7 @@
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
     repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
+    upload:'<path d="M12 16.5v-11"/><path d="M7 9.5 12 4.5 17 9.5"/><path d="M4 20h16"/>',
     lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
     more:'<circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none"/>',
     search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
@@ -156,6 +157,7 @@
   setIcon('ic-set-rules','sparkle');
   setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
+  setIcon('ic-set-import','upload');
   setIcon('ic-set-terms','doc');
   setIcon('ic-set-privacy','lock');
   setIcon('tab-icon-shifts','calendar');
@@ -203,6 +205,8 @@
   setIcon('ic-add-recur','plus');
   setIcon('ic-add-tag','plus');
   setIcon('ic-add-profile','plus');
+  setIcon('ic-share-profile','people');
+  setIcon('ic-join-profile','idCard');
   setIcon('ic-set-link-phone','phone');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
@@ -246,6 +250,7 @@
       settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
       settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
       settings_recurring:'Повторювані операції', settings_rules:'Автоматичні правила', settings_export:'Експорт CSV',
+      settings_import:'Імпорт CSV',
       settings_security:'Безпека', settings_pin:'PIN-код доступу',
       settings_notifications:'Сповіщення', settings_notif_enable:'Увімкнути нагадування', settings_notif_disable:'Вимкнути нагадування',
       settings_notif_hint:'Нагадаємо, якщо за день не додано жодної операції. Працює, поки застосунок хоч раз відкривався в браузері протягом дня.',
@@ -411,6 +416,17 @@
       profiles_delete_last_blocked:'Повинен залишитися хоча б один профіль.',
       profiles_switch_confirm:'Перемкнутися на цей профіль? Поточні дані буде збережено.',
       profiles_switch_title:'Перемкнути профіль', profiles_switched_toast:'Профіль перемкнено',
+      profiles_share_btn:'Поділитись поточним профілем', profiles_join_btn:'Приєднатися за кодом',
+      profiles_shared_badge:'Спільний', profiles_share_not_owner:'Не можна поділитись чужим спільним профілем',
+      profiles_share_code_title:'Профіль тепер спільний', profiles_share_code_msg:'Надішли цей код тому, з ким хочеш поділитись профілем:',
+      profiles_share_code_hint:'Код діє 24 години й одноразовий. Приєднатись можна через "Приєднатися за кодом" у Профілях.',
+      profiles_join_title:'Приєднатися за кодом', profiles_join_prompt:'Введи код запрошення',
+      profiles_join_err_own:'Це твій власний профіль', profiles_join_err_used:'Цей код уже використано',
+      profiles_join_err_expired:'Код прострочено — попроси новий', profiles_join_err_generic:'Код не знайдено',
+      profiles_join_success:'Ви приєднались до спільного профілю',
+      profiles_leave_title:'Покинути спільний профіль', profiles_leave_btn:'Покинути',
+      profiles_leave_confirm:'Покинути цей спільний профіль? Ти втратиш доступ до його даних, поки тебе не запросять знову.',
+      profiles_left_toast:'Ви покинули спільний профіль',
       profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
       cat_icon_pick_title:'Оберіть іконку',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
@@ -439,6 +455,7 @@
       tags_desc:'Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.', tags_add:'Додати тег',
       rules_empty:'Немає правил', rules_keyword:'Слово в коментарі', rules_keyword_placeholder:'напр. Сільпо',
       rules_delete_confirm:'Видалити це правило?', rules_delete_title:'Видалити правило', rules_auto_applied:'Категорія визначена автоматично:',
+      ai_category_suggested:'ШІ на пристрої підказав категорію:',
       rules_desc:'Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.', rules_add:'Додати правило',
       debt_stat_start:'Початкова сума', debt_stat_balance:'Поточний залишок', debt_stat_paid:'Сплачено', debt_stat_count:'Платежів',
       debt_stat_due:'Термін сплати', debt_due_date:'Дата, до якої треба віддати',
@@ -488,6 +505,13 @@
       settings_categories_sub:'Власні категорії доходів і витрат', settings_tags_sub:'Мітки для операцій, окремо від категорій',
       settings_budgets_sub:'Місячні ліміти витрат по категоріях', settings_recurring_sub:'Автоматичні платежі за розкладом',
       settings_rules_sub:'Категорія за ключовим словом у коментарі', settings_export_sub:'Вивантажити всі операції у файл',
+      settings_import_sub:'Завантажити операції з файлу, експортованого звідси',
+      csv_import_empty:'У файлі немає операцій для імпорту', csv_import_bad_header:'Це не файл, експортований з Rytm',
+      csv_import_row_short:'Рядок пропущено — недостатньо колонок', csv_import_bad_type:'Невідомий тип операції',
+      csv_import_unknown_wallet:'Гаманець не знайдено', csv_import_confirm_title:'Імпорт CSV',
+      csv_import_confirm_prefix:'Буде додано операцій:', csv_import_skip_prefix:'Пропущено через помилки:',
+      csv_import_confirm_ok:'Імпортувати', csv_import_none_valid:'Жодного рядка не вдалося імпортувати. Помилок:',
+      csv_import_read_fail:'Не вдалося прочитати файл', csv_import_done:'Імпортовано операцій:',
       settings_pin_sub:'Захисти застосунок кодом і Face ID/Touch ID', settings_notif_title:'Нагадування про облік',
       settings_signout_sub:'Завершити сеанс на цьому пристрої', settings_delete_account_sub:'Остаточно видалити акаунт і всі дані',
       settings_terms_sub:'Правила користування застосунком', settings_privacy_sub:'Як ми обробляємо твої дані',
@@ -502,6 +526,7 @@
       settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
       settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
       settings_recurring:'Recurring transactions', settings_rules:'Auto-categorization rules', settings_export:'Export CSV',
+      settings_import:'Import CSV',
       settings_security:'Security', settings_pin:'PIN lock',
       settings_notifications:'Notifications', settings_notif_enable:'Enable reminders', settings_notif_disable:'Disable reminders',
       settings_notif_hint:"We'll remind you if no transaction was logged today. Only works while the app has been opened in the browser at least once that day.",
@@ -667,6 +692,17 @@
       profiles_delete_last_blocked:'At least one profile must remain.',
       profiles_switch_confirm:'Switch to this profile? Current data will be saved first.',
       profiles_switch_title:'Switch profile', profiles_switched_toast:'Profile switched',
+      profiles_share_btn:'Share current profile', profiles_join_btn:'Join via code',
+      profiles_shared_badge:'Shared', profiles_share_not_owner:'Can\'t share a profile that isn\'t yours',
+      profiles_share_code_title:'Profile is now shared', profiles_share_code_msg:'Send this code to whoever you want to share the profile with:',
+      profiles_share_code_hint:'The code is valid for 24 hours and works once. They can join via "Join via code" in Profiles.',
+      profiles_join_title:'Join via code', profiles_join_prompt:'Enter the invite code',
+      profiles_join_err_own:'That\'s your own profile', profiles_join_err_used:'This code has already been used',
+      profiles_join_err_expired:'The code expired — ask for a new one', profiles_join_err_generic:'Code not found',
+      profiles_join_success:'You joined the shared profile',
+      profiles_leave_title:'Leave shared profile', profiles_leave_btn:'Leave',
+      profiles_leave_confirm:'Leave this shared profile? You\'ll lose access to its data until invited again.',
+      profiles_left_toast:'You left the shared profile',
       profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
       cat_icon_pick_title:'Choose an icon',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
@@ -695,6 +731,7 @@
       tags_desc:'Freeform labels on transactions, separate from categories — a transaction can have several.', tags_add:'Add tag',
       rules_empty:'No rules', rules_keyword:'Word in comment', rules_keyword_placeholder:'e.g. Trader Joe\'s',
       rules_delete_confirm:'Delete this rule?', rules_delete_title:'Delete rule', rules_auto_applied:'Category auto-detected:',
+      ai_category_suggested:'On-device AI suggested:',
       rules_desc:'If the comment contains a keyword, the category fills in automatically while you enter the transaction.', rules_add:'Add rule',
       debt_stat_start:'Starting amount', debt_stat_balance:'Current balance', debt_stat_paid:'Paid', debt_stat_count:'Payments',
       debt_stat_due:'Due date', debt_due_date:'Date it needs to be paid off by',
@@ -744,6 +781,13 @@
       settings_categories_sub:'Your own income and expense categories', settings_tags_sub:'Freeform labels for transactions, separate from categories',
       settings_budgets_sub:'Monthly spending limits per category', settings_recurring_sub:'Automatic payments on a schedule',
       settings_rules_sub:'Category by keyword in the comment', settings_export_sub:'Export all transactions to a file',
+      settings_import_sub:'Load transactions from a file exported here',
+      csv_import_empty:'This file has no transactions to import', csv_import_bad_header:'This isn’t a file exported from Rytm',
+      csv_import_row_short:'Row skipped — not enough columns', csv_import_bad_type:'Unknown transaction type',
+      csv_import_unknown_wallet:'Wallet not found', csv_import_confirm_title:'Import CSV',
+      csv_import_confirm_prefix:'Transactions to add:', csv_import_skip_prefix:'Skipped due to errors:',
+      csv_import_confirm_ok:'Import', csv_import_none_valid:'No rows could be imported. Errors:',
+      csv_import_read_fail:'Could not read the file', csv_import_done:'Transactions imported:',
       settings_pin_sub:'Protect the app with a code and Face ID/Touch ID', settings_notif_title:'Tracking reminder',
       settings_signout_sub:'End the session on this device', settings_delete_account_sub:'Permanently delete the account and all data',
       settings_terms_sub:'Rules for using the app', settings_privacy_sub:'How we handle your data',

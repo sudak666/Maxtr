@@ -1,16 +1,11 @@
-// Verifies the Finance transaction list always renders newest-first, even
-// when the underlying Firestore data was NOT stored in that order.
-// Firestore's getDocs() on the transactions subcollection has no orderBy —
-// document order is unspecified — so a real account's history can load in
-// essentially arbitrary order (confirmed by a real account-owner
-// screenshot showing oldest-first). Seeds transactions deliberately
-// oldest-first (mimicking that exact real-world case) directly into the
-// stubbed Firestore, then asserts js/color-picker.js's fbLoadNow() sort +
-// js/analytics-csv.js's renderFinance() sort both produce a newest-first
-// list. Same stubbed-Firebase Playwright recipe as the other tests/*.mjs.
-// Run with:
+// CSV import/export round-trip test: creates a transaction, exports CSV,
+// deletes the transaction, re-imports the exported file, and asserts it
+// comes back with the same amount/comment. Also checks that importing a
+// file with an unrecognized wallet name is reported as a skipped row
+// rather than silently dropped or crashing. Same stubbed-Firebase
+// Playwright recipe as tests/e2e-crud.mjs. Run with:
 //
-//   node tests/tx-list-sort-order.mjs
+//   node tests/csv-import-export.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
@@ -28,34 +23,14 @@ function resolveGlobalPlaywrightPath() {
 const { chromium } = await import(resolveGlobalPlaywrightPath());
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const PORT = 8904;
+const PORT = 8902;
 const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
 const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
-const UID = 'sort-order-uid';
-
-// Seeded deliberately OLDEST-FIRST (ascending date), same as the real
-// account-owner report — Firestore's own unordered getDocs() means this is
-// exactly as valid an arrival order as any other.
-const seedEntries = [
-  { id: 1700000000001, date: '2026-06-01', comment: 'oldest' },
-  { id: 1700000000002, date: '2026-06-15', comment: 'middle' },
-  { id: 1700000000003, date: '2026-07-01', comment: 'newest-by-date' },
-  // Same date as "newest-by-date" but a *larger* id (created later that
-  // same day) — must still sort after it (id used as the tiebreaker).
-  { id: 1700000000099, date: '2026-07-01', comment: 'newest-by-date-and-id' },
-].map(({ id, date, comment }) => {
-  const tx = {
-    id, type: 'expense', amount: 10, currency: 'UAH', category: 'Кава',
-    subcategory: null, tags: [], wallet: 'w1', targetWallet: null, targetAmount: null,
-    targetCurrency: null, date, comment,
-  };
-  return [`users/${UID}/max_tracker/finance/transactions/${id}`, tx];
-});
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
 const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
-const _docs = new Map(${JSON.stringify(seedEntries)});
+const _docs = new Map();
 export function getFirestore(){ return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
@@ -111,7 +86,7 @@ export function arrayRemove(...items){ return { __isArrayRemove: true, items }; 
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
-export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'${UID}', email:'sort@example.com'})); return ()=>{}; }
+export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'csv-test-uid', email:'csv@example.com'})); return ()=>{}; }
 export async function signOut(){ return; }
 export async function deleteUser(){ return; }
 export async function createUserWithEmailAndPassword(){ throw new Error('stub'); }
@@ -143,7 +118,7 @@ async function main() {
 
   const browser = await chromium.launch(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {});
   try {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
     const pageErrors = [];
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -159,26 +134,92 @@ async function main() {
     await page.click('#nav-finance');
     await page.waitForTimeout(300);
 
-    const commentsInDomOrder = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tx-item .tx-meta')).map((el) => el.textContent.split(' · ')[1])
-    );
-    const expected = ['newest-by-date-and-id', 'newest-by-date', 'middle', 'oldest'];
-    if (JSON.stringify(commentsInDomOrder) !== JSON.stringify(expected)) {
-      throw new Error(`expected newest-first order ${JSON.stringify(expected)}, got ${JSON.stringify(commentsInDomOrder)}`);
-    }
-    console.log('[ok] transaction list renders newest-first (by date, then by id as a same-date tiebreaker) despite the seed data arriving oldest-first from Firestore');
+    const marker = `csv-rt-${Date.now()}`;
 
-    if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
-    console.log('[ok] no uncaught page errors');
+    // ── create a transaction to round-trip ──
+    await page.click('.fin-fab');
+    await page.waitForSelector('#tx-form-modal', { state: 'visible' });
+    await page.fill('#fin-amount', '777.25');
+    await page.fill('#fin-comment', marker);
+    await page.click('#fin-submit-btn');
+    await page.waitForSelector('#tx-form-modal', { state: 'hidden' });
+    await page.waitForTimeout(200);
+
+    let row = page.locator('.tx-item', { hasText: marker });
+    if ((await row.count()) !== 1) throw new Error(`expected the created transaction to appear before exporting, found ${await row.count()}`);
+    console.log('[ok] setup: transaction created');
+
+    // ── export ──
+    await page.click('#btn-settings');
+    await page.waitForTimeout(300);
+    const downloadPromise = page.waitForEvent('download');
+    await page.click('[data-action="export-transactions-csv"]');
+    const download = await downloadPromise;
+    const csvPath = await download.path();
+    const csvText = fs.readFileSync(csvPath, 'utf8');
+    if (!csvText.includes(marker)) throw new Error('exported CSV does not contain the marker comment');
+    if (!csvText.includes('777,25') && !csvText.includes('777.25')) throw new Error('exported CSV does not contain the expected amount');
+    console.log('[ok] export: CSV file contains the created transaction');
+
+    // ── delete the original, so the round-trip actually proves the import re-created it ──
+    await page.click('#nav-finance');
+    await page.waitForTimeout(200);
+    row = page.locator('.tx-item', { hasText: marker });
+    await row.hover();
+    await row.locator('.tx-swipe-delete').click();
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    await page.waitForTimeout(50);
+    await page.click('#ui-dlg-ok');
+    await page.waitForSelector('#ui-dialog', { state: 'hidden' });
+    await page.waitForTimeout(200);
+    row = page.locator('.tx-item', { hasText: marker });
+    if ((await row.count()) !== 0) throw new Error('expected the transaction to be gone before re-importing');
+    console.log('[ok] setup: original transaction deleted before re-import');
+
+    // ── import the exported file back ──
+    await page.click('#btn-settings');
+    await page.waitForTimeout(300);
+    const fileInput = page.locator('#csv-import-input');
+    await fileInput.setInputFiles(csvPath);
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    const confirmText = await page.locator('#ui-dialog').textContent();
+    if (!/1/.test(confirmText)) throw new Error(`expected the import confirm dialog to mention 1 transaction, got: "${confirmText}"`);
+    await page.click('#ui-dlg-ok');
+    await page.waitForSelector('#ui-dialog', { state: 'hidden' });
+    await page.waitForTimeout(300);
+
+    await page.click('#nav-finance');
+    await page.waitForTimeout(300);
+    row = page.locator('.tx-item', { hasText: marker });
+    if ((await row.count()) !== 1) throw new Error(`expected the imported transaction to reappear, found ${await row.count()}`);
+    const amountText = await row.locator('.tx-amount').textContent();
+    if (!amountText.includes('777,25') && !amountText.includes('777.25')) {
+      throw new Error(`re-imported transaction shows unexpected amount: "${amountText}"`);
+    }
+    console.log('[ok] import: re-importing the exported CSV recreates the transaction with the same amount/comment');
+
+    // ── a CSV with an unrecognized wallet name is reported, not silently dropped or crashed ──
+    const badCsv = '﻿Дата;Тип;Категорія;Підкатегорія;Гаманець;Сума;Валюта;Куди;Сума переказу;Валюта переказу;Коментар\r\n2026-01-01;Витрата;Інше;;Неіснуючий гаманець;10;UAH;;;;test\r\n';
+    const badPath = path.join('/tmp', `bad-import-${Date.now()}.csv`);
+    fs.writeFileSync(badPath, badCsv, 'utf8');
+    await fileInput.setInputFiles(badPath);
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    const dlgText = await page.locator('#ui-dialog').textContent();
+    await page.click('#ui-dlg-ok');
+    if (!dlgText || dlgText.trim().length === 0) throw new Error('expected some dialog text for an unimportable file');
+    console.log('[ok] import: a CSV row with an unknown wallet is reported via a dialog, not silently dropped');
+
+    if (pageErrors.length) throw new Error(`uncaught page errors during CSV import/export flow: ${pageErrors.join(' | ')}`);
+    console.log('[ok] no uncaught page errors during the full export/delete/import flow');
   } finally {
     await browser.close();
     server.kill();
   }
 
-  console.log('\nTX LIST SORT ORDER TEST PASSED');
+  console.log('\nCSV IMPORT/EXPORT TEST PASSED');
 }
 
 main().catch((err) => {
-  console.error('\nTX LIST SORT ORDER TEST FAILED:', err.message);
+  console.error('\nCSV IMPORT/EXPORT TEST FAILED:', err.message);
   process.exitCode = 1;
 });

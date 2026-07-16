@@ -27,6 +27,7 @@ const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
 const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
 const _docs = new Map();
 export function getFirestore(){ return {}; }
@@ -37,6 +38,27 @@ export async function setDoc(ref, data){ _docs.set(ref.path, data); }
 export async function deleteDoc(ref){ _docs.delete(ref.path); }
 export async function getDocs(ref){ const prefix = ref.path + '/'; const items = []; for (const [k, v] of _docs) { if (k.startsWith(prefix) && !k.slice(prefix.length).includes('/')) items.push({ id: k.slice(prefix.length), data: () => v }); } return { docs: items, forEach(fn){ items.forEach(fn); }, empty: items.length === 0, size: items.length }; }
 export function writeBatch(){ const ops = []; return { set(ref, data){ ops.push(() => _docs.set(ref.path, data)); }, delete(ref){ ops.push(() => _docs.delete(ref.path)); }, async commit(){ ops.forEach((fn) => fn()); } }; }
+
+export async function updateDoc(ref, data){
+  const existing = _docs.get(ref.path) || {};
+  const merged = { ...existing };
+  for (const k in data) {
+    const v = data[k];
+    if (v && v.__isArrayUnion) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      v.items.forEach((item) => { if (!arr.includes(item)) arr.push(item); });
+      merged[k] = arr;
+    } else if (v && v.__isArrayRemove) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      merged[k] = arr.filter((item) => !v.items.includes(item));
+    } else {
+      merged[k] = v;
+    }
+  }
+  _docs.set(ref.path, merged);
+}
+export function arrayUnion(...items){ return { __isArrayUnion: true, items }; }
+export function arrayRemove(...items){ return { __isArrayRemove: true, items }; }
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
@@ -79,6 +101,7 @@ async function main() {
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));

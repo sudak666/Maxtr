@@ -9,13 +9,14 @@ import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkel
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
 import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
 import { renderDebt } from './debt.js';
-import { applyAutoRuleToForm, fillSubcats, setFinanceType, updateAmountLabel } from './finance.js';
+import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
 import { loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { clearSensitiveLocalCacheForAccount, getCacheItem, isSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, syncHideAmountsButton, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
+import { TX_COMMENT_MAX } from './tx-validation.js';
 import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
 
 export async function init(){
@@ -44,6 +45,11 @@ export async function init(){
     document.getElementById('fin-wallet')?.addEventListener('change', updateAmountLabel);
     // Auto-categorize as the user types the comment, per their rules
     document.getElementById('fin-comment')?.addEventListener('input', applyAutoRuleToForm);
+    // Runs after applyAutoRuleToForm above on the same keystroke — a
+    // deterministic keyword-rule match always wins, this only fires when
+    // one didn't (see maybeSuggestCategoryWithAI()'s own findMatchingRule
+    // check for why calling both unconditionally here is still safe).
+    document.getElementById('fin-comment')?.addEventListener('input', maybeSuggestCategoryWithAI);
     setupAccessibleSettingsRows();
     setupCollapsibleFinanceSections();
     setupModalAccessibility();
@@ -99,6 +105,40 @@ export async function init(){
   // enabled from a previous session (registering the token itself only
   // happens once, in enablePushNotifications()).
   if(localStorage.getItem(pushEnabledKey())==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
+  handleLaunchParams();
+}
+
+// Handles the two ways the app can be launched straight into "add a
+// transaction" instead of the normal cold-start Finance-tab view:
+// manifest.json's "shortcuts" entry (?action=new-tx, from a long-press on
+// the installed app icon) and its "share_target" entry (?title=&text=&url=,
+// from another app's native share sheet — GET-based, so this is a plain
+// query string on load, no service worker fetch handler needed). Run last
+// in init(), after fbLoadNow() has populated real wallets/categories, so
+// the tx form's selects aren't still showing seeded placeholder defaults
+// when it opens. The query string is stripped immediately so a later
+// reload/PWA-relaunch from history doesn't reopen the modal every time.
+function handleLaunchParams(){
+  const params=new URLSearchParams(window.location.search);
+  const action=params.get('action');
+  const shared=[params.get('title'),params.get('text')].filter(Boolean).join(' — ');
+  if(action!=='new-tx' && !shared) return;
+  history.replaceState(null,'',window.location.pathname);
+  const fab=document.querySelector('[data-action="open-new-tx-modal"]');
+  if(!fab) return;
+  fab.click();
+  if(shared){
+    const ci=document.getElementById('fin-comment');
+    if(ci){ ci.value=shared.slice(0,TX_COMMENT_MAX); ci.dispatchEvent(new Event('input',{bubbles:true})); }
+    // Best-effort: if the shared text contains a plain number (a price
+    // copied from a receipt/chat), prefill the amount too — still fully
+    // editable, never blocks the form if nothing numeric is found.
+    const amountMatch=shared.match(/\d+([.,]\d+)?/);
+    if(amountMatch){
+      const ai=document.getElementById('fin-amount');
+      if(ai) ai.value=amountMatch[0].replace(',','.');
+    }
+  }
 }
 
 // Walks up from `el` looking for a nested `overflow-y:auto`/`scroll`

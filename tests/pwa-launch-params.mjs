@@ -1,16 +1,11 @@
-// Verifies the Finance transaction list always renders newest-first, even
-// when the underlying Firestore data was NOT stored in that order.
-// Firestore's getDocs() on the transactions subcollection has no orderBy —
-// document order is unspecified — so a real account's history can load in
-// essentially arbitrary order (confirmed by a real account-owner
-// screenshot showing oldest-first). Seeds transactions deliberately
-// oldest-first (mimicking that exact real-world case) directly into the
-// stubbed Firestore, then asserts js/color-picker.js's fbLoadNow() sort +
-// js/analytics-csv.js's renderFinance() sort both produce a newest-first
-// list. Same stubbed-Firebase Playwright recipe as the other tests/*.mjs.
-// Run with:
+// PWA launch-params test — verifies manifest.json's "shortcuts" entry
+// (?action=new-tx) and "share_target" entry (?title=&text=) both land on
+// the same result: the Finance tab's new-transaction modal opens
+// pre-filled, straight from a cold page load. Same stubbed-Firebase
+// Playwright recipe as tests/smoke.mjs/tests/e2e-crud.mjs (self-contained
+// stubs, matching this repo's per-file-independent test style). Run with:
 //
-//   node tests/tx-list-sort-order.mjs
+//   node tests/pwa-launch-params.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
@@ -28,34 +23,16 @@ function resolveGlobalPlaywrightPath() {
 const { chromium } = await import(resolveGlobalPlaywrightPath());
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const PORT = 8904;
+const PORT = 8899;
 const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
 const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
-const UID = 'sort-order-uid';
 
-// Seeded deliberately OLDEST-FIRST (ascending date), same as the real
-// account-owner report — Firestore's own unordered getDocs() means this is
-// exactly as valid an arrival order as any other.
-const seedEntries = [
-  { id: 1700000000001, date: '2026-06-01', comment: 'oldest' },
-  { id: 1700000000002, date: '2026-06-15', comment: 'middle' },
-  { id: 1700000000003, date: '2026-07-01', comment: 'newest-by-date' },
-  // Same date as "newest-by-date" but a *larger* id (created later that
-  // same day) — must still sort after it (id used as the tiebreaker).
-  { id: 1700000000099, date: '2026-07-01', comment: 'newest-by-date-and-id' },
-].map(({ id, date, comment }) => {
-  const tx = {
-    id, type: 'expense', amount: 10, currency: 'UAH', category: 'Кава',
-    subcategory: null, tags: [], wallet: 'w1', targetWallet: null, targetAmount: null,
-    targetCurrency: null, date, comment,
-  };
-  return [`users/${UID}/max_tracker/finance/transactions/${id}`, tx];
-});
-
+// Same stubs as tests/e2e-crud.mjs (see that file's header for why these
+// are duplicated per-test rather than shared).
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
 const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
-const _docs = new Map(${JSON.stringify(seedEntries)});
+const _docs = new Map();
 export function getFirestore(){ return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
@@ -111,7 +88,7 @@ export function arrayRemove(...items){ return { __isArrayRemove: true, items }; 
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
-export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'${UID}', email:'sort@example.com'})); return ()=>{}; }
+export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'launch-test-uid', email:'launch@example.com'})); return ()=>{}; }
 export async function signOut(){ return; }
 export async function deleteUser(){ return; }
 export async function createUserWithEmailAndPassword(){ throw new Error('stub'); }
@@ -137,48 +114,72 @@ export function onMessage(){ return () => {}; }
 export async function isSupported(){ return true; }
 `;
 
+async function withPage(browser, run) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const pageErrors = [];
+  page.on('pageerror', (err) => pageErrors.push(err.message));
+  await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+  await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
+  await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
+  await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
+  await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+  await run(page);
+  if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
+  await page.close();
+}
+
 async function main() {
   const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', ROOT], { stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 500));
 
   const browser = await chromium.launch(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {});
   try {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    const pageErrors = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
+    // ── shortcuts: ?action=new-tx opens the modal empty ──
+    await withPage(browser, async (page) => {
+      await page.goto(`http://localhost:${PORT}/index.html?action=new-tx`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
+      await page.waitForSelector('#tx-form-modal', { state: 'visible', timeout: 5000 });
+      const url = new URL(page.url());
+      if (url.search) throw new Error(`expected the query string to be stripped after handling, still "${url.search}"`);
+      console.log('[ok] shortcut launch (?action=new-tx): tx-form-modal opens and the query string is cleared');
+    });
 
-    await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
-    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
-    await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
-    await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
-    await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+    // ── share_target: ?title=&text= opens the modal pre-filled ──
+    await withPage(browser, async (page) => {
+      const shareUrl = `http://localhost:${PORT}/index.html?title=${encodeURIComponent('Кав’ярня')}&text=${encodeURIComponent('Кава 89.50 грн')}`;
+      await page.goto(shareUrl, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
+      await page.waitForSelector('#tx-form-modal', { state: 'visible', timeout: 5000 });
+      const comment = await page.locator('#fin-comment').inputValue();
+      if (!comment.includes('Кав’ярня') || !comment.includes('89.50')) {
+        throw new Error(`expected the comment field to contain the shared title+text, got "${comment}"`);
+      }
+      const amount = await page.locator('#fin-amount').inputValue();
+      if (amount !== '89.50') throw new Error(`expected the amount field to be prefilled from the shared text's number, got "${amount}"`);
+      console.log('[ok] share_target launch (?title=&text=): tx-form-modal opens with comment and amount prefilled from the shared text');
+    });
 
-    await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
-    await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
-    await page.click('#nav-finance');
-    await page.waitForTimeout(300);
-
-    const commentsInDomOrder = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tx-item .tx-meta')).map((el) => el.textContent.split(' · ')[1])
-    );
-    const expected = ['newest-by-date-and-id', 'newest-by-date', 'middle', 'oldest'];
-    if (JSON.stringify(commentsInDomOrder) !== JSON.stringify(expected)) {
-      throw new Error(`expected newest-first order ${JSON.stringify(expected)}, got ${JSON.stringify(commentsInDomOrder)}`);
-    }
-    console.log('[ok] transaction list renders newest-first (by date, then by id as a same-date tiebreaker) despite the seed data arriving oldest-first from Firestore');
-
-    if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
-    console.log('[ok] no uncaught page errors');
+    // ── a normal load with no launch params never opens the modal ──
+    await withPage(browser, async (page) => {
+      await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
+      await page.waitForTimeout(500);
+      const modalDisplay = await page.locator('#tx-form-modal').evaluate((el) => getComputedStyle(el).display);
+      if (modalDisplay !== 'none') throw new Error(`expected tx-form-modal to stay closed on a plain load, computed display was "${modalDisplay}"`);
+      console.log('[ok] a plain load (no launch params) leaves tx-form-modal closed');
+    });
   } finally {
     await browser.close();
     server.kill();
   }
 
-  console.log('\nTX LIST SORT ORDER TEST PASSED');
+  console.log('\nPWA LAUNCH-PARAMS TEST PASSED');
 }
 
 main().catch((err) => {
-  console.error('\nTX LIST SORT ORDER TEST FAILED:', err.message);
+  console.error('\nPWA LAUNCH-PARAMS TEST FAILED:', err.message);
   process.exitCode = 1;
 });

@@ -1,16 +1,19 @@
-// Verifies the Finance transaction list always renders newest-first, even
-// when the underlying Firestore data was NOT stored in that order.
-// Firestore's getDocs() on the transactions subcollection has no orderBy —
-// document order is unspecified — so a real account's history can load in
-// essentially arbitrary order (confirmed by a real account-owner
-// screenshot showing oldest-first). Seeds transactions deliberately
-// oldest-first (mimicking that exact real-world case) directly into the
-// stubbed Firestore, then asserts js/color-picker.js's fbLoadNow() sort +
-// js/analytics-csv.js's renderFinance() sort both produce a newest-first
-// list. Same stubbed-Firebase Playwright recipe as the other tests/*.mjs.
-// Run with:
+// Shared profiles UI test (js/color-picker.js's shareCurrentProfileUI()/
+// joinSharedProfileUI(), js/firebase-sync.js's shareCurrentProfile()/
+// redeemSharedInvite()). This is the client-side wiring layer only — the
+// actual cross-account security enforcement (can a real other account
+// read/write a shared profile's data, can they only join with a valid
+// invite, etc.) is exercised against a real Firestore emulator in
+// tests/firestore-rules.mjs, not here: the stubbed Firestore this file
+// uses has no security rules at all, just an in-memory doc store, and
+// every action here happens as the same single stubbed uid (this stub
+// recipe has no way to simulate a second real account in one page load).
+// What this file actually proves: the UI produces a real invite code, the
+// join flow's error paths surface as user-visible feedback rather than
+// silent failures or crashes, and clicking through both flows doesn't
+// throw. Run with:
 //
-//   node tests/tx-list-sort-order.mjs
+//   node tests/shared-profiles-ui.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
@@ -31,31 +34,11 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = 8904;
 const SANDBOX_CHROMIUM_PATH = '/opt/pw-browsers/chromium';
 const CHROMIUM_PATH = fs.existsSync(SANDBOX_CHROMIUM_PATH) ? SANDBOX_CHROMIUM_PATH : undefined;
-const UID = 'sort-order-uid';
-
-// Seeded deliberately OLDEST-FIRST (ascending date), same as the real
-// account-owner report — Firestore's own unordered getDocs() means this is
-// exactly as valid an arrival order as any other.
-const seedEntries = [
-  { id: 1700000000001, date: '2026-06-01', comment: 'oldest' },
-  { id: 1700000000002, date: '2026-06-15', comment: 'middle' },
-  { id: 1700000000003, date: '2026-07-01', comment: 'newest-by-date' },
-  // Same date as "newest-by-date" but a *larger* id (created later that
-  // same day) — must still sort after it (id used as the tiebreaker).
-  { id: 1700000000099, date: '2026-07-01', comment: 'newest-by-date-and-id' },
-].map(({ id, date, comment }) => {
-  const tx = {
-    id, type: 'expense', amount: 10, currency: 'UAH', category: 'Кава',
-    subcategory: null, tags: [], wallet: 'w1', targetWallet: null, targetAmount: null,
-    targetCurrency: null, date, comment,
-  };
-  return [`users/${UID}/max_tracker/finance/transactions/${id}`, tx];
-});
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
 const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
-const _docs = new Map(${JSON.stringify(seedEntries)});
+const _docs = new Map();
 export function getFirestore(){ return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
@@ -111,7 +94,7 @@ export function arrayRemove(...items){ return { __isArrayRemove: true, items }; 
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
-export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'${UID}', email:'sort@example.com'})); return ()=>{}; }
+export function onAuthStateChanged(auth, cb){ Promise.resolve().then(()=>cb({uid:'shared-test-uid', email:'shared@example.com'})); return ()=>{}; }
 export async function signOut(){ return; }
 export async function deleteUser(){ return; }
 export async function createUserWithEmailAndPassword(){ throw new Error('stub'); }
@@ -156,29 +139,59 @@ async function main() {
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
     await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
-    await page.click('#nav-finance');
+
+    await page.click('#btn-settings');
     await page.waitForTimeout(300);
+    await page.click('[data-action="open-profiles-manager"]');
+    await page.waitForSelector('#profiles-modal', { state: 'visible' });
 
-    const commentsInDomOrder = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tx-item .tx-meta')).map((el) => el.textContent.split(' · ')[1])
-    );
-    const expected = ['newest-by-date-and-id', 'newest-by-date', 'middle', 'oldest'];
-    if (JSON.stringify(commentsInDomOrder) !== JSON.stringify(expected)) {
-      throw new Error(`expected newest-first order ${JSON.stringify(expected)}, got ${JSON.stringify(commentsInDomOrder)}`);
-    }
-    console.log('[ok] transaction list renders newest-first (by date, then by id as a same-date tiebreaker) despite the seed data arriving oldest-first from Firestore');
+    // ── sharing the current (default) profile produces a real invite code ──
+    await page.click('[data-action="share-current-profile"]');
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    const shareDlgText = await page.locator('#ui-dialog').textContent();
+    const codeMatch = shareDlgText.match(/[A-Z2-9]{8}/);
+    if (!codeMatch) throw new Error(`expected an 8-char invite code in the share dialog, got: "${shareDlgText}"`);
+    const code = codeMatch[0];
+    console.log(`[ok] sharing the current profile shows an invite code (${code})`);
+    await page.click('#ui-dlg-ok');
+    await page.waitForSelector('#ui-dialog', { state: 'hidden' });
 
-    if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
-    console.log('[ok] no uncaught page errors');
+    // ── redeeming your own just-generated code is rejected, not silently applied ──
+    await page.click('[data-action="join-shared-profile"]');
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    await page.fill('#ui-dlg-input', code);
+    await page.click('#ui-dlg-ok');
+    await page.waitForTimeout(300);
+    const toastOwn = await page.locator('#toast').textContent();
+    if (!toastOwn || !toastOwn.trim()) throw new Error('expected an error toast for redeeming your own invite code');
+    console.log(`[ok] redeeming your own invite code is rejected with visible feedback: "${toastOwn.trim()}"`);
+
+    // ── redeeming a garbage code is also rejected, not a crash ──
+    await page.click('[data-action="join-shared-profile"]');
+    await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    await page.fill('#ui-dlg-input', 'NOTAREALCODE');
+    await page.click('#ui-dlg-ok');
+    await page.waitForTimeout(300);
+    const toastBad = await page.locator('#toast').textContent();
+    if (!toastBad || !toastBad.trim()) throw new Error('expected an error toast for an unknown invite code');
+    console.log(`[ok] redeeming an unknown code is rejected with visible feedback: "${toastBad.trim()}"`);
+
+    // ── the profile list still renders the (still-local, unshared-into) default profile with no crash ──
+    const profileRows = await page.locator('#profiles-list .mgr-row').count();
+    if (profileRows < 1) throw new Error('expected at least the default profile row to still render');
+    console.log('[ok] profiles list still renders correctly after the share/join attempts');
+
+    if (pageErrors.length) throw new Error(`uncaught page errors during shared-profiles flow: ${pageErrors.join(' | ')}`);
+    console.log('[ok] no uncaught page errors during the whole flow');
   } finally {
     await browser.close();
     server.kill();
   }
 
-  console.log('\nTX LIST SORT ORDER TEST PASSED');
+  console.log('\nSHARED PROFILES UI TEST PASSED');
 }
 
 main().catch((err) => {
-  console.error('\nTX LIST SORT ORDER TEST FAILED:', err.message);
+  console.error('\nSHARED PROFILES UI TEST FAILED:', err.message);
   process.exitCode = 1;
 });

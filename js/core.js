@@ -13,7 +13,9 @@ import { csSync } from './ui-widgets.js';
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js";
+
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
@@ -34,6 +36,34 @@ export const fbApp = initializeApp({
   appId:"1:311094677098:web:7a3797c99fad2874340413"
 });
 
+// App Check attests that requests come from this real, unmodified app
+// instance rather than a script hitting the Firebase APIs directly with a
+// copied API key (the Firebase apiKey above was never a secret — Firebase
+// API keys just identify the project, they don't authorize anything on
+// their own — this is what actually gates
+// abuse). The site key below is a reCAPTCHA Enterprise *public* key (like
+// the Firebase apiKey, meant to ship in client code, not a secret) created
+// for this project's own web app (audit-followup session, see CLAUDE.md's
+// App Check section for the exact provisioning steps and IAM roles used).
+// initializeAppCheck() must run before any Firestore/Auth call, so it sits
+// right after initializeApp() here, ahead of getFirestore()/getAuth()
+// below. **Deliberately left in monitor mode**: Firebase's own
+// `services/*` enforcementMode is still UNENFORCED for both Firestore and
+// Identity Toolkit (checked live via the App Check Management API, not
+// assumed) — a request without a valid App Check token, or one running on
+// a domain outside the reCAPTCHA key's allowedDomains (e.g. this repo's
+// local/sandbox test recipe, serving from localhost), still goes through
+// exactly as before. Flipping either service to ENFORCED is a deliberate
+// follow-up decision for the account owner to make after watching the App
+// Check metrics in the Firebase console for a while, not something to flip
+// unilaterally from here — enforcing before confirming real traffic is
+// getting valid tokens risks locking the account owner out of their own
+// app.
+export const appCheck = initializeAppCheck(fbApp, {
+  provider: new ReCaptchaEnterpriseProvider('6LdDGlctAAAAAB3lX0HQS9ao_B4Bn8w0O_KFJDYk'),
+  isTokenAutoRefreshEnabled: true,
+});
+
 export const db = getFirestore(fbApp);
 
 export const auth = getAuth(fbApp);
@@ -45,6 +75,12 @@ export const DCOL = 'max_tracker';
 export const VAPID_KEY = 'BBcPaLYW4stwLwTHX-2mNXmu86eQeqw1biQXPGv4-FLOZWbUl8BAVgeHxGC2vvlLXkYqOUCyoo8NqnN6n8Usbtw';
 
 const ERROR_LOG_MAX = 20;
+// Only sync to Firestore this often — an error loop (e.g. a render bug
+// that throws on every frame) would otherwise turn into a write storm
+// against error_reports/{uid}. The full capped list is still kept and
+// re-synced on the next allowed tick, so nothing is lost, just delayed.
+const ERROR_SYNC_MIN_INTERVAL_MS = 30000;
+let lastErrorSyncAt = 0;
 
 function errorLogKey(){ return AppState.currentUser ? `mx_errlog_${AppState.currentUser.uid}` : 'mx_errlog_anon'; }
 
@@ -53,16 +89,37 @@ function currentTabName(){
   return el ? el.id.replace('tab-','') : null;
 }
 
+// Firestore stack traces get truncated — this is a diagnostic breadcrumb
+// (which file/line/kind), not a full crash dump, and Firestore field
+// values have their own size limits.
+const ERROR_STACK_MAX_CHARS = 500;
+
 function logAppError(kind, detail){
   const entry = { kind, at: new Date().toISOString(), tab: currentTabName(), ...detail };
   console.error(`[Rytm:${kind}]`, entry);
+  let list = [];
   try{
     const key = errorLogKey();
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list = JSON.parse(localStorage.getItem(key) || '[]');
     list.push(entry);
     while(list.length > ERROR_LOG_MAX) list.shift();
     localStorage.setItem(key, JSON.stringify(list));
   }catch(e){}
+  // Local-only logging means a crash on a real user's phone is invisible
+  // until they screenshot it. Mirroring the capped list to Firestore (own
+  // uid only, see firestore.rules' error_reports match block) lets the
+  // account owner check the Firebase console instead of waiting for a
+  // report. Signed-out/anonymous errors stay local-only (no uid to scope
+  // a write to) — not worth relaxing the per-uid rule for.
+  if(AppState.currentUser && list.length){
+    const now=Date.now();
+    if(now-lastErrorSyncAt >= ERROR_SYNC_MIN_INTERVAL_MS){
+      lastErrorSyncAt=now;
+      const trimmed=list.map(e=>({...e, stack: e.stack ? String(e.stack).slice(0,ERROR_STACK_MAX_CHARS) : undefined}));
+      setDoc(doc(db,'error_reports',AppState.currentUser.uid), {entries:trimmed, updatedAt:Date.now()}, {merge:false})
+        .catch(()=>{ /* best-effort — a failed sync just retries on the next logged error */ });
+    }
+  }
 }
 
 export const SALARY_GOAL = 20000;
@@ -331,4 +388,4 @@ document.addEventListener('click', e=>{
 // Re-exports of this file's own imported (not locally declared) bindings
 // that other split files also need - can't prefix an ImportDeclaration
 // with `export`, so these are re-exported explicitly instead.
-export { EmailAuthProvider, RecaptchaVerifier, collection, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getDocs, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink, writeBatch };
+export { EmailAuthProvider, RecaptchaVerifier, arrayRemove, arrayUnion, collection, createUserWithEmailAndPassword, deleteDoc, deleteToken, deleteUser, doc, getDoc, getDocs, getMessaging, getRedirectResult, getToken, isMessagingSupported, linkWithPhoneNumber, onAuthStateChanged, onMessage, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, setDoc, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink, updateDoc, writeBatch };

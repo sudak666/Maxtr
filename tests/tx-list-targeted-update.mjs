@@ -49,6 +49,7 @@ const seedEntries = [1, 2].map((i) => {
 });
 
 const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
+const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
 const _docs = new Map(${JSON.stringify(seedEntries)});
 export function getFirestore(){ return {}; }
@@ -82,6 +83,27 @@ export function writeBatch(){
     async commit(){ ops.forEach((fn) => fn()); },
   };
 }
+
+export async function updateDoc(ref, data){
+  const existing = _docs.get(ref.path) || {};
+  const merged = { ...existing };
+  for (const k in data) {
+    const v = data[k];
+    if (v && v.__isArrayUnion) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      v.items.forEach((item) => { if (!arr.includes(item)) arr.push(item); });
+      merged[k] = arr;
+    } else if (v && v.__isArrayRemove) {
+      const arr = Array.isArray(merged[k]) ? merged[k].slice() : [];
+      merged[k] = arr.filter((item) => !v.items.includes(item));
+    } else {
+      merged[k] = v;
+    }
+  }
+  _docs.set(ref.path, merged);
+}
+export function arrayUnion(...items){ return { __isArrayUnion: true, items }; }
+export function arrayRemove(...items){ return { __isArrayRemove: true, items }; }
 `;
 const STUB_AUTH = `
 export function getAuth(){ return {}; }
@@ -122,6 +144,7 @@ async function main() {
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+    await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));

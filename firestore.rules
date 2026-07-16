@@ -19,32 +19,111 @@ rules_version = '2';
 // relies on being the right type.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Known doc names: shifts, finance, debt, backup_v2, profiles_meta —
-    // the first four also appear suffixed "@<profileId>" for non-default
-    // profiles (profileId is always an app-generated `uid('profile')` id:
-    // alphanumeric + underscore, see index.html); profiles_meta itself is
-    // account-wide and never suffixed. A single path segment (not `**`) —
-    // the only subcollection that exists under max_tracker is `finance`'s
-    // own `transactions` (see the dedicated match block below, added for
-    // MIGRATION_PLAN_transactions.md) — so this still closes off writing to
-    // any *other* arbitrary nested path a client could otherwise reach
+
+    // ── SHARED PROFILES helpers (audit-followup session) ──────────────
+    // A "shared profile" lets a second Firebase Auth account read/write
+    // one of this account's existing profiles (shifts/finance/debt +
+    // transactions) — for a couple sharing one household's finances, not
+    // a general multi-tenant model. Deliberately reuses the *existing*
+    // users/{uid}/max_tracker/{doc}@{profileId} tree instead of a parallel
+    // top-level collection: the owner's side of a shared profile is
+    // stored and looks exactly like a normal profile of theirs. See
+    // CLAUDE.md's "Shared profiles" section for the full design writeup,
+    // including why membership changes are gated through an invite code
+    // rather than an open self-join.
+    //
+    // Membership lives in a sibling doc, `shared_members` (suffixed
+    // `@{profileId}` the same as shifts/finance/debt; unsuffixed for a
+    // shared *default* profile, matching how 'default' already omits the
+    // suffix everywhere else), holding {members:[ownerUid, ...], updatedAt}.
+    function sharedMembersDocName(document) {
+      return document.split('@').size() > 1
+        ? 'shared_members@' + document.split('@')[1]
+        : 'shared_members';
+    }
+    function isShareableDataDoc(document) {
+      return document.matches('^(shifts|finance|debt)(@[A-Za-z0-9_]+)?$');
+    }
+    function isSharedMember(ownerUid, document) {
+      return exists(/databases/$(database)/documents/users/$(ownerUid)/max_tracker/$(sharedMembersDocName(document)))
+        && request.auth.uid in get(/databases/$(database)/documents/users/$(ownerUid)/max_tracker/$(sharedMembersDocName(document))).data.members;
+    }
+
+    // Known doc names: shifts, finance, debt, backup_v2, shared_members,
+    // profiles_meta — the first five also appear suffixed "@<profileId>"
+    // for non-default profiles (profileId is always an app-generated
+    // `uid('profile')` id: alphanumeric + underscore, see
+    // js/color-picker.js); profiles_meta itself is account-wide and never
+    // suffixed. A single path segment (not `**`) — the only subcollection
+    // that exists under max_tracker is `finance`'s own `transactions` (see
+    // the dedicated match block below, added for
+    // MIGRATION_PLAN_transactions.md) — so this still closes off writing
+    // to any *other* arbitrary nested path a client could otherwise reach
     // under their own uid.
     match /users/{uid}/max_tracker/{document} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && (
+        request.auth.uid == uid ||
+        (isShareableDataDoc(document) && isSharedMember(uid, document))
+      );
       // delete has no request.resource (it's null for a delete), so it must
       // be its own allow block rather than sharing the create/update one —
       // a single `allow write` that references request.resource.data denies
       // every delete, since that field access fails on a null resource.
+      // Deletion (of the doc, or of the whole shared_members list) stays
+      // owner-only even for a profile that's shared — a member can edit
+      // shifts/finance/debt contents or leave the profile (see the
+      // dedicated shared_members branches below), never delete the
+      // profile's data doc outright or kick another member off.
       allow delete: if request.auth != null && request.auth.uid == uid
-        && document.matches('^(shifts|finance|debt|backup_v2)(@[A-Za-z0-9_]+)?$|^profiles_meta$');
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && document.matches('^(shifts|finance|debt|backup_v2)(@[A-Za-z0-9_]+)?$|^profiles_meta$')
-        // Generous headroom over the ~19 top-level keys the `finance` doc
-        // currently has — catches a malformed/injected payload without
-        // needing to be updated for every ordinary new feature field.
-        && request.resource.data.keys().size() < 60
-        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
-        && (!('at' in request.resource.data) || request.resource.data.at is number);
+        && document.matches('^(shifts|finance|debt|backup_v2|shared_members)(@[A-Za-z0-9_]+)?$|^profiles_meta$');
+      allow create, update: if request.auth != null && (
+        // The owner writing any of their own known doc kinds — the
+        // pre-existing path, now also covering shared_members.
+        (request.auth.uid == uid
+          && document.matches('^(shifts|finance|debt|backup_v2|shared_members)(@[A-Za-z0-9_]+)?$|^profiles_meta$')
+          // Generous headroom over the ~19 top-level keys the `finance`
+          // doc currently has — catches a malformed/injected payload
+          // without needing to be updated for every ordinary new feature.
+          && request.resource.data.keys().size() < 60
+          && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
+          && (!('at' in request.resource.data) || request.resource.data.at is number))
+        ||
+        // A shared member editing the actual shared data — same
+        // size/type guardrails as the owner path above.
+        (isShareableDataDoc(document) && isSharedMember(uid, document)
+          && request.resource.data.keys().size() < 60
+          && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
+          && (!('at' in request.resource.data) || request.resource.data.at is number))
+        ||
+        // A non-owner *joining* shared_members@{profileId}: only allowed
+        // to append exactly their own uid, and only by presenting a
+        // genuinely-redeemed invite (lastJoinInviteCode) naming this
+        // exact owner+profile+joiner — see profile_invites' own rules
+        // below for how an invite gets "redeemed" (usedBy set) in the
+        // first place, a separate, earlier write this same client also
+        // has to make. Firestore commits are serialized per document, so
+        // two joiners racing the same invite can't both win: whichever
+        // update loses the race sees resource.data.usedBy already
+        // non-null on the invite and fails its own redemption step.
+        (document.matches('^shared_members(@[A-Za-z0-9_]+)?$')
+          && request.auth.uid != uid
+          && !(request.auth.uid in resource.data.members)
+          && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+          && request.resource.data.updatedAt is number
+          && ('lastJoinInviteCode' in request.resource.data)
+          && request.resource.data.lastJoinInviteCode is string
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.ownerUid == uid
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.profileId == (document.split('@').size() > 1 ? document.split('@')[1] : 'default')
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.usedBy == request.auth.uid)
+        ||
+        // A non-owner member *leaving* shared_members@{profileId}: only
+        // allowed to remove exactly their own uid, nothing else changes.
+        (document.matches('^shared_members(@[A-Za-z0-9_]+)?$')
+          && request.auth.uid != uid
+          && (request.auth.uid in resource.data.members)
+          && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])
+          && request.resource.data.updatedAt is number)
+      );
     }
 
     function nullableString(d, field, maxLen) {
@@ -91,18 +170,67 @@ service cloud.firestore {
     // app-generated transaction id, stringified client-side. Scoped to
     // financeDoc matching only `finance`(@profileId)? — not shifts/debt/
     // backup_v2/profiles_meta, none of which ever get a transactions
-    // subcollection.
+    // subcollection. A shared member gets the same read/write access here
+    // as on the parent finance doc itself (isSharedMember(), same as above).
     match /users/{uid}/max_tracker/{financeDoc}/transactions/{txId} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null
+        && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
+        && (request.auth.uid == uid || isSharedMember(uid, financeDoc));
       // Same split as the parent doc's rules above: delete has no
       // request.resource, so it can't share an allow block with the field
       // validation below.
-      allow delete: if request.auth != null && request.auth.uid == uid
+      allow delete: if request.auth != null
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
-        && txId.matches('^[A-Za-z0-9_-]{1,80}$');
-      allow create, update: if request.auth != null && request.auth.uid == uid
+        && txId.matches('^[A-Za-z0-9_-]{1,80}$')
+        && (request.auth.uid == uid || isSharedMember(uid, financeDoc));
+      allow create, update: if request.auth != null
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
-        && validTransaction(request.resource.data, txId);
+        && validTransaction(request.resource.data, txId)
+        && (request.auth.uid == uid || isSharedMember(uid, financeDoc));
+    }
+
+    // Invite codes for joining a shared profile (js/firebase-sync.js's
+    // "SHARED PROFILES" section) — a top-level collection, not nested,
+    // since a joining user needs to read one before they have any
+    // relationship to the owner's account at all. The code itself (the
+    // doc ID) is the secret — short-lived (client generates with a 24h
+    // TTL) and single-use (`usedBy` flips from null exactly once). Any
+    // signed-in user can *read* a code (they have to, to redeem it) but
+    // redeeming is a narrow, one-way field transition: usedBy null->self,
+    // every other field unchanged, only before it expires, and never by
+    // the profile's own owner (redeeming your own invite would be a
+    // meaningless no-op at best).
+    match /profile_invites/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.profileId is string
+        && request.resource.data.profileId.size() > 0 && request.resource.data.profileId.size() < 60
+        && nullableString(request.resource.data, 'profileName', 60)
+        && request.resource.data.createdAt is number
+        && request.resource.data.expiresAt is number
+        && request.resource.data.expiresAt > request.time.toMillis()
+        // Generous cap (48h) over the 24h TTL the client actually uses —
+        // catches a malformed/tampered expiresAt without needing to track
+        // the client's exact TTL constant here too.
+        && request.resource.data.expiresAt <= request.time.toMillis() + 172800000
+        && request.resource.data.usedBy == null;
+      allow update: if request.auth != null
+        && resource.data.usedBy == null
+        && resource.data.expiresAt > request.time.toMillis()
+        && request.auth.uid != resource.data.ownerUid
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.profileId == resource.data.profileId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.expiresAt == resource.data.expiresAt;
+      // Only the creator can delete an unredeemed invite early (e.g. the
+      // owner regenerating one) — a used or expired one is harmless to
+      // leave behind, same reasoning as push_tokens/error_reports not
+      // needing account-deletion cleanup elsewhere in this file.
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerUid;
     }
 
     // FCM push token per account, written by the client when the user
@@ -126,6 +254,24 @@ service cloud.firestore {
           request.resource.data.token.size() < 4096
         ))
         && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number);
+    }
+
+    // Client-side crash/error breadcrumbs (js/core.js's logAppError()) —
+    // mirrors the same capped list already kept in localStorage so the
+    // account owner can check the Firebase console for a crash on a real
+    // user's device instead of waiting for a screenshot report. Whole-doc
+    // replace, same as profiles_meta/error list is small and rewritten
+    // together, not appended field-by-field. Nothing reads this from the
+    // client — the account owner reads it via the Admin SDK/console, which
+    // bypasses these rules — so this only needs to gate writes.
+    match /error_reports/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().size() < 5
+        && request.resource.data.entries is list
+        && request.resource.data.entries.size() <= 20
+        && request.resource.data.updatedAt is number;
     }
 
     // Deny everything else by default (including the old shared

@@ -35,6 +35,12 @@ export const LANG_CALENDAR = {
 export const AppState = {
   currentUser: null,
   activeProfileId: 'default',
+  // Set only while viewing a *shared* profile (see js/firebase-sync.js's
+  // "SHARED PROFILES" section) — the uid of the account that actually owns
+  // the data at users/{activeProfileOwnerUid}/max_tracker/{doc}@{activeProfileId}.
+  // null for the current account's own profiles (local or 'default'),
+  // which is the overwhelmingly common case and always was, pre-sharing.
+  activeProfileOwnerUid: null,
   profilesMeta: {list:[{id:'default', name:''}], updatedAt:0},
   shifts: {},
   transactions: [],
