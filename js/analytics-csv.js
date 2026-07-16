@@ -358,7 +358,10 @@ export function renderFinance(){
   // Balance cards (total + this month's income/expense + one per wallet)
   const bc=document.getElementById('fin-balances');
   if(bc){
-    let html=`<div class="hero-balance-label">Загальний баланс (у грн)</div><div class="hero-balance-val">${bal.toLocaleString('uk-UA')} грн</div>`;
+    const walletCurrencies=new Set(AppState.wallets.map(w=>w.currency||'UAH'));
+    const multiCurrency=walletCurrencies.size>1;
+    let html=`<div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
+    if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
       <div class="fin-mini-stat expense"><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
