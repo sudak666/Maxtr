@@ -475,6 +475,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-search{position:relative;margin:-6px 0 18px}
 .settings-search input{width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text-strong);padding:12px 42px;border-radius:18px;font-size:14px;font-weight:700;outline:none}
 .settings-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);margin:0}
+.search-clear-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:50%;background:transparent;color:var(--muted);display:none;align-items:center;justify-content:center;cursor:pointer}
+.search-clear-btn:hover{background:var(--bg3);color:var(--text-strong)}
+.search-clear-btn .ico{position:static;transform:none;width:14px;height:14px}
 .settings-no-results{display:none;background:var(--bg1);border:1px dashed var(--border);border-radius:18px;padding:16px;color:var(--muted);font-size:13px;font-weight:700;text-align:center;margin-bottom:18px}
 .settings-section-hidden{display:none!important}
 .settings-group-row{display:flex;gap:8px;overflow-x:auto;padding:0 2px 14px;margin-top:-6px;scrollbar-width:none}
@@ -1666,6 +1669,7 @@ body.amounts-hidden #fx-converter-result{
       <div class="settings-search" style="margin:0 0 12px">
         <span id="ic-tx-search"></span>
         <input type="search" id="tx-search-input" data-action="set-tx-search" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
+        <button type="button" class="search-clear-btn" id="tx-search-clear" data-action="clear-tx-search" aria-label="Очистити пошук"><span id="ic-tx-search-clear"></span></button>
       </div>
       <div class="filter-row">
         <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>

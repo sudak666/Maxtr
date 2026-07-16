@@ -241,10 +241,22 @@ const setTxAmount = function(amount){
   ai.focus();
 };
 
+function renderTxSearchControls(){
+  const btn=document.getElementById('tx-search-clear');
+  if(btn) btn.style.display=AppState.txSearch?'flex':'none';
+}
+
 export function setTxSearch(value){
   AppState.txSearch=String(value||'').trim().toLowerCase();
+  renderTxSearchControls();
   renderFinance();
 }
+
+const clearTxSearch = function(){
+  const input=document.getElementById('tx-search-input');
+  if(input) input.value='';
+  setTxSearch('');
+};
 
 export function setTxFilter(f){
   AppState.txFilter=f;
@@ -461,6 +473,7 @@ const CLICK_ACTIONS = {
   'set-tx-amount': ds=>setTxAmount(ds.amount),
   'add-transaction': ()=>addTransaction(),
   'set-tx-filter': ds=>setTxFilter(ds.filter),
+  'clear-tx-search': ()=>clearTxSearch(),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');

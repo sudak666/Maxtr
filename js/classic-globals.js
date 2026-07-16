@@ -181,6 +181,7 @@
   setIcon('ic-plus','plus');
   setIcon('ic-fin-fab','plus');
   setIcon('ic-tx-search','search');
+  setIcon('ic-tx-search-clear','xmark');
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
