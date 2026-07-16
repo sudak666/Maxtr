@@ -170,6 +170,23 @@ async function main() {
     await row.hover();
     await row.locator('.tx-swipe-delete').click();
     await page.waitForSelector('#ui-dialog', { state: 'visible' });
+    await page.waitForTimeout(50); // the initial-focus setTimeout(...,0) in setupModalAccessibility()
+
+    // #ui-dialog (uiConfirm/uiPrompt) uses .dlg-card, not .modal-card — a
+    // real gap the generic modal-accessibility wiring in
+    // setupModalAccessibility() (js/settings-managers.js) missed at first:
+    // it gave .dlg-card role="dialog"/aria-modal="true" without also
+    // moving focus into it or including it in the Tab focus trap, so
+    // assistive tech announced it as modal while keyboard focus could
+    // still escape to the page behind it.
+    const dlgFocusedInside = await page.evaluate(() => !!document.activeElement?.closest('#ui-dialog .dlg-card'));
+    if (!dlgFocusedInside) throw new Error('expected focus to land inside #ui-dialog\'s .dlg-card on open');
+    const dlgFirstFocusableId = await page.evaluate(() => document.activeElement?.id);
+    await page.keyboard.press('Tab');
+    const dlgStillTrapped = await page.evaluate(() => !!document.activeElement?.closest('#ui-dialog .dlg-card'));
+    if (!dlgStillTrapped) throw new Error(`expected Tab to stay trapped inside #ui-dialog's .dlg-card, focus left to #${await page.evaluate(() => document.activeElement?.id)}`);
+    console.log(`[ok] #ui-dialog gets the same focus-on-open + Tab-trap as .modal-card dialogs (started at #${dlgFirstFocusableId})`);
+
     await page.click('#ui-dlg-ok');
     await page.waitForSelector('#ui-dialog', { state: 'hidden' });
     await page.waitForTimeout(200);

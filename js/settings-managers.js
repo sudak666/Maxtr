@@ -69,7 +69,11 @@ export function setupModalAccessibility(){
         AppState.openModalStack.push(overlay);
         const returnFocusTo=document.activeElement;
         overlay._returnFocusTo=(returnFocusTo && returnFocusTo!==document.body)?returnFocusTo:null;
-        const card=overlay.querySelector('.modal-card');
+        // .dlg-card (#ui-dialog) needs the same auto-focus-on-open as
+        // .modal-card — it's given the same role="dialog"/aria-modal above,
+        // so assistive tech already announces it as modal; focus has to
+        // actually move into it to match, not just claim to.
+        const card=overlay.querySelector('.modal-card, .dlg-card');
         if(card) setTimeout(()=>{ (focusableIn(card)[0]||card).focus(); },0);
       }else if(!isOpen && stackIdx!==-1){
         AppState.openModalStack.splice(stackIdx,1);
@@ -84,7 +88,10 @@ export function setupModalAccessibility(){
     const top=AppState.openModalStack[AppState.openModalStack.length-1];
     if(e.key==='Escape'){ e.preventDefault(); top.click(); return; }
     if(e.key==='Tab'){
-      const card=top.querySelector('.modal-card');
+      // Same .dlg-card coverage as the auto-focus-on-open handler above —
+      // without it, Tab could walk out of an open #ui-dialog into the page
+      // behind it even though it's marked aria-modal="true".
+      const card=top.querySelector('.modal-card, .dlg-card');
       const items=card?focusableIn(card):[];
       if(!items.length) return;
       const first=items[0], last=items[items.length-1];
