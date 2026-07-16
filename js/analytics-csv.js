@@ -247,8 +247,8 @@ function txItemInnerHtml(t){
   const catIcon=window.Icon(categoryIcon(t.category));
   const wBadge=walletBadge(t.wallet);
   const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
-    ? `<span style="font-size:11px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
-  const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:10px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
+    ? `<span style="font-size:12px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
+  const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:12px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
   const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
   // Pencil dropped on purpose: tapping the row already opens edit (see the
   // click listener on the outer .tx-item node itself), so a second

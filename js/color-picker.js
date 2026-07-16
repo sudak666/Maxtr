@@ -133,7 +133,7 @@ export function renderProfilesUI(){
       <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${p.id}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${isActive
-        ? `<span style="font-weight:800;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
+        ? `<span style="font-weight:800;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
         : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}">${tr('profiles_switch_btn')}</button>`}
       <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
       <button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
