@@ -487,6 +487,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .search-clear-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:50%;background:transparent;color:var(--muted);display:none;align-items:center;justify-content:center;cursor:pointer}
 .search-clear-btn:hover{background:var(--bg3);color:var(--text-strong)}
 .search-clear-btn .ico{position:static;transform:none;width:14px;height:14px}
+/* #tx-search-input has its own custom .search-clear-btn (data-action=
+   "clear-tx-search") right next to it — without this, Chrome/Safari also
+   render their own native ×-in-a-circle clear button for type="search"
+   inputs whenever there's text, so two ×'s show up stacked together
+   (reported directly by the account owner via screenshot). Scoped to just
+   this one input's id, not every type="search" field in the app —
+   #settings-search-input has no custom clear button of its own and relies
+   on the native one, so hiding it there would remove the only way to
+   clear that search box with a tap. */
+#tx-search-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
 .settings-no-results{display:none;background:var(--bg1);border:1px dashed var(--border);border-radius:18px;padding:16px;color:var(--muted);font-size:13px;font-weight:700;text-align:center;margin-bottom:18px}
 .settings-section-hidden{display:none!important}
 .settings-group-row{display:flex;gap:8px;overflow-x:auto;padding:0 2px 14px;margin-top:-6px;scrollbar-width:none}
