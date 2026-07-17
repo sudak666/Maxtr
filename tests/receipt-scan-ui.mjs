@@ -200,6 +200,43 @@ async function main() {
       if (after !== '10') throw new Error('expected the amount field to remain editable after a failed scan');
       console.log('[ok] an unreadable receipt shows feedback but never blocks manual entry');
     });
+    // ── a genuinely hung recognize() call still recovers via the timeout, never leaves the UI stuck ──
+    // Real-device report: a scan on an actual phone photo never completed
+    // and the button stayed disabled until the tab was closed and reopened.
+    // scanReceiptImage() takes an optional timeoutMs override specifically
+    // so this can be exercised in ~1s here instead of the real 45s — see
+    // js/receipt-ocr.js's own comment on why that parameter exists.
+    {
+      const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on('pageerror', (err) => pageErrors.push(err.message));
+      await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
+      await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
+      await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
+      await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
+      await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+      await page.route('**/js/vendor/tesseract/tesseract.esm.min.js', (r) => r.fulfill({
+        contentType: 'application/javascript',
+        body: `export default { OEM: { LSTM_ONLY: 1 }, async createWorker(){ return { async recognize(){ return new Promise(()=>{}); }, async terminate(){} }; } };`,
+      }));
+      await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
+      const outcome = await page.evaluate(async () => {
+        const mod = await import('./js/receipt-ocr.js');
+        const file = new File([new Uint8Array([137, 80, 78, 71])], 'test.png', { type: 'image/png' });
+        const start = Date.now();
+        try {
+          await mod.scanReceiptImage(file, 1000);
+          return { ok: false, reason: 'expected a rejection, resolved instead' };
+        } catch (e) {
+          return { ok: e.message === 'receipt-ocr-timeout', message: e.message, elapsedMs: Date.now() - start };
+        }
+      });
+      if (!outcome.ok) throw new Error(`hung recognize() did not time out as expected: ${JSON.stringify(outcome)}`);
+      if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
+      console.log(`[ok] a hung recognize() call rejects via the timeout instead of hanging forever (${outcome.elapsedMs}ms)`);
+      await context.close();
+    }
   } finally {
     await browser.close();
     server.kill();

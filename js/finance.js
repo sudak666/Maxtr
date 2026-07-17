@@ -587,7 +587,17 @@ const handleReceiptFile = async function(e){
   if(!file || receiptScanInFlight) return;
   receiptScanInFlight=true;
   const btn=document.getElementById('fin-scan-receipt-btn');
+  const btnLabel=btn?btn.querySelector('span:last-child'):null;
+  const originalLabel=btnLabel?btnLabel.textContent:'';
   if(btn) btn.disabled=true;
+  // A real phone photo can take well past showToast()'s fixed 2.8s auto-hide
+  // to finish recognizing (see js/receipt-ocr.js's downscale/timeout note) —
+  // relying on the toast alone as "is it still working?" feedback made a
+  // scan that was genuinely still running read as if nothing was happening
+  // at all (reported directly by the account owner). The button's own label
+  // stays swapped for the whole duration instead, a persistent indicator
+  // the transient toast can't provide.
+  if(btnLabel) btnLabel.textContent=tr('receipt_scan_processing');
   showToast(tr('receipt_scan_processing'),'camera');
   try{
     const {amount,date}=await scanReceiptImage(file);
@@ -610,10 +620,12 @@ const handleReceiptFile = async function(e){
     showToast(found?tr('receipt_scan_done'):tr('receipt_scan_not_found'), found?'check':'xmark');
   }catch(err){
     console.error(err);
-    showToast(tr('receipt_scan_fail'),'xmark');
+    const timedOut=err && err.message==='receipt-ocr-timeout';
+    showToast(timedOut?tr('receipt_scan_timeout'):tr('receipt_scan_fail'),'xmark');
   }finally{
     receiptScanInFlight=false;
     if(btn) btn.disabled=false;
+    if(btnLabel) btnLabel.textContent=originalLabel;
   }
 };
 // Deliberately its own listener rather than a FIELD_ACTIONS entry below —

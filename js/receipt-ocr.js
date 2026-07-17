@@ -99,13 +99,80 @@ export function parseReceiptText(text){
   return { amount, date, rawText: raw };
 }
 
+// A real phone camera photo is routinely 3000-4000px on the long side and
+// several MB — feeding that straight into the WASM OCR engine (as this
+// module's own testing only ever exercised with a small synthetic image)
+// is a well-known way to make Tesseract.js extremely slow or, worse, hang
+// the worker indefinitely on a memory-constrained mobile browser with no
+// JS-catchable error ever posted back (reported directly by the account
+// owner: scan never completed, and the button stayed stuck disabled until
+// the tab was closed and reopened — see CHANGELOG.md). Downscaling to a
+// reasonable max dimension before recognize() keeps the input in the size
+// range this was actually tested at, and is standard practice for
+// browser-based OCR generally. createImageBitmap()+canvas rather than an
+// <img src> element specifically to avoid ever needing a blob: object URL
+// (this app's CSP has no blob: allowance anywhere).
+const MAX_OCR_DIMENSION = 1800;
+
+async function downscaleImage(file){
+  if(typeof createImageBitmap !== 'function') return file;
+  let bitmap;
+  try{ bitmap = await createImageBitmap(file); }
+  catch(e){ return file; } // an already-small/unusual image format: pass through as-is
+  try{
+    const { width, height } = bitmap;
+    if(width <= MAX_OCR_DIMENSION && height <= MAX_OCR_DIMENSION) return file;
+    const scale = MAX_OCR_DIMENSION / Math.max(width, height);
+    const w = Math.round(width * scale), h = Math.round(height * scale);
+    const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    const blob = canvas instanceof OffscreenCanvas
+      ? await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 })
+      : await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    return blob || file;
+  } finally {
+    if(bitmap.close) bitmap.close();
+  }
+}
+
+// Rejects after ms regardless of whether the wrapped promise ever settles —
+// the one thing standing between a genuinely stuck OCR call (a hung fetch,
+// a wedged WASM worker, anything that never posts a message back) and the
+// scan button staying disabled forever until the page is reloaded. The
+// still-running original promise is simply abandoned, not force-cancelled
+// (JS promises can't be); scanReceiptImage's own try/finally still
+// terminates the worker whenever/if that abandoned call eventually settles
+// on its own, so this only ever costs a harmless orphaned background task,
+// never a real resource leak.
+function withTimeout(promise, ms, message){
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      v => { clearTimeout(timer); resolve(v); },
+      e => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+const OCR_TIMEOUT_MS = 45000;
+
 // Runs OCR on a File/Blob (typically from <input type=file accept=image/*
 // capture=environment>) and returns the parsed {amount, date, rawText}.
 // workerBlobURL:false forces the library to spawn the worker via a direct
 // same-origin `new Worker(workerPath)` rather than wrapping it in a blob:
 // URL (its browser default) — this app's CSP worker-src is 'self' only,
 // with no blob: allowance, and a same-origin worker script URL needs none.
-export async function scanReceiptImage(file){
+// timeoutMs is a parameter (rather than only the internal OCR_TIMEOUT_MS
+// constant) purely so tests/receipt-scan-ui.mjs can exercise the real
+// timeout-recovery path in a couple of seconds instead of the real 45s —
+// finance.js's own call site never passes it, so production behavior is
+// unchanged.
+export async function scanReceiptImage(file, timeoutMs = OCR_TIMEOUT_MS){
+  return withTimeout(scanReceiptImageInner(file), timeoutMs, 'receipt-ocr-timeout');
+}
+
+async function scanReceiptImageInner(file){
+  const resized = await downscaleImage(file);
   const { createWorker, OEM } = await loadTesseractLib();
   const worker = await createWorker('ukr+eng', OEM.LSTM_ONLY, {
     workerPath: `${TESS_PAGE_BASE}/worker.min.js`,
@@ -115,7 +182,7 @@ export async function scanReceiptImage(file){
     gzip: true,
   });
   try{
-    const { data } = await worker.recognize(file);
+    const { data } = await worker.recognize(resized);
     return parseReceiptText(data.text);
   } finally {
     await worker.terminate();
