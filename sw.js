@@ -46,7 +46,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v65';
+const CACHE_NAME = 'rytm-v66';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -83,6 +83,7 @@ const STATIC_ASSETS = [
   './js/notifications.js',
   './js/finance.js',
   './js/tx-validation.js',
+  './js/receipt-ocr.js',
   './js/analytics-csv.js',
   './js/debt.js',
   './js/shopping.js',
@@ -95,6 +96,17 @@ const STATIC_ASSETS = [
   './js/sw-register.js',
   './js/classic-globals.js',
 ];
+
+// js/vendor/tesseract/* (the self-hosted Tesseract.js OCR library + WASM
+// core + language data, ~8MB combined — see js/receipt-ocr.js) is
+// deliberately NOT listed above. Unlike every file in STATIC_ASSETS, it's
+// only ever reached via a dynamic import() inside a function body, never a
+// static import in the module graph — so a cold offline start doesn't need
+// it precached, and eagerly downloading ~8MB on every install for a feature
+// most sessions never touch would be wasteful. It gets cached opportunely
+// by the generic same-origin cache-first fetch handler below the first time
+// a user actually scans a receipt, same as any other same-origin asset that
+// isn't part of the core module graph.
 
 // index.html's <script type="module"> statically imports these four SDK
 // files directly from gstatic — a static ES module import is all-or-nothing,

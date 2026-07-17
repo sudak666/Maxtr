@@ -84,6 +84,12 @@ jobs:
       - name: Run shared profiles UI test
         run: node tests/shared-profiles-ui.mjs
 
+      - name: Run receipt OCR text-parsing tests
+        run: node tests/receipt-ocr-parse.mjs
+
+      - name: Run receipt scan UI test
+        run: node tests/receipt-scan-ui.mjs
+
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 

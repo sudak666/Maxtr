@@ -207,6 +207,7 @@
   setIcon('ic-add-profile','plus');
   setIcon('ic-share-profile','people');
   setIcon('ic-join-profile','idCard');
+  setIcon('ic-scan-receipt','camera');
   setIcon('ic-set-link-phone','phone');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
@@ -456,6 +457,9 @@
       rules_empty:'Немає правил', rules_keyword:'Слово в коментарі', rules_keyword_placeholder:'напр. Сільпо',
       rules_delete_confirm:'Видалити це правило?', rules_delete_title:'Видалити правило', rules_auto_applied:'Категорія визначена автоматично:',
       ai_category_suggested:'ШІ на пристрої підказав категорію:',
+      receipt_scan_btn:'Сканувати чек', receipt_scan_processing:'Розпізнаю чек…',
+      receipt_scan_done:'Чек розпізнано', receipt_scan_not_found:'Не вдалося розпізнати суму чи дату — перевір вручну',
+      receipt_scan_fail:'Не вдалося розпізнати чек',
       rules_desc:'Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.', rules_add:'Додати правило',
       debt_stat_start:'Початкова сума', debt_stat_balance:'Поточний залишок', debt_stat_paid:'Сплачено', debt_stat_count:'Платежів',
       debt_stat_due:'Термін сплати', debt_due_date:'Дата, до якої треба віддати',
@@ -732,6 +736,9 @@
       rules_empty:'No rules', rules_keyword:'Word in comment', rules_keyword_placeholder:'e.g. Trader Joe\'s',
       rules_delete_confirm:'Delete this rule?', rules_delete_title:'Delete rule', rules_auto_applied:'Category auto-detected:',
       ai_category_suggested:'On-device AI suggested:',
+      receipt_scan_btn:'Scan receipt', receipt_scan_processing:'Scanning receipt…',
+      receipt_scan_done:'Receipt scanned', receipt_scan_not_found:'Could not detect an amount or date — check manually',
+      receipt_scan_fail:'Could not scan the receipt',
       rules_desc:'If the comment contains a keyword, the category fills in automatically while you enter the transaction.', rules_add:'Add rule',
       debt_stat_start:'Starting amount', debt_stat_balance:'Current balance', debt_stat_paid:'Paid', debt_stat_count:'Payments',
       debt_stat_due:'Due date', debt_due_date:'Date it needs to be paid off by',

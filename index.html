@@ -2250,6 +2250,10 @@ body.amounts-hidden #fx-converter-result{
         <span><span id="ic-plus"></span><span id="fin-form-title-text" data-i18n="finance_new_tx">Нова операція</span></span>
         <button type="button" id="fin-cancel-edit-btn" class="btn btn-ghost" style="display:none;padding:4px 10px;font-size:12px" data-action="close-tx-modal" data-i18n="common_cancel">Скасувати</button>
       </div>
+      <div class="fg" id="receipt-scan-group" style="display:flex">
+        <button type="button" id="fin-scan-receipt-btn" class="btn btn-ghost" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px" data-action="trigger-receipt-scan"><span id="ic-scan-receipt"></span><span data-i18n="receipt_scan_btn">Сканувати чек</span></button>
+        <input type="file" id="fin-receipt-input" accept="image/*" capture="environment" style="display:none">
+      </div>
       <div class="type-seg" id="fin-type-seg">
         <button id="btn-inc" class="type-btn inc" data-action="set-finance-type" data-type="income" aria-pressed="false" data-i18n="finance_type_income">+ Дохід</button>
         <button id="btn-exp" class="type-btn active exp"        data-action="set-finance-type" data-type="expense" aria-pressed="true" data-i18n="finance_type_expense">− Витрата</button>

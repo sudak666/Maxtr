@@ -12,6 +12,7 @@ import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
 import { TX_AMOUNT_MAX, TX_COMMENT_MAX, validateTransactionDraft } from './tx-validation.js';
 import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { scanReceiptImage } from './receipt-ocr.js';
 
 export function refreshWalletSelects(){
   ['fin-wallet','fin-wallet-target'].forEach((selId,i)=>{
@@ -83,7 +84,12 @@ export function setFinanceType(type){
   const tg=document.getElementById('wallet-target-group');
   const cg=document.getElementById('category-group');
   const sg=document.getElementById('subcategory-group');
+  const rsg=document.getElementById('receipt-scan-group');
   refreshWalletSelects();
+  // A transfer has no "receipt" to scan — a receipt implies a real
+  // income/expense with a store/counterparty, not moving money between
+  // your own wallets.
+  if(rsg) rsg.style.display=(type==='transfer')?'none':'flex';
   if(type==='income')  {if(wsl)wsl.textContent=tr('finance_wallet');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('income');}
   if(type==='expense') {if(wsl)wsl.textContent=tr('finance_wallet_expense');if(tg)tg.style.display='none';if(cg)cg.style.display='flex';fillCats('expense');}
   if(type==='transfer'){if(wsl)wsl.textContent=tr('finance_wallet_transfer');if(tg)tg.style.display='flex';if(cg)cg.style.display='none';if(sg)sg.style.display='none';}
@@ -563,6 +569,60 @@ export function maybeSuggestCategoryWithAI(){
   }, 700);
 }
 
+// ── RECEIPT SCAN (OCR) ─────────────────────────────────────────────
+// Photographs/picks a receipt image and runs it through js/receipt-ocr.js
+// (on-device Tesseract.js, no network) to prefill amount + date. Never
+// blocks the form — a failed/empty scan just leaves the fields as they
+// were, with a toast explaining nothing was found, so the user can always
+// fall back to typing the transaction in by hand.
+const triggerReceiptScan = function(){
+  const input=document.getElementById('fin-receipt-input');
+  if(input) input.click();
+};
+
+let receiptScanInFlight=false;
+const handleReceiptFile = async function(e){
+  const file=e.target.files && e.target.files[0];
+  e.target.value=''; // allow re-picking the same photo (e.g. after a failed scan)
+  if(!file || receiptScanInFlight) return;
+  receiptScanInFlight=true;
+  const btn=document.getElementById('fin-scan-receipt-btn');
+  if(btn) btn.disabled=true;
+  showToast(tr('receipt_scan_processing'),'camera');
+  try{
+    const {amount,date}=await scanReceiptImage(file);
+    let found=false;
+    if(amount!=null && Number.isFinite(amount) && amount>0){
+      const amountInput=document.getElementById('fin-amount');
+      if(amountInput){ amountInput.value=amount; updateTransferHint(); found=true; }
+    }
+    if(date){
+      const dateInput=document.getElementById('fin-date');
+      if(dateInput){
+        dateInput.value=date;
+        // enhanceDateInput() (js/ui-widgets.js) only refreshes the visible
+        // .dp-val label on a real 'change' event, same gotcha setTxDateToday()
+        // above already works around.
+        dateInput.dispatchEvent(new Event('change',{bubbles:true}));
+        found=true;
+      }
+    }
+    showToast(found?tr('receipt_scan_done'):tr('receipt_scan_not_found'), found?'check':'xmark');
+  }catch(err){
+    console.error(err);
+    showToast(tr('receipt_scan_fail'),'xmark');
+  }finally{
+    receiptScanInFlight=false;
+    if(btn) btn.disabled=false;
+  }
+};
+// Deliberately its own listener rather than a FIELD_ACTIONS entry below —
+// FIELD_ACTIONS is dispatched from both 'change' and 'input' listeners,
+// and a file input fires both on selection, which would run OCR twice.
+document.addEventListener('change', e=>{
+  if(e.target && e.target.id==='fin-receipt-input') handleReceiptFile(e);
+});
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
@@ -600,6 +660,7 @@ const CLICK_ACTIONS = {
   'add-transaction': ()=>addTransaction(),
   'set-tx-filter': ds=>setTxFilter(ds.filter),
   'clear-tx-search': ()=>clearTxSearch(),
+  'trigger-receipt-scan': ()=>triggerReceiptScan(),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
