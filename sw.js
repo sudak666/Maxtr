@@ -39,14 +39,20 @@ try {
     self.registration.showNotification(title || 'Rytm', {
       body: body || '',
       icon: icon || 'icon-192.png',
-      badge: 'icon-192.png',
+      // badge (the small Android status-bar/shade glyph) must be an
+      // alpha-only image — Android draws it as a white silhouette using
+      // only the alpha channel. icon-192.png has no alpha channel at all
+      // (fully opaque), so using it here rendered as one solid white blob
+      // with no visible shape (reported via screenshot). badge-96.png is a
+      // real white-glyph-on-transparent image made specifically for this.
+      badge: 'badge-96.png',
     });
   });
 } catch (err) {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v67';
+const CACHE_NAME = 'rytm-v68';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -63,6 +69,12 @@ const STATIC_ASSETS = [
   './notif-icon-budget.png',
   './notif-icon-recurring.png',
   './notif-icon-debt.png',
+  // The small alpha-only Android notification-shade "badge" glyph — see
+  // js/notifications.js's showLocalNotification() and this file's own
+  // onBackgroundMessage handler above for why this exists as a separate
+  // file from icon-192.png (badge must be alpha-transparent; icon-192.png
+  // has no alpha channel at all).
+  './badge-96.png',
   // Same reasoning as FIREBASE_SDK_ASSETS below: index.html loads app
   // logic via <script type="module" src="./js/app.js">, which statically
   // imports these same-origin files — a cold start with no network (first

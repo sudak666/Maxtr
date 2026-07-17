@@ -32,7 +32,15 @@ async function ensureNotifPermission(){
 }
 
 function showLocalNotification(title, body){
-  const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'icon-192.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
+  // badge (the small Android status-bar/notification-shade glyph) must be an
+  // alpha-transparency-only image — Android renders it using just the alpha
+  // channel as a white silhouette, ignoring color. icon-192.png is a fully
+  // opaque color image with no alpha channel at all, so using it as `badge`
+  // made Android render the *entire* icon as one solid white blob (reported
+  // by the account owner via screenshot). badge-96.png is a real white
+  // bell-on-transparent glyph made specifically for this; `icon` (the large
+  // image) is unaffected and still uses the real full-color app icon.
+  const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'badge-96.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
   if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
   else show(null);
 }
