@@ -829,10 +829,10 @@ export function renderBudgets(){
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
         <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
-        <span style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
+        <span class="budget-widget-val" style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      ${over?`<div style="font-size:12px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
+      ${over?`<div class="budget-widget-val" style="font-size:12px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
     `;
     box.appendChild(row);
   });

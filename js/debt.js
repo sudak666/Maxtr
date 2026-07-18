@@ -285,7 +285,7 @@ function renderDebtForecast(cd, currentBalance){
   const avgStr=Math.round(avgDown).toLocaleString('uk-UA')+' '+cur;
   textEl.innerHTML=
     tr('debt_forecast_pace').replace('{n}',`<strong>${paymentsLeft}</strong>`)+
-    `<br>`+tr('debt_forecast_avg').replace('{amt}',`<strong>${avgStr}</strong>`);
+    `<br>`+tr('debt_forecast_avg').replace('{amt}',`<strong class="debt-amount-val">${avgStr}</strong>`);
 }
 
 export function renderDebt(){
@@ -367,8 +367,8 @@ export function renderDebt(){
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" data-action="update-debt-entry" data-id="${entry.id}" data-field="date"></div>
       <button class="debt-row-edit debt-row-edit-active" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
     ` : `
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view">${escapeHtml(entry.amount??'')}</div></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view debt-amount-val">${escapeHtml(entry.amount??'')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view debt-amount-val">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${entry.date?escapeHtml(entry.date):'—'}</div></div>
       <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
