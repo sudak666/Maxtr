@@ -482,7 +482,7 @@ const deleteAutoRule = async function(id){
   renderAutoRulesList();
 };
 
-function findMatchingRule(type, comment){
+export function findMatchingRule(type, comment){
   if(!comment) return null;
   const lc=comment.toLowerCase();
   return AppState.autoRules.find(r=>r.type===type && r.keyword && lc.includes(r.keyword.toLowerCase())) || null;

@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v77';
+const CACHE_NAME = 'rytm-v78';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -100,6 +100,7 @@ const STATIC_ASSETS = [
   './js/debt.js',
   './js/shopping.js',
   './js/privacy-cache.js',
+  './js/monobank.js',
   // Classic (non-module) scripts index.html now loads via <script src=""> —
   // externalized from inline <script> blocks as part of the CSP hardening
   // pass (see CLAUDE.md) so script-src doesn't need 'unsafe-inline'/hashes.

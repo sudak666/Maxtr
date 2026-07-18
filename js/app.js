@@ -14,6 +14,7 @@ import { __init_finance__ } from './finance.js';
 import { __init_analytics_csv__ } from './analytics-csv.js';
 import { __init_debt__ } from './debt.js';
 import { __init_shopping__ } from './shopping.js';
+import { __init_monobank__ } from './monobank.js';
 
 // Each chunk's top-level "do something now" statements were deferred into
 // an __init_X__() function (see assemble.mjs's deferActionStatements) so
@@ -36,3 +37,4 @@ __init_finance__();
 __init_analytics_csv__();
 __init_debt__();
 __init_shopping__();
+__init_monobank__();

@@ -97,6 +97,14 @@ export const AppState = {
   txMigrated: false,
   debts: [],
   currentDebtId: null,
+  // Bank-account integrations, keyed by provider — currently only
+  // 'monobank'. null until the user connects one; see js/monobank.js.
+  // Shape once connected: {token, clientName, accounts:[{id, kind:'account'|'jar',
+  // label, currencyAlpha}], mapping:{monobankAccountId: walletId}, lastSyncAt}.
+  // Synced in the finance doc (js/color-picker.js's fbSaveNow/seedConfigFromDocs)
+  // like every other per-profile setting — the token itself is only ever
+  // sent to this app's own monobankProxy Cloud Function, never anywhere else.
+  integrations: {monobank: null},
   MONTHS: LANG_CALENDAR[window.currentLang].months,
   MONTHS_SHORT: LANG_CALENDAR[window.currentLang].monthsShort,
   WEEKDAYS: LANG_CALENDAR[window.currentLang].weekdays,

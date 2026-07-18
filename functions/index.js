@@ -35,9 +35,11 @@ const { onRequest } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
+const { getAuth } = require('firebase-admin/auth');
 const logger = require('firebase-functions/logger');
 const { mapWithConcurrency } = require('./lib/pure');
 const { sweepToken } = require('./lib/sweep');
+const { buildMonobankUrl } = require('./lib/monobank');
 
 initializeApp();
 const db = getFirestore();
@@ -123,5 +125,61 @@ exports.privatRates = onRequest({ cors: true }, async (req, res) => {
   } catch (err) {
     logger.warn('privatRates proxy failed', { message: err.message });
     res.status(502).json({ error: 'PrivatBank fetch failed' });
+  }
+});
+
+// Server-side proxy for Monobank's personal Open API (api.monobank.ua),
+// which also never sends CORS headers — same root cause/fix as privatRates
+// above. Unlike that endpoint (public exchange rates, no auth), every
+// request here carries the *user's own* live Monobank API token
+// (X-Monobank-Token header), so this proxy first requires a valid Firebase
+// ID token (so a stranger who finds this URL can't use it as an anonymous
+// relay into Monobank's API with a token of their own) before relaying
+// anything, and its response is never cached.
+//
+// Exposed via the "/api/monobank" Hosting rewrite (see firebase.json).
+// Query params: action=client-info, or action=statement&account=&from=&to=
+// (from/to are unix seconds — js/monobank.js chunks a long sync range into
+// windows no wider than Monobank's 31-day limit, enforced again in
+// buildMonobankUrl() so a malformed/tampered request can't slip through).
+exports.monobankProxy = onRequest({ cors: true }, async (req, res) => {
+  const authHeader = req.get('Authorization') || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!idToken) {
+    res.status(401).json({ error: 'missing Authorization bearer token' });
+    return;
+  }
+  try {
+    await getAuth().verifyIdToken(idToken);
+  } catch (err) {
+    res.status(401).json({ error: 'invalid or expired sign-in' });
+    return;
+  }
+  const monobankToken = req.get('X-Monobank-Token') || '';
+  if (!monobankToken) {
+    res.status(400).json({ error: 'missing X-Monobank-Token header' });
+    return;
+  }
+  const built = buildMonobankUrl(req.query);
+  if (!built.ok) {
+    res.status(built.status).json({ error: built.error });
+    return;
+  }
+  try {
+    const upstream = await fetch(built.url, { headers: { 'X-Token': monobankToken } });
+    const bodyText = await upstream.text();
+    // Monobank returns 429 (with a plain-text or JSON body) when the caller
+    // exceeds its 1-request-per-60-seconds-per-token limit — relayed
+    // through as-is rather than retried here, so the client's own
+    // pacing/backoff (js/monobank.js's SYNC_REQUEST_GAP_MS) handles it.
+    res.status(upstream.status);
+    try {
+      res.json(JSON.parse(bodyText));
+    } catch (parseErr) {
+      res.type('text/plain').send(bodyText);
+    }
+  } catch (err) {
+    logger.warn('monobankProxy upstream fetch failed', { message: err.message });
+    res.status(502).json({ error: 'Monobank fetch failed' });
   }
 });

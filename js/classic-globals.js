@@ -144,6 +144,8 @@
   setIcon('ic-premium-wallets','check');
   setIcon('ic-premium-bank','bank');
   setIcon('ic-set-wallets','wallet');
+  setIcon('ic-set-monobank','bank');
+  setIcon('ic-monobank-sync','refresh');
   setIcon('ic-set-rates','swap');
   setIcon('ic-rates-update','refresh');
   setIcon('ic-fx-widget','swap');
@@ -249,7 +251,7 @@
       settings_group_all:'Усі', settings_group_account:'Акаунт', settings_group_finance:'Фінанси', settings_group_security:'Безпека', settings_group_app:'Вигляд',
       settings_tip_search:'Порада: скористайся пошуком або групами вище, щоб швидко знайти потрібний розділ.',
       settings_profile:'Профіль', settings_nickname_placeholder:'Нікнейм', settings_avatar_picker_label:'Або обери іконку профілю',
-      settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют',
+      settings_finance:'Фінанси', settings_wallets:'Гаманці', settings_rates:'Курси валют', settings_monobank:'Прив\'язати Monobank',
       settings_categories:'Категорії', settings_tags:'Теги', settings_budgets:'Бюджети',
       settings_recurring:'Повторювані операції', settings_rules:'Автоматичні правила', settings_export:'Експорт CSV',
       settings_import:'Імпорт CSV',
@@ -521,6 +523,20 @@
       analytics_same:'Витрати на рівні попереднього періоду', analytics_no_data:'Немає даних',
       analytics_cat_insight_prefix:'Найбільше зросли витрати на', analytics_cat_insight_suffix:'цього періоду',
       settings_wallets_sub:'Картки, готівка та інші рахунки', settings_rates_sub:'Автоматичне оновлення з НБУ',
+      settings_monobank_sub:'Підтягувати операції з карток і банок автоматично',
+      monobank_intro:'Вкажи персональний токен Monobank Open API — підтягнемо всі картки й банки та їхні операції. Токен зберігається лише в твоєму акаунті й ніколи не передається нікому, крім Monobank.',
+      monobank_get_token_link:'Отримати токен на api.monobank.ua', monobank_token_label:'Персональний токен',
+      monobank_connect_btn:'Підключити', monobank_connecting:'Підключаємо…', monobank_token_required:'Введи токен',
+      monobank_connected:'Monobank підключено', monobank_connected_generic:'Monobank підключено',
+      monobank_no_accounts:'У Monobank не знайдено жодної картки чи банки для цього токена',
+      monobank_jar_default_name:'Банка', monobank_last_sync_label:'Востаннє синхронізовано:', monobank_never_synced:'ще не синхронізовано',
+      monobank_sync_btn:'Синхронізувати', monobank_syncing_prefix:'Синхронізую рахунок', monobank_sync_done_prefix:'Синхронізовано, нових операцій:',
+      monobank_disconnect_btn:'Відключити', monobank_disconnect_title:'Відключити Monobank',
+      monobank_disconnect_confirm:'Відключити Monobank? Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.',
+      monobank_disconnected:'Monobank відключено',
+      monobank_err_invalid_token:'Токен недійсний. Перевір, чи скопійований правильно, і спробуй ще раз.',
+      monobank_err_rate_limit:'Monobank обмежує частоту запитів (не частіше разу на хвилину). Зачекай трохи і спробуй ще раз.',
+      monobank_err_generic:'Не вдалося з\'єднатися з Monobank. Спробуй ще раз пізніше.',
       settings_categories_sub:'Власні категорії доходів і витрат', settings_tags_sub:'Мітки для операцій, окремо від категорій',
       settings_budgets_sub:'Місячні ліміти витрат по категоріях', settings_recurring_sub:'Автоматичні платежі за розкладом',
       settings_rules_sub:'Категорія за ключовим словом у коментарі', settings_export_sub:'Вивантажити всі операції у файл',
@@ -542,7 +558,7 @@
       settings_group_all:'All', settings_group_account:'Account', settings_group_finance:'Finance', settings_group_security:'Security', settings_group_app:'Appearance',
       settings_tip_search:'Tip: use the search box or the group chips above to find a setting faster.',
       settings_profile:'Profile', settings_nickname_placeholder:'Nickname', settings_avatar_picker_label:'Or pick a profile icon',
-      settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates',
+      settings_finance:'Finance', settings_wallets:'Wallets', settings_rates:'Exchange rates', settings_monobank:'Connect Monobank',
       settings_categories:'Categories', settings_tags:'Tags', settings_budgets:'Budgets',
       settings_recurring:'Recurring transactions', settings_rules:'Auto-categorization rules', settings_export:'Export CSV',
       settings_import:'Import CSV',
@@ -814,6 +830,20 @@
       analytics_same:'Spending is level with the previous period', analytics_no_data:'No data yet',
       analytics_cat_insight_prefix:'Spending grew the most on', analytics_cat_insight_suffix:'this period',
       settings_wallets_sub:'Cards, cash, and other accounts', settings_rates_sub:'Automatic updates from NBU',
+      settings_monobank_sub:'Automatically pull in transactions from your cards and jars',
+      monobank_intro:'Enter your personal Monobank Open API token — we\'ll pull in every card and jar and their transactions. The token is stored only in your account and is never sent to anyone but Monobank.',
+      monobank_get_token_link:'Get a token at api.monobank.ua', monobank_token_label:'Personal token',
+      monobank_connect_btn:'Connect', monobank_connecting:'Connecting…', monobank_token_required:'Enter a token',
+      monobank_connected:'Monobank connected', monobank_connected_generic:'Monobank connected',
+      monobank_no_accounts:'No cards or jars found for this Monobank token',
+      monobank_jar_default_name:'Jar', monobank_last_sync_label:'Last synced:', monobank_never_synced:'never synced',
+      monobank_sync_btn:'Sync', monobank_syncing_prefix:'Syncing account', monobank_sync_done_prefix:'Synced, new transactions:',
+      monobank_disconnect_btn:'Disconnect', monobank_disconnect_title:'Disconnect Monobank',
+      monobank_disconnect_confirm:'Disconnect Monobank? Wallets and already-imported transactions stay, but new transactions will stop being pulled in automatically.',
+      monobank_disconnected:'Monobank disconnected',
+      monobank_err_invalid_token:'Invalid token. Check that it was copied correctly and try again.',
+      monobank_err_rate_limit:'Monobank limits how often you can request data (at most once a minute). Wait a bit and try again.',
+      monobank_err_generic:'Could not connect to Monobank. Try again later.',
       settings_categories_sub:'Your own income and expense categories', settings_tags_sub:'Freeform labels for transactions, separate from categories',
       settings_budgets_sub:'Monthly spending limits per category', settings_recurring_sub:'Automatic payments on a schedule',
       settings_rules_sub:'Category by keyword in the comment', settings_export_sub:'Export all transactions to a file',

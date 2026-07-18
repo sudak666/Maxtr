@@ -328,7 +328,7 @@ async function fbSaveNow(){
       // whole-finance-doc rewrite. `{merge:false}` replacing the whole doc
       // is exactly what drops any stale legacy `data` field for an
       // already-migrated account, with no extra cleanup code needed.
-      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -400,6 +400,7 @@ export function seedConfigFromDocs(sData, fData){
   }catch(e){}
   AppState.catBackfillDone = !!(fData && fData.catBackfillDone);
   AppState.catLegacyMerged = !!(fData && fData.catLegacyMerged);
+  AppState.integrations = (fData && fData.integrations && typeof fData.integrations==='object') ? fData.integrations : {monobank:null};
   return seeded;
 }
 
@@ -575,7 +576,7 @@ async function processRecurring(){
 }
 
 export function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) setCacheItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) setCacheItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
 }
 
 // Top-level statements that DO something immediately (as opposed to a

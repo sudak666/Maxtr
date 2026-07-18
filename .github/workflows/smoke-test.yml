@@ -39,6 +39,9 @@ jobs:
       - name: Run Cloud Function sweep tests
         run: node tests/functions-sweep.mjs
 
+      - name: Run Monobank proxy unit tests
+        run: node tests/monobank-proxy.mjs
+
       - name: Run smoke test
         run: node tests/smoke.mjs
 
@@ -89,6 +92,9 @@ jobs:
 
       - name: Run reset profile data test ("start over")
         run: node tests/reset-profile-data.mjs
+
+      - name: Run Monobank connect/sync UI test
+        run: node tests/monobank-connect.mjs
 
       - name: Run receipt OCR text-parsing tests
         run: node tests/receipt-ocr-parse.mjs
