@@ -279,11 +279,13 @@ export function renderProfilesUI(){
       ${isActive
         ? `<span style="font-weight:800;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
         : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
-      ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${p.id}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
-      <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
-      ${isShared
-        ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
-        : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`}
+      <div class="profile-row-actions">
+        ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${p.id}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
+        <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+        ${isShared
+          ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
+          : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`}
+      </div>
     `;
     box.appendChild(row);
   });

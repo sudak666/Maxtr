@@ -1303,6 +1303,15 @@ body.amounts-hidden #fx-converter-result{
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+/* Profiles manager rows can show up to 3 action buttons (members/edit/
+   delete-or-leave) side by side — grouping them in one flex container with
+   a single margin-left:auto (instead of each .mgr-del individually
+   claiming margin-left:auto) keeps them tight together as one unit and
+   stops .mgr-row's flex-wrap:wrap from scattering them onto a second line
+   once the row's content (name + the wider "Перемкнути" switch button on
+   a non-active profile) runs out of width. */
+.profile-row-actions{display:flex;flex-wrap:nowrap;align-items:center;gap:2px;flex:0 0 auto;margin-left:auto}
+.profile-row-actions .mgr-del{margin-left:0}
 .mgr-del .ico{margin-right:0;width:19px;height:19px}
 .mgr-del:hover{background:rgba(239,68,68,.12);color:var(--red2)}
 /* Pencil toggle that gates a row's fields behind a deliberate tap, so a
