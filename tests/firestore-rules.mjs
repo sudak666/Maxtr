@@ -232,6 +232,42 @@ await check('a member cannot remove someone else instead of themselves', updateD
 await check('joiner can leave the shared profile (self-remove only)', updateDoc(doc(asB, sharedMembersPath), { members: arrayRemove(uidB), updatedAt: Date.now() }), 'allow');
 await check('after leaving, joiner can no longer read the shared profile\'s finance doc', getDoc(doc(asB, financeDocPath)), 'deny');
 
+// 13. Granular permissions (viewer vs editor role) — a later follow-up on
+// shared profiles. Uses a fresh profile ("profY") and uidC as the joiner
+// (uidC was only ever "a stranger" in the profX tests above, never a
+// member), so this section's state doesn't interact with profX's.
+const PROFILE_ID_Y = 'profY';
+const financeDocPathY = `users/${uidA}/max_tracker/finance@${PROFILE_ID_Y}`;
+const sharedMembersPathY = `users/${uidA}/max_tracker/shared_members@${PROFILE_ID_Y}`;
+const CODE_Y = 'TESTCODE2';
+
+await check('owner can create shared_members@profY', setDoc(doc(asA, sharedMembersPathY), { members: [uidA], updatedAt: Date.now() }), 'allow');
+await check('owner can seed profY\'s finance doc', setDoc(doc(asA, financeDocPathY), { wallets: [], updatedAt: Date.now() }), 'allow');
+let expiresAtY = Date.now() + 24 * 60 * 60 * 1000;
+await check('owner can create an invite for profY', setDoc(doc(asA, `profile_invites/${CODE_Y}`), { ownerUid: uidA, createdBy: uidA, profileId: PROFILE_ID_Y, profileName: 'Viewer test', createdAt: Date.now(), expiresAt: expiresAtY, usedBy: null }), 'allow');
+await check('uidC can redeem the profY invite', updateDoc(doc(asC, `profile_invites/${CODE_Y}`), { usedBy: uidC, ownerUid: uidA, profileId: PROFILE_ID_Y, createdBy: uidA, createdAt: (await getDoc(doc(asC, `profile_invites/${CODE_Y}`))).data().createdAt, expiresAt: expiresAtY }), 'allow');
+await check('uidC can join shared_members@profY, referencing the redeemed invite', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'allow');
+
+// Freshly joined, before the owner sets any role — must default to editor
+// (backward-compat: identical behavior to every profX test above, which
+// never touched `roles` at all).
+await check('a freshly-joined member with no roles entry defaults to editor (can write)', setDoc(doc(asC, financeDocPathY), { wallets: [{ id: 'w1' }], updatedAt: Date.now() }), 'allow');
+
+await check('owner can downgrade uidC to viewer', updateDoc(doc(asA, sharedMembersPathY), { roles: { [uidC]: 'viewer' }, updatedAt: Date.now() }), 'allow');
+await check('viewer can still read the finance doc', getDoc(doc(asC, financeDocPathY)), 'allow');
+await check('viewer cannot write the finance doc', setDoc(doc(asC, financeDocPathY), { wallets: [{ id: 'w2' }], updatedAt: Date.now() }), 'deny');
+await check('viewer cannot write the shifts doc', setDoc(doc(asC, `users/${uidA}/max_tracker/shifts@${PROFILE_ID_Y}`), { data: [], updatedAt: Date.now() }), 'deny');
+await check('viewer can read shared_members@profY itself (to know their own role)', getDoc(doc(asC, sharedMembersPathY)), 'allow');
+
+const viewerTxPath = `${financeDocPathY}/transactions/tx1`;
+await check('owner can seed a transaction under profY', setDoc(doc(asA, viewerTxPath), { type: 'expense', amount: 10, date: '2026-07-18', category: 'Тест' }), 'allow');
+await check('viewer can read a transaction under profY', getDoc(doc(asC, viewerTxPath)), 'allow');
+await check('viewer cannot create a transaction under profY', setDoc(doc(asC, `${financeDocPathY}/transactions/tx2`), { type: 'expense', amount: 5, date: '2026-07-18', category: 'Тест' }), 'deny');
+await check('viewer cannot delete a transaction under profY', deleteDoc(doc(asC, viewerTxPath)), 'deny');
+
+await check('viewer can still leave the profile despite being read-only', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), updatedAt: Date.now() }), 'allow');
+await check('after leaving, former viewer can no longer read profY\'s finance doc', getDoc(doc(asC, financeDocPathY)), 'deny');
+
 console.log(`\n${passed} passed, ${failed} failed`);
 await testEnv.cleanup();
 if (failed > 0) process.exit(1);

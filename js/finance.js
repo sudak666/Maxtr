@@ -6,7 +6,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
-import { PALETTE, convertCurrency, currencySymbol, subKey, toBase, walletById, walletCurrency } from './core.js';
+import { PALETTE, canEditActiveProfile, convertCurrency, currencySymbol, subKey, toBase, walletById, walletCurrency } from './core.js';
 import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
@@ -184,6 +184,7 @@ function readTransactionForm(){
 }
 
 export async function addTransaction(){
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
   const ai=document.getElementById('fin-amount');
   const draft=readTransactionForm();
   const errKey=validateTransactionDraft(draft, AppState.currentFinanceType==='transfer');
@@ -237,6 +238,7 @@ export async function addTransaction(){
 }
 
 export async function deleteTransaction(id){
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
   if(!(await uiConfirm(tr('finance_delete_confirm'),{title:tr('finance_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.transactions=AppState.transactions.filter(t=>!sameTxId(t.id,id));
   const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));

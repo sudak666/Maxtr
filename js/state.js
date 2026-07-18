@@ -41,6 +41,14 @@ export const AppState = {
   // null for the current account's own profiles (local or 'default'),
   // which is the overwhelmingly common case and always was, pre-sharing.
   activeProfileOwnerUid: null,
+  // The current account's permission level on the active profile —
+  // 'editor' (full read/write, the default/only behavior before granular
+  // permissions existed) or 'viewer' (read-only). Always 'editor' for your
+  // own profiles (including 'default'); only ever 'viewer' while
+  // activeProfileOwnerUid is set AND the owner explicitly downgraded you.
+  // Loaded from shared_members@{profileId}'s roles map on switchProfile()
+  // — see js/firebase-sync.js's loadActiveProfileRole().
+  activeProfileRole: 'editor',
   profilesMeta: {list:[{id:'default', name:''}], updatedAt:0},
   shifts: {},
   transactions: [],

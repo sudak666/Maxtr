@@ -10,14 +10,14 @@ import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } fr
 import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
 import { renderDebt } from './debt.js';
 import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
-import { loadProfilesMeta, lsKey } from './firebase-sync.js';
+import { loadActiveProfileRole, loadProfilesMeta, lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { clearSensitiveLocalCacheForAccount, getCacheItem, isSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, syncHideAmountsButton, toggleHideAmounts } from './settings-managers.js';
 import { renderShoppingList } from './shopping.js';
 import { TX_COMMENT_MAX } from './tx-validation.js';
-import { enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
+import { applyProfileReadOnlyUI, enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
 
 export async function init(){
   const now=new Date();
@@ -98,6 +98,14 @@ export async function init(){
   renderProfilesUI();
   // Load from cloud (auto — no manual save/load step needed)
   await fbLoadNow();
+  // Cold-start equivalent of switchProfile()'s own role-load call — covers
+  // launching directly into a shared profile that was already active last
+  // session (loadActiveProfileId() in auth.js restores
+  // activeProfileOwnerUid/activeProfileId from localStorage before this
+  // runs, but never touches activeProfileRole, which always needs a fresh
+  // Firestore read since the owner could have changed it since last time).
+  await loadActiveProfileRole();
+  applyProfileReadOnlyUI();
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI();
   runNotificationChecks();
   maybeAutoUpdateRates();

@@ -84,6 +84,9 @@ jobs:
       - name: Run shared profiles UI test
         run: node tests/shared-profiles-ui.mjs
 
+      - name: Run shared profile permissions test (editor/viewer roles)
+        run: node tests/shared-profile-permissions.mjs
+
       - name: Run receipt OCR text-parsing tests
         run: node tests/receipt-ocr-parse.mjs
 

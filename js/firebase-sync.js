@@ -205,6 +205,66 @@ export async function leaveSharedProfile(ownerUid, profileId){
   await saveProfilesMeta();
 }
 
+// ── GRANULAR PERMISSIONS (a later session) ──────────────────────
+// Every member defaults to 'editor' (the original, only-ever behavior) —
+// 'viewer' is an explicit downgrade the owner applies afterward. See
+// firestore.rules' matching isEditorMember()/memberRole() for the actual
+// security enforcement; everything here is a thin client convenience layer
+// that mirrors what the rules already decide, never a second source of
+// truth for it.
+
+// Reads the current account's own role on the active profile and sets
+// AppState.activeProfileRole. Called from switchProfile() right after
+// activeProfileOwnerUid/activeProfileId are updated — a no-op (always
+// 'editor') for any of the account's own profiles, since ownerUid is only
+// ever set while viewing someone else's shared profile.
+export async function loadActiveProfileRole(){
+  if(!AppState.activeProfileOwnerUid){ AppState.activeProfileRole='editor'; return; }
+  try{
+    const snap=await getDoc(userDoc('shared_members'));
+    const roles=(snap.exists() && snap.data().roles) || {};
+    AppState.activeProfileRole = roles[AppState.currentUser.uid]==='viewer' ? 'viewer' : 'editor';
+  }catch(e){
+    console.error(e);
+    // Fail open to 'editor' on a transient read error rather than silently
+    // locking someone out of a profile they actually have edit access to —
+    // firestore.rules is the real enforcement either way, so this can only
+    // ever make the client *offer* an action the server then correctly
+    // allows or rejects, never bypass real enforcement.
+    AppState.activeProfileRole='editor';
+  }
+}
+
+// For the OWNER managing one of their own shared profiles: returns
+// {members:[uid,...], roles:{uid:role}} or null if the profile was never
+// shared (shared_members doc doesn't exist yet). Only ever called for a
+// profile the current account owns — reading someone else's shared_members
+// by profileId alone (no ownerUid) isn't meaningful, since userDoc()
+// resolves relative to the current account.
+export async function listSharedMembers(profileId){
+  if(!AppState.currentUser) throw new Error('not-authenticated');
+  const name = profileId && profileId!=='default' ? `shared_members@${profileId}` : 'shared_members';
+  const snap=await getDoc(doc(db,'users',AppState.currentUser.uid,DCOL,name));
+  if(!snap.exists()) return null;
+  const data=snap.data();
+  return {members:data.members||[], roles:data.roles||{}};
+}
+
+// Owner-only: sets one member's role on one of the owner's own shared
+// profiles. Writes the whole roles map in one call (read-modify-write)
+// rather than a dotted-path field update — simpler to reason about and
+// avoids a Firestore merge-semantics edge case for a map this small.
+export async function setMemberRole(profileId, memberUid, role){
+  if(!AppState.currentUser) throw new Error('not-authenticated');
+  if(AppState.activeProfileOwnerUid) throw new Error('only the profile owner can change member roles');
+  const name = profileId && profileId!=='default' ? `shared_members@${profileId}` : 'shared_members';
+  const ref=doc(db,'users',AppState.currentUser.uid,DCOL,name);
+  const snap=await getDoc(ref);
+  const data=snap.exists() ? snap.data() : {members:[AppState.currentUser.uid]};
+  const roles={...(data.roles||{}), [memberUid]: role};
+  await updateDoc(ref, {roles, updatedAt:Date.now()});
+}
+
 // ── TRANSACTIONS SUBCOLLECTION ─────────────────────────────────
 // users/{uid}/max_tracker/{financeDocName}/transactions/{txId} — see
 // MIGRATION_PLAN_transactions.md and CLAUDE.md's Firebase data model

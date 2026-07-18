@@ -126,6 +126,27 @@ export const SALARY_GOAL = 20000;
 
 export function subKey(type,name){ return type+':'+name; }
 
+// Granular permissions follow-up on shared profiles (see CLAUDE.md's
+// "Shared profiles" section): AppState.activeProfileRole is 'editor'
+// (default, including for every one of your own profiles) or 'viewer'
+// (read-only, only ever set while viewing a profile someone else shared
+// with you and they've explicitly downgraded your role — see
+// js/firebase-sync.js's loadActiveProfileRole()). This is a client-side
+// UX convenience only — the real security boundary is firestore.rules'
+// isEditorMember(), which independently rejects the write regardless of
+// what this returns. Guards the app's primary "add"/"delete" mutating
+// entry points (addTransaction/deleteTransaction, saveModalSelection,
+// addDebtEntry/deleteDebtEntry) so a viewer gets an immediate, specific
+// "read-only" toast instead of either a generic silent sync-failure or
+// (worse) a confusing local-only change that never persists. Secondary
+// settings mutations (renaming a wallet, editing a budget, etc.) are
+// deliberately NOT individually guarded — out of scope for this pass, see
+// CLAUDE.md — those still fail safely via firestore.rules and the
+// existing generic sync-error toast, just without a role-specific message.
+export function canEditActiveProfile(){
+  return AppState.activeProfileRole!=='viewer';
+}
+
 // rates/converter/analytics/chart all moved into #tools-modal (see
 // CLAUDE.md's Finance-tab-widgets section) — no longer part of the
 // toggleable show/hide+reorder set, so only goals remains here.

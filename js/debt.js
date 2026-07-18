@@ -4,7 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { saveDebtLocal, scheduleSave } from './color-picker.js';
-import { DEBT_COLORS } from './core.js';
+import { DEBT_COLORS, canEditActiveProfile } from './core.js';
 import { emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 function getCurrentDebt(){
@@ -72,6 +72,7 @@ const autoFillDebtBalance = function(){
 };
 
 export function addDebtEntry(){
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
   const cd=getCurrentDebt(); if(!cd) return;
   const ai=document.getElementById('debt-amount');
   const bi=document.getElementById('debt-balance-input');
@@ -111,6 +112,7 @@ export function updateDebtEntry(id,field,value){
 }
 
 export async function deleteDebtEntry(id){
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
   const cd=getCurrentDebt(); if(!cd) return;
   if(!(await uiConfirm(tr('debt_delete_payment_confirm'),{title:tr('debt_delete_payment_title'),okText:tr('common_delete'),danger:true}))) return;
   cd.entries=cd.entries.filter(x=>x.id!==id);

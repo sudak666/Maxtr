@@ -4,7 +4,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { saveConfigLocal, saveLocal, scheduleSave } from './color-picker.js';
-import { SALARY_GOAL, shiftType, toBase } from './core.js';
+import { SALARY_GOAL, canEditActiveProfile, shiftType, toBase } from './core.js';
 import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm } from './ui-widgets.js';
 
 // Cold-start only: called once from js/app-init.js's init() when there was
@@ -81,6 +81,7 @@ export function validateModalSelection(){}
 
 export function saveModalSelection(){
   if(!AppState.selectedDateKey) return;
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); closeModal(); return; }
   const al=[];
   document.querySelectorAll('#modal-opts input[type=checkbox]').forEach(el=>{
     if(el.checked) al.push(el.getAttribute('data-stid'));

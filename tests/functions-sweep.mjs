@@ -419,6 +419,79 @@ await test('sweepToken: multi-profile account sweeps every profile independently
   assert.equal(tokenDoc.ref._written.profileState.p2, undefined);
 });
 
+// Shared profiles (a later follow-up on the shared-profiles feature — see
+// CLAUDE.md's Shared profiles section for the "deliberately out of scope
+// for v1" note this closes): a profiles_meta entry with kind:'shared' +
+// ownerUid points at data living under a *different* account's uid, not
+// this token holder's own. Before this fix, sweepToken() always read
+// users/{this same uid}/..., which doesn't exist for a profile someone
+// else owns — financeSnap.exists guarded it into a safe no-op, but that
+// meant a shared profile's member silently never got any of the three
+// push types for it. These tests prove the data path now resolves against
+// the correct owner uid.
+await test('sweepToken: a shared-profile entry reads its data from the owner\'s uid, not the token holder\'s own', async () => {
+  const memberUid = 'member1';
+  const ownerUid = 'owner1';
+  const docs = new Map([
+    [`push_tokens/${memberUid}`, undefined],
+    [`users/${memberUid}/max_tracker/profiles_meta`, { list: [{ id: 'default' }, { id: 'sharedP', name: 'Сім\'я', kind: 'shared', ownerUid }] }],
+    [`users/${memberUid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [{ date: '2026-07-15', type: 'expense', amount: 1, currency: 'UAH' }], // member's own default: already logged today, no reminder
+      wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    // Deliberately nothing at users/{memberUid}/max_tracker/finance@sharedP —
+    // a member never has real data under their own uid for a profile
+    // someone else owns. The real data lives here instead:
+    [`users/${ownerUid}/max_tracker/finance@sharedP`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {}, // nothing logged today -> reminder needed
+    }],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(memberUid, { token: 'tokShared' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].type, 'daily');
+  assert.equal(tokenDoc.ref._written.profileState.sharedP.sentDaily, '2026-07-15');
+  // The member's own default profile correctly stayed silent (already logged today).
+  assert.equal(tokenDoc.ref._written.profileState.default, undefined);
+});
+
+await test('sweepToken: a shared-profile budget-exceeded push reads spending from the owner\'s transactions', async () => {
+  const memberUid = 'member2';
+  const ownerUid = 'owner2';
+  const docs = new Map([
+    [`push_tokens/${memberUid}`, undefined],
+    [`users/${memberUid}/max_tracker/profiles_meta`, { list: [{ id: 'default' }, { id: 'sharedP2', kind: 'shared', ownerUid }] }],
+    [`users/${memberUid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [{ date: '2026-07-15', type: 'expense', amount: 1, currency: 'UAH' }], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    [`users/${ownerUid}/max_tracker/finance@sharedP2`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC', budgetAlerts: true },
+      data: [], wallets: [], budgets: { Продукти: 100 }, categories: { expense: ['Продукти'] }, recurring: [], currencyRates: {},
+    }],
+    // dailyReminderNeeded() prefers this subcollection over finance.data
+    // whenever it's non-empty (see sweep.js) — the 07-15 entry is what
+    // actually suppresses the daily reminder here, isolating this test to
+    // the budget check; finance.data above is deliberately left empty so
+    // there's no ambiguity about which one the code is really reading from.
+    [`users/${ownerUid}/max_tracker/finance@sharedP2/transactions`, [
+      { date: '2026-07-10', type: 'expense', category: 'Продукти', amount: 150, currency: 'UAH' },
+      { date: '2026-07-15', type: 'expense', category: 'Інше', amount: 1, currency: 'UAH' },
+    ]],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(memberUid, { token: 'tokShared2' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].type, 'budget');
+  assert.match(sent[0].body, /Продукти/);
+});
+
 // Real report this pair of tests was added for: an account with two
 // profiles enabled on the same device got two literally-identical "Не
 // забудь записати сьогоднішні операції" push notifications at once — the

@@ -70,8 +70,16 @@ function dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now) {
 // every other caller (including every existing direct sweepProfile() call
 // in this file's tests) omits it and gets the original single-profile
 // behavior unchanged.
-async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap, transactionsSnap, skipDaily = false) {
-  if (!financeSnap) financeSnap = await db.doc(`users/${uid}/${DCOL}/${financeDocName(profileId)}`).get();
+// `dataOwnerUid` (default uid): the uid whose max_tracker tree actually
+// holds this profile's data — almost always the same as `uid` (the token
+// holder's own profile), but for a *shared* profile someone else owns,
+// it's that owner's uid instead (see CLAUDE.md's Shared profiles section —
+// a member never has real data under their own uid for a profile someone
+// else owns, only a {kind:'shared', ownerUid} reference in their own
+// profiles_meta). `uid` itself keeps meaning "whose push_tokens doc/device
+// this is" throughout — only the *data path* changes for a shared profile.
+async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap, transactionsSnap, skipDaily = false, dataOwnerUid = uid) {
+  if (!financeSnap) financeSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
   const f = financeSnap.data();
   const notif = f.notifSettings || {};
@@ -84,7 +92,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   const recurring = Array.isArray(f.recurring) ? f.recurring : [];
   const rates = f.currencyRates || {};
   const walletCurrency = (id) => (wallets.find((w) => w.id === id) || {}).currency || 'UAH';
-  if (!debtSnap) debtSnap = await db.doc(`users/${uid}/${DCOL}/${debtDocName(profileId)}`).get();
+  if (!debtSnap) debtSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${debtDocName(profileId)}`).get();
   const debts = debtSnap.exists && Array.isArray(debtSnap.data().debts) ? debtSnap.data().debts : [];
 
   // Each profile carries its own timeZone (captured client-side via
@@ -211,21 +219,35 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     db.doc(`users/${uid}/${DCOL}/${debtDocName('default')}`).get(),
     db.collection(`users/${uid}/${DCOL}/${financeDocName('default')}/transactions`).get(),
   ]);
-  const profileIds = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
-    ? metaSnap.data().list.map((p) => p.id).filter(Boolean)
-    : ['default'];
+  // Keep the full profiles_meta entries, not just ids — a shared-profile
+  // entry (kind:'shared', ownerUid: <the sharing account's uid>) needs its
+  // data read from *that* uid's tree, not this token holder's own (see
+  // dataOwnerFor() below and CLAUDE.md's Shared profiles section: this was
+  // previously a documented, confirmed-safe no-op gap — sweepToken() only
+  // ever read users/{this same uid}/..., which doesn't exist for a profile
+  // someone else owns, so a shared profile's member silently never got
+  // reminders for it. financeSnap.exists guards already in place meant
+  // this failed safe, not broken, while the gap existed).
+  const profileEntries = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
+    ? metaSnap.data().list.filter((p) => p && p.id)
+    : [{ id: 'default' }];
+  const profileIds = profileEntries.map((p) => p.id);
+  const isSharedProfileEntry = (p) => !!(p && p.kind === 'shared' && p.ownerUid);
+  const dataOwnerFor = (p) => (isSharedProfileEntry(p) ? p.ownerUid : uid);
+  const dataOwnerByProfile = { default: uid };
+  profileEntries.forEach((p) => { dataOwnerByProfile[p.id] = dataOwnerFor(p); });
 
-  // For accounts with more than one profile, fetch every *other* profile's
-  // finance/debt docs in parallel too (rather than one at a time inside the
-  // loop below) — the loop itself still runs sequentially since a dead
-  // token found partway through must stop the remaining profiles, but
-  // there's no reason the reads themselves can't all be in flight together
-  // first.
+  // For accounts with more than one profile (including any shared ones),
+  // fetch every *other* profile's finance/debt docs in parallel too
+  // (rather than one at a time inside the loop below) — the loop itself
+  // still runs sequentially since a dead token found partway through must
+  // stop the remaining profiles, but there's no reason the reads
+  // themselves can't all be in flight together first.
   const otherProfileIds = profileIds.filter((id) => id !== 'default');
   const [otherFinanceSnaps, otherDebtSnaps, otherTransactionsSnaps] = await Promise.all([
-    Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${financeDocName(id)}`).get())),
-    Promise.all(otherProfileIds.map((id) => db.doc(`users/${uid}/${DCOL}/${debtDocName(id)}`).get())),
-    Promise.all(otherProfileIds.map((id) => db.collection(`users/${uid}/${DCOL}/${financeDocName(id)}/transactions`).get())),
+    Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}`).get())),
+    Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${debtDocName(id)}`).get())),
+    Promise.all(otherProfileIds.map((id) => db.collection(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`).get())),
   ]);
   const financeSnapByProfile = { default: defaultFinanceSnap };
   const debtSnapByProfile = { default: defaultDebtSnap };
@@ -304,6 +326,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
       const { updates: profileUpdates, tokenInvalid: invalid } = await sweepProfile(
         db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId], transactionsSnapByProfile[profileId],
         dailyNeededProfileIds.includes(profileId), // skipDaily — already covered by the consolidated push above
+        dataOwnerByProfile[profileId],
       );
       if (profileUpdates) {
         // prevState's legacy fallback ({sentDaily, sentBudget, sentRecurring}

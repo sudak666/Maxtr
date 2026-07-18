@@ -6,6 +6,18 @@ import { AppState } from './state.js';
 
 const HTML_ESCAPES={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 
+// Toggles a body-level class reflecting AppState.activeProfileRole (see
+// js/core.js's canEditActiveProfile()) — index.html's CSS hides the
+// primary "add" FABs (.fin-fab, shared by Finance's and Debt's) under
+// body.profile-readonly. Called from switchProfile() (js/color-picker.js)
+// after activeProfileRole is loaded, and once at cold-init in case the
+// app launches directly into a previously-active shared profile. Shifts
+// have no dedicated FAB (a day cell opens the shift modal directly) — that
+// write path is guarded at saveModalSelection() itself instead (js/calendar.js).
+export function applyProfileReadOnlyUI(){
+  document.body.classList.toggle('profile-readonly', AppState.activeProfileRole==='viewer');
+}
+
 export function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>HTML_ESCAPES[c]);
 }

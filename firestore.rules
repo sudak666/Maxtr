@@ -35,7 +35,14 @@ service cloud.firestore {
     // Membership lives in a sibling doc, `shared_members` (suffixed
     // `@{profileId}` the same as shifts/finance/debt; unsuffixed for a
     // shared *default* profile, matching how 'default' already omits the
-    // suffix everywhere else), holding {members:[ownerUid, ...], updatedAt}.
+    // suffix everywhere else), holding {members:[ownerUid, ...], roles:{uid:
+    // 'editor'|'viewer'}, updatedAt}. `roles` is a later addition (see
+    // CLAUDE.md's "Shared profiles" section, granular-permissions
+    // follow-up) — a member absent from `roles` (every member that joined
+    // before this field existed, or one the owner never explicitly
+    // downgraded) defaults to 'editor', matching the original flat-access
+    // behavior exactly so existing shared profiles don't silently lose
+    // write access the moment this deploys.
     function sharedMembersDocName(document) {
       return document.split('@').size() > 1
         ? 'shared_members@' + document.split('@')[1]
@@ -44,9 +51,20 @@ service cloud.firestore {
     function isShareableDataDoc(document) {
       return document.matches('^(shifts|finance|debt)(@[A-Za-z0-9_]+)?$');
     }
+    function sharedMembersData(ownerUid, document) {
+      return get(/databases/$(database)/documents/users/$(ownerUid)/max_tracker/$(sharedMembersDocName(document))).data;
+    }
     function isSharedMember(ownerUid, document) {
       return exists(/databases/$(database)/documents/users/$(ownerUid)/max_tracker/$(sharedMembersDocName(document)))
-        && request.auth.uid in get(/databases/$(database)/documents/users/$(ownerUid)/max_tracker/$(sharedMembersDocName(document))).data.members;
+        && request.auth.uid in sharedMembersData(ownerUid, document).members;
+    }
+    // A viewer can read everything a member can, but never write shifts/
+    // finance/debt/transactions — only an editor (the default role) can.
+    function memberRole(ownerUid, document) {
+      return sharedMembersData(ownerUid, document).get('roles', {}).get(request.auth.uid, 'editor');
+    }
+    function isEditorMember(ownerUid, document) {
+      return isSharedMember(ownerUid, document) && memberRole(ownerUid, document) != 'viewer';
     }
 
     // Known doc names: shifts, finance, debt, backup_v2, shared_members,
@@ -63,7 +81,11 @@ service cloud.firestore {
     match /users/{uid}/max_tracker/{document} {
       allow read: if request.auth != null && (
         request.auth.uid == uid ||
-        (isShareableDataDoc(document) && isSharedMember(uid, document))
+        (isShareableDataDoc(document) && isSharedMember(uid, document)) ||
+        // A member reads shared_members itself to know their own role
+        // (js/firebase-sync.js reads this on switching into a shared
+        // profile) — any current member, editor or viewer alike.
+        (document.matches('^shared_members(@[A-Za-z0-9_]+)?$') && isSharedMember(uid, document))
       );
       // delete has no request.resource (it's null for a delete), so it must
       // be its own allow block rather than sharing the create/update one —
@@ -89,8 +111,10 @@ service cloud.firestore {
           && (!('at' in request.resource.data) || request.resource.data.at is number))
         ||
         // A shared member editing the actual shared data — same
-        // size/type guardrails as the owner path above.
-        (isShareableDataDoc(document) && isSharedMember(uid, document)
+        // size/type guardrails as the owner path above. Editor role only;
+        // a viewer can read (see the allow-read block above) but never
+        // reaches this branch.
+        (isShareableDataDoc(document) && isEditorMember(uid, document)
           && request.resource.data.keys().size() < 60
           && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
           && (!('at' in request.resource.data) || request.resource.data.at is number))
@@ -170,8 +194,9 @@ service cloud.firestore {
     // app-generated transaction id, stringified client-side. Scoped to
     // financeDoc matching only `finance`(@profileId)? — not shifts/debt/
     // backup_v2/profiles_meta, none of which ever get a transactions
-    // subcollection. A shared member gets the same read/write access here
-    // as on the parent finance doc itself (isSharedMember(), same as above).
+    // subcollection. A shared member gets the same read access here as on
+    // the parent finance doc itself (isSharedMember(), any role); write
+    // needs isEditorMember(), same as the parent doc's own write branch.
     match /users/{uid}/max_tracker/{financeDoc}/transactions/{txId} {
       allow read: if request.auth != null
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
@@ -182,11 +207,11 @@ service cloud.firestore {
       allow delete: if request.auth != null
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
         && txId.matches('^[A-Za-z0-9_-]{1,80}$')
-        && (request.auth.uid == uid || isSharedMember(uid, financeDoc));
+        && (request.auth.uid == uid || isEditorMember(uid, financeDoc));
       allow create, update: if request.auth != null
         && financeDoc.matches('^finance(@[A-Za-z0-9_]+)?$')
         && validTransaction(request.resource.data, txId)
-        && (request.auth.uid == uid || isSharedMember(uid, financeDoc));
+        && (request.auth.uid == uid || isEditorMember(uid, financeDoc));
     }
 
     // Invite codes for joining a shared profile (js/firebase-sync.js's

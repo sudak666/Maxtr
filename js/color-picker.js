@@ -9,12 +9,12 @@ import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncome
 import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
-import { batchWriteTransactions, leaveSharedProfile, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, shareCurrentProfile, userDoc } from './firebase-sync.js';
+import { batchWriteTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { setCacheItem } from './privacy-cache.js';
 import { closeManagers, uid, updateShiftType, updateWallet } from './settings-managers.js';
-import { escapeHtml, setupAccessibleClickableDivs, showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { applyProfileReadOnlyUI, escapeHtml, setupAccessibleClickableDivs, showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 export const openColorPicker = function(kind,id){
   AppState.colorPickTarget={kind,id};
@@ -121,6 +121,8 @@ const switchProfile = async function(id, ownerUid){
   AppState.activeProfileId=id;
   AppState.activeProfileOwnerUid=ownerUid;
   saveActiveProfileId();
+  await loadActiveProfileRole();
+  applyProfileReadOnlyUI();
   closeManagers();
   await fbLoadNow();
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
@@ -180,6 +182,74 @@ const leaveSharedProfileUI = async function(id, ownerUid){
   showToast(tr('profiles_left_toast'),'check');
 };
 
+// ── SHARED PROFILE MEMBERS MANAGER (granular permissions, a later session) ──
+// Owner-only: lists everyone who's joined one of the owner's own profiles,
+// with a per-member button to flip their role between editor/viewer. Follows
+// the same "Settings manager" modal pattern as every other manager in this
+// file (wallets/categories/tags/etc.) — a plain list-render + data-action
+// buttons — rather than the single-shot uiAlert/uiPrompt pattern
+// shareCurrentProfileUI() above uses, since this needs a genuine per-row
+// action (toggle this specific member's role), which a single dialog can't
+// cleanly express. currentManagedMembersProfileId tracks which profile's
+// members are currently shown so toggleMemberRoleUI() knows which
+// shared_members doc to write back to.
+let currentManagedMembersProfileId=null;
+
+const openSharedMembersManagerUI = async function(profileId){
+  currentManagedMembersProfileId=profileId;
+  const modal=document.getElementById('shared-members-modal');
+  if(modal) modal.style.display='flex';
+  await renderSharedMembersList(profileId);
+};
+
+async function renderSharedMembersList(profileId){
+  const box=document.getElementById('shared-members-list'); if(!box) return;
+  box.innerHTML='';
+  let data;
+  try{
+    data=await listSharedMembers(profileId);
+  }catch(e){
+    console.error(e);
+    showToast(tr('sync_autosave_error'),'xmark');
+    return;
+  }
+  const otherMembers=(data&&data.members||[]).filter(uid=>uid!==AppState.currentUser.uid);
+  if(!otherMembers.length){
+    box.innerHTML=`<div class="settings-no-results" style="display:block">${tr('profiles_members_none')}</div>`;
+    return;
+  }
+  const roles=data.roles||{};
+  otherMembers.forEach(uid=>{
+    const role=roles[uid]==='viewer'?'viewer':'editor';
+    const row=document.createElement('div');
+    row.className='mgr-row';
+    // No display-name infrastructure exists between accounts (this app has
+    // no contacts/friends list) — a shortened uid is the only identifier
+    // available, same limitation the invite-code flow already has.
+    const shortUid=escapeHtml(uid.length>10?uid.slice(0,10)+'…':uid);
+    row.innerHTML=`
+      <div class="mgr-name-inline">${shortUid}</div>
+      <span style="font-weight:800;font-size:11px;color:${role==='viewer'?'var(--muted2)':'var(--green2)'};text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${role==='viewer'?tr('profiles_member_role_viewer'):tr('profiles_member_role_editor')}</span>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="toggle-member-role" data-uid="${escapeHtml(uid)}" data-role="${role}">${role==='viewer'?tr('profiles_member_make_editor'):tr('profiles_member_make_viewer')}</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+const toggleMemberRoleUI = async function(uid, currentRole){
+  if(!currentManagedMembersProfileId) return;
+  const nextRole = currentRole==='viewer' ? 'editor' : 'viewer';
+  try{
+    await setMemberRole(currentManagedMembersProfileId, uid, nextRole);
+  }catch(e){
+    console.error(e);
+    showToast(tr('sync_autosave_error'),'xmark');
+    return;
+  }
+  await renderSharedMembersList(currentManagedMembersProfileId);
+  showToast(tr('profiles_member_role_changed'),'check');
+};
+
 export function renderProfilesUI(){
   const sub=document.getElementById('settings-profiles-sub');
   if(sub){
@@ -209,6 +279,7 @@ export function renderProfilesUI(){
       ${isActive
         ? `<span style="font-weight:800;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
         : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
+      ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${p.id}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
       <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
       ${isShared
         ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
@@ -533,6 +604,8 @@ const CLICK_ACTIONS = {
   'share-current-profile': ()=>shareCurrentProfileUI(),
   'join-shared-profile': ()=>joinSharedProfileUI(),
   'leave-shared-profile': ds=>leaveSharedProfileUI(ds.id, ds.ownerUid),
+  'open-shared-members-manager': ds=>openSharedMembersManagerUI(ds.id),
+  'toggle-member-role': ds=>toggleMemberRoleUI(ds.uid, ds.role),
 };
 document.addEventListener('click', e=>{
   const el=e.target.closest('[data-action]');
