@@ -87,6 +87,9 @@ jobs:
       - name: Run shared profile permissions test (editor/viewer roles)
         run: node tests/shared-profile-permissions.mjs
 
+      - name: Run reset profile data test ("start over")
+        run: node tests/reset-profile-data.mjs
+
       - name: Run receipt OCR text-parsing tests
         run: node tests/receipt-ocr-parse.mjs
 

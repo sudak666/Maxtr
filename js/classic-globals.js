@@ -100,6 +100,7 @@
   setIcon('ic-phone','phone');
   setIcon('ic-set-signout','logout');
   setIcon('ic-set-delete','trash');
+  setIcon('ic-set-reset-data','refresh');
   setIcon('ic-set-pin','lock');
   setIcon('ic-pin-logo','lock');
   setIcon('ic-bio-unlock','lock');
@@ -267,6 +268,7 @@
       privacy_cache_hint_off:'Приватний режим: фінансовий кеш очищено, дані завантажуються з хмари після входу.',
       privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
+      settings_reset_data:'Скинути всі дані', settings_reset_data_sub:'Почати з чистого аркуша в цьому профілі',
       settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
       settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
       settings_phone_remove_title:'Прибрати номер', settings_phone_linked:'Номер телефону додано',
@@ -355,6 +357,11 @@
       auth_delete_account_fail:'Дані видалено, але не вдалося видалити сам акаунт. Спробуй ще раз трохи згодом.',
       auth_delete_needs_login:'Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.',
       auth_account_deleted:'Акаунт видалено',
+      profiles_reset_title:'Скинути всі дані', profiles_reset_ok:'Скинути',
+      profiles_reset_confirm:'Остаточно стерти всі дані поточного профілю (зміни, фінанси, розрахунки, покупки) і почати спочатку? Акаунт і вхід залишаться — зміняться лише дані. Це незворотньо.',
+      profiles_reset_shared_blocked:'Це спільний профіль іншого акаунту — скинути можна лише свої власні профілі.',
+      profiles_reset_fail:'Не вдалося скинути дані. Спробуйте ще раз.',
+      profiles_reset_done:'Дані скинуто — починаємо спочатку',
       finance_pick_date:'Обери дату',
       finance_err_amount:'Введіть коректну суму', finance_err_amount_large:'Сума завелика', finance_err_date:'Оберіть дату', finance_err_date_format:'Некоректний формат дати', finance_err_wallet:'Оберіть гаманець', finance_err_comment_long:'Коментар занадто довгий', finance_err_field_long:'Назва категорії або підкатегорії занадто довга', finance_err_same_wallet:'Однакові рахунки',
       finance_delete_confirm:'Видалити цей запис?', finance_delete_title:'Видалити операцію',
@@ -554,6 +561,7 @@
       privacy_cache_hint_off:'Private mode: financial cache is cleared and data loads from the cloud after sign-in.',
       privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
+      settings_reset_data:'Reset all data', settings_reset_data_sub:'Start fresh in this profile',
       settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
       settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
       settings_phone_remove_title:'Remove number', settings_phone_linked:'Phone number added',
@@ -642,6 +650,11 @@
       auth_delete_account_fail:'Data deleted, but the account itself could not be deleted. Try again shortly.',
       auth_delete_needs_login:'Data deleted, but deleting the account needs a recent sign-in. Sign in again and repeat the account deletion right away.',
       auth_account_deleted:'Account deleted',
+      profiles_reset_title:'Reset all data', profiles_reset_ok:'Reset',
+      profiles_reset_confirm:'Permanently erase all data in the current profile (shifts, finances, settlements, shopping) and start over? Your account and sign-in stay — only the data changes. This cannot be undone.',
+      profiles_reset_shared_blocked:"This is another account's shared profile — you can only reset your own profiles.",
+      profiles_reset_fail:'Failed to reset data. Please try again.',
+      profiles_reset_done:'Data reset — starting fresh',
       finance_pick_date:'Pick a date',
       finance_err_amount:'Enter a valid amount', finance_err_amount_large:'Amount is too large', finance_err_date:'Choose a date', finance_err_date_format:'Invalid date format', finance_err_wallet:'Choose a wallet', finance_err_comment_long:'Comment is too long', finance_err_field_long:'Category or subcategory name is too long', finance_err_same_wallet:'Same account',
       finance_delete_confirm:'Delete this entry?', finance_delete_title:'Delete transaction',
