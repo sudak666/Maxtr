@@ -21,6 +21,15 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install root npm dependencies (Vite)
+        run: npm ci
+
+      # Vite build + scripts/build-site.mjs — the test suite below runs
+      # against source, not dist/, so this is the only CI check that would
+      # catch the bundle/site build itself breaking.
+      - name: Production build (dist/)
+        run: npm run build
+
       - name: Install Playwright
         run: npm install -g playwright@1.56.1
 
