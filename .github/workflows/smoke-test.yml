@@ -124,17 +124,18 @@ jobs:
     # Hosting artifact (dist/, produced by `npm run build` -> vite build ->
     # scripts/build-site.mjs) still works for real users, not just that it
     # builds without error (the `smoke` job's own `npm run build` step only
-    # catches that much). Deliberately a small, targeted subset of the full
-    # suite rather than all of it: 3 test files elsewhere in this repo
+    # catches that much). Runs the full browser-driven Playwright suite
+    # (everything below other than the pure-node tests and the Cloud
+    # Function syntax check, neither of which touch a served page) — this
+    # used to be a smaller, targeted subset because 3 test files
     # (monobank-connect.mjs, receipt-scan-ui.mjs,
-    # shared-profile-permissions.mjs) reach into the live app's module
-    # singletons via `page.evaluate(() => import('./js/state.js'))` from
-    # page context — a technique that only works when js/*.js files are
-    # served individually, not once they're inlined into one bundled
-    # output. Rewriting those 3 to use a test-only hook instead is real,
-    # separate follow-up work (see CHANGELOG.md's Phase 2 Vite entry) — the
-    # 3 tests below don't use that pattern, so they need no such rework to
-    # run correctly against dist/.
+    # shared-profile-permissions.mjs) reached into the live app's module
+    # singletons via `page.evaluate(() => import('./js/state.js'))`, which
+    # only worked when js/*.js files were served individually. Fixed by
+    # giving js/app.js a small `window.__RYTM_TEST_HOOKS__` export instead
+    # (see CHANGELOG.md's Vite bundler Phase 4 entry) — every browser test
+    # now runs identically against source or a bundle, so there's no
+    # remaining reason to keep dist-smoke's coverage narrower than smoke's.
     steps:
       - uses: actions/checkout@v4
 
@@ -165,7 +166,7 @@ jobs:
       - name: Stage tests against dist/
         run: |
           mkdir -p dist/tests
-          cp tests/smoke.mjs tests/e2e-crud.mjs tests/csp-handlers.mjs dist/tests/
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/receipt-scan-ui.mjs dist/tests/
           cp firebase.json dist/firebase.json
 
       - name: Run smoke test against dist/
@@ -176,9 +177,77 @@ jobs:
         working-directory: dist/tests
         run: node e2e-crud.mjs
 
+      - name: Run E2E modals test against dist/
+        working-directory: dist/tests
+        run: node e2e-modals.mjs
+
+      - name: Run stress test against dist/
+        working-directory: dist/tests
+        run: node stress-tx-list.mjs
+
+      - name: Run transaction list targeted-update test against dist/
+        working-directory: dist/tests
+        run: node tx-list-targeted-update.mjs
+
+      - name: Run pull-to-refresh test against dist/
+        working-directory: dist/tests
+        run: node pull-to-refresh.mjs
+
+      - name: Run transaction swipe-to-delete test against dist/
+        working-directory: dist/tests
+        run: node tx-swipe-delete.mjs
+
+      - name: Run debt swipe-to-delete test against dist/
+        working-directory: dist/tests
+        run: node debt-swipe-delete.mjs
+
+      - name: Run transaction list sort-order test against dist/
+        working-directory: dist/tests
+        run: node tx-list-sort-order.mjs
+
+      - name: Run bottom-sheet drag-to-dismiss test against dist/
+        working-directory: dist/tests
+        run: node sheet-drag-dismiss.mjs
+
       - name: Run CSP handlers test against dist/
         working-directory: dist/tests
         run: node csp-handlers.mjs
+
+      - name: Run PWA launch-params test against dist/
+        working-directory: dist/tests
+        run: node pwa-launch-params.mjs
+
+      - name: Run CSV import/export test against dist/
+        working-directory: dist/tests
+        run: node csv-import-export.mjs
+
+      - name: Run AI category suggestion test against dist/
+        working-directory: dist/tests
+        run: node ai-category-suggestion.mjs
+
+      - name: Run shared profiles UI test against dist/
+        working-directory: dist/tests
+        run: node shared-profiles-ui.mjs
+
+      - name: Run shared profile permissions test against dist/
+        working-directory: dist/tests
+        run: node shared-profile-permissions.mjs
+
+      - name: Run reset profile data test against dist/
+        working-directory: dist/tests
+        run: node reset-profile-data.mjs
+
+      - name: Run Monobank connect/sync test against dist/
+        working-directory: dist/tests
+        run: node monobank-connect.mjs
+
+      - name: Run hide-amounts test against dist/
+        working-directory: dist/tests
+        run: node hide-amounts.mjs
+
+      - name: Run receipt scan UI test against dist/
+        working-directory: dist/tests
+        run: node receipt-scan-ui.mjs
 
   firestore-rules:
     runs-on: ubuntu-latest

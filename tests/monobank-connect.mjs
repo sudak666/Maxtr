@@ -147,7 +147,7 @@ async function main() {
     // Shrink the real 61s Monobank rate-limit pacing gap so this test
     // doesn't take minutes — see setMonobankSyncGapMsForTesting()'s own
     // comment in js/monobank.js.
-    await page.evaluate(async () => { (await import('./js/monobank.js')).setMonobankSyncGapMsForTesting(30); });
+    await page.evaluate(() => { window.__RYTM_TEST_HOOKS__.setMonobankSyncGapMsForTesting(30); });
 
     await page.click('#btn-settings');
     await page.waitForTimeout(300);
@@ -161,7 +161,7 @@ async function main() {
     // js/core.js's DEFAULT_WALLETS) before this — baseline it rather than
     // assuming an absolute count, so this assertion doesn't silently break
     // if the app's default wallet seed ever changes.
-    const walletCountBeforeConnect = await page.evaluate(async () => (await import('./js/state.js')).AppState.wallets.length);
+    const walletCountBeforeConnect = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.wallets.length);
 
     await page.fill('#monobank-token-input', 'fake-personal-token');
     await page.click('[data-action="connect-monobank"]');
@@ -176,7 +176,7 @@ async function main() {
     if (accountRows !== 2) throw new Error(`expected 2 linked accounts (1 card + 1 jar), got ${accountRows}`);
     console.log('[ok] connecting links both the account and the jar (2 rows)');
 
-    const walletCount = await page.evaluate(async () => (await import('./js/state.js')).AppState.wallets.length);
+    const walletCount = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.wallets.length);
     if (walletCount !== walletCountBeforeConnect + 2) throw new Error(`expected 2 newly auto-created wallets on top of the ${walletCountBeforeConnect} pre-existing ones (1 per Monobank account/jar), got ${walletCount} total`);
     console.log(`[ok] connecting auto-created 2 new wallets, one per Monobank account/jar (${walletCountBeforeConnect} -> ${walletCount})`);
 
@@ -184,12 +184,12 @@ async function main() {
     await page.click('[data-action="sync-monobank"]');
     await page.waitForFunction(() => !document.getElementById('monobank-sync-btn').disabled, null, { timeout: 15000 });
     await page.waitForTimeout(200);
-    const txCountAfterFirstSync = await page.evaluate(async () => (await import('./js/state.js')).AppState.transactions.length);
+    const txCountAfterFirstSync = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.transactions.length);
     // 2 accounts each returning the same 3-row stub (1 hold + 2 real) = 4 new tx total.
     if (txCountAfterFirstSync !== 4) throw new Error(`expected 4 imported transactions (2 accounts x 2 non-hold rows each), got ${txCountAfterFirstSync}`);
     console.log('[ok] first sync imports non-hold transactions from both linked accounts, skips the hold one');
 
-    const hasHoldTx = await page.evaluate(async () => (await import('./js/state.js')).AppState.transactions.some((t) => (t.monobankId || '').endsWith('-hold-1')));
+    const hasHoldTx = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.transactions.some((t) => (t.monobankId || '').endsWith('-hold-1')));
     if (hasHoldTx) throw new Error('expected the hold:true entries to never be imported');
     console.log('[ok] the hold:true entries were never imported');
 
@@ -204,7 +204,7 @@ async function main() {
     await page.click('[data-action="sync-monobank"]');
     await page.waitForFunction(() => !document.getElementById('monobank-sync-btn').disabled, null, { timeout: 15000 });
     await page.waitForTimeout(200);
-    const txCountAfterSecondSync = await page.evaluate(async () => (await import('./js/state.js')).AppState.transactions.length);
+    const txCountAfterSecondSync = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.transactions.length);
     if (txCountAfterSecondSync !== txCountAfterFirstSync) throw new Error(`expected re-syncing the same data to import nothing new (dedup by Monobank id), went from ${txCountAfterFirstSync} to ${txCountAfterSecondSync}`);
     if (statementCallCount <= statementCallsBeforeSecondSync) throw new Error('expected the second sync to actually call the statement endpoint again (proving dedup, not "it never asked")');
     console.log('[ok] re-syncing the same date range imports nothing new (dedup by Monobank\'s own id)');
@@ -216,9 +216,9 @@ async function main() {
     await page.waitForTimeout(300);
     const formVisibleAfterDisconnect = await page.locator('#monobank-form').isVisible();
     if (!formVisibleAfterDisconnect) throw new Error('expected the not-connected form to reappear after disconnecting');
-    const walletCountAfterDisconnect = await page.evaluate(async () => (await import('./js/state.js')).AppState.wallets.length);
+    const walletCountAfterDisconnect = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.wallets.length);
     if (walletCountAfterDisconnect !== walletCount) throw new Error('expected disconnecting to leave the already-created wallets alone');
-    const txCountAfterDisconnect = await page.evaluate(async () => (await import('./js/state.js')).AppState.transactions.length);
+    const txCountAfterDisconnect = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.transactions.length);
     if (txCountAfterDisconnect !== txCountAfterFirstSync) throw new Error('expected disconnecting to leave already-imported transactions alone');
     console.log('[ok] disconnecting hides the connected view without deleting wallets/transactions');
 

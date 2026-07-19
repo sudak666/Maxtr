@@ -160,7 +160,7 @@ async function main() {
       const { context, page, pageErrors } = await newPage(browser, 'viewer-member', seed, initScript);
       await page.waitForTimeout(300);
 
-      const role = await page.evaluate(async () => (await import('./js/state.js')).AppState.activeProfileRole);
+      const role = await page.evaluate(() => window.__RYTM_TEST_HOOKS__.AppState.activeProfileRole);
       if (role !== 'viewer') throw new Error(`expected activeProfileRole 'viewer', got ${role}`);
       const hasReadonlyClass = await page.evaluate(() => document.body.classList.contains('profile-readonly'));
       if (!hasReadonlyClass) throw new Error('expected body.profile-readonly to be set');
@@ -172,9 +172,8 @@ async function main() {
       console.log('[ok] every "add transaction" entry point (FAB + quick-action tile) is hidden for a viewer');
 
       const toastText = await page.evaluate(async () => {
-        const mod = await import('./js/finance.js');
         document.getElementById('fin-amount').value = '10';
-        await mod.addTransaction();
+        await window.__RYTM_TEST_HOOKS__.addTransaction();
         return document.getElementById('toast').textContent;
       });
       if (!/лише перегляд/.test(toastText)) throw new Error(`expected a read-only toast, got: "${toastText}"`);
