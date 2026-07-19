@@ -1,25 +1,50 @@
+// @ts-check
 // ── PRIVACY CACHE ──────────────────────────────────────
 // Per-device privacy mode for sensitive app data. When disabled, the app
 // still syncs through Firestore but skips/restores no plaintext localStorage
 // cache for financial/profile data on this device.
+//
+// 5th file opted into TypeScript's checkJs, after js/tx-validation.js and
+// the 3 functions/lib/*.js files (see CLAUDE.md's TypeScript adoption
+// section) — picked as the next js/*.js candidate for the same reason
+// tx-validation.js was picked first: zero imports, touches no AppState/DOM,
+// so checking it surfaces zero cross-file resolution noise. Checked via
+// the root tsconfig.json (already covers js/**/*.js, no new config needed).
+
+/** @typedef {{list?: Array<{id?: string}>}} ProfilesMetaLike */
+
 export const SENSITIVE_CACHE_PREF_KEY = 'mxSensitiveCache';
 
 export const SENSITIVE_CACHE_NAMES = ['shifts','tx','recurring','debt','cfg'];
 
+/** @returns {boolean} */
 export function isSensitiveLocalCacheEnabled(){
   try{ return localStorage.getItem(SENSITIVE_CACHE_PREF_KEY) !== '0'; }
   catch(e){ return true; }
 }
 
+/**
+ * @param {boolean} enabled
+ * @returns {void}
+ */
 export function setSensitiveLocalCacheEnabled(enabled){
   try{ localStorage.setItem(SENSITIVE_CACHE_PREF_KEY, enabled ? '1' : '0'); }catch(e){}
 }
 
+/**
+ * @param {string|null|undefined} key
+ * @returns {string|null}
+ */
 export function getCacheItem(key){
   if(!key || !isSensitiveLocalCacheEnabled()) return null;
   try{ return localStorage.getItem(key); }catch(e){ return null; }
 }
 
+/**
+ * @param {string|null|undefined} key
+ * @param {string} value
+ * @returns {void}
+ */
 export function setCacheItem(key, value){
   if(!key) return;
   try{
@@ -28,16 +53,30 @@ export function setCacheItem(key, value){
   }catch(e){}
 }
 
+/**
+ * @param {string|null|undefined} key
+ * @returns {void}
+ */
 export function removeCacheItem(key){
   if(!key) return;
   try{ localStorage.removeItem(key); }catch(e){}
 }
 
+/**
+ * @param {string|null|undefined} uid
+ * @param {string} name
+ * @param {string|null|undefined} profileId
+ * @returns {string|null}
+ */
 function cacheKeyFor(uid, name, profileId){
   if(!uid) return null;
   return profileId && profileId!=='default' ? `mx_${name}_${uid}_${profileId}` : `mx_${name}_${uid}`;
 }
 
+/**
+ * @param {ProfilesMetaLike|null|undefined} profilesMeta
+ * @returns {string[]}
+ */
 export function sensitiveProfileIds(profilesMeta){
   const ids=['default'];
   const list=profilesMeta&&Array.isArray(profilesMeta.list)?profilesMeta.list:[];
@@ -45,6 +84,11 @@ export function sensitiveProfileIds(profilesMeta){
   return ids;
 }
 
+/**
+ * @param {string|null|undefined} uid
+ * @param {ProfilesMetaLike|null|undefined} profilesMeta
+ * @returns {void}
+ */
 export function clearSensitiveLocalCacheForAccount(uid, profilesMeta){
   if(!uid) return;
   sensitiveProfileIds(profilesMeta).forEach(profileId=>{
@@ -67,6 +111,10 @@ export function clearSensitiveLocalCacheForAccount(uid, profilesMeta){
   }catch(e){}
 }
 
+/**
+ * @param {(name: string) => (string|null|undefined)} lsKeyForName
+ * @returns {void}
+ */
 export function clearSensitiveLocalCacheForUser(lsKeyForName){
   SENSITIVE_CACHE_NAMES.forEach(name=>{
     try{ removeCacheItem(lsKeyForName(name)); }catch(e){}
