@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install root npm dependencies (Vite)
+      - name: Install root npm dependencies (Vite, TypeScript)
         run: npm ci
 
       # Vite build + scripts/build-site.mjs — the test suite below runs
@@ -29,6 +29,14 @@ jobs:
       # catch the bundle/site build itself breaking.
       - name: Production build (dist/)
         run: npm run build
+
+      # tsc --noEmit against tsconfig.json — most js/*.js files are
+      # unchecked (checkJs:false project-wide), only files opted in via a
+      # `// @ts-check` pragma actually get type-checked. See CLAUDE.md's
+      # TypeScript adoption section for why this repo is doing gradual,
+      # per-file opt-in rather than a one-shot full conversion.
+      - name: Type-check opted-in files
+        run: npm run typecheck
 
       - name: Install Playwright
         run: npm install -g playwright@1.56.1
@@ -143,7 +151,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install root npm dependencies (Vite)
+      - name: Install root npm dependencies (Vite, TypeScript)
         run: npm ci
 
       - name: Production build (dist/)
