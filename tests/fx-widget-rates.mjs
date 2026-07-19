@@ -107,6 +107,19 @@ async function main() {
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
 
+    // js/app-init.js's init() unconditionally calls maybeAutoUpdateRates()
+    // on cold start, which fetches live NBU rates (js/settings-managers.js)
+    // and overwrites the seed USD/EUR/GBP/PLN rates this test asserts
+    // against. This sandbox's own network blocks bank.gov.ua (see
+    // CLAUDE.md's "expected sandbox noise" note), which is why this looked
+    // deterministic locally — but a CI runner with real internet access
+    // lets the live fetch actually succeed, silently replacing the seed
+    // rate this test expects. Block it explicitly so the test is
+    // deterministic in any environment, not just this sandbox's.
+    await page.route('**bank.gov.ua**', (r) => r.abort());
+    await page.route('**allorigins.win**', (r) => r.abort());
+    await page.route('**/api/privat-rates', (r) => r.abort());
+
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
     await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
