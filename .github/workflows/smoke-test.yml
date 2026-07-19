@@ -125,6 +125,9 @@ jobs:
       - name: Run FX rates widget test (Preact)
         run: node tests/fx-widget-rates.mjs
 
+      - name: Run dashboard widgets test (daily tip + crypto top, Preact)
+        run: node tests/dashboard-widgets.mjs
+
       - name: Run receipt OCR text-parsing tests
         run: node tests/receipt-ocr-parse.mjs
 
@@ -183,7 +186,7 @@ jobs:
       - name: Stage tests against dist/
         run: |
           mkdir -p dist/tests
-          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/receipt-scan-ui.mjs dist/tests/
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/dashboard-widgets.mjs tests/receipt-scan-ui.mjs dist/tests/
           cp firebase.json dist/firebase.json
 
       - name: Run smoke test against dist/
@@ -273,6 +276,10 @@ jobs:
       - name: Run FX rates widget test against dist/
         working-directory: dist/tests
         run: node fx-widget-rates.mjs
+
+      - name: Run dashboard widgets test against dist/
+        working-directory: dist/tests
+        run: node dashboard-widgets.mjs
 
       - name: Run receipt scan UI test against dist/
         working-directory: dist/tests

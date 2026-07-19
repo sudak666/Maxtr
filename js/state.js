@@ -17,8 +17,9 @@
 // evaluation order right.
 // rates/converter/analytics moved into #tools-modal (see CLAUDE.md's
 // Finance-tab-widgets section) and are no longer part of the
-// show/hide+reorder widget system — only chart/goals remain toggleable.
-export const WIDGET_ORDER_DEFAULT = ['goals'];
+// show/hide+reorder widget system. dailyTip/cryptoTop (js/dashboard-widgets.js)
+// added alongside goals so the Widgets manager has more than one item.
+export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
   uk:{
     months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
@@ -78,7 +79,7 @@ export const AppState = {
   selectedTagIds: [],
   profile: {nickname:'', avatar:''},
   subscription: {plan:'free', expiresAt:null},
-  widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true},
+  widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
   notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, timeZone:'UTC'},
   txCategoryFilter: null,

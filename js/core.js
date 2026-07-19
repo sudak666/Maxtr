@@ -5,6 +5,7 @@
 import { AppState, LANG_CALENDAR, WIDGET_ORDER_DEFAULT } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
+import { renderDailyTip, renderCryptoTop } from './dashboard-widgets.js';
 import { renderDebt } from './debt.js';
 import { updateAmountLabel } from './finance.js';
 import { renderGoals, renderProfileUI } from './goals-profile.js';
@@ -149,8 +150,9 @@ export function canEditActiveProfile(){
 
 // rates/converter/analytics/chart all moved into #tools-modal (see
 // CLAUDE.md's Finance-tab-widgets section) — no longer part of the
-// toggleable show/hide+reorder set, so only goals remains here.
-const WIDGET_SECTION_IDS={goals:'goals-section'};
+// toggleable show/hide+reorder set. dailyTip/cryptoTop (js/dashboard-widgets.js)
+// added alongside goals.
+const WIDGET_SECTION_IDS={goals:'goals-section', dailyTip:'daily-tip-section', cryptoTop:'crypto-top-section'};
 
 export function sanitizeWidgetOrder(arr){
   const seen=new Set();
@@ -160,10 +162,12 @@ export function sanitizeWidgetOrder(arr){
 }
 
 export function applyWidgetVisibility(){
-  // goals is the only entry left in WIDGET_SECTION_IDS, and it self-hides
-  // when empty (handled inside renderGoals()) rather than via the
-  // AppState.widgets show/hide toggle here.
+  // Each of these self-hides when empty/toggled-off inside its own render
+  // function (renderGoals() for an empty goals list, renderCryptoTop() for
+  // no cached data yet) rather than via a separate show/hide step here.
   renderGoals();
+  renderDailyTip();
+  renderCryptoTop();
   applyWidgetOrder();
 }
 

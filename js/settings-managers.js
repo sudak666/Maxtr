@@ -8,6 +8,7 @@ import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
+import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
@@ -259,10 +260,12 @@ const openToolsManager = function(){
 
 // Rates/converter/analytics/chart are no longer toggleable widgets here —
 // they moved into #tools-modal (see openToolsManager above) and are always
-// reachable from there, so only the one section still living inline in
-// the Finance tab's scroll (goals) needs a show/hide+reorder toggle.
+// reachable from there. dailyTip/cryptoTop (js/dashboard-widgets.js) added
+// alongside goals so this list has more than one item.
 const WIDGET_DEFS=[
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
+  {key:'dailyTip', icon:'sparkle', color:'#3b82f6', titleKey:'widgets_item_dailyTip', subKey:'widgets_item_dailyTip_sub'},
+  {key:'cryptoTop', icon:'coin', color:'#f7931a', titleKey:'widgets_item_cryptoTop', subKey:'widgets_item_cryptoTop_sub'},
 ];
 
 function renderWidgetsList(){
@@ -293,6 +296,14 @@ const toggleWidget = function(key, on){
   AppState.widgets[key]=!!on;
   saveConfigLocal(); scheduleSave();
   applyWidgetVisibility();
+  // Re-enabling cryptoTop after it was off at cold init (when
+  // maybeRefreshCryptoTop() in app-init.js's init() was the only call site
+  // and returned immediately since the widget was disabled) would otherwise
+  // leave the section hidden forever with no cached data and no other
+  // trigger to ever fetch it, short of a full page reload. Safe to call
+  // unconditionally on every toggle — it already no-ops internally when the
+  // widget is off or the cache is still fresh.
+  maybeRefreshCryptoTop();
 };
 
 const moveWidget = function(key, dir){
