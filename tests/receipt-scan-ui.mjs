@@ -222,11 +222,10 @@ async function main() {
       }));
       await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
       const outcome = await page.evaluate(async () => {
-        const mod = await import('./js/receipt-ocr.js');
         const file = new File([new Uint8Array([137, 80, 78, 71])], 'test.png', { type: 'image/png' });
         const start = Date.now();
         try {
-          await mod.scanReceiptImage(file, 1000);
+          await window.__RYTM_TEST_HOOKS__.scanReceiptImage(file, 1000);
           return { ok: false, reason: 'expected a rejection, resolved instead' };
         } catch (e) {
           return { ok: e.message === 'receipt-ocr-timeout', message: e.message, elapsedMs: Date.now() - start };
