@@ -45,6 +45,18 @@ const MODULE_GRAPH_FILES = new Set([
   'debt.js', 'shopping.js', 'privacy-cache.js', 'monobank.js',
 ]);
 
+// Vendored dependencies reached via a real *static* import (unlike
+// js/vendor/tesseract/, which js/receipt-ocr.js only ever reaches via a
+// /* @vite-ignore */'d dynamic import() and so must stay a standalone
+// file even in dist/) end up fully inlined into the bundle by Vite. A
+// standalone copy of these in dist/ would be genuinely unused dead
+// weight — never fetched by anything — and worse, listing it in sw.js's
+// STATIC_ASSETS would make the dist/-served service worker's
+// cache.addAll() 404 during install, since the file doesn't actually
+// exist there. Excluded from the copy below and stripped from
+// STATIC_ASSETS further down.
+const ALWAYS_BUNDLED_VENDOR_DIRS = new Set(['preact']);
+
 // A plain recursive walk (rather than fs.cpSync(ROOT, DIST, {filter})) —
 // cpSync refuses outright to copy a directory into its own subdirectory
 // ("Cannot copy X to a subdirectory of self"), even when a filter would
@@ -58,6 +70,7 @@ function shouldCopy(rel) {
   if (parts[0].startsWith('.')) return false; // other dotfiles/dirs
   if (EXCLUDE_MD.test(rel)) return false;
   if (parts[0] === 'js' && parts.length === 2 && MODULE_GRAPH_FILES.has(parts[1])) return false;
+  if (parts[0] === 'js' && parts[1] === 'vendor' && ALWAYS_BUNDLED_VENDOR_DIRS.has(parts[2])) return false;
   return true;
 }
 
@@ -98,6 +111,14 @@ let sw = readFileSync(swPath, 'utf8');
 const literalBlock = "  './js/app.js',\n" + [...MODULE_GRAPH_FILES].filter(f => f !== 'app.js').map(f => `  './js/${f}',`).join('\n');
 if (!sw.includes(literalBlock)) throw new Error('build-site.mjs: expected sw.js\'s STATIC_ASSETS module-graph block to match the known 20-file list — sw.js may have changed shape upstream, update this script');
 sw = sw.replace(literalBlock, `  './js/${bundleFile}',`);
+
+// Strip any always-bundled vendor dependency's own STATIC_ASSETS line
+// (see ALWAYS_BUNDLED_VENDOR_DIRS above) — it's inlined into bundleFile
+// already, and the standalone file it would otherwise point at doesn't
+// exist in dist/.
+for (const dir of ALWAYS_BUNDLED_VENDOR_DIRS) {
+  sw = sw.replace(new RegExp(`^ {2}'\\./js/vendor/${dir}/[^']+',\\n`, 'm'), '');
+}
 
 // CACHE_NAME must change whenever *any* precached file's bytes change, not
 // just the JS bundle — the browser detects a new service worker purely by
