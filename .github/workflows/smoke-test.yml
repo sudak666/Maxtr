@@ -117,6 +117,69 @@ jobs:
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
+  dist-smoke:
+    runs-on: ubuntu-latest
+    # Everything in the `smoke` job above tests source directly (what
+    # GitHub Pages serves) — this job separately proves the actual Firebase
+    # Hosting artifact (dist/, produced by `npm run build` -> vite build ->
+    # scripts/build-site.mjs) still works for real users, not just that it
+    # builds without error (the `smoke` job's own `npm run build` step only
+    # catches that much). Deliberately a small, targeted subset of the full
+    # suite rather than all of it: 3 test files elsewhere in this repo
+    # (monobank-connect.mjs, receipt-scan-ui.mjs,
+    # shared-profile-permissions.mjs) reach into the live app's module
+    # singletons via `page.evaluate(() => import('./js/state.js'))` from
+    # page context — a technique that only works when js/*.js files are
+    # served individually, not once they're inlined into one bundled
+    # output. Rewriting those 3 to use a test-only hook instead is real,
+    # separate follow-up work (see CHANGELOG.md's Phase 2 Vite entry) — the
+    # 3 tests below don't use that pattern, so they need no such rework to
+    # run correctly against dist/.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install root npm dependencies (Vite)
+        run: npm ci
+
+      - name: Production build (dist/)
+        run: npm run build
+
+      - name: Install Playwright
+        run: npm install -g playwright@1.56.1
+
+      - name: Install Chromium
+        run: playwright install --with-deps chromium
+
+      # Test files compute their own ROOT as the parent of their own
+      # directory (see e.g. tests/smoke.mjs), so copying them into
+      # dist/tests/ points that resolution at the built site instead of
+      # source. firebase.json is copied in too, only for
+      # csp-handlers.mjs's own CSP-header lookup — it's never actually
+      # served (scripts/build-site.mjs excludes it from every real build,
+      # same as firebase.json's own hosting.ignore already did before
+      # Phase 2), this is CI-only and dist/ here is never deployed.
+      - name: Stage tests against dist/
+        run: |
+          mkdir -p dist/tests
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/csp-handlers.mjs dist/tests/
+          cp firebase.json dist/firebase.json
+
+      - name: Run smoke test against dist/
+        working-directory: dist/tests
+        run: node smoke.mjs
+
+      - name: Run E2E CRUD test against dist/
+        working-directory: dist/tests
+        run: node e2e-crud.mjs
+
+      - name: Run CSP handlers test against dist/
+        working-directory: dist/tests
+        run: node csp-handlers.mjs
+
   firestore-rules:
     runs-on: ubuntu-latest
     # A separate job, not folded into `smoke` above: needs a JDK + the
