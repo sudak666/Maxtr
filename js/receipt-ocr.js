@@ -23,7 +23,9 @@ const TESS_PAGE_BASE = './js/vendor/tesseract';
 
 let tesseractLibPromise = null;
 function loadTesseractLib(){
-  if(!tesseractLibPromise) tesseractLibPromise = import(`${TESS_IMPORT_BASE}/tesseract.esm.min.js`).then(m => m.default || m);
+  // @vite-ignore: this must stay a pure runtime dynamic import, never
+  // statically bundled — see this file's header comment and vite.config.js.
+  if(!tesseractLibPromise) tesseractLibPromise = import(/* @vite-ignore */ `${TESS_IMPORT_BASE}/tesseract.esm.min.js`).then(m => m.default || m);
   return tesseractLibPromise;
 }
 
