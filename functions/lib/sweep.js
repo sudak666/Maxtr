@@ -1,3 +1,4 @@
+// @ts-check
 // Core notificationSweep logic, split out of index.js so it's unit-testable
 // without firebase-admin/firebase-functions credentials or even a
 // `node_modules` install — same "zero required install" property as
@@ -6,6 +7,50 @@
 // reads/writes and FCM sends; index.js supplies the real Firestore/FCM
 // clients and its own `firebase-functions/logger`, a test supplies fakes
 // and a plain no-op/console logger.
+//
+// Fourth file opted into TypeScript's checkJs, after js/tx-validation.js,
+// functions/lib/pure.js and functions/lib/monobank.js — see CLAUDE.md's
+// TypeScript adoption section, which explicitly flagged this one as a
+// bigger step than the first three: it's coupled to firebase-admin's
+// Firestore snapshot/doc types and the finance/debt docs' own shape.
+// Resolved that by NOT importing firebase-admin's real types at all (this
+// repo's CI never runs `npm install` inside functions/, so those types
+// aren't reliably resolvable there) — `db`/`sendPushFn` and every Firestore
+// snapshot are instead described by small structural typedefs below that
+// only capture the handful of members this file actually reads
+// (`.exists`, `.data()`, `.id`, `.docs`, `.empty`, `.ref.delete()`/`.set()`),
+// which is exactly the shape the fakes in tests/functions-sweep.mjs already
+// implement. `db` itself stays loosely typed (see its own comment below) —
+// faithfully typing Firestore's real chained builder API isn't worth it
+// for a function that only ever calls `.doc(path).get()`/`.collection(path).get()`.
+
+/** @typedef {{enabled?: boolean, timeZone?: string, time?: string, budgetAlerts?: boolean, recurringAlerts?: boolean, debtAlerts?: boolean}} NotifSettings */
+/** @typedef {{id: string, currency?: string}} WalletLike */
+/** @typedef {{type?: string, category?: string, date?: string, amount?: number, currency?: string}} TransactionLike */
+/** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
+/** @typedef {{id: string, dueDate?: string, name?: string}} DebtLike */
+/** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
+/** @typedef {{debts?: DebtLike[]}} DebtDocData */
+/** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
+/** @typedef {{sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, sentDebt?: Record<string, boolean>}} ProfileState */
+
+/** @typedef {{exists: boolean, data: () => FinanceDocData}} FinanceDocSnap */
+/** @typedef {{exists: boolean, data: () => DebtDocData}} DebtDocSnap */
+/** @typedef {{empty: boolean, docs: {data: () => TransactionLike}[]}} TransactionsQuerySnap */
+/** @typedef {{list?: ProfileEntry[]}} ProfilesMetaData */
+/** @typedef {{exists: boolean, data: () => ProfilesMetaData}} ProfilesMetaSnap */
+
+/** @typedef {{ok: boolean, invalid?: boolean}} PushResult */
+/** @typedef {(token: string, title: string, body: string, type: 'daily'|'budget'|'recurring'|'debt') => Promise<PushResult>} SendPushFn */
+
+/** @typedef {{token?: string, sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, profileState?: Record<string, ProfileState>}} TokenDocData */
+/**
+ * @typedef {Object} TokenDocSnap
+ * @property {string} id
+ * @property {() => TokenDocData} data
+ * @property {{delete: () => Promise<any>, set: (data: any, opts?: any) => Promise<any>}} ref
+ */
+
 const { toBase, zonedDateParts, todayStr, monthPrefix } = require('./pure');
 
 const DCOL = 'max_tracker';
@@ -13,12 +58,20 @@ const DCOL = 'max_tracker';
 // Financial doc name for a given profile id, mirroring the client's
 // userDoc() in index.html: the default profile keeps the unsuffixed name,
 // any other profile reads "finance@<profileId>".
+/**
+ * @param {string} [profileId]
+ * @returns {string}
+ */
 function financeDocName(profileId) {
   return profileId && profileId !== 'default' ? `finance@${profileId}` : 'finance';
 }
 
 // Same suffixing convention, for the separate "debt" doc (debts/dueDate
 // don't live in the finance doc — see CLAUDE.md's Firestore data model).
+/**
+ * @param {string} [profileId]
+ * @returns {string}
+ */
 function debtDocName(profileId) {
   return profileId && profileId !== 'default' ? `debt@${profileId}` : 'debt';
 }
@@ -29,6 +82,13 @@ function debtDocName(profileId) {
 // why it needs this) asks exactly the same question sweepProfile's own
 // step 1 does below, rather than two copies of this logic silently
 // drifting apart over time.
+/**
+ * @param {FinanceDocSnap} financeSnap
+ * @param {TransactionsQuerySnap|null|undefined} transactionsSnap
+ * @param {ProfileState} prevState
+ * @param {Date} now
+ * @returns {{needed: boolean, today: string|null}}
+ */
 function dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now) {
   if (!financeSnap.exists) return { needed: false, today: null };
   const f = financeSnap.data();
@@ -78,6 +138,21 @@ function dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now) {
 // else owns, only a {kind:'shared', ownerUid} reference in their own
 // profiles_meta). `uid` itself keeps meaning "whose push_tokens doc/device
 // this is" throughout — only the *data path* changes for a shared profile.
+/**
+ * @param {any} db Firestore-like `{doc(path): {get(): Promise}}` — see this file's header comment for why it isn't more strictly typed.
+ * @param {SendPushFn} sendPushFn
+ * @param {string} uid
+ * @param {string} profileId
+ * @param {string} token
+ * @param {ProfileState} prevState
+ * @param {Date} now
+ * @param {FinanceDocSnap} [financeSnap]
+ * @param {DebtDocSnap} [debtSnap]
+ * @param {TransactionsQuerySnap} [transactionsSnap]
+ * @param {boolean} [skipDaily]
+ * @param {string} [dataOwnerUid]
+ * @returns {Promise<{updates: Record<string, any>|null, tokenInvalid: boolean}|null>}
+ */
 async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap, transactionsSnap, skipDaily = false, dataOwnerUid = uid) {
   if (!financeSnap) financeSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${financeDocName(profileId)}`).get();
   if (!financeSnap.exists) return null;
@@ -91,7 +166,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   const categories = f.categories || {};
   const recurring = Array.isArray(f.recurring) ? f.recurring : [];
   const rates = f.currencyRates || {};
-  const walletCurrency = (id) => (wallets.find((w) => w.id === id) || {}).currency || 'UAH';
+  const walletCurrency = (/** @type {string|undefined} */ id) => wallets.find((w) => w.id === id)?.currency || 'UAH';
   if (!debtSnap) debtSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${debtDocName(profileId)}`).get();
   const debts = debtSnap.exists && Array.isArray(debtSnap.data().debts) ? debtSnap.data().debts : [];
 
@@ -196,6 +271,14 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
 // UTC clock. Accounts whose settings predate the timeZone field fall back
 // to UTC (best-effort, not to-the-minute precise) until they next touch
 // their notification settings, at which point the client backfills it.
+/**
+ * @param {any} db Firestore-like `{doc(path): {get(): Promise}}` — see sweepProfile's own param comment.
+ * @param {SendPushFn} sendPushFn
+ * @param {TokenDocSnap} tokenDoc
+ * @param {Date} now
+ * @param {(msg: string, meta?: any) => void} [logFn]
+ * @returns {Promise<void>}
+ */
 async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   const uid = tokenDoc.id;
   const data = tokenDoc.data();
