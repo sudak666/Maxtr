@@ -12,6 +12,14 @@ import { setCacheItem } from './privacy-cache.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
 import { validateTransactionDraft } from './tx-validation.js';
 import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm } from './ui-widgets.js';
+// Vendored (not an npm import) so this resolves identically whether
+// js/analytics-csv.js is served unbundled (GitHub Pages) or bundled by
+// Vite (dist/, Firebase Hosting) — same reasoning as js/debt.js's own
+// Preact import, see CLAUDE.md's "Preact adoption" note. Second widget
+// converted after the debt payoff-forecast chart proof of concept — same
+// profile (pure, read-only, single call site, previously built via manual
+// innerHTML= + inline-style writes).
+import { h, render, Fragment } from './vendor/preact/preact.module.js';
 
 // Transient (not persisted, resets on reload) — whether the transaction
 // history below the filters is showing everything or just the collapsed
@@ -21,6 +29,28 @@ import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert,
 // per-file transient state, just without even needing cross-file access.
 let txListExpanded=false;
 const TX_LIST_COLLAPSED_COUNT=5;
+
+// This app's second Preact-rendered widget, after js/debt.js's payoff-
+// forecast chart (see CLAUDE.md's "Preact adoption" note) — same small,
+// stateless-component pattern: a plain function returning h() trees, no
+// JSX/hooks/classes. render(h(...), donut) always replaces *both* children
+// below together, so there's no risk of the "done" state's stale content
+// lingering next to a later populated-state render the way a raw
+// innerHTML= write could otherwise leave behind. The donut's own
+// conic-gradient background is a container-level inline style, set on
+// #analytics-donut itself outside of Preact (Preact only owns the
+// container's children) — same division of responsibility as
+// renderDebtForecast()'s wrap.style.display living outside its own
+// Preact-rendered children.
+function AnalyticsDonut({ empty, totalStr, label }){
+  return h(Fragment, null,
+    h('div', { class:'analytics-donut-hole' }),
+    h('div', { class:'analytics-donut-center' },
+      empty ? null : h('span', { class:'analytics-donut-total' }, totalStr),
+      h('span', { class:'analytics-donut-label' }, label)
+    )
+  );
+}
 
 const toggleTxListExpanded = function(){
   txListExpanded=!txListExpanded;
@@ -129,7 +159,7 @@ function renderAnalytics(){
   if(donut){
     if(!expenseByCat.length || totalExpense<=0){
       donut.style.background='var(--bg3)';
-      donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-label">${tr('analytics_no_data')}</span></div>`;
+      render(h(AnalyticsDonut, { empty:true, label: tr('analytics_no_data') }), donut);
     }else{
       let acc=0;
       const stops=expenseByCat.map(([cat,amt])=>{
@@ -139,7 +169,7 @@ function renderAnalytics(){
         return `${color} ${startPct}% ${acc/totalExpense*100}%`;
       }).join(', ');
       donut.style.background=`conic-gradient(${stops})`;
-      donut.innerHTML=`<div class="analytics-donut-hole"></div><div class="analytics-donut-center"><span class="analytics-donut-total">${totalExpense.toLocaleString('uk-UA')}</span><span class="analytics-donut-label">${tr('finance_amount_prefix')}</span></div>`;
+      render(h(AnalyticsDonut, { empty:false, totalStr: totalExpense.toLocaleString('uk-UA'), label: tr('finance_amount_prefix') }), donut);
     }
     // Retrigger the CSS entrance animation on every data change, not just
     // the first paint — a CSS animation only fires once for an element that
