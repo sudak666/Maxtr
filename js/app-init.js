@@ -8,6 +8,7 @@ import { maybeShowSettingsTip } from './auth.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkeleton, runAutoFillCheck } from './calendar.js';
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
 import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
+import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { renderDebt } from './debt.js';
 import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
 import { loadActiveProfileRole, loadProfilesMeta, lsKey } from './firebase-sync.js';
@@ -72,7 +73,7 @@ export async function init(){
   // if none cached yet so the first render before cloud load doesn't break.
   let cfgCached=false;
   try{const k=lsKey('cfg'); const c=k&&getCacheItem(k); if(c){const o=JSON.parse(c);
-    if(o&&o.shiftTypes&&o.wallets&&o.categories){AppState.shiftTypes=o.shiftTypes; AppState.autoFillSchedule=(o.autoFillSchedule&&typeof o.autoFillSchedule==='object')?{enabled:!!o.autoFillSchedule.enabled, typeId:o.autoFillSchedule.typeId||'', pattern:o.autoFillSchedule.pattern||'every', anchorDate:o.autoFillSchedule.anchorDate||''}:{enabled:false,typeId:'',pattern:'every',anchorDate:''}; AppState.wallets=o.wallets; AppState.categories=o.categories; AppState.budgets=o.budgets||{}; AppState.subcategories=o.subcategories||{}; AppState.categoryIcons=o.categoryIcons||{}; AppState.currencyRates=o.currencyRates||{}; AppState.tags=Array.isArray(o.tags)?o.tags:[]; AppState.autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; AppState.goals=Array.isArray(o.goals)?o.goals:[]; AppState.profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; AppState.subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; AppState.widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true}; AppState.widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); AppState.integrations=(o.integrations&&typeof o.integrations==='object')?o.integrations:{monobank:null}; AppState.catBackfillDone=!!o.catBackfillDone; AppState.catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
+    if(o&&o.shiftTypes&&o.wallets&&o.categories){AppState.shiftTypes=o.shiftTypes; AppState.autoFillSchedule=(o.autoFillSchedule&&typeof o.autoFillSchedule==='object')?{enabled:!!o.autoFillSchedule.enabled, typeId:o.autoFillSchedule.typeId||'', pattern:o.autoFillSchedule.pattern||'every', anchorDate:o.autoFillSchedule.anchorDate||''}:{enabled:false,typeId:'',pattern:'every',anchorDate:''}; AppState.wallets=o.wallets; AppState.categories=o.categories; AppState.budgets=o.budgets||{}; AppState.subcategories=o.subcategories||{}; AppState.categoryIcons=o.categoryIcons||{}; AppState.currencyRates=o.currencyRates||{}; AppState.tags=Array.isArray(o.tags)?o.tags:[]; AppState.autoRules=Array.isArray(o.autoRules)?o.autoRules:[]; AppState.goals=Array.isArray(o.goals)?o.goals:[]; AppState.profile=(o.profile&&typeof o.profile==='object')?o.profile:{nickname:'',avatar:''}; AppState.subscription=(o.subscription&&typeof o.subscription==='object')?{plan:o.subscription.plan||'free',expiresAt:o.subscription.expiresAt||null}:{plan:'free',expiresAt:null}; AppState.widgets=(o.widgets&&typeof o.widgets==='object')?{rates:o.widgets.rates!==false,converter:o.widgets.converter!==false,analytics:o.widgets.analytics!==false,chart:o.widgets.chart!==false,goals:o.widgets.goals!==false,dailyTip:o.widgets.dailyTip!==false,cryptoTop:o.widgets.cryptoTop!==false}:{rates:true,converter:true,analytics:true,chart:true,goals:true,dailyTip:true,cryptoTop:true}; AppState.widgetOrder=sanitizeWidgetOrder(o.widgetOrder); normalizeWallets(); AppState.integrations=(o.integrations&&typeof o.integrations==='object')?o.integrations:{monobank:null}; AppState.catBackfillDone=!!o.catBackfillDone; AppState.catLegacyMerged=!!o.catLegacyMerged; cfgCached=true;}}}catch{}
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=document.getElementById('fin-date');
@@ -109,6 +110,7 @@ export async function init(){
   renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI();
   runNotificationChecks();
   maybeAutoUpdateRates();
+  maybeRefreshCryptoTop();
   // Re-attach the foreground push handler if this device already has push
   // enabled from a previous session (registering the token itself only
   // happens once, in enablePushNotifications()).

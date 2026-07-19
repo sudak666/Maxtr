@@ -467,6 +467,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .fx-widget-row+.fx-widget-row{border-top:1px dashed var(--border)}
 .fx-widget-rate{margin-left:auto;text-align:right;font-size:14px;font-weight:800;color:var(--text-strong);flex-shrink:0}
 
+/* ── Порада дня ── */
+.daily-tip-text{font-size:13.5px;line-height:1.5;color:var(--text-strong)}
+
+/* ── Топ криптовалюти ── */
+.crypto-top-row{display:flex;align-items:center;gap:12px;padding:10px 0}
+.crypto-top-row+.crypto-top-row{border-top:1px dashed var(--border)}
+.crypto-top-spark{width:60px;height:24px;flex-shrink:0}
+.crypto-top-spark svg{width:100%;height:100%;display:block}
+.crypto-top-price{margin-left:auto;text-align:right;font-size:14px;font-weight:800;color:var(--text-strong);flex-shrink:0;white-space:nowrap}
+
 /* ── TOGGLE SWITCH (checkbox styled as an iOS-like slider) ── */
 .toggle{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;cursor:pointer}
 .toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
@@ -1064,6 +1074,11 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .tx-amount.transfer{color:var(--blue2)}
 
 /* ── HIDE AMOUNTS (privacy toggle in the topbar) ── */
+/* .crypto-top-price deliberately NOT included here — it's a public market
+   price (same for every user), not a personal financial amount, so
+   blurring it wouldn't protect anything the way blurring a wallet balance
+   or transaction amount does. See CLAUDE.md's UI-conventions note on this
+   list being for personal money displays specifically. */
 body.amounts-hidden .stat-val,
 body.amounts-hidden .tx-amount,
 body.amounts-hidden .fx-widget-rate,
@@ -1772,10 +1787,28 @@ body.amounts-hidden #fx-converter-result{
       <div id="goals-list"></div>
     </div>
 
+    <!-- Порада дня: чиста локальна ротація по масиву порад (js/dashboard-widgets.js),
+         без жодного зовнішнього запиту — самоприховується лише через тумблер
+         AppState.widgets.dailyTip, ніколи не буває порожнім сам по собі. -->
+    <div class="chart-section" id="daily-tip-section" style="display:none">
+      <div class="chart-title"><span id="ic-daily-tip"></span><span data-i18n="finance_daily_tip_title">Порада дня</span></div>
+      <div id="daily-tip-text" class="daily-tip-text"></div>
+    </div>
+
+    <!-- Топ криптовалюти: живі дані з CoinGecko (js/dashboard-widgets.js),
+         кешовані в localStorage — самоприховується, поки не прийшли перші
+         реальні дані (той самий підхід, що й у renderGoals() для порожнього
+         списку цілей), а не показує порожні/биті рядки. -->
+    <div class="chart-section" id="crypto-top-section" style="display:none">
+      <div class="chart-title"><span id="ic-crypto-top"></span><span data-i18n="finance_crypto_top_title">Топ криптовалюти</span></div>
+      <div id="crypto-top-list"></div>
+    </div>
+
     <!-- Бюджети по категоріях: не входить у widgetOrder (завжди сама
          ховається за відсутності бюджету), тож навмисно останній елемент
          блоку — слугує нерухомим "якорем", відносно якого applyWidgetOrder()
-         переставляє решту 1 віджет (goals) через insertBefore. -->
+         переставляє решту 3 віджети (goals, dailyTip, cryptoTop) через
+         insertBefore. -->
     <div class="chart-section" id="budgets-section" style="display:none">
       <div class="chart-title"><span id="ic-budget"></span><span data-i18n="finance_budgets_title">Бюджети цього місяця</span></div>
       <div id="budgets-list"></div>

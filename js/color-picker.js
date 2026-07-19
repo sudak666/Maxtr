@@ -383,7 +383,7 @@ export function seedConfigFromDocs(sData, fData){
   AppState.goals = (fData && Array.isArray(fData.goals)) ? fData.goals : [];
   AppState.profile = (fData && fData.profile) ? {nickname:fData.profile.nickname||'', avatar:fData.profile.avatar||''} : {nickname:'', avatar:''};
   AppState.subscription = (fData && fData.subscription) ? {plan:fData.subscription.plan||'free', expiresAt:fData.subscription.expiresAt||null} : {plan:'free', expiresAt:null};
-  AppState.widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false, goals:fData.widgets.goals!==false} : {rates:true, converter:true, analytics:true, chart:true, goals:true};
+  AppState.widgets = (fData && fData.widgets && typeof fData.widgets==='object') ? {rates:fData.widgets.rates!==false, converter:fData.widgets.converter!==false, analytics:fData.widgets.analytics!==false, chart:fData.widgets.chart!==false, goals:fData.widgets.goals!==false, dailyTip:fData.widgets.dailyTip!==false, cryptoTop:fData.widgets.cryptoTop!==false} : {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true};
   AppState.widgetOrder = sanitizeWidgetOrder(fData && fData.widgetOrder);
   // Merged (not replaced) over the local/localStorage copy, so a value
   // set on another device wins, but nothing here can be missing — the

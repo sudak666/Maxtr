@@ -259,10 +259,12 @@ const openToolsManager = function(){
 
 // Rates/converter/analytics/chart are no longer toggleable widgets here —
 // they moved into #tools-modal (see openToolsManager above) and are always
-// reachable from there, so only the one section still living inline in
-// the Finance tab's scroll (goals) needs a show/hide+reorder toggle.
+// reachable from there. dailyTip/cryptoTop (js/dashboard-widgets.js) added
+// alongside goals so this list has more than one item.
 const WIDGET_DEFS=[
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
+  {key:'dailyTip', icon:'sparkle', color:'#3b82f6', titleKey:'widgets_item_dailyTip', subKey:'widgets_item_dailyTip_sub'},
+  {key:'cryptoTop', icon:'coin', color:'#f7931a', titleKey:'widgets_item_cryptoTop', subKey:'widgets_item_cryptoTop_sub'},
 ];
 
 function renderWidgetsList(){

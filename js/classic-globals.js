@@ -198,6 +198,8 @@
   setIcon('ic-modal-cal','calendar');
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
+  setIcon('ic-daily-tip','sparkle');
+  setIcon('ic-crypto-top','coin');
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
   setIcon('ic-qa-tx','plus');
@@ -406,6 +408,8 @@
       widgets_item_rates:'Курси валют', widgets_item_rates_sub:'Компактний список курсів', widgets_item_converter:'Конвертер валют', widgets_item_converter_sub:'Швидкий перерахунок суми',
       widgets_item_analytics:'Аналітика', widgets_item_analytics_sub:'Витрати й доходи за категоріями', widgets_item_chart:'Графік балансу', widgets_item_chart_sub:'Баланс за останні 6 місяців',
       widgets_item_goals:'Цілі', widgets_item_goals_sub:'Прогрес накопичення на гаманцях',
+      widgets_item_dailyTip:'Порада дня', widgets_item_dailyTip_sub:'Коротка фінансова порада, що змінюється щодня',
+      widgets_item_cryptoTop:'Топ криптовалюти', widgets_item_cryptoTop_sub:'Курс і графік за 7 днів (BTC, ETH)',
       settings_premium:'Преміум', premium_free_plan:'Безкоштовний план', premium_active_plan:'Преміум активний',
       premium_title:'Rytm Преміум', premium_subtitle:'Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:',
       premium_perk_free_now:'Вже доступно безкоштовно', premium_perk_free_now_sub:'Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення',
@@ -447,6 +451,7 @@
       profiles_avatar_pick:'Оберіть аватар', color_pick_title:'Оберіть колір',
       cat_icon_pick_title:'Оберіть іконку',
       finance_goals_title:'Цілі', settings_goals:'Цілі', settings_goals_sub:'Накопичення на гаманці з ціллю',
+      finance_daily_tip_title:'Порада дня', finance_crypto_top_title:'Топ криптовалюти',
       goals_desc:'Прив\'яжи ціль до гаманця — прогрес рахується від його поточного балансу.',
       goals_add:'Додати ціль', goals_add_confirm:'Додати', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
       goals_reached:'Ціль досягнуто!', goals_added:'Ціль додано', goals_need_wallet:'Спочатку додай гаманець',
@@ -713,6 +718,8 @@
       widgets_item_rates:'Exchange rates', widgets_item_rates_sub:'Compact rates list', widgets_item_converter:'Currency converter', widgets_item_converter_sub:'Quick amount conversion',
       widgets_item_analytics:'Analytics', widgets_item_analytics_sub:'Income and expenses by category', widgets_item_chart:'Balance chart', widgets_item_chart_sub:'Balance over the last 6 months',
       widgets_item_goals:'Goals', widgets_item_goals_sub:'Savings progress on your wallets',
+      widgets_item_dailyTip:'Tip of the day', widgets_item_dailyTip_sub:'A short finance tip that changes daily',
+      widgets_item_cryptoTop:'Top crypto', widgets_item_cryptoTop_sub:'Price + 7-day chart (BTC, ETH)',
       settings_premium:'Premium', premium_free_plan:'Free plan', premium_active_plan:'Premium active',
       premium_title:'Rytm Premium', premium_subtitle:"Rytm is fully free right now — no limits. Here's what's next:",
       premium_perk_free_now:'Already free', premium_perk_free_now_sub:'Unlimited wallets, categories, rules, and recurring payments + push notifications',
@@ -754,6 +761,7 @@
       profiles_avatar_pick:'Choose an avatar', color_pick_title:'Choose a color',
       cat_icon_pick_title:'Choose an icon',
       finance_goals_title:'Goals', settings_goals:'Goals', settings_goals_sub:'Savings target on a wallet',
+      finance_daily_tip_title:'Tip of the day', finance_crypto_top_title:'Top crypto',
       goals_desc:'Link a goal to a wallet — progress is tracked from its current balance.',
       goals_add:'Add a goal', goals_add_confirm:'Add', goals_empty:'No goals yet', goals_target:'Target', goals_target_date:'Date (optional)',
       goals_reached:'Goal reached!', goals_added:'Goal added', goals_need_wallet:'Add a wallet first',
