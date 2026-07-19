@@ -12,6 +12,15 @@ import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
+// Vendored (not an npm import) so this resolves identically whether
+// js/settings-managers.js is served unbundled (GitHub Pages) or bundled by
+// Vite (dist/, Firebase Hosting) — same reasoning as js/debt.js's own
+// Preact import, see CLAUDE.md's "Preact adoption" note. Used only for the
+// fx-rates widget list below (renderFxWidget()) — the manager modals in
+// this same file (renderRatesList() etc.) keep their existing manual
+// innerHTML= rendering, since those have edit/delete/reorder interactions
+// that are a bigger conversion than this initiative's conservative pace.
+import { h, render, Fragment } from './vendor/preact/preact.module.js';
 
 // A plain function declaration is safe to call immediately at import time
 // from any other module (hoisted, no temporal-dead-zone risk — see
@@ -468,20 +477,39 @@ const updateRatesOnline = async function(silent){
 
 const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple)', PLN:'var(--orange)'};
 
+// This app's 3rd Preact-rendered widget, after js/debt.js's payoff-forecast
+// chart and js/analytics-csv.js's expense donut chart (see CLAUDE.md's
+// "Preact adoption" note) — same profile: pure, read-only, computed
+// entirely from AppState.currencyRates, single call site, previously
+// rebuilt in full via innerHTML= on every render. A plain stateless
+// function returning an h() tree per row, keyed by currency code so
+// Preact can match/reorder existing row nodes rather than always
+// recreating them.
+function FxWidgetRow({ color, symbol, title, sub, rateStr }){
+  return h('div', { class:'fx-widget-row' },
+    h('span', { class:'icon-badge icon-badge-symbol', style:{ background:color } }, symbol),
+    h('div', { class:'settings-row-text' },
+      h('div', { class:'settings-row-title' }, title),
+      h('div', { class:'settings-row-sub' }, sub)
+    ),
+    h('div', { class:'fx-widget-rate' }, rateStr)
+  );
+}
+
 export function renderFxWidget(){
   const box=document.getElementById('fx-widget-list'); if(!box) return;
-  box.innerHTML=CURRENCY_LIST.filter(c=>c!=='UAH').map(code=>{
+  const rows=CURRENCY_LIST.filter(c=>c!=='UAH').map(code=>{
     const rate=AppState.currencyRates[code] ?? SEED_RATES[code] ?? 1;
-    return `
-      <div class="fx-widget-row">
-        <span class="icon-badge icon-badge-symbol" style="background:${FX_WIDGET_COLORS[code]||'var(--muted)'}">${currencySymbol(code)}</span>
-        <div class="settings-row-text">
-          <div class="settings-row-title">${code}</div>
-          <div class="settings-row-sub">${tr('fx_name_'+code.toLowerCase())}</div>
-        </div>
-        <div class="fx-widget-rate">${rate.toLocaleString('uk-UA')} грн</div>
-      </div>`;
-  }).join('');
+    return h(FxWidgetRow, {
+      key: code,
+      color: FX_WIDGET_COLORS[code]||'var(--muted)',
+      symbol: currencySymbol(code),
+      title: code,
+      sub: tr('fx_name_'+code.toLowerCase()),
+      rateStr: `${rate.toLocaleString('uk-UA')} грн`,
+    });
+  });
+  render(h(Fragment, null, rows), box);
   const hint=document.getElementById('fx-widget-updated-hint');
   if(hint){
     let at=null;
