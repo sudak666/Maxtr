@@ -174,6 +174,46 @@ async function main() {
     if (coinGeckoCalls !== callsBeforeSecondCall) throw new Error(`expected no additional CoinGecko calls within the 30-minute refresh window, but count went from ${callsBeforeSecondCall} to ${coinGeckoCalls}`);
     console.log('[ok] a second refresh attempt within the 30-minute window reuses the cache instead of re-fetching (rate-limit dedup)');
 
+    // ── Re-enabling cryptoTop after it was off with no cached data must
+    // fetch immediately, not stay hidden until a full reload (a real bug
+    // found by Codex review on this PR: toggleWidget() used to only call
+    // applyWidgetVisibility(), which renders from whatever's already
+    // cached — with cryptoTop off since cold init, app-init.js's init()
+    // is the only maybeRefreshCryptoTop() call site and it returns
+    // immediately when the widget starts disabled, so nothing would ever
+    // trigger the first fetch once re-enabled). ──
+    await page.click('#btn-settings');
+    await page.waitForTimeout(200);
+    await page.click('.settings-row[data-action="open-widgets-manager"]');
+    await page.waitForSelector('#widgets-modal', { state: 'visible' });
+    await page.evaluate(() => {
+      const cb = document.querySelectorAll('#widgets-list input[type=checkbox]')[2]; // cryptoTop
+      cb.checked = false;
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+      localStorage.removeItem('mxCryptoTopCache');
+    });
+    await page.evaluate(() => { document.getElementById('widgets-modal').style.display = 'none'; });
+    await page.click('#nav-finance');
+    await page.waitForTimeout(200);
+    const cryptoHiddenAfterDisableAndClearCache = await page.evaluate(() => getComputedStyle(document.getElementById('crypto-top-section')).display === 'none');
+    if (!cryptoHiddenAfterDisableAndClearCache) throw new Error('expected the crypto widget to be hidden once disabled with no cached data');
+
+    const callsBeforeReEnable = coinGeckoCalls;
+    await page.click('#btn-settings');
+    await page.waitForTimeout(200);
+    await page.click('.settings-row[data-action="open-widgets-manager"]');
+    await page.waitForSelector('#widgets-modal', { state: 'visible' });
+    await page.evaluate(() => {
+      const cb = document.querySelectorAll('#widgets-list input[type=checkbox]')[2]; // cryptoTop
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await page.evaluate(() => { document.getElementById('widgets-modal').style.display = 'none'; });
+    await page.click('#nav-finance');
+    await page.waitForFunction(() => getComputedStyle(document.getElementById('crypto-top-section')).display !== 'none', { timeout: 5000 });
+    if (coinGeckoCalls <= callsBeforeReEnable) throw new Error(`expected re-enabling cryptoTop to trigger a fresh CoinGecko fetch, but call count stayed at ${coinGeckoCalls}`);
+    console.log('[ok] re-enabling "Топ криптовалюти" after it was off with no cached data fetches immediately instead of staying hidden');
+
     if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
     console.log('[ok] no uncaught page errors during the whole flow');
 

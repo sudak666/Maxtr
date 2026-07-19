@@ -8,6 +8,7 @@ import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
 import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
+import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
@@ -295,6 +296,14 @@ const toggleWidget = function(key, on){
   AppState.widgets[key]=!!on;
   saveConfigLocal(); scheduleSave();
   applyWidgetVisibility();
+  // Re-enabling cryptoTop after it was off at cold init (when
+  // maybeRefreshCryptoTop() in app-init.js's init() was the only call site
+  // and returned immediately since the widget was disabled) would otherwise
+  // leave the section hidden forever with no cached data and no other
+  // trigger to ever fetch it, short of a full page reload. Safe to call
+  // unconditionally on every toggle — it already no-ops internally when the
+  // widget is off or the cache is still fresh.
+  maybeRefreshCryptoTop();
 };
 
 const moveWidget = function(key, dir){
