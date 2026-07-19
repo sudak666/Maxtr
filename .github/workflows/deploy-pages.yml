@@ -1,0 +1,81 @@
+name: Deploy to GitHub Pages
+
+# Builds dist/ (the same Vite bundle Firebase Hosting serves — see
+# CLAUDE.md's "Build tooling (Vite bundler)" section) and publishes it to
+# GitHub Pages via the actions/deploy-pages flow, instead of the repo's
+# current Settings -> Pages -> "Deploy from a branch" setup, which serves
+# unbundled source straight from main (relying on Jekyll + _config.yml's
+# exclude list to keep non-site files like tests/functions/*.md out).
+#
+# This workflow alone does NOT switch anything — GitHub only runs it once
+# the repo's Settings -> Pages -> "Build and deployment" -> Source dropdown
+# is changed from "Deploy from a branch" to "GitHub Actions" (a manual,
+# one-time step only the account owner can do; see CLAUDE.md's Vite
+# bundler section for why no tool available to an agent session can flip
+# it). Until that switch happens, this workflow runs on every push to main
+# but its output is simply unused — the branch-based deploy keeps serving
+# the live site exactly as before, so merging this file is itself
+# deploy-inert and safe to land ahead of the Settings change.
+#
+# dist/'s asset references are all relative (scripts/build-site.mjs patches
+# index.html's bundle <script src> to a relative "./js/<bundle>.js", and
+# every other asset path in index.html/manifest.json was already relative
+# before Vite existed, since the app has always needed to work identically
+# whether served at Firebase Hosting's root or GitHub Pages's /Maxtr/
+# subpath) — so no base-path config is needed here, unlike a typical
+# Vite+Pages setup that needs vite.config.js's `base` option set.
+#
+# actions/deploy-pages serves the uploaded artifact byte-for-byte with no
+# Jekyll processing, so _config.yml's exclude list (which exists purely to
+# keep Jekyll from publishing tests/functions/*.md under the current
+# branch-based deploy) becomes moot once the Settings switch happens —
+# scripts/build-site.mjs's own EXCLUDE_TOP/EXCLUDE_MD lists already filter
+# dist/ down to just the real site files, so nothing else needs to change.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; a newer push should win over an
+# in-flight older one rather than queuing behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install root npm dependencies (Vite, TypeScript)
+        run: npm ci
+
+      - name: Production build (dist/)
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
