@@ -1,3 +1,4 @@
+// @ts-check
 // Pure, side-effect-free helpers for the monobankProxy Cloud Function
 // (functions/index.js) — split out so they're unit-testable
 // (tests/monobank-proxy.mjs) without firebase-admin credentials, same
@@ -12,6 +13,11 @@
 // index.js via firebase-admin's auth().verifyIdToken()) before it will
 // relay anything, so it can't be used as an anonymous internet-wide relay
 // into Monobank's API.
+//
+// Third file opted into TypeScript's checkJs, after js/tx-validation.js
+// and functions/lib/pure.js — see CLAUDE.md's TypeScript adoption
+// section. Checked via functions/tsconfig.json, same as pure.js (no new
+// config needed, already scoped to lib/**/*.js).
 
 const MONOBANK_BASE = 'https://api.monobank.ua';
 
@@ -20,8 +26,13 @@ const MONOBANK_BASE = 'https://api.monobank.ua';
 // chunks a longer sync range into windows this size.
 const MONOBANK_MAX_WINDOW_SEC = 2682000;
 
-// query: the Cloud Function request's parsed query string ({action, account, from, to}).
-// Returns {ok:true, url} or {ok:false, status, error}.
+/** @typedef {{ action?: string, account?: string, from?: string|number, to?: string|number }} MonobankQuery */
+/** @typedef {{ ok: true, url: string } | { ok: false, status: number, error: string }} MonobankUrlResult */
+
+/**
+ * @param {MonobankQuery} query the Cloud Function request's parsed query string
+ * @returns {MonobankUrlResult}
+ */
 function buildMonobankUrl(query) {
   const action = query && query.action;
   if (action === 'client-info') {
