@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v79';
+const CACHE_NAME = 'rytm-v80';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -101,6 +101,19 @@ const STATIC_ASSETS = [
   './js/shopping.js',
   './js/privacy-cache.js',
   './js/monobank.js',
+  // Vendored Preact (js/debt.js's payoff-forecast widget — see CLAUDE.md's
+  // "Preact adoption" note) — a real static import always loaded as part
+  // of the core module graph (unlike js/vendor/tesseract/, which is only
+  // ever reached via a conditional dynamic import()), so it needs
+  // precaching here for the same cold-start-offline reasoning as every
+  // other module-graph file above. Deliberately placed *after* the
+  // 20-file module-graph block above rather than inside it —
+  // scripts/build-site.mjs string-matches that exact block to substitute
+  // the Vite bundle filename for the dist/-served variant, and this file
+  // gets inlined into that same bundle too (a real static import Vite
+  // follows), so it must not appear as a separate dist/ STATIC_ASSETS
+  // entry the way it does here for the unbundled GitHub Pages mirror.
+  './js/vendor/preact/preact.module.js',
   // Classic (non-module) scripts index.html now loads via <script src=""> —
   // externalized from inline <script> blocks as part of the CSP hardening
   // pass (see CLAUDE.md) so script-src doesn't need 'unsafe-inline'/hashes.

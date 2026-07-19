@@ -116,6 +116,9 @@ jobs:
       - name: Run hide-amounts privacy toggle test
         run: node tests/hide-amounts.mjs
 
+      - name: Run debt payoff-forecast chart test (Preact)
+        run: node tests/debt-forecast-chart.mjs
+
       - name: Run receipt OCR text-parsing tests
         run: node tests/receipt-ocr-parse.mjs
 
@@ -174,7 +177,7 @@ jobs:
       - name: Stage tests against dist/
         run: |
           mkdir -p dist/tests
-          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/receipt-scan-ui.mjs dist/tests/
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/receipt-scan-ui.mjs dist/tests/
           cp firebase.json dist/firebase.json
 
       - name: Run smoke test against dist/
@@ -252,6 +255,10 @@ jobs:
       - name: Run hide-amounts test against dist/
         working-directory: dist/tests
         run: node hide-amounts.mjs
+
+      - name: Run debt payoff-forecast chart test against dist/
+        working-directory: dist/tests
+        run: node debt-forecast-chart.mjs
 
       - name: Run receipt scan UI test against dist/
         working-directory: dist/tests

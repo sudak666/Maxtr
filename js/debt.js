@@ -6,6 +6,13 @@ import { AppState } from './state.js';
 import { saveDebtLocal, scheduleSave } from './color-picker.js';
 import { DEBT_COLORS, canEditActiveProfile } from './core.js';
 import { emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+// Vendored (not an npm import) so this resolves identically whether
+// js/debt.js is served unbundled (GitHub Pages, a bare 'preact' package
+// specifier isn't a valid URL there) or bundled by Vite (dist/, Firebase
+// Hosting) — same reasoning as js/vendor/tesseract/ in js/receipt-ocr.js,
+// see CLAUDE.md's "Preact adoption" note. Preact-based rendering is used
+// only for the payoff-forecast widget below, a proof of concept.
+import { h, render, Fragment } from './vendor/preact/preact.module.js';
 
 function getCurrentDebt(){
   return AppState.debts.find(d=>d.id===AppState.currentDebtId)||AppState.debts[0];
@@ -227,6 +234,45 @@ function renderDebtProgress(cd,paid){
 // count-based "≈ N payments to go" is robust where a date projection would
 // often be garbage. Mirrors the burndown/pace view common in loan-payoff
 // trackers, built inline as SVG (no chart lib — see CLAUDE.md).
+// The two rendered pieces below (chart + text) are this app's first
+// Preact-rendered content — a deliberately small proof of concept before
+// considering it anywhere else (see CLAUDE.md's "Preact adoption" note).
+// Plain stateless functions returning h() trees, no JSX/hooks/classes —
+// every call site uses render(h(...), targetEl), never a raw innerHTML=
+// write into chartEl/textEl, since mixing the two in the same container
+// would desync Preact's internal diff tracking from the real DOM on a
+// later render.
+function DebtBurndownChart({ W, H, areaPts, linePts, lastX, lastY, title }){
+  return h('svg', { viewBox:`0 0 ${W} ${H}`, preserveAspectRatio:'none', role:'img', 'aria-label':title },
+    h('defs', null,
+      h('linearGradient', { id:'debtBurnFill', x1:'0', y1:'0', x2:'0', y2:'1' },
+        h('stop', { offset:'0%', 'stop-color':'rgba(139,92,246,.34)' }),
+        h('stop', { offset:'100%', 'stop-color':'rgba(139,92,246,0)' })
+      )
+    ),
+    h('polygon', { points:areaPts, fill:'url(#debtBurnFill)' }),
+    h('polyline', { points:linePts, fill:'none', stroke:'var(--purple2)', 'stroke-width':'2', 'stroke-linejoin':'round', 'stroke-linecap':'round', 'vector-effect':'non-scaling-stroke' }),
+    h('circle', { cx:lastX.toFixed(1), cy:lastY.toFixed(1), r:'3.5', fill:'var(--purple2)' })
+  );
+}
+
+// state: 'done' | 'no-pace' | 'pace'. The pace/avg i18n strings each carry
+// a {n}/{amt} placeholder meant to become a bolded value — split around
+// the placeholder and build a real <strong> element instead of
+// interpolating an HTML string (the previous innerHTML approach), so
+// there's no HTML-in-a-translation-string parsing involved at all.
+function DebtForecastText({ state, n, avgStr }){
+  if(state==='done') return h('span', { class:'debt-forecast-done' }, tr('debt_forecast_done'));
+  if(state==='no-pace') return tr('debt_forecast_no_pace');
+  const [paceBefore, paceAfter] = tr('debt_forecast_pace').split('{n}');
+  const [avgBefore, avgAfter] = tr('debt_forecast_avg').split('{amt}');
+  return h(Fragment, null,
+    paceBefore, h('strong', null, n), paceAfter,
+    h('br'),
+    avgBefore, h('strong', { class:'debt-amount-val' }, avgStr), avgAfter
+  );
+}
+
 function renderDebtForecast(cd, currentBalance){
   const wrap=document.getElementById('debt-forecast');
   const chartEl=document.getElementById('debt-burndown');
@@ -249,15 +295,7 @@ function renderDebtForecast(cd, currentBalance){
   const linePts=series.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const areaPts=`${x(0).toFixed(1)},${(H-pad).toFixed(1)} ${linePts} ${x(series.length-1).toFixed(1)},${(H-pad).toFixed(1)}`;
   const lastX=x(series.length-1), lastY=y(series[series.length-1]);
-  chartEl.innerHTML=
-    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${tr('debt_forecast_title')}">`+
-    `<defs><linearGradient id="debtBurnFill" x1="0" y1="0" x2="0" y2="1">`+
-    `<stop offset="0%" stop-color="rgba(139,92,246,.34)"/><stop offset="100%" stop-color="rgba(139,92,246,0)"/>`+
-    `</linearGradient></defs>`+
-    `<polygon points="${areaPts}" fill="url(#debtBurnFill)"/>`+
-    `<polyline points="${linePts}" fill="none" stroke="var(--purple2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`+
-    `<circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="var(--purple2)"/>`+
-    `</svg>`;
+  render(h(DebtBurndownChart, { W, H, areaPts, linePts, lastX, lastY, title: tr('debt_forecast_title') }), chartEl);
 
   // Average paydown per payment, counting only payments that actually
   // reduced the balance (a correction that raised it isn't "progress").
@@ -272,20 +310,18 @@ function renderDebtForecast(cd, currentBalance){
   wrap.style.display='';
 
   if(currentBalance<=0){
-    textEl.innerHTML=`<span class="debt-forecast-done">${tr('debt_forecast_done')}</span>`;
+    render(h(DebtForecastText, { state:'done' }), textEl);
     return;
   }
   if(avgDown<=0){
     // Balance never trended down (e.g. only-growing debt) — a pace estimate
     // would be meaningless/negative, so show the chart without a forecast.
-    textEl.innerHTML=tr('debt_forecast_no_pace');
+    render(h(DebtForecastText, { state:'no-pace' }), textEl);
     return;
   }
   const paymentsLeft=Math.max(1, Math.ceil(currentBalance/avgDown));
   const avgStr=Math.round(avgDown).toLocaleString('uk-UA')+' '+cur;
-  textEl.innerHTML=
-    tr('debt_forecast_pace').replace('{n}',`<strong>${paymentsLeft}</strong>`)+
-    `<br>`+tr('debt_forecast_avg').replace('{amt}',`<strong class="debt-amount-val">${avgStr}</strong>`);
+  render(h(DebtForecastText, { state:'pace', n:paymentsLeft, avgStr }), textEl);
 }
 
 export function renderDebt(){
