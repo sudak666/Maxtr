@@ -194,6 +194,22 @@ async function main() {
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
 
+    // js/app-init.js's init() unconditionally calls maybeAutoUpdateRates() on
+    // cold start, which fetches live NBU rates in the background. This
+    // sandbox's own network blocks bank.gov.ua outright (a net::ERR_* the
+    // filter below already tolerates), but a GitHub Actions runner has real
+    // internet access and gets a real response rejected by the browser's own
+    // CORS policy instead — a differently-worded console message
+    // ("blocked by CORS policy") that the net::ERR_*-only filter doesn't
+    // match, intermittently failing this test in CI depending on that
+    // runner's actual network reachability. Same lesson
+    // tests/fx-widget-rates.mjs's own CI flakiness taught: block the call
+    // explicitly via page.route() so the outcome is deterministic in any
+    // environment, rather than pattern-matching whatever error text a given
+    // environment happens to produce.
+    await page.route('**bank.gov.ua**', (r) => r.abort());
+    await page.route('**allorigins.win**', (r) => r.abort());
+
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
     console.log('[ok] page loaded with stubbed Firebase SDK (auth-gated flow: onAuthStateChanged sign-in)');
