@@ -229,8 +229,8 @@ async function renderSharedMembersList(profileId){
     const shortUid=escapeHtml(uid.length>10?uid.slice(0,10)+'…':uid);
     row.innerHTML=`
       <div class="mgr-name-inline">${shortUid}</div>
-      <span style="font-weight:800;font-size:12px;color:${role==='viewer'?'var(--muted2)':'var(--green2)'};text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${role==='viewer'?tr('profiles_member_role_viewer'):tr('profiles_member_role_editor')}</span>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="toggle-member-role" data-uid="${escapeHtml(uid)}" data-role="${role}">${role==='viewer'?tr('profiles_member_make_editor'):tr('profiles_member_make_viewer')}</button>
+      <span style="font-weight:800;font-size:13px;color:${role==='viewer'?'var(--muted2)':'var(--green2)'};text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${role==='viewer'?tr('profiles_member_role_viewer'):tr('profiles_member_role_editor')}</span>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="toggle-member-role" data-uid="${escapeHtml(uid)}" data-role="${role}">${role==='viewer'?tr('profiles_member_make_editor'):tr('profiles_member_make_viewer')}</button>
     `;
     box.appendChild(row);
   });
@@ -271,14 +271,14 @@ export function renderProfilesUI(){
     // own cosmetic copy in its own profilesMeta (see redeemSharedInvite())
     // — editable the same way as any other profile, just additionally
     // tagged so it's clear this data isn't solely this account's own.
-    const sharedBadge=isShared?`<span style="font-weight:800;font-size:12px;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
+    const sharedBadge=isShared?`<span style="font-weight:800;font-size:13px;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
     row.innerHTML=`
       <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${p.id}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${sharedBadge}
       ${isActive
-        ? `<span style="font-weight:800;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
-        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
+        ? `<span style="font-weight:800;font-size:13px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
+        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
       <div class="profile-row-actions">
         ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${p.id}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
         <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>

@@ -71,7 +71,7 @@ export function renderShoppingList(){
     row.innerHTML=`
       <input type="checkbox" class="rchk" ${it.done?'checked':''} data-action="toggle-shopping-item" data-id="${it.id}">
       <div class="mgr-name-inline" style="${it.done?'text-decoration:line-through;opacity:.55':''}">${escapeHtml(it.name)}</div>
-      ${it.qty>1?`<span style="font-size:12px;font-weight:700;color:var(--muted);flex:0 0 auto">×${it.qty}</span>`:''}
+      ${it.qty>1?`<span style="font-size:13px;font-weight:700;color:var(--muted);flex:0 0 auto">×${it.qty}</span>`:''}
       <button class="mgr-del" data-action="delete-shopping-item" data-id="${it.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);

@@ -151,7 +151,7 @@ function renderShiftTypesList(){
           <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" data-action="update-shift-type" data-id="${t.id}" data-field="amount"></div>
           <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" data-action="update-shift-type" data-id="${t.id}" data-field="hours"></div>
         </div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:700">
           <input type="checkbox" class="rchk" ${t.isOff?'checked':''} data-action="update-shift-type" data-id="${t.id}" data-field="isOff"> ${tr('shifts_type_off_label')}
         </label>
       </div>`:''}`;
@@ -623,7 +623,7 @@ function renderCategoriesList(){
         <div style="display:flex;flex-wrap:wrap;gap:6px">
           ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(AppState.catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button data-action="delete-subcategory" data-idx="${idx}" data-si="${si}" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
         </div>
-        <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:12px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
+        <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:13px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
       </div>`:''}`;
     if(open){
       const addBtn=row.querySelector('.btn-ghost');
@@ -866,12 +866,12 @@ export function renderBudgets(){
     const row=document.createElement('div');
     row.style.marginBottom='14px';
     row.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:4px;gap:8px">
         <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
         <span class="budget-widget-val" style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      ${over?`<div class="budget-widget-val" style="font-size:12px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
+      ${over?`<div class="budget-widget-val" style="font-size:13px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
     `;
     box.appendChild(row);
   });
