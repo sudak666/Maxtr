@@ -10,6 +10,6 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["js/**/*.js"],
+  "include": ["js/**/*.js", "types/**/*.d.ts"],
   "exclude": ["js/vendor/**", "node_modules", "dist"]
 }
