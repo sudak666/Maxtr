@@ -1,3 +1,4 @@
+// @ts-check
 // ── RECEIPT OCR ──────────────────────────────────────────────────
 // Scans a photographed/picked receipt image and extracts a likely amount +
 // date to prefill the new-transaction form. Runs entirely on-device via
@@ -21,7 +22,9 @@
 const TESS_IMPORT_BASE = './vendor/tesseract';
 const TESS_PAGE_BASE = './js/vendor/tesseract';
 
+/** @type {Promise<any> | null} */
 let tesseractLibPromise = null;
+/** @returns {Promise<any>} */
 function loadTesseractLib(){
   // @vite-ignore: this must stay a pure runtime dynamic import, never
   // statically bundled — see this file's header comment and vite.config.js.
@@ -43,6 +46,11 @@ const AMOUNT_KEYWORD_RE = /(сума|разом|усього|всього|іт[�
 const DECIMAL_RE = /\d[\d ]*[.,]\d{2}\b/g;
 const INTEGER_RE = /\b\d+\b/g;
 
+/**
+ * @param {string} text
+ * @param {RegExp} re
+ * @returns {number[]}
+ */
 function extractAmounts(text, re){
   return (text.match(re) || [])
     .map(s => Number(s.replace(/\s/g, '').replace(',', '.')))
@@ -59,6 +67,10 @@ const DATE_RE = /\b(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\b/;
 // Returns null (rather than a best guess) if month/day are out of range,
 // since OCR misreads are common and a garbage date is worse than no date —
 // the user still has to glance at the form either way.
+/**
+ * @param {RegExpMatchArray} m
+ * @returns {string | null}
+ */
 function normalizeDate(m){
   let [, d, mo, y] = m;
   if(y.length === 2) y = '20' + y;
@@ -67,10 +79,21 @@ function normalizeDate(m){
   return `${y}-${String(mn).padStart(2, '0')}-${String(dn).padStart(2, '0')}`;
 }
 
+/**
+ * @typedef {Object} ReceiptParseResult
+ * @property {number | null} amount
+ * @property {string | null} date
+ * @property {string} rawText
+ */
+
 // Pure, zero-import text→{amount,date} parsing, kept separate from the
 // OCR call itself so it's unit-testable in plain Node the same way
 // js/tx-validation.js and functions/lib/pure.js are — no need to spin up
 // Tesseract/a browser just to test the extraction regexes.
+/**
+ * @param {string} text
+ * @returns {ReceiptParseResult}
+ */
 export function parseReceiptText(text){
   const raw = String(text || '');
   const dateMatch = raw.match(DATE_RE);
@@ -116,6 +139,10 @@ export function parseReceiptText(text){
 // (this app's CSP has no blob: allowance anywhere).
 const MAX_OCR_DIMENSION = 1800;
 
+/**
+ * @param {Blob} file
+ * @returns {Promise<Blob>}
+ */
 async function downscaleImage(file){
   if(typeof createImageBitmap !== 'function') return file;
   let bitmap;
@@ -147,6 +174,13 @@ async function downscaleImage(file){
 // terminates the worker whenever/if that abandoned call eventually settles
 // on its own, so this only ever costs a harmless orphaned background task,
 // never a real resource leak.
+/**
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {number} ms
+ * @param {string} message
+ * @returns {Promise<T>}
+ */
 function withTimeout(promise, ms, message){
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(message)), ms);
@@ -169,10 +203,19 @@ const OCR_TIMEOUT_MS = 45000;
 // timeout-recovery path in a couple of seconds instead of the real 45s —
 // finance.js's own call site never passes it, so production behavior is
 // unchanged.
+/**
+ * @param {Blob} file
+ * @param {number} [timeoutMs]
+ * @returns {Promise<ReceiptParseResult>}
+ */
 export async function scanReceiptImage(file, timeoutMs = OCR_TIMEOUT_MS){
   return withTimeout(scanReceiptImageInner(file), timeoutMs, 'receipt-ocr-timeout');
 }
 
+/**
+ * @param {Blob} file
+ * @returns {Promise<ReceiptParseResult>}
+ */
 async function scanReceiptImageInner(file){
   const resized = await downscaleImage(file);
   const { createWorker, OEM } = await loadTesseractLib();
