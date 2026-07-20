@@ -253,7 +253,7 @@ function renderMonobankUI(){
       const wallet=AppState.wallets.find(w=>w.id===mono.mapping[a.id]);
       return `<div class="mgr-row" style="cursor:default">
         <div class="mgr-name-inline">${escapeHtml(a.label)}</div>
-        <div style="font-size:12px;color:var(--muted2);flex:0 0 auto">${escapeHtml(wallet?wallet.name:'')}</div>
+        <div style="font-size:13px;color:var(--muted2);flex:0 0 auto">${escapeHtml(wallet?wallet.name:'')}</div>
       </div>`;
     }).join('');
   }
