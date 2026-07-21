@@ -12,3 +12,10 @@ declare function setIcon(id: string, name: string): void;
 declare function translateStaticDOM(): void;
 declare function setLang(lang: string): void;
 declare function setTheme(theme: string): void;
+
+// Unlike the bare-callable functions above, this one is only ever accessed
+// via an explicit `window.` prefix in js/*.js call sites, so it needs a
+// Window interface augmentation rather than a bare `declare function`.
+declare interface Window {
+  ICON_NAMES: string[];
+}
