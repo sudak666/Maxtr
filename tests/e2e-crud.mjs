@@ -142,6 +142,17 @@ async function main() {
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+    // js/app-init.js's init() unconditionally fires maybeAutoUpdateRates()
+    // and maybeRefreshCryptoTop() on cold start - this sandbox's own network
+    // blocks these domains outright (fails fast), but a real CI runner has
+    // actual internet access, where a slow/hanging live fetch can push
+    // page.goto's networkidle wait past the 30s timeout. Same fix already
+    // applied to tests/smoke.mjs and tests/fx-widget-rates.mjs earlier this
+    // session - block deterministically rather than depending on either
+    // environment's real (and differently-timed) network behavior.
+    await page.route('**bank.gov.ua**', (r) => r.abort());
+    await page.route('**allorigins.win**', (r) => r.abort());
+    await page.route('**api.coingecko.com**', (r) => r.abort());
 
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
