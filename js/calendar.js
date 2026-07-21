@@ -396,9 +396,9 @@ export function renderFinanceChart(){
     let bestI=0,worstI=0;
     vals.forEach((v,i)=>{ if(v>vals[bestI])bestI=i; if(v<vals[worstI])worstI=i; });
     metricsEl.innerHTML=`
-      <span class="chip-stat"><span class="chip-stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg></span><span class="chip-stat-val">${fmt(avg)}</span><span class="chip-stat-lbl">${tr('finance_chart_avg')}</span></span>
-      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--green),var(--green2))"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg></span><span class="chip-stat-val">${fmt(vals[bestI])}</span><span class="chip-stat-lbl">${tr('finance_chart_best')} · ${months[bestI].label}</span></span>
-      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--red),var(--red2))"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg></span><span class="chip-stat-val">${fmt(vals[worstI])}</span><span class="chip-stat-lbl">${tr('finance_chart_worst')} · ${months[worstI].label}</span></span>`;
+      <span class="chip-stat"><span class="chip-stat-icon">${window.Icon('refresh')}</span><span class="chip-stat-val">${fmt(avg)}</span><span class="chip-stat-lbl">${tr('finance_chart_avg')}</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--green),var(--green2))">${window.Icon('swap')}</span><span class="chip-stat-val">${fmt(vals[bestI])}</span><span class="chip-stat-lbl">${tr('finance_chart_best')} · ${months[bestI].label}</span></span>
+      <span class="chip-stat"><span class="chip-stat-icon" style="background:linear-gradient(135deg,var(--red),var(--red2))">${window.Icon('swap')}</span><span class="chip-stat-val">${fmt(vals[worstI])}</span><span class="chip-stat-lbl">${tr('finance_chart_worst')} · ${months[worstI].label}</span></span>`;
   }
 }
 
