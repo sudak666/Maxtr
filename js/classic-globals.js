@@ -54,7 +54,7 @@
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     sliders:'<path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 17h10"/><path d="M18 17h2"/><circle cx="16" cy="17" r="2" fill="var(--bg2)" stroke="currentColor"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
-    repeat:'<path d="M17 5l3 3-3 3"/><path d="M5 10.5v-1A4 4 0 0 1 9 5.5h11"/><path d="M7 19l-3-3 3-3"/><path d="M19 13.5v1A4 4 0 0 1 15 18.5H4"/>',
+    repeat:'<path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M17 4.3l3 2-1.3 3.2"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M7 19.7l-3-2 1.3-3.2"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
     upload:'<path d="M12 16.5v-11"/><path d="M7 9.5 12 4.5 17 9.5"/><path d="M4 20h16"/>',
     lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
@@ -77,7 +77,11 @@
     calculator:'<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="7.5" y="5" width="9" height="4" rx="1"/><circle cx="8.3" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="8.3" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="17" r="1" fill="currentColor" stroke="none"/>',
     idCard:'<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8" cy="12" r="2.2"/><path d="M5 16.5c0-1.7 1.3-2.8 3-2.8s3 1.1 3 2.8"/><path d="M13.5 9.5h4.5M13.5 13h4.5"/>',
     people:'<circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.2 13.8c2.5.3 4.3 2.3 4.3 5"/>',
-    plusMinus:'<path d="M8 6v6M5 9h6"/><path d="M13 18h6"/>'
+    diffArrows:'<path d="M8 4v13M8 4 4.5 7.5M8 4l3.5 3.5"/><path d="M16 20V7M16 20l-3.5-3.5M16 20l3.5-3.5"/>',
+    flame:'<path d="M12 2.8c.6 2.6-1.4 3.7-2.6 5.4C8.2 10 7.6 11.7 7.6 13.2a4.4 4.4 0 0 0 8.8 0c0-1.7-.7-2.8-1.5-3.8.3 1.8-.5 3-1.8 3-1.5 0-2.1-1.3-1.6-3 .8-2.7 1.6-3.8.5-6.6Z"/>',
+    handCoin:'<circle cx="9" cy="9" r="3.4"/><path d="M9 7.2v3.6M7.4 8c0-.7.7-1.1 1.6-1.1s1.6.4 1.6 1.1c0 1.3-3.2.6-3.2 1.9 0 .7.7 1.1 1.6 1.1s1.6-.4 1.6-1.1"/><path d="M13.5 13.5 19 19M14.5 19H19v-4.5"/>',
+    pharmacy:'<g transform="rotate(45 12 12)"><rect x="4.5" y="8.8" width="15" height="6.4" rx="3.2"/><path d="M12 8.8v6.4"/></g>',
+    heartPulse:'<path d="M12 20.3s-7.5-4.6-9.6-9.4C1 7.6 2.6 4.3 6 3.6c2-.4 3.9.5 5 2.1a5.3 5.3 0 0 1 5-2.1c3.4.7 5 4 3.6 7.3-2.1 4.8-9.6 9.4-9.6 9.4Z"/><path d="M5.5 12h3l1.6-2.6 2 4.4L13.6 12H18.5"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';
@@ -91,7 +95,7 @@
   // this is a classic script outside the js/ ES module graph — see
   // CLAUDE.md's "index.html script structure" section. Add new entries here
   // when adding a new icon to ICON_PATHS that's thematically category-like.
-  window.ICON_NAMES = ['calendar','wallet','clock','umbrella','trendUp','trendDown','barChart','bolt','coin','card','banknote','inbox','sparkle','swap','bank','cart','car','house','bag','coffee','burger','cigarette','gift','briefcase','person','box','tag','target','repeat','star','bell','camera','globe','pie','doc','flag','phone','calculator','idCard','people'];
+  window.ICON_NAMES = ['calendar','wallet','clock','umbrella','trendUp','trendDown','barChart','bolt','coin','card','banknote','inbox','sparkle','swap','bank','cart','car','house','bag','coffee','burger','cigarette','gift','briefcase','person','box','tag','target','repeat','star','bell','camera','globe','pie','doc','flag','phone','calculator','idCard','people','flame','handCoin','pharmacy','heartPulse'];
   function setIcon(id, name){
     var el = document.getElementById(id);
     if(el) el.innerHTML = window.Icon(name);
@@ -168,7 +172,7 @@
   setIcon('tab-icon-finance','wallet');
   setIcon('tab-icon-debt','bank');
   setIcon('ic-debt-start','bank');
-  setIcon('ic-debt-balance','coin');
+  setIcon('ic-debt-balance','handCoin');
   setIcon('ic-debt-paid','check');
   setIcon('ic-debt-count','calendar');
   setIcon('ic-debt-due','bell');
@@ -200,7 +204,7 @@
   setIcon('ic-budget','target');
   setIcon('ic-goals','flag');
   setIcon('ic-daily-tip','sparkle');
-  setIcon('ic-crypto-top','coin');
+  setIcon('ic-crypto-top','flame');
   setIcon('ic-set-goals','flag');
   setIcon('ic-add-goal','plus');
   setIcon('ic-qa-tx','plus');

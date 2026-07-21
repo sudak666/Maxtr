@@ -274,7 +274,7 @@ const openToolsManager = function(){
 const WIDGET_DEFS=[
   {key:'goals', icon:'flag', color:'#10b981', titleKey:'widgets_item_goals', subKey:'widgets_item_goals_sub'},
   {key:'dailyTip', icon:'sparkle', color:'#3b82f6', titleKey:'widgets_item_dailyTip', subKey:'widgets_item_dailyTip_sub'},
-  {key:'cryptoTop', icon:'coin', color:'#f7931a', titleKey:'widgets_item_cryptoTop', subKey:'widgets_item_cryptoTop_sub'},
+  {key:'cryptoTop', icon:'flame', color:'#f7931a', titleKey:'widgets_item_cryptoTop', subKey:'widgets_item_cryptoTop_sub'},
 ];
 
 function renderWidgetsList(){
