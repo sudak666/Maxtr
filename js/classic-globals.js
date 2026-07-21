@@ -34,10 +34,10 @@
     offline:'<path d="M2 8.6a15 15 0 0 1 8.4-3.9M13.6 4.7A15 15 0 0 1 22 8.6"/><path d="M5 12.2a10 10 0 0 1 6-2.9M15.2 10.5a10 10 0 0 1 3.8 1.7"/><path d="M8.6 15.7a5 5 0 0 1 4.2-1"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/><path d="M2.5 2.5l19 19"/>',
     inbox:'<path d="M3 12 6 5h12l3 7"/><path d="M3 12v6.3A1.7 1.7 0 0 0 4.7 20h14.6a1.7 1.7 0 0 0 1.7-1.7V12"/><path d="M3 12h5.2a.8.8 0 0 1 .7.4l.9 1.6a.8.8 0 0 0 .7.4h2.9a.8.8 0 0 0 .7-.4l.9-1.6a.8.8 0 0 1 .7-.4H21"/>',
     sparkle:'<path d="M12 3v4M12 17v4M4.2 12H8M16 12h3.8"/><path d="M6.3 6.3l2.1 2.1M15.6 15.6l2.1 2.1M17.7 6.3l-2.1 2.1M8.4 15.6l-2.1 2.1"/>',
-    swap:'<path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>',
+    swap:'<path d="M5 8.5h12l-3-3"/><path d="M19 15.5H7l3 3"/>',
     bank:'<path d="M3 10 12 4l9 6"/><path d="M4 10h16v9H4Z"/><path d="M4 19h16M7 13v4M12 13v4M17 13v4"/>',
     cart:'<path d="M3 4h2l2.4 12.2A2 2 0 0 0 9.3 18H18a2 2 0 0 0 2-1.6L21.5 8H6"/><circle cx="10" cy="21" r="1.3"/><circle cx="18" cy="21" r="1.3"/>',
-    car:'<path d="M5 16V11l2-4h10l2 4v5"/><path d="M3 16h18M7 16v2M17 16v2"/><circle cx="7.5" cy="16" r="1.2"/><circle cx="16.5" cy="16" r="1.2"/>',
+    car:'<path d="M5 16V11l2-4h10l2 4v5"/><path d="M3 16h18M7 16v2M17 16v2"/><path d="M6.4 11h11.2"/><circle cx="7.5" cy="16" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.5" cy="16" r="1.3" fill="currentColor" stroke="none"/>',
     house:'<path d="M4 11 12 4l8 7"/><path d="M6 10v9.3a.7.7 0 0 0 .7.7h10.6a.7.7 0 0 0 .7-.7V10"/><path d="M10 20v-5h4v5"/>',
     bag:'<path d="M6 8h12l1 12.3a1.7 1.7 0 0 1-1.7 1.7H6.7A1.7 1.7 0 0 1 5 20.3Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     coffee:'<path d="M4 9h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 10.5h1.4a2.4 2.4 0 0 1 0 4.8H17"/><path d="M7.3 6.2c0-1 .8-1 .8-2M11 6.2c0-1 .8-1 .8-2"/>',
@@ -54,7 +54,7 @@
     gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2.9a2 2 0 1 1 0-4H3a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V2.9a2 2 0 1 1 4 0V3a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     sliders:'<path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2" fill="var(--bg2)" stroke="currentColor"/><path d="M4 17h10"/><path d="M18 17h2"/><circle cx="16" cy="17" r="2" fill="var(--bg2)" stroke="currentColor"/>',
     target:'<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
-    repeat:'<path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a4 4 0 0 1-4 4H3"/>',
+    repeat:'<path d="M17 5l3 3-3 3"/><path d="M5 10.5v-1A4 4 0 0 1 9 5.5h11"/><path d="M7 19l-3-3 3-3"/><path d="M19 13.5v1A4 4 0 0 1 15 18.5H4"/>',
     download:'<path d="M12 3v12.5"/><path d="M7 11.5 12 16.5 17 11.5"/><path d="M4 20h16"/>',
     upload:'<path d="M12 16.5v-11"/><path d="M7 9.5 12 4.5 17 9.5"/><path d="M4 20h16"/>',
     lock:'<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
@@ -76,7 +76,8 @@
     phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>',
     calculator:'<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="7.5" y="5" width="9" height="4" rx="1"/><circle cx="8.3" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="8.3" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="15.7" cy="17" r="1" fill="currentColor" stroke="none"/>',
     idCard:'<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8" cy="12" r="2.2"/><path d="M5 16.5c0-1.7 1.3-2.8 3-2.8s3 1.1 3 2.8"/><path d="M13.5 9.5h4.5M13.5 13h4.5"/>',
-    people:'<circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.2 13.8c2.5.3 4.3 2.3 4.3 5"/>'
+    people:'<circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.2 13.8c2.5.3 4.3 2.3 4.3 5"/>',
+    plusMinus:'<path d="M8 6v6M5 9h6"/><path d="M13 18h6"/>'
   };
   window.Icon = function(name){
     var d = ICON_PATHS[name] || '';

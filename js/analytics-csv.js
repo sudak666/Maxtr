@@ -120,7 +120,7 @@ function renderAnalytics(){
     statsBox.innerHTML=`
       <div class="stat-card"><span class="stat-icon" style="background:var(--green);color:#fff">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${totalIncome.toLocaleString('uk-UA')} грн</div></div>
       <div class="stat-card"><span class="stat-icon" style="background:var(--red);color:#fff">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${totalExpense.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon" style="background:${netColor};color:#fff">${window.Icon('coin')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:${netColor};color:#fff">${window.Icon('plusMinus')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
       <div class="stat-card"><span class="stat-icon" style="background:${rateColor};color:#fff">${window.Icon('target')}</span><div class="stat-label">${tr('analytics_savings_rate')}</div><div class="stat-val" style="color:${savingsRate>=0?'var(--green2)':'var(--red2)'};font-size:18px">${savingsRate}%</div></div>
     `;
   }
