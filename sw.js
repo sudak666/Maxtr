@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v88';
+const CACHE_NAME = 'rytm-v89';
 const STATIC_ASSETS = [
   './',
   './index.html',
