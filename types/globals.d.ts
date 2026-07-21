@@ -18,4 +18,8 @@ declare function setTheme(theme: string): void;
 // Window interface augmentation rather than a bare `declare function`.
 declare interface Window {
   ICON_NAMES: string[];
+  // js/core.js's one hook back to the classic (non-module) inline script's
+  // setLang() — see CLAUDE.md's "index.html script structure" for why this
+  // exists as a real window.* property rather than an ES module export.
+  __applyLangDynamic: (lang: string) => void;
 }

@@ -76,7 +76,7 @@ export function saveActiveProfileId(){
 export async function loadProfilesMeta(){
   const snap=await getDoc(userDoc('profiles_meta'));
   if(snap.exists() && Array.isArray(snap.data().list) && snap.data().list.length){
-    AppState.profilesMeta=snap.data();
+    AppState.profilesMeta=/** @type {typeof AppState.profilesMeta} */ (snap.data());
   }else{
     AppState.profilesMeta={list:[{id:'default', name:tr('profiles_default_name'), createdAt:Date.now()}], updatedAt:Date.now()};
     await setDoc(userDoc('profiles_meta'), AppState.profilesMeta, {merge:false});
