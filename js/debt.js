@@ -408,7 +408,7 @@ export function renderDebt(){
 
   if(cd.entries.length===0){
     lc.innerHTML=emptyStateHtml({
-      icon:'coin',
+      icon:'handCoin',
       title:tr('debt_empty_title'),
       desc:tr('debt_empty_desc'),
       action:tr('debt_add_payment'),

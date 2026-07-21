@@ -233,10 +233,10 @@ const __applyLangDynamic = function(lang){
 };
 
 const CAT_ICON = {
-  'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'coin','Інше':'box',
+  'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'handCoin','Інше':'box',
   'Кава':'coffee','Кафе':'coffee','Фастфуд':'burger','Розваги':'gift',
-  'Кредит':'bank','Борг':'coin','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
-  'Здоров\'я':'coin','Аптека':'coin','Цигарки':'cigarette','Внутрішній переказ':'swap',
+  'Кредит':'bank','Борг':'handCoin','Продукти':'cart','Транспорт':'car','Комуналка':'house','Покупки':'bag',
+  'Здоров\'я':'heartPulse','Аптека':'pharmacy','Цигарки':'cigarette','Внутрішній переказ':'swap',
 };
 
 // Keyword/substring match, tried after CAT_ICON's exact-name lookup and
@@ -253,7 +253,7 @@ const CAT_ICON_KEYWORDS = [
   [/телефон|мобільн|зв'язок/i, 'phone'],
   [/оренда|квартир|житло/i, 'house'],
   [/кредит/i, 'bank'],
-  [/борг/i, 'coin'],
+  [/борг/i, 'handCoin'],
   [/продукт|харч/i, 'cart'],
   [/транспорт|таксі|бензин|паливо/i, 'car'],
   [/розваг|кіно|хобі/i, 'gift'],
