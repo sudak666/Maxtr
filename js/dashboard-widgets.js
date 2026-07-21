@@ -1,3 +1,4 @@
+// @ts-check
 // ── DASHBOARD WIDGETS (Порада дня + Топ криптовалюти) ──────────────────
 // New Finance-tab widgets, added alongside the existing "goals" widget in
 // WIDGET_ORDER_DEFAULT/WIDGET_SECTION_IDS/WIDGET_DEFS (see js/state.js,
@@ -15,7 +16,14 @@ import { AppState } from './state.js';
 // adoption" note. Used here for the crypto sparkline chart, reusing the
 // exact same small-SVG-via-h()/render() pattern as
 // js/debt.js's DebtBurndownChart.
-import { h, render, Fragment } from './vendor/preact/preact.module.js';
+import { h as _h, render, Fragment } from './vendor/preact/preact.module.js';
+// See js/analytics-csv.js's identical comment for why this re-declaration
+// is needed (TypeScript infers h()'s signature from the vendored file's
+// own minified implementation rather than the real `preact` package's
+// richer .d.ts, installed as a type-only devDependency - see
+// types/preact-vendor.d.ts). Zero runtime difference.
+/** @type {typeof import('preact').h} */
+const h = /** @type {any} */ (_h);
 
 // ── ПОРАДА ДНЯ ───────────────────────────────────────────────────────
 // Deliberately zero external dependency: a plain local array, rotated by
@@ -45,6 +53,7 @@ const FINANCIAL_TIPS_UK = [
   'Порівнюй курс обміну валют у кількох місцях — різниця в 1-2% на великій сумі помітна.',
 ];
 
+/** @returns {void} */
 export function renderDailyTip(){
   const section=document.getElementById('daily-tip-section');
   const box=document.getElementById('daily-tip-text');
@@ -132,6 +141,7 @@ function sparklinePoints(prices, W, H){
 // there's no cached data at all yet (first-ever load, before the first
 // fetch has completed) — same convention renderGoals() uses for an empty
 // goals list, rather than showing empty/broken rows.
+/** @returns {void} */
 export function renderCryptoTop(){
   const section=document.getElementById('crypto-top-section');
   const box=document.getElementById('crypto-top-list');
@@ -178,6 +188,7 @@ async function fetchCryptoTop(){
 // rate-limited) is swallowed the same way updateRatesOnline()'s live-rates
 // fetch already is elsewhere in this app — the widget just keeps showing
 // its last-known values, or stays hidden if it never had any.
+/** @returns {Promise<void>} */
 export async function maybeRefreshCryptoTop(){
   if(!AppState.widgets.cryptoTop) return;
   const cache=loadCryptoCache();
