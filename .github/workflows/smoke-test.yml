@@ -318,15 +318,8 @@ jobs:
           npm install --no-audit --no-fund @firebase/rules-unit-testing firebase
           ln -s /tmp/rules-test/node_modules "$GITHUB_WORKSPACE/tests/node_modules"
 
-      - name: Start Firestore emulator
+      - name: Run Firestore rules tests
         working-directory: /tmp/rules-test
         run: |
-          nohup npx --yes firebase-tools emulators:start --only firestore --project rytm-rules-test > emulator.log 2>&1 &
-          for i in $(seq 1 60); do
-            (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null && break
-            sleep 1
-          done
-          cat emulator.log
-
-      - name: Run Firestore rules tests
-        run: node tests/firestore-rules.mjs
+          npx --yes firebase-tools emulators:exec --only firestore --project rytm-rules-test \
+            "cd '$GITHUB_WORKSPACE' && node tests/firestore-rules.mjs"
