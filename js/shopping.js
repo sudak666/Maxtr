@@ -13,7 +13,7 @@ const addShoppingItem = function(){
   const qi=/** @type {HTMLInputElement | null} */ (document.getElementById('shopping-qty-input'));
   const name=(ni&&ni.value||'').trim();
   if(!name) return;
-  const qty=parseInt(qi&&qi.value,10)||1;
+  const qty=parseInt((qi&&qi.value)||'',10)||1;
   AppState.shoppingList.push({id:uid('item'), name, qty, done:false, createdAt:Date.now()});
   if(ni) ni.value='';
   if(qi) qi.value='';
@@ -53,7 +53,8 @@ export function renderShoppingList(){
   const box=document.getElementById('shopping-list-container'); if(!box) return;
   const remaining=AppState.shoppingList.filter(x=>!x.done).length;
   const bought=AppState.shoppingList.length-remaining;
-  const S=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  /** @param {string} id @param {number} v */
+  const S=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=String(v);};
   S('shopping-remaining-val', remaining);
   S('shopping-bought-val', bought);
   const clearBtn=document.getElementById('shopping-clear-btn');
@@ -103,26 +104,29 @@ export function __init_shopping__(){
 // existing click/change dispatchers — scoped to `input[data-action]`
 // specifically so it doesn't double-fire on buttons (which already
 // synthesize a click event on Enter via native browser behavior).
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'add-shopping-item': ()=>addShoppingItem(),
   'clear-bought-shopping': ()=>clearBoughtShopping(),
-  'delete-shopping-item': ds=>deleteShoppingItem(ds.id),
+  'delete-shopping-item': ds=>{ if(ds.id) deleteShoppingItem(ds.id); },
   // The empty-state "add first item" CTA just focuses the name input
   // (emptyStateHtml, ui-widgets.js) — was an inline onclick the CSP blocked.
   'focus-shopping-name': ()=>document.getElementById('shopping-name-input')?.focus(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 document.addEventListener('keydown', e=>{
   if(e.key!=='Enter') return;
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('input[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 });
 
 document.addEventListener('change', e=>{
   const el=/** @type {HTMLInputElement} */ (/** @type {Element} */ (e.target).closest('[data-action="toggle-shopping-item"]'));
-  if(el) toggleShoppingItem(el.dataset.id, el.checked);
+  if(el && el.dataset.id) toggleShoppingItem(el.dataset.id, el.checked);
 });
 }

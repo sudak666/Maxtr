@@ -155,6 +155,11 @@ async function downscaleImage(file){
     const w = Math.round(width * scale), h = Math.round(height * scale);
     const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
     const ctx = canvas.getContext('2d');
+    // getContext('2d') can genuinely return null (context creation limits,
+    // an already-lost context) -- same graceful-fallback behavior as the
+    // createImageBitmap() catch above: skip downscaling, pass the original
+    // file through to recognize() as-is rather than throwing.
+    if(!ctx) return file;
     ctx.drawImage(bitmap, 0, 0, w, h);
     const blob = canvas instanceof OffscreenCanvas
       ? await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 })
