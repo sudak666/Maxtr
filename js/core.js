@@ -77,9 +77,14 @@ function currentTabName(){
 // values have their own size limits.
 const ERROR_STACK_MAX_CHARS = 500;
 
+/**
+ * @param {string} kind
+ * @param {Record<string, any>} detail
+ */
 function logAppError(kind, detail){
   const entry = { kind, at: new Date().toISOString(), tab: currentTabName(), ...detail };
   console.error(`[Rytm:${kind}]`, entry);
+  /** @type {Array<Record<string, any>>} */
   let list = [];
   try{
     const key = errorLogKey();
@@ -87,7 +92,7 @@ function logAppError(kind, detail){
     list.push(entry);
     while(list.length > ERROR_LOG_MAX) list.shift();
     localStorage.setItem(key, JSON.stringify(list));
-  }catch(e){}
+  }catch{}
   // Local-only logging means a crash on a real user's phone is invisible
   // until they screenshot it. Mirroring the capped list to Firestore (own
   // uid only, see firestore.rules' error_reports match block) lets the
@@ -107,6 +112,10 @@ function logAppError(kind, detail){
 
 export const SALARY_GOAL = 20000;
 
+/**
+ * @param {string} type
+ * @param {string} name
+ */
 export function subKey(type,name){ return type+':'+name; }
 
 // Granular permissions follow-up on shared profiles (see CLAUDE.md's
@@ -134,8 +143,13 @@ export function canEditActiveProfile(){
 // CLAUDE.md's Finance-tab-widgets section) — no longer part of the
 // toggleable show/hide+reorder set. dailyTip/cryptoTop (js/dashboard-widgets.js)
 // added alongside goals.
+/** @type {Record<string, string>} */
 const WIDGET_SECTION_IDS={goals:'goals-section', dailyTip:'daily-tip-section', cryptoTop:'crypto-top-section'};
 
+/**
+ * @param {string[]} arr
+ * @returns {string[]}
+ */
 export function sanitizeWidgetOrder(arr){
   const seen=new Set();
   const out=(Array.isArray(arr)?arr:[]).filter(k=>WIDGET_ORDER_DEFAULT.includes(k)&&!seen.has(k)&&seen.add(k));
@@ -156,12 +170,14 @@ export function applyWidgetVisibility(){
 export function applyWidgetOrder(){
   const anchor=document.getElementById('budgets-section');
   if(!anchor||!anchor.parentNode) return;
+  const parent=anchor.parentNode;
   AppState.widgetOrder.forEach(key=>{
     const el=document.getElementById(WIDGET_SECTION_IDS[key]);
-    if(el) anchor.parentNode.insertBefore(el, anchor);
+    if(el) parent.insertBefore(el, anchor);
   });
 }
 
+/** @type {Record<string, number>} */
 const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
 
 function isPremium(){ return AppState.subscription.plan==='premium' && (!AppState.subscription.expiresAt || AppState.subscription.expiresAt>Date.now()); }
@@ -169,6 +185,10 @@ function isPremium(){ return AppState.subscription.plan==='premium' && (!AppStat
 // Intentionally unused right now -- caps were removed since there's no
 // payment provider (see CLAUDE.md's "Premium / free-tier limits" section);
 // kept as the re-add hook for whenever one gets wired up.
+/**
+ * @param {string} kind
+ * @param {number} currentCount
+ */
 // eslint-disable-next-line no-unused-vars
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
 
@@ -177,18 +197,22 @@ export function renderPremiumUI(){
   if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
 }
 
+/** @type {Record<string, string>} */
 const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals'};
 
+/** @param {string} [limitKind] */
 const showPremiumUpsell = function(limitKind){
   const msgEl=document.getElementById('premium-modal-limit-msg');
   if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
-  document.getElementById('premium-modal').style.display='flex';
+  const modal=document.getElementById('premium-modal');
+  if(modal) modal.style.display='flex';
 };
 
 export const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
 
 export const PALETTE = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
 
+/** @param {string} name */
 export function categoryColor(name){
   const s=String(name||'');
   let h=0;
@@ -203,6 +227,7 @@ function populateMonthSelectLabels(){
   csSync(ms);
 }
 
+/** @param {'uk'|'en'} lang */
 const __applyLangDynamic = function(lang){
   AppState.MONTHS=LANG_CALENDAR[lang].months;
   AppState.MONTHS_SHORT=LANG_CALENDAR[lang].monthsShort;
@@ -217,6 +242,7 @@ const __applyLangDynamic = function(lang){
   }
 };
 
+/** @type {Record<string, string>} */
 const CAT_ICON = {
   'Зарплата':'briefcase','Аванс':'card','Підробіток':'gift','Повернення боргу':'handCoin','Інше':'box',
   'Кава':'coffee','Кафе':'coffee','Фастфуд':'burger','Розваги':'gift',
@@ -259,6 +285,7 @@ const CAT_ICON_KEYWORDS = [
 // applies to this last-resort automatic guess.)
 const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift'];
 
+/** @param {string} name */
 export function categoryIcon(name){
   if(AppState.categoryIcons && AppState.categoryIcons[name]) return AppState.categoryIcons[name];
   if(CAT_ICON[name]) return CAT_ICON[name];
@@ -305,14 +332,22 @@ export const DEFAULT_WALLETS = [
 
 export const CURRENCY_LIST=['UAH','USD','EUR','GBP','PLN'];
 
+/** @type {Record<string, {symbol: string}>} */
 const CURRENCY_META={
   UAH:{symbol:'грн'}, USD:{symbol:'$'}, EUR:{symbol:'€'}, GBP:{symbol:'£'}, PLN:{symbol:'zł'},
 };
 
+/** @type {Record<string, number>} */
 export const SEED_RATES={USD:41, EUR:44, GBP:51, PLN:10.5};
 
+/** @param {string} code */
 export function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || 'грн'; }
 
+/**
+ * @param {number} amount
+ * @param {string} fromCode
+ * @param {string} toCode
+ */
 export function convertCurrency(amount, fromCode, toCode){
   if(fromCode===toCode) return amount;
   const fromRate=AppState.currencyRates[fromCode] ?? SEED_RATES[fromCode] ?? 1;
@@ -320,18 +355,28 @@ export function convertCurrency(amount, fromCode, toCode){
   return Math.round((amount*fromRate/toRate)*100)/100;
 }
 
+/**
+ * @param {number} amount
+ * @param {string} [code]
+ */
 export function toBase(amount, code){ return convertCurrency(amount, code||'UAH', 'UAH'); }
 
-export function walletCurrency(id){ return (walletById(id)||{}).currency||'UAH'; }
+/** @param {string} id */
+export function walletCurrency(id){ return walletById(id)?.currency || 'UAH'; }
 
 export function normalizeWallets(){
   AppState.wallets.forEach(w=>{ if(!w.currency) w.currency='UAH'; });
 }
 
+/** @param {{createdAt?: number|string}} [t] */
 function txCreatedAt(t){
-  return Number.isFinite(Number(t&&t.createdAt)) ? Number(t.createdAt) : 0;
+  return Number.isFinite(Number(t&&t.createdAt)) ? Number(t && t.createdAt) : 0;
 }
 
+/**
+ * @param {{date?: string, createdAt?: number|string, id?: string|number}} a
+ * @param {{date?: string, createdAt?: number|string, id?: string|number}} b
+ */
 export function compareTransactionsNewest(a,b){
   return (b.date||'').localeCompare(a.date||'')
     || (txCreatedAt(b)-txCreatedAt(a))
@@ -348,8 +393,10 @@ export const LEGACY_CATEGORIES = {
   expense: ['Алла','Син','Цигарки','Кава','Фастфуд','Борг','Кредит','Продукти','Транспорт','Комуналка','Покупки','Інше'],
 };
 
+/** @param {string} id */
 export function shiftType(id){ return AppState.shiftTypes.find(t=>t.id===id); }
 
+/** @param {string} id */
 export function walletById(id){ return AppState.wallets.find(w=>w.id===id); }
 
 // Top-level statements that DO something immediately (as opposed to a
@@ -388,12 +435,14 @@ window.__applyLangDynamic = __applyLangDynamic;
 // window.getErrorLog was dropped outright — grepped every call site
 // across index.html/js/*.js and found zero, dead since whenever this
 // file was split out.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'show-premium-upsell': ()=>showPremiumUpsell(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action = el && el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 }
 

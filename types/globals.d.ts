@@ -28,5 +28,7 @@ declare interface Window {
   // js/core.js's one hook back to the classic (non-module) inline script's
   // setLang() — see CLAUDE.md's "index.html script structure" for why this
   // exists as a real window.* property rather than an ES module export.
-  __applyLangDynamic: (lang: string) => void;
+  // Narrowed to 'uk'|'en' for the same reason as currentLang above — the
+  // only two values setLang() ever calls it with.
+  __applyLangDynamic: (lang: 'uk' | 'en') => void;
 }
