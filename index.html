@@ -755,7 +755,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 #debt-info-body{flex-direction:column;gap:12px}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
-.type-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
+.type-btn{flex:1;min-width:0;padding:7px 8px;border:none;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .type-btn.active{background:var(--bg3);color:var(--text-strong);box-shadow:inset 0 0 0 1px var(--border2)}
 .type-btn.active.inc{background:rgba(16,185,129,.15);color:var(--green2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.3)}
 .type-btn.active.exp{background:rgba(239,68,68,.15);color:var(--red2);box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
@@ -771,7 +771,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .seg-thumbed{position:relative}
 .seg-thumbed>button{position:relative;z-index:1}
 .seg-thumb{
-  position:absolute;top:0;bottom:0;left:0;border-radius:999px;
+  position:absolute;top:3px;bottom:3px;left:0;border-radius:999px;
   background:var(--bg3);box-shadow:inset 0 0 0 1px var(--border2);
   transition:transform .32s cubic-bezier(.34,1.56,.64,1),width .32s cubic-bezier(.34,1.56,.64,1),opacity .15s ease;
   z-index:0;opacity:0;pointer-events:none;
@@ -799,14 +799,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-avatar .ico,.topbar-logo .ico{margin-right:0}
 .avatar-opt{
-  width:44px;height:44px;border-radius:50%;flex-shrink:0;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
-  border:2px solid transparent;transition:transform .15s,border-color .15s;
-  box-shadow:inset 0 -4px 7px rgba(0,0,0,.3), inset 0 2px 3px rgba(255,255,255,.4);
+  width:48px;height:48px;border-radius:18px;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  border:1.5px solid color-mix(in srgb,#fff 30%,transparent);transition:transform .15s,border-color .15s,box-shadow .15s,filter .15s;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
 }
-.avatar-opt .ico{margin-right:0}
-.avatar-opt:active{transform:scale(.92)}
-.avatar-opt.sel{border-color:var(--text-strong)}
+.avatar-opt .ico{margin-right:0;width:26px;height:26px}
+.avatar-opt:active{transform:scale(.95)}
+.avatar-opt.sel{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.18),0 4px 10px rgba(0,0,0,.18);filter:saturate(1.08)}
 .color-opt{
   width:36px;height:36px;border-radius:50%;flex-shrink:0;cursor:pointer;
   border:2px solid transparent;transition:transform .15s,border-color .15s;
@@ -816,14 +816,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .color-opt.sel{border-color:var(--text-strong)}
 .cat-icon-btn{border:none;padding:0;cursor:pointer;transition:transform .15s}
 .cat-icon-btn:active{transform:scale(.9)}
+#category-icon-grid{gap:12px!important;max-height:420px!important;padding:2px 2px 4px;scrollbar-width:thin}
 .icon-opt{
-  width:44px;height:44px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  width:56px;height:56px;border-radius:18px;flex-shrink:0;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:var(--text-strong);
-  background:var(--bg3);border:2px solid transparent;transition:transform .15s,border-color .15s,background .15s,color .15s;
+  background:color-mix(in srgb,var(--bg3) 88%,#fff 12%);border:1.5px solid var(--border2);transition:transform .15s,border-color .15s,background .15s,color .15s,box-shadow .15s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
 }
-.icon-opt .ico{margin-right:0}
-.icon-opt:active{transform:scale(.92)}
-.icon-opt.sel{border-color:var(--purple2);background:var(--purple2);color:#fff}
+.icon-opt .ico{margin-right:0;width:25px;height:25px}
+.icon-opt:active{transform:scale(.94)}
+.icon-opt.sel{border-color:var(--purple2);background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 8px 18px rgba(139,92,246,.24)}
 
 /* Hide the ugly native number-input spin buttons everywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -954,12 +956,54 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 .transfer-rate-hint{display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);color:var(--muted);font-size:13px;font-weight:750;line-height:1.35}
 .transfer-rate-hint strong{color:var(--text-strong)}
+
+/* Slightly larger mobile finance sheet typography without letting long labels
+   spill out of segmented buttons or pill controls. Scoped to the transaction
+   form so dense dashboard/list screens keep their current information density. */
+@media(max-width:600px){
+  #tx-form-modal .modal-card-body{padding:20px 22px calc(20px + env(safe-area-inset-bottom))}
+  #tx-form-modal .fin-form{gap:13px}
+  #tx-form-modal .fin-form-title{font-size:16.5px;line-height:1.25}
+  #tx-form-modal .type-seg{gap:4px;padding:4px}
+  #tx-form-modal .type-btn{font-size:14px;padding:9px 6px}
+  #tx-form-modal .fg label{font-size:13.5px;line-height:1.25;overflow-wrap:anywhere}
+  #tx-form-modal .fg select,#tx-form-modal .fg input{font-size:16px;line-height:1.25;padding:12px 14px;border-radius:16px}
+  #tx-form-modal .quick-amount-chip{font-size:14px;padding:10px 14px}
+  #tx-form-modal .filter-chip{font-size:14.5px;padding:14px 16px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+  #tx-form-modal .date-field-row{gap:10px;flex-wrap:wrap}
+  #tx-form-modal .date-field-row input{min-width:0;flex:1 1 160px}
+  #tx-form-modal .date-today-btn{font-size:14px;padding:12px 16px;min-height:46px;white-space:nowrap}
+  #tx-form-modal .add-btn{font-size:16px;min-height:54px;padding:14px 16px}
+  #tx-form-modal .field-help{font-size:13.5px}
+  #tx-form-modal .transfer-rate-hint{font-size:13.5px;line-height:1.4}
+}
 .transfer-rate-hint.warning{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.24);color:var(--orange)}
 .field-help{display:flex;justify-content:flex-end;margin-top:6px;color:var(--muted);font-size:13px;font-weight:750}
 .date-field-row{display:flex;gap:8px;align-items:center}
 .date-field-row input{flex:1 1 auto}
 .date-today-btn{flex:0 0 auto;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);border-radius:14px;padding:12px 13px;font-size:13px;font-weight:850;font-family:inherit;cursor:pointer}
 .date-today-btn:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
+
+/* Mobile readability pass for manager rows and finance widgets: bigger icons/text,
+   but keep every label single-line with ellipsis so cards don't overflow. */
+@media(max-width:600px){
+  .icon-badge{width:40px;height:40px}
+  .icon-badge .ico{width:21px;height:21px}
+  .icon-badge.icon-badge-sm{width:36px;height:36px}
+  .icon-badge.icon-badge-sm .ico{width:19px;height:19px}
+  .mgr-row{padding:14px;border-radius:24px}
+  #categories-modal .mgr-row{padding:16px 14px}
+  #categories-modal .cat-row{gap:12px}
+  #categories-modal .cat-row-name{font-size:16px;line-height:1.2}
+  #categories-modal .cat-row-sub{font-size:14.5px;line-height:1.25}
+  #categories-modal .drag-handle .ico,#categories-modal .mgr-del .ico{width:20px;height:20px}
+  .chart-title,.tools-label{font-size:14.5px;line-height:1.25;letter-spacing:.075em;gap:8px}
+  .chart-title .ico,.tools-label .ico{width:19px;height:19px}
+  .crypto-top-row,.fx-widget-row{gap:14px;padding:12px 0}
+  .crypto-top-price,.fx-widget-rate,.goal-widget-val,.budget-widget-val{font-size:16px}
+  .crypto-top-spark{width:72px;height:28px}
+  .fin-fab-label{font-size:16px}
+}
 
 /* ── SKELETON LOADING (cold-start only — see renderFinanceSkeleton() in
    js/analytics-csv.js). Local cache already gives every returning user an
@@ -1320,8 +1364,8 @@ body.amounts-hidden #fx-converter-result{
    flex-grow/shrink weren't doing anything useful in this context anyway. */
 .mgr-num{width:90px}
 .mgr-color{width:44px;height:44px;padding:0;border:1px solid var(--border2);border-radius:10px;cursor:pointer;flex:0 0 auto}
-.profile-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex:0 0 auto}
-.profile-row-avatar .ico{margin-right:0}
+.profile-row-avatar{width:38px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex:0 0 auto;box-shadow:0 3px 8px rgba(0,0,0,.16)}
+.profile-row-avatar .ico{margin-right:0;width:22px;height:22px}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
@@ -2729,11 +2773,11 @@ body.amounts-hidden #fx-converter-result{
 </div>
 
 <div class="modal-overlay" id="category-icon-modal">
-  <div class="modal-card" style="max-width:360px">
+  <div class="modal-card" style="max-width:400px">
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="cat_icon_pick_title">Оберіть іконку</div></div>
-    <div id="category-icon-grid" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-height:340px;overflow-y:auto"></div>
+    <div id="category-icon-grid" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-height:420px;overflow-y:auto"></div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
