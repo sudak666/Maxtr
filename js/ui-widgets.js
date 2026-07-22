@@ -5,6 +5,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 
+/** @type {Record<string, string>} */
 const HTML_ESCAPES={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 
 // Toggles a body-level class reflecting AppState.activeProfileRole (see
@@ -78,6 +79,7 @@ export const filterSettings = function(q){
   if(empty) empty.style.display = sections.length && visible===0 ? 'block' : 'none';
 };
 
+/** @param {string} [group] */
 const setSettingsGroup = function(group){
   AppState.activeSettingsGroup=group||'all';
   document.querySelectorAll('.settings-group-chip').forEach(chip=>{
@@ -163,6 +165,7 @@ export function hexA(hex, a){
   return `rgba(${r},${g},${b},${a})`;
 }
 
+/** @param {'success'|'error'} kind */
 function hapticFeedback(kind){
   if(!('vibrate' in navigator)) return;
   try{
@@ -171,8 +174,12 @@ function hapticFeedback(kind){
   }catch(e){}
 }
 
+/**
+ * @param {string} msg
+ * @param {string} [icon]
+ */
 export function showToast(msg, icon){
-  const t=document.getElementById('toast');
+  const t=/** @type {HTMLElement} */ (document.getElementById('toast'));
   t.innerHTML='';
   if(icon){
     // window.Icon() output is trusted (built only from the static ICON_PATHS
@@ -191,6 +198,12 @@ export function showToast(msg, icon){
   else if(icon==='xmark') hapticFeedback('error');
 }
 
+/**
+ * @param {HTMLElement} trigger
+ * @param {HTMLElement} panel
+ * @param {boolean} matchTriggerWidth
+ * @param {{dynamicHeight?: boolean}} [opts]
+ */
 function positionFixedPanel(trigger, panel, matchTriggerWidth, opts){
   opts=opts||{};
   const r=trigger.getBoundingClientRect();
@@ -215,7 +228,7 @@ function positionFixedPanel(trigger, panel, matchTriggerWidth, opts){
       top=Math.max(margin, r.top-6-maxH);
     }
     panel.style.maxHeight=maxH+'px';
-    const scroll=panel.querySelector('.cs-panel-scroll');
+    const scroll=/** @type {HTMLElement | null} */ (panel.querySelector('.cs-panel-scroll'));
     if(scroll) scroll.style.maxHeight=Math.max(60, maxH-12)+'px';
   }else{
     const estH=panel.offsetHeight||360;
@@ -226,14 +239,16 @@ function positionFixedPanel(trigger, panel, matchTriggerWidth, opts){
   panel.style.top=top+'px';
 }
 
+/** @param {HTMLSelectElement | null} [sel] */
 export function enhanceSelect(sel){
   if(!sel || sel.dataset.enhanced) return;
-  sel.dataset.enhanced='1';
-  const small = sel.classList.contains('tool-select') || !!sel.closest('.cal-nav');
+  const el=sel; // narrowed, non-null capture -- `sel` itself re-widens to nullable inside the nested closures below
+  el.dataset.enhanced='1';
+  const small = el.classList.contains('tool-select') || !!el.closest('.cal-nav');
   const wrap=document.createElement('div');
   wrap.className='cs'+(small?' cs-sm':'');
-  sel.parentNode.insertBefore(wrap, sel);
-  wrap.appendChild(sel);
+  /** @type {ParentNode} */ (el.parentNode).insertBefore(wrap, el);
+  wrap.appendChild(el);
   const trigger=document.createElement('button');
   trigger.type='button'; trigger.className='cs-trigger';
   trigger.innerHTML='<span class="cs-val"></span>'+window.Icon('chevron');
@@ -245,15 +260,15 @@ export function enhanceSelect(sel){
   const close=()=>wrap.classList.remove('open');
   function build(){
     panelScroll.innerHTML='';
-    Array.from(sel.options).forEach(opt=>{
+    Array.from(el.options).forEach(opt=>{
       const o=document.createElement('div');
       o.className='cs-opt'+(opt.selected?' sel':'');
       o.textContent=opt.textContent;
-      o.addEventListener('click',e=>{ e.stopPropagation(); sel.value=opt.value; sel.dispatchEvent(new Event('change',{bubbles:true})); close(); });
+      o.addEventListener('click',e=>{ e.stopPropagation(); el.value=opt.value; el.dispatchEvent(new Event('change',{bubbles:true})); close(); });
       panelScroll.appendChild(o);
     });
-    const cur=sel.options[sel.selectedIndex];
-    trigger.querySelector('.cs-val').textContent=cur?cur.textContent:'';
+    const cur=el.options[el.selectedIndex];
+    /** @type {Element} */ (trigger.querySelector('.cs-val')).textContent=cur?cur.textContent:'';
   }
   trigger.addEventListener('click',e=>{
     e.stopPropagation();
@@ -261,14 +276,19 @@ export function enhanceSelect(sel){
     document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
     if(willOpen){ positionFixedPanel(trigger, panel, true, {dynamicHeight:true}); wrap.classList.add('open'); }
   });
-  sel.addEventListener('change', build);
-  sel.addEventListener('cs-sync', build); // for programmatic .value changes
-  new MutationObserver(build).observe(sel,{childList:true});
+  el.addEventListener('change', build);
+  el.addEventListener('cs-sync', build); // for programmatic .value changes
+  new MutationObserver(build).observe(el,{childList:true});
   build();
 }
 
+/** @param {Element | null} [sel] */
 export function csSync(sel){ if(sel) sel.dispatchEvent(new Event('cs-sync')); }
 
+/**
+ * @param {string | null | undefined} v
+ * @returns {Date | null}
+ */
 function dpParse(v){
   if(!v) return null;
   const [y,m,d]=v.split('-').map(Number);
@@ -276,30 +296,34 @@ function dpParse(v){
   return new Date(y,m-1,d);
 }
 
+/** @param {Date} d */
 function dpFmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
+/** @param {string | null | undefined} v */
 function dpLabel(v){
   const d=dpParse(v); if(!d) return tr('finance_pick_date');
   return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 }
 
+/** @param {HTMLInputElement | null} [inp] */
 export function enhanceDateInput(inp){
   if(!inp || inp.dataset.enhanced) return;
-  inp.dataset.enhanced='1';
+  const inputEl=inp; // narrowed, non-null capture -- `inp` itself re-widens to nullable inside the nested closures below
+  inputEl.dataset.enhanced='1';
   const wrap=document.createElement('div'); wrap.className='dp';
-  inp.parentNode.insertBefore(wrap, inp);
-  wrap.appendChild(inp);
+  /** @type {ParentNode} */ (inputEl.parentNode).insertBefore(wrap, inputEl);
+  wrap.appendChild(inputEl);
   const trigger=document.createElement('button');
   trigger.type='button'; trigger.className='cs-trigger dp-trigger';
   trigger.innerHTML='<span class="dp-val"></span>'+window.Icon('calendar');
   const panel=document.createElement('div'); panel.className='dp-panel';
   wrap.appendChild(trigger); wrap.appendChild(panel);
-  let viewDate=dpParse(inp.value)||new Date();
+  let viewDate=dpParse(inputEl.value)||new Date();
   const close=()=>wrap.classList.remove('open');
-  function refreshLabel(){ trigger.querySelector('.dp-val').textContent=dpLabel(inp.value); }
+  function refreshLabel(){ /** @type {Element} */ (trigger.querySelector('.dp-val')).textContent=dpLabel(inputEl.value); }
   function render(){
     const y=viewDate.getFullYear(), m=viewDate.getMonth();
-    const selected=dpParse(inp.value), today=new Date();
+    const selected=dpParse(inputEl.value), today=new Date();
     const first=(new Date(y,m,1).getDay()+6)%7;
     const total=new Date(y,m+1,0).getDate();
     const prevTotal=new Date(y,m,0).getDate();
@@ -315,17 +339,17 @@ export function enhanceDateInput(inp){
     for(let i=1;i<=rest;i++) html+=`<span class="dp-day dp-out">${i}</span>`;
     html+='</div><button type="button" class="dp-today-btn" data-act="today">Сьогодні</button>';
     panel.innerHTML=html;
-    panel.querySelector('[data-act=prev]').addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m-1,1); render();});
-    panel.querySelector('[data-act=next]').addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m+1,1); render();});
-    panel.querySelector('[data-act=today]').addEventListener('click',e=>{
-      e.stopPropagation(); const t=new Date(); inp.value=dpFmt(t);
-      inp.dispatchEvent(new Event('change',{bubbles:true})); viewDate=t; refreshLabel(); close();
+    /** @type {Element} */ (panel.querySelector('[data-act=prev]')).addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m-1,1); render();});
+    /** @type {Element} */ (panel.querySelector('[data-act=next]')).addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m+1,1); render();});
+    /** @type {Element} */ (panel.querySelector('[data-act=today]')).addEventListener('click',e=>{
+      e.stopPropagation(); const t=new Date(); inputEl.value=dpFmt(t);
+      inputEl.dispatchEvent(new Event('change',{bubbles:true})); viewDate=t; refreshLabel(); close();
     });
     panel.querySelectorAll('.dp-day:not(.dp-out)').forEach(el=>{
       el.addEventListener('click',e=>{
         e.stopPropagation();
-        inp.value=dpFmt(new Date(y,m,parseInt(el.getAttribute('data-d'))));
-        inp.dispatchEvent(new Event('change',{bubbles:true}));
+        inputEl.value=dpFmt(new Date(y,m,parseInt(/** @type {string} */ (el.getAttribute('data-d')))));
+        inputEl.dispatchEvent(new Event('change',{bubbles:true}));
         refreshLabel(); close();
       });
     });
@@ -334,10 +358,10 @@ export function enhanceDateInput(inp){
     e.stopPropagation();
     const willOpen=!wrap.classList.contains('open');
     document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
-    if(willOpen){ viewDate=dpParse(inp.value)||new Date(); render(); positionFixedPanel(trigger, panel, false); wrap.classList.add('open'); }
+    if(willOpen){ viewDate=dpParse(inputEl.value)||new Date(); render(); positionFixedPanel(trigger, panel, false); wrap.classList.add('open'); }
   });
-  inp.addEventListener('change', refreshLabel);
-  inp.addEventListener('cs-sync', refreshLabel);
+  inputEl.addEventListener('change', refreshLabel);
+  inputEl.addEventListener('cs-sync', refreshLabel);
   refreshLabel();
 }
 
@@ -348,7 +372,7 @@ export function enhanceAllSelects(){
   // not descendants of it — scoping to .app silently left those as unstyled
   // native controls.
   document.querySelectorAll('select').forEach(enhanceSelect);
-  document.querySelectorAll('input[type=date]').forEach(enhanceDateInput);
+  document.querySelectorAll('input[type=date]').forEach(el=>enhanceDateInput(/** @type {HTMLInputElement} */ (el)));
   const closeAllPanels=()=>document.querySelectorAll('.cs.open,.dp.open').forEach(c=>c.classList.remove('open'));
   document.addEventListener('click',closeAllPanels);
   // Fixed-position panels don't move with their trigger, so close them on
@@ -365,6 +389,7 @@ export function enhanceAllSelects(){
   window.addEventListener('resize',closeAllPanels);
 }
 
+/** @param {string | boolean | null} val */
 function __closeDlg(val){
   const ov=document.getElementById('ui-dialog');
   if(ov) ov.style.display='none';
@@ -382,16 +407,19 @@ function __closeDlg(val){
  * @property {string | null} [cancelText]
  * @property {boolean} [danger]
  */
-/** @param {UiDialogOpts} opts */
+/**
+ * @param {UiDialogOpts} opts
+ * @returns {Promise<string | boolean | null>}
+ */
 function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
   return new Promise(resolve=>{
     AppState.__dlgResolve=resolve;
-    document.getElementById('ui-dlg-title').textContent=title||'';
-    const msg=document.getElementById('ui-dlg-msg');
+    /** @type {HTMLElement} */ (document.getElementById('ui-dlg-title')).textContent=title||'';
+    const msg=/** @type {HTMLElement} */ (document.getElementById('ui-dlg-msg'));
     msg.textContent=message||''; msg.style.display=message?'block':'none';
     const inp=/** @type {HTMLInputElement} */ (document.getElementById('ui-dlg-input'));
-    const ok=document.getElementById('ui-dlg-ok');
-    const cancel=document.getElementById('ui-dlg-cancel');
+    const ok=/** @type {HTMLElement} */ (document.getElementById('ui-dlg-ok'));
+    const cancel=/** @type {HTMLElement} */ (document.getElementById('ui-dlg-cancel'));
     ok.textContent=okText||'OK';
     ok.classList.toggle('danger',!!danger);
     cancel.textContent=cancelText||tr('common_cancel');
@@ -402,15 +430,31 @@ function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
     }else{
       inp.style.display='none';
     }
-    document.getElementById('ui-dialog').style.display='flex';
+    /** @type {HTMLElement} */ (document.getElementById('ui-dialog')).style.display='flex';
   });
 }
 
+/**
+ * @param {string} message
+ * @param {{title?: string, okText?: string, cancelText?: string, danger?: boolean}} [opts]
+ * @returns {Promise<boolean>}
+ */
 export const uiConfirm = function(message,opts){ opts=opts||{}; return uiDialog({title:opts.title||tr('common_confirm_title'),message,okText:opts.okText||tr('common_yes'),cancelText:opts.cancelText||tr('common_cancel'),danger:opts.danger}).then(v=>v!==null && v!==false); };
 
-export const uiAlert = function(message,title){ return uiDialog({title:title||'',message,okText:tr('common_got_it'),cancelText:null}); };
+/**
+ * @param {string} message
+ * @param {string} [title]
+ * @returns {Promise<boolean | null>}
+ */
+export const uiAlert = function(message,title){ return /** @type {Promise<boolean|null>} */ (uiDialog({title:title||'',message,okText:tr('common_got_it'),cancelText:null})); };
 
-export const uiPrompt = function(message,defaultValue,title){ return uiDialog({title:title||'',message,input:true,defaultValue,okText:tr('common_done')}); };
+/**
+ * @param {string} message
+ * @param {string} [defaultValue]
+ * @param {string} [title]
+ * @returns {Promise<string | null>}
+ */
+export const uiPrompt = function(message,defaultValue,title){ return /** @type {Promise<string|null>} */ (uiDialog({title:title||'',message,input:true,defaultValue,okText:tr('common_done')})); };
 
 // Adds a sliding "thumb" behind the active button of a fixed 2-3 option
 // segmented control (income/expense/transfer, auth login/register, the
@@ -423,23 +467,28 @@ export const uiPrompt = function(message,defaultValue,title){ return uiDialog({t
 // every toggle handler) is what makes this safe to init once and forget:
 // it fires correctly when the container goes from display:none to visible
 // (e.g. a modal opening) with no extra wiring needed at each call site.
+/**
+ * @param {HTMLElement | null} [container]
+ * @param {{tint?: (active: HTMLElement) => string}} [opts]
+ */
 export function initSegThumb(container, opts={}){
   if(!container || container.dataset.segThumb) return;
-  container.dataset.segThumb='1';
-  container.classList.add('seg-thumbed');
+  const el=container; // narrowed, non-null capture -- `container` itself re-widens to nullable inside the nested closure below
+  el.dataset.segThumb='1';
+  el.classList.add('seg-thumbed');
   const thumb=document.createElement('div');
   thumb.className='seg-thumb';
-  container.insertBefore(thumb, container.firstChild);
+  el.insertBefore(thumb, el.firstChild);
   function position(){
-    const active=container.querySelector(':scope > .active');
+    const active=/** @type {HTMLElement | null} */ (el.querySelector(':scope > .active'));
     if(!active || !active.offsetWidth){ thumb.style.opacity='0'; return; }
     thumb.style.opacity='1';
     thumb.style.width=active.offsetWidth+'px';
     thumb.style.transform=`translateX(${active.offsetLeft}px)`;
     if(opts.tint) thumb.style.background=opts.tint(active)||'';
   }
-  new MutationObserver(position).observe(container,{subtree:true,attributes:true,attributeFilter:['class']});
-  new ResizeObserver(position).observe(container);
+  new MutationObserver(position).observe(el,{subtree:true,attributes:true,attributeFilter:['class']});
+  new ResizeObserver(position).observe(el);
   position();
 }
 
@@ -470,15 +519,20 @@ export function initSegThumb(container, opts={}){
 // same way. onDismiss is passed in by the caller (closeManagers() in
 // settings-managers.js) rather than imported here, so this file doesn't
 // need a new cross-file edge back to settings-managers.js.
+/**
+ * @param {HTMLElement} card
+ * @param {() => void} onDismiss
+ */
 export function initSheetDrag(card, onDismiss){
-  const grabber=card.querySelector('.sheet-grabber');
-  const header=card.querySelector('.modal-header');
-  const body=card.querySelector('.modal-card-body');
-  const handles=[grabber, header].filter(Boolean);
+  const grabber=/** @type {HTMLElement | null} */ (card.querySelector('.sheet-grabber'));
+  const header=/** @type {HTMLElement | null} */ (card.querySelector('.modal-header'));
+  const body=/** @type {HTMLElement | null} */ (card.querySelector('.modal-card-body'));
+  const handles=/** @type {HTMLElement[]} */ ([grabber, header].filter((h)=>Boolean(h)));
   if(!handles.length || card.dataset.dragInit) return;
   card.dataset.dragInit='1';
   const DISMISS_PX=110;
   const sheetModeOff=()=>!grabber || getComputedStyle(grabber).display==='none'; // desktop width — sheet mode is off
+  /** @param {number} dy */
   function settle(dy){
     if(dy>DISMISS_PX){
       card.style.transform='translateY(100%)';
@@ -487,7 +541,9 @@ export function initSheetDrag(card, onDismiss){
       card.style.transform='';
     }
   }
-  let dragging=false, startY=0, dy=0, activeHandle=null;
+  let dragging=false, startY=0, dy=0;
+  /** @type {HTMLElement | null} */
+  let activeHandle=null;
   handles.forEach(handle=>{
     handle.addEventListener('pointerdown', e=>{
       if(sheetModeOff()) return;
@@ -560,24 +616,28 @@ export function __init_ui_widgets__(){
 // used (settings-managers.js, etc.). uiConfirm/uiAlert/uiPrompt were
 // already dead as window.* (every call site is a real `import`, never a
 // literal onclick="uiConfirm(...)") so those exports were dropped outright.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'set-settings-group': ds=>setSettingsGroup(ds.group),
 };
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
   'filter-settings': (ds,el)=>filterSettings(el.value),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 document.addEventListener('input', e=>{
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 });
 (function bindDlg(){
   const ok=document.getElementById('ui-dlg-ok');
   const cancel=document.getElementById('ui-dlg-cancel');
-  const inp=/** @type {HTMLInputElement | null} */ (document.getElementById('ui-dlg-input'));
+  const inp=/** @type {HTMLInputElement} */ (document.getElementById('ui-dlg-input'));
   const ov=document.getElementById('ui-dialog');
   if(ok) ok.addEventListener('click',()=>{ const useInput=inp.style.display!=='none'; __closeDlg(useInput?inp.value:true); });
   if(cancel) cancel.addEventListener('click',()=>__closeDlg(null));
@@ -590,8 +650,8 @@ if(finTypeSeg) initSegThumb(finTypeSeg, {tint:btn=>
   btn.classList.contains('inc') ? 'rgba(16,185,129,.28)' :
   btn.classList.contains('exp') ? 'rgba(239,68,68,.26)' :
   btn.classList.contains('trn') ? 'rgba(59,130,246,.26)' : ''});
-const authTabs=document.querySelector('.auth-tabs');
+const authTabs=/** @type {HTMLElement | null} */ (document.querySelector('.auth-tabs'));
 if(authTabs) initSegThumb(authTabs, {tint:TINT_PURPLE});
-const finChartToggle=document.querySelector('.fin-chart-toggle');
+const finChartToggle=/** @type {HTMLElement | null} */ (document.querySelector('.fin-chart-toggle'));
 if(finChartToggle) initSegThumb(finChartToggle, {tint:TINT_PURPLE});
 }

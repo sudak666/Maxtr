@@ -31,7 +31,7 @@ function renderNewGoalForm(){
   const box=document.getElementById('goals-new-form'); if(!box) return;
   box.style.display=AppState.showNewGoalForm?'flex':'none';
   if(!AppState.showNewGoalForm) return;
-  const sel=document.getElementById('goal-new-wallet');
+  const sel=/** @type {HTMLSelectElement | null} */ (document.getElementById('goal-new-wallet'));
   if(sel){ sel.innerHTML=AppState.wallets.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join(''); enhanceSelect(sel); }
   const amt=/** @type {HTMLInputElement | null} */ (document.getElementById('goal-new-amount')); if(amt) amt.value='';
   const dt=/** @type {HTMLInputElement | null} */ (document.getElementById('goal-new-date')); if(dt) dt.value='';
