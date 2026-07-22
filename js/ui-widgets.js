@@ -587,9 +587,9 @@ document.addEventListener('input', e=>{
 const TINT_PURPLE=()=>'linear-gradient(135deg,var(--purple),var(--purple3))';
 const finTypeSeg=document.getElementById('fin-type-seg');
 if(finTypeSeg) initSegThumb(finTypeSeg, {tint:btn=>
-  btn.classList.contains('inc') ? 'rgba(16,185,129,.15)' :
-  btn.classList.contains('exp') ? 'rgba(239,68,68,.15)' :
-  btn.classList.contains('trn') ? 'rgba(59,130,246,.15)' : ''});
+  btn.classList.contains('inc') ? 'rgba(16,185,129,.28)' :
+  btn.classList.contains('exp') ? 'rgba(239,68,68,.26)' :
+  btn.classList.contains('trn') ? 'rgba(59,130,246,.26)' : ''});
 const authTabs=document.querySelector('.auth-tabs');
 if(authTabs) initSegThumb(authTabs, {tint:TINT_PURPLE});
 const finChartToggle=document.querySelector('.fin-chart-toggle');
