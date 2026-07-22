@@ -153,12 +153,12 @@ export function renderGoals(){
 }
 
 export const BUILTIN_AVATARS=[
-  {id:'fox', icon:'sparkle', gradient:'linear-gradient(135deg,#f97316,#fbbf24)'},
-  {id:'panda', icon:'moon', gradient:'linear-gradient(135deg,#64748b,#cbd5e1)'},
-  {id:'robot', icon:'bolt', gradient:'linear-gradient(135deg,#0ea5e9,#67e8f9)'},
-  {id:'rocket', icon:'target', gradient:'linear-gradient(135deg,#8b5cf6,#ec4899)'},
-  {id:'gem', icon:'star', gradient:'linear-gradient(135deg,#06b6d4,#3b82f6)'},
-  {id:'lion', icon:'flag', gradient:'linear-gradient(135deg,#f59e0b,#ef4444)'},
+  {id:'fox', icon:'avatarSun', gradient:'linear-gradient(135deg,#F9AB00,#FB8C00)'},
+  {id:'panda', icon:'avatarMoon', gradient:'linear-gradient(135deg,#78909C,#B0BEC5)'},
+  {id:'robot', icon:'avatarBolt', gradient:'linear-gradient(135deg,#00ACC1,#26C6DA)'},
+  {id:'rocket', icon:'avatarTarget', gradient:'linear-gradient(135deg,#AB47BC,#EC407A)'},
+  {id:'gem', icon:'avatarStar', gradient:'linear-gradient(135deg,#039BE5,#29B6F6)'},
+  {id:'lion', icon:'avatarFlag', gradient:'linear-gradient(135deg,#F4511E,#FFB300)'},
 ];
 
 const selectBuiltinAvatar = function(id){
