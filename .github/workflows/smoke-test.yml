@@ -1,10 +1,11 @@
 name: Smoke test
 
 # Runs the full tests/*.mjs Playwright/node suite against index.html on
-# every push/PR. There is deliberately no root package.json in this repo (see
-# CLAUDE.md — plain static HTML/CSS/JS, no build step), so Playwright is
-# installed globally in this job rather than as a project dependency,
-# matching how it's set up in the maintainer's local/sandbox environment.
+# every push/PR. Playwright itself is installed globally in this job rather
+# than as a project dependency, matching how it's set up in the maintainer's
+# local/sandbox environment (a real root package.json/Vite build/tsc/eslint
+# do exist now, see CLAUDE.md's "Build tooling"/"TypeScript adoption"
+# sections — just not Playwright).
 
 on:
   push:
@@ -37,6 +38,9 @@ jobs:
       # per-file opt-in rather than a one-shot full conversion.
       - name: Type-check opted-in files
         run: npm run typecheck
+
+      - name: Lint (js/*.js, excludes js/vendor/**)
+        run: npm run lint
 
       - name: Install Playwright
         run: npm install -g playwright@1.56.1

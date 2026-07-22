@@ -166,6 +166,10 @@ const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, g
 
 function isPremium(){ return AppState.subscription.plan==='premium' && (!AppState.subscription.expiresAt || AppState.subscription.expiresAt>Date.now()); }
 
+// Intentionally unused right now -- caps were removed since there's no
+// payment provider (see CLAUDE.md's "Premium / free-tier limits" section);
+// kept as the re-add hook for whenever one gets wired up.
+// eslint-disable-next-line no-unused-vars
 function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
 
 export function renderPremiumUI(){

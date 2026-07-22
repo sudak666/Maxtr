@@ -12,6 +12,7 @@
 
 /** @typedef {Record<string, number>} RatesMap */
 
+/** @type {RatesMap} */
 const SEED_RATES = { USD: 41, EUR: 44, GBP: 51, PLN: 10.5 };
 
 /**

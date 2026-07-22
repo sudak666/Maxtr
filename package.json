@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "build": "vite build && node scripts/build-site.mjs",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json && tsc --noEmit -p tsconfig.strict.json && tsc --noEmit -p functions/tsconfig.strict.json",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "eslint": "^9.39.5",
     "firebase": "^12.11.0",
     "preact": "^10.29.7",
     "typescript": "^7.0.2",
