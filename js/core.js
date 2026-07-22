@@ -15,7 +15,6 @@ import { csSync } from './ui-widgets.js';
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js";
 
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
@@ -31,40 +30,22 @@ import { getMessaging, getToken, deleteToken, onMessage, isSupported as isMessag
 
 export const fbApp = initializeApp({
   apiKey:"AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
-  authDomain:"maxtr-c238f.web.app",
+  authDomain:"maxtr-c238f.firebaseapp.com",
   projectId:"maxtr-c238f",
   storageBucket:"maxtr-c238f.firebasestorage.app",
   messagingSenderId:"311094677098",
   appId:"1:311094677098:web:7a3797c99fad2874340413"
 });
 
-// App Check attests that requests come from this real, unmodified app
-// instance rather than a script hitting the Firebase APIs directly with a
-// copied API key (the Firebase apiKey above was never a secret — Firebase
-// API keys just identify the project, they don't authorize anything on
-// their own — this is what actually gates
-// abuse). The site key below is a reCAPTCHA Enterprise *public* key (like
-// the Firebase apiKey, meant to ship in client code, not a secret) created
-// for this project's own web app (audit-followup session, see CLAUDE.md's
-// App Check section for the exact provisioning steps and IAM roles used).
-// initializeAppCheck() must run before any Firestore/Auth call, so it sits
-// right after initializeApp() here, ahead of getFirestore()/getAuth()
-// below. **Deliberately left in monitor mode**: Firebase's own
-// `services/*` enforcementMode is still UNENFORCED for both Firestore and
-// Identity Toolkit (checked live via the App Check Management API, not
-// assumed) — a request without a valid App Check token, or one running on
-// a domain outside the reCAPTCHA key's allowedDomains (e.g. this repo's
-// local/sandbox test recipe, serving from localhost), still goes through
-// exactly as before. Flipping either service to ENFORCED is a deliberate
-// follow-up decision for the account owner to make after watching the App
-// Check metrics in the Firebase console for a while, not something to flip
-// unilaterally from here — enforcing before confirming real traffic is
-// getting valid tokens risks locking the account owner out of their own
-// app.
-export const appCheck = initializeAppCheck(fbApp, {
-  provider: new ReCaptchaEnterpriseProvider('6LdDGlctAAAAAB3lX0HQS9ao_B4Bn8w0O_KFJDYk'),
-  isTokenAutoRefreshEnabled: true,
-});
+// App Check is intentionally not initialized for now. The project was still in
+// monitor-only mode, but loading Firebase App Check with a reCAPTCHA
+// Enterprise provider before phone auth caused Firebase Auth's own invisible
+// reCAPTCHA Enterprise verifier to reuse a loader that was initialized for a
+// different site key. In production that surfaced as "Invalid site key or not
+// loaded in api.js" when sending an SMS code. Keep this placeholder export so
+// any future App Check re-enable is an explicit, tested change rather than a
+// side effect of Firebase initialization.
+export const appCheck = null;
 
 export const db = getFirestore(fbApp);
 
