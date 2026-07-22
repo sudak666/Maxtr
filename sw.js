@@ -22,7 +22,7 @@ try {
 
   firebase.initializeApp({
     apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
-    authDomain: "maxtr-c238f.web.app",
+    authDomain: "maxtr-c238f.firebaseapp.com",
     projectId: "maxtr-c238f",
     storageBucket: "maxtr-c238f.firebasestorage.app",
     messagingSenderId: "311094677098",
@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v96';
+const CACHE_NAME = 'rytm-v98';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -145,7 +145,6 @@ const STATIC_ASSETS = [
 // ever changes (see SETUP.md's note on the pinned 12.11.0 version).
 const FIREBASE_SDK_ASSETS = [
   'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js',
   'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js',
   'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js',
   'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js',
