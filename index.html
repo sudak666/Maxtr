@@ -755,7 +755,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 #debt-info-body{flex-direction:column;gap:12px}
 
 .type-seg{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
-.type-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center}
+.type-btn{flex:1;min-width:0;padding:7px 8px;border:none;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit;text-align:center;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .type-btn.active{background:var(--bg3);color:var(--text-strong);box-shadow:inset 0 0 0 1px var(--border2)}
 .type-btn.active.inc{background:rgba(16,185,129,.15);color:var(--green2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.3)}
 .type-btn.active.exp{background:rgba(239,68,68,.15);color:var(--red2);box-shadow:inset 0 0 0 1px rgba(239,68,68,.3)}
@@ -771,7 +771,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .seg-thumbed{position:relative}
 .seg-thumbed>button{position:relative;z-index:1}
 .seg-thumb{
-  position:absolute;top:0;bottom:0;left:0;border-radius:999px;
+  position:absolute;top:3px;bottom:3px;left:0;border-radius:999px;
   background:var(--bg3);box-shadow:inset 0 0 0 1px var(--border2);
   transition:transform .32s cubic-bezier(.34,1.56,.64,1),width .32s cubic-bezier(.34,1.56,.64,1),opacity .15s ease;
   z-index:0;opacity:0;pointer-events:none;
@@ -954,6 +954,27 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
 .transfer-rate-hint{display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);color:var(--muted);font-size:13px;font-weight:750;line-height:1.35}
 .transfer-rate-hint strong{color:var(--text-strong)}
+
+/* Slightly larger mobile finance sheet typography without letting long labels
+   spill out of segmented buttons or pill controls. Scoped to the transaction
+   form so dense dashboard/list screens keep their current information density. */
+@media(max-width:600px){
+  #tx-form-modal .modal-card-body{padding:20px 22px calc(20px + env(safe-area-inset-bottom))}
+  #tx-form-modal .fin-form{gap:13px}
+  #tx-form-modal .fin-form-title{font-size:16.5px;line-height:1.25}
+  #tx-form-modal .type-seg{gap:4px;padding:4px}
+  #tx-form-modal .type-btn{font-size:14px;padding:9px 6px}
+  #tx-form-modal .fg label{font-size:13.5px;line-height:1.25;overflow-wrap:anywhere}
+  #tx-form-modal .fg select,#tx-form-modal .fg input{font-size:16px;line-height:1.25;padding:12px 14px;border-radius:16px}
+  #tx-form-modal .quick-amount-chip{font-size:14px;padding:10px 14px}
+  #tx-form-modal .filter-chip{font-size:14.5px;padding:14px 16px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+  #tx-form-modal .date-field-row{gap:10px;flex-wrap:wrap}
+  #tx-form-modal .date-field-row input{min-width:0;flex:1 1 160px}
+  #tx-form-modal .date-today-btn{font-size:14px;padding:12px 16px;min-height:46px;white-space:nowrap}
+  #tx-form-modal .add-btn{font-size:16px;min-height:54px;padding:14px 16px}
+  #tx-form-modal .field-help{font-size:13.5px}
+  #tx-form-modal .transfer-rate-hint{font-size:13.5px;line-height:1.4}
+}
 .transfer-rate-hint.warning{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.24);color:var(--orange)}
 .field-help{display:flex;justify-content:flex-end;margin-top:6px;color:var(--muted);font-size:13px;font-weight:750}
 .date-field-row{display:flex;gap:8px;align-items:center}
