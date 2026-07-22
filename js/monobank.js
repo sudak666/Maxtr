@@ -1,3 +1,4 @@
+// @ts-check
 // ── MONOBANK ──────────────────────────────────────────
 // Client-side half of the Monobank Open API integration (Settings →
 // Фінанси → "Прив'язати Monobank"). Manual "Синхронізувати" pulls, not a
@@ -73,7 +74,7 @@ async function monobankApiRequest(action, params, monobankToken){
   const bodyText=await res.text();
   let body=null; try{ body=JSON.parse(bodyText); }catch(e){ /* non-JSON error body, handled via res.ok below */ }
   if(!res.ok){
-    const err=new Error((body&&body.error)||`Monobank HTTP ${res.status}`);
+    const err=/** @type {Error & {status?: number}} */(new Error((body&&body.error)||`Monobank HTTP ${res.status}`));
     err.status=res.status;
     throw err;
   }
@@ -113,12 +114,12 @@ function createWalletForMonobankAccount(a){
 
 const connectMonobankUI=async function(){
   if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
-  const input=document.getElementById('monobank-token-input');
+  const input=/** @type {HTMLInputElement|null} */(document.getElementById('monobank-token-input'));
   const token=(input&&input.value||'').trim();
   const errEl=document.getElementById('monobank-connect-error');
   if(errEl) errEl.textContent='';
   if(!token){ if(errEl) errEl.textContent=tr('monobank_token_required'); return; }
-  const btn=document.getElementById('monobank-connect-btn');
+  const btn=/** @type {HTMLButtonElement|null} */(document.getElementById('monobank-connect-btn'));
   const originalLabel=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent=tr('monobank_connecting'); }
   try{
@@ -193,7 +194,7 @@ const syncMonobankUI=async function(){
   if(!mono) return;
   const entries=Object.entries(mono.mapping);
   if(!entries.length){ showToast(tr('monobank_no_accounts'),'xmark'); return; }
-  const btn=document.getElementById('monobank-sync-btn');
+  const btn=/** @type {HTMLButtonElement|null} */(document.getElementById('monobank-sync-btn'));
   const statusEl=document.getElementById('monobank-sync-status');
   if(btn) btn.disabled=true;
   const nowSec=Math.floor(Date.now()/1000);
@@ -279,7 +280,8 @@ const CLICK_ACTIONS={
   'disconnect-monobank': ()=>disconnectMonobankUI(),
 };
 document.addEventListener('click', e=>{
-  const el=e.target.closest('[data-action]');
+  const target=/** @type {Element} */ (e.target);
+  const el=/** @type {HTMLElement|null} */ (target.closest('[data-action]'));
   if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset, e);
 }, true);
 }
