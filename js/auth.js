@@ -149,12 +149,33 @@ function ensureRecaptcha(){
   return AppState.recaptchaVerifier;
 }
 
+function forceClassicPhoneRecaptcha(){
+  const classicOnlyConfig = {
+    isProviderEnabled: () => false,
+    getProviderEnforcementState: () => null,
+    isAnyProviderEnabled: () => false,
+  };
+  // Firebase Auth may put phone sign-in into reCAPTCHA Enterprise AUDIT mode
+  // from project config before our visible flow starts. In this project that
+  // Auth-managed Enterprise site key currently fails in the browser with
+  // "Invalid site key or not loaded in api.js", before the SDK reaches its
+  // documented v2 fallback. Seed the internal config as disabled so the SDK
+  // uses the explicit RecaptchaVerifier v2 flow below — the flow that worked
+  // before Enterprise/Audit was enabled. If this private SDK field changes,
+  // the assignment is harmless and the catch block still surfaces the normal
+  // localized phone-auth error.
+  const authInternal = /** @type {any} */ (auth);
+  authInternal._agentRecaptchaConfig = classicOnlyConfig;
+  if(authInternal.tenantId) authInternal._tenantRecaptchaConfigs = { ...(authInternal._tenantRecaptchaConfigs || {}), [authInternal.tenantId]: classicOnlyConfig };
+}
+
 const sendPhoneCode = async function(){
   const raw=/** @type {HTMLInputElement} */ (document.getElementById('auth-phone-input')).value.trim();
   if(!/^\+\d{8,15}$/.test(raw)){ setPhoneError(tr('auth_phone_bad_format')); return; }
   const btn=/** @type {HTMLButtonElement} */ (document.getElementById('auth-phone-send-btn'));
   setPhoneError(''); btn.disabled=true;
   try{
+    forceClassicPhoneRecaptcha();
     AppState.phoneConfirmationResult=await signInWithPhoneNumber(auth, raw, ensureRecaptcha());
     document.getElementById('auth-phone-code-group').style.display='block';
     btn.style.display='none';
@@ -224,6 +245,7 @@ const sendLinkPhoneCode = async function(){
   const btn=/** @type {HTMLButtonElement} */ (document.getElementById('link-phone-send-btn'));
   setLinkPhoneError(''); btn.disabled=true;
   try{
+    forceClassicPhoneRecaptcha();
     AppState.linkPhoneConfirmationResult=await linkWithPhoneNumber(AppState.currentUser, raw, ensureLinkRecaptcha());
     document.getElementById('link-phone-code-group').style.display='block';
     btn.style.display='none';
