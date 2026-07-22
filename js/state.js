@@ -126,6 +126,7 @@ export const AppState = {
   initialized: false,
   activeSettingsGroup: 'all',
   selectsEnhanced: false,
+  /** @type {((value: string | boolean | null) => void) | null} */
   __dlgResolve: null,
   openModalStack: [],
   expandedShiftTypeId: null,

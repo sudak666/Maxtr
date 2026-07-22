@@ -16,6 +16,7 @@
     "js/state.js",
     "js/receipt-ocr.js",
     "js/dashboard-widgets.js",
+    "js/ui-widgets.js",
     "types/globals.d.ts"
   ],
   "exclude": ["js/vendor/**", "node_modules", "dist"]

@@ -624,6 +624,6 @@ document.addEventListener('change', e=>{
 // closeModal() above, see the exact-target-check comment near the click
 // listener) so it needs its own initSheetDrag() call rather than the
 // blanket one settings-managers.js does for every other .modal-card.
-const shiftModalCard=document.querySelector('#shift-modal .modal-card');
+const shiftModalCard=/** @type {HTMLElement | null} */ (document.querySelector('#shift-modal .modal-card'));
 if(shiftModalCard) initSheetDrag(shiftModalCard, closeModal);
 }

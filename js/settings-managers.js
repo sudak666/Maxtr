@@ -1033,7 +1033,7 @@ document.addEventListener('click', (e)=>{
 // Bottom-sheet drag-to-dismiss (see index.html's "BOTTOM SHEET" CSS block)
 // for every manager modal except #shift-modal, which has its own
 // closeModal() and is wired separately in calendar.js's own init.
-document.querySelectorAll('.modal-overlay:not(#shift-modal) .modal-card').forEach(card=>initSheetDrag(card, closeManagers));
+document.querySelectorAll('.modal-overlay:not(#shift-modal) .modal-card').forEach(card=>initSheetDrag(/** @type {HTMLElement} */ (card), closeManagers));
 
 // Phase 3 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
 // every remaining button/row/input in this file's own templates, plus this
