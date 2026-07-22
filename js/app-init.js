@@ -29,7 +29,7 @@ export async function init(){
     const ms=document.getElementById('select-month');
     AppState.MONTHS.forEach((m,i)=>{
       const o=document.createElement('option');
-      o.value=i; o.textContent=m;
+      o.value=String(i); o.textContent=m;
       if(i===now.getMonth())o.selected=true;
       ms.appendChild(o);
     });

@@ -92,12 +92,16 @@ const CRYPTO_CACHE_KEY='mxCryptoTopCache';
 // polling on its own schedule (this isn't shared across users/devices).
 const CRYPTO_REFRESH_MS=30*60*1000;
 
+/** @returns {{list?: CryptoMarketEntry[], at?: number} | null} */
 function loadCryptoCache(){
   try{
     const raw=localStorage.getItem(CRYPTO_CACHE_KEY);
     return raw?JSON.parse(raw):null;
   }catch(e){ return null; }
 }
+/** @typedef {{id: string, current_price?: number, price_change_percentage_24h?: number, sparkline_in_7d?: {price?: number[]}}} CryptoMarketEntry */
+
+/** @param {CryptoMarketEntry[]} list */
 function saveCryptoCache(list){
   try{ localStorage.setItem(CRYPTO_CACHE_KEY, JSON.stringify({list, at:Date.now()})); }catch(e){}
 }
@@ -105,6 +109,7 @@ function saveCryptoCache(list){
 // Plain stateless components, same pattern as js/debt.js's
 // DebtBurndownChart/js/analytics-csv.js's AnalyticsDonut/
 // js/settings-managers.js's FxWidgetRow — no JSX/hooks/classes.
+/** @param {{W: number, H: number, points: string, color: string}} props */
 function CryptoSparkline({W, H, points, color}){
   if(!points) return null;
   return h('svg', {viewBox:`0 0 ${W} ${H}`, preserveAspectRatio:'none'},
@@ -112,6 +117,7 @@ function CryptoSparkline({W, H, points, color}){
   );
 }
 
+/** @param {{symbol: string, color: string, priceStr: string, changeStr: string, positive: boolean, sparkPoints: string}} props */
 function CryptoRow({symbol, color, priceStr, changeStr, positive, sparkPoints}){
   return h('div', {class:'crypto-top-row'},
     h('span', {class:'icon-badge icon-badge-symbol', style:{background:color}}, symbol[0]),
@@ -124,6 +130,12 @@ function CryptoRow({symbol, color, priceStr, changeStr, positive, sparkPoints}){
   );
 }
 
+/**
+ * @param {number[]} prices
+ * @param {number} W
+ * @param {number} H
+ * @returns {string}
+ */
 function sparklinePoints(prices, W, H){
   if(!Array.isArray(prices) || prices.length<2) return '';
   const pad=1;
@@ -192,7 +204,7 @@ async function fetchCryptoTop(){
 export async function maybeRefreshCryptoTop(){
   if(!AppState.widgets.cryptoTop) return;
   const cache=loadCryptoCache();
-  if(cache && Date.now()-cache.at < CRYPTO_REFRESH_MS) return;
+  if(cache && Date.now()-(cache.at ?? 0) < CRYPTO_REFRESH_MS) return;
   try{
     const list=await fetchCryptoTop();
     saveCryptoCache(list);

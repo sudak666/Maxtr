@@ -19,21 +19,14 @@ declare function setTheme(theme: string): void;
 declare interface Window {
   ICON_NAMES: string[];
   // Set by js/classic-globals.js's init before the module graph evaluates
-  // (see index.html's script-load order) — 'uk' or 'en', read here as a
-  // plain string since js/state.js indexes LANG_CALENDAR with it directly.
-  currentLang: string;
+  // (see index.html's script-load order) -- only ever 'uk' or 'en' at
+  // runtime (classic-globals.js's own setLang() and localStorage-restore
+  // path both gate on that exact check before assigning), narrowed here
+  // rather than left a plain string so js/state.js's LANG_CALENDAR[...]
+  // index and js/monobank.js's ternary both type-check honestly.
+  currentLang: 'uk' | 'en';
   // js/core.js's one hook back to the classic (non-module) inline script's
   // setLang() — see CLAUDE.md's "index.html script structure" for why this
   // exists as a real window.* property rather than an ES module export.
   __applyLangDynamic: (lang: string) => void;
-  // js/app.js's test-only hook — see that file's own comment for why this
-  // exists as one shared window.* object rather than per-test dynamic
-  // import()s of individual js/*.js files.
-  __RYTM_TEST_HOOKS__: {
-    AppState: typeof import('../js/state.js').AppState;
-    addTransaction: typeof import('../js/finance.js').addTransaction;
-    scanReceiptImage: typeof import('../js/receipt-ocr.js').scanReceiptImage;
-    setMonobankSyncGapMsForTesting: typeof import('../js/monobank.js').setMonobankSyncGapMsForTesting;
-    maybeRefreshCryptoTop: typeof import('../js/dashboard-widgets.js').maybeRefreshCryptoTop;
-  };
 }

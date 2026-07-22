@@ -20,6 +20,8 @@
 // Finance-tab-widgets section) and are no longer part of the
 // show/hide+reorder widget system. dailyTip/cryptoTop (js/dashboard-widgets.js)
 // added alongside goals so the Widgets manager has more than one item.
+/** @typedef {{id: string, name: string, qty: number, done: boolean, createdAt: number}} ShoppingItem */
+
 export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
   uk:{
@@ -55,6 +57,7 @@ export const AppState = {
   shifts: {},
   transactions: [],
   recurring: [],
+  /** @type {ShoppingItem[]} */
   shoppingList: [],
   currentFinanceType: 'income',
   editingTxId: null,

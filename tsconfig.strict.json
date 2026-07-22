@@ -12,7 +12,11 @@
   },
   "include": [
     "js/tx-validation.js",
-    "js/privacy-cache.js"
+    "js/privacy-cache.js",
+    "js/state.js",
+    "js/receipt-ocr.js",
+    "js/dashboard-widgets.js",
+    "types/globals.d.ts"
   ],
   "exclude": ["js/vendor/**", "node_modules", "dist"]
 }
