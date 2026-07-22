@@ -1,3 +1,4 @@
+// @ts-check
 // Shared mutable app state — every field here used to be its own
 // top-level `let` binding in the original single-file index.html. Unified
 // into one object (rather than individual `export let x`) because ES

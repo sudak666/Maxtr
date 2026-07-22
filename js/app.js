@@ -1,3 +1,4 @@
+// @ts-check
 // Entry point — loaded by index.html via <script type="module" src="./js/app.js">
 import { AppState } from './state.js';
 import './firebase-sync.js';
