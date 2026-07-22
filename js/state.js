@@ -21,6 +21,8 @@
 // show/hide+reorder widget system. dailyTip/cryptoTop (js/dashboard-widgets.js)
 // added alongside goals so the Widgets manager has more than one item.
 /** @typedef {{id: string, name: string, qty: number, done: boolean, createdAt: number}} ShoppingItem */
+/** @typedef {{id: string, name: string, color: string, icon: string, currency?: string}} Wallet */
+/** @typedef {{id: string, name: string, short: string, code?: string, color: string, amount: number, hours: number, isOff?: boolean}} ShiftType */
 
 export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
@@ -37,6 +39,7 @@ export const LANG_CALENDAR = {
 };
 
 export const AppState = {
+  /** @type {import('firebase/auth').User | null} */
   currentUser: null,
   activeProfileId: 'default',
   // Set only while viewing a *shared* profile (see js/firebase-sync.js's
@@ -55,7 +58,9 @@ export const AppState = {
   activeProfileRole: 'editor',
   profilesMeta: {list:[{id:'default', name:''}], updatedAt:0},
   shifts: {},
+  /** @type {any[]} */
   transactions: [],
+  /** @type {any[]} */
   recurring: [],
   /** @type {ShoppingItem[]} */
   shoppingList: [],
@@ -66,8 +71,10 @@ export const AppState = {
   txFilter: 'all',
   txSearch: '',
   fbTimer: null,
+  /** @type {ShiftType[]} */
   shiftTypes: [],
   autoFillSchedule: {enabled:false, typeId:'', pattern:'every', anchorDate:''},
+  /** @type {Wallet[]} */
   wallets: [],
   categories: {income:[], expense:[]},
   budgets: {},
@@ -77,7 +84,9 @@ export const AppState = {
   // categoryIcon() in core.js, which checks this before its own
   // exact-name/keyword/hash fallbacks). Set via the icon picker in
   // settings-managers.js.
+  /** @type {Record<string, string>} */
   categoryIcons: {},
+  /** @type {Record<string, number>} */
   currencyRates: {},
   tags: [],
   selectedTagIds: [],
