@@ -62,6 +62,7 @@ const seedEntries = Array.from({ length: TX_COUNT }, (_, i) => {
 const STUB_FIRESTORE = `
 const _docs = new Map(${JSON.stringify(seedEntries)});
 export function getFirestore(){ return {}; }
+export function initializeFirestore(){ return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
   return { path: rest.join('/') };
