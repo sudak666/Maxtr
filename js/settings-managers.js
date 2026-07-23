@@ -43,9 +43,11 @@ export function closeManagers(){
   });
 }
 
+/** @param {Element} container @returns {HTMLElement[]} */
 function focusableIn(container){
   return Array.from(container.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
-    .filter(el=>el.offsetParent!==null);
+    .filter(el=>/** @type {HTMLElement} */ (el).offsetParent!==null)
+    .map(el=>/** @type {HTMLElement} */ (el));
 }
 
 let modalTitleIdSeq=0;
@@ -56,6 +58,7 @@ let modalTitleIdSeq=0;
 // three, so this intentionally has no further fallback: better to silently
 // skip aria-labelledby for a title-less modal (there are none today) than
 // to grab an unrelated element and mislabel it.
+/** @param {HTMLElement} card */
 function findModalTitleEl(card){
   return card.querySelector('.modal-date, .fin-form-title, .dlg-title');
 }
@@ -120,14 +123,16 @@ export function setupModalAccessibility(){
   });
 }
 
+/** @param {string} prefix */
 export function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 
 const openShiftTypesManager = function(){
   AppState.expandedShiftTypeId=null;
   renderShiftTypesList();
-  document.getElementById('shift-types-modal').style.display='flex';
+  const modal=document.getElementById('shift-types-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} id */
 const toggleShiftTypeEdit = function(id){
   AppState.expandedShiftTypeId = AppState.expandedShiftTypeId===id ? null : id;
   renderShiftTypesList();
@@ -168,12 +173,13 @@ function renderShiftTypesList(){
   });
 }
 
+/** @param {string} id @param {string} field @param {string | boolean} value */
 export const updateShiftType = function(id,field,value){
   const t=shiftType(id); if(!t) return;
-  if(field==='amount'||field==='hours') t[field]=parseFloat(value)||0;
+  if(field==='amount'||field==='hours') /** @type {any} */ (t)[field]=parseFloat(String(value))||0;
   else if(field==='isOff') t.isOff=!!value;
   else if(field==='name'){ t.name=String(value).trim()||tr('shifts_default_name'); t.short=t.name.slice(0,4); }
-  else t[field]=value;
+  else /** @type {any} */ (t)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderShiftTypesList(); renderCalendar(); renderIncomeChart();
 };
@@ -187,6 +193,7 @@ const addShiftType = async function(){
   renderShiftTypesList(); renderCalendar(); renderIncomeChart();
 };
 
+/** @param {string} id */
 const deleteShiftType = async function(id){
   if(!(await uiConfirm(tr('shifts_delete_type_confirm'),{title:tr('shifts_delete_type_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.shiftTypes=AppState.shiftTypes.filter(t=>t.id!==id);
@@ -201,9 +208,10 @@ const deleteShiftType = async function(id){
 
 const openWalletsManager = function(){
   renderWalletsList();
-  document.getElementById('wallets-modal').style.display='flex';
+  const modal=document.getElementById('wallets-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} id */
 function walletInUse(id){ return AppState.transactions.some(t=>t.wallet===id||t.targetWallet===id) || AppState.recurring.some(r=>r.wallet===id); }
 
 function renderWalletsList(){
@@ -225,11 +233,12 @@ function renderWalletsList(){
   });
 }
 
+/** @param {string} id @param {string} field @param {string} value */
 export const updateWallet = function(id,field,value){
   const w=walletById(id); if(!w) return;
   if(field==='name') w.name=String(value).trim()||tr('wallets_default_name');
   else if(field==='currency'){ w.currency=value; if(value!=='UAH' && AppState.currencyRates[value]===undefined) AppState.currencyRates[value]=SEED_RATES[value]||1; }
-  else w[field]=value;
+  else /** @type {any} */ (w)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
 };
@@ -243,6 +252,7 @@ const addWallet = async function(){
   renderWalletsList(); renderFinance(); refreshWalletSelects();
 };
 
+/** @param {string} id */
 const deleteWallet = async function(id){
   if(AppState.wallets.length<=1){ showToast(tr('wallets_need_one'),'xmark'); return; }
   if(walletInUse(id)){ showToast(tr('wallets_in_use'),'xmark'); return; }
@@ -256,7 +266,7 @@ const openRatesManager = function(){
   renderRatesList();
   renderRatesUpdatedHint();
   renderRatesSourceUI();
-  document.getElementById('rates-modal').style.display='flex';
+  const modal=document.getElementById('rates-modal'); if(modal) modal.style.display='flex';
 };
 
 // Analytics/rates-widget/converter used to always render inline in the
@@ -264,7 +274,7 @@ const openRatesManager = function(){
 // change) already keeps their content current regardless of where they
 // live in the DOM, so opening this modal just needs to show it.
 const openToolsManager = function(){
-  document.getElementById('tools-modal').style.display='flex';
+  const modal=document.getElementById('tools-modal'); if(modal) modal.style.display='flex';
 };
 
 // Rates/converter/analytics/chart are no longer toggleable widgets here —
@@ -301,6 +311,7 @@ function renderWidgetsList(){
   }).join('');
 }
 
+/** @param {string} key @param {boolean} on */
 const toggleWidget = function(key, on){
   AppState.widgets[key]=!!on;
   saveConfigLocal(); scheduleSave();
@@ -315,6 +326,7 @@ const toggleWidget = function(key, on){
   maybeRefreshCryptoTop();
 };
 
+/** @param {string} key @param {number} dir */
 const moveWidget = function(key, dir){
   const i=AppState.widgetOrder.indexOf(key);
   const j=i+dir;
@@ -344,7 +356,7 @@ export const toggleHideAmounts = function(){
 
 const openWidgetsManager = function(){
   renderWidgetsList();
-  document.getElementById('widgets-modal').style.display='flex';
+  const modal=document.getElementById('widgets-modal'); if(modal) modal.style.display='flex';
 };
 
 /** @returns {void} */
@@ -356,6 +368,7 @@ export function renderPrivacyCacheUI(){
   if(sub) sub.textContent=tr(enabled?'privacy_cache_hint_on':'privacy_cache_hint_off');
 }
 
+/** @param {boolean} enabled */
 const togglePrivacyCache = function(enabled){
   setSensitiveLocalCacheEnabled(!!enabled);
   if(!enabled){
@@ -389,6 +402,7 @@ function renderRatesList(){
   });
 }
 
+/** @param {string} code @param {string} value */
 const updateCurrencyRate = function(code,value){
   const v=parseFloat(value);
   AppState.currencyRates[code]= v>0 ? v : (SEED_RATES[code]||1);
@@ -412,6 +426,7 @@ const PRIVAT_RATES_PROXY_URL='/api/privat-rates';
 
 function ratesSourceKey(){ return 'mxRatesSource'; }
 
+/** @param {string} source */
 const setRatesSource = function(source){
   AppState.ratesSource = source==='privat' ? 'privat' : 'nbu';
   try{ localStorage.setItem(ratesSourceKey(), AppState.ratesSource); }catch(e){}
@@ -478,6 +493,7 @@ async function fetchLiveRates(){
   return updated;
 }
 
+/** @param {boolean} [silent] */
 const updateRatesOnline = async function(silent){
   const btn=/** @type {HTMLButtonElement | null} */ (document.getElementById('rates-update-btn'));
   const widgetBtn=/** @type {HTMLButtonElement | null} */ (document.getElementById('fx-widget-refresh-btn'));
@@ -496,6 +512,7 @@ const updateRatesOnline = async function(silent){
   }
 };
 
+/** @type {Record<string, string>} */
 const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple)', PLN:'var(--orange)'};
 
 // This app's 3rd Preact-rendered widget, after js/debt.js's payoff-forecast
@@ -506,6 +523,7 @@ const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple
 // function returning an h() tree per row, keyed by currency code so
 // Preact can match/reorder existing row nodes rather than always
 // recreating them.
+/** @param {{color: string, symbol: string, title: string, sub: string, rateStr: string}} props */
 function FxWidgetRow({ color, symbol, title, sub, rateStr }){
   return h('div', { class:'fx-widget-row' },
     h('span', { class:'icon-badge icon-badge-symbol', style:{ background:color } }, symbol),
@@ -583,13 +601,14 @@ export function maybeAutoUpdateRates(){
 
 const openCategoriesManager = function(){
   AppState.catMgrType='expense'; AppState.expandedCatIdx=null; setCatMgrType('expense');
-  document.getElementById('categories-modal').style.display='flex';
+  const modal=document.getElementById('categories-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} type */
 const setCatMgrType = function(type){
   AppState.catMgrType=type; AppState.expandedCatIdx=null;
-  document.getElementById('catmgr-inc').classList.toggle('active',type==='income');
-  document.getElementById('catmgr-exp').classList.toggle('active',type==='expense');
+  const inc=document.getElementById('catmgr-inc'); if(inc) inc.classList.toggle('active',type==='income');
+  const exp=document.getElementById('catmgr-exp'); if(exp) exp.classList.toggle('active',type==='expense');
   renderCategoriesList();
 };
 
@@ -598,11 +617,13 @@ function currentMonthPrefix(){
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
 }
 
+/** @param {string} type @param {string} name */
 function catMonthTotal(type,name){
   const p=currentMonthPrefix();
   return AppState.transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.date&&t.date.startsWith(p))?s+toBase(t.amount,t.currency||'UAH'):s,0);
 }
 
+/** @param {string} type @param {string} name @param {string} sub */
 function subMonthTotal(type,name,sub){
   const p=currentMonthPrefix();
   return AppState.transactions.reduce((s,t)=>(t.type===type&&t.category===name&&t.subcategory===sub&&t.date&&t.date.startsWith(p))?s+toBase(t.amount,t.currency||'UAH'):s,0);
@@ -642,42 +663,48 @@ function renderCategoriesList(){
       if(addBtn) addBtn.onclick=()=>addSubcategory(idx);
     }
     const handle=row.querySelector('.drag-handle');
-    if(handle) attachCategoryDragHandle(handle, row);
+    if(handle) attachCategoryDragHandle(/** @type {HTMLElement} */ (handle), row);
     box.appendChild(row);
   });
 }
 
+/** @type {number | null} */
 let catIconPickIdx=null;
 
+/** @param {number} idx */
 const openCategoryIconPicker = function(idx){
   const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   catIconPickIdx=idx;
   renderCategoryIconGrid();
-  document.getElementById('category-icon-modal').style.display='flex';
+  const modal=document.getElementById('category-icon-modal'); if(modal) modal.style.display='flex';
 };
 
 function renderCategoryIconGrid(){
   const box=document.getElementById('category-icon-grid'); if(!box) return;
-  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx];
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx??-1];
   const current=name?categoryIcon(name):'';
   const names=window.ICON_NAMES||[];
   box.innerHTML=names.map(n=>`<button type="button" class="icon-opt${n===current?' sel':''}" data-action="select-category-icon" data-icon="${n}">${window.Icon(n)}</button>`).join('');
 }
 
+/** @param {string} iconName */
 const selectCategoryIcon = function(iconName){
-  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx]; if(!name) return;
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[catIconPickIdx??-1]; if(!name) return;
   AppState.categoryIcons[name]=iconName;
   saveConfigLocal(); scheduleSave();
-  document.getElementById('category-icon-modal').style.display='none';
+  const modal=document.getElementById('category-icon-modal'); if(modal) modal.style.display='none';
   renderCategoriesList(); renderBudgetsManagerList(); renderFinance(); renderFinanceChart();
 };
 
+/** @param {HTMLElement} handle @param {HTMLElement} row */
 function attachCategoryDragHandle(handle, row){
   handle.addEventListener('pointerdown', e=>{
     e.preventDefault();
-    const box=row.parentNode; if(!box) return;
+    const parent=/** @type {Element | null} */ (row.parentNode); if(!parent) return;
+    const box=parent;
     handle.setPointerCapture(e.pointerId);
     row.classList.add('dragging');
+    /** @param {PointerEvent} ev */
     function onMove(ev){
       const y=ev.clientY;
       const siblings=[...box.children].filter(r=>r!==row && r.classList.contains('mgr-row'));
@@ -693,7 +720,7 @@ function attachCategoryDragHandle(handle, row){
       handle.removeEventListener('pointerup', onUp);
       handle.removeEventListener('pointercancel', onUp);
       row.classList.remove('dragging');
-      const newOrder=[...box.children].filter(r=>r.classList.contains('mgr-row')).map(r=>r.dataset.catName);
+      const newOrder=[...box.children].filter(r=>r.classList.contains('mgr-row')).map(r=>/** @type {HTMLElement} */ (r).dataset.catName||'');
       AppState.categories[AppState.catMgrType]=newOrder;
       AppState.expandedCatIdx=null;
       saveConfigLocal(); scheduleSave();
@@ -705,11 +732,13 @@ function attachCategoryDragHandle(handle, row){
   });
 }
 
+/** @param {number} idx */
 const toggleSubcatPanel = function(idx){
   AppState.expandedCatIdx = AppState.expandedCatIdx===idx ? null : idx;
   renderCategoriesList();
 };
 
+/** @param {number} idx */
 const addSubcategory = async function(idx){
   const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   const subName=await uiPrompt(tr('cat_add_subcat_prompt'),'',tr('cat_add_subcat_title'));
@@ -723,6 +752,7 @@ const addSubcategory = async function(idx){
   renderCategoriesList();
 };
 
+/** @param {number} idx @param {number} si */
 const deleteSubcategory = async function(idx,si){
   const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   const subs=AppState.subcategories[subKey(AppState.catMgrType,name)]; if(!subs||subs[si]===undefined) return;
@@ -732,6 +762,7 @@ const deleteSubcategory = async function(idx,si){
   renderCategoriesList();
 };
 
+/** @param {number} idx @param {string} value */
 const renameCategory = function(idx,value){
   const list=AppState.categories[AppState.catMgrType]; if(!list||!list[idx]) return;
   const oldName=list[idx];
@@ -739,6 +770,7 @@ const renameCategory = function(idx,value){
   if(!newName){ renderCategoriesList(); return; }
   list[idx]=newName;
   // keep existing transactions consistent with the rename
+  /** @type {any[]} */
   const affected=[];
   AppState.transactions.forEach(t=>{ if(t.type===AppState.catMgrType && t.category===oldName){ t.category=newName; affected.push(t); } });
   AppState.recurring.forEach(r=>{ if(r.type===AppState.catMgrType && r.category===oldName) r.category=newName; });
@@ -764,6 +796,7 @@ const addCategory = async function(){
   renderCategoriesList(); fillCats(AppState.currentFinanceType);
 };
 
+/** @param {number} idx */
 const deleteCategory = async function(idx){
   const list=AppState.categories[AppState.catMgrType]; if(!list||list[idx]===undefined) return;
   if(!(await uiConfirm(tr('cat_delete_confirm'),{title:tr('cat_delete_title'),okText:tr('common_delete'),danger:true}))) return;
@@ -777,15 +810,17 @@ const deleteCategory = async function(idx){
   renderCategoriesList(); fillCats(AppState.currentFinanceType); renderBudgets();
 };
 
+/** @param {number} idx */
 const openCatActionMenu = function(idx){
   const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   AppState.catActionIdx=idx;
-  document.getElementById('cat-action-title').textContent=name;
-  document.getElementById('cat-action-modal').style.display='flex';
+  const title=document.getElementById('cat-action-title'); if(title) title.textContent=name;
+  const modal=document.getElementById('cat-action-modal'); if(modal) modal.style.display='flex';
 };
 
 const catActionEdit = async function(){
-  const idx=AppState.catActionIdx; const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
+  const idx=AppState.catActionIdx; if(idx==null) return;
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   closeManagers();
   const newName=await uiPrompt(tr('cat_add_prompt'), name, tr('cat_act_edit'));
   if(newName===null) return;
@@ -793,7 +828,8 @@ const catActionEdit = async function(){
 };
 
 const catActionShowTx = function(){
-  const idx=AppState.catActionIdx; const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
+  const idx=AppState.catActionIdx; if(idx==null) return;
+  const list=AppState.categories[AppState.catMgrType]; const name=list&&list[idx]; if(!name) return;
   closeManagers();
   AppState.txCategoryFilter=name;
   switchTab('finance');
@@ -802,16 +838,17 @@ const catActionShowTx = function(){
 };
 
 const catActionDelete = async function(){
-  const idx=AppState.catActionIdx;
+  const idx=AppState.catActionIdx; if(idx==null) return;
   closeManagers();
   await deleteCategory(idx);
 };
 
 const openBudgetsManager = function(){
   renderBudgetsManagerList();
-  document.getElementById('budgets-modal').style.display='flex';
+  const modal=document.getElementById('budgets-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} cat */
 const toggleBudgetEdit = function(cat){
   AppState.expandedBudgetCat = AppState.expandedBudgetCat===cat ? null : cat;
   renderBudgetsManagerList();
@@ -853,6 +890,7 @@ function renderBudgetsManagerList(){
   });
 }
 
+/** @param {string} name @param {string} value */
 const updateBudget = function(name,value){
   const v=parseFloat(value);
   if(!v||v<=0) delete AppState.budgets[name]; else AppState.budgets[name]=v;
@@ -891,14 +929,16 @@ export function renderBudgets(){
 
 const openRecurringManager = function(){
   renderRecurringList();
-  document.getElementById('recurring-modal').style.display='flex';
+  const modal=document.getElementById('recurring-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} id */
 const toggleRecurringEdit = function(id){
   AppState.expandedRecurringId = AppState.expandedRecurringId===id ? null : id;
   renderRecurringList();
 };
 
+/** @type {Record<string, string>} */
 const FREQ_LABEL_KEY={daily:'recurring_daily', weekly:'recurring_weekly', monthly:'recurring_monthly'};
 
 // Compact-manager-row pattern (icon badge + two-line summary + pencil
@@ -971,15 +1011,16 @@ function renderRecurringList(){
       </div>`:''}`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
-    row.querySelectorAll('input[type=date]').forEach(enhanceDateInput);
+    row.querySelectorAll('input[type=date]').forEach(el=>enhanceDateInput(/** @type {HTMLInputElement} */ (el)));
   });
 }
 
+/** @param {string} id @param {string} field @param {string | boolean} value */
 const updateRecurring = function(id,field,value){
   const r=AppState.recurring.find(x=>x.id===id); if(!r) return;
-  if(field==='amount') r.amount=parseFloat(value)||0;
+  if(field==='amount') r.amount=parseFloat(String(value))||0;
   else if(field==='active') r.active=!!value;
-  else if(field==='type'){ r.type=value; r.category=(AppState.categories[value]||[])[0]||tr('cat_other'); }
+  else if(field==='type'){ r.type=value; r.category=(AppState.categories[String(value)]||[])[0]||tr('cat_other'); }
   else r[field]=value;
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();
@@ -996,6 +1037,7 @@ const addRecurring = function(){
   showToast(tr('recurring_added'),'plus');
 };
 
+/** @param {string} id */
 const deleteRecurring = async function(id){
   if(!(await uiConfirm(tr('recurring_delete_confirm'),{title:tr('recurring_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.recurring=AppState.recurring.filter(r=>r.id!==id);
@@ -1043,53 +1085,55 @@ document.querySelectorAll('.modal-overlay:not(#shift-modal) .modal-card').forEac
 // data-action attribute, same idea as the closeManagers listener above — a
 // new manager row/input just needs a data-action(+data-*) pair, no further
 // init-time wiring here.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'open-shift-types-manager': ()=>openShiftTypesManager(),
   'add-shift-type': ()=>addShiftType(),
-  'toggle-shift-type-edit': ds=>toggleShiftTypeEdit(ds.id),
-  'delete-shift-type': ds=>deleteShiftType(ds.id),
+  'toggle-shift-type-edit': ds=>toggleShiftTypeEdit(ds.id||''),
+  'delete-shift-type': ds=>deleteShiftType(ds.id||''),
   'open-wallets-manager': ()=>openWalletsManager(),
   'add-wallet': ()=>addWallet(),
-  'delete-wallet': ds=>deleteWallet(ds.id),
+  'delete-wallet': ds=>deleteWallet(ds.id||''),
   // Color swatches on shiftType/wallet/tag manager rows — one handler for
   // all three (the global delegated listener sees every click regardless of
   // which file rendered the swatch). Was an inline onclick="openColorPicker
   // (...)" that the site CSP silently blocked. `data-kind` distinguishes
   // which list the row belongs to (selectPickedColor() switches on it).
-  'open-color-picker': ds=>openColorPicker(ds.kind, ds.id),
+  'open-color-picker': ds=>openColorPicker(ds.kind||'', ds.id||''),
   'open-rates-manager': ()=>openRatesManager(),
   'open-widgets-manager': ()=>openWidgetsManager(),
   'open-tools-manager': ()=>openToolsManager(),
-  'move-widget': ds=>moveWidget(ds.key, Number(ds.dir)),
-  'set-rates-source': ds=>setRatesSource(ds.source),
+  'move-widget': ds=>moveWidget(ds.key||'', Number(ds.dir)),
+  'set-rates-source': ds=>setRatesSource(ds.source||''),
   'update-rates-online': ()=>updateRatesOnline(),
   'swap-fx-converter': ()=>swapFxConverter(),
   'refresh-fx-widget': ()=>refreshFxWidget(),
   'open-categories-manager': ()=>openCategoriesManager(),
-  'set-cat-mgr-type': ds=>setCatMgrType(ds.type),
+  'set-cat-mgr-type': ds=>setCatMgrType(ds.type||''),
   'toggle-subcat-panel': ds=>toggleSubcatPanel(Number(ds.idx)),
   'open-cat-action-menu': ds=>openCatActionMenu(Number(ds.idx)),
   'delete-subcategory': ds=>deleteSubcategory(Number(ds.idx), Number(ds.si)),
   'add-category': ()=>addCategory(),
   'open-category-icon-picker': ds=>openCategoryIconPicker(Number(ds.idx)),
-  'select-category-icon': ds=>selectCategoryIcon(ds.icon),
+  'select-category-icon': ds=>selectCategoryIcon(ds.icon||''),
   'cat-action-edit': ()=>catActionEdit(),
   'cat-action-show-tx': ()=>catActionShowTx(),
   'cat-action-delete': ()=>catActionDelete(),
   'open-budgets-manager': ()=>openBudgetsManager(),
-  'toggle-budget-edit': ds=>toggleBudgetEdit(ds.cat),
+  'toggle-budget-edit': ds=>toggleBudgetEdit(ds.cat||''),
   'open-recurring-manager': ()=>openRecurringManager(),
-  'toggle-recurring-edit': ds=>toggleRecurringEdit(ds.id),
+  'toggle-recurring-edit': ds=>toggleRecurringEdit(ds.id||''),
   'add-recurring': ()=>addRecurring(),
-  'delete-recurring': ds=>deleteRecurring(ds.id),
+  'delete-recurring': ds=>deleteRecurring(ds.id||''),
 };
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
-  'update-shift-type': (ds,el)=>updateShiftType(ds.id, ds.field, ds.field==='isOff'?el.checked:el.value),
-  'update-wallet': (ds,el)=>updateWallet(ds.id, ds.field, el.value),
-  'toggle-widget': (ds,el)=>toggleWidget(ds.key, el.checked),
-  'update-currency-rate': (ds,el)=>updateCurrencyRate(ds.code, el.value),
-  'update-budget': (ds,el)=>updateBudget(ds.cat, el.value),
-  'update-recurring': (ds,el)=>updateRecurring(ds.id, ds.field, ds.field==='active'?el.checked:el.value),
+  'update-shift-type': (ds,el)=>updateShiftType(ds.id||'', ds.field||'', ds.field==='isOff'?el.checked:el.value),
+  'update-wallet': (ds,el)=>updateWallet(ds.id||'', ds.field||'', el.value),
+  'toggle-widget': (ds,el)=>toggleWidget(ds.key||'', el.checked),
+  'update-currency-rate': (ds,el)=>updateCurrencyRate(ds.code||'', el.value),
+  'update-budget': (ds,el)=>updateBudget(ds.cat||'', el.value),
+  'update-recurring': (ds,el)=>updateRecurring(ds.id||'', ds.field||'', ds.field==='active'?el.checked:el.value),
   'render-fx-converter': ()=>renderFxConverter(),
   'toggle-privacy-cache': (ds,el)=>togglePrivacyCache(el.checked),
 };
@@ -1099,11 +1143,14 @@ const FIELD_ACTIONS = {
 // listener's click before it ever saw the event.
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
+/** @param {Event} e */
 function dispatchFieldAction(e){
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 }
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
