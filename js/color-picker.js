@@ -24,7 +24,8 @@ import { applyProfileReadOnlyUI, escapeHtml, setupAccessibleClickableDivs, showT
 export const openColorPicker = function(kind,id){
   AppState.colorPickTarget={kind,id};
   renderColorPickerGrid();
-  document.getElementById('color-pick-modal').style.display='flex';
+  const modal=document.getElementById('color-pick-modal');
+  if(modal) modal.style.display='flex';
 };
 
 function currentPickedColor(){
@@ -43,13 +44,15 @@ function renderColorPickerGrid(){
   setupAccessibleClickableDivs(box);
 }
 
+/** @param {string} color */
 const selectPickedColor = function(color){
   if(!AppState.colorPickTarget) return;
   const {kind,id}=AppState.colorPickTarget;
   if(kind==='wallet') updateWallet(id,'color',color);
   else if(kind==='shiftType') updateShiftType(id,'color',color);
   else if(kind==='tag') updateTag(id,'color',color);
-  document.getElementById('color-pick-modal').style.display='none';
+  const modal=document.getElementById('color-pick-modal');
+  if(modal) modal.style.display='none';
 };
 
 const addProfile = async function(){
@@ -63,6 +66,7 @@ const addProfile = async function(){
   renderProfilesUI();
 };
 
+/** @param {string} id */
 const renameProfile = async function(id){
   const p=AppState.profilesMeta.list.find(x=>x.id===id); if(!p) return;
   const name=await uiPrompt(tr('profiles_rename_prompt'), p.name, tr('profiles_rename_title'));
@@ -73,10 +77,12 @@ const renameProfile = async function(id){
   renderProfilesUI();
 };
 
+/** @param {string} id */
 const openProfileAvatarPicker = function(id){
   AppState.avatarPickTargetProfileId=id;
   renderProfileAvatarPickerGrid();
-  document.getElementById('profile-avatar-pick-modal').style.display='flex';
+  const modal=document.getElementById('profile-avatar-pick-modal');
+  if(modal) modal.style.display='flex';
 };
 
 function renderProfileAvatarPickerGrid(){
@@ -86,14 +92,17 @@ function renderProfileAvatarPickerGrid(){
   setupAccessibleClickableDivs(box);
 }
 
+/** @param {string} avatarId */
 const selectProfileAvatar = async function(avatarId){
   const p=AppState.profilesMeta.list.find(x=>x.id===AppState.avatarPickTargetProfileId); if(!p) return;
   p.avatar='builtin:'+avatarId;
   await saveProfilesMeta();
-  document.getElementById('profile-avatar-pick-modal').style.display='none';
+  const modal=document.getElementById('profile-avatar-pick-modal');
+  if(modal) modal.style.display='none';
   renderProfilesUI();
 };
 
+/** @param {string} id */
 const deleteProfile = async function(id){
   // Only ever meant for one of this account's own profiles — a shared
   // profile reference is removed via leaveSharedProfileUI() instead
@@ -113,6 +122,10 @@ const deleteProfile = async function(id){
 // id + ownerUid together identify a profile: ownerUid is null/omitted for
 // one of this account's own profiles, or the sharing account's uid for a
 // shared one (see state.js's activeProfileOwnerUid comment).
+/**
+ * @param {string} id
+ * @param {string|null} [ownerUid]
+ */
 const switchProfile = async function(id, ownerUid){
   ownerUid = ownerUid || null;
   if(id===AppState.activeProfileId && ownerUid===AppState.activeProfileOwnerUid) return;
@@ -121,7 +134,7 @@ const switchProfile = async function(id, ownerUid){
     : AppState.profilesMeta.list.some(p=>p.id===id && p.kind!=='shared');
   if(!known) return;
   if(!(await uiConfirm(tr('profiles_switch_confirm'),{title:tr('profiles_switch_title'),okText:tr('profiles_switch_btn')}))) return;
-  clearTimeout(AppState.fbTimer);
+  clearTimeout(AppState.fbTimer ?? undefined);
   await fbSaveNow();
   AppState.activeProfileId=id;
   AppState.activeProfileOwnerUid=ownerUid;
@@ -168,6 +181,10 @@ const joinSharedProfileUI = async function(){
   showToast(tr('profiles_join_success'),'check');
 };
 
+/**
+ * @param {string} id
+ * @param {string} ownerUid
+ */
 const leaveSharedProfileUI = async function(id, ownerUid){
   if(!(await uiConfirm(tr('profiles_leave_confirm'),{title:tr('profiles_leave_title'),okText:tr('profiles_leave_btn'),danger:true}))) return;
   const wasActive = AppState.activeProfileId===id && AppState.activeProfileOwnerUid===ownerUid;
@@ -198,8 +215,10 @@ const leaveSharedProfileUI = async function(id, ownerUid){
 // cleanly express. currentManagedMembersProfileId tracks which profile's
 // members are currently shown so toggleMemberRoleUI() knows which
 // shared_members doc to write back to.
+/** @type {string|null} */
 let currentManagedMembersProfileId=null;
 
+/** @param {string} profileId */
 const openSharedMembersManagerUI = async function(profileId){
   currentManagedMembersProfileId=profileId;
   const modal=document.getElementById('shared-members-modal');
@@ -207,9 +226,11 @@ const openSharedMembersManagerUI = async function(profileId){
   await renderSharedMembersList(profileId);
 };
 
+/** @param {string} profileId */
 async function renderSharedMembersList(profileId){
   const box=document.getElementById('shared-members-list'); if(!box) return;
   box.innerHTML='';
+  /** @type {{members: string[], roles: Record<string, string>} | null} */
   let data;
   try{
     data=await listSharedMembers(profileId);
@@ -218,7 +239,9 @@ async function renderSharedMembersList(profileId){
     showToast(tr('sync_autosave_error'),'xmark');
     return;
   }
-  const otherMembers=(data&&data.members||[]).filter(uid=>uid!==AppState.currentUser.uid);
+  if(!data) return;
+  const currentUid=AppState.currentUser && AppState.currentUser.uid;
+  const otherMembers=data.members.filter(uid=>uid!==currentUid);
   if(!otherMembers.length){
     box.innerHTML=`<div class="settings-no-results" style="display:block">${tr('profiles_members_none')}</div>`;
     return;
@@ -241,6 +264,10 @@ async function renderSharedMembersList(profileId){
   });
 }
 
+/**
+ * @param {string} uid
+ * @param {string} currentRole
+ */
 const toggleMemberRoleUI = async function(uid, currentRole){
   if(!currentManagedMembersProfileId) return;
   const nextRole = currentRole==='viewer' ? 'editor' : 'viewer';
@@ -298,6 +325,10 @@ export function renderProfilesUI(){
   setupAccessibleClickableDivs(box);
 }
 
+/**
+ * @param {string} type
+ * @param {string} text
+ */
 function fbSetStatus(type, text){
   const el=document.getElementById('fb-status');
   const tx=document.getElementById('fb-text');
@@ -313,6 +344,7 @@ async function fbSaveNow(){
     const [sChk,fChk,dChk]=await Promise.all([
       getDoc(userDoc('shifts')), getDoc(userDoc('finance')), getDoc(userDoc('debt')),
     ]);
+    /** @type {Record<string, number>} */
     const remoteUpdatedAt={
       shifts:  sChk.exists()?(sChk.data().updatedAt||0):0,
       finance: fChk.exists()?(fChk.data().updatedAt||0):0,
@@ -423,6 +455,7 @@ function backfillCategories(){
   if(AppState.catLegacyMerged) return false;
   const hasData = Object.keys(AppState.shifts).length>0 || AppState.transactions.length>0 || (AppState.debts&&AppState.debts.length>0);
   let changed=false;
+  /** @param {string} type @param {string} name */
   const add=(type,name)=>{
     const c=(name||'').trim();
     if(!c || c==='Внутрішній переказ') return;
@@ -536,7 +569,7 @@ export async function fbLoadNow(){
 /** @returns {void} */
 export function scheduleSave(){
   fbSetStatus('loading',tr('sync_autosave'));
-  clearTimeout(AppState.fbTimer);
+  clearTimeout(AppState.fbTimer ?? undefined);
   AppState.fbTimer=setTimeout(fbSaveNow,1800);
 }
 
@@ -560,6 +593,10 @@ export function saveShoppingLocal(){
   const k=lsKey('shopping'); if(k) localStorage.setItem(k, JSON.stringify(AppState.shoppingList));
 }
 
+/**
+ * @param {string} dateStr
+ * @param {string} freq
+ */
 function computeNextDate(dateStr, freq){
   const d=new Date(dateStr+'T00:00:00');
   if(freq==='daily') d.setDate(d.getDate()+1);
@@ -572,6 +609,7 @@ async function processRecurring(){
   if(!AppState.recurring.length) return 0;
   const todayStr=new Date().toISOString().split('T')[0];
   let added=0;
+  /** @type {any[]} */
   const newTx=[];
   AppState.recurring.forEach(r=>{
     if(r.active===false || !r.nextDate || !r.amount) return;
@@ -618,24 +656,26 @@ export function __init_color_picker__(){
 // phase 3. CAPTURE phase for the same reason as there: several of these
 // buttons sit inside a .modal-card whose own onclick="event.stopPropagation()"
 // would otherwise swallow a bubble-phase document listener.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
-  'select-picked-color': ds=>selectPickedColor(ds.color),
-  'select-profile-avatar': ds=>selectProfileAvatar(ds.avatarId),
-  'open-profile-avatar-picker': ds=>openProfileAvatarPicker(ds.id),
-  'switch-profile': ds=>switchProfile(ds.id, ds.ownerUid||null),
-  'rename-profile': ds=>renameProfile(ds.id),
-  'delete-profile': ds=>deleteProfile(ds.id),
+  'select-picked-color': ds=>selectPickedColor(ds.color||''),
+  'select-profile-avatar': ds=>selectProfileAvatar(ds.avatarId||''),
+  'open-profile-avatar-picker': ds=>openProfileAvatarPicker(ds.id||''),
+  'switch-profile': ds=>switchProfile(ds.id||'', ds.ownerUid||null),
+  'rename-profile': ds=>renameProfile(ds.id||''),
+  'delete-profile': ds=>deleteProfile(ds.id||''),
   'add-profile': ()=>addProfile(),
-  'open-profiles-manager': ()=>{ document.getElementById('profiles-modal').style.display='flex'; renderProfilesUI(); },
+  'open-profiles-manager': ()=>{ const modal=document.getElementById('profiles-modal'); if(modal) modal.style.display='flex'; renderProfilesUI(); },
   'share-current-profile': ()=>shareCurrentProfileUI(),
   'join-shared-profile': ()=>joinSharedProfileUI(),
-  'leave-shared-profile': ds=>leaveSharedProfileUI(ds.id, ds.ownerUid),
-  'open-shared-members-manager': ds=>openSharedMembersManagerUI(ds.id),
-  'toggle-member-role': ds=>toggleMemberRoleUI(ds.uid, ds.role),
+  'leave-shared-profile': ds=>leaveSharedProfileUI(ds.id||'', ds.ownerUid||''),
+  'open-shared-members-manager': ds=>openSharedMembersManagerUI(ds.id||''),
+  'toggle-member-role': ds=>toggleMemberRoleUI(ds.uid||'', ds.role||''),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
 // Color swatches now call openColorPicker through imported data-action
