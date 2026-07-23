@@ -41,6 +41,8 @@ const h = /** @type {any} */ (_h);
 let txListExpanded=false;
 const TX_LIST_COLLAPSED_COUNT=5;
 
+/** @typedef {{id: string|number, type: string, date: string, amount: number, currency?: string, category?: string, subcategory?: string, wallet?: string, targetWallet?: string|null, targetAmount?: number|null, targetCurrency?: string|null, comment?: string, tags?: string[], createdAt?: number}} Transaction */
+
 // This app's second Preact-rendered widget, after js/debt.js's payoff-
 // forecast chart (see CLAUDE.md's "Preact adoption" note) — same small,
 // stateless-component pattern: a plain function returning h() trees, no
@@ -71,6 +73,7 @@ const toggleTxListExpanded = function(){
   renderFinance();
 };
 
+/** @param {string} period */
 const setAnalyticsPeriod = function(period){
   AppState.analyticsPeriod=period;
   document.querySelectorAll('#analytics-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', /** @type {HTMLElement} */ (c).dataset.period===period));
@@ -78,26 +81,28 @@ const setAnalyticsPeriod = function(period){
   renderAnalytics();
 };
 
+/** @returns {[(t: Transaction) => boolean, ((t: Transaction) => boolean) | null]} */
 function analyticsPredicates(){
   const now=new Date();
+  /** @param {number} y @param {number} m */
   const mPrefix=(y,m)=>`${y}-${String(m+1).padStart(2,'0')}`;
   if(AppState.analyticsPeriod==='month'){
     const p=mPrefix(now.getFullYear(),now.getMonth());
     const prevD=new Date(now.getFullYear(),now.getMonth()-1,1);
     const pp=mPrefix(prevD.getFullYear(),prevD.getMonth());
-    return [t=>t.date&&t.date.startsWith(p), t=>t.date&&t.date.startsWith(pp)];
+    return [t=>!!(t.date&&t.date.startsWith(p)), t=>!!(t.date&&t.date.startsWith(pp))];
   }
   if(AppState.analyticsPeriod==='prev'){
     const d=new Date(now.getFullYear(),now.getMonth()-1,1);
     const p=mPrefix(d.getFullYear(),d.getMonth());
     const prevD=new Date(d.getFullYear(),d.getMonth()-1,1);
     const pp=mPrefix(prevD.getFullYear(),prevD.getMonth());
-    return [t=>t.date&&t.date.startsWith(p), t=>t.date&&t.date.startsWith(pp)];
+    return [t=>!!(t.date&&t.date.startsWith(p)), t=>!!(t.date&&t.date.startsWith(pp))];
   }
   if(AppState.analyticsPeriod==='3m'){
     const from=mPrefix(new Date(now.getFullYear(),now.getMonth()-2,1).getFullYear(), new Date(now.getFullYear(),now.getMonth()-2,1).getMonth())+'-01';
     const prevFrom=mPrefix(new Date(now.getFullYear(),now.getMonth()-5,1).getFullYear(), new Date(now.getFullYear(),now.getMonth()-5,1).getMonth())+'-01';
-    return [t=>t.date&&t.date>=from, t=>t.date&&t.date>=prevFrom&&t.date<from];
+    return [t=>!!(t.date&&t.date>=from), t=>!!(t.date&&t.date>=prevFrom&&t.date<from)];
   }
   return [()=>true, null]; // 'all'
 }
@@ -139,9 +144,11 @@ function renderAnalytics(){
     }
   }
 
+  /** @param {Transaction[]} txList */
   const byCatAmount=(txList)=>{
+    /** @type {Record<string, number>} */
     const byCat={};
-    txList.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+toBase(t.amount,t.currency||'UAH'); });
+    txList.forEach(t=>{ const cat=t.category||''; byCat[cat]=(byCat[cat]||0)+toBase(t.amount,t.currency||'UAH'); });
     return Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   };
   const expenseByCat=byCatAmount(expenseTx);
@@ -194,6 +201,10 @@ function renderAnalytics(){
     donut.classList.add('donut-anim');
   }
 
+  /**
+   * @param {Array<[string, number]>} entries
+   * @param {number} total
+   */
   const renderCatList=(entries,total)=>{
     if(!entries.length) return `<div class="mgr-empty">${tr('analytics_no_data')}</div>`;
     return entries.map(([cat,amt])=>{
@@ -214,14 +225,16 @@ function renderAnalytics(){
   if(incBox) incBox.innerHTML=renderCatList(incomeByCat,totalIncome);
 }
 
+/** @returns {Record<string, number>} */
 export function computeWalletBalances(){
+  /** @type {Record<string, number>} */
   const wb={};
   AppState.wallets.forEach(w=>{wb[w.id]=0;});
-  AppState.transactions.forEach(t=>{
-    const w=t.wallet;
+  /** @type {Transaction[]} */ (AppState.transactions).forEach(t=>{
+    const w=t.wallet||'';
     if(t.type==='income')   {if(wb[w]!==undefined)wb[w]+=t.amount;}
     if(t.type==='expense')  {if(wb[w]!==undefined)wb[w]-=t.amount;}
-    if(t.type==='transfer') {const tw=t.targetWallet;if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=(t.targetAmount!=null?t.targetAmount:t.amount);}
+    if(t.type==='transfer') {const tw=t.targetWallet||'';if(wb[w]!==undefined)wb[w]-=t.amount;if(wb[tw]!==undefined)wb[tw]+=(t.targetAmount!=null?t.targetAmount:t.amount);}
   });
   return wb;
 }
@@ -285,6 +298,7 @@ export function renderFinanceSkeleton(){
 // refreshing an existing (reused) one's content in place. Does not include
 // the outer .tx-item element itself, which persists across renders for
 // unchanged transactions (see renderFinance()'s targeted-update comment).
+/** @param {Transaction} t */
 function txItemInnerHtml(t){
   const df=t.date?t.date.split('-').reverse().join('.'):'';
   const cur=currencySymbol(t.currency||'UAH');
@@ -292,10 +306,10 @@ function txItemInnerHtml(t){
   if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
   if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
   if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-  const catIcon=window.Icon(categoryIcon(t.category));
-  const wBadge=walletBadge(t.wallet);
+  const catIcon=window.Icon(categoryIcon(t.category||''));
+  const wBadge=walletBadge(t.wallet||'');
   const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
-    ? `<span class="tx-conv-note" style="font-size:13px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency)})</span>` : '';
+    ? `<span class="tx-conv-note" style="font-size:13px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency||'')})</span>` : '';
   const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:13px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
   const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
   // Pencil dropped on purpose: tapping the row already opens edit (see the
@@ -309,7 +323,7 @@ function txItemInnerHtml(t){
   return `
       <div class="tx-item-inner">
         <div class="tx-left-wrap">
-          <div class="icon-badge" style="background:${categoryColor(t.category)}">${catIcon}</div>
+          <div class="icon-badge" style="background:${categoryColor(t.category||'')}">${catIcon}</div>
           <div class="tx-left">
             <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
             <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
@@ -326,6 +340,7 @@ function txItemInnerHtml(t){
 const TX_SWIPE_REVEAL_PX=60;
 const TX_SWIPE_OPEN_THRESHOLD=30; // half the reveal width - matches most swipe-list conventions ("did you mean to open this?")
 
+/** @param {Element} except */
 function closeAllTxSwipes(except){
   document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
 }
@@ -339,13 +354,14 @@ function closeAllTxSwipes(except){
 // Called once per node at creation time (like the click/keydown listeners
 // above); .tx-item-inner is re-queried on every drag rather than cached,
 // since it gets replaced wholesale on every re-render of a reused row.
+/** @param {HTMLElement} item */
 function setupTxSwipe(item){
   let startX=0,startY=0,dx=0,dragging=false,decided=false,horizontal=false;
-  item.addEventListener('pointerdown',e=>{
+  item.addEventListener('pointerdown',(/** @type {PointerEvent} */ e)=>{
     if(e.pointerType==='mouse') return; // mouse gets the CSS :hover reveal instead
     startX=e.clientX; startY=e.clientY; dx=0; dragging=true; decided=false; horizontal=false;
   });
-  item.addEventListener('pointermove',e=>{
+  item.addEventListener('pointermove',(/** @type {PointerEvent} */ e)=>{
     if(!dragging) return;
     const ddx=e.clientX-startX, ddy=e.clientY-startY;
     if(!decided){
@@ -365,14 +381,14 @@ function setupTxSwipe(item){
     // Shrinks .tx-item-inner's own width (from its right edge) rather than
     // translating it — see index.html's .tx-item-inner comment for why a
     // transform clips the category icon on the left instead.
-    const inner=item.querySelector('.tx-item-inner');
+    const inner=/** @type {HTMLElement | null} */ (item.querySelector('.tx-item-inner'));
     if(inner) inner.style.width=`calc(100% - ${-dx}px)`;
   });
   function endDrag(){
     if(!dragging) return;
     dragging=false;
     item.classList.remove('swipe-dragging');
-    const inner=item.querySelector('.tx-item-inner');
+    const inner=/** @type {HTMLElement | null} */ (item.querySelector('.tx-item-inner'));
     if(inner) inner.style.width=''; // hand off to the .swipe-open CSS class below
     if(horizontal){
       if(dx<-TX_SWIPE_OPEN_THRESHOLD){ closeAllTxSwipes(item); item.classList.add('swipe-open'); }
@@ -432,7 +448,8 @@ export function renderFinance(){
   let filtered=AppState.txFilter==='all'?AppState.transactions:AppState.transactions.filter(t=>t.type===AppState.txFilter);
   if(AppState.txCategoryFilter) filtered=filtered.filter(t=>t.category===AppState.txCategoryFilter);
   if(AppState.txSearch){
-    const walletName=id=>(walletById(id)?.name||'').toLowerCase();
+    /** @param {string} [id] */
+    const walletName=id=>(walletById(id||'')?.name||'').toLowerCase();
     filtered=filtered.filter(t=>[t.comment,t.category,t.subcategory,walletName(t.wallet),walletName(t.targetWallet),t.currency,t.targetCurrency]
       .some(v=>String(v||'').toLowerCase().includes(AppState.txSearch)));
   }
@@ -449,7 +466,7 @@ export function renderFinance(){
 
   const catChip=document.getElementById('tx-cat-filter-chip');
   if(catChip){
-    if(AppState.txCategoryFilter){ catChip.style.display='block'; document.getElementById('tx-cat-filter-label').textContent=AppState.txCategoryFilter; }
+    if(AppState.txCategoryFilter){ catChip.style.display='block'; const lbl=document.getElementById('tx-cat-filter-label'); if(lbl) lbl.textContent=AppState.txCategoryFilter; }
     else catChip.style.display='none';
   }
 
@@ -494,32 +511,37 @@ export function renderFinance(){
   // state (txItemInnerHtml()), so nothing here risks showing stale data —
   // this only changes whether the outer element is reused, not what's
   // computed into it.
+  /** @type {Map<string, HTMLElement>} */
   const existingById=new Map();
-  lc.querySelectorAll(':scope > .tx-item').forEach(node=>{ existingById.set(/** @type {HTMLElement} */ (node).dataset.txId, node); });
+  lc.querySelectorAll(':scope > .tx-item').forEach(node=>{ const el=/** @type {HTMLElement} */ (node); if(el.dataset.txId) existingById.set(el.dataset.txId, el); });
 
   let newNodeCount=0;
+  /** @type {HTMLElement | null} */
   let prevNode=null;
   visible.forEach(t=>{
     const idStr=String(t.id);
-    let item=existingById.get(idStr);
-    const isNew=!item;
+    const existing=existingById.get(idStr);
+    const isNew=!existing;
+    let item;
     if(isNew){
-      item=document.createElement('div');
-      item.className='tx-item';
-      item.tabIndex=0;
-      item.style.cursor='pointer';
-      item.dataset.txId=idStr;
-      item.addEventListener('click',()=>{
+      const el=document.createElement('div');
+      el.className='tx-item';
+      el.tabIndex=0;
+      el.style.cursor='pointer';
+      el.dataset.txId=idStr;
+      el.addEventListener('click',()=>{
         // A swiped-open row's first tap just closes it again (matches the
         // common swipe-list convention, e.g. iOS Mail) instead of also
         // opening edit right after the drag gesture ends - a touchend can
         // otherwise register as a click on the same element.
-        if(item.classList.contains('swipe-open')){ item.classList.remove('swipe-open'); return; }
+        if(el.classList.contains('swipe-open')){ el.classList.remove('swipe-open'); return; }
         editTransaction(t.id);
       });
-      item.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
-      setupTxSwipe(item);
+      el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
+      setupTxSwipe(el);
+      item=el;
     }else{
+      item=existing;
       existingById.delete(idStr); // consumed — whatever's left afterward gets removed below
     }
     item.innerHTML=txItemInnerHtml(t);
@@ -559,6 +581,7 @@ const clearTxCategoryFilter = function(){
   renderFinance();
 };
 
+/** @param {*} v */
 function csvEscape(v){
   const s=String(v==null?'':v);
   return /[;"\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
@@ -566,6 +589,7 @@ function csvEscape(v){
 
 const exportTransactionsCSV = function(){
   if(!AppState.transactions.length){ showToast(tr('csv_empty'),'xmark'); return; }
+  /** @type {Record<string, string>} */
   const TX_TYPE_LABEL={income:tr('finance_type_income').replace('+ ',''),expense:tr('finance_type_expense').replace('− ',''),transfer:tr('finance_type_transfer').replace('⇄ ','')};
   const header=[tr('csv_date'),tr('csv_type'),tr('finance_category'),tr('finance_subcategory'),tr('finance_wallet'),tr('finance_amount_prefix'),tr('csv_currency'),tr('csv_to'),tr('csv_transfer_amount'),tr('csv_transfer_currency'),tr('finance_comment')];
   const sorted=[...AppState.transactions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -601,6 +625,7 @@ const exportTransactionsCSV = function(){
 // exportTransactionsCSV()'s header array, not by header text — header
 // labels are localized (tr()), so text-matching would break importing a
 // uk-exported file after switching the UI to en, or vice versa.
+/** @type {Record<string, string>} */
 const CSV_TX_TYPE_FROM_LABEL = {
   'Дохід':'income', 'Витрата':'expense', 'Переказ':'transfer',
   'Income':'income', 'Expense':'expense', 'Transfer':'transfer',
@@ -611,7 +636,9 @@ const CSV_TX_TYPE_FROM_LABEL = {
 // above), CRLF or LF line endings, optional UTF-8 BOM (exportTransactionsCSV()
 // always writes one). Not a general-purpose RFC4180 parser — doesn't need
 // to be, since the only supported input is this app's own export.
+/** @param {string} text */
 function parseCSV(text){
+  /** @type {string[][]} */
   const rows=[];
   let row=[], field='', inQuotes=false;
   const s=text.charCodeAt(0)===0xFEFF ? text.slice(1) : text;
@@ -635,12 +662,16 @@ function parseCSV(text){
 // (unknown wallet, malformed amount/date, ...) is skipped and reported in
 // `errors`, not treated as fatal for the whole import — one bad row
 // shouldn't block the rest of an otherwise-good file.
+/** @param {string} text */
 function buildTransactionsFromCSV(text){
   const rows=parseCSV(text);
   if(!rows.length) return {valid:[], errors:[], headerError:tr('csv_import_empty')};
   const [header, ...dataRows]=rows;
   if(header.length!==11) return {valid:[], errors:[], headerError:tr('csv_import_bad_header')};
-  const valid=[], errors=[];
+  /** @type {any[]} */
+  const valid=[];
+  /** @type {Array<{row: number, reason: string}>} */
+  const errors=[];
   dataRows.forEach((r,i)=>{
     const rowNum=i+2; // 1 for the header row, 1 to be 1-based
     if(r.length<11){ errors.push({row:rowNum, reason:tr('csv_import_row_short')}); return; }
@@ -658,7 +689,7 @@ function buildTransactionsFromCSV(text){
       targetAmount=Number(String(targetAmountStr).replace(',','.'));
       targetCur=(targetCurrency||wallet.currency||'UAH').trim();
     }
-    const draft={amount, date:(dateStr||'').trim(), ws:wallet.id, wt:targetWalletId, cat:(category||'').trim()||null, sub:(subcategory||'').trim()||null, comment:(comment||'').trim()};
+    const draft={amount, date:(dateStr||'').trim(), ws:wallet.id, wt:targetWalletId||undefined, cat:(category||'').trim()||undefined, sub:(subcategory||'').trim()||undefined, comment:(comment||'').trim()};
     const errKey=validateTransactionDraft(draft, type==='transfer');
     if(errKey){ errors.push({row:rowNum, reason:tr(errKey)}); return; }
     valid.push({
@@ -683,9 +714,11 @@ const triggerImportCSV = function(){
 // content-based dedupe heuristic (same date+amount+comment) was
 // deliberately not built: it would also silently drop genuinely repeated
 // transactions (e.g. buying the same coffee twice in one day).
+/** @param {Event} e */
 const handleImportCSVFile = async function(e){
-  const file=e.target.files && e.target.files[0];
-  e.target.value=''; // allow re-selecting the same file later
+  const target=/** @type {HTMLInputElement} */ (e.target);
+  const file=target.files && target.files[0];
+  target.value=''; // allow re-selecting the same file later
   if(!file) return;
   let text;
   try{ text=await file.text(); }
@@ -724,8 +757,9 @@ export function __init_analytics_csv__(){
 // This file's dynamic actions are CSP-safe data-action handlers now. The
 // analytics-period chips already carry data-period, so set-analytics-period
 // reads ds.period directly instead of adding a redundant attribute.
+/** @type {Record<string, (ds: DOMStringMap, e?: Event) => void>} */
 const CLICK_ACTIONS = {
-  'set-analytics-period': ds=>setAnalyticsPeriod(ds.period),
+  'set-analytics-period': ds=>setAnalyticsPeriod(ds.period||'month'),
   'clear-tx-category-filter': ()=>clearTxCategoryFilter(),
   'export-transactions-csv': ()=>exportTransactionsCSV(),
   'trigger-import-csv': ()=>triggerImportCSV(),
@@ -739,19 +773,22 @@ const CLICK_ACTIONS = {
   // "delete opened edit" on the live site: the inline handler no-op'd and
   // the tap fell through to the row's edit listener. As a real delegated
   // handler it runs normally. Dispatcher below passes the event for this.
-  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(ds.id); },
+  'delete-transaction': (ds,e)=>{ if(e) e.stopPropagation(); deleteTransaction(ds.id||''); },
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset, e);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset, e);
 }, true);
 
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLElement, e?: Event) => void>} */
 const FIELD_ACTIONS = {
-  'handle-import-csv-file': (ds,el,e)=>handleImportCSVFile(e),
+  'handle-import-csv-file': (ds,el,e)=>{ if(e) handleImportCSVFile(e); },
 };
 document.addEventListener('change', e=>{
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el, e);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el, e);
 });
 
 // Closes any swiped-open .tx-item (see setupTxSwipe() above) the moment a
