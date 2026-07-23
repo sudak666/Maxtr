@@ -51,8 +51,8 @@ export function updateTransferHint(){
   const ws=/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-wallet'))?.value;
   const wt=/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-wallet-target'))?.value;
   const amount=Number(/** @type {HTMLInputElement | null} */ (document.getElementById('fin-amount'))?.value)||0;
-  const srcCur=walletCurrency(ws);
-  const targetCur=walletCurrency(wt);
+  const srcCur=walletCurrency(ws||'');
+  const targetCur=walletCurrency(wt||'');
   const sampleAmount=amount>0?amount:1;
   const converted=convertCurrency(sampleAmount, srcCur, targetCur);
   if(!ws||!wt||!Number.isFinite(converted)){
@@ -116,6 +116,7 @@ function renderFinTagChips(){
   setupAccessibleClickableDivs(box);
 }
 
+/** @param {string} id */
 const toggleFinTag = function(id){
   const i=AppState.selectedTagIds.indexOf(id);
   if(i===-1) AppState.selectedTagIds.push(id); else AppState.selectedTagIds.splice(i,1);
@@ -153,6 +154,7 @@ export function newTransactionId(){
   return uid('tx');
 }
 
+/** @param {*} a @param {*} b */
 function sameTxId(a,b){ return String(a)===String(b); }
 
 function txToday(){
@@ -187,7 +189,7 @@ function readTransactionForm(){
   const amount=Number(/** @type {HTMLInputElement | null} */ (document.getElementById('fin-amount'))?.value);
   const date=/** @type {HTMLInputElement | null} */ (document.getElementById('fin-date'))?.value||'';
   const cat=AppState.currentFinanceType==='transfer'?'Внутрішній переказ':(/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-category'))?.value||'Інше');
-  const sub=AppState.currentFinanceType==='transfer'?null:(/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-subcategory'))?.value||null);
+  const sub=AppState.currentFinanceType==='transfer'?undefined:(/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-subcategory'))?.value||undefined);
   const comment=/** @type {HTMLInputElement | null} */ (document.getElementById('fin-comment'))?.value.trim()||'';
   return {amount,date,ws,wt,cat,sub,comment};
 }
@@ -260,6 +262,7 @@ export async function deleteTransaction(id){
   renderFinance(); renderFinanceChart();
 }
 
+/** @param {string | number} id */
 export const editTransaction = function(id){
   const t=AppState.transactions.find(x=>sameTxId(x.id,id)); if(!t) return;
   AppState.editingTxId=id;
@@ -312,6 +315,7 @@ const closeTxModal = function(){
   const m=document.getElementById('tx-form-modal'); if(m) m.style.display='none';
 };
 
+/** @param {string | number} [amount] */
 const setTxAmount = function(amount){
   const ai=/** @type {HTMLInputElement | null} */ (document.getElementById('fin-amount'));
   if(!ai) return;
@@ -372,7 +376,7 @@ export function tagBadge(id){
 
 const openTagsManager = function(){
   renderTagsList();
-  document.getElementById('tags-modal').style.display='flex';
+  const modal=document.getElementById('tags-modal'); if(modal) modal.style.display='flex';
 };
 
 function renderTagsList(){
@@ -398,7 +402,7 @@ function renderTagsList(){
 export const updateTag = function(id,field,value){
   const t=AppState.tags.find(x=>x.id===id); if(!t) return;
   if(field==='name') t.name=String(value).trim()||tr('tags_default_name');
-  else t[field]=value;
+  else /** @type {any} */ (t)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinTagChips(); renderFinance();
 };
@@ -413,12 +417,14 @@ const addTag = async function(){
   renderTagsList(); renderFinTagChips();
 };
 
+/** @param {string} id */
 const deleteTag = async function(id){
   if(!(await uiConfirm(tr('tags_delete_confirm'),{title:tr('tags_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.tags=AppState.tags.filter(t=>t.id!==id);
   AppState.selectedTagIds=AppState.selectedTagIds.filter(tid=>tid!==id);
+  /** @type {any[]} */
   const affected=[];
-  AppState.transactions.forEach(t=>{ if(Array.isArray(t.tags)&&t.tags.includes(id)){ t.tags=t.tags.filter(tid=>tid!==id); affected.push(t); } });
+  AppState.transactions.forEach(t=>{ if(Array.isArray(t.tags)&&t.tags.includes(id)){ t.tags=t.tags.filter((/** @type {string} */ tid)=>tid!==id); affected.push(t); } });
   saveConfigLocal();
   const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
   // tags[] itself is a finance-doc field (needs scheduleSave()); the
@@ -431,9 +437,10 @@ const deleteTag = async function(id){
 
 const openRulesManager = function(){
   renderAutoRulesList();
-  document.getElementById('rules-modal').style.display='flex';
+  const modal=document.getElementById('rules-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} id */
 const toggleRuleEdit = function(id){
   AppState.expandedRuleId = AppState.expandedRuleId===id ? null : id;
   renderAutoRulesList();
@@ -488,10 +495,15 @@ function renderAutoRulesList(){
   });
 }
 
+/**
+ * @param {string} id
+ * @param {string} field
+ * @param {string} value
+ */
 const updateAutoRule = function(id,field,value){
   const r=AppState.autoRules.find(x=>x.id===id); if(!r) return;
   if(field==='type'){ r.type=value; r.category=(AppState.categories[value]||[])[0]||''; }
-  else r[field]=value;
+  else /** @type {any} */ (r)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderAutoRulesList();
 };
@@ -504,6 +516,7 @@ const addAutoRule = function(){
   renderAutoRulesList();
 };
 
+/** @param {string} id */
 const deleteAutoRule = async function(id){
   if(!(await uiConfirm(tr('rules_delete_confirm'),{title:tr('rules_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.autoRules=AppState.autoRules.filter(r=>r.id!==id);
@@ -548,6 +561,7 @@ export function applyAutoRuleToForm(){
 // only enhance it where available. Runs only when findMatchingRule() above
 // found nothing: a user-authored keyword rule is deterministic and always
 // takes priority over a probabilistic AI guess.
+/** @type {Promise<any> | null} */
 let aiSessionPromise=null;
 function getAISession(){
   if(!aiSessionPromise){
@@ -565,10 +579,11 @@ function getAISession(){
   return aiSessionPromise;
 }
 
+/** @type {ReturnType<typeof setTimeout> | null} */
 let aiSuggestTimer=null;
 /** @returns {void} */
 export function maybeSuggestCategoryWithAI(){
-  clearTimeout(aiSuggestTimer);
+  clearTimeout(aiSuggestTimer ?? undefined);
   if(AppState.currentFinanceType==='transfer') return;
   const ci=/** @type {HTMLInputElement | null} */ (document.getElementById('fin-comment'));
   const text=ci?ci.value.trim():'';
@@ -619,6 +634,7 @@ const triggerReceiptScan = function(){
 };
 
 let receiptScanInFlight=false;
+/** @param {Event} e */
 const handleReceiptFile = async function(e){
   const target=/** @type {HTMLInputElement} */ (e.target);
   const file=target.files && target.files[0];
@@ -659,7 +675,7 @@ const handleReceiptFile = async function(e){
     showToast(found?tr('receipt_scan_done'):tr('receipt_scan_not_found'), found?'check':'xmark');
   }catch(err){
     console.error(err);
-    const timedOut=err && err.message==='receipt-ocr-timeout';
+    const timedOut=err instanceof Error && err.message==='receipt-ocr-timeout';
     showToast(timedOut?tr('receipt_scan_timeout'):tr('receipt_scan_fail'),'xmark');
   }finally{
     receiptScanInFlight=false;
@@ -695,40 +711,45 @@ export function __init_finance__(){
 // js/color-picker.js's __init_color_picker__ (same leftover-from-the-split
 // situation phase 8 found for debt.js and phase 9 found for calendar.js) -
 // moved here and converted as part of phase 9, see CLAUDE.md.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
-  'toggle-fin-tag': ds=>toggleFinTag(ds.id),
+  'toggle-fin-tag': ds=>toggleFinTag(ds.id||''),
   'open-new-tx-modal': ()=>openNewTxModal(),
   'close-tx-modal': ()=>closeTxModal(),
   'open-tags-manager': ()=>openTagsManager(),
-  'delete-tag': ds=>deleteTag(ds.id),
+  'delete-tag': ds=>deleteTag(ds.id||''),
   'add-tag': ()=>addTag(),
   'open-rules-manager': ()=>openRulesManager(),
-  'toggle-rule-edit': ds=>toggleRuleEdit(ds.id),
-  'delete-auto-rule': ds=>deleteAutoRule(ds.id),
+  'toggle-rule-edit': ds=>toggleRuleEdit(ds.id||''),
+  'delete-auto-rule': ds=>deleteAutoRule(ds.id||''),
   'add-auto-rule': ()=>addAutoRule(),
-  'set-finance-type': ds=>setFinanceType(ds.type),
+  'set-finance-type': ds=>setFinanceType(ds.type||''),
   'set-tx-amount': ds=>setTxAmount(ds.amount),
   'set-tx-date-today': ()=>setTxDateToday(),
   'add-transaction': ()=>addTransaction(),
-  'set-tx-filter': ds=>setTxFilter(ds.filter),
+  'set-tx-filter': ds=>setTxFilter(ds.filter||''),
   'clear-tx-search': ()=>clearTxSearch(),
   'trigger-receipt-scan': ()=>triggerReceiptScan(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
-  'update-tag': (ds,el)=>updateTag(ds.id, ds.field, el.value),
-  'update-auto-rule': (ds,el)=>updateAutoRule(ds.id, ds.field, el.value),
+  'update-tag': (ds,el)=>updateTag(ds.id||'', ds.field||'', el.value),
+  'update-auto-rule': (ds,el)=>updateAutoRule(ds.id||'', ds.field||'', el.value),
   'set-tx-search': (ds,el)=>setTxSearch(el.value),
   'update-transfer-hint': ()=>updateTransferHint(),
   'update-comment-counter': ()=>updateCommentCounter(),
 };
+/** @param {Event} e */
 function dispatchFinanceFieldAction(e){
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 }
 document.addEventListener('change', dispatchFinanceFieldAction);
 document.addEventListener('input', e=>{

@@ -25,6 +25,7 @@
 /** @typedef {{id: string, name: string, short: string, code?: string, color: string, amount: number, hours: number, isOff?: boolean}} ShiftType */
 /** @typedef {{id: string, name: string, avatar?: string, createdAt?: number, kind?: 'shared', ownerUid?: string}} ProfileMeta */
 /** @typedef {{id: string, name: string, color: string}} Tag */
+/** @typedef {{id: string, type: string, keyword: string, category: string}} AutoRule */
 
 export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
@@ -70,6 +71,7 @@ export const AppState = {
   /** @type {ShoppingItem[]} */
   shoppingList: [],
   currentFinanceType: 'income',
+  /** @type {string | number | null} */
   editingTxId: null,
   /** @type {string | null} */
   selectedDateKey: null,
@@ -108,6 +110,7 @@ export const AppState = {
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
   notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, timeZone:'UTC'},
   txCategoryFilter: null,
+  /** @type {AutoRule[]} */
   autoRules: [],
   goals: [],
   catBackfillDone: false,
@@ -161,6 +164,7 @@ export const AppState = {
   catMgrType: 'expense',
   expandedCatIdx: null,
   catActionIdx: null,
+  /** @type {string | null} */
   expandedRuleId: null,
   expandedRecurringId: null,
   expandedBudgetCat: null,
