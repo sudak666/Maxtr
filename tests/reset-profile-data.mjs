@@ -43,6 +43,7 @@ const STUB_FIRESTORE_TEMPLATE = `
 const _docs = new Map(Object.entries(__SEED__));
 window.__stubDocs = _docs;
 export function getFirestore(){ return {}; }
+export function initializeFirestore(){ return {}; }
 export function doc(parent, ...rest){ if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] }; return { path: rest.join('/') }; }
 export function collection(parent, name){ const base = parent && parent.path !== undefined ? parent.path : ''; return { path: (base ? base + '/' : '') + name }; }
 export async function getDoc(ref){ const d = _docs.get(ref.path); return { exists: () => d !== undefined, data: () => d }; }

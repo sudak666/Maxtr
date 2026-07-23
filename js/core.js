@@ -16,7 +16,7 @@ import { csSync } from './ui-widgets.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 
 
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { initializeFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser,
@@ -47,7 +47,17 @@ export const fbApp = initializeApp({
 // side effect of Firebase initialization.
 export const appCheck = null;
 
-export const db = getFirestore(fbApp);
+// ignoreUndefinedProperties: several TransactionDraft-building code paths
+// (CSV import, the new-transaction form) legitimately build a field as
+// `undefined` for "not applicable" (see tx-validation.js's TransactionDraft
+// typedef) rather than `null` — Firestore's default setDoc()/batch.set()
+// throws on any literal `undefined` field value ("Unsupported field value:
+// undefined"), which broke every transaction save with no subcategory
+// selected. This setting makes Firestore silently omit such fields instead
+// of throwing, without touching any of the codebase's many existing
+// explicit `null` writes (those are a different, intentional "present but
+// empty" value and are unaffected).
+export const db = initializeFirestore(fbApp, {ignoreUndefinedProperties: true});
 
 export const auth = getAuth(fbApp);
 
