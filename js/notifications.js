@@ -34,6 +34,10 @@ async function ensureNotifPermission(){
   return true;
 }
 
+/**
+ * @param {string} title
+ * @param {string} body
+ */
 function showLocalNotification(title, body){
   // badge (the small Android status-bar/notification-shade glyph) must be an
   // alpha-transparency-only image — Android renders it using just the alpha
@@ -43,6 +47,7 @@ function showLocalNotification(title, body){
   // by the account owner via screenshot). badge-96.png is a real white
   // bell-on-transparent glyph made specifically for this; `icon` (the large
   // image) is unaffected and still uses the real full-color app icon.
+  /** @param {ServiceWorkerRegistration | null | undefined} reg */
   const show=reg=>{ if(reg) reg.showNotification(title,{body, icon:'icon-192.png', badge:'badge-96.png'}); else new Notification(title,{body, icon:'icon-192.png'}); };
   if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(show);
   else show(null);
@@ -56,7 +61,7 @@ export async function getMessagingInstance(){
   if(AppState.messagingInstance) return AppState.messagingInstance;
   if(!(await isMessagingSupported())) return null;
   AppState.messagingInstance=getMessaging(fbApp);
-  onMessage(AppState.messagingInstance, payload=>{
+  onMessage(AppState.messagingInstance, (/** @type {{notification?: {title?: string, body?: string}}} */ payload)=>{
     const n=payload.notification||{};
     showLocalNotification(n.title||'Rytm', n.body||'');
   });
@@ -74,6 +79,7 @@ async function enablePushNotifications(){
   const messaging=await getMessagingInstance();
   if(!messaging){ showToast(tr('toast_push_unsupported'),'xmark'); renderNotifUI(); return; }
   if(!(await ensureNotifPermission())){ renderNotifUI(); return; }
+  if(!AppState.currentUser){ renderNotifUI(); return; }
   try{
     const reg=await navigator.serviceWorker.register('sw.js');
     const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
@@ -105,7 +111,7 @@ async function disablePushNotifications(){
       await deleteToken(messaging);
     }
   }catch(err){ console.warn('deleteToken failed', err); }
-  try{ await deleteDoc(doc(db,'push_tokens',AppState.currentUser.uid)); }catch(err){ console.warn('deleting push token doc failed', err); }
+  try{ if(AppState.currentUser) await deleteDoc(doc(db,'push_tokens',AppState.currentUser.uid)); }catch(err){ console.warn('deleting push token doc failed', err); }
   const k=pushEnabledKey(); if(k) localStorage.removeItem(k);
   showToast(tr('toast_push_off'),'xmark');
   renderNotifUI();
@@ -289,6 +295,7 @@ export function __init_notifications__(){
 // CLAUDE.md): this file's 5 static onchange="" sites in index.html
 // (push/reminders/budget/recurring toggles, hour+minute time selects)
 // converted to a data-action dispatch, same pattern earlier phases used.
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLElement) => void>} */
 const FIELD_ACTIONS = {
   'toggle-push-notifications': ()=>togglePushNotifications(),
   'toggle-reminders': ()=>toggleReminders(),
@@ -299,6 +306,7 @@ const FIELD_ACTIONS = {
 };
 document.addEventListener('change', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 });
 }
