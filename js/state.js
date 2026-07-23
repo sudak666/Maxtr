@@ -122,7 +122,9 @@ export const AppState = {
   // in on a later load.
   txMigrated: false,
   /** @type {any[]} */
+  /** @type {any[]} */
   debts: [],
+  /** @type {any} */
   currentDebtId: null,
   // Bank-account integrations, keyed by provider — currently only
   // 'monobank'. null until the user connects one; see js/monobank.js.
@@ -166,5 +168,6 @@ export const AppState = {
   showNewGoalForm: false,
   messagingInstance: null,
   analyticsPeriod: 'month',
+  /** @type {number | null} */
   debtEntryEditId: null,
 };
