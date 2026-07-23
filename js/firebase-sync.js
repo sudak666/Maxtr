@@ -18,7 +18,10 @@ import { DCOL, arrayRemove, arrayUnion, collection, db, deleteDoc, doc, getDoc, 
 // activeProfileOwnerUid (see state.js) redirects this at whichever
 // account actually owns the active profile's data — set only while
 // viewing a *shared* profile (see the SHARED PROFILES section below).
-/** @param {string} name */
+/**
+ * @param {string} name
+ * @returns {import('firebase/firestore').DocumentReference}
+ */
 export function userDoc(name){
   if(!AppState.currentUser) throw new Error('not-authenticated');
   if(name==='profiles_meta') return doc(db,'users',AppState.currentUser.uid,DCOL,'profiles_meta');
@@ -90,7 +93,7 @@ export async function loadProfilesMeta(){
   if(!stillExists){
     const first=AppState.profilesMeta.list[0];
     AppState.activeProfileId=first.id;
-    AppState.activeProfileOwnerUid=first.kind==='shared'?first.ownerUid:null;
+    AppState.activeProfileOwnerUid=first.kind==='shared'?(first.ownerUid??null):null;
     saveActiveProfileId();
   }
 }
@@ -252,7 +255,8 @@ export async function loadActiveProfileRole(){
   try{
     const snap=await getDoc(userDoc('shared_members'));
     const roles=(snap.exists() && snap.data().roles) || {};
-    AppState.activeProfileRole = roles[AppState.currentUser.uid]==='viewer' ? 'viewer' : 'editor';
+    const uid = AppState.currentUser && AppState.currentUser.uid;
+    AppState.activeProfileRole = uid && roles[uid]==='viewer' ? 'viewer' : 'editor';
   }catch(e){
     console.error(e);
     // Fail open to 'editor' on a transient read error rather than silently
@@ -339,8 +343,9 @@ export async function deleteTransactionDoc(id){
 /** @returns {Promise<any[]>} */
 export async function loadTransactionsFromSubcollection(){
   const snap=await getDocs(txCollection());
+  /** @type {any[]} */
   const out=[];
-  snap.forEach(d=>out.push(d.data()));
+  snap.forEach((/** @type {import('firebase/firestore').QueryDocumentSnapshot} */ d)=>out.push(d.data()));
   return out;
 }
 // Firestore write batches cap at 500 ops; chunked well under that so this
@@ -375,6 +380,7 @@ export async function batchDeleteTransactionsByIds(ids){
 /** @returns {Promise<void>} */
 export async function deleteAllTransactionDocs(){
   const snap=await getDocs(txCollection());
-  const ids=[]; snap.forEach(d=>ids.push(d.id));
+  /** @type {string[]} */
+  const ids=[]; snap.forEach((/** @type {import('firebase/firestore').QueryDocumentSnapshot} */ d)=>ids.push(d.id));
   if(ids.length) await batchDeleteTransactionsByIds(ids);
 }
