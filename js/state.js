@@ -106,9 +106,11 @@ export const AppState = {
   selectedTagIds: [],
   profile: {nickname:'', avatar:''},
   subscription: {plan:'free', expiresAt:null},
+  /** @type {Record<string, boolean>} */
   widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
   notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, timeZone:'UTC'},
+  /** @type {string | null} */
   txCategoryFilter: null,
   /** @type {AutoRule[]} */
   autoRules: [],
@@ -158,15 +160,21 @@ export const AppState = {
   selectsEnhanced: false,
   /** @type {((value: string | boolean | null) => void) | null} */
   __dlgResolve: null,
+  /** @type {(HTMLElement & {_returnFocusTo?: HTMLElement | null})[]} */
   openModalStack: [],
+  /** @type {string | null} */
   expandedShiftTypeId: null,
   ratesSource: 'nbu',
   catMgrType: 'expense',
+  /** @type {number | null} */
   expandedCatIdx: null,
+  /** @type {number | null} */
   catActionIdx: null,
   /** @type {string | null} */
   expandedRuleId: null,
+  /** @type {string | null} */
   expandedRecurringId: null,
+  /** @type {string | null} */
   expandedBudgetCat: null,
   expandedGoalId: null,
   showNewGoalForm: false,
