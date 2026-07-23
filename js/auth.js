@@ -681,7 +681,25 @@ document.addEventListener('click', e=>{
 // actually attempted this session — see that constant's comment above for
 // why an unconditional getRedirectResult() call can reject on every load
 // in some environments regardless of whether sign-in was ever attempted.
-getRedirectResult(auth).catch(err=>{
+//
+// Real user report (2026-07-23): on an Android "Add to Home Screen"
+// installed PWA (a WebAPK — not the packaged TWA .apk), signInWithRedirect()
+// completes the Google OAuth consent screen successfully but the app lands
+// back on the login screen with no error at all. getRedirectResult() itself
+// resolves to `null` (no thrown error) in this case — the WebAPK's
+// round-trip through accounts.google.com and the authDomain handler is a
+// documented Android/Chrome limitation where the pending-redirect state
+// doesn't reliably survive back into the original WebAPK window, so
+// Firebase genuinely has no operation to report. The .catch()-only handling
+// below previously had nothing to show in this scenario since no promise
+// ever rejected — the `.then()` branch now explicitly checks for exactly
+// this "was pending, but resolved empty" case and surfaces a real message
+// instead of a silent bounce back to the login screen.
+getRedirectResult(auth).then(result=>{
+  let wasPending=false;
+  try{ wasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)==='1'; }catch(e){}
+  if(wasPending && !result) setAuthError(tr('auth_err_redirect_lost'));
+}).catch(err=>{
   console.error(err);
   let wasPending=false;
   try{ wasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)==='1'; }catch(e){}
