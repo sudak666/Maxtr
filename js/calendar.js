@@ -47,6 +47,7 @@ export function goToday(){
   renderCalendar();
 }
 
+/** @param {string[]} selectedIds */
 function renderShiftModalOptions(selectedIds){
   const box=document.getElementById('modal-opts');
   if(!box) return;
@@ -93,9 +94,10 @@ export function validateModalSelection(){}
 export function saveModalSelection(){
   if(!AppState.selectedDateKey) return;
   if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); closeModal(); return; }
+  /** @type {string[]} */
   const al=[];
   document.querySelectorAll('#modal-opts input[type=checkbox]').forEach(el=>{
-    if(/** @type {HTMLInputElement} */ (el).checked) al.push(el.getAttribute('data-stid'));
+    if(/** @type {HTMLInputElement} */ (el).checked){ const v=el.getAttribute('data-stid'); if(v) al.push(v); }
   });
   if(al.length===0) delete AppState.shifts[AppState.selectedDateKey]; else AppState.shifts[AppState.selectedDateKey]=al;
   saveLocal(); scheduleSave(); closeModal(); renderCalendar(); renderIncomeChart();
@@ -114,6 +116,7 @@ export function saveModalSelection(){
 // letter (the convention those legacy shorts use to distinguish variants)
 // becomes a lowercased second char. `[...str]` (not str[0]) so a multi-byte
 // first glyph isn't split mid-character.
+/** @param {{code?: string, short?: string, name?: string}} t */
 function shiftCode(t){
   if(t.code) return t.code;
   const src=(t.short||t.name||'').trim();
@@ -193,7 +196,8 @@ export function renderCalendar(){
   }
 
   // Update stats
-  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  /** @param {string} id @param {string|number} v */
+  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
   S('total-salary',earn.toLocaleString('uk-UA')+' грн');
   S('total-hours',hrs);
   S('count-shifts',cShifts);
@@ -224,6 +228,7 @@ export function renderIncomeChart(){
   if(!container) return;
   container.innerHTML='';
   const now=new Date();
+  /** @type {Array<{m: number, y: number, label: string}>} */
   const months=[];
   for(let i=5;i>=0;i--){
     let m=now.getMonth()-i, y=now.getFullYear();
@@ -272,7 +277,7 @@ function hideFinChartTooltip(){
 function showFinChartTooltip(pointEl){
   const tip=document.getElementById('fin-chart-tooltip');
   if(!tip) return;
-  tip.textContent=pointEl.dataset.tip;
+  tip.textContent=pointEl.dataset.tip ?? null;
   tip.style.left=pointEl.dataset.xPct+'%';
   tip.style.top=pointEl.dataset.yPct+'%';
   tip.style.display='block';
@@ -281,6 +286,7 @@ function showFinChartTooltip(pointEl){
 // Catmull-Rom-derived cubic bezier smoothing — gives a natural curve through
 // every point without needing an external charting library, consistent with
 // this repo's no-build-step/no-dependency approach.
+/** @param {Array<{x: number, y: number}>} pts */
 function smoothPath(pts){
   if(pts.length<2) return '';
   let d=`M${pts[0].x},${pts[0].y}`;
@@ -301,6 +307,7 @@ export function renderFinanceChart(){
   document.querySelectorAll('.fin-chart-toggle-btn').forEach(b=>b.classList.toggle('active', /** @type {HTMLElement} */ (b).dataset.series===series));
 
   const now=new Date();
+  /** @type {Array<{m: number, y: number, label: string}>} */
   const months=[];
   for(let i=5;i>=0;i--){
     let m=now.getMonth()-i, y=now.getFullYear();
@@ -326,6 +333,7 @@ export function renderFinanceChart(){
   const avgDelta=deltas.length?deltas.reduce((a,b)=>a+b,0)/deltas.length:0;
   const forecastVal=vals[vals.length-1]+avgDelta;
 
+  /** @param {number} v */
   const fmt=v=>Math.round(v).toLocaleString('uk-UA')+' грн';
   const totalEl=document.getElementById('fin-chart-total');
   if(totalEl) totalEl.textContent=fmt(vals[vals.length-1]);
@@ -435,6 +443,7 @@ const toggleQuickFill = function(){
   if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
 };
 
+/** @type {Record<string, number[]>} */
 const SHIFT_PATTERN_CYCLES={every:[1,0], alt:[1,1], '2_2':[2,2], '3_3':[3,3]};
 
 /** @returns {Promise<void>} */
@@ -448,6 +457,7 @@ export async function applyTemplate(){
   if(!(await uiConfirm(tr('shifts_template_confirm'),{title:tr('shifts_quick_fill'),okText:tr('shifts_template_ok')}))) return;
   const p=`${y}-${String(m+1).padStart(2,'0')}-`;
   Object.keys(AppState.shifts).forEach(k=>{if(k.startsWith(p))delete AppState.shifts[k];});
+  /** @param {number} d */
   const dk=d=>`${p}${String(d).padStart(2,'0')}`;
   const [on,off]=SHIFT_PATTERN_CYCLES[pattern]||SHIFT_PATTERN_CYCLES.every;
   const period=on+off;
@@ -463,6 +473,7 @@ function todayDateKey(){
   return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 }
 
+/** @param {string} dateKey */
 function autoFillTypeForDate(dateKey){
   const s=AppState.autoFillSchedule;
   if(!s||!s.enabled||!s.typeId||!s.anchorDate||!shiftType(s.typeId)) return null;
@@ -525,6 +536,7 @@ function renderAutoFillUI(){
   if(anchor && document.activeElement!==anchor){ anchor.value=AppState.autoFillSchedule.anchorDate||''; csSync(anchor); }
 }
 
+/** @param {boolean} checked */
 const toggleAutoFill = function(checked){
   AppState.autoFillSchedule.enabled=checked;
   if(checked){
@@ -582,6 +594,7 @@ export function __init_calendar__(){
 // the real cell.onclick closure above; validateModalSelection is an empty
 // stub never called anywhere) and were dropped from window.* entirely
 // rather than given a pointless data-action.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'close-modal': ()=>closeModal(),
   'save-modal-selection': ()=>saveModalSelection(),
@@ -591,7 +604,7 @@ const CLICK_ACTIONS = {
   'go-today': ()=>goToday(),
   'toggle-quick-fill': ()=>toggleQuickFill(),
   'save-autofill-config': ()=>saveAutoFillConfig(),
-  'set-fin-chart-series': ds=>setFinChartSeries(ds.series),
+  'set-fin-chart-series': ds=>setFinChartSeries(ds.series||'net'),
 };
 document.addEventListener('click', e=>{
   // #shift-modal's backdrop close is a plain exact-target check (same
@@ -605,16 +618,19 @@ document.addEventListener('click', e=>{
   if(/** @type {Element} */ (e.target).id==='shift-modal'){ closeModal(); return; }
   if(!/** @type {Element} */ (e.target).closest('#fin-chart-wrap')) hideFinChartTooltip();
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
   'render-calendar': ()=>renderCalendar(),
   'toggle-auto-fill': (ds,el)=>toggleAutoFill(el.checked),
 };
 document.addEventListener('change', e=>{
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 });
 
 // Empty-state quick-fill uses data-action now (CSP-safe), so no window.*
