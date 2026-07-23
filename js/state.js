@@ -23,6 +23,8 @@
 /** @typedef {{id: string, name: string, qty: number, done: boolean, createdAt: number}} ShoppingItem */
 /** @typedef {{id: string, name: string, color: string, icon: string, currency?: string}} Wallet */
 /** @typedef {{id: string, name: string, short: string, code?: string, color: string, amount: number, hours: number, isOff?: boolean}} ShiftType */
+/** @typedef {{id: string, name: string, avatar?: string, createdAt?: number, kind?: 'shared', ownerUid?: string}} ProfileMeta */
+/** @typedef {{id: string, name: string, color: string}} Tag */
 
 export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
@@ -47,6 +49,7 @@ export const AppState = {
   // the data at users/{activeProfileOwnerUid}/max_tracker/{doc}@{activeProfileId}.
   // null for the current account's own profiles (local or 'default'),
   // which is the overwhelmingly common case and always was, pre-sharing.
+  /** @type {string | null} */
   activeProfileOwnerUid: null,
   // The current account's permission level on the active profile —
   // 'editor' (full read/write, the default/only behavior before granular
@@ -56,6 +59,7 @@ export const AppState = {
   // Loaded from shared_members@{profileId}'s roles map on switchProfile()
   // — see js/firebase-sync.js's loadActiveProfileRole().
   activeProfileRole: 'editor',
+  /** @type {{list: ProfileMeta[], updatedAt: number}} */
   profilesMeta: {list:[{id:'default', name:''}], updatedAt:0},
   shifts: {},
   /** @type {any[]} */
@@ -70,14 +74,18 @@ export const AppState = {
   financeChartSeries: 'net',
   txFilter: 'all',
   txSearch: '',
+  /** @type {ReturnType<typeof setTimeout> | null} */
   fbTimer: null,
   /** @type {ShiftType[]} */
   shiftTypes: [],
   autoFillSchedule: {enabled:false, typeId:'', pattern:'every', anchorDate:''},
   /** @type {Wallet[]} */
   wallets: [],
+  /** @type {Record<string, string[]>} */
   categories: {income:[], expense:[]},
+  /** @type {Record<string, number>} */
   budgets: {},
+  /** @type {Record<string, string[]>} */
   subcategories: {},
   // Manual per-category icon override, keyed by category name (same
   // name-only keying categoryColor/categoryIcon already use — see
@@ -88,7 +96,9 @@ export const AppState = {
   categoryIcons: {},
   /** @type {Record<string, number>} */
   currencyRates: {},
+  /** @type {Tag[]} */
   tags: [],
+  /** @type {string[]} */
   selectedTagIds: [],
   profile: {nickname:'', avatar:''},
   subscription: {plan:'free', expiresAt:null},
@@ -109,6 +119,7 @@ export const AppState = {
   // transaction doesn't get its stale legacy `data` array re-migrated back
   // in on a later load.
   txMigrated: false,
+  /** @type {any[]} */
   debts: [],
   currentDebtId: null,
   // Bank-account integrations, keyed by provider — currently only
@@ -122,8 +133,11 @@ export const AppState = {
   MONTHS: LANG_CALENDAR[window.currentLang].months,
   MONTHS_SHORT: LANG_CALENDAR[window.currentLang].monthsShort,
   WEEKDAYS: LANG_CALENDAR[window.currentLang].weekdays,
+  /** @type {{kind: string, id: string} | null} */
   colorPickTarget: null,
+  /** @type {string | null} */
   avatarPickTargetProfileId: null,
+  /** @type {Record<string, number>} */
   lastKnownUpdatedAt: {shifts:0, finance:0, debt:0},
   authMode: 'login',
   recaptchaVerifier: null,
