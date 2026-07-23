@@ -22,10 +22,15 @@ import { h as _h, render, Fragment } from './vendor/preact/preact.module.js';
 /** @type {typeof import('preact').h} */
 const h = /** @type {any} */ (_h);
 
+/** @typedef {{id: number, amount?: string, balance: number, date?: string}} DebtEntry */
+/** @typedef {{id: number, name: string, note?: string, currency?: string, startAmount?: number, dueDate?: string, entries: DebtEntry[]}} Debt */
+
+/** @returns {Debt | undefined} */
 function getCurrentDebt(){
   return AppState.debts.find(d=>d.id===AppState.currentDebtId)||AppState.debts[0];
 }
 
+/** @param {number} id */
 function switchDebt(id){
   AppState.currentDebtId=id;
   saveDebtLocal(); renderDebt();
@@ -61,11 +66,12 @@ export function updateDebtInfo(){
   cd.name=ni?.value.trim()||tr('debt_default_name');
   cd.note=noi?.value.trim()||'';
   cd.currency=ci?.value||'у.о.';
-  cd.startAmount=parseFloat(si?.value)||0;
+  cd.startAmount=parseFloat(si?.value||'')||0;
   cd.dueDate=dui?.value||'';
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
+/** @param {Debt} cd */
 function debtCurrentBalance(cd){
   return cd.entries.length?cd.entries[cd.entries.length-1].balance:(cd.startAmount||0);
 }
@@ -97,7 +103,7 @@ export function addDebtEntry(){
   const di=/** @type {HTMLInputElement | null} */ (document.getElementById('debt-date'));
   const amount=ai?.value.trim();
   if(!amount){showToast(tr('debt_enter_amount'),'xmark');return;}
-  let balance=parseFloat(bi?.value);
+  let balance=parseFloat(bi?.value||'');
   if(isNaN(balance)){
     // auto-compute from the running balance when the amount is a plain number
     if(/^\d+(\.\d+)?$/.test(amount)) balance=debtCurrentBalance(cd)-parseFloat(amount);
@@ -130,7 +136,7 @@ export function updateDebtEntry(id,field,value){
   const cd=getCurrentDebt(); if(!cd) return;
   const e=cd.entries.find(x=>x.id===id);
   if(!e) return;
-  e[field]=field==='balance'?(parseFloat(value)||0):value;
+  /** @type {any} */ (e)[field]=field==='balance'?(parseFloat(value)||0):value;
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
@@ -147,6 +153,7 @@ export async function deleteDebtEntry(id){
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
+/** @param {number} id */
 const toggleDebtEntryEdit = function(id){
   AppState.debtEntryEditId = (AppState.debtEntryEditId===id) ? null : id;
   renderDebt();
@@ -208,6 +215,7 @@ function formatDueDate(iso){
 // server-side sweepProfile() in functions/lib/sweep.js) uses to decide when
 // to actually fire a reminder, just rendered for the user to see at a
 // glance rather than only ever surfacing as a push/local notification.
+/** @param {Debt} cd */
 function renderDebtDueChip(cd){
   const chip=document.getElementById('debt-due-chip');
   const val=document.getElementById('debt-due-val');
@@ -231,6 +239,10 @@ function renderDebtDueChip(cd){
 // savings-wallet goals (a % filled bar, green once reached) — applied here
 // to "% of startAmount already paid off" instead of "% of a savings target
 // saved". Hidden when startAmount isn't set (a 0/0 bar is meaningless).
+/**
+ * @param {Debt} cd
+ * @param {number} paid
+ */
 function renderDebtProgress(cd,paid){
   const wrap=document.getElementById('debt-progress-wrap');
   const text=document.getElementById('debt-progress-text');
@@ -266,6 +278,9 @@ function renderDebtProgress(cd,paid){
 // write into chartEl/textEl, since mixing the two in the same container
 // would desync Preact's internal diff tracking from the real DOM on a
 // later render.
+/**
+ * @param {{W: number, H: number, areaPts: string, linePts: string, lastX: number, lastY: number, title: string}} props
+ */
 function DebtBurndownChart({ W, H, areaPts, linePts, lastX, lastY, title }){
   return h('svg', { viewBox:`0 0 ${W} ${H}`, preserveAspectRatio:'none', role:'img', 'aria-label':title },
     h('defs', null,
@@ -300,6 +315,10 @@ function DebtForecastText({ state, n, avgStr }){
   );
 }
 
+/**
+ * @param {Debt} cd
+ * @param {number} currentBalance
+ */
 function renderDebtForecast(cd, currentBalance){
   const wrap=document.getElementById('debt-forecast');
   const chartEl=document.getElementById('debt-burndown');
@@ -317,7 +336,9 @@ function renderDebtForecast(cd, currentBalance){
   const minV=Math.min(...series, 0);
   const W=300, H=76, pad=3;
   const span=(maxV-minV)||1;
+  /** @param {number} i */
   const x=i=>pad + (W-2*pad)*(i/(series.length-1));
+  /** @param {number} v */
   const y=v=>pad + (H-2*pad)*(1-(v-minV)/span);
   const linePts=series.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const areaPts=`${x(0).toFixed(1)},${(H-pad).toFixed(1)} ${linePts} ${x(series.length-1).toFixed(1)},${(H-pad).toFixed(1)}`;
@@ -365,7 +386,8 @@ export function renderDebt(){
     const dui=/** @type {HTMLInputElement | null} */ (document.getElementById('debt-due-date')); if(dui) dui.value='';
     const dueChip=document.getElementById('debt-due-chip'); if(dueChip) dueChip.style.display='none';
     const progWrap=document.getElementById('debt-progress-wrap'); if(progWrap) progWrap.style.display='none';
-    const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    /** @param {string} id @param {string|number} v */
+    const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
     S('debt-start-val','0'); S('debt-balance-val','0'); S('debt-paid-val','0'); S('debt-count-val','0');
     const lc=document.getElementById('debt-list-container');
     const cc=document.getElementById('debt-entry-count');
@@ -391,7 +413,8 @@ export function renderDebt(){
 
   const currentBalance=cd.entries.length?cd.entries[cd.entries.length-1].balance:(cd.startAmount||0);
   const paid=(cd.startAmount||0)-currentBalance;
-  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  /** @param {string} id @param {string|number} v */
+  const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
   S('debt-start-val',(cd.startAmount||0).toLocaleString('uk-UA')+' '+cur);
   S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' '+cur);
   S('debt-paid-val',paid.toLocaleString('uk-UA')+' '+cur);
@@ -420,7 +443,7 @@ export function renderDebt(){
   let prevBalance=cd.startAmount||0;
   cd.entries.forEach(entry=>{
     const isCleanNumber=/^\d+(\.\d+)?$/.test(String(entry.amount).trim());
-    const expected=isCleanNumber?prevBalance-parseFloat(entry.amount):null;
+    const expected=isCleanNumber?prevBalance-parseFloat(entry.amount||''):null;
     const hasDiscrepancy=expected!==null&&Math.abs(expected-entry.balance)>0.01;
     const row=document.createElement('div');
     const editing=AppState.debtEntryEditId===entry.id;
@@ -459,6 +482,7 @@ export function renderDebt(){
 const DEBT_ROW_SWIPE_REVEAL_PX=60;
 const DEBT_ROW_SWIPE_OPEN_THRESHOLD=30;
 
+/** @param {Element} except */
 function closeAllDebtRowSwipes(except){
   document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
 }
@@ -473,13 +497,14 @@ function closeAllDebtRowSwipes(except){
 // rebuild (lc.innerHTML='' then re-append), unlike renderFinance()'s
 // targeted node-reuse diff — no risk of double-binding listeners on a
 // reused node here.
+/** @param {HTMLElement} row */
 function setupDebtRowSwipe(row){
   let startX=0,startY=0,dx=0,dragging=false,decided=false,horizontal=false;
-  row.addEventListener('pointerdown',e=>{
+  row.addEventListener('pointerdown',(/** @type {PointerEvent} */ e)=>{
     if(e.pointerType==='mouse') return; // mouse gets the CSS :hover reveal instead
     startX=e.clientX; startY=e.clientY; dx=0; dragging=true; decided=false; horizontal=false;
   });
-  row.addEventListener('pointermove',e=>{
+  row.addEventListener('pointermove',(/** @type {PointerEvent} */ e)=>{
     if(!dragging) return;
     const ddx=e.clientX-startX, ddy=e.clientY-startY;
     if(!decided){
@@ -493,14 +518,14 @@ function setupDebtRowSwipe(row){
     }
     if(!horizontal) return;
     dx=Math.max(-DEBT_ROW_SWIPE_REVEAL_PX*1.3, Math.min(0,ddx));
-    const inner=row.querySelector('.debt-row-inner');
+    const inner=/** @type {HTMLElement | null} */ (row.querySelector('.debt-row-inner'));
     if(inner) inner.style.width=`calc(100% - ${-dx}px)`;
   });
   function endDrag(){
     if(!dragging) return;
     dragging=false;
     row.classList.remove('swipe-dragging');
-    const inner=row.querySelector('.debt-row-inner');
+    const inner=/** @type {HTMLElement | null} */ (row.querySelector('.debt-row-inner'));
     if(inner) inner.style.width='';
     if(horizontal){
       if(dx<-DEBT_ROW_SWIPE_OPEN_THRESHOLD){ closeAllDebtRowSwipes(row); row.classList.add('swipe-open'); }
@@ -533,6 +558,7 @@ export function __init_debt__(){
 // this file is the one being worked, those 5 lines move here and get the
 // same data-action treatment instead of staying as dead weight in a
 // different file's init function.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'add-new-debt': ()=>addNewDebt(),
   'open-new-debt-entry-modal': ()=>openNewDebtEntryModal(),
@@ -545,17 +571,21 @@ const CLICK_ACTIONS = {
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
   'auto-fill-debt-balance': ()=>autoFillDebtBalance(),
   'update-debt-info': ()=>updateDebtInfo(),
-  'update-debt-entry': (ds,el)=>updateDebtEntry(Number(ds.id), ds.field, el.value),
+  'update-debt-entry': (ds,el)=>updateDebtEntry(Number(ds.id), ds.field||'', el.value),
 };
+/** @param {Event} e */
 function dispatchFieldAction(e){
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
 }
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
