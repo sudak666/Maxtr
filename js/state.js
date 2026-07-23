@@ -61,6 +61,7 @@ export const AppState = {
   activeProfileRole: 'editor',
   /** @type {{list: ProfileMeta[], updatedAt: number}} */
   profilesMeta: {list:[{id:'default', name:''}], updatedAt:0},
+  /** @type {Record<string, string[]>} */
   shifts: {},
   /** @type {any[]} */
   transactions: [],
@@ -70,6 +71,7 @@ export const AppState = {
   shoppingList: [],
   currentFinanceType: 'income',
   editingTxId: null,
+  /** @type {string | null} */
   selectedDateKey: null,
   financeChartSeries: 'net',
   txFilter: 'all',
