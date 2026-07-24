@@ -142,6 +142,20 @@ async function main() {
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+    // js/app-init.js's init() unconditionally fires maybeAutoUpdateRates() and
+    // maybeRefreshCryptoTop() on cold start - this sandbox's own network
+    // blocks these domains outright (fails fast, no console error), but a
+    // real CI runner has actual internet access, where the live fetch
+    // reaches the real API and fails with a CORS error that IS a real
+    // console.error - a false positive against this test's new
+    // no-console-errors assertion (see CLAUDE.md/CHANGELOG.md's 2026-07-23
+    // stub-Firestore-undefined-rejection entry for why that assertion
+    // exists). Same fix already applied to tests/smoke.mjs/e2e-crud.mjs/
+    // fx-widget-rates.mjs - block deterministically rather than depending on
+    // either environment's real (and differently-timed) network behavior.
+    await page.route('**bank.gov.ua**', (r) => r.abort());
+    await page.route('**allorigins.win**', (r) => r.abort());
+    await page.route('**api.coingecko.com**', (r) => r.abort());
 
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
