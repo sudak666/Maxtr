@@ -31,8 +31,15 @@ const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
 const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
 const _docs = new Map();
+let _ignoreUndefinedProperties = false;
+function _assertNoUndefinedFields(data, path){
+  if (data === undefined) throw new Error('Function setDoc() called with invalid data. Unsupported field value: undefined (found in field ' + JSON.stringify(path || '(root)') + ')');
+  if (data === null || typeof data !== 'object') return;
+  if (Array.isArray(data)) { data.forEach((v, i) => _assertNoUndefinedFields(v, (path ? path + '.' : '') + i)); return; }
+  for (const k of Object.keys(data)) _assertNoUndefinedFields(data[k], (path ? path + '.' : '') + k);
+}
 export function getFirestore(){ return {}; }
-export function initializeFirestore(){ return {}; }
+export function initializeFirestore(app, settings){ _ignoreUndefinedProperties = !!(settings && settings.ignoreUndefinedProperties); return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
   return { path: rest.join('/') };
@@ -45,7 +52,7 @@ export async function getDoc(ref){
   const d = _docs.get(ref.path);
   return { exists: () => d !== undefined, data: () => d };
 }
-export async function setDoc(ref, data){ _docs.set(ref.path, data); }
+export async function setDoc(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); _docs.set(ref.path, data); }
 export async function deleteDoc(ref){ _docs.delete(ref.path); }
 export async function getDocs(ref){
   const prefix = ref.path + '/';
@@ -58,7 +65,7 @@ export async function getDocs(ref){
 export function writeBatch(){
   const ops = [];
   return {
-    set(ref, data){ ops.push(() => _docs.set(ref.path, data)); },
+    set(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); ops.push(() => _docs.set(ref.path, data)); },
     delete(ref){ ops.push(() => _docs.delete(ref.path)); },
     async commit(){ ops.forEach((fn) => fn()); },
   };
@@ -121,7 +128,14 @@ async function main() {
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
     const pageErrors = [];
+    const consoleErrors = [];
     page.on('pageerror', (err) => pageErrors.push(err.message));
+    // Catches errors the app itself swallows via .catch(e=>{console.error(e);...})
+    // — this is the exact path that would have caught the 2026-07-23
+    // "CSV-imported transactions with no subcategory fail to save" exposure
+    // (buildTransactionsFromCSV()'s wt/cat/sub fields, written via
+    // batchWriteTransactions()'s batch.set()).
+    page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
     await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
@@ -211,7 +225,9 @@ async function main() {
     console.log('[ok] import: a CSV row with an unknown wallet is reported via a dialog, not silently dropped');
 
     if (pageErrors.length) throw new Error(`uncaught page errors during CSV import/export flow: ${pageErrors.join(' | ')}`);
-    console.log('[ok] no uncaught page errors during the full export/delete/import flow');
+    const realConsoleErrors = consoleErrors.filter((e) => !/live rates fetch failed|net::ERR_/.test(e));
+    if (realConsoleErrors.length) throw new Error(`console errors during CSV import/export flow (a caught-but-real failure, e.g. a rejected Firestore write): ${realConsoleErrors.join(' | ')}`);
+    console.log('[ok] no uncaught page errors or console errors during the full export/delete/import flow');
   } finally {
     await browser.close();
     server.kill();

@@ -46,8 +46,15 @@ const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } expor
 // leakage.
 const STUB_FIRESTORE = `
 const _docs = new Map();
+let _ignoreUndefinedProperties = false;
+function _assertNoUndefinedFields(data, path){
+  if (data === undefined) throw new Error('Function setDoc() called with invalid data. Unsupported field value: undefined (found in field ' + JSON.stringify(path || '(root)') + ')');
+  if (data === null || typeof data !== 'object') return;
+  if (Array.isArray(data)) { data.forEach((v, i) => _assertNoUndefinedFields(v, (path ? path + '.' : '') + i)); return; }
+  for (const k of Object.keys(data)) _assertNoUndefinedFields(data[k], (path ? path + '.' : '') + k);
+}
 export function getFirestore(){ return {}; }
-export function initializeFirestore(){ return {}; }
+export function initializeFirestore(app, settings){ _ignoreUndefinedProperties = !!(settings && settings.ignoreUndefinedProperties); return {}; }
 export function doc(parent, ...rest){
   if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] };
   return { path: rest.join('/') };
@@ -60,7 +67,7 @@ export async function getDoc(ref){
   const d = _docs.get(ref.path);
   return { exists: () => d !== undefined, data: () => d };
 }
-export async function setDoc(ref, data){ _docs.set(ref.path, data); }
+export async function setDoc(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); _docs.set(ref.path, data); }
 export async function deleteDoc(ref){ _docs.delete(ref.path); }
 export async function getDocs(ref){
   const prefix = ref.path + '/';
@@ -73,7 +80,7 @@ export async function getDocs(ref){
 export function writeBatch(){
   const ops = [];
   return {
-    set(ref, data){ ops.push(() => _docs.set(ref.path, data)); },
+    set(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); ops.push(() => _docs.set(ref.path, data)); },
     delete(ref){ ops.push(() => _docs.delete(ref.path)); },
     async commit(){ ops.forEach((fn) => fn()); },
   };
@@ -136,7 +143,15 @@ async function main() {
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     const pageErrors = [];
+    const consoleErrors = [];
     page.on('pageerror', (err) => pageErrors.push(err.message));
+    // Catches errors the app itself swallows via .catch(e=>{console.error(e);...})
+    // (e.g. a failed Firestore write) — these never reach 'pageerror' since
+    // they're a handled rejection, not an uncaught exception, but they're
+    // exactly the class of regression this test exists to catch (see the
+    // 2026-07-23 "transaction saves broken with no subcategory" incident,
+    // which this check alone would have caught before it reached production).
+    page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 
     await page.route('**/firebasejs/**firebase-app.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP }));
     await page.route('**/firebasejs/**firebase-app-check.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_APP_CHECK }));
@@ -231,7 +246,9 @@ async function main() {
     console.log('[ok] delete: confirming the dialog removes the transaction from the list');
 
     if (pageErrors.length) throw new Error(`uncaught page errors during CRUD flow: ${pageErrors.join(' | ')}`);
-    console.log('[ok] no uncaught page errors during the full create/edit/delete flow');
+    const realConsoleErrors = consoleErrors.filter((e) => !/live rates fetch failed|net::ERR_/.test(e));
+    if (realConsoleErrors.length) throw new Error(`console errors during CRUD flow (a caught-but-real failure, e.g. a rejected Firestore write): ${realConsoleErrors.join(' | ')}`);
+    console.log('[ok] no uncaught page errors or console errors during the full create/edit/delete flow');
   } finally {
     await browser.close();
     server.kill();
