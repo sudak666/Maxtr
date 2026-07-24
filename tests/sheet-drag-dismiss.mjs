@@ -37,15 +37,22 @@ const STUB_APP = `export function initializeApp(cfg){ return {}; }`;
 const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } export class ReCaptchaEnterpriseProvider{ constructor(){} }`;
 const STUB_FIRESTORE = `
 const _docs = new Map();
+let _ignoreUndefinedProperties = false;
+function _assertNoUndefinedFields(data, path){
+  if (data === undefined) throw new Error('Function setDoc() called with invalid data. Unsupported field value: undefined (found in field ' + JSON.stringify(path || '(root)') + ')');
+  if (data === null || typeof data !== 'object') return;
+  if (Array.isArray(data)) { data.forEach((v, i) => _assertNoUndefinedFields(v, (path ? path + '.' : '') + i)); return; }
+  for (const k of Object.keys(data)) _assertNoUndefinedFields(data[k], (path ? path + '.' : '') + k);
+}
 export function getFirestore(){ return {}; }
-export function initializeFirestore(){ return {}; }
+export function initializeFirestore(app, settings){ _ignoreUndefinedProperties = !!(settings && settings.ignoreUndefinedProperties); return {}; }
 export function doc(parent, ...rest){ if (parent && parent.path !== undefined) return { path: parent.path + '/' + rest[0] }; return { path: rest.join('/') }; }
 export function collection(parent, name){ const base = parent && parent.path !== undefined ? parent.path : ''; return { path: (base ? base + '/' : '') + name }; }
 export async function getDoc(ref){ const d = _docs.get(ref.path); return { exists: () => d !== undefined, data: () => d }; }
-export async function setDoc(ref, data){ _docs.set(ref.path, data); }
+export async function setDoc(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); _docs.set(ref.path, data); }
 export async function deleteDoc(ref){ _docs.delete(ref.path); }
 export async function getDocs(ref){ const prefix = ref.path + '/'; const items = []; for (const [k, v] of _docs) { if (k.startsWith(prefix) && !k.slice(prefix.length).includes('/')) items.push({ id: k.slice(prefix.length), data: () => v }); } return { docs: items, forEach(fn){ items.forEach(fn); }, empty: items.length === 0, size: items.length }; }
-export function writeBatch(){ const ops = []; return { set(ref, data){ ops.push(() => _docs.set(ref.path, data)); }, delete(ref){ ops.push(() => _docs.delete(ref.path)); }, async commit(){ ops.forEach((fn) => fn()); } }; }
+export function writeBatch(){ const ops = []; return { set(ref, data){ if (!_ignoreUndefinedProperties) _assertNoUndefinedFields(data); ops.push(() => _docs.set(ref.path, data)); }, delete(ref){ ops.push(() => _docs.delete(ref.path)); }, async commit(){ ops.forEach((fn) => fn()); } }; }
 
 export async function updateDoc(ref, data){
   const existing = _docs.get(ref.path) || {};
