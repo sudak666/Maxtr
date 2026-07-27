@@ -111,7 +111,6 @@
   }
   var GOOGLE_G_SVG='<svg class="ico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.4-6.4C35.6 3 30.1 1 24 1 14.6 1 6.5 6.4 2.6 14.2l7.5 5.8C12 13.6 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.2 5.6C43.5 37.6 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.1 20c-.6 1.6-.9 3.3-.9 5s.3 3.4.9 5l-7.5 5.8C1 32.6 0 28.4 0 24s1-8.6 2.6-11.8z"/><path fill="#34A853" d="M24 47c6.1 0 11.3-2 15-5.5l-7.2-5.6c-2 1.4-4.6 2.2-7.8 2.2-6.5 0-12-4.1-13.9-9.9l-7.5 5.8C6.5 41.6 14.6 47 24 47z"/></svg>';
   var elGoogle=document.getElementById('ic-google'); if(elGoogle) elGoogle.innerHTML=GOOGLE_G_SVG;
-  setIcon('ic-phone','phone');
   setIcon('ic-set-signout','logout');
   setIcon('ic-set-delete','trash');
   setIcon('ic-set-reset-data','refresh');
@@ -120,6 +119,7 @@
   setIcon('ic-bio-unlock','lock');
   setIcon('ic-bio-enable','lock');
   setIcon('ic-bio-disable','lock');
+  setIcon('ic-bio-onboard','lock');
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
   setIcon('ptr-spinner','refresh');
@@ -227,7 +227,6 @@
   setIcon('ic-share-profile','people');
   setIcon('ic-join-profile','idCard');
   setIcon('ic-scan-receipt','camera');
-  setIcon('ic-set-link-phone','phone');
   setIcon('ic-cat-act-edit','pencil');
   setIcon('ic-cat-act-show','search');
   setIcon('ic-cat-act-del','trash');
@@ -287,20 +286,12 @@
       privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_reset_data:'Скинути всі дані', settings_reset_data_sub:'Почати з чистого аркуша в цьому профілі',
-      settings_phone:'Номер телефону', settings_phone_sub_empty:'Не додано',
-      settings_phone_remove:'Прибрати номер', settings_phone_remove_confirm:'Прибрати цей номер телефону з акаунту?',
-      settings_phone_remove_title:'Прибрати номер', settings_phone_linked:'Номер телефону додано',
-      settings_phone_removed:'Номер телефону прибрано', settings_phone_remove_fail:'Не вдалося прибрати номер',
       settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
       settings_footer:'Rytm — трекер змін, фінансів і розрахунків', settings_signed_in_as:'Увійшли як',
       auth_tagline:'Фінанси, зміни та борги в одному місці',
       auth_login_tab:'Вхід', auth_register_tab:'Реєстрація', auth_password:'Пароль', auth_password_placeholder:'Мінімум 6 символів',
       auth_login_btn:'Увійти', auth_register_btn:'Зареєструватися', auth_forgot:'Забули пароль?', auth_or:'або',
       auth_google:'Продовжити через Google', auth_terms_pre:'Реєструючись, ти погоджуєшся з', auth_terms_and:'і',
-      auth_phone_btn:'Увійти за номером телефону', auth_phone_label:'Номер телефону', auth_phone_send:'Надіслати код',
-      auth_phone_code_label:'Код із SMS', auth_phone_verify:'Підтвердити', auth_phone_back:'← Назад',
-      auth_phone_code_sent:'Код надіслано', auth_phone_bad_format:'Введи номер у форматі +380XXXXXXXXX',
-      auth_phone_enter_code:'Введи код із SMS',
       topbar_sub:'Зміни · Фінанси · Хмара',
       nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування', nav_shopping:'Покупки',
       shopping_kicker:'Ваші покупки', shopping_title:'Список покупок',
@@ -360,13 +351,8 @@
       auth_err_email_in_use:'Цей email вже зареєстровано.', auth_err_weak_password:'Пароль надто простий (мінімум 6 символів).',
       auth_err_too_many:'Забагато спроб. Спробуйте пізніше.', auth_err_popup_closed:'Вікно входу закрито.',
       auth_err_generic:'Помилка входу. Спробуйте ще раз.',
-      auth_err_invalid_phone:'Некоректний номер телефону.', auth_err_invalid_code:'Невірний код із SMS.',
-      auth_err_code_expired:'Код прострочено. Надішли новий.', auth_err_quota:'Забагато спроб. Спробуйте пізніше.',
-      auth_err_phone_disabled:'Вхід за телефоном тимчасово недоступний.',
-      auth_err_captcha:'Перевірка reCAPTCHA не пройшла. Перевір з\'єднання і спробуй ще раз.',
-      auth_err_unauthorized_domain:'Цей сайт не додано до дозволених доменів Firebase — вхід за телефоном тут не працює.',
+      auth_err_unauthorized_domain:'Цей сайт не додано до дозволених доменів Firebase — вхід тут не працює.',
       auth_err_network:'Немає з\'єднання з мережею. Перевір інтернет і спробуй ще раз.',
-      auth_err_sms_unavailable:'SMS тимчасово недоступні для цього номера (ліміт спроб або обмеження регіону). Спробуй ще раз пізніше або скористайся входом через email чи Google.',
       auth_err_redirect_lost:'Вхід через Google не завершився — це відоме обмеження встановлених на головний екран застосунків на Android. Спробуй увійти один раз через звичайний браузер, після чого ярлик має пускати без повторного входу.',
       auth_enter_email:'Введіть email, щоб скинути пароль.', auth_reset_sent:'Лист для скидання пароля надіслано.',
       auth_signout_confirm:'Вийти з акаунту?', auth_signout_title:'Вихід', auth_signout_ok:'Вийти',
@@ -536,6 +522,7 @@
       pin_len_error:'PIN має бути з 4-6 цифр', pin_mismatch:'PIN не збігається', pin_set_success:'PIN встановлено',
       pin_removed:'PIN вимкнено', pin_set_first:'Спершу встанови PIN',
       pin_bio_on:'Face ID / Touch ID увімкнено', pin_bio_fail:'Не вдалося увімкнути біометрію', pin_bio_off:'Face ID / Touch ID вимкнено',
+      bio_onboard_title:'Швидкий вхід за відбитком чи обличчям', bio_onboard_desc:'Наступного разу заходь у Rytm за 1 секунду — без пароля.', bio_onboard_enable:'Увімкнути', bio_onboard_later:'Пізніше',
       analytics_title:'Аналітика витрат і доходів', analytics_by_expense_category:'Витрати за категоріями', analytics_by_income_category:'Доходи за категоріями',
       analytics_period_month:'Цей місяць', analytics_period_prev:'Минулий місяць', analytics_period_3m:'3 місяці', analytics_period_all:'Весь час',
       analytics_income:'Дохід', analytics_expense:'Витрата', analytics_net:'Різниця', analytics_savings_rate:'Норма заощаджень',
@@ -598,20 +585,12 @@
       privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_reset_data:'Reset all data', settings_reset_data_sub:'Start fresh in this profile',
-      settings_phone:'Phone number', settings_phone_sub_empty:'Not added',
-      settings_phone_remove:'Remove number', settings_phone_remove_confirm:'Remove this phone number from your account?',
-      settings_phone_remove_title:'Remove number', settings_phone_linked:'Phone number added',
-      settings_phone_removed:'Phone number removed', settings_phone_remove_fail:'Failed to remove the number',
       settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
       settings_footer:'Rytm — shift, finance & settlement tracker', settings_signed_in_as:'Signed in as',
       auth_tagline:'Finances, shifts and settlements in one place',
       auth_login_tab:'Sign in', auth_register_tab:'Sign up', auth_password:'Password', auth_password_placeholder:'At least 6 characters',
       auth_login_btn:'Sign in', auth_register_btn:'Sign up', auth_forgot:'Forgot password?', auth_or:'or',
       auth_google:'Continue with Google', auth_terms_pre:'By signing up, you agree to the', auth_terms_and:'and',
-      auth_phone_btn:'Sign in with phone number', auth_phone_label:'Phone number', auth_phone_send:'Send code',
-      auth_phone_code_label:'SMS code', auth_phone_verify:'Verify', auth_phone_back:'← Back',
-      auth_phone_code_sent:'Code sent', auth_phone_bad_format:'Enter a number in +380XXXXXXXXX format',
-      auth_phone_enter_code:'Enter the SMS code',
       topbar_sub:'Shifts · Finance · Cloud',
       nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings', nav_shopping:'Shopping',
       shopping_kicker:'Your shopping', shopping_title:'Shopping list',
@@ -671,13 +650,8 @@
       auth_err_email_in_use:'This email is already registered.', auth_err_weak_password:'Password is too weak (minimum 6 characters).',
       auth_err_too_many:'Too many attempts. Try again later.', auth_err_popup_closed:'Sign-in window closed.',
       auth_err_generic:'Sign-in error. Please try again.',
-      auth_err_invalid_phone:'Invalid phone number.', auth_err_invalid_code:'Wrong SMS code.',
-      auth_err_code_expired:'Code expired. Request a new one.', auth_err_quota:'Too many attempts. Try again later.',
-      auth_err_phone_disabled:'Phone sign-in is temporarily unavailable.',
-      auth_err_captcha:'reCAPTCHA check failed. Check your connection and try again.',
-      auth_err_unauthorized_domain:'This site isn\'t on Firebase\'s authorized domains list — phone sign-in won\'t work here.',
+      auth_err_unauthorized_domain:'This site isn\'t on Firebase\'s authorized domains list — sign-in won\'t work here.',
       auth_err_network:'No network connection. Check your internet and try again.',
-      auth_err_sms_unavailable:'SMS is temporarily unavailable for this number (rate limit or regional restriction). Try again later, or sign in with email or Google instead.',
       auth_err_redirect_lost:'Google sign-in didn\'t complete — this is a known limitation of Android home-screen-installed apps. Try signing in once from a regular browser tab first; the shortcut should then let you in without signing in again.',
       auth_enter_email:'Enter your email to reset the password.', auth_reset_sent:'Password reset email sent.',
       auth_signout_confirm:'Sign out of your account?', auth_signout_title:'Sign out', auth_signout_ok:'Sign out',
@@ -847,6 +821,7 @@
       pin_len_error:'PIN must be 4-6 digits', pin_mismatch:"PINs don't match", pin_set_success:'PIN set',
       pin_removed:'PIN disabled', pin_set_first:'Set a PIN first',
       pin_bio_on:'Face ID / Touch ID enabled', pin_bio_fail:'Failed to enable biometrics', pin_bio_off:'Face ID / Touch ID disabled',
+      bio_onboard_title:'Quick sign-in with your fingerprint or face', bio_onboard_desc:'Next time, get into Rytm in 1 second — no password.', bio_onboard_enable:'Enable', bio_onboard_later:'Later',
       analytics_title:'Income & expense analytics', analytics_by_expense_category:'Expenses by category', analytics_by_income_category:'Income by category',
       analytics_period_month:'This month', analytics_period_prev:'Last month', analytics_period_3m:'3 months', analytics_period_all:'All time',
       analytics_income:'Income', analytics_expense:'Expense', analytics_net:'Net', analytics_savings_rate:'Savings rate',

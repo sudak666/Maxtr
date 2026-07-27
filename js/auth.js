@@ -5,7 +5,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { init, switchTab } from './app-init.js';
-import { EmailAuthProvider, RecaptchaVerifier, applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, linkWithPhoneNumber, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, signOut, unlink } from './core.js';
+import { EmailAuthProvider, applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { deleteAllTransactionDocs, loadActiveProfileId, lsKey, userDoc } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
@@ -41,11 +41,8 @@ function firebaseErrCode(err){
   return (err && typeof err==='object' && 'code' in err) ? String(/** @type {{code:unknown}} */ (err).code) : '';
 }
 
-/**
- * @param {string} code
- * @param {boolean} [isPhoneFlow]
- */
-function authErrorMessage(code,isPhoneFlow){
+/** @param {string} code */
+function authErrorMessage(code){
   /** @type {Record<string,string>} */
   const map={
     'auth/invalid-email':tr('auth_err_invalid_email'),
@@ -56,26 +53,10 @@ function authErrorMessage(code,isPhoneFlow){
     'auth/weak-password':tr('auth_err_weak_password'),
     'auth/too-many-requests':tr('auth_err_too_many'),
     'auth/popup-closed-by-user':tr('auth_err_popup_closed'),
-    'auth/invalid-phone-number':tr('auth_err_invalid_phone'),
-    'auth/missing-phone-number':tr('auth_err_invalid_phone'),
-    'auth/invalid-verification-code':tr('auth_err_invalid_code'),
-    'auth/code-expired':tr('auth_err_code_expired'),
-    'auth/quota-exceeded':tr('auth_err_quota'),
-    'auth/operation-not-allowed':tr('auth_err_phone_disabled'),
-    'auth/captcha-check-failed':tr('auth_err_captcha'),
-    'auth/argument-error':tr('auth_err_captcha'),
     'auth/unauthorized-domain':tr('auth_err_unauthorized_domain'),
     'auth/network-request-failed':tr('auth_err_network'),
   };
   if(map[code]) return map[code];
-  // Identity Toolkit sometimes fails a phone sendVerificationCode call with a
-  // 503 wrapped as "auth/internal-error" or "auth/error-code:<n>" instead of
-  // a normal auth/* code — seen for per-number SMS rate limits and
-  // regional/carrier blocks on Google's side, not something a retry with the
-  // same number fixes. Scoped to phone flows only: `auth/internal-error` can
-  // also surface from email/Google sign-in for unrelated backend hiccups,
-  // where the SMS-specific message would be misleading.
-  if(isPhoneFlow && (code==='auth/internal-error' || /^auth\/error-code:/.test(code||''))) return tr('auth_err_sms_unavailable');
   return tr('auth_err_generic');
 }
 
@@ -166,190 +147,6 @@ const resetPassword = async function(){
   }catch(err){
     console.error(err);
     setAuthError(authErrorMessage(firebaseErrCode(err)));
-  }
-};
-
-const showPhoneAuth = function(){
-  const emailSection=document.getElementById('auth-email-section'); if(emailSection) emailSection.style.display='none';
-  const phoneSection=document.getElementById('auth-phone-section'); if(phoneSection) phoneSection.style.display='block';
-  setPhoneError('');
-};
-
-const hidePhoneAuth = function(){
-  const phoneSection=document.getElementById('auth-phone-section'); if(phoneSection) phoneSection.style.display='none';
-  const emailSection=document.getElementById('auth-email-section'); if(emailSection) emailSection.style.display='';
-  const codeGroup=document.getElementById('auth-phone-code-group'); if(codeGroup) codeGroup.style.display='none';
-  const sendBtn=document.getElementById('auth-phone-send-btn'); if(sendBtn) sendBtn.style.display='';
-  const codeInp=/** @type {HTMLInputElement | null} */ (document.getElementById('auth-phone-code-input')); if(codeInp) codeInp.value='';
-  AppState.phoneConfirmationResult=null;
-  setPhoneError('');
-};
-
-/** @param {string} msg */
-function setPhoneError(msg){
-  const el=document.getElementById('auth-phone-error');
-  if(el) el.textContent=msg||'';
-}
-
-/** @param {string} containerId */
-function resetRecaptchaContainer(containerId){
-  const el=document.getElementById(containerId);
-  if(el) el.innerHTML='';
-}
-
-function ensureRecaptcha(){
-  if(!AppState.recaptchaVerifier) AppState.recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'invisible'});
-  return AppState.recaptchaVerifier;
-}
-
-function forceClassicPhoneRecaptcha(){
-  const classicOnlyConfig = {
-    isProviderEnabled: () => false,
-    getProviderEnforcementState: () => null,
-    isAnyProviderEnabled: () => false,
-  };
-  // Firebase Auth may put phone sign-in into reCAPTCHA Enterprise AUDIT mode
-  // from project config before our visible flow starts. In this project that
-  // Auth-managed Enterprise site key currently fails in the browser with
-  // "Invalid site key or not loaded in api.js", before the SDK reaches its
-  // documented v2 fallback. Seed the internal config as disabled so the SDK
-  // uses the explicit RecaptchaVerifier v2 flow below — the flow that worked
-  // before Enterprise/Audit was enabled. If this private SDK field changes,
-  // the assignment is harmless and the catch block still surfaces the normal
-  // localized phone-auth error.
-  const authInternal = /** @type {any} */ (auth);
-  authInternal._agentRecaptchaConfig = classicOnlyConfig;
-  if(authInternal.tenantId) authInternal._tenantRecaptchaConfigs = { ...(authInternal._tenantRecaptchaConfigs || {}), [authInternal.tenantId]: classicOnlyConfig };
-}
-
-const sendPhoneCode = async function(){
-  const raw=/** @type {HTMLInputElement} */ (document.getElementById('auth-phone-input')).value.trim();
-  if(!/^\+\d{8,15}$/.test(raw)){ setPhoneError(tr('auth_phone_bad_format')); return; }
-  const btn=/** @type {HTMLButtonElement} */ (document.getElementById('auth-phone-send-btn'));
-  setPhoneError(''); btn.disabled=true;
-  try{
-    forceClassicPhoneRecaptcha();
-    AppState.phoneConfirmationResult=await signInWithPhoneNumber(auth, raw, ensureRecaptcha());
-    const codeGroup=document.getElementById('auth-phone-code-group'); if(codeGroup) codeGroup.style.display='block';
-    btn.style.display='none';
-    showToast(tr('auth_phone_code_sent'),'check');
-  }catch(err){
-    console.error(err);
-    setPhoneError(authErrorMessage(firebaseErrCode(err),true));
-    if(AppState.recaptchaVerifier){ try{ AppState.recaptchaVerifier.clear(); }catch(e){} AppState.recaptchaVerifier=null; }
-    // .clear() can itself throw mid-way (leaves the widget's DOM node behind),
-    // so a retry's new RecaptchaVerifier fails with "already been rendered in
-    // this element" — force the container empty regardless of .clear()'s outcome.
-    resetRecaptchaContainer('recaptcha-container');
-  }finally{
-    btn.disabled=false;
-  }
-};
-
-const verifyPhoneCode = async function(){
-  const code=/** @type {HTMLInputElement} */ (document.getElementById('auth-phone-code-input')).value.trim();
-  if(!code || !AppState.phoneConfirmationResult){ setPhoneError(tr('auth_phone_enter_code')); return; }
-  const btn=/** @type {HTMLButtonElement} */ (document.getElementById('auth-phone-verify-btn'));
-  setPhoneError(''); btn.disabled=true;
-  try{
-    await AppState.phoneConfirmationResult.confirm(code);
-    // onAuthStateChanged picks up the new session and hides the lock screen.
-  }catch(err){
-    console.error(err);
-    setPhoneError(authErrorMessage(firebaseErrCode(err),true));
-  }finally{
-    btn.disabled=false;
-  }
-};
-
-const openLinkPhoneManager = function(){
-  renderLinkPhoneUI();
-  const modal=document.getElementById('link-phone-modal'); if(modal) modal.style.display='flex';
-};
-
-export function renderLinkPhoneUI(){
-  const phoneProvider=(AppState.currentUser?.providerData||[]).find(p=>p.providerId==='phone');
-  const cur=document.getElementById('link-phone-current');
-  const form=document.getElementById('link-phone-form');
-  const sub=document.getElementById('settings-phone-sub');
-  const numberEl=document.getElementById('link-phone-current-number');
-  if(!cur||!form) return;
-  if(phoneProvider){
-    cur.style.display='block'; form.style.display='none';
-    if(numberEl) numberEl.textContent=phoneProvider.phoneNumber;
-    if(sub) sub.textContent=phoneProvider.phoneNumber;
-  }else{
-    cur.style.display='none'; form.style.display='block';
-    if(sub) sub.textContent=tr('settings_phone_sub_empty');
-  }
-}
-
-function ensureLinkRecaptcha(){
-  if(!AppState.linkRecaptchaVerifier) AppState.linkRecaptchaVerifier=new RecaptchaVerifier(auth,'link-recaptcha-container',{size:'invisible'});
-  return AppState.linkRecaptchaVerifier;
-}
-
-/** @param {string} msg */
-function setLinkPhoneError(msg){
-  const el=document.getElementById('link-phone-error'); if(el) el.textContent=msg||'';
-}
-
-const sendLinkPhoneCode = async function(){
-  const currentUser=AppState.currentUser;
-  if(!currentUser){ setLinkPhoneError(authErrorMessage('')); return; }
-  const raw=/** @type {HTMLInputElement} */ (document.getElementById('link-phone-input')).value.trim();
-  if(!/^\+\d{8,15}$/.test(raw)){ setLinkPhoneError(tr('auth_phone_bad_format')); return; }
-  const btn=/** @type {HTMLButtonElement} */ (document.getElementById('link-phone-send-btn'));
-  setLinkPhoneError(''); btn.disabled=true;
-  try{
-    forceClassicPhoneRecaptcha();
-    AppState.linkPhoneConfirmationResult=await linkWithPhoneNumber(currentUser, raw, ensureLinkRecaptcha());
-    const codeGroup=document.getElementById('link-phone-code-group'); if(codeGroup) codeGroup.style.display='block';
-    btn.style.display='none';
-    showToast(tr('auth_phone_code_sent'),'check');
-  }catch(err){
-    console.error(err);
-    setLinkPhoneError(authErrorMessage(firebaseErrCode(err),true));
-    if(AppState.linkRecaptchaVerifier){ try{ AppState.linkRecaptchaVerifier.clear(); }catch(e){} AppState.linkRecaptchaVerifier=null; }
-    resetRecaptchaContainer('link-recaptcha-container');
-  }finally{
-    btn.disabled=false;
-  }
-};
-
-const confirmLinkPhoneCode = async function(){
-  const code=/** @type {HTMLInputElement} */ (document.getElementById('link-phone-code-input')).value.trim();
-  if(!code || !AppState.linkPhoneConfirmationResult){ setLinkPhoneError(tr('auth_phone_enter_code')); return; }
-  const btn=/** @type {HTMLButtonElement} */ (document.getElementById('link-phone-verify-btn'));
-  setLinkPhoneError(''); btn.disabled=true;
-  try{
-    await AppState.linkPhoneConfirmationResult.confirm(code);
-    AppState.linkPhoneConfirmationResult=null;
-    /** @type {HTMLInputElement} */ (document.getElementById('link-phone-input')).value='';
-    /** @type {HTMLInputElement} */ (document.getElementById('link-phone-code-input')).value='';
-    const codeGroup=document.getElementById('link-phone-code-group'); if(codeGroup) codeGroup.style.display='none';
-    const sendBtn=document.getElementById('link-phone-send-btn'); if(sendBtn) sendBtn.style.display='';
-    renderLinkPhoneUI();
-    showToast(tr('settings_phone_linked'),'check');
-  }catch(err){
-    console.error(err);
-    setLinkPhoneError(authErrorMessage(firebaseErrCode(err),true));
-  }finally{
-    btn.disabled=false;
-  }
-};
-
-const unlinkPhone = async function(){
-  const currentUser=AppState.currentUser;
-  if(!currentUser) return;
-  if(!(await uiConfirm(tr('settings_phone_remove_confirm'),{title:tr('settings_phone_remove_title'),okText:tr('common_delete'),danger:true}))) return;
-  try{
-    await unlink(currentUser,'phone');
-    renderLinkPhoneUI();
-    showToast(tr('settings_phone_removed'),'check');
-  }catch(err){
-    console.error(err);
-    showToast(tr('settings_phone_remove_fail'),'xmark');
   }
 };
 
@@ -496,7 +293,7 @@ const onboardNext = function(){
 const finishOnboarding = function(){
   const k=onboardKey(); if(k) localStorage.setItem(k,'1');
   const scr=document.getElementById('onboard-screen');
-  if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide');},320); }
+  if(scr){ scr.classList.add('lock-hide'); setTimeout(()=>{scr.style.display='none'; scr.classList.remove('lock-hide'); maybeOfferBiometricSetup();},320); }
 };
 
 function maybeShowOnboarding(){
@@ -614,6 +411,35 @@ function bioKey(){ return AppState.currentUser ? `mx_biocred_${AppState.currentU
 
 function hasBioSet(){ const k=bioKey(); return !!(k && localStorage.getItem(k)); }
 
+function bioOfferKey(){ return AppState.currentUser ? `mx_bioOfferShown_${AppState.currentUser.uid}` : null; }
+
+// Shown once, right after the first-ever onboarding tour finishes (see
+// finishOnboarding() above) — a direct nudge into the existing PIN+WebAuthn
+// unlock flow instead of leaving it buried in Settings, so a returning user
+// can unlock with a fingerprint/Face ID in ~1 second instead of retyping a
+// password. Only offered when the device's platform authenticator is
+// actually available (bioPlatformAvailable() feature-detects this) — no
+// point nudging toward a PIN on a device that can't do biometrics anyway.
+// A dedicated "Пізніше" dismiss still marks the offer shown so it never
+// nags again; accepting opens the real PIN-settings modal (openPinSettings()),
+// which already has its own biometric-enable toggle once a PIN exists.
+async function maybeOfferBiometricSetup(){
+  const k=bioOfferKey();
+  if(!k || localStorage.getItem(k) || hasPinSet() || !(await bioPlatformAvailable())) return;
+  const modal=document.getElementById('biometric-onboard-modal');
+  if(modal) modal.style.display='flex';
+}
+
+function dismissBiometricOnboard(){
+  const k=bioOfferKey(); if(k) localStorage.setItem(k,'1');
+  const modal=document.getElementById('biometric-onboard-modal'); if(modal) modal.style.display='none';
+}
+
+const acceptBiometricOnboard = async function(){
+  dismissBiometricOnboard();
+  await openPinSettings();
+};
+
 /** @param {number} len */
 function randBytes(len){ const a=new Uint8Array(len); crypto.getRandomValues(a); return a; }
 
@@ -703,21 +529,12 @@ export function __init_auth__(){
 // Replaced with a data-action attribute dispatched through one capture-phase
 // click listener (same CLICK_ACTIONS pattern as phases 3-4; capture matters
 // here too since several of these buttons sit inside a .modal-card with its
-// own onclick="event.stopPropagation()", e.g. the PIN settings and
-// link-phone modals).
+// own onclick="event.stopPropagation()", e.g. the PIN settings modal).
 /** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'set-auth-mode': ds=>setAuthMode(ds.mode||''),
   'google-sign-in': ()=>googleSignIn(),
   'reset-password': ()=>resetPassword(),
-  'show-phone-auth': ()=>showPhoneAuth(),
-  'hide-phone-auth': ()=>hidePhoneAuth(),
-  'send-phone-code': ()=>sendPhoneCode(),
-  'verify-phone-code': ()=>verifyPhoneCode(),
-  'open-link-phone-manager': ()=>openLinkPhoneManager(),
-  'send-link-phone-code': ()=>sendLinkPhoneCode(),
-  'confirm-link-phone-code': ()=>confirmLinkPhoneCode(),
-  'unlink-phone': ()=>unlinkPhone(),
   'sign-out-user': ()=>signOutUser(),
   'reset-profile-data': ()=>resetProfileData(),
   'delete-account-user': ()=>deleteAccountUser(),
@@ -733,6 +550,8 @@ const CLICK_ACTIONS = {
   'enable-biometric': ()=>enableBiometric(),
   'disable-biometric': ()=>disableBiometric(),
   'try-bio-unlock': ()=>tryBioUnlock(),
+  'accept-biometric-onboard': ()=>acceptBiometricOnboard(),
+  'dismiss-biometric-onboard': ()=>dismissBiometricOnboard(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
@@ -835,7 +654,6 @@ onAuthStateChanged(auth, async (user)=>{
     if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
     const form=/** @type {HTMLFormElement | null} */ (document.getElementById('auth-form')); if(form) form.reset();
     setAuthError('');
-    if(document.getElementById('auth-phone-section')?.style.display!=='none') hidePhoneAuth();
   }
 });
 }

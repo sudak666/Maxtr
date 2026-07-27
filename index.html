@@ -1505,6 +1505,8 @@ body.amounts-hidden #fx-converter-result{
   <div class="lock-checking-spinner" aria-hidden="true"></div>
   <div class="auth-card">
     <div id="auth-email-section">
+      <button type="button" class="btn btn-primary auth-google" data-action="google-sign-in"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
+      <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
       <div class="auth-tabs">
         <button type="button" class="auth-tab active" id="auth-tab-login" data-action="set-auth-mode" data-mode="login" data-i18n="auth_login_tab">Вхід</button>
         <button type="button" class="auth-tab" id="auth-tab-register" data-action="set-auth-mode" data-mode="register" data-i18n="auth_register_tab">Реєстрація</button>
@@ -1522,29 +1524,7 @@ body.amounts-hidden #fx-converter-result{
         <button type="submit" class="add-btn" id="auth-submit" style="width:100%;margin-top:6px" data-i18n="auth_login_btn">Увійти</button>
       </form>
       <button type="button" class="auth-link" id="auth-reset" data-action="reset-password" data-i18n="auth_forgot">Забули пароль?</button>
-      <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
-      <div class="auth-alt-methods">
-        <button type="button" class="btn btn-ghost auth-google" data-action="google-sign-in"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
-        <button type="button" class="btn btn-ghost" data-action="show-phone-auth"><span id="ic-phone"></span><span data-i18n="auth_phone_btn">Увійти за номером телефону</span></button>
-      </div>
     </div>
-    <div id="auth-phone-section" style="display:none">
-      <div class="fg" style="margin-bottom:10px">
-        <label for="auth-phone-input" data-i18n="auth_phone_label">Номер телефону</label>
-        <input type="tel" id="auth-phone-input" placeholder="+380XXXXXXXXX">
-      </div>
-      <div class="auth-error" id="auth-phone-error"></div>
-      <button type="button" class="add-btn" id="auth-phone-send-btn" style="width:100%;margin-top:6px" data-action="send-phone-code" data-i18n="auth_phone_send">Надіслати код</button>
-      <div id="auth-phone-code-group" style="display:none;margin-top:14px">
-        <div class="fg" style="margin-bottom:10px">
-          <label for="auth-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
-          <input type="text" id="auth-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
-        </div>
-        <button type="button" class="add-btn" id="auth-phone-verify-btn" style="width:100%" data-action="verify-phone-code" data-i18n="auth_phone_verify">Підтвердити</button>
-      </div>
-      <button type="button" class="auth-link" data-action="hide-phone-auth" data-i18n="auth_phone_back">← Назад</button>
-    </div>
-    <div id="recaptcha-container"></div>
     <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:2px">
       <span data-i18n="auth_terms_pre">Реєструючись, ти погоджуєшся з</span> <a href="terms.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умовами використання</a> <span data-i18n="auth_terms_and">і</span> <a href="privacy.html" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політикою конфіденційності</a>
     </div>
@@ -1578,6 +1558,24 @@ body.amounts-hidden #fx-converter-result{
   <div class="onboard-dots" id="onboard-dots"></div>
   <div class="onboard-actions">
     <button class="add-btn" style="width:100%" id="onboard-next-btn" data-action="onboard-next"></button>
+  </div>
+</div>
+
+<!-- Offered once right after the first onboarding tour finishes, only on
+     devices with a real platform authenticator (see maybeOfferBiometricSetup()
+     in js/auth.js) -->
+<div class="modal-overlay" id="biometric-onboard-modal" style="display:none">
+  <div class="modal-card">
+   <div class="modal-card-body" style="text-align:center">
+    <div class="sheet-grabber"></div>
+    <div class="onboard-icon" id="ic-bio-onboard" style="margin:0 auto 18px;background:linear-gradient(135deg,#8b5cf6,#ec4899)"></div>
+    <div class="modal-date" data-i18n="bio_onboard_title">Швидкий вхід за відбитком чи обличчям</div>
+    <div style="font-size:14px;color:var(--muted);font-weight:600;margin-top:8px" data-i18n="bio_onboard_desc">Наступного разу заходь у Rytm за 1 секунду — без пароля.</div>
+    <div class="modal-actions" style="margin-top:18px;flex-direction:column;gap:8px">
+      <button type="button" class="add-btn" style="width:100%" data-action="accept-biometric-onboard" data-i18n="bio_onboard_enable">Увімкнути</button>
+      <button type="button" class="auth-link" data-action="dismiss-biometric-onboard" data-i18n="bio_onboard_later">Пізніше</button>
+    </div>
+   </div>
   </div>
 </div>
 
@@ -2237,13 +2235,6 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section settings-section" data-settings-group="account">
       <div class="chart-title"><span id="ic-settings-account"></span><span data-i18n="settings_account">Акаунт</span></div>
-      <div class="settings-row" id="settings-link-phone" data-action="open-link-phone-manager">
-        <span id="ic-set-link-phone" class="icon-badge" style="background:var(--blue)"></span>
-        <div class="settings-row-text">
-          <div class="settings-row-title" data-i18n="settings_phone">Номер телефону</div>
-          <div class="settings-row-sub" id="settings-phone-sub" data-i18n="settings_phone_sub_empty">Не додано</div>
-        </div>
-      </div>
       <div class="settings-row" id="settings-signout" data-action="sign-out-user" style="display:none">
         <span id="ic-set-signout" class="icon-badge" style="background:#525158"></span>
         <div class="settings-row-text">
@@ -2702,41 +2693,6 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="profiles_members_title">Учасники профілю</div></div>
     <div class="mgr-list" id="shared-members-list"></div>
-    <div class="modal-actions" style="margin-top:12px">
-      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
-    </div>
-   </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="link-phone-modal">
-  <div class="modal-card">
-   <div class="modal-card-body">
-    <div class="sheet-grabber"></div>
-    <div class="modal-header"><div class="modal-date" data-i18n="settings_phone">Номер телефону</div></div>
-
-    <div id="link-phone-current" style="display:none;text-align:center;margin-bottom:14px">
-      <div style="font-size:16px;font-weight:800;color:var(--text-strong)" id="link-phone-current-number"></div>
-      <button class="btn btn-danger" style="margin-top:12px" data-action="unlink-phone" data-i18n="settings_phone_remove">Прибрати номер</button>
-    </div>
-
-    <div id="link-phone-form">
-      <div class="fg" style="margin-bottom:10px">
-        <label for="link-phone-input" data-i18n="auth_phone_label">Номер телефону</label>
-        <input type="tel" id="link-phone-input" placeholder="+380XXXXXXXXX">
-      </div>
-      <div class="auth-error" id="link-phone-error"></div>
-      <button type="button" class="add-btn" id="link-phone-send-btn" style="width:100%;margin-top:6px" data-action="send-link-phone-code" data-i18n="auth_phone_send">Надіслати код</button>
-      <div id="link-phone-code-group" style="display:none;margin-top:14px">
-        <div class="fg" style="margin-bottom:10px">
-          <label for="link-phone-code-input" data-i18n="auth_phone_code_label">Код із SMS</label>
-          <input type="text" id="link-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6">
-        </div>
-        <button type="button" class="add-btn" id="link-phone-verify-btn" style="width:100%" data-action="confirm-link-phone-code" data-i18n="auth_phone_verify">Підтвердити</button>
-      </div>
-    </div>
-    <div id="link-recaptcha-container"></div>
-
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>
