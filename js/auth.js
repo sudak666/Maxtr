@@ -13,21 +13,40 @@ import { renderNotifUI } from './notifications.js';
 import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
 
+/** @param {string} mode */
 const setAuthMode = function(mode){
   AppState.authMode=mode;
-  document.getElementById('auth-tab-login').classList.toggle('active',mode==='login');
-  document.getElementById('auth-tab-register').classList.toggle('active',mode==='register');
-  document.getElementById('auth-submit').textContent=mode==='login'?tr('auth_login_btn'):tr('auth_register_btn');
-  document.getElementById('auth-password').setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
+  document.getElementById('auth-tab-login')?.classList.toggle('active',mode==='login');
+  document.getElementById('auth-tab-register')?.classList.toggle('active',mode==='register');
+  const submitBtn=document.getElementById('auth-submit'); if(submitBtn) submitBtn.textContent=mode==='login'?tr('auth_login_btn'):tr('auth_register_btn');
+  document.getElementById('auth-password')?.setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
   setAuthError('');
 };
 
+/** @param {string} msg */
 function setAuthError(msg){
   const el=document.getElementById('auth-error');
   if(el) el.textContent=msg||'';
 }
 
+// Firebase Auth SDK calls always throw a FirebaseError (which carries a
+// string `.code`, e.g. "auth/wrong-password") rather than a plain Error —
+// this narrows a caught `unknown` down to that `.code` without an `any`
+// cast at every one of this file's many catch(err) blocks.
+/**
+ * @param {unknown} err
+ * @returns {string}
+ */
+function firebaseErrCode(err){
+  return (err && typeof err==='object' && 'code' in err) ? String(/** @type {{code:unknown}} */ (err).code) : '';
+}
+
+/**
+ * @param {string} code
+ * @param {boolean} [isPhoneFlow]
+ */
 function authErrorMessage(code,isPhoneFlow){
+  /** @type {Record<string,string>} */
   const map={
     'auth/invalid-email':tr('auth_err_invalid_email'),
     'auth/user-not-found':tr('auth_err_user_not_found'),
@@ -135,7 +154,7 @@ const googleSignIn = async function(){
     }
     else await signInWithPopup(auth, googleProvider);
   }
-  catch(err){ console.error(err); setAuthError(authErrorMessage(err.code)); }
+  catch(err){ console.error(err); setAuthError(authErrorMessage(firebaseErrCode(err))); }
 };
 
 const resetPassword = async function(){
@@ -146,31 +165,33 @@ const resetPassword = async function(){
     setAuthError(tr('auth_reset_sent'));
   }catch(err){
     console.error(err);
-    setAuthError(authErrorMessage(err.code));
+    setAuthError(authErrorMessage(firebaseErrCode(err)));
   }
 };
 
 const showPhoneAuth = function(){
-  document.getElementById('auth-email-section').style.display='none';
-  document.getElementById('auth-phone-section').style.display='block';
+  const emailSection=document.getElementById('auth-email-section'); if(emailSection) emailSection.style.display='none';
+  const phoneSection=document.getElementById('auth-phone-section'); if(phoneSection) phoneSection.style.display='block';
   setPhoneError('');
 };
 
 const hidePhoneAuth = function(){
-  document.getElementById('auth-phone-section').style.display='none';
-  document.getElementById('auth-email-section').style.display='';
-  document.getElementById('auth-phone-code-group').style.display='none';
-  document.getElementById('auth-phone-send-btn').style.display='';
+  const phoneSection=document.getElementById('auth-phone-section'); if(phoneSection) phoneSection.style.display='none';
+  const emailSection=document.getElementById('auth-email-section'); if(emailSection) emailSection.style.display='';
+  const codeGroup=document.getElementById('auth-phone-code-group'); if(codeGroup) codeGroup.style.display='none';
+  const sendBtn=document.getElementById('auth-phone-send-btn'); if(sendBtn) sendBtn.style.display='';
   const codeInp=/** @type {HTMLInputElement | null} */ (document.getElementById('auth-phone-code-input')); if(codeInp) codeInp.value='';
   AppState.phoneConfirmationResult=null;
   setPhoneError('');
 };
 
+/** @param {string} msg */
 function setPhoneError(msg){
   const el=document.getElementById('auth-phone-error');
   if(el) el.textContent=msg||'';
 }
 
+/** @param {string} containerId */
 function resetRecaptchaContainer(containerId){
   const el=document.getElementById(containerId);
   if(el) el.innerHTML='';
@@ -209,12 +230,12 @@ const sendPhoneCode = async function(){
   try{
     forceClassicPhoneRecaptcha();
     AppState.phoneConfirmationResult=await signInWithPhoneNumber(auth, raw, ensureRecaptcha());
-    document.getElementById('auth-phone-code-group').style.display='block';
+    const codeGroup=document.getElementById('auth-phone-code-group'); if(codeGroup) codeGroup.style.display='block';
     btn.style.display='none';
     showToast(tr('auth_phone_code_sent'),'check');
   }catch(err){
     console.error(err);
-    setPhoneError(authErrorMessage(err.code,true));
+    setPhoneError(authErrorMessage(firebaseErrCode(err),true));
     if(AppState.recaptchaVerifier){ try{ AppState.recaptchaVerifier.clear(); }catch(e){} AppState.recaptchaVerifier=null; }
     // .clear() can itself throw mid-way (leaves the widget's DOM node behind),
     // so a retry's new RecaptchaVerifier fails with "already been rendered in
@@ -235,7 +256,7 @@ const verifyPhoneCode = async function(){
     // onAuthStateChanged picks up the new session and hides the lock screen.
   }catch(err){
     console.error(err);
-    setPhoneError(authErrorMessage(err.code,true));
+    setPhoneError(authErrorMessage(firebaseErrCode(err),true));
   }finally{
     btn.disabled=false;
   }
@@ -243,7 +264,7 @@ const verifyPhoneCode = async function(){
 
 const openLinkPhoneManager = function(){
   renderLinkPhoneUI();
-  document.getElementById('link-phone-modal').style.display='flex';
+  const modal=document.getElementById('link-phone-modal'); if(modal) modal.style.display='flex';
 };
 
 export function renderLinkPhoneUI(){
@@ -251,10 +272,11 @@ export function renderLinkPhoneUI(){
   const cur=document.getElementById('link-phone-current');
   const form=document.getElementById('link-phone-form');
   const sub=document.getElementById('settings-phone-sub');
+  const numberEl=document.getElementById('link-phone-current-number');
   if(!cur||!form) return;
   if(phoneProvider){
     cur.style.display='block'; form.style.display='none';
-    document.getElementById('link-phone-current-number').textContent=phoneProvider.phoneNumber;
+    if(numberEl) numberEl.textContent=phoneProvider.phoneNumber;
     if(sub) sub.textContent=phoneProvider.phoneNumber;
   }else{
     cur.style.display='none'; form.style.display='block';
@@ -267,24 +289,27 @@ function ensureLinkRecaptcha(){
   return AppState.linkRecaptchaVerifier;
 }
 
+/** @param {string} msg */
 function setLinkPhoneError(msg){
   const el=document.getElementById('link-phone-error'); if(el) el.textContent=msg||'';
 }
 
 const sendLinkPhoneCode = async function(){
+  const currentUser=AppState.currentUser;
+  if(!currentUser){ setLinkPhoneError(authErrorMessage('')); return; }
   const raw=/** @type {HTMLInputElement} */ (document.getElementById('link-phone-input')).value.trim();
   if(!/^\+\d{8,15}$/.test(raw)){ setLinkPhoneError(tr('auth_phone_bad_format')); return; }
   const btn=/** @type {HTMLButtonElement} */ (document.getElementById('link-phone-send-btn'));
   setLinkPhoneError(''); btn.disabled=true;
   try{
     forceClassicPhoneRecaptcha();
-    AppState.linkPhoneConfirmationResult=await linkWithPhoneNumber(AppState.currentUser, raw, ensureLinkRecaptcha());
-    document.getElementById('link-phone-code-group').style.display='block';
+    AppState.linkPhoneConfirmationResult=await linkWithPhoneNumber(currentUser, raw, ensureLinkRecaptcha());
+    const codeGroup=document.getElementById('link-phone-code-group'); if(codeGroup) codeGroup.style.display='block';
     btn.style.display='none';
     showToast(tr('auth_phone_code_sent'),'check');
   }catch(err){
     console.error(err);
-    setLinkPhoneError(authErrorMessage(err.code,true));
+    setLinkPhoneError(authErrorMessage(firebaseErrCode(err),true));
     if(AppState.linkRecaptchaVerifier){ try{ AppState.linkRecaptchaVerifier.clear(); }catch(e){} AppState.linkRecaptchaVerifier=null; }
     resetRecaptchaContainer('link-recaptcha-container');
   }finally{
@@ -302,22 +327,24 @@ const confirmLinkPhoneCode = async function(){
     AppState.linkPhoneConfirmationResult=null;
     /** @type {HTMLInputElement} */ (document.getElementById('link-phone-input')).value='';
     /** @type {HTMLInputElement} */ (document.getElementById('link-phone-code-input')).value='';
-    document.getElementById('link-phone-code-group').style.display='none';
-    document.getElementById('link-phone-send-btn').style.display='';
+    const codeGroup=document.getElementById('link-phone-code-group'); if(codeGroup) codeGroup.style.display='none';
+    const sendBtn=document.getElementById('link-phone-send-btn'); if(sendBtn) sendBtn.style.display='';
     renderLinkPhoneUI();
     showToast(tr('settings_phone_linked'),'check');
   }catch(err){
     console.error(err);
-    setLinkPhoneError(authErrorMessage(err.code,true));
+    setLinkPhoneError(authErrorMessage(firebaseErrCode(err),true));
   }finally{
     btn.disabled=false;
   }
 };
 
 const unlinkPhone = async function(){
+  const currentUser=AppState.currentUser;
+  if(!currentUser) return;
   if(!(await uiConfirm(tr('settings_phone_remove_confirm'),{title:tr('settings_phone_remove_title'),okText:tr('common_delete'),danger:true}))) return;
   try{
-    await unlink(AppState.currentUser,'phone');
+    await unlink(currentUser,'phone');
     renderLinkPhoneUI();
     showToast(tr('settings_phone_removed'),'check');
   }catch(err){
@@ -332,14 +359,16 @@ const signOutUser = async function(){
 };
 
 async function reauthenticateForDeletion(){
-  const providerId=AppState.currentUser.providerData[0]?.providerId;
+  const currentUser=AppState.currentUser;
+  if(!currentUser) return false;
+  const providerId=currentUser.providerData[0]?.providerId;
   try{
     if(providerId==='google.com'){
-      await reauthenticateWithPopup(AppState.currentUser, googleProvider);
+      await reauthenticateWithPopup(currentUser, googleProvider);
     }else{
       const password=await uiPrompt(tr('auth_reauth_prompt'),'',tr('auth_reauth_title'));
       if(!password) return false;
-      await reauthenticateWithCredential(AppState.currentUser, EmailAuthProvider.credential(AppState.currentUser.email, password));
+      await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email||'', password));
     }
     return true;
   }catch(e){
@@ -349,7 +378,8 @@ async function reauthenticateForDeletion(){
 }
 
 const deleteAccountUser = async function(){
-  if(!AppState.currentUser) return;
+  const currentUser=AppState.currentUser;
+  if(!currentUser) return;
   if(!(await uiConfirm(tr('auth_delete_confirm'),{title:tr('auth_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   try{
     await Promise.all([
@@ -367,13 +397,13 @@ const deleteAccountUser = async function(){
     await uiAlert(tr('auth_delete_data_fail'));
     return;
   }
-  const uid=AppState.currentUser.uid;
+  const uid=currentUser.uid;
   try{
-    await deleteUser(AppState.currentUser);
+    await deleteUser(currentUser);
   }catch(e){
-    if(e.code==='auth/requires-recent-login' && await reauthenticateForDeletion()){
+    if(firebaseErrCode(e)==='auth/requires-recent-login' && await reauthenticateForDeletion()){
       try{
-        await deleteUser(AppState.currentUser);
+        await deleteUser(currentUser);
       }catch(e2){
         console.error(e2);
         await uiAlert(tr('auth_delete_account_fail'));
@@ -398,7 +428,7 @@ const resetProfileData = async function(){
   if(!AppState.currentUser) return;
   if(AppState.activeProfileOwnerUid){ showToast(tr('profiles_reset_shared_blocked'),'warning'); return; }
   if(!(await uiConfirm(tr('profiles_reset_confirm'),{title:tr('profiles_reset_title'),okText:tr('profiles_reset_ok'),danger:true}))) return;
-  clearTimeout(AppState.fbTimer);
+  clearTimeout(AppState.fbTimer ?? undefined);
   try{
     await Promise.all([
       deleteDoc(userDoc('shifts')),
@@ -426,6 +456,7 @@ const resetProfileData = async function(){
   showToast(tr('profiles_reset_done'),'trash');
 };
 
+/** @param {string} str */
 async function sha256Hex(str){
   const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -539,7 +570,7 @@ const openPinSettings = async function(){
   if(lockBtn) lockBtn.style.display = set ? '' : 'none';
   const ni=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-new-input')); if(ni) ni.value='';
   const ci=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-confirm-input')); if(ci) ci.value='';
-  document.getElementById('pin-settings-modal').style.display='flex';
+  const modal=document.getElementById('pin-settings-modal'); if(modal) modal.style.display='flex';
   await renderBioSettingsUI();
 };
 
@@ -583,10 +614,13 @@ function bioKey(){ return AppState.currentUser ? `mx_biocred_${AppState.currentU
 
 function hasBioSet(){ const k=bioKey(); return !!(k && localStorage.getItem(k)); }
 
+/** @param {number} len */
 function randBytes(len){ const a=new Uint8Array(len); crypto.getRandomValues(a); return a; }
 
+/** @param {ArrayBuffer} buf */
 function b64FromBuf(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
 
+/** @param {string} b64 */
 function bufFromB64(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
 
 async function renderBioSettingsUI(){
@@ -671,8 +705,9 @@ export function __init_auth__(){
 // here too since several of these buttons sit inside a .modal-card with its
 // own onclick="event.stopPropagation()", e.g. the PIN settings and
 // link-phone modals).
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
-  'set-auth-mode': ds=>setAuthMode(ds.mode),
+  'set-auth-mode': ds=>setAuthMode(ds.mode||''),
   'google-sign-in': ()=>googleSignIn(),
   'reset-password': ()=>resetPassword(),
   'show-phone-auth': ()=>showPhoneAuth(),
@@ -701,7 +736,8 @@ const CLICK_ACTIONS = {
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
 // Completes a signInWithRedirect() flow (see googleSignIn/isPopupUnreliableContext
@@ -735,7 +771,7 @@ getRedirectResult(auth).then(result=>{
   console.error(err);
   let wasPending=false;
   try{ wasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)==='1'; }catch(e){}
-  if(wasPending) setAuthError(authErrorMessage(err.code));
+  if(wasPending) setAuthError(authErrorMessage(firebaseErrCode(err)));
 }).finally(()=>{
   try{ sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY); }catch(e){}
 });
@@ -744,7 +780,7 @@ getRedirectResult(auth).then(result=>{
 // tests/e2e-modals.mjs all call window.finishOnboarding() directly to
 // dismiss the onboarding overlay, rather than clicking the button.
 /** @type {any} */ (window).finishOnboarding = finishOnboarding;
-document.getElementById('auth-form').addEventListener('submit', async function(e){
+document.getElementById('auth-form')?.addEventListener('submit', async function(e){
   e.preventDefault();
   const email=/** @type {HTMLInputElement} */ (document.getElementById('auth-email')).value.trim();
   const password=/** @type {HTMLInputElement} */ (document.getElementById('auth-password')).value;
@@ -755,7 +791,7 @@ document.getElementById('auth-form').addEventListener('submit', async function(e
     else await createUserWithEmailAndPassword(auth,email,password);
   }catch(err){
     console.error(err);
-    setAuthError(authErrorMessage(err.code));
+    setAuthError(authErrorMessage(firebaseErrCode(err)));
   }finally{
     btn.disabled=false;
   }

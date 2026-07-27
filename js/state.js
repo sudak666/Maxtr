@@ -151,9 +151,13 @@ export const AppState = {
   /** @type {Record<string, number>} */
   lastKnownUpdatedAt: {shifts:0, finance:0, debt:0},
   authMode: 'login',
+  /** @type {import('firebase/auth').RecaptchaVerifier | null} */
   recaptchaVerifier: null,
+  /** @type {import('firebase/auth').ConfirmationResult | null} */
   phoneConfirmationResult: null,
+  /** @type {import('firebase/auth').RecaptchaVerifier | null} */
   linkRecaptchaVerifier: null,
+  /** @type {import('firebase/auth').ConfirmationResult | null} */
   linkPhoneConfirmationResult: null,
   pinUnlocked: false,
   onboardIndex: 0,
@@ -181,6 +185,7 @@ export const AppState = {
   /** @type {string | null} */
   expandedGoalId: null,
   showNewGoalForm: false,
+  /** @type {import('firebase/messaging').Messaging | null} */
   messagingInstance: null,
   analyticsPeriod: 'month',
   /** @type {number | null} */
