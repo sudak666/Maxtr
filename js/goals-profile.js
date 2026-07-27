@@ -9,7 +9,7 @@ import { renderLinkPhoneUI } from './auth.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { currencySymbol, walletById } from './core.js';
 import { uid } from './settings-managers.js';
-import { enhanceSelect, escapeHtml, setupAccessibleClickableDivs, showToast, uiConfirm } from './ui-widgets.js';
+import { enhanceSelect, escapeHtml, showToast, uiConfirm } from './ui-widgets.js';
 
 const openGoalsManager = function(){
   AppState.expandedGoalId=null; AppState.showNewGoalForm=false;
@@ -164,20 +164,6 @@ export const BUILTIN_AVATARS=[
   {id:'lion', icon:'avatarHeart', gradient:'linear-gradient(135deg,#F8BBD0,#C2185B)'},
 ];
 
-/** @param {string} id */
-const selectBuiltinAvatar = function(id){
-  AppState.profile.avatar='builtin:'+id;
-  saveConfigLocal(); scheduleSave();
-  renderProfileUI();
-  showToast(tr('toast_avatar_updated'),'check');
-};
-
-function renderAvatarPicker(){
-  const box=document.getElementById('profile-avatar-picker'); if(!box) return;
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${AppState.profile.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" data-action="select-builtin-avatar" data-id="${a.id}">${window.Icon(a.icon)}</div>`).join('');
-  setupAccessibleClickableDivs(box);
-}
-
 /** @param {Event} event */
 const handleAvatarUpload = function(event){
   const target=/** @type {HTMLInputElement} */ (event.target);
@@ -272,7 +258,6 @@ function fillAvatarEl(el){
 export function renderProfileUI(){
   fillAvatarEl(document.getElementById('profile-avatar-preview'));
   fillAvatarEl(document.getElementById('topbar-avatar'));
-  renderAvatarPicker();
   const ni=/** @type {HTMLInputElement | null} */ (document.getElementById('profile-nickname-input'));
   if(ni && document.activeElement!==ni){ ni.value=AppState.profile.nickname||''; ni.readOnly=true; }
   const who=document.getElementById('profile-signed-as');
@@ -311,7 +296,6 @@ const CLICK_ACTIONS = {
   'delete-goal': ds=>deleteGoal(ds.id||''),
   'toggle-new-goal-form': ()=>toggleNewGoalForm(),
   'confirm-add-goal': ()=>confirmAddGoal(),
-  'select-builtin-avatar': ds=>selectBuiltinAvatar(ds.id||''),
   'save-nickname': ()=>saveNickname(),
   'enable-nickname-edit': ()=>enableNicknameEdit(),
 };
