@@ -31,7 +31,7 @@ export async function init(){
       const o=document.createElement('option');
       o.value=String(i); o.textContent=m;
       if(i===now.getMonth())o.selected=true;
-      ms.appendChild(o);
+      ms?.appendChild(o);
     });
     // Year select
     const ys=document.getElementById('select-year');
@@ -39,7 +39,7 @@ export async function init(){
       const o=document.createElement('option');
       o.value=String(y); o.textContent=String(y);
       if(y===now.getFullYear())o.selected=true;
-      ys.appendChild(o);
+      ys?.appendChild(o);
     }
     // Refresh the subcategory list whenever the user picks a different category
     document.getElementById('fin-category')?.addEventListener('change', fillSubcats);
@@ -115,7 +115,8 @@ export async function init(){
   // Re-attach the foreground push handler if this device already has push
   // enabled from a previous session (registering the token itself only
   // happens once, in enablePushNotifications()).
-  if(localStorage.getItem(pushEnabledKey())==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
+  const pushKey=pushEnabledKey();
+  if(pushKey && localStorage.getItem(pushKey)==='1') getMessagingInstance().catch(e=>console.warn('push init failed',e));
   handleLaunchParams();
 }
 
@@ -166,12 +167,14 @@ function handleLaunchParams(){
 // detection until it was fixed to use capture-phase document listening;
 // this is the same root cause showing up as the opposite failure mode —
 // here PTR needs to *not* react to a nested scroll, not *react* to one).
+/** @param {EventTarget | null} el */
 function closestScrollableAncestor(el){
-  let node=el;
+  let node=/** @type {Node | null} */ (el);
   while(node && node!==document.body && node!==document.documentElement){
     if(node.nodeType===1){
-      const cs=getComputedStyle(node);
-      if((cs.overflowY==='auto'||cs.overflowY==='scroll') && node.scrollHeight>node.clientHeight+1) return node;
+      const cs=getComputedStyle(/** @type {Element} */ (node));
+      const elNode=/** @type {Element} */ (node);
+      if((cs.overflowY==='auto'||cs.overflowY==='scroll') && elNode.scrollHeight>elNode.clientHeight+1) return node;
     }
     node=node.parentElement;
   }
@@ -195,7 +198,9 @@ function setupPullToRefresh(){
   const spinner=document.getElementById('ptr-spinner');
   if(!indicator||!spinner) return;
   const THRESHOLD=70, MAX_PULL=100;
-  let startY=null, lastPull=0, refreshing=false;
+  /** @type {number | null} */
+  let startY=null;
+  let lastPull=0, refreshing=false;
 
   document.addEventListener('touchstart', e=>{
     // Reported directly by the account owner: swiping inside the
@@ -273,14 +278,16 @@ function setupPullToRefresh(){
 function setupFabExpandCollapse(){
   const fabs=document.querySelectorAll('.fin-fab');
   if(!fabs.length) return;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let collapseTimer=null;
   document.addEventListener('scroll', ()=>{
     fabs.forEach(f=>f.classList.add('fab-collapsed'));
-    clearTimeout(collapseTimer);
+    if(collapseTimer!=null) clearTimeout(collapseTimer);
     collapseTimer=setTimeout(()=>{ fabs.forEach(f=>f.classList.remove('fab-collapsed')); }, 600);
   }, {passive:true, capture:true});
 }
 
+/** @param {string} tab */
 export function switchTab(tab){
   const tappedIcon=/** @type {HTMLElement} */ (document.querySelector(`#nav-${tab} .tab-icon-wrap`));
   if(tappedIcon){
@@ -288,16 +295,16 @@ export function switchTab(tab){
     void tappedIcon.offsetWidth;
     tappedIcon.classList.add('tab-pop');
   }
-  document.getElementById('nav-shifts').classList.toggle('active',tab==='shifts');
-  document.getElementById('nav-finance').classList.toggle('active',tab==='finance');
-  document.getElementById('nav-debt').classList.toggle('active',tab==='debt');
-  document.getElementById('nav-shopping').classList.toggle('active',tab==='shopping');
+  document.getElementById('nav-shifts')?.classList.toggle('active',tab==='shifts');
+  document.getElementById('nav-finance')?.classList.toggle('active',tab==='finance');
+  document.getElementById('nav-debt')?.classList.toggle('active',tab==='debt');
+  document.getElementById('nav-shopping')?.classList.toggle('active',tab==='shopping');
   document.getElementById('btn-settings')?.classList.toggle('active',tab==='settings');
-  document.getElementById('tab-shifts').style.display  = tab==='shifts'  ? 'block':'none';
-  document.getElementById('tab-finance').style.display = tab==='finance' ? 'block':'none';
-  document.getElementById('tab-debt').style.display    = tab==='debt'    ? 'block':'none';
-  document.getElementById('tab-shopping').style.display= tab==='shopping'? 'block':'none';
-  document.getElementById('tab-settings').style.display= tab==='settings'? 'block':'none';
+  const tabShifts=document.getElementById('tab-shifts'); if(tabShifts) tabShifts.style.display  = tab==='shifts'  ? 'block':'none';
+  const tabFinance=document.getElementById('tab-finance'); if(tabFinance) tabFinance.style.display = tab==='finance' ? 'block':'none';
+  const tabDebt=document.getElementById('tab-debt'); if(tabDebt) tabDebt.style.display    = tab==='debt'    ? 'block':'none';
+  const tabShopping=document.getElementById('tab-shopping'); if(tabShopping) tabShopping.style.display= tab==='shopping'? 'block':'none';
+  const tabSettings=document.getElementById('tab-settings'); if(tabSettings) tabSettings.style.display= tab==='settings'? 'block':'none';
   const shownTab=document.getElementById(`tab-${tab}`);
   // .tab-in's entrance animation uses animation-fill-mode:both (index.html),
   // which keeps its `transform` applied indefinitely once the animation
