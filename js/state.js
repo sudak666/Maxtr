@@ -26,6 +26,7 @@
 /** @typedef {{id: string, name: string, avatar?: string, createdAt?: number, kind?: 'shared', ownerUid?: string}} ProfileMeta */
 /** @typedef {{id: string, name: string, color: string}} Tag */
 /** @typedef {{id: string, type: string, keyword: string, category: string}} AutoRule */
+/** @typedef {{id: string, walletId: string, targetAmount: number, targetDate: string}} Goal */
 
 export const WIDGET_ORDER_DEFAULT = ['goals', 'dailyTip', 'cryptoTop'];
 export const LANG_CALENDAR = {
@@ -114,6 +115,7 @@ export const AppState = {
   txCategoryFilter: null,
   /** @type {AutoRule[]} */
   autoRules: [],
+  /** @type {Goal[]} */
   goals: [],
   catBackfillDone: false,
   catLegacyMerged: false,
@@ -176,6 +178,7 @@ export const AppState = {
   expandedRecurringId: null,
   /** @type {string | null} */
   expandedBudgetCat: null,
+  /** @type {string | null} */
   expandedGoalId: null,
   showNewGoalForm: false,
   messagingInstance: null,
