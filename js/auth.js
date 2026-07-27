@@ -82,6 +82,26 @@ function isPopupUnreliableContext(){
   return false;
 }
 
+// A real TWA (Play Store package, Custom-Tab shell, `android-app://`
+// referrer) genuinely can't do window.open()-based popups — redirect is the
+// only option there (see CLAUDE.md's Google-sign-in-in-TWA history, closed
+// out and confirmed working). An Android "Add to Home Screen" WebAPK
+// (matched by `display-mode: standalone` but with no `android-app://`
+// referrer) is a different, less restrictive shell — it was previously
+// lumped into the same "force redirect" bucket, but a real user report
+// (2026-07-23, see the comment above getRedirectResult() below) found
+// signInWithRedirect()'s round trip silently loses its pending state there,
+// a documented Android/Chrome storage-partitioning limitation this app
+// can't fix on the redirect path itself. Since WebAPKs aren't the same
+// popup-hostile Custom-Tab shell a real TWA is, popup is worth trying first
+// there — falling back to redirect only if the popup itself fails.
+function isTwaReferrerContext(){
+  try{
+    if(document.referrer && document.referrer.startsWith('android-app://')) return true;
+  }catch(e){}
+  return false;
+}
+
 // Marks that this session actually initiated a signInWithRedirect() round
 // trip, so the getRedirectResult() check below (which runs unconditionally
 // on every app load, not just after a real attempt) knows whether a
@@ -97,9 +117,21 @@ const GOOGLE_REDIRECT_PENDING_KEY = 'mxGoogleRedirectPending';
 const googleSignIn = async function(){
   setAuthError('');
   try{
-    if(isPopupUnreliableContext()){
+    if(isTwaReferrerContext()){
       try{ sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, '1'); }catch(e){}
       await signInWithRedirect(auth, googleProvider);
+    }
+    else if(isPopupUnreliableContext()){
+      // Standalone WebAPK, not a real TWA — try popup first (see
+      // isTwaReferrerContext()'s comment above); only fall back to redirect
+      // if the popup itself genuinely fails (blocked, unsupported, etc),
+      // rather than assuming redirect upfront the way TWA needs to.
+      try{ await signInWithPopup(auth, googleProvider); }
+      catch(popupErr){
+        console.error(popupErr);
+        try{ sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, '1'); }catch(e){}
+        await signInWithRedirect(auth, googleProvider);
+      }
     }
     else await signInWithPopup(auth, googleProvider);
   }
