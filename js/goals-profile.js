@@ -14,9 +14,10 @@ import { enhanceSelect, escapeHtml, setupAccessibleClickableDivs, showToast, uiC
 const openGoalsManager = function(){
   AppState.expandedGoalId=null; AppState.showNewGoalForm=false;
   renderGoalsManagerList();
-  document.getElementById('goals-modal').style.display='flex';
+  const modal=document.getElementById('goals-modal'); if(modal) modal.style.display='flex';
 };
 
+/** @param {string} id */
 const toggleGoalEdit = function(id){
   AppState.expandedGoalId = AppState.expandedGoalId===id ? null : id;
   renderGoalsManagerList();
@@ -90,10 +91,11 @@ function renderGoalsManagerList(){
   renderNewGoalForm();
 }
 
+/** @param {string} id @param {string} field @param {string} value */
 const updateGoal = function(id,field,value){
   const g=AppState.goals.find(x=>x.id===id); if(!g) return;
   if(field==='targetAmount') g.targetAmount=parseFloat(value)||0;
-  else g[field]=value;
+  else /** @type {any} */ (g)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderGoalsManagerList();
   renderGoals();
@@ -113,6 +115,7 @@ const confirmAddGoal = function(){
   showToast(tr('goals_added'),'plus');
 };
 
+/** @param {string} id */
 const deleteGoal = async function(id){
   if(!(await uiConfirm(tr('goals_delete_confirm'),{title:tr('goals_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.goals=AppState.goals.filter(g=>g.id!==id);
@@ -161,6 +164,7 @@ export const BUILTIN_AVATARS=[
   {id:'lion', icon:'avatarHeart', gradient:'linear-gradient(135deg,#F8BBD0,#C2185B)'},
 ];
 
+/** @param {string} id */
 const selectBuiltinAvatar = function(id){
   AppState.profile.avatar='builtin:'+id;
   saveConfigLocal(); scheduleSave();
@@ -174,9 +178,11 @@ function renderAvatarPicker(){
   setupAccessibleClickableDivs(box);
 }
 
+/** @param {Event} event */
 const handleAvatarUpload = function(event){
-  const file=event.target.files && event.target.files[0];
-  event.target.value='';
+  const target=/** @type {HTMLInputElement} */ (event.target);
+  const file=target.files && target.files[0];
+  target.value='';
   if(!file) return;
   if(!file.type.startsWith('image/')){ showToast(tr('toast_avatar_bad_file'),'xmark'); return; }
   const reader=new FileReader();
@@ -187,6 +193,7 @@ const handleAvatarUpload = function(event){
       const canvas=document.createElement('canvas');
       canvas.width=size; canvas.height=size;
       const ctx=canvas.getContext('2d');
+      if(!ctx) return;
       const s=Math.min(img.width,img.height);
       const sx=(img.width-s)/2, sy=(img.height-s)/2;
       ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
@@ -201,12 +208,14 @@ const handleAvatarUpload = function(event){
   reader.readAsDataURL(file);
 };
 
+/** @param {string} value */
 const updateNickname = function(value){
   AppState.profile.nickname=String(value||'').trim();
   saveConfigLocal(); scheduleSave();
   renderProfileUI();
 };
 
+/** @param {string} value */
 const onNicknameInput = function(value){
   const btn=document.getElementById('profile-save-btn');
   if(btn) btn.style.display = (String(value||'').trim()!==(AppState.profile.nickname||'')) ? 'inline-flex' : 'none';
@@ -237,6 +246,7 @@ const onNicknameBlur = function(){
   },150);
 };
 
+/** @param {HTMLElement | null} el */
 function fillAvatarEl(el){
   if(!el) return;
   el.style.color='';
@@ -294,29 +304,34 @@ export function __init_goals_profile__(){
 // so the nickname-input's onblur uses a separate `data-blur-action`
 // attribute matched by a `focusout` listener (focusout is blur's bubbling
 // equivalent) instead of reusing `data-action`.
+/** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'open-goals-manager': ()=>openGoalsManager(),
-  'toggle-goal-edit': ds=>toggleGoalEdit(ds.id),
-  'delete-goal': ds=>deleteGoal(ds.id),
+  'toggle-goal-edit': ds=>toggleGoalEdit(ds.id||''),
+  'delete-goal': ds=>deleteGoal(ds.id||''),
   'toggle-new-goal-form': ()=>toggleNewGoalForm(),
   'confirm-add-goal': ()=>confirmAddGoal(),
-  'select-builtin-avatar': ds=>selectBuiltinAvatar(ds.id),
+  'select-builtin-avatar': ds=>selectBuiltinAvatar(ds.id||''),
   'save-nickname': ()=>saveNickname(),
   'enable-nickname-edit': ()=>enableNicknameEdit(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && CLICK_ACTIONS[el.dataset.action]) CLICK_ACTIONS[el.dataset.action](el.dataset);
+  const action=el&&el.dataset.action;
+  if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement, e: Event) => void>} */
 const FIELD_ACTIONS = {
-  'update-goal': (ds,el)=>updateGoal(ds.id, ds.field, el.value),
+  'update-goal': (ds,el)=>updateGoal(ds.id||'', ds.field||'', el.value),
   'handle-avatar-upload': (ds,el,e)=>handleAvatarUpload(e),
   'on-nickname-input': (ds,el)=>onNicknameInput(el.value),
 };
+/** @param {Event} e */
 function dispatchFieldAction(e){
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
-  if(el && FIELD_ACTIONS[el.dataset.action]) FIELD_ACTIONS[el.dataset.action](el.dataset, el, e);
+  const action=el&&el.dataset.action;
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el, e);
 }
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
