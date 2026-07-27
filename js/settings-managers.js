@@ -38,7 +38,7 @@ const h = /** @type {any} */ (_h);
 // below purely because *assigning* to window is a side effect that needs
 // ordering against the rest of the circular import graph.
 export function closeManagers(){
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','shared-members-modal','link-phone-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','monobank-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','shared-members-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','monobank-modal','biometric-onboard-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 }

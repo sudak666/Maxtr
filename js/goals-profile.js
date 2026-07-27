@@ -5,7 +5,6 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { computeWalletBalances } from './analytics-csv.js';
-import { renderLinkPhoneUI } from './auth.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { currencySymbol, walletById } from './core.js';
 import { uid } from './settings-managers.js';
@@ -268,7 +267,6 @@ export function renderProfileUI(){
       who.textContent=`${tr('settings_signed_in_as')} ${AppState.currentUser.email||''} (${isGoogle?'Google':'Email'})`;
     }
   }
-  renderLinkPhoneUI();
 }
 
 // Top-level statements that DO something immediately (as opposed to a
