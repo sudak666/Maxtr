@@ -465,7 +465,7 @@ function renderAutoRulesList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <div class="icon-badge icon-badge-sm" style="background:var(--purple)">${window.Icon('sparkle')}</div>
+        <div class="icon-badge icon-badge-sm" style="--badge-color:var(--purple)">${window.Icon('sparkle')}</div>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${summary}</span>
           <span class="cat-row-sub">${typeLabel}</span>

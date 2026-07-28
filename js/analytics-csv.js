@@ -212,7 +212,7 @@ function renderAnalytics(){
       const color=categoryColor(cat);
       return `<div class="analytics-cat-row">
         <div class="analytics-cat-top">
-          <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="background:${color};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span>${escapeHtml(cat)}</span></span>
+          <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="--badge-color:${color};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span>${escapeHtml(cat)}</span></span>
           <span class="analytics-cat-amt">${amt.toLocaleString('uk-UA')} грн · ${pct}%</span>
         </div>
         <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -323,7 +323,7 @@ function txItemInnerHtml(t){
   return `
       <div class="tx-item-inner">
         <div class="tx-left-wrap">
-          <div class="icon-badge" style="background:${categoryColor(t.category||'')}">${catIcon}</div>
+          <div class="icon-badge" style="--badge-color:${categoryColor(t.category||'')}">${catIcon}</div>
           <div class="tx-left">
             <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
             <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
@@ -425,6 +425,14 @@ export function renderFinance(){
     const walletCurrencies=new Set(AppState.wallets.map(w=>w.currency||'UAH'));
     const multiCurrency=walletCurrencies.size>1;
     let html=`<div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
+    // Phantom-style net-change trend chip — same monthInc/monthExp figures
+    // the two mini-stat cards below already show, just netted into one
+    // signed number so the balance itself reads with an at-a-glance trend.
+    const monthNet=monthInc-monthExp;
+    const trendCls=monthNet>0?'positive':monthNet<0?'negative':'neutral';
+    const trendIcon=monthNet<0?'trendDown':'trendUp';
+    const trendSign=monthNet>0?'+':monthNet<0?'−':'';
+    html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${Math.abs(monthNet).toLocaleString('uk-UA')} грн</span> ${tr('finance_trend_this_month')}</div>`;
     if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
