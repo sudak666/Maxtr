@@ -294,7 +294,7 @@ function renderWidgetsList(){
     const w=defByKey[key]; if(!w) return '';
     return `
     <div class="settings-row" style="cursor:default">
-      <span class="icon-badge" style="background:${w.color}">${window.Icon(w.icon)}</span>
+      <span class="icon-badge" style="--badge-color:${w.color}">${window.Icon(w.icon)}</span>
       <div class="settings-row-text">
         <div class="settings-row-title">${tr(w.titleKey)}</div>
         <div class="settings-row-sub">${tr(w.subKey)}</div>
@@ -392,7 +392,7 @@ function renderRatesList(){
     const row=document.createElement('div');
     row.className='rate-row';
     row.innerHTML=`
-      <span class="icon-badge icon-badge-symbol" style="background:${FX_WIDGET_COLORS[code]||'var(--muted)'}">${currencySymbol(code)}</span>
+      <span class="icon-badge icon-badge-symbol" style="--badge-color:${FX_WIDGET_COLORS[code]||'var(--muted)'}">${currencySymbol(code)}</span>
       <span class="rate-row-text">
         <span class="rate-row-code">${code}</span>
         <span class="rate-row-sub">${tr('rates_per_unit')} ${code}</span>
@@ -526,7 +526,7 @@ const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple
 /** @param {{color: string, symbol: string, title: string, sub: string, rateStr: string}} props */
 function FxWidgetRow({ color, symbol, title, sub, rateStr }){
   return h('div', { class:'fx-widget-row' },
-    h('span', { class:'icon-badge icon-badge-symbol', style:{ background:color } }, symbol),
+    h('span', { class:'icon-badge icon-badge-symbol', style:{ '--badge-color':color } }, symbol),
     h('div', { class:'settings-row-text' },
       h('div', { class:'settings-row-title' }, title),
       h('div', { class:'settings-row-sub' }, sub)
@@ -644,7 +644,7 @@ function renderCategoriesList(){
     row.innerHTML=`
       <div class="cat-row">
         <button type="button" class="drag-handle" aria-label="${tr('cat_drag_title')}">${window.Icon('grip')}</button>
-        <button type="button" class="icon-badge icon-badge-sm cat-icon-btn" style="background:${categoryColor(name)}" data-action="open-category-icon-picker" data-idx="${idx}" aria-label="${tr('cat_icon_pick_title')}">${window.Icon(categoryIcon(name))}</button>
+        <button type="button" class="icon-badge icon-badge-sm cat-icon-btn" style="--badge-color:${categoryColor(name)}" data-action="open-category-icon-picker" data-idx="${idx}" aria-label="${tr('cat_icon_pick_title')}">${window.Icon(categoryIcon(name))}</button>
         <button type="button" class="cat-row-body" data-action="toggle-subcat-panel" data-idx="${idx}">
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(AppState.catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
@@ -873,7 +873,7 @@ function renderBudgetsManagerList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <span class="icon-badge icon-badge-sm" style="background:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
+        <span class="icon-badge icon-badge-sm" style="--badge-color:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${escapeHtml(name)}</span>
           <span class="cat-row-sub budget-row-limit">${val>0?val.toLocaleString('uk-UA')+' грн':tr('budgets_no_limit')}</span>
@@ -917,7 +917,7 @@ export function renderBudgets(){
     row.style.marginBottom='14px';
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:4px;gap:8px">
-        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="background:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
+        <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="--badge-color:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
         <span class="budget-widget-val" style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -961,7 +961,7 @@ function renderRecurringList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <div class="icon-badge icon-badge-sm" style="background:var(--purple)">${window.Icon('repeat')}</div>
+        <div class="icon-badge icon-badge-sm" style="--badge-color:var(--purple)">${window.Icon('repeat')}</div>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${summary}</span>
           <span class="cat-row-sub">${freqLabel} · ${nextDateFmt}${paused?' · '+tr('recurring_paused_label'):''}</span>

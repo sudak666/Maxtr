@@ -120,7 +120,7 @@ function CryptoSparkline({W, H, points, color}){
 /** @param {{symbol: string, color: string, priceStr: string, changeStr: string, positive: boolean, sparkPoints: string}} props */
 function CryptoRow({symbol, color, priceStr, changeStr, positive, sparkPoints}){
   return h('div', {class:'crypto-top-row'},
-    h('span', {class:'icon-badge icon-badge-symbol', style:{background:color}}, symbol[0]),
+    h('span', {class:'icon-badge icon-badge-symbol', style:{'--badge-color':color}}, symbol[0]),
     h('div', {class:'settings-row-text'},
       h('div', {class:'settings-row-title'}, symbol),
       h('div', {class:'settings-row-sub', style:{color: positive?'var(--green2)':'var(--red2)'}}, changeStr)
