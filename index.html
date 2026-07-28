@@ -64,10 +64,18 @@
   --text-md:16px; --text-lg:22px; --text-xl:30px; --text-2xl:36px;
   --weight-body:500; --weight-strong:700; --weight-display:800; --weight-mega:900;
 
-  /* elevation — tinted shadow tokens instead of hardcoded rgba() per component */
+  /* radius scale — Phantom-style: fewer, larger, consistent corner values.
+     --radius-card for primary/hero surfaces (hero balance, modals, tx rows);
+     --radius-row for compact list rows (rate/budget/cat rows, mgr buttons). */
+  --radius-card:22px;
+  --radius-row:16px;
+
+  /* elevation — tinted shadow tokens instead of hardcoded rgba() per component.
+     Softened (larger blur, lower alpha) vs. the original tighter "drop
+     shadow" feel, closer to Phantom's diffused ambient elevation. */
   --shadow-color:0,0,0;
-  --shadow-modal:0 24px 70px rgba(var(--shadow-color),.55);
-  --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 24px -14px rgba(139,92,246,.22);
+  --shadow-modal:0 30px 90px rgba(var(--shadow-color),.45);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 16px 36px -18px rgba(139,92,246,.2);
   --donut-glow:rgba(139,92,246,.28);
   /* Batch 1 of the light-theme shadow retune (see CLAUDE.md's design-review
      roadmap): plain black/neutral elevation shadows only — same offset/blur
@@ -101,7 +109,7 @@
   --shadow-empty-icon:0 8px 20px rgba(139,92,246,.25);
   --shadow-accent-btn:0 4px 12px rgba(139,92,246,.22);
   --shadow-accent-btn-hover:0 6px 18px rgba(139,92,246,.3);
-  --shadow-fab:0 10px 22px rgba(139,92,246,.38);
+  --shadow-fab:0 14px 30px -6px rgba(139,92,246,.32);
   --ring-today:0 0 0 1px rgba(139,92,246,.2);
   --tab-glow-shadow-alpha:.32;
   /* Trimmed from .42 (audit-followup session): the ripple is a *transient*
@@ -145,8 +153,8 @@
   --orange2:#c2760a;
   --overlay:rgba(0,0,0,.45);
   --shadow-color:20,15,10;
-  --shadow-modal:0 20px 50px -12px rgba(var(--shadow-color),.18);
-  --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 10px 24px -14px rgba(124,58,237,.16);
+  --shadow-modal:0 26px 64px -12px rgba(var(--shadow-color),.15);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 16px 32px -18px rgba(124,58,237,.13);
   --donut-glow:rgba(124,58,237,.16);
   --shadow-onboard-icon:0 14px 34px rgba(var(--shadow-color),.08);
   --shadow-auth-card:0 24px 60px -24px rgba(var(--shadow-color),.13);
@@ -161,7 +169,7 @@
   --shadow-empty-icon:0 8px 20px rgba(139,92,246,.15);
   --shadow-accent-btn:0 4px 12px rgba(139,92,246,.14);
   --shadow-accent-btn-hover:0 6px 18px rgba(139,92,246,.2);
-  --shadow-fab:0 10px 22px rgba(139,92,246,.22);
+  --shadow-fab:0 14px 30px -6px rgba(139,92,246,.2);
   --ring-today:0 0 0 1px rgba(139,92,246,.14);
   --tab-glow-shadow-alpha:.18;
   --tab-glow-ripple-alpha:.19;
@@ -438,22 +446,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* ── STATS GRID ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
 .stat-card{
-  background:var(--bg1);border:1px solid var(--border);border-radius:24px;
-  padding:14px 16px;position:relative;overflow:hidden;cursor:default;
+  background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-card);
+  padding:16px 18px;position:relative;overflow:hidden;cursor:default;
   transition:border-color .2s,transform .15s;
 }
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.quick-actions{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;padding:2px 0 14px;margin-bottom:6px}
-.quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:22px;font-family:inherit;padding:10px 8px;transition:transform .15s,border-color .2s,background .2s}
-.quick-action-primary{align-items:flex-start;padding:12px 14px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-color:rgba(255,255,255,.12);box-shadow:var(--shadow-fab)}
-.quick-action-primary.finance-action-primary{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.34)}
-.quick-action-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.12);box-shadow:none;transition:transform .15s}
-.quick-action:not(.quick-action-primary) .quick-action-icon{color:var(--purple2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.18)}
-.quick-action-icon .ico{width:22px;height:22px;margin-right:0}
-.quick-action:active{transform:scale(.98)}
+.stat-card:active{transform:scale(.98)}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 0 14px;margin-bottom:6px}
+.quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-row);font-family:inherit;padding:10px 6px;transition:transform .15s,border-color .2s,background .2s}
+/* Phantom-style: every action tile is the same neutral weight — the
+   "primary" action is distinguished only by its icon color/gradient, not
+   by filling the whole tile, so Операція/Інструменти/Бюджети/Цілі read as
+   one consistent row instead of one loud tile plus three quiet ones. */
+.quick-action-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--purple2);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.18);box-shadow:none;transition:transform .15s}
+.quick-action-primary .quick-action-icon{color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple3));border-color:transparent;box-shadow:var(--shadow-accent-btn)}
+.quick-action-primary.finance-action-primary .quick-action-icon{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 6px 16px rgba(16,185,129,.28)}
+.quick-action-icon .ico{width:21px;height:21px;margin-right:0}
+.quick-action:active{transform:scale(.97)}
 .quick-action:active .quick-action-icon{transform:scale(.92)}
-.quick-action-label{font-size:13.5px;font-weight:800;color:var(--text-strong);text-align:center;line-height:1.2;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
-.quick-action-primary .quick-action-label{font-size:14.5px;text-align:left}
+.quick-action-label{font-size:12.5px;font-weight:800;color:var(--text-strong);text-align:center;line-height:1.2;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
 .stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
 .stat-icon .ico{width:20px;height:20px;margin-right:0}
 
@@ -532,7 +543,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── HERO METRIC + CHIP ROW (replaces a row of equal-weight stat cards
    with one primary number and a compact scrollable strip of the rest) ── */
-.hero-metric{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow-raised);position:relative}
+.hero-metric{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:var(--radius-card);padding:22px 24px;margin-bottom:12px;box-shadow:var(--shadow-raised);position:relative}
 .hero-metric::before,.hero-balance::before{
   content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
   background:var(--stroke-hero);
@@ -541,7 +552,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   pointer-events:none;
 }
 .hero-metric-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 0;line-height:1}
+.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:800;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 0;line-height:1}
 .chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
 .chip-stat-row::-webkit-scrollbar{display:none}
 .debt-progress-wrap{margin-bottom:14px}
@@ -558,15 +569,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .debt-forecast-text{margin-top:12px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.5}
 .debt-forecast-text strong{color:var(--text-strong);font-weight:800}
 .debt-forecast-done{color:var(--green2)}
-.chip-stat{display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:999px;padding:8px 14px 8px 8px;white-space:nowrap}
+.chip-stat{display:flex;align-items:center;gap:9px;flex:0 0 auto;background:var(--bg1);border:1px solid transparent;box-shadow:0 4px 14px -6px rgba(var(--shadow-color),.28);border-radius:999px;padding:9px 16px 9px 9px;white-space:nowrap;transition:transform .12s}
+.chip-stat:active{transform:scale(.97)}
 .chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
 .chip-stat-lbl{font-size:13px;font-weight:500;color:var(--muted)}
-.hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:24px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-raised);position:relative}
+.hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:var(--radius-card);padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow-raised);position:relative}
 .hero-balance-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:4px 0 14px;line-height:1}
-.hero-balance-hint{font-size:13px;font-weight:700;color:var(--muted);line-height:1.35;margin:-8px 0 14px}
+.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 16px;line-height:1}
+.hero-balance-hint{font-size:13px;font-weight:700;color:var(--muted);line-height:1.35;margin:-10px 0 16px}
 .wallet-chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .wallet-chip-row::-webkit-scrollbar{display:none}
 .wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
@@ -1037,7 +1049,7 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
    duplication - this is also what let the too-small-gap mis-tap-into-edit
    bug happen in the first place. */
 .tx-item{
-  position:relative;overflow:hidden;border-radius:18px;
+  position:relative;overflow:hidden;border-radius:var(--radius-row);
   /* flex-shrink:0 is mandatory here, not cosmetic: .tx-list is a
      `display:flex;flex-direction:column;max-height:500px;overflow-y:auto`
      container, and a flex item with any `overflow` other than visible
@@ -1067,12 +1079,14 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 }
 .tx-item-inner{
   display:flex;justify-content:space-between;align-items:flex-start;
-  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;
-  transition:width .18s cubic-bezier(.22,1,.36,1),border-color .15s;gap:8px;
+  padding:14px 16px;background:var(--bg2);border:1px solid transparent;border-radius:var(--radius-row);
+  box-shadow:0 3px 12px -8px rgba(var(--shadow-color),.4);
+  transition:width .18s cubic-bezier(.22,1,.36,1),border-color .15s,transform .12s;gap:8px;
   position:relative;z-index:1;touch-action:pan-y;
   width:100%;box-sizing:border-box;
 }
-.tx-item:hover .tx-item-inner{border-color:var(--border2)}
+.tx-item:hover .tx-item-inner{border-color:var(--border)}
+.tx-item-inner:active{transform:scale(.985)}
 /* Reveal the delete button on hover (mouse) or keyboard focus landing
    anywhere inside the row (Tab), not just on a touch swipe - a mouse/
    keyboard user has no swipe gesture available at all, so this is the
@@ -1104,7 +1118,7 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
      edge — had no radius of its own, so it read as a jarring sharp-cornered
      rectangle stuck onto a rounded card instead of one continuous smooth
      shape. Rounding all four corners here makes both edges consistent. */
-  border-radius:18px;
+  border-radius:var(--radius-row);
 }
 .tx-swipe-delete .ico{margin-right:0;width:21px;height:21px}
 .tx-left-wrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
@@ -1233,11 +1247,11 @@ body.amounts-hidden #fx-converter-result{
 .debt-field-view{background:transparent;border:1px solid transparent;color:var(--text-strong);font-size:13px;font-weight:700;padding:6px 0;width:100%}
 
 /* ── MODAL (centered, fully rounded) ── */
-.modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(14px);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px}
 /* The card clips to the rounded shape (overflow:hidden); the actual
    scrolling happens on .modal-card-body inside it, so the native
    scrollbar's square ends never poke past the rounded corners. */
-.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:28px;width:100%;max-width:460px;max-height:88vh;overflow:hidden;box-shadow:var(--shadow-modal);animation:popIn .26s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+.modal-card{background:var(--bg1);border:1px solid var(--border2);border-radius:32px;width:100%;max-width:460px;max-height:88vh;overflow:hidden;box-shadow:var(--shadow-modal);animation:popIn .24s cubic-bezier(.2,.85,.32,1.1);display:flex;flex-direction:column}
 .modal-card-body{padding:22px 24px;overflow-y:auto}
 @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 .sheet-grabber{display:none}
@@ -1253,7 +1267,7 @@ body.amounts-hidden #fx-converter-result{
 @media(max-width:600px){
   .modal-overlay{align-items:flex-end;padding:0}
   .modal-card{
-    max-width:none;border-radius:26px 26px 0 0;max-height:92vh;
+    max-width:none;border-radius:32px 32px 0 0;max-height:92vh;
     animation:sheetUp .32s cubic-bezier(.22,1,.36,1);
   }
   .modal-card.sheet-dragging{transition:none}
@@ -1349,7 +1363,7 @@ body.amounts-hidden #fx-converter-result{
 
 /* ── MANAGER MODALS (shift types / wallets / categories) ── */
 .mgr-list{display:flex;flex-direction:column;gap:8px}
-.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:22px}
+.mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px;background:var(--bg2);border:1px solid transparent;box-shadow:0 3px 12px -8px rgba(var(--shadow-color),.4);border-radius:var(--radius-row)}
 .mgr-row input[type=text],.mgr-row input[type=number],.mgr-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:14px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0;cursor:pointer}
 .mgr-row input:focus{border-color:var(--purple)}
 .mgr-name{flex:1 1 100%}
@@ -1369,6 +1383,7 @@ body.amounts-hidden #fx-converter-result{
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+.mgr-del:active,.mgr-edit:active,.mgr-color:active{transform:scale(.92)}
 /* Profiles manager rows can show up to 3 action buttons (members/edit/
    delete-or-leave) side by side — grouping them in one flex container with
    a single margin-left:auto (instead of each .mgr-del individually
@@ -1393,7 +1408,7 @@ body.amounts-hidden #fx-converter-result{
 .subcat-toggle{background:var(--bg1);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:700;padding:15px 16px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 .cat-row{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;width:100%;min-width:0}
 .budget-row{flex-wrap:nowrap;gap:10px;min-width:0}
-.rate-row{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:10px 12px}
+.rate-row{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0;background:var(--bg2);border:1px solid transparent;box-shadow:0 3px 12px -8px rgba(var(--shadow-color),.4);border-radius:var(--radius-row);padding:11px 13px}
 .rate-row-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
 .rate-row-code{font-size:14.5px;font-weight:800;color:var(--text-strong)}
 .rate-row-sub{font-size:13px;font-weight:600;color:var(--muted)}
