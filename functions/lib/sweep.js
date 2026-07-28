@@ -154,9 +154,9 @@ function dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now) {
  * @returns {Promise<{updates: Record<string, any>|null, tokenInvalid: boolean}|null>}
  */
 async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, now, financeSnap, debtSnap, transactionsSnap, skipDaily = false, dataOwnerUid = uid) {
-  if (!financeSnap) financeSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${financeDocName(profileId)}`).get();
-  if (!financeSnap.exists) return null;
-  const f = financeSnap.data();
+  const finance = financeSnap || await db.doc(`users/${dataOwnerUid}/${DCOL}/${financeDocName(profileId)}`).get();
+  if (!finance.exists) return null;
+  const f = finance.data();
   const notif = f.notifSettings || {};
   const transactions = (transactionsSnap && !transactionsSnap.empty)
     ? transactionsSnap.docs.map((d) => d.data())
@@ -166,9 +166,10 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   const categories = f.categories || {};
   const recurring = Array.isArray(f.recurring) ? f.recurring : [];
   const rates = f.currencyRates || {};
-  const walletCurrency = (/** @type {string|undefined} */ id) => wallets.find((w) => w.id === id)?.currency || 'UAH';
-  if (!debtSnap) debtSnap = await db.doc(`users/${dataOwnerUid}/${DCOL}/${debtDocName(profileId)}`).get();
-  const debts = debtSnap.exists && Array.isArray(debtSnap.data().debts) ? debtSnap.data().debts : [];
+  const walletCurrency = (/** @type {string|undefined} */ id) => wallets.find((/** @type {WalletLike} */ w) => w.id === id)?.currency || 'UAH';
+  const debt = debtSnap || await db.doc(`users/${dataOwnerUid}/${DCOL}/${debtDocName(profileId)}`).get();
+  const debtData = debt.exists ? debt.data() : null;
+  const debts = Array.isArray(debtData?.debts) ? debtData.debts : [];
 
   // Each profile carries its own timeZone (captured client-side via
   // Intl.DateTimeFormat().resolvedOptions().timeZone whenever notification
@@ -195,7 +196,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   // blindly) means a stale/wrong skipDaily flag can never cause a send
   // this profile didn't actually need, only ever suppress one it did.
   if (!skipDaily) {
-    const daily = dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now);
+    const daily = dailyReminderNeeded(finance, transactionsSnap, prevState, now);
     if (daily.needed) {
       const res = await sendPushFn(token, 'Rytm', 'Не забудь записати сьогоднішні операції.', 'daily');
       if (res.ok) updates.sentDaily = daily.today;
@@ -212,9 +213,9 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       if (!(limit > 0) || !(categories.expense || []).includes(cat)) continue;
       const key = `${mPrefix}_${cat}`;
       if (sent[key]) continue;
-      const spent = transactions.reduce((s, t) => {
+      const spent = transactions.reduce((/** @type {number} */ s, /** @type {TransactionLike} */ t) => {
         if (t.type === 'expense' && t.category === cat && t.date && t.date.startsWith(mPrefix)) {
-          return s + toBase(t.amount, t.currency || 'UAH', rates);
+          return s + toBase(t.amount || 0, t.currency || 'UAH', rates);
         }
         return s;
       }, 0);
@@ -311,12 +312,16 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // someone else owns, so a shared profile's member silently never got
   // reminders for it. financeSnap.exists guards already in place meant
   // this failed safe, not broken, while the gap existed).
-  const profileEntries = metaSnap.exists && Array.isArray(metaSnap.data().list) && metaSnap.data().list.length
-    ? metaSnap.data().list.filter((p) => p && p.id)
-    : [{ id: 'default' }];
+  const metaData = metaSnap.exists ? metaSnap.data() : null;
+  /** @type {ProfileEntry[]} */
+  const metaList = Array.isArray(metaData?.list) ? metaData.list : [];
+  const profileEntries = metaList.length ? metaList.filter((p) => p && p.id) : [{ id: 'default' }];
   const profileIds = profileEntries.map((p) => p.id);
+  /** @param {ProfileEntry} p */
   const isSharedProfileEntry = (p) => !!(p && p.kind === 'shared' && p.ownerUid);
-  const dataOwnerFor = (p) => (isSharedProfileEntry(p) ? p.ownerUid : uid);
+  /** @param {ProfileEntry} p */
+  const dataOwnerFor = (p) => (isSharedProfileEntry(p) ? /** @type {string} */ (p.ownerUid) : uid);
+  /** @type {Record<string, string>} */
   const dataOwnerByProfile = { default: uid };
   profileEntries.forEach((p) => { dataOwnerByProfile[p.id] = dataOwnerFor(p); });
 
@@ -332,8 +337,11 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${debtDocName(id)}`).get())),
     Promise.all(otherProfileIds.map((id) => db.collection(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`).get())),
   ]);
+  /** @type {Record<string, FinanceDocSnap>} */
   const financeSnapByProfile = { default: defaultFinanceSnap };
+  /** @type {Record<string, DebtDocSnap>} */
   const debtSnapByProfile = { default: defaultDebtSnap };
+  /** @type {Record<string, TransactionsQuerySnap>} */
   const transactionsSnapByProfile = { default: defaultTransactionsSnap };
   otherProfileIds.forEach((id, i) => {
     financeSnapByProfile[id] = otherFinanceSnaps[i];
@@ -349,6 +357,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // back a profile's dedup state to the token doc's own flat legacy
   // fields (pre-multi-profile token docs) exactly as sweepProfile's own
   // callers always have.
+  /** @param {string} profileId */
   const prevStateFor = (profileId) => profileState?.[profileId]
     ?? (profileId === 'default' ? { sentDaily, sentBudget, sentRecurring } : {});
 
@@ -367,7 +376,9 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // profile's need without sending anything, so exactly one push covers
   // every profile due for it, naming them by their profiles_meta name when
   // there's more than one.
+  /** @type {string[]} */
   const dailyNeededProfileIds = [];
+  /** @type {Record<string, string|null>} */
   const dailyTodayByProfile = {};
   for (const profileId of profileIds) {
     const { needed, today: profileToday } = dailyReminderNeeded(
@@ -377,9 +388,9 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     if (needed) dailyNeededProfileIds.push(profileId);
   }
   if (dailyNeededProfileIds.length) {
+    /** @type {Record<string, string|undefined>} */
     const profileNameById = Object.fromEntries(
-      (metaSnap.exists && Array.isArray(metaSnap.data().list) ? metaSnap.data().list : [])
-        .map((p) => [p.id, p.name]).filter(([, name]) => name),
+      metaList.filter((/** @type {ProfileEntry} */ p) => p.name).map((/** @type {ProfileEntry} */ p) => [p.id, p.name]),
     );
     const names = dailyNeededProfileIds.map((id) => profileNameById[id]);
     const body = dailyNeededProfileIds.length > 1 && names.every(Boolean)
@@ -390,7 +401,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
       tokenInvalid = true;
     } else if (res.ok) {
       dailyNeededProfileIds.forEach((id) => {
-        nextProfileState[id] = { ...prevStateFor(id), ...(nextProfileState[id] || {}), sentDaily: dailyTodayByProfile[id] };
+        nextProfileState[id] = { ...prevStateFor(id), ...(nextProfileState[id] || {}), sentDaily: dailyTodayByProfile[id] ?? undefined };
       });
       anyChange = true;
     }
@@ -406,11 +417,13 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     for (const profileId of profileIds) {
       const prevState = prevStateFor(profileId);
 
-      const { updates: profileUpdates, tokenInvalid: invalid } = await sweepProfile(
+      const result = await sweepProfile(
         db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId], transactionsSnapByProfile[profileId],
         dailyNeededProfileIds.includes(profileId), // skipDaily — already covered by the consolidated push above
         dataOwnerByProfile[profileId],
       );
+      if (!result) continue;
+      const { updates: profileUpdates, tokenInvalid: invalid } = result;
       if (profileUpdates) {
         // prevState's legacy fallback ({sentDaily, sentBudget, sentRecurring}
         // destructured straight off the token doc) very often has one or two

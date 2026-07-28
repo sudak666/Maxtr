@@ -11,7 +11,8 @@
   },
   "include": [
     "lib/pure.js",
-    "lib/monobank.js"
+    "lib/monobank.js",
+    "lib/sweep.js"
   ],
   "exclude": ["node_modules"]
 }
