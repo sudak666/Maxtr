@@ -814,6 +814,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   outline:none;width:100%;font-family:inherit;transition:border-color .15s;
 }
 .fg select:focus,.fg input:focus{border-color:var(--purple)}
+/* Masks characters visually without a real type="password" input — Chrome
+   ignores autocomplete="off" on password fields by design, so a PIN/token
+   entry using type="password" still triggers "Save password?" prompts even
+   though it isn't a site login credential. text-security is WebKit/Blink-only
+   (no Firefox support), an acceptable degrade-to-plaintext for this app's
+   primary Android/Chrome TWA target. */
+.mask-input{-webkit-text-security:disc;text-security:disc}
 
 .profile-avatar{
   width:64px;height:64px;border-radius:50%;flex-shrink:0;cursor:pointer;overflow:hidden;
@@ -1569,7 +1576,7 @@ body.amounts-hidden #fx-converter-result{
   <div class="auth-card">
     <div class="fg" style="margin-bottom:4px">
       <label for="pin-unlock-input" data-i18n="pin_code">PIN-код</label>
-      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off">
+      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="auth-error" id="pin-unlock-error"></div>
     <button type="button" class="add-btn" style="width:100%;margin-top:6px" data-action="try-unlock-pin" data-i18n="pin_unlock">Розблокувати</button>
@@ -1617,11 +1624,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
     <div class="fg" style="margin-bottom:10px">
       <label data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
-      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off">
+      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="fg" style="margin-bottom:14px">
       <label data-i18n="pin_repeat">Повторіть PIN</label>
-      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
+      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
     </div>
     <button class="add-btn" style="width:100%" data-action="set-pin" data-i18n="pin_set">Встановити PIN</button>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" data-action="lock-now" data-i18n="pin_lock_now">Заблокувати зараз</button>
@@ -2385,7 +2392,7 @@ body.amounts-hidden #fx-converter-result{
       <a href="https://api.monobank.ua/" target="_blank" rel="noopener" class="btn btn-ghost" style="width:100%;justify-content:center;margin-bottom:12px;text-decoration:none" data-i18n="monobank_get_token_link">Отримати токен на api.monobank.ua</a>
       <div class="fg" style="margin-bottom:10px">
         <label for="monobank-token-input" data-i18n="monobank_token_label">Персональний токен</label>
-        <input type="password" id="monobank-token-input" autocomplete="off" placeholder="•••••••••••••••••">
+        <input type="text" class="mask-input" id="monobank-token-input" autocomplete="off" placeholder="•••••••••••••••••">
       </div>
       <div class="auth-error" id="monobank-connect-error"></div>
       <button type="button" class="add-btn" id="monobank-connect-btn" style="width:100%" data-action="connect-monobank" data-i18n="monobank_connect_btn">Підключити</button>
