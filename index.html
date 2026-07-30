@@ -280,6 +280,7 @@ button,input,select,textarea{font-family:inherit}
 .auth-tab{flex:1;padding:9px 10px;border:none;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
 .auth-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
 .auth-error{font-size:13px;font-weight:600;color:var(--red2);text-align:center;min-height:16px}
+.auth-hint{font-size:13px;font-weight:600;color:var(--orange2);text-align:center;background:color-mix(in srgb,var(--orange2) 14%,transparent);border-radius:12px;padding:10px 12px;margin-bottom:10px}
 .auth-sep{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:700;text-transform:uppercase}
 .auth-sep::before,.auth-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 .auth-alt-methods{display:flex;flex-direction:column;gap:9px}
@@ -1542,6 +1543,7 @@ body.amounts-hidden #fx-converter-result{
   <div class="lock-checking-spinner" aria-hidden="true"></div>
   <div class="auth-card">
     <div id="auth-email-section">
+      <div class="auth-hint" id="auth-twa-hint" style="display:none" data-i18n="auth_twa_hint">У встановленому застосунку надійніше входити через email+пароль нижче — Google-вхід тут іноді не завершується з першої спроби.</div>
       <button type="button" class="btn btn-primary auth-google" data-action="google-sign-in"><span id="ic-google"></span><span data-i18n="auth_google">Продовжити через Google</span></button>
       <div class="auth-sep"><span data-i18n="auth_or">або</span></div>
       <div class="auth-tabs">

@@ -595,6 +595,18 @@ getRedirectResult(auth).then(result=>{
   try{ sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY); }catch(e){}
 });
 
+// Warns proactively, before the user even attempts Google sign-in, rather
+// than only reactively via auth_err_redirect_lost after it has already
+// failed once — a real closed-testing report found this first-impression
+// failure (working fine in a browser tab, immediately broken from the
+// installed Play Store shortcut) reads as "the app is buggy" to a new
+// tester, even though it's a documented Android platform limitation this
+// app can't fix on the redirect path itself.
+if(isTwaReferrerContext()){
+  const hint=document.getElementById('auth-twa-hint');
+  if(hint) hint.style.display='';
+}
+
 // Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
 // tests/e2e-modals.mjs all call window.finishOnboarding() directly to
 // dismiss the onboarding overlay, rather than clicking the button.
