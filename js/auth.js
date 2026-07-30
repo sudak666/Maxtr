@@ -329,6 +329,46 @@ async function checkPinLock(){
   if(bioBtn) bioBtn.style.display = hasBioSet() ? '' : 'none';
   const inp=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-unlock-input'));
   if(inp){ inp.value=''; setTimeout(()=>inp.focus(),150); }
+  updatePinDots('pin-unlock-input');
+}
+
+// Touch keypad for the 3 PIN inputs (all `readonly` — see index.html's
+// .pin-keypad comment for why). maxlength="6" on the input is only
+// enforced by the browser for real typed/IME input, not for a value set
+// directly via JS, so the 6-digit cap is re-applied here by hand. The
+// input itself is visually hidden (display:none on its wrapper) — a row
+// of dot indicators (.pin-dots, see index.html) is the only visible
+// feedback, per direct account-owner design reference.
+/** @type {Record<string,string>} */
+const PIN_DOTS_MAP = {
+  'pin-unlock-input':'pin-dots-unlock',
+  'pin-new-input':'pin-dots-new',
+  'pin-confirm-input':'pin-dots-confirm',
+};
+
+/** @param {string} inputId */
+function updatePinDots(inputId){
+  const dotsEl=document.getElementById(PIN_DOTS_MAP[inputId]||''); if(!dotsEl) return;
+  const inp=/** @type {HTMLInputElement | null} */ (document.getElementById(inputId));
+  const len=(inp&&inp.value||'').length;
+  dotsEl.innerHTML='';
+  for(let i=0;i<6;i++){
+    const d=document.createElement('span');
+    d.className='pin-dot'+(i<len?' filled':'');
+    dotsEl.appendChild(d);
+  }
+}
+
+/**
+ * @param {string} targetId
+ * @param {string} key
+ */
+function pinKeyPress(targetId, key){
+  const inp=/** @type {HTMLInputElement | null} */ (document.getElementById(targetId));
+  if(!inp) return;
+  if(key==='back') inp.value=inp.value.slice(0,-1);
+  else if(/^[0-9]$/.test(key) && inp.value.length<6) inp.value+=key;
+  updatePinDots(targetId);
 }
 
 const tryUnlockPin = async function(){
@@ -346,6 +386,7 @@ const tryUnlockPin = async function(){
   }else{
     if(err) err.textContent=tr('pin_wrong');
     if(inp){ inp.value=''; inp.focus(); }
+    updatePinDots('pin-unlock-input');
   }
 };
 
@@ -367,6 +408,8 @@ const openPinSettings = async function(){
   if(lockBtn) lockBtn.style.display = set ? '' : 'none';
   const ni=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-new-input')); if(ni) ni.value='';
   const ci=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-confirm-input')); if(ci) ci.value='';
+  updatePinDots('pin-new-input');
+  updatePinDots('pin-confirm-input');
   const modal=document.getElementById('pin-settings-modal'); if(modal) modal.style.display='flex';
   await renderBioSettingsUI();
 };
@@ -542,6 +585,7 @@ const CLICK_ACTIONS = {
   'finish-onboarding': ()=>finishOnboarding(),
   'dismiss-settings-tip': ()=>dismissSettingsTip(),
   'try-unlock-pin': ()=>tryUnlockPin(),
+  'pin-key': ds=>pinKeyPress(ds.target||'', ds.key||''),
   'forgot-pin': ()=>forgotPin(),
   'open-pin-settings': ()=>openPinSettings(),
   'set-pin': ()=>setPin(),
@@ -606,6 +650,12 @@ if(isTwaReferrerContext()){
   const hint=document.getElementById('auth-twa-hint');
   if(hint) hint.style.display='';
 }
+
+// Render all 3 PIN dot-indicators empty on init — they'd otherwise stay
+// blank <div>s until the first keypress/reset call populates them.
+updatePinDots('pin-unlock-input');
+updatePinDots('pin-new-input');
+updatePinDots('pin-confirm-input');
 
 // Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
 // tests/e2e-modals.mjs all call window.finishOnboarding() directly to
