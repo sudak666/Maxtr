@@ -331,6 +331,21 @@ async function checkPinLock(){
   if(inp){ inp.value=''; setTimeout(()=>inp.focus(),150); }
 }
 
+// Touch keypad for the 3 PIN inputs (all `readonly` — see index.html's
+// .pin-keypad comment for why). maxlength="6" on the input is only
+// enforced by the browser for real typed/IME input, not for a value set
+// directly via JS, so the 6-digit cap is re-applied here by hand.
+/**
+ * @param {string} targetId
+ * @param {string} key
+ */
+function pinKeyPress(targetId, key){
+  const inp=/** @type {HTMLInputElement | null} */ (document.getElementById(targetId));
+  if(!inp) return;
+  if(key==='back') inp.value=inp.value.slice(0,-1);
+  else if(/^[0-9]$/.test(key) && inp.value.length<6) inp.value+=key;
+}
+
 const tryUnlockPin = async function(){
   const inp=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-unlock-input'));
   const err=document.getElementById('pin-unlock-error');
@@ -542,6 +557,7 @@ const CLICK_ACTIONS = {
   'finish-onboarding': ()=>finishOnboarding(),
   'dismiss-settings-tip': ()=>dismissSettingsTip(),
   'try-unlock-pin': ()=>tryUnlockPin(),
+  'pin-key': ds=>pinKeyPress(ds.target||'', ds.key||''),
   'forgot-pin': ()=>forgotPin(),
   'open-pin-settings': ()=>openPinSettings(),
   'set-pin': ()=>setPin(),

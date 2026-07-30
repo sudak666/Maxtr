@@ -116,6 +116,9 @@
   setIcon('ic-bio-enable','lock');
   setIcon('ic-bio-disable','lock');
   setIcon('ic-bio-onboard','lock');
+  setIcon('ic-pin-back-unlock','xmark');
+  setIcon('ic-pin-back-new','xmark');
+  setIcon('ic-pin-back-confirm','xmark');
   // Populate every static icon slot
   setIcon('btn-refresh','refresh');
   setIcon('ptr-spinner','refresh');
