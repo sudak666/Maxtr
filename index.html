@@ -1048,7 +1048,8 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .skeleton-row{height:56px;border-radius:18px;margin-bottom:6px;background:linear-gradient(100deg,var(--bg2) 30%,var(--bg3) 50%,var(--bg2) 70%);background-size:200% 100%;animation:skeletonShimmer 1.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.skeleton-block,.skeleton-row{animation:none;opacity:.6}}
 
-.tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px}
+.tx-list{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto;padding-right:2px;scrollbar-width:none}
+.tx-list::-webkit-scrollbar{display:none}
 .tx-view-all-btn{justify-content:center;width:100%;margin-top:4px}
 /* Stagger-in for freshly-rendered list rows: the JS side sets a per-row
    animation-delay (see renderFinance()/renderShoppingList()) so rows cascade
@@ -1122,7 +1123,16 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
    screenshot, not obvious from the CSS alone) - shrinking the width
    instead leaves the row's left edge untouched, so nothing on that side
    ever moves. */
-.tx-item:hover .tx-item-inner,
+/* Scoped to real mouse devices only (not plain :hover) — on a touchscreen
+   with no actual mouse, tapping a row can leave :hover "stuck" active
+   (no mouseleave ever fires), revealing the delete button from a tap with
+   no swipe gesture involved and no way to dismiss it via a swipe, since
+   that's a different reveal path entirely (.swipe-open, driven by
+   setupTxSwipe()'s own JS pointer tracking). Real touch/keyboard reveal is
+   handled by :focus-within and .swipe-open below, unaffected by this. */
+@media(hover:hover) and (pointer:fine){
+  .tx-item:hover .tx-item-inner{width:calc(100% - 60px)}
+}
 .tx-item:focus-within .tx-item-inner,
 .tx-item.swipe-open .tx-item-inner{
   width:calc(100% - 60px);
@@ -1242,7 +1252,10 @@ body.amounts-hidden #fx-converter-result{
 .debt-row-inner input,.debt-row-inner select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
 .debt-row-inner select{cursor:pointer}
 .debt-row-inner input:focus,.debt-row-inner select:focus{border-color:var(--purple)}
-.debt-row:hover .debt-row-inner,
+/* Same touch-"stuck :hover" reasoning as .tx-item's identical rule above. */
+@media(hover:hover) and (pointer:fine){
+  .debt-row:hover .debt-row-inner{width:calc(100% - 60px)}
+}
 .debt-row:focus-within .debt-row-inner,
 .debt-row.swipe-open .debt-row-inner{
   width:calc(100% - 60px);
