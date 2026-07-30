@@ -1530,6 +1530,15 @@ body.amounts-hidden #fx-converter-result{
   .cs.cs-sm{min-width:0;flex:1 1 74px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:13px}
   .cs:not(.cs-sm) .cs-trigger{padding:13px 14px}
+  /* Bigger, easier-to-tap primary/secondary buttons app-wide — reported by
+     the account owner as uncomfortable to tap on a phone (PIN unlock,
+     "Додати"/"Готово" in manager modals, etc.), with plenty of unused
+     width around them. #tx-form-modal .add-btn below already had its own
+     stronger override; this just extends the same idea to every other
+     .add-btn/.btn instance instead of leaving them at the small desktop-
+     oriented default. */
+  .add-btn{padding:15px 18px;font-size:16px;min-height:52px}
+  .btn{padding:12px 16px;font-size:14px}
   /* The month select needs real room for names like "Липень" — min-width:0
      above let it shrink past its own text down to "Лип…". Give it more
      space than the year select (always 4 digits) and push "Сьогодні" onto
