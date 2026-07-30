@@ -276,6 +276,11 @@ button,input,select,textarea{font-family:inherit}
   background:var(--bg1);border:1px solid var(--border);border-radius:24px;
   padding:24px 22px;box-shadow:var(--shadow-auth-card);
 }
+/* PIN screen matches the account owner's reference design with no visible
+   card outline — the surrounding lock-screen background already provides
+   enough contrast, and the extra frame looked out of place around the
+   dot-indicator + keypad layout. */
+#pin-screen .auth-card{border:none}
 .auth-tabs{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
 .auth-tab{flex:1;padding:9px 10px;border:none;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
 .auth-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
