@@ -298,8 +298,15 @@ button,input,select,textarea{font-family:inherit}
 }
 .pin-key:active{transform:scale(.94);background:var(--bg3)}
 .pin-key-empty{visibility:hidden}
-.pin-key-back{color:var(--muted)}
-.pin-key-back .ico{width:20px;height:20px;margin-right:0}
+.pin-key-back{aspect-ratio:auto;border-radius:16px;border-color:transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:700}
+.pin-key-back:active{background:var(--bg3)}
+/* Dot-progress PIN indicator (replaces the visible masked input box) — each
+   dot fills as a digit is typed, per direct account-owner design reference.
+   Rendered by js/auth.js's updatePinDots(), driven off the paired hidden
+   input's current value length. */
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0 4px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all .15s}
+.pin-dot.filled{background:var(--purple2);border-color:var(--purple2)}
 .auth-google{justify-content:center;width:100%}
 .auth-google .ico{width:16px;height:16px}
 .auth-link{background:none;border:none;color:var(--purple2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;align-self:center}
@@ -1617,10 +1624,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="lock-title" data-i18n="pin_locked_title">Rytm заблоковано</div>
   </div>
   <div class="auth-card">
-    <div class="fg" style="margin-bottom:4px">
+    <div class="fg" style="display:none">
       <label for="pin-unlock-input" data-i18n="pin_code">PIN-код</label>
       <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-unlock-input" placeholder="••••" autocomplete="off" readonly>
     </div>
+    <div class="pin-dots" id="pin-dots-unlock" aria-hidden="true"></div>
     <div class="pin-keypad" role="group" aria-label="PIN">
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-unlock-input" data-key="1">1</button>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-unlock-input" data-key="2">2</button>
@@ -1633,7 +1641,7 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-unlock-input" data-key="9">9</button>
       <span class="pin-key pin-key-empty" aria-hidden="true"></span>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-unlock-input" data-key="0">0</button>
-      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-unlock-input" data-key="back" aria-label="Стерти"><span id="ic-pin-back-unlock"></span></button>
+      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-unlock-input" data-key="back" data-i18n="pin_delete">Видалити</button>
     </div>
     <div class="auth-error" id="pin-unlock-error"></div>
     <button type="button" class="add-btn" style="width:100%;margin-top:6px" data-action="try-unlock-pin" data-i18n="pin_unlock">Розблокувати</button>
@@ -1679,10 +1687,11 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_pin">PIN-код доступу</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
-    <div class="fg" style="margin-bottom:10px">
+    <div class="fg" style="display:none">
       <label data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
       <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off" readonly>
     </div>
+    <div class="pin-dots" id="pin-dots-new" aria-hidden="true"></div>
     <div class="pin-keypad" role="group" aria-label="PIN">
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="1">1</button>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="2">2</button>
@@ -1695,12 +1704,13 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="9">9</button>
       <span class="pin-key pin-key-empty" aria-hidden="true"></span>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="0">0</button>
-      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-new-input" data-key="back" aria-label="Стерти"><span id="ic-pin-back-new"></span></button>
+      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-new-input" data-key="back" data-i18n="pin_delete">Видалити</button>
     </div>
-    <div class="fg" style="margin-bottom:14px">
+    <div class="fg" style="display:none">
       <label data-i18n="pin_repeat">Повторіть PIN</label>
       <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off" readonly>
     </div>
+    <div class="pin-dots" id="pin-dots-confirm" aria-hidden="true"></div>
     <div class="pin-keypad" role="group" aria-label="PIN">
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="1">1</button>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="2">2</button>
@@ -1713,7 +1723,7 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="9">9</button>
       <span class="pin-key pin-key-empty" aria-hidden="true"></span>
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="0">0</button>
-      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-confirm-input" data-key="back" aria-label="Стерти"><span id="ic-pin-back-confirm"></span></button>
+      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-confirm-input" data-key="back" data-i18n="pin_delete">Видалити</button>
     </div>
     <button class="add-btn" style="width:100%" data-action="set-pin" data-i18n="pin_set">Встановити PIN</button>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" data-action="lock-now" data-i18n="pin_lock_now">Заблокувати зараз</button>
