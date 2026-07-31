@@ -171,6 +171,7 @@
   setIcon('ic-add-rule','plus');
   setIcon('ic-set-export','download');
   setIcon('ic-set-import','upload');
+  setIcon('ic-set-web','globe');
   setIcon('ic-set-terms','doc');
   setIcon('ic-set-privacy','lock');
   setIcon('tab-icon-shifts','calendar');
@@ -282,7 +283,7 @@
       privacy_cache_cleared:'Локальний фінансовий кеш очищено', privacy_cache_on:'Локальний кеш увімкнено',
       settings_account:'Акаунт', settings_signout:'Вийти з акаунту', settings_delete_account:'Видалити акаунт',
       settings_reset_data:'Скинути всі дані', settings_reset_data_sub:'Почати з чистого аркуша в цьому профілі',
-      settings_about:'Про застосунок', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
+      settings_about:'Про застосунок', settings_web:'Веб-версія', settings_web_sub:'Відкрий maxtr-c238f.web.app на комп’ютері — усі зміни синхронізуються з телефоном', settings_terms:'Умови використання', settings_privacy:'Політика конфіденційності',
       settings_footer:'Rytm — трекер змін, фінансів і розрахунків', settings_signed_in_as:'Увійшли як',
       auth_tagline:'Фінанси, зміни та борги в одному місці',
       auth_login_tab:'Вхід', auth_register_tab:'Реєстрація', auth_password:'Пароль', auth_password_placeholder:'Мінімум 6 символів',
@@ -583,7 +584,7 @@
       privacy_cache_cleared:'Local financial cache cleared', privacy_cache_on:'Local cache enabled',
       settings_account:'Account', settings_signout:'Sign out', settings_delete_account:'Delete account',
       settings_reset_data:'Reset all data', settings_reset_data_sub:'Start fresh in this profile',
-      settings_about:'About', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
+      settings_about:'About', settings_web:'Web version', settings_web_sub:'Open maxtr-c238f.web.app on your computer — changes sync with your phone', settings_terms:'Terms of use', settings_privacy:'Privacy policy',
       settings_footer:'Rytm — shift, finance & settlement tracker', settings_signed_in_as:'Signed in as',
       auth_tagline:'Finances, shifts and settlements in one place',
       auth_login_tab:'Sign in', auth_register_tab:'Sign up', auth_password:'Password', auth_password_placeholder:'At least 6 characters',
