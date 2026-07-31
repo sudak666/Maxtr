@@ -332,18 +332,21 @@ async function checkPinLock(){
   updatePinDots('pin-unlock-input');
 }
 
-// Touch keypad for the 3 PIN inputs (all `readonly` — see index.html's
-// .pin-keypad comment for why). maxlength="6" on the input is only
-// enforced by the browser for real typed/IME input, not for a value set
-// directly via JS, so the 6-digit cap is re-applied here by hand. The
-// input itself is visually hidden (display:none on its wrapper) — a row
-// of dot indicators (.pin-dots, see index.html) is the only visible
-// feedback, per direct account-owner design reference.
+// Touch keypad for the unlock screen's PIN input only (`readonly` — see
+// index.html's .pin-keypad comment for why) — the account owner asked for
+// the touch keypad on unlock specifically, not on the "set PIN" settings
+// modal's new/confirm fields, which use a normal keyboard input instead
+// (see the git history around "PIN settings: only unlock uses the touch
+// keypad" for the prior 2-field touch-keypad attempt this replaced).
+// maxlength="6" on the input is only enforced by the browser for real
+// typed/IME input, not for a value set directly via JS, so the 6-digit cap
+// is re-applied here by hand. The input itself is visually hidden
+// (display:none on its wrapper) — a row of dot indicators (.pin-dots, see
+// index.html) is the only visible feedback, per direct account-owner
+// design reference.
 /** @type {Record<string,string>} */
 const PIN_DOTS_MAP = {
   'pin-unlock-input':'pin-dots-unlock',
-  'pin-new-input':'pin-dots-new',
-  'pin-confirm-input':'pin-dots-confirm',
 };
 
 /** @param {string} inputId */
@@ -408,8 +411,6 @@ const openPinSettings = async function(){
   if(lockBtn) lockBtn.style.display = set ? '' : 'none';
   const ni=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-new-input')); if(ni) ni.value='';
   const ci=/** @type {HTMLInputElement | null} */ (document.getElementById('pin-confirm-input')); if(ci) ci.value='';
-  updatePinDots('pin-new-input');
-  updatePinDots('pin-confirm-input');
   const modal=document.getElementById('pin-settings-modal'); if(modal) modal.style.display='flex';
   await renderBioSettingsUI();
 };
@@ -651,11 +652,10 @@ if(isTwaReferrerContext()){
   if(hint) hint.style.display='';
 }
 
-// Render all 3 PIN dot-indicators empty on init — they'd otherwise stay
-// blank <div>s until the first keypress/reset call populates them.
+// Render the unlock screen's PIN dot-indicator empty on init — it'd
+// otherwise stay a blank <div> until the first keypress/reset call
+// populates it.
 updatePinDots('pin-unlock-input');
-updatePinDots('pin-new-input');
-updatePinDots('pin-confirm-input');
 
 // Still window-exposed: tests/smoke.mjs, tests/e2e-crud.mjs, and
 // tests/e2e-modals.mjs all call window.finishOnboarding() directly to
