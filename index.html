@@ -1693,42 +1693,12 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" data-i18n="settings_pin">PIN-код доступу</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
     <div class="fg">
-      <label data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
-      <input type="text" class="mask-input" style="display:none" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off" readonly>
-    </div>
-    <div class="pin-dots" id="pin-dots-new" aria-hidden="true"></div>
-    <div class="pin-keypad" role="group" aria-label="PIN">
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="1">1</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="2">2</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="3">3</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="4">4</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="5">5</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="6">6</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="7">7</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="8">8</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="9">9</button>
-      <span class="pin-key pin-key-empty" aria-hidden="true"></span>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="0">0</button>
-      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-new-input" data-key="back" data-i18n="pin_delete">Видалити</button>
+      <label for="pin-new-input" data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
+      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off">
     </div>
     <div class="fg">
-      <label data-i18n="pin_repeat">Повторіть PIN</label>
-      <input type="text" class="mask-input" style="display:none" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off" readonly>
-    </div>
-    <div class="pin-dots" id="pin-dots-confirm" aria-hidden="true"></div>
-    <div class="pin-keypad" role="group" aria-label="PIN">
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="1">1</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="2">2</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="3">3</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="4">4</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="5">5</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="6">6</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="7">7</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="8">8</button>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="9">9</button>
-      <span class="pin-key pin-key-empty" aria-hidden="true"></span>
-      <button type="button" class="pin-key" data-action="pin-key" data-target="pin-confirm-input" data-key="0">0</button>
-      <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-confirm-input" data-key="back" data-i18n="pin_delete">Видалити</button>
+      <label for="pin-confirm-input" data-i18n="pin_repeat">Повторіть PIN</label>
+      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off">
     </div>
     <button class="add-btn" style="width:100%" data-action="set-pin" data-i18n="pin_set">Встановити PIN</button>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" id="pin-lock-now-btn" data-action="lock-now" data-i18n="pin_lock_now">Заблокувати зараз</button>
