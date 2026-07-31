@@ -210,6 +210,7 @@ button,input,select,textarea{font-family:inherit}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
   transition:opacity .3s ease,transform .3s ease;
+  overflow-y:auto;
 }
 .lock-screen.lock-hide{opacity:0;transform:scale(1.04);pointer-events:none}
 .lock-brand{display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -295,10 +296,10 @@ button,input,select,textarea{font-family:inherit}
    messaging apps handle a PIN lock screen. The paired input stays
    `readonly` (see index.html's 3 PIN inputs) so tapping it never summons
    the native keyboard — this keypad is the only way to type a digit. */
-.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,72px);justify-content:center;gap:8px;margin:10px 0}
 .pin-key{
   aspect-ratio:1;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);
-  color:var(--text-strong);font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;
+  color:var(--text-strong);font-size:19px;font-weight:800;cursor:pointer;font-family:inherit;
   display:flex;align-items:center;justify-content:center;transition:all .12s;
 }
 .pin-key:active{transform:scale(.94);background:var(--bg3)}
@@ -309,7 +310,7 @@ button,input,select,textarea{font-family:inherit}
    dot fills as a digit is typed, per direct account-owner design reference.
    Rendered by js/auth.js's updatePinDots(), driven off the paired hidden
    input's current value length. */
-.pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0 4px}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:12px 0 4px}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all .15s}
 .pin-dot.filled{background:var(--purple2);border-color:var(--purple2)}
 .auth-google{justify-content:center;width:100%}
