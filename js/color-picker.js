@@ -7,7 +7,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
+import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
 import { batchWriteTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
@@ -607,7 +607,7 @@ function computeNextDate(dateStr, freq){
 
 async function processRecurring(){
   if(!AppState.recurring.length) return 0;
-  const todayStr=new Date().toISOString().split('T')[0];
+  const todayStr=localDateStr();
   let added=0;
   /** @type {any[]} */
   const newTx=[];

@@ -5,7 +5,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { renderFinanceChart } from './calendar.js';
-import { categoryColor, categoryIcon, compareTransactionsNewest, currencySymbol, toBase, walletById } from './core.js';
+import { categoryColor, categoryIcon, compareTransactionsNewest, currencySymbol, localDateStr, toBase, walletById } from './core.js';
 import { deleteTransaction, editTransaction, newTransactionId, tagBadge, walletBadge } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { renderGoals } from './goals-profile.js';
@@ -340,9 +340,24 @@ function txItemInnerHtml(t){
 const TX_SWIPE_REVEAL_PX=60;
 const TX_SWIPE_OPEN_THRESHOLD=30; // half the reveal width - matches most swipe-list conventions ("did you mean to open this?")
 
+// .tx-item carries tabIndex=0 (keyboard access to the swipe-delete button
+// via :focus-within, see index.html) — but a touch tap/swipe also leaves
+// the browser's own focus sitting on the row afterward, and CSS
+// :focus-within keeps .tx-item-inner shrunk (delete button revealed)
+// regardless of the swipe-open class. Blurring alongside every class
+// removal below is what actually lets the row close on a touchscreen.
+/** @param {HTMLElement} el */
+function blurIfFocused(el){
+  if(el.contains(document.activeElement)) /** @type {HTMLElement} */ (document.activeElement).blur();
+}
+
 /** @param {Element} except */
 function closeAllTxSwipes(except){
-  document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
+  document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{
+    if(el===except) return;
+    el.classList.remove('swipe-open');
+    blurIfFocused(/** @type {HTMLElement} */ (el));
+  });
 }
 
 // Touch-swipe-to-reveal-delete (Telegram/Gmail-style) — mirrors
@@ -392,7 +407,7 @@ function setupTxSwipe(item){
     if(inner) inner.style.width=''; // hand off to the .swipe-open CSS class below
     if(horizontal){
       if(dx<-TX_SWIPE_OPEN_THRESHOLD){ closeAllTxSwipes(item); item.classList.add('swipe-open'); }
-      else item.classList.remove('swipe-open');
+      else{ item.classList.remove('swipe-open'); blurIfFocused(item); }
     }
   }
   item.addEventListener('pointerup',endDrag);
@@ -542,7 +557,7 @@ export function renderFinance(){
         // common swipe-list convention, e.g. iOS Mail) instead of also
         // opening edit right after the drag gesture ends - a touchend can
         // otherwise register as a click on the same element.
-        if(el.classList.contains('swipe-open')){ el.classList.remove('swipe-open'); return; }
+        if(el.classList.contains('swipe-open')){ el.classList.remove('swipe-open'); blurIfFocused(el); return; }
         editTransaction(t.id);
       });
       el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
@@ -618,7 +633,7 @@ const exportTransactionsCSV = function(){
   const blob=new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download=`rytm-finansy-${new Date().toISOString().split('T')[0]}.csv`;
+  a.href=url; a.download=`rytm-finansy-${localDateStr()}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
   showToast(tr('csv_downloaded'),'download');
@@ -806,7 +821,9 @@ document.addEventListener('change', e=>{
 // time, and it doesn't linger open once you've moved on).
 document.addEventListener('pointerdown', e=>{
   document.querySelectorAll('.tx-item.swipe-open').forEach(el=>{
-    if(!el.contains(/** @type {Node} */ (e.target))) el.classList.remove('swipe-open');
+    if(el.contains(/** @type {Node} */ (e.target))) return;
+    el.classList.remove('swipe-open');
+    blurIfFocused(/** @type {HTMLElement} */ (el));
   });
 });
 }

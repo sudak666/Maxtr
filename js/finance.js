@@ -7,7 +7,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
-import { PALETTE, canEditActiveProfile, convertCurrency, currencySymbol, subKey, toBase, walletById, walletCurrency } from './core.js';
+import { PALETTE, canEditActiveProfile, convertCurrency, currencySymbol, localDateStr, subKey, toBase, walletById, walletCurrency } from './core.js';
 import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
@@ -158,7 +158,7 @@ export function newTransactionId(){
 function sameTxId(a,b){ return String(a)===String(b); }
 
 function txToday(){
-  return new Date().toISOString().split('T')[0];
+  return localDateStr();
 }
 
 const setTxDateToday = function(){

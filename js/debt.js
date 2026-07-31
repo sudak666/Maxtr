@@ -482,9 +482,24 @@ export function renderDebt(){
 const DEBT_ROW_SWIPE_REVEAL_PX=60;
 const DEBT_ROW_SWIPE_OPEN_THRESHOLD=30;
 
+// A touch tap/swipe on the row's own pencil/check button (both real
+// <button>s, focusable by default) can leave the browser's focus sitting
+// inside .debt-row afterward, and CSS :focus-within keeps .debt-row-inner
+// shrunk (delete button revealed) regardless of the swipe-open class —
+// same gotcha as js/analytics-csv.js's setupTxSwipe(), see its
+// blurIfFocused() comment for the full explanation.
+/** @param {HTMLElement} el */
+function blurIfFocused(el){
+  if(el.contains(document.activeElement)) /** @type {HTMLElement} */ (document.activeElement).blur();
+}
+
 /** @param {Element} except */
 function closeAllDebtRowSwipes(except){
-  document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{ if(el!==except) el.classList.remove('swipe-open'); });
+  document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{
+    if(el===except) return;
+    el.classList.remove('swipe-open');
+    blurIfFocused(/** @type {HTMLElement} */ (el));
+  });
 }
 
 // Touch-swipe-to-reveal-delete for debt payment-history rows — mirrors
@@ -529,7 +544,7 @@ function setupDebtRowSwipe(row){
     if(inner) inner.style.width='';
     if(horizontal){
       if(dx<-DEBT_ROW_SWIPE_OPEN_THRESHOLD){ closeAllDebtRowSwipes(row); row.classList.add('swipe-open'); }
-      else row.classList.remove('swipe-open');
+      else{ row.classList.remove('swipe-open'); blurIfFocused(row); }
     }
   }
   row.addEventListener('pointerup',endDrag);
@@ -595,7 +610,9 @@ document.addEventListener('input', dispatchFieldAction);
 // js/analytics-csv.js's matching listener for .tx-item.
 document.addEventListener('pointerdown', e=>{
   document.querySelectorAll('.debt-row.swipe-open').forEach(el=>{
-    if(!el.contains(/** @type {Node} */ (e.target))) el.classList.remove('swipe-open');
+    if(el.contains(/** @type {Node} */ (e.target))) return;
+    el.classList.remove('swipe-open');
+    blurIfFocused(/** @type {HTMLElement} */ (el));
   });
 });
 
