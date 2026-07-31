@@ -5,7 +5,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { renderFinanceChart } from './calendar.js';
-import { categoryColor, categoryIcon, compareTransactionsNewest, currencySymbol, toBase, walletById } from './core.js';
+import { categoryColor, categoryIcon, compareTransactionsNewest, currencySymbol, localDateStr, toBase, walletById } from './core.js';
 import { deleteTransaction, editTransaction, newTransactionId, tagBadge, walletBadge } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { renderGoals } from './goals-profile.js';
@@ -633,7 +633,7 @@ const exportTransactionsCSV = function(){
   const blob=new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download=`rytm-finansy-${new Date().toISOString().split('T')[0]}.csv`;
+  a.href=url; a.download=`rytm-finansy-${localDateStr()}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
   showToast(tr('csv_downloaded'),'download');

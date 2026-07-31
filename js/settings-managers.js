@@ -8,7 +8,7 @@ import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
-import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, shiftType, subKey, toBase, walletById } from './core.js';
+import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, localDateStr, shiftType, subKey, toBase, walletById } from './core.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
@@ -1030,7 +1030,7 @@ const addRecurring = function(){
   const type='expense';
   const category=(AppState.categories.expense||[])[0]||tr('cat_other');
   const wallet=(AppState.wallets[0]&&AppState.wallets[0].id)||'';
-  const today=new Date().toISOString().split('T')[0];
+  const today=localDateStr();
   AppState.recurring.push({id:uid('rec'), type, amount:0, category, wallet, frequency:'monthly', nextDate:today, active:true, comment:''});
   saveRecurringLocal(); scheduleSave();
   renderRecurringList();

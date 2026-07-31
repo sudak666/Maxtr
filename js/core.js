@@ -408,6 +408,22 @@ export function shiftType(id){ return AppState.shiftTypes.find(t=>t.id===id); }
 /** @param {string} id */
 export function walletById(id){ return AppState.wallets.find(w=>w.id===id); }
 
+// `new Date().toISOString().split('T')[0]` (the pattern this used to be
+// copy-pasted as, across finance.js/app-init.js/color-picker.js/
+// settings-managers.js) reads today's date in UTC, not the device's local
+// timezone — for any positive UTC offset (e.g. Ukraine, UTC+2/+3), local
+// dates already past midnight still resolve to *yesterday* until the UTC
+// clock also crosses over, several hours later. Real incident (reported by
+// the account owner via screenshot, 2026-08-01, 01:02 local time): the new-
+// transaction modal's date defaulted to 31.07.2026 a full hour into
+// 01.08.2026. Every "what's today's local date, as YYYY-MM-DD" call site
+// should go through this instead.
+/** @param {Date} [d] @returns {string} */
+export function localDateStr(d){
+  const t=d||new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished

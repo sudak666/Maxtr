@@ -8,7 +8,7 @@ import { renderFinance, renderFinanceSkeleton } from './analytics-csv.js';
 import { maybeShowSettingsTip } from './auth.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkeleton, runAutoFillCheck } from './calendar.js';
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
-import { applyWidgetVisibility, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
+import { applyWidgetVisibility, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { renderDebt } from './debt.js';
 import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
@@ -78,7 +78,7 @@ export async function init(){
   if(!cfgCached) seedConfigFromDocs(null,null);
   // Date input
   const di=/** @type {HTMLInputElement} */ (document.getElementById('fin-date'));
-  if(di) di.value=now.toISOString().split('T')[0];
+  if(di) di.value=localDateStr(now);
   switchTab('finance');
   // Cold start (no local config cache — see the localStorage reads above):
   // switchTab('finance') just rendered a momentarily-empty Finance tab from
