@@ -1692,9 +1692,9 @@ body.amounts-hidden #fx-converter-result{
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_pin">PIN-код доступу</div></div>
     <div class="chk-desc" style="text-align:center;margin-bottom:14px" id="pin-status-text"></div>
-    <div class="fg" style="display:none">
+    <div class="fg">
       <label data-i18n="pin_new">Новий PIN (4–6 цифр)</label>
-      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off" readonly>
+      <input type="text" class="mask-input" style="display:none" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-new-input" placeholder="••••" autocomplete="off" readonly>
     </div>
     <div class="pin-dots" id="pin-dots-new" aria-hidden="true"></div>
     <div class="pin-keypad" role="group" aria-label="PIN">
@@ -1711,9 +1711,9 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="pin-key" data-action="pin-key" data-target="pin-new-input" data-key="0">0</button>
       <button type="button" class="pin-key pin-key-back" data-action="pin-key" data-target="pin-new-input" data-key="back" data-i18n="pin_delete">Видалити</button>
     </div>
-    <div class="fg" style="display:none">
+    <div class="fg">
       <label data-i18n="pin_repeat">Повторіть PIN</label>
-      <input type="text" class="mask-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off" readonly>
+      <input type="text" class="mask-input" style="display:none" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pin-confirm-input" placeholder="••••" autocomplete="off" readonly>
     </div>
     <div class="pin-dots" id="pin-dots-confirm" aria-hidden="true"></div>
     <div class="pin-keypad" role="group" aria-label="PIN">
