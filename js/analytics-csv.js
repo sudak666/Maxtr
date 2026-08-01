@@ -73,6 +73,24 @@ const toggleTxListExpanded = function(){
   renderFinance();
 };
 
+// Narrows the (potentially huge, hundreds-of-rows) history down by date
+// before the collapsed/expand-all step below ever comes into play - lets a
+// long-running account jump straight to "today"/"this month" instead of
+// clicking "Показати ще" through everything. Mirrors setAnalyticsPeriod()
+// just below (own scoped .filter-chip toggle, own AppState field) but
+// deliberately keeps its own default ('all', see AppState.txPeriodFilter)
+// rather than reusing analyticsPeriod's 'month' default - this is the raw
+// transaction list, not a stats summary, so narrowing it by default would
+// silently hide older transactions from a user who isn't searching for
+// anything in particular.
+/** @param {string} period */
+const setTxPeriod = function(period){
+  AppState.txPeriodFilter=period;
+  document.querySelectorAll('#tx-period-filter .filter-chip').forEach(c=>c.classList.toggle('active', /** @type {HTMLElement} */ (c).dataset.period===period));
+  syncClickableA11yState(document.getElementById('tx-period-filter'));
+  renderFinance();
+};
+
 /** @param {string} period */
 const setAnalyticsPeriod = function(period){
   AppState.analyticsPeriod=period;
@@ -469,6 +487,13 @@ export function renderFinance(){
   renderAnalytics();
 
   let filtered=AppState.txFilter==='all'?AppState.transactions:AppState.transactions.filter(t=>t.type===AppState.txFilter);
+  if(AppState.txPeriodFilter==='day'){
+    const today=localDateStr();
+    filtered=filtered.filter(t=>t.date===today);
+  }else if(AppState.txPeriodFilter==='month'){
+    const monthPrefix=localDateStr().slice(0,7);
+    filtered=filtered.filter(t=>!!t.date&&t.date.startsWith(monthPrefix));
+  }
   if(AppState.txCategoryFilter) filtered=filtered.filter(t=>t.category===AppState.txCategoryFilter);
   if(AppState.txSearch){
     /** @param {string} [id] */
@@ -793,6 +818,7 @@ export function __init_analytics_csv__(){
 /** @type {Record<string, (ds: DOMStringMap, e?: Event) => void>} */
 const CLICK_ACTIONS = {
   'set-analytics-period': ds=>setAnalyticsPeriod(ds.period||'month'),
+  'set-tx-period': ds=>setTxPeriod(ds.period||'all'),
   'clear-tx-category-filter': ()=>clearTxCategoryFilter(),
   'export-transactions-csv': ()=>exportTransactionsCSV(),
   'trigger-import-csv': ()=>triggerImportCSV(),

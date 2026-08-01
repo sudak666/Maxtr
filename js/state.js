@@ -78,6 +78,7 @@ export const AppState = {
   selectedDateKey: null,
   financeChartSeries: 'net',
   txFilter: 'all',
+  txPeriodFilter: 'all',
   txSearch: '',
   /** @type {ReturnType<typeof setTimeout> | null} */
   fbTimer: null,
