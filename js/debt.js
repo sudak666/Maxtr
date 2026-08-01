@@ -131,13 +131,23 @@ const closeDebtEntryModal = function(){
  * @param {number} id
  * @param {string} field
  * @param {*} value
+ * @param {boolean} [rerender] - false while the user is still typing (the
+ *   'input' event) so renderDebt()'s full lc.innerHTML='' rebuild of every
+ *   .debt-row (see below - no targeted node reuse like renderFinance()'s
+ *   .tx-item update) doesn't tear down and recreate the very input the user
+ *   is mid-keystroke in. Reported by the account owner via screenshot,
+ *   2026-08-01: editing a payment's amount only ever let one character be
+ *   removed before focus silently jumped out. Only re-render on 'change'
+ *   (fires on blur, once editing that field is actually done) - see the
+ *   FIELD_ACTIONS wiring below.
  */
-export function updateDebtEntry(id,field,value){
+export function updateDebtEntry(id,field,value,rerender=true){
   const cd=getCurrentDebt(); if(!cd) return;
   const e=cd.entries.find(x=>x.id===id);
   if(!e) return;
   /** @type {any} */ (e)[field]=field==='balance'?(parseFloat(value)||0):value;
-  saveDebtLocal(); scheduleSave(); renderDebt();
+  saveDebtLocal(); scheduleSave();
+  if(rerender) renderDebt();
 }
 
 /**
@@ -590,17 +600,19 @@ document.addEventListener('click', e=>{
   if(action && CLICK_ACTIONS[action]) CLICK_ACTIONS[action](el.dataset);
 }, true);
 
-/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
+/** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement, e?: Event) => void>} */
 const FIELD_ACTIONS = {
   'auto-fill-debt-balance': ()=>autoFillDebtBalance(),
   'update-debt-info': ()=>updateDebtInfo(),
-  'update-debt-entry': (ds,el)=>updateDebtEntry(Number(ds.id), ds.field||'', el.value),
+  // Only re-render on 'change' (blur) - see updateDebtEntry()'s own comment
+  // for why re-rendering on every 'input' keystroke broke mid-edit typing.
+  'update-debt-entry': (ds,el,e)=>updateDebtEntry(Number(ds.id), ds.field||'', el.value, e?.type==='change'),
 };
 /** @param {Event} e */
 function dispatchFieldAction(e){
   const el=/** @type {HTMLInputElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));
   const action=el&&el.dataset.action;
-  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el);
+  if(action && FIELD_ACTIONS[action]) FIELD_ACTIONS[action](el.dataset, el, e);
 }
 document.addEventListener('change', dispatchFieldAction);
 document.addEventListener('input', dispatchFieldAction);
