@@ -786,7 +786,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── Finance dashboard chart (line/area, with forecast) ── */
 .fin-chart-toggle{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border);margin-bottom:14px}
-.fin-chart-toggle-btn{flex:1;padding:7px 8px;border:none;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
+.fin-chart-toggle-btn{flex:1;padding:9px 8px;border:none;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
 .fin-chart-toggle-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
 .fin-chart-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
 .fin-chart-total{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--text-strong)}
@@ -1560,6 +1560,10 @@ body.amounts-hidden #fx-converter-result{
   .cs.cs-sm{min-width:0;flex:1 1 74px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:13px}
   .cs:not(.cs-sm) .cs-trigger{padding:13px 14px}
+  /* Plain .fg inputs (e.g. the FX converter's "Сума" field) kept their
+     desktop 9px padding while the paired .cs-trigger select just above got
+     bumped to 13px — same row, mismatched height. Match it here. */
+  .fg input{padding:13px 14px}
   /* Bigger, easier-to-tap primary/secondary buttons app-wide — reported by
      the account owner as uncomfortable to tap on a phone (PIN unlock,
      "Додати"/"Готово" in manager modals, etc.), with plenty of unused
