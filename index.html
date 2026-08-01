@@ -1906,11 +1906,22 @@ body.amounts-hidden #fx-converter-result{
         <input type="search" id="tx-search-input" data-action="set-tx-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-i18n-placeholder="finance_search_placeholder" placeholder="Пошук за коментарем, категорією, гаманцем…">
         <button type="button" class="search-clear-btn" id="tx-search-clear" data-action="clear-tx-search" aria-label="Очистити пошук"><span id="ic-tx-search-clear"></span></button>
       </div>
-      <div class="filter-row">
+      <div class="filter-row" id="tx-type-filter">
         <div class="filter-chip active" data-filter="all"      data-action="set-tx-filter" data-i18n="finance_filter_all">Всі</div>
         <div class="filter-chip"        data-filter="income"   data-action="set-tx-filter" data-i18n="finance_type_income">+ Дохід</div>
         <div class="filter-chip"        data-filter="expense"  data-action="set-tx-filter" data-i18n="finance_type_expense">− Витрата</div>
         <div class="filter-chip"        data-filter="transfer" data-action="set-tx-filter" data-i18n="finance_type_transfer">⇄ Переказ</div>
+      </div>
+      <!-- Narrows the (potentially huge) history down by date before it ever
+           reaches the "Показати ще"/expand-all step below - lets a
+           long-running account jump straight to "today"/"this month" instead
+           of unfolding the entire list. Own id so setTxPeriod() (like
+           setAnalyticsPeriod() elsewhere) can scope its active-chip toggle
+           and not collide with #tx-type-filter's own .filter-chip toggle. -->
+      <div class="filter-row" id="tx-period-filter">
+        <div class="filter-chip"        data-period="day"   data-action="set-tx-period" data-i18n="finance_period_day">Сьогодні</div>
+        <div class="filter-chip"        data-period="month" data-action="set-tx-period" data-i18n="finance_period_month">Цей місяць</div>
+        <div class="filter-chip active" data-period="all"   data-action="set-tx-period" data-i18n="finance_period_all">Весь час</div>
       </div>
       <div id="tx-cat-filter-chip" style="display:none;margin-bottom:10px">
         <span class="filter-chip active" style="cursor:pointer" data-action="clear-tx-category-filter"><span id="tx-cat-filter-label"></span> · <span data-i18n="finance_filter_reset">Скинути ✕</span></span>

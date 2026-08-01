@@ -345,7 +345,12 @@ const clearTxSearch = function(){
 /** @param {string} f */
 export function setTxFilter(f){
   AppState.txFilter=f;
-  document.querySelectorAll('.filter-chip').forEach(c=>{
+  // Scoped to #tx-type-filter specifically (not every .filter-chip in the
+  // document) - #tx-period-filter's own chips and #tx-cat-filter-chip's
+  // span all share the same .filter-chip class but have no `data-filter`
+  // attribute, so an unscoped query would silently strip their own active
+  // styling every time the type filter changes.
+  document.querySelectorAll('#tx-type-filter .filter-chip').forEach(c=>{
     c.classList.toggle('active',/** @type {HTMLElement} */ (c).dataset.filter===f);
   });
   syncClickableA11yState(document.getElementById('tab-finance'));
