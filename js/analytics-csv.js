@@ -558,6 +558,16 @@ export function renderFinance(){
         // opening edit right after the drag gesture ends - a touchend can
         // otherwise register as a click on the same element.
         if(el.classList.contains('swipe-open')){ el.classList.remove('swipe-open'); blurIfFocused(el); return; }
+        // A mouse/touch click also leaves the browser's own focus sitting on
+        // this row (native tabIndex=0 click-focus behavior) — without
+        // blurring here, setupModalAccessibility()'s modal-close focus
+        // restore (js/settings-managers.js) refocuses this exact row once
+        // the edit modal closes, and CSS :focus-within then keeps the swipe
+        // delete button revealed indefinitely with no hover/touch in
+        // progress. Keyboard users (Enter/Space, see the keydown listener
+        // below) deliberately skip this blur so focus-restore still works
+        // for them after closing the modal.
+        blurIfFocused(el);
         editTransaction(t.id);
       });
       el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); editTransaction(t.id); } });
