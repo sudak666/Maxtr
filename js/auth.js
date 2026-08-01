@@ -685,16 +685,22 @@ onAuthStateChanged(auth, async (user)=>{
   AppState.currentUser=user;
   if(user) loadActiveProfileId();
   const lockScreen=document.getElementById('lock-screen');
-  // Reveal the real lock-screen content (sign-in form, if we're about to show
-  // it at all) only once the persisted-session check has actually resolved -
-  // see the lock-screen-checking CSS comment in index.html for why this
-  // class starts on by default.
-  lockScreen?.classList.remove('lock-screen-checking');
   const signOutBtn=document.getElementById('settings-signout');
   const resetBtn=document.getElementById('settings-reset-data');
   const deleteBtn=document.getElementById('settings-delete-account');
   const pinBtn=document.getElementById('settings-pin');
   if(user){
+    // Deliberately NOT removing 'lock-screen-checking' here (unlike the
+    // signed-out branch below) — an already-signed-in user never needs the
+    // real sign-in form revealed at all, and removing the class here used to
+    // do exactly that for a moment: .lock-hide only fades lock-screen's
+    // *opacity* over .3s, it doesn't set display:none until the setTimeout
+    // below fires, so for that whole 300ms window the just-unmasked
+    // .auth-card (Google/email sign-in form) was genuinely visible,
+    // fading out underneath — a real, reported flash of the login screen on
+    // every cold load with an already-valid session, not just the intended
+    // brand+spinner splash. Leaving the class in place is harmless: the
+    // element is hidden via display:none moments later regardless.
     if(lockScreen){ lockScreen.classList.add('lock-hide'); setTimeout(()=>{lockScreen.style.display='none';},320); }
     if(signOutBtn) signOutBtn.style.display='';
     if(resetBtn) resetBtn.style.display='';
@@ -713,7 +719,9 @@ onAuthStateChanged(auth, async (user)=>{
     if(pinBtn) pinBtn.style.display='none';
     const pinScreen=document.getElementById('pin-screen');
     if(pinScreen) pinScreen.style.display='none';
-    if(lockScreen){ lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
+    // Here (unlike the signed-in branch above) we DO need the real sign-in
+    // form revealed — this is the actual "no persisted session" outcome.
+    if(lockScreen){ lockScreen.classList.remove('lock-screen-checking'); lockScreen.style.display='flex'; lockScreen.classList.remove('lock-hide'); }
     const form=/** @type {HTMLFormElement | null} */ (document.getElementById('auth-form')); if(form) form.reset();
     setAuthError('');
   }
