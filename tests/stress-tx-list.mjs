@@ -167,6 +167,22 @@ async function main() {
     await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_FIRESTORE }));
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
+    // js/app-init.js's init() unconditionally fires maybeAutoUpdateRates()
+    // and maybeRefreshCryptoTop() on cold start. This sandbox's own network
+    // blocks these domains outright, producing an already-allowlisted
+    // ERR_*/net::* console message below - but a CI runner with real
+    // internet access lets the request actually reach bank.gov.ua, which
+    // can respond slowly (408) or without CORS headers, producing a
+    // differently-worded console error ("blocked by CORS policy" / "Failed
+    // to load resource") the allowlist regex below doesn't match, making
+    // this test flaky in CI specifically (see CLAUDE.md's identical note on
+    // tests/fx-widget-rates.mjs/tests/e2e-crud.mjs, which already block
+    // these). Block deterministically here too rather than depending on
+    // either environment's own inconsistent network reachability.
+    await page.route('**bank.gov.ua**', (r) => r.abort());
+    await page.route('**allorigins.win**', (r) => r.abort());
+    await page.route('**/api/privat-rates', (r) => r.abort());
+    await page.route('**api.coingecko.com**', (r) => r.abort());
 
     await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
