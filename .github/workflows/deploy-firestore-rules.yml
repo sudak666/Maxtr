@@ -1,0 +1,34 @@
+name: Deploy Firestore Rules
+
+# Publishes firestore.rules to the real maxtr-c238f project whenever it
+# changes on main. The firestore-rules job in smoke-test.yml only asserts
+# behavior against a local emulator (project rytm-rules-test) — this is the
+# step that actually makes a merged rules change take effect for real users.
+on:
+  push:
+    branches: [main]
+    paths:
+      - firestore.rules
+  # Lets us run this once by hand right after this workflow itself merges,
+  # to publish the DoRytm rules (#380) that landed before this workflow
+  # existed — a push-only trigger would otherwise wait for the next
+  # firestore.rules change to fire for the first time.
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Authenticate to Google Cloud
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> "$GITHUB_ENV"
+
+      - name: Deploy Firestore rules
+        run: npx --yes firebase-tools deploy --only firestore:rules --project maxtr-c238f --non-interactive
