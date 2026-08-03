@@ -9,6 +9,11 @@ on:
     branches: [main]
     paths:
       - firestore.rules
+  # Lets us run this once by hand right after this workflow itself merges,
+  # to publish the DoRytm rules (#380) that landed before this workflow
+  # existed — a push-only trigger would otherwise wait for the next
+  # firestore.rules change to fire for the first time.
+  workflow_dispatch:
 
 jobs:
   deploy:
