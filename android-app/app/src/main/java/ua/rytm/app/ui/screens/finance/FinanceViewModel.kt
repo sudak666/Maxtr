@@ -36,6 +36,8 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     var categoriesByType by mutableStateOf<Map<TxType, List<String>>>(emptyMap())
         private set
     private var subcategoriesByKey by mutableStateOf<Map<String, List<String>>>(emptyMap())
+    var tags by mutableStateOf<List<Tag>>(emptyList())
+        private set
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
 
     // Sample-only approximate USD->UAH rate. Real rates come from
@@ -48,6 +50,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         repository.transactions.onEach { transactions = it }.launchIn(viewModelScope)
         repository.categoriesByType.onEach { categoriesByType = it }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
+        repository.tags.onEach { tags = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -108,8 +111,14 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         private set
     var formComment by mutableStateOf("")
         private set
+    var formSelectedTagIds by mutableStateOf<List<String>>(emptyList())
+        private set
     var formError by mutableStateOf<String?>(null)
         private set
+
+    fun toggleFormTag(id: String) {
+        formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
+    }
 
     var pendingMessage by mutableStateOf<String?>(null)
         private set
@@ -125,6 +134,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         formSubcategory = null
         formDate = LocalDate.now().toString()
         formComment = ""
+        formSelectedTagIds = emptyList()
         formError = null
         sheetVisible = true
     }
@@ -139,6 +149,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         formSubcategory = tx.subcategory
         formDate = tx.date
         formComment = tx.comment.orEmpty()
+        formSelectedTagIds = tx.tags
         formError = null
         sheetVisible = true
     }
@@ -218,6 +229,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
             targetWalletId = if (isTransfer) formTargetWalletId else null,
             targetAmount = targetAmount, targetCurrency = targetCurrency,
             date = formDate, comment = draft.comment.ifBlank { null },
+            tags = formSelectedTagIds,
         )
         viewModelScope.launch { repository.upsertTransaction(toSave) }
         pendingMessage = when {

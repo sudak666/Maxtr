@@ -31,6 +31,7 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
+import ua.rytm.app.ui.screens.finance.TagsManagerSheet
 import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
@@ -61,6 +62,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var walletsSheetOpen by remember { mutableStateOf(false) }
     var categoriesSheetOpen by remember { mutableStateOf(false) }
     var budgetsSheetOpen by remember { mutableStateOf(false) }
+    var tagsSheetOpen by remember { mutableStateOf(false) }
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
@@ -118,6 +120,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onClick = { budgetsSheetOpen = true },
         )
         SettingsRow(
+            title = "Теги",
+            subtitle = "Мітки для операцій",
+            onClick = { tagsSheetOpen = true },
+        )
+        SettingsRow(
             title = "Типи змін",
             subtitle = "Оплата, години та кольори для графіка змін",
             onClick = { shiftTypesSheetOpen = true },
@@ -132,6 +139,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
     if (budgetsSheetOpen) {
         BudgetsManagerSheet(repository = app.financeRepository, onDismiss = { budgetsSheetOpen = false })
+    }
+    if (tagsSheetOpen) {
+        TagsManagerSheet(repository = app.financeRepository, onDismiss = { tagsSheetOpen = false })
     }
     if (shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
