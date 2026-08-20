@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only source set (app/src/debug/) — never merged into a release
+     build. Permits cleartext HTTP to the Android emulator's host-loopback
+     alias only, so FirebaseAuth/FirebaseFirestore's useEmulator() calls
+     (gated by BuildConfig.USE_FIREBASE_EMULATOR, see RytmApplication) can
+     actually reach a locally-run Firebase emulator suite for testing. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

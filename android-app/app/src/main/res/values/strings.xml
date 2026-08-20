@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Rytm</string>
+
+    <string name="nav_finance">Фінанси</string>
+    <string name="nav_shifts">Графік змін</string>
+    <string name="nav_debt">Розрахунки</string>
+    <string name="nav_shopping">Покупки</string>
+    <string name="nav_settings">Налаштування</string>
+
+    <string name="placeholder_screen">Екран у розробці — %1$s</string>
+</resources>

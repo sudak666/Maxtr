@@ -1,0 +1,154 @@
+package ua.rytm.app.ui.screens
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.screens.auth.AuthViewModel
+import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
+import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
+import ua.rytm.app.ui.screens.pin.PinSettingsSheet
+import ua.rytm.app.ui.screens.pin.PinViewModel
+import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
+
+// "Гаманці"/"Категорії"/"Типи змін"/"Вигляд" (тема)/"Акаунт" (вихід)/"Безпека"
+// (PIN+біометрія) are real so far — the rest of the PWA's Settings IA is
+// deliberately not built yet, disclosed honestly rather than faked:
+//   - Мова (uk/en toggle): blocked on a real prerequisite, not just
+//     unstarted — every screen in this app hardcodes Ukrainian text
+//     directly rather than going through string resources (see strings.xml,
+//     which only covers nav labels). A real language switch needs that
+//     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
+//     which is its own multi-session effort, not a corner of this step.
+//   - Push notifications, profiles, account deletion: Firebase SDK is wired
+//     (step 12) and sign-in is real (step 13), but there's no Firestore sync
+//     yet — this account's data still lives only in local Room, not synced
+//     to `users/{uid}/max_tracker/...` the way the PWA does. That's the
+//     next real prerequisite for these rows, not a per-row gap.
+// See ANDROID_MIGRATION.md's "Chesno not done" convention.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
+    val context = LocalContext.current
+    val app = context.applicationContext as RytmApplication
+    val scope = rememberCoroutineScope()
+    var walletsSheetOpen by remember { mutableStateOf(false) }
+    var categoriesSheetOpen by remember { mutableStateOf(false) }
+    var shiftTypesSheetOpen by remember { mutableStateOf(false) }
+    var pinSheetOpen by remember { mutableStateOf(false) }
+    val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+    val uid = authViewModel.currentUser?.uid
+
+    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+        Text("Налаштування", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+        SettingsSectionLabel("Акаунт")
+        SettingsRow(
+            title = authViewModel.currentUser?.email ?: authViewModel.currentUser?.displayName ?: "Ваш акаунт",
+            subtitle = "Натисніть, щоб вийти",
+            onClick = authViewModel::signOut,
+        )
+
+        if (uid != null) {
+            SettingsSectionLabel("Безпека")
+            SettingsRow(
+                title = "PIN-код",
+                subtitle = "Захист застосунку кодом і біометрією",
+                onClick = { pinSheetOpen = true },
+            )
+        }
+
+        SettingsSectionLabel("Вигляд")
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+            SegmentedButton(
+                selected = !darkTheme,
+                onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
+            ) { Text("Світла") }
+            SegmentedButton(
+                selected = darkTheme,
+                onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
+            ) { Text("Темна") }
+        }
+
+        SettingsSectionLabel("Фінанси")
+        SettingsRow(
+            title = "Гаманці",
+            subtitle = "Картки, готівка та інші рахунки",
+            onClick = { walletsSheetOpen = true },
+        )
+        SettingsRow(
+            title = "Категорії",
+            subtitle = "Власні категорії доходів і витрат",
+            onClick = { categoriesSheetOpen = true },
+        )
+        SettingsRow(
+            title = "Типи змін",
+            subtitle = "Оплата, години та кольори для графіка змін",
+            onClick = { shiftTypesSheetOpen = true },
+        )
+    }
+
+    if (walletsSheetOpen) {
+        WalletsManagerSheet(repository = app.financeRepository, onDismiss = { walletsSheetOpen = false })
+    }
+    if (categoriesSheetOpen) {
+        CategoriesManagerSheet(repository = app.financeRepository, onDismiss = { categoriesSheetOpen = false })
+    }
+    if (shiftTypesSheetOpen) {
+        ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
+    }
+    if (pinSheetOpen && uid != null) {
+        // Same Activity-scoped viewModelStoreOwner as MainActivity's own PinViewModel
+        // — see that call site's comment for why they must resolve to one instance.
+        val activity = context as androidx.fragment.app.FragmentActivity
+        val pinViewModel: PinViewModel = viewModel(factory = PinViewModel.factory(app.pinStore, uid), viewModelStoreOwner = activity)
+        PinSettingsSheet(pinViewModel, onDismiss = { pinSheetOpen = false })
+    }
+}
+
+@Composable
+private fun SettingsSectionLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 20.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun SettingsRow(title: String, subtitle: String, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 14.dp)) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

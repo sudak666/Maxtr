@@ -1,0 +1,123 @@
+package ua.rytm.app.ui.screens.pin
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+
+// Mirrors the PWA's #pin-screen: touch keypad (0-9 + back), dot indicators
+// (never the raw digits, per the account owner's original design reference —
+// see js/auth.js's updatePinDots() comment), biometric fallback shown only
+// when enabled. A local re-lock gate on an already-signed-in session, not a
+// login screen — see CLAUDE.md's Auth section.
+@Composable
+fun PinLockScreen(viewModel: PinViewModel) {
+    val context = LocalContext.current
+    val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("Введіть PIN-код", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(24.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            repeat(6) { i ->
+                Box(
+                    Modifier.size(16.dp).background(
+                        color = if (i < viewModel.pinInput.length) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = CircleShape,
+                    ),
+                )
+            }
+        }
+
+        viewModel.errorMessage?.let { message ->
+            Spacer(Modifier.height(16.dp))
+            Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+        }
+
+        Spacer(Modifier.height(40.dp))
+
+        PinKeypad(
+            onDigit = viewModel::press,
+            onBackspace = viewModel::backspace,
+            trailingSlot = {
+                if (biometricEnabled) {
+                    IconButton(onClick = {
+                        val activity = context as? FragmentActivity
+                        if (activity != null) {
+                            showBiometricPrompt(activity, onSuccess = viewModel::unlockWithBiometric)
+                        }
+                    }) {
+                        Icon(Icons.Filled.Fingerprint, contentDescription = "Розблокувати відбитком", modifier = Modifier.size(28.dp))
+                    }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+internal fun PinKeypad(
+    onDigit: (String) -> Unit,
+    onBackspace: () -> Unit,
+    trailingSlot: @Composable () -> Unit = {},
+) {
+    val rows = listOf(
+        listOf("1", "2", "3"),
+        listOf("4", "5", "6"),
+        listOf("7", "8", "9"),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        rows.forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                row.forEach { digit -> KeypadButton(digit) { onDigit(digit) } }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { trailingSlot() }
+            KeypadButton("0") { onDigit("0") }
+            Box(
+                Modifier.size(64.dp).clickable(onClick = onBackspace),
+                contentAlignment = Alignment.Center,
+            ) { Text("⌫", style = MaterialTheme.typography.headlineSmall) }
+        }
+    }
+}
+
+@Composable
+private fun KeypadButton(digit: String, onClick: () -> Unit) {
+    Box(
+        Modifier.size(64.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape).clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(digit, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+    }
+}
