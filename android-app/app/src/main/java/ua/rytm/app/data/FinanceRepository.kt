@@ -2,6 +2,7 @@ package ua.rytm.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.CategoryEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
@@ -17,10 +18,10 @@ fun subKey(type: String, name: String) = "$type:$name"
 
 // Real persistence backing FinanceViewModel — see ANDROID_MIGRATION.md §2/§7
 // and FINANCE_SCREEN_SPEC.md §8 for what this replaces (the old in-memory
-// SampleFinanceData-only state). seedIfEmpty() still uses SampleFinanceData
-// as bootstrap content since there's no Firestore/auth sync yet — an empty
-// real account can't be told apart from a first-ever launch at this layer,
-// so this is a one-time local seed, not a claim of synced data.
+// SampleFinanceData-only state). seedIfEmpty() uses SampleFinanceData as
+// bootstrap content for a genuinely-empty local Room table, harmlessly
+// overwritten by the real Firestore cold-sync that runs right after (see
+// MainActivity's LaunchedEffect) for any domain that has one.
 class FinanceRepository(private val db: RytmDatabase) {
 
     val wallets: Flow<List<Wallet>> = db.walletDao().observeAll().map { list -> list.map { it.toDomain() } }
@@ -40,6 +41,9 @@ class FinanceRepository(private val db: RytmDatabase) {
     val subcategoriesByKey: Flow<Map<String, List<String>>> = db.subcategoryDao().observeAll().map { list ->
         list.groupBy { subKey(it.categoryType, it.categoryName) }.mapValues { (_, entities) -> entities.map { it.name } }
     }
+
+    /** expense category name -> monthly limit — mirrors AppState.budgets (js/state.js). */
+    val budgets: Flow<Map<String, Double>> = db.budgetDao().observeAll().map { list -> list.associate { it.category to it.amount } }
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
@@ -72,21 +76,29 @@ class FinanceRepository(private val db: RytmDatabase) {
         return true
     }
 
-    // Cascades the rename into subcategories too — mirrors js/settings-managers.js's
-    // renameCategory() moving AppState.subcategories[subKey(type,oldName)] to the new key.
+    // Cascades the rename into subcategories AND budgets — mirrors
+    // js/settings-managers.js's renameCategory() moving
+    // AppState.subcategories[subKey(type,oldName)]/AppState.budgets[oldName]
+    // to the new key.
     suspend fun renameCategory(id: String, type: TxType, newName: String) {
         val old = db.categoryDao().getById(id)
         db.categoryDao().insert(CategoryEntity(id = id, type = type.name, name = newName))
-        if (old != null && old.name != newName) db.subcategoryDao().renameCategoryName(type.name, old.name, newName)
+        if (old != null && old.name != newName) {
+            db.subcategoryDao().renameCategoryName(type.name, old.name, newName)
+            db.budgetDao().renameCategory(old.name, newName)
+        }
     }
 
-    // Cascades the delete into subcategories too — mirrors js/settings-managers.js's
-    // deleteCategory() cascade (see CategoryEntity's own doc comment, updated now
-    // that this cascade is actually implemented).
+    // Cascades the delete into subcategories AND budgets — mirrors
+    // js/settings-managers.js's deleteCategory() cascade (see CategoryEntity's
+    // own doc comment, updated now that this cascade is actually implemented).
     suspend fun deleteCategory(id: String) {
         val category = db.categoryDao().getById(id)
         db.categoryDao().deleteById(id)
-        if (category != null) db.subcategoryDao().deleteAllForCategory(category.type, category.name)
+        if (category != null) {
+            db.subcategoryDao().deleteAllForCategory(category.type, category.name)
+            db.budgetDao().deleteByCategory(category.name)
+        }
     }
 
     /** Mirrors addSubcategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists under that category. */
@@ -98,6 +110,12 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun deleteSubcategory(type: TxType, categoryName: String, name: String) {
         db.subcategoryDao().deleteOne(type.name, categoryName, name)
+    }
+
+    // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the
+    // row entirely rather than being stored as a zero-or-negative value.
+    suspend fun setBudget(category: String, amount: Double) {
+        if (amount <= 0) db.budgetDao().deleteByCategory(category) else db.budgetDao().upsert(BudgetEntity(category, amount))
     }
 
     suspend fun upsertTransaction(transaction: Transaction) {

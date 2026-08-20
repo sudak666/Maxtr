@@ -7,9 +7,9 @@ import androidx.room.RoomDatabase
     entities = [
         WalletEntity::class, TransactionEntity::class, ShoppingItemEntity::class, CategoryEntity::class,
         ShiftTypeEntity::class, ShiftDayEntity::class, DebtEntity::class, DebtEntryEntity::class,
-        SubcategoryEntity::class,
+        SubcategoryEntity::class, BudgetEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -22,4 +22,5 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun debtDao(): DebtDao
     abstract fun debtEntryDao(): DebtEntryDao
     abstract fun subcategoryDao(): SubcategoryDao
+    abstract fun budgetDao(): BudgetDao
 }
