@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Placeholder mark, replaced with the real icon set (docs/ vendored
+         glyphs / ICON_PATHS parity) once icon assets are ported. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 C64,30 72,38 72,48 C72,55 68,60.5 62,63.5 L72,78 L60.5,78 L52,65 L46,65 L46,78 L36,78 L36,30 Z M46,39 L46,56 L53,56 C58,56 61.5,52.7 61.5,47.5 C61.5,42.3 58,39 53,39 Z" />
+</vector>

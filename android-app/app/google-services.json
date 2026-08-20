@@ -1,0 +1,92 @@
+{
+  "project_info": {
+    "project_number": "311094677098",
+    "project_id": "maxtr-c238f",
+    "storage_bucket": "maxtr-c238f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311094677098:android:67f48cd7eaf72692340413",
+        "android_client_info": {
+          "package_name": "com.habittracker.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "311094677098-m9fk8uc4otlig2oc3qv5r4u4vrlk7ftn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.habittracker.app",
+            "certificate_hash": "06ae83f466d6298a2a768e783ee937f29f2fd634"
+          }
+        },
+        {
+          "client_id": "311094677098-p47iqd7idtcfo1v5l7curfvdloso7nro.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.habittracker.app",
+            "certificate_hash": "0e69edf10cdfd86b9a048abb68cd0c730d1c45f1"
+          }
+        },
+        {
+          "client_id": "311094677098-bqfj1f4nkd5ntnbd4267kb26t9rnvi28.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw5W0tWmzSf8wDacLC0_Kedh8sjxDeuOc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "311094677098-38vju7hg1kn4p0c8lge3kcgvtuec7qsr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311094677098:android:d53316e0a18e57f9340413",
+        "android_client_info": {
+          "package_name": "ua.rytm.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "311094677098-1b2s4fki11ls9kevghknqupbbqv1g7v0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ua.rytm.app",
+            "certificate_hash": "06ae83f466d6298a2a768e783ee937f29f2fd634"
+          }
+        },
+        {
+          "client_id": "311094677098-bqfj1f4nkd5ntnbd4267kb26t9rnvi28.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw5W0tWmzSf8wDacLC0_Kedh8sjxDeuOc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "311094677098-38vju7hg1kn4p0c8lge3kcgvtuec7qsr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
