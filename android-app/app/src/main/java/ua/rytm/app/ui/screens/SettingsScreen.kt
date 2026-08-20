@@ -29,15 +29,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.screens.auth.AuthViewModel
+import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
 import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 
-// "Гаманці"/"Категорії"/"Типи змін"/"Вигляд" (тема)/"Акаунт" (вихід)/"Безпека"
-// (PIN+біометрія) are real so far — the rest of the PWA's Settings IA is
-// deliberately not built yet, disclosed honestly rather than faked:
+// "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Вигляд" (тема)/"Акаунт" (вихід)/
+// "Безпека" (PIN+біометрія) are real so far — the rest of the PWA's Settings
+// IA is deliberately not built yet, disclosed honestly rather than faked:
 //   - Мова (uk/en toggle): blocked on a real prerequisite, not just
 //     unstarted — every screen in this app hardcodes Ukrainian text
 //     directly rather than going through string resources (see strings.xml,
@@ -45,10 +46,11 @@ import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 //     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
 //     which is its own multi-session effort, not a corner of this step.
 //   - Push notifications, profiles, account deletion: Firebase SDK is wired
-//     (step 12) and sign-in is real (step 13), but there's no Firestore sync
-//     yet — this account's data still lives only in local Room, not synced
-//     to `users/{uid}/max_tracker/...` the way the PWA does. That's the
-//     next real prerequisite for these rows, not a per-row gap.
+//     (step 12), sign-in is real (step 13), and Firestore cold-sync now
+//     covers 8 domains (steps 14-21, see ANDROID_MIGRATION.md) — the
+//     remaining blocker for these rows is real net-new feature work (FCM
+//     registration + sweep-equivalent logic, multi-profile switching UI, an
+//     account-deletion flow), not a missing sync prerequisite anymore.
 // See ANDROID_MIGRATION.md's "Chesno not done" convention.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +60,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     var walletsSheetOpen by remember { mutableStateOf(false) }
     var categoriesSheetOpen by remember { mutableStateOf(false) }
+    var budgetsSheetOpen by remember { mutableStateOf(false) }
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
@@ -110,6 +113,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onClick = { categoriesSheetOpen = true },
         )
         SettingsRow(
+            title = "Бюджети",
+            subtitle = "Місячні ліміти для категорій витрат",
+            onClick = { budgetsSheetOpen = true },
+        )
+        SettingsRow(
             title = "Типи змін",
             subtitle = "Оплата, години та кольори для графіка змін",
             onClick = { shiftTypesSheetOpen = true },
@@ -121,6 +129,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
     if (categoriesSheetOpen) {
         CategoriesManagerSheet(repository = app.financeRepository, onDismiss = { categoriesSheetOpen = false })
+    }
+    if (budgetsSheetOpen) {
+        BudgetsManagerSheet(repository = app.financeRepository, onDismiss = { budgetsSheetOpen = false })
     }
     if (shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })

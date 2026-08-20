@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import ua.rytm.app.data.BudgetsSyncRepository
 import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.data.DebtRepository
 import ua.rytm.app.data.DebtSyncRepository
@@ -60,4 +61,5 @@ class RytmApplication : Application() {
     val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance()) }
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
 }
