@@ -36,6 +36,12 @@ data class Transaction(
     val tags: List<String> = emptyList(),
 )
 
+data class Tag(
+    val id: String,
+    val name: String,
+    val colorHex: Long,
+)
+
 enum class TxTypeFilter { ALL, INCOME, EXPENSE, TRANSFER }
 enum class PeriodFilter { DAY, MONTH, ALL }
 

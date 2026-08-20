@@ -15,6 +15,7 @@ import ua.rytm.app.data.ShiftsRepository
 import ua.rytm.app.data.ShiftsSyncRepository
 import ua.rytm.app.data.ShoppingRepository
 import ua.rytm.app.data.ShoppingSyncRepository
+import ua.rytm.app.data.TagsSyncRepository
 import ua.rytm.app.data.local.PinStore
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SettingsStore
@@ -62,4 +63,5 @@ class RytmApplication : Application() {
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance()) }
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
 }

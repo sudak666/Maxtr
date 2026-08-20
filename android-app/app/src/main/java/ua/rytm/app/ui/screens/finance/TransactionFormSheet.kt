@@ -44,8 +44,9 @@ import androidx.compose.ui.unit.dp
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
-// js/tx-validation.js exactly. Deliberately out of scope: receipt scan,
-// tags (no Tag entity ported yet) — see the spec's "not in Step 3" note.
+// js/tx-validation.js exactly. Tags are now real (Tag entity + FilterChip
+// multi-select, see FinanceViewModel.formSelectedTagIds/toggleFormTag()).
+// Deliberately still out of scope: receipt scan.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +153,18 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     style = MaterialTheme.typography.labelSmall,
                     color = if (vm.formComment.length > TX_COMMENT_MAX * 0.9) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+
+            if (vm.tags.isNotEmpty()) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(vm.tags) { tag ->
+                        androidx.compose.material3.FilterChip(
+                            selected = tag.id in vm.formSelectedTagIds,
+                            onClick = { vm.toggleFormTag(tag.id) },
+                            label = { Text(tag.name) },
+                        )
+                    }
+                }
             }
 
             vm.formError?.let { error ->

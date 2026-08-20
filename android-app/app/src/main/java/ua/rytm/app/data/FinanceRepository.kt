@@ -6,7 +6,9 @@ import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.CategoryEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
+import ua.rytm.app.data.local.TagEntity
 import ua.rytm.app.ui.screens.finance.SampleFinanceData
+import ua.rytm.app.ui.screens.finance.Tag
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import ua.rytm.app.ui.screens.finance.Wallet
@@ -44,6 +46,9 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** expense category name -> monthly limit — mirrors AppState.budgets (js/state.js). */
     val budgets: Flow<Map<String, Double>> = db.budgetDao().observeAll().map { list -> list.associate { it.category to it.amount } }
+
+    /** mirrors AppState.tags (js/state.js). */
+    val tags: Flow<List<Tag>> = db.tagDao().observeAll().map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
@@ -116,6 +121,28 @@ class FinanceRepository(private val db: RytmDatabase) {
     // row entirely rather than being stored as a zero-or-negative value.
     suspend fun setBudget(category: String, amount: Double) {
         if (amount <= 0) db.budgetDao().deleteByCategory(category) else db.budgetDao().upsert(BudgetEntity(category, amount))
+    }
+
+    // Mirrors js/finance.js's addTag() — color picked by rotating PALETTE, same
+    // as ShiftTypeDao's own creation convention (no interactive color picker yet).
+    suspend fun addTag(name: String, colorHex: Long) {
+        db.tagDao().insert(TagEntity(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = colorHex))
+    }
+
+    suspend fun renameTag(id: String, newName: String, colorHex: Long) {
+        db.tagDao().update(TagEntity(id = id, name = newName, colorHex = colorHex))
+    }
+
+    // Mirrors js/finance.js's deleteTag(): strips the id from every transaction
+    // that referenced it, not just the tags table row itself.
+    suspend fun deleteTag(id: String) {
+        db.tagDao().deleteById(id)
+        db.transactionDao().getAllOnce().forEach { tx ->
+            if (tx.tags.split(",").contains(id)) {
+                val remaining = tx.tags.split(",").filter { it.isNotBlank() && it != id }
+                db.transactionDao().upsert(tx.copy(tags = remaining.joinToString(",")))
+            }
+        }
     }
 
     suspend fun upsertTransaction(transaction: Transaction) {

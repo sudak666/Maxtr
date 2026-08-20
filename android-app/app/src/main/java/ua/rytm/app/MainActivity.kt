@@ -61,6 +61,7 @@ class MainActivity : FragmentActivity() {
                             app.categoriesSyncRepository.syncCategoriesOnSignIn(uid)
                             app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid)
                             app.budgetsSyncRepository.syncBudgetsOnSignIn(uid)
+                            app.tagsSyncRepository.syncTagsOnSignIn(uid)
                             app.transactionsSyncRepository.syncTransactionsOnSignIn(uid)
                             app.shoppingSyncRepository.syncShoppingListOnSignIn(uid)
                             app.debtSyncRepository.syncDebtsOnSignIn(uid)
