@@ -125,6 +125,7 @@ fun FinanceScreen(
                     TransactionRow(
                         tx = tx,
                         walletName = { id -> viewModel.wallets.firstOrNull { it.id == id }?.name },
+                        tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
                         onDelete = { viewModel.deleteTransaction(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
                     )
@@ -397,6 +398,7 @@ private fun EmptyState(isSearching: Boolean) {
 private fun TransactionRow(
     tx: Transaction,
     walletName: (String?) -> String?,
+    tagLookup: (String) -> Tag?,
     onDelete: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -461,6 +463,22 @@ private fun TransactionRow(
                         tx.comment?.let { append(" · $it") }
                     }
                     Text(metaLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    val rowTags = tx.tags.mapNotNull(tagLookup)
+                    if (rowTags.isNotEmpty()) {
+                        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            rowTags.forEach { tag ->
+                                val color = Color(tag.colorHex)
+                                Box(
+                                    Modifier
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(color.copy(alpha = 0.12f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                                ) {
+                                    Text(tag.name, style = MaterialTheme.typography.labelSmall, color = color)
+                                }
+                            }
+                        }
+                    }
                 }
                 Spacer(Modifier.padding(4.dp))
                 val (amountText, amountColor) = when (tx.type) {
