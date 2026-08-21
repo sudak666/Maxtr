@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -32,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +56,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -69,6 +74,8 @@ import ua.rytm.app.RytmApplication
 // what's deliberately still a no-op or a seed, not real synced data).
 
 private const val TX_LIST_COLLAPSED_COUNT = 5 // mirrors js/analytics-csv.js's TX_LIST_COLLAPSED_COUNT
+
+private val FinanceFabShape = RoundedCornerShape(16.dp)
 
 @Composable
 fun FinanceScreen(
@@ -92,10 +99,20 @@ fun FinanceScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
+            // Matches the PWA's .fin-fab.finance-fab green gradient
+            // (linear-gradient(135deg,--green,#059669)), not the theme's
+            // brand purple — see ANDROID_MIGRATION.md visual-parity note.
             ExtendedFloatingActionButton(
                 onClick = viewModel::openNewTransactionSheet,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("Нова операція") },
+                icon = { Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White) },
+                text = { Text("Нова операція", color = Color.White) },
+                shape = FinanceFabShape,
+                containerColor = Color.Transparent,
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
+                modifier = Modifier
+                    .shadow(10.dp, FinanceFabShape, spotColor = GreenDarkLike.copy(alpha = 0.5f))
+                    .clip(FinanceFabShape)
+                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2))),
             )
         },
     ) { innerPadding ->
@@ -176,7 +193,22 @@ fun FinanceScreen(
 
 @Composable
 private fun HeroBalanceCard(vm: FinanceViewModel) {
-    Card(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+    // Matches the PWA's .hero-balance: a subtle bg1→bg2 diagonal gradient
+    // plus a soft brand-purple glow shadow (--surface-hero/--shadow-raised),
+    // not a flat Card — see ANDROID_MIGRATION.md visual-parity note.
+    val shape = MaterialTheme.shapes.large
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp,
+                shape = shape,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+            )
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
+    ) {
         Column(Modifier.padding(20.dp)) {
             Text(
                 text = if (vm.isMultiCurrency) "Орієнтовний баланс (у грн)" else "Загальний баланс (у грн)",
@@ -247,17 +279,25 @@ private val RedLike @Composable get() = ua.rytm.app.ui.theme.RedDark2
 
 @Composable
 private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    // Matches the PWA's .fin-mini-stat.income/.expense: a tinted
+    // green/red gradient wash + matching border, not a neutral surface —
+    // see ANDROID_MIGRATION.md visual-parity note.
+    val tint = if (positive) GreenDarkLike else RedLike
+    val shape = RoundedCornerShape(18.dp)
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(tint.copy(alpha = 0.22f), tint.copy(alpha = 0.03f))))
+            .border(1.dp, tint.copy(alpha = 0.28f), shape)
+            .padding(12.dp),
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = "${if (positive) "+" else "−"}${formatMoney(value)} грн",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (positive) GreenDarkLike else RedLike,
+                color = tint,
             )
         }
     }
@@ -294,20 +334,41 @@ private fun QuickActionsRow(onNewTransaction: () -> Unit, onTools: () -> Unit, o
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.forEach { action ->
+            // Matches the PWA's .quick-action: a plain neutral card with a
+            // circular tinted icon badge inside (.quick-action-icon), not a
+            // whole-card color fill — see ANDROID_MIGRATION.md visual-parity note.
             Card(
                 onClick = action.onClick,
                 modifier = Modifier.weight(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (action.primary) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
                 Column(
                     Modifier.padding(vertical = 12.dp, horizontal = 4.dp).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(action.icon, contentDescription = null, tint = if (action.primary) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (action.primary) {
+                                    Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2))
+                                } else {
+                                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)))
+                                },
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            action.icon,
+                            contentDescription = null,
+                            tint = if (action.primary) Color.White else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(21.dp),
+                        )
+                    }
                     Spacer(Modifier.padding(2.dp))
-                    Text(action.label, style = MaterialTheme.typography.labelSmall)
+                    Text(action.label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
             }
         }
