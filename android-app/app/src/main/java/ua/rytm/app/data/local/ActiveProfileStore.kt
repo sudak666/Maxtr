@@ -16,18 +16,34 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 // uid-prefixed-key-in-one-shared-DataStore convention as PinStore/
 // SettingsStore's push-enabled flag, so a second account on the same
 // device keeps its own independent active profile.
+//
+// Step 32 (shared profiles): the stored value mirrors
+// js/firebase-sync.js's own loadActiveProfileId()/saveActiveProfileId()
+// encoding exactly — either a bare profileId (one of this account's own
+// profiles) or "ownerUid|profileId" (a shared profile someone else owns) —
+// so the correct data-owner uid survives an app restart without a second
+// lookup against profiles_meta.
 private val Context.activeProfileDataStore by preferencesDataStore(name = "rytm_active_profile")
 
 class ActiveProfileStore(private val context: Context) {
     private fun key(uid: String) = stringPreferencesKey("active_profile_$uid")
 
+    private fun parseProfileId(raw: String): String = if (raw.contains("|")) raw.substringAfter("|") else raw
+    private fun parseOwnerUid(raw: String): String? = if (raw.contains("|")) raw.substringBefore("|") else null
+
     fun activeProfileId(uid: String): Flow<String> =
-        context.activeProfileDataStore.data.map { it[key(uid)] ?: DEFAULT_PROFILE_ID }
+        context.activeProfileDataStore.data.map { parseProfileId(it[key(uid)] ?: DEFAULT_PROFILE_ID) }
 
     suspend fun getActiveProfileId(uid: String): String =
-        context.activeProfileDataStore.data.first()[key(uid)] ?: DEFAULT_PROFILE_ID
+        parseProfileId(context.activeProfileDataStore.data.first()[key(uid)] ?: DEFAULT_PROFILE_ID)
 
-    suspend fun setActiveProfileId(uid: String, profileId: String) {
-        context.activeProfileDataStore.edit { it[key(uid)] = profileId }
+    // Null for one of this account's own profiles; the sharer's uid for a
+    // shared profile this account joined.
+    suspend fun getActiveProfileOwnerUid(uid: String): String? =
+        parseOwnerUid(context.activeProfileDataStore.data.first()[key(uid)] ?: DEFAULT_PROFILE_ID)
+
+    suspend fun setActiveProfile(uid: String, profileId: String, ownerUid: String? = null) {
+        val raw = if (ownerUid != null) "$ownerUid|$profileId" else profileId
+        context.activeProfileDataStore.edit { it[key(uid)] = raw }
     }
 }

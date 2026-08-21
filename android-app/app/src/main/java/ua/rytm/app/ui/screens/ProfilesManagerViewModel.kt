@@ -13,11 +13,14 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.ProfileMeta
+import ua.rytm.app.data.RedeemInviteResult
 
-// Mirrors js/color-picker.js's addProfile()/renameProfile()/deleteProfile()/
-// switchProfile() — scoped to this account's own (non-shared) profiles only,
-// see ProfilesRepository's own doc comment for why shared-profile join/
-// leave/role-management aren't ported in this step.
+// Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()):
+// addProfile()/renameProfile()/deleteProfile()/switchProfile() for this
+// account's own profiles, plus (step 32) shareCurrentProfile()/
+// redeemSharedInvite()/leaveSharedProfile() for joining/hosting a shared
+// profile — see ProfilesRepository's own doc comment for why granular
+// editor/viewer roles aren't ported yet.
 class ProfilesManagerViewModel(private val app: RytmApplication, private val uid: String) : ViewModel() {
 
     companion object {
@@ -38,7 +41,19 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         private set
     var pendingSwitchId by mutableStateOf<String?>(null)
         private set
+    var pendingLeave by mutableStateOf<ProfileMeta?>(null)
+        private set
     var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+    // Set right after shareProfile() succeeds; the sheet shows this in a
+    // dismissible dialog so the owner can copy/read it out to whoever should
+    // join. Cleared via consumeInviteCode().
+    var inviteCode by mutableStateOf<String?>(null)
+        private set
+    var sharing by mutableStateOf(false)
+        private set
+    var joining by mutableStateOf(false)
         private set
 
     init {
@@ -46,11 +61,26 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         reload()
     }
 
+    // A real crash caught during this step's own verification, not a guess:
+    // Firestore's DocumentReference.get() can throw
+    // FirebaseFirestoreException("client is offline") straight through
+    // .await() on a transient network blip (e.g. right as this sheet opens),
+    // and with no try/catch that crashed the whole app instead of just
+    // failing this one reload. This wraps the pre-existing (step 30)
+    // unguarded call, not something step 32 introduced — see
+    // ANDROID_MIGRATION.md's step 32 for the fuller account and why a
+    // codebase-wide sweep of every other unguarded getDoc().await() call is
+    // out of scope for this step.
     private fun reload() {
         viewModelScope.launch {
             loading = true
-            profiles = app.profilesRepository.list(uid)
-            loading = false
+            try {
+                profiles = app.profilesRepository.list(uid)
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося завантажити профілі"
+            } finally {
+                loading = false
+            }
         }
     }
 
@@ -106,24 +136,88 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
     // whole switch instead of closing early over a still-loading screen.
     // Returns true only on real success — the caller must NOT treat this as
     // "done, dismiss and show a success toast" without checking the return
-    // value first. A real bug caught during this step's own verification:
-    // the first version of this function swallowed its own exception into
+    // value first. A real bug caught during step 30's own verification: the
+    // first version of this function swallowed its own exception into
     // errorMessage but the sheet still dismissed itself right after calling
-    // it regardless, so a failed switch (see newProfileId()'s own doc
-    // comment for the specific failure this hid) showed a false "Профіль
-    // перемкнено" success toast with the error banner never actually seen.
+    // it regardless, so a failed switch showed a false success toast with
+    // the error banner never actually seen.
     suspend fun confirmSwitch(): Boolean {
         val id = pendingSwitchId ?: return false
         pendingSwitchId = null
+        val target = profiles.find { it.id == id }
         switching = true
         return try {
-            app.profileSyncCoordinator.switchProfile(uid, id)
+            app.profileSyncCoordinator.switchProfile(uid, id, target?.let { if (it.isShared) it.ownerUid else null })
             true
         } catch (e: Exception) {
             errorMessage = "Не вдалося перемкнути профіль"
             false
         } finally {
             switching = false
+        }
+    }
+
+    // Turns a profile this account owns into a shared one and stashes a
+    // fresh invite code for the sheet to display. Idempotent — re-sharing an
+    // already-shared profile just issues another code, same as
+    // js/firebase-sync.js's shareCurrentProfile().
+    fun shareProfile(profile: ProfileMeta) {
+        if (profile.isShared || sharing) return
+        viewModelScope.launch {
+            sharing = true
+            try {
+                inviteCode = app.profilesRepository.shareProfile(uid, profile.id, profile.name)
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося поділитися профілем"
+            } finally {
+                sharing = false
+            }
+        }
+    }
+
+    fun consumeInviteCode() { inviteCode = null }
+
+    // Mirrors js/firebase-sync.js's redeemSharedInvite() error-reason mapping
+    // (see js/color-picker.js's redeemInviteUI() for the exact user-facing
+    // strings this echoes).
+    fun joinByCode(rawCode: String) {
+        val code = rawCode.trim()
+        if (code.isEmpty() || joining) return
+        viewModelScope.launch {
+            joining = true
+            when (val result = app.profilesRepository.redeemInvite(uid, code)) {
+                is RedeemInviteResult.Ok -> reload()
+                is RedeemInviteResult.Failed -> errorMessage = when (result.reason) {
+                    "own-profile" -> "Це ваш власний профіль"
+                    "used" -> "Цей код уже використано"
+                    "expired" -> "Код прострочено"
+                    "failed" -> "Не вдалося приєднатися"
+                    else -> "Код не знайдено"
+                }
+            }
+            joining = false
+        }
+    }
+
+    fun requestLeave(profile: ProfileMeta) {
+        if (!profile.isShared) return
+        if (profile.id == activeProfileId) { errorMessage = "Спершу перемкніться на інший профіль"; return }
+        pendingLeave = profile
+    }
+
+    fun cancelLeave() { pendingLeave = null }
+
+    fun confirmLeave() {
+        val profile = pendingLeave ?: return
+        val ownerUid = profile.ownerUid ?: return
+        pendingLeave = null
+        viewModelScope.launch {
+            try {
+                app.profilesRepository.leaveSharedProfile(uid, ownerUid, profile.id)
+                reload()
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося покинути профіль"
+            }
         }
     }
 
