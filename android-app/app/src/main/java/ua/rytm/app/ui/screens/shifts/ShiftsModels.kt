@@ -25,3 +25,27 @@ object SeedShiftTypes {
 }
 
 const val SALARY_GOAL = 20000.0
+
+// Mirrors js/state.js's AppState.autoFillSchedule.
+data class AutoFillSchedule(
+    val enabled: Boolean = false,
+    val typeId: String = "",
+    val pattern: String = "every",
+    val anchorDate: String = "",
+)
+
+// Mirrors js/calendar.js's SHIFT_PATTERN_CYCLES — [onDays, offDays] per cycle,
+// shared by both the quick-fill template and autofill's day-by-day check.
+val SHIFT_PATTERN_CYCLES: Map<String, Pair<Int, Int>> = mapOf(
+    "every" to (1 to 0),
+    "alt" to (1 to 1),
+    "2_2" to (2 to 2),
+    "3_3" to (3 to 3),
+)
+
+val SHIFT_PATTERN_LABELS: Map<String, String> = mapOf(
+    "every" to "Щодня",
+    "alt" to "День через день",
+    "2_2" to "2 через 2",
+    "3_3" to "3 через 3",
+)

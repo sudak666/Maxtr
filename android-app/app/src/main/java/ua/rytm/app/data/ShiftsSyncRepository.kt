@@ -3,6 +3,7 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import ua.rytm.app.data.local.AutoFillScheduleEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShiftDayEntity
 import ua.rytm.app.data.local.ShiftTypeEntity
@@ -41,9 +42,6 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
     // written under the `data` key — see js/color-picker.js's fbSaveNow()).
     // Same SetOptions.merge() safety rule, touching only `data`/`updatedAt` —
     // `shiftTypes`/`autoFillSchedule` are never touched here.
-    // autoFillSchedule itself stays unsynced (chesno not done) — Android's
-    // Shifts screen never implemented quick-fill/autofill at all (Step 8's
-    // disclosed scope), so there's no local Room field to round-trip yet.
     suspend fun syncShiftDaysOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
@@ -60,6 +58,45 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             val remoteMap = local.groupBy({ it.dateKey }, { it.shiftTypeId })
             docRef.set(
                 mapOf("data" to remoteMap, "updatedAt" to System.currentTimeMillis()),
+                SetOptions.merge(),
+            ).await()
+        }
+    }
+
+    // Fourth and final slice of the `shifts` doc — autoFillSchedule (step 39
+    // gave it a real Room row, see AutoFillScheduleEntity). Same
+    // SetOptions.merge() safety rule, touching only `autoFillSchedule`/
+    // `updatedAt` — never `data`/`shiftTypes`. Unlike the other two slices,
+    // "remote has no autoFillSchedule at all" (a pre-step-39 doc) is treated
+    // the same as "remote disabled" — push the local default (disabled)
+    // rather than leaving Room empty, mirroring js/state.js's own
+    // always-present default object.
+    suspend fun syncAutoFillScheduleOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = shiftsDocRef(uid, profileId)
+        val snapshot = docRef.get().await()
+        val remote = snapshot.get("autoFillSchedule") as? Map<*, *>
+        if (snapshot.exists() && remote != null) {
+            db.autoFillScheduleDao().upsert(
+                AutoFillScheduleEntity(
+                    id = 0,
+                    enabled = remote["enabled"] as? Boolean ?: false,
+                    typeId = remote["typeId"] as? String ?: "",
+                    pattern = remote["pattern"] as? String ?: "every",
+                    anchorDate = remote["anchorDate"] as? String ?: "",
+                ),
+            )
+        } else {
+            val local = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(id = 0, enabled = false, typeId = "", pattern = "every", anchorDate = "")
+            docRef.set(
+                mapOf(
+                    "autoFillSchedule" to mapOf(
+                        "enabled" to local.enabled,
+                        "typeId" to local.typeId,
+                        "pattern" to local.pattern,
+                        "anchorDate" to local.anchorDate,
+                    ),
+                    "updatedAt" to System.currentTimeMillis(),
+                ),
                 SetOptions.merge(),
             ).await()
         }

@@ -8,9 +8,9 @@ import androidx.room.RoomDatabase
         WalletEntity::class, TransactionEntity::class, ShoppingItemEntity::class, CategoryEntity::class,
         ShiftTypeEntity::class, ShiftDayEntity::class, DebtEntity::class, DebtEntryEntity::class,
         SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
-        CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class,
+        CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = false,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -20,6 +20,7 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun shiftTypeDao(): ShiftTypeDao
     abstract fun shiftDayDao(): ShiftDayDao
+    abstract fun autoFillScheduleDao(): AutoFillScheduleDao
     abstract fun debtDao(): DebtDao
     abstract fun debtEntryDao(): DebtEntryDao
     abstract fun subcategoryDao(): SubcategoryDao
@@ -58,4 +59,5 @@ suspend fun RytmDatabase.clearAllProfileScopedTables() {
     categoryIconDao().clearAll()
     goalDao().clearAll()
     currencyRateDao().clearAll()
+    autoFillScheduleDao().clearAll()
 }

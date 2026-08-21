@@ -13,9 +13,13 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 
-// Mirrors js/calendar.js's renderCalendar()/openModal()/saveModalSelection()
-// — scoped per SHIFTS_SCREEN_SPEC.md (no quick-fill/autofill/income chart yet).
+// Mirrors js/calendar.js's renderCalendar()/openModal()/saveModalSelection()/
+// applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
+// step 39 (quick-fill/autofill/6-month chart, previously deferred by
+// SHIFTS_SCREEN_SPEC.md's step 8 scoping).
 class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
 
     companion object {
@@ -36,10 +40,43 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
     var dayModalSelection by mutableStateOf<Set<String>>(emptySet())
         private set
 
+    // Quick-fill panel — collapsed by default (mirrors #tools-panel-body's
+    // inline `style="display:none"`), plus its own template selections.
+    var quickFillExpanded by mutableStateOf(false)
+        private set
+    var templateTypeId by mutableStateOf<String?>(null)
+        private set
+    var templatePattern by mutableStateOf("every")
+        private set
+
+    var autoFillSchedule by mutableStateOf(AutoFillSchedule())
+        private set
+    // Draft config fields for the autofill sub-panel — only committed to the
+    // repository (and re-processed) on "Зберегти", mirroring
+    // saveAutoFillConfig() reading the <select>/<input> DOM values rather
+    // than writing on every keystroke.
+    var autoFillDraftTypeId by mutableStateOf<String?>(null)
+        private set
+    var autoFillDraftPattern by mutableStateOf("every")
+        private set
+    var autoFillDraftAnchorDate by mutableStateOf("")
+        private set
+
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
-        repository.shiftTypes.onEach { shiftTypes = it }.launchIn(viewModelScope)
+        repository.shiftTypes.onEach { types ->
+            shiftTypes = types
+            val firstNonOff = types.firstOrNull { !it.isOff }?.id
+            if (templateTypeId == null || types.none { it.id == templateTypeId }) templateTypeId = firstNonOff
+            if (autoFillDraftTypeId == null || types.none { it.id == autoFillDraftTypeId }) autoFillDraftTypeId = firstNonOff
+        }.launchIn(viewModelScope)
         repository.shiftsByDate.onEach { shiftsByDate = it }.launchIn(viewModelScope)
+        repository.autoFillSchedule.onEach { schedule ->
+            autoFillSchedule = schedule
+            autoFillDraftPattern = schedule.pattern
+            autoFillDraftAnchorDate = schedule.anchorDate.ifBlank { LocalDate.now().toString() }
+            if (schedule.typeId.isNotBlank()) autoFillDraftTypeId = schedule.typeId
+        }.launchIn(viewModelScope)
     }
 
     fun goToPreviousMonth() { visibleMonth = visibleMonth.minusMonths(1) }
@@ -66,6 +103,50 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
         dayModalDateKey = null
     }
 
+    fun toggleQuickFillExpanded() { quickFillExpanded = !quickFillExpanded }
+    fun setTemplateType(id: String) { templateTypeId = id }
+    fun onTemplatePatternChanged(pattern: String) { templatePattern = pattern }
+
+    fun applyTemplate() {
+        val typeId = templateTypeId ?: return
+        val monthPrefix = visibleMonth.toString() // "yyyy-MM"
+        viewModelScope.launch { repository.applyTemplate(monthPrefix, visibleMonth.lengthOfMonth(), typeId, templatePattern) }
+    }
+
+    fun clearCurrentMonth() {
+        val monthPrefix = visibleMonth.toString()
+        viewModelScope.launch { repository.clearMonth(monthPrefix) }
+    }
+
+    fun setAutoFillEnabled(enabled: Boolean) {
+        val next = autoFillSchedule.copy(
+            enabled = enabled,
+            typeId = autoFillSchedule.typeId.ifBlank { autoFillDraftTypeId.orEmpty() },
+            anchorDate = autoFillSchedule.anchorDate.ifBlank { LocalDate.now().toString() },
+        )
+        viewModelScope.launch {
+            repository.setAutoFillSchedule(next)
+            if (enabled) repository.processAutoFillShifts()
+        }
+    }
+
+    fun setAutoFillDraftType(id: String) { autoFillDraftTypeId = id }
+    fun onAutoFillDraftPatternChanged(pattern: String) { autoFillDraftPattern = pattern }
+    fun onAutoFillDraftAnchorDateChanged(date: String) { autoFillDraftAnchorDate = date }
+
+    fun saveAutoFillConfig() {
+        val typeId = autoFillDraftTypeId ?: return
+        val next = autoFillSchedule.copy(
+            typeId = typeId,
+            pattern = autoFillDraftPattern,
+            anchorDate = autoFillDraftAnchorDate.ifBlank { LocalDate.now().toString() },
+        )
+        viewModelScope.launch {
+            repository.setAutoFillSchedule(next)
+            repository.processAutoFillShifts()
+        }
+    }
+
     data class MonthStats(val earned: Double, val hours: Double, val shiftsCount: Int, val offCount: Int)
 
     val monthStats: MonthStats
@@ -81,6 +162,27 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
                 }
             }
             return MonthStats(earned, hours, shiftsCount, offCount)
+        }
+
+    data class MonthEarning(val yearMonth: YearMonth, val label: String, val earned: Double)
+
+    // Mirrors js/calendar.js's renderIncomeChart() — trailing 6 months ending
+    // on the currently visible one's calendar month is NOT what the PWA
+    // does (it's always "now", not the navigated month) — matched exactly:
+    // always anchored on today's real month, independent of visibleMonth nav.
+    val sixMonthEarnings: List<MonthEarning>
+        get() {
+            val now = YearMonth.now()
+            return (5 downTo 0).map { i ->
+                val ym = now.minusMonths(i.toLong())
+                val prefix = ym.toString()
+                var earned = 0.0
+                shiftsByDate.forEach { (dateKey, ids) ->
+                    if (!dateKey.startsWith(prefix)) return@forEach
+                    ids.forEach { id -> shiftTypes.firstOrNull { it.id == id }?.let { earned += it.amount } }
+                }
+                MonthEarning(ym, ym.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage("uk").build()), earned)
+            }
         }
 
     val today: LocalDate get() = LocalDate.now()
