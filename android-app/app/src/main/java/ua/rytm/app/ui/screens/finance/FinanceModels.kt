@@ -59,6 +59,16 @@ data class Recurring(
     val comment: String,
 )
 
+// Mirrors AppState.goals (js/state.js) — progress is computed live against
+// the linked wallet's current balance (js/goals-profile.js's
+// renderGoals()/renderGoalsManagerList()), not stored as a separate field.
+data class Goal(
+    val id: String,
+    val walletId: String,
+    val targetAmount: Double,
+    val targetDate: String,
+)
+
 enum class TxTypeFilter { ALL, INCOME, EXPENSE, TRANSFER }
 enum class PeriodFilter { DAY, MONTH, ALL }
 

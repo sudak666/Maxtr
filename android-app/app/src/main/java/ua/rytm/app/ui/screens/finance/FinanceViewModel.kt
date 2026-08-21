@@ -244,20 +244,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     }
 
     /** Per-wallet balance in the wallet's own currency — mirrors computeWalletBalances(). */
-    fun walletBalance(walletId: String): Double {
-        var balance = 0.0
-        transactions.forEach { t ->
-            when (t.type) {
-                TxType.INCOME -> if (t.walletId == walletId) balance += t.amount
-                TxType.EXPENSE -> if (t.walletId == walletId) balance -= t.amount
-                TxType.TRANSFER -> {
-                    if (t.walletId == walletId) balance -= t.amount
-                    if (t.targetWalletId == walletId) balance += (t.targetAmount ?: t.amount)
-                }
-            }
-        }
-        return balance
-    }
+    fun walletBalance(walletId: String): Double = FinanceRepository.walletBalance(transactions, walletId)
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
     val totalBalanceUah: Double

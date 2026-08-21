@@ -6,10 +6,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import ua.rytm.app.data.BudgetsSyncRepository
 import ua.rytm.app.data.CategoriesSyncRepository
+import ua.rytm.app.data.CurrencyRatesSyncRepository
 import ua.rytm.app.data.DebtRepository
 import ua.rytm.app.data.DebtSyncRepository
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
+import ua.rytm.app.data.GoalsSyncRepository
 import ua.rytm.app.data.RecurringSyncRepository
 import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.ShiftsRepository
@@ -80,6 +82,8 @@ class RytmApplication : Application() {
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }

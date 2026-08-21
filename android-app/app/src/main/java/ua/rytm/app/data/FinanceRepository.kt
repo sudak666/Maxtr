@@ -4,17 +4,24 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.CategoryEntity
+import ua.rytm.app.data.local.GoalEntity
 import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
 import ua.rytm.app.data.local.TagEntity
 import ua.rytm.app.data.local.TransactionEntity
+import ua.rytm.app.ui.screens.finance.Goal
 import ua.rytm.app.ui.screens.finance.Recurring
 import ua.rytm.app.ui.screens.finance.SampleFinanceData
 import ua.rytm.app.ui.screens.finance.Tag
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import ua.rytm.app.ui.screens.finance.Wallet
+
+// Mirrors js/core.js's SEED_RATES — the fallback used when a currency code
+// has no synced rate yet (a brand-new account before its first FX-widget
+// load, or a currency the account owner never manually rated).
+val SEED_RATES = mapOf("USD" to 41.0, "EUR" to 44.0, "GBP" to 51.0, "PLN" to 10.5)
 
 // Mirrors js/core.js's subKey(type,name) => `${type}:${name}` — the PWA's own
 // composite key for AppState.subcategories, since a category name alone isn't
@@ -58,6 +65,12 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** mirrors AppState.recurring (js/state.js). */
     val recurring: Flow<List<Recurring>> = db.recurringDao().observeAll().map { list -> list.map { it.toDomain() } }
+
+    /** mirrors AppState.goals (js/state.js). */
+    val goals: Flow<List<Goal>> = db.goalDao().observeAll().map { list -> list.map { Goal(it.id, it.walletId, it.targetAmount, it.targetDate) } }
+
+    /** currency code -> rate to UAH — mirrors AppState.currencyRates (js/core.js). */
+    val currencyRates: Flow<Map<String, Double>> = db.currencyRateDao().observeAll().map { list -> list.associate { it.code to it.rateToUah } }
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
@@ -251,6 +264,59 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun updateRecurringActive(recurring: Recurring, active: Boolean) {
         db.recurringDao().update(recurring.copy(active = active).toEntity())
+    }
+
+    // Mirrors js/goals-profile.js's confirmAddGoal(): defaults to the first
+    // wallet, target 0, no date — the PWA's own new-goal form starts blank too.
+    suspend fun addGoal() {
+        val walletId = db.walletDao().getAllOnce().firstOrNull()?.id ?: return
+        db.goalDao().insert(GoalEntity(id = java.util.UUID.randomUUID().toString(), walletId = walletId, targetAmount = 0.0, targetDate = ""))
+    }
+
+    suspend fun deleteGoal(id: String) {
+        db.goalDao().deleteById(id)
+    }
+
+    suspend fun updateGoalWallet(goal: Goal, walletId: String) {
+        db.goalDao().update(GoalEntity(goal.id, walletId, goal.targetAmount, goal.targetDate))
+    }
+
+    suspend fun updateGoalTargetAmount(goal: Goal, targetAmount: Double) {
+        db.goalDao().update(GoalEntity(goal.id, goal.walletId, targetAmount, goal.targetDate))
+    }
+
+    suspend fun updateGoalTargetDate(goal: Goal, targetDate: String) {
+        db.goalDao().update(GoalEntity(goal.id, goal.walletId, goal.targetAmount, targetDate))
+    }
+
+    // Mirrors js/core.js's convertCurrency(): cross-rate via UAH as the base,
+    // falling back to SEED_RATES when no synced rate exists for a code yet.
+    fun convertCurrency(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
+        if (from == to) return amount
+        val fromRate = rates[from] ?: SEED_RATES[from] ?: 1.0
+        val toRate = rates[to] ?: SEED_RATES[to] ?: 1.0
+        return Math.round(amount * fromRate / toRate * 100) / 100.0
+    }
+
+    companion object {
+        // Mirrors js/analytics-csv.js's computeWalletBalances() — shared by
+        // FinanceViewModel (hero balance/wallet chips) and
+        // GoalsManagerViewModel (a goal's "saved" amount is its linked
+        // wallet's own current balance, not a separate accumulator).
+        fun walletBalance(transactions: List<Transaction>, walletId: String): Double {
+            var balance = 0.0
+            transactions.forEach { t ->
+                when (t.type) {
+                    TxType.INCOME -> if (t.walletId == walletId) balance += t.amount
+                    TxType.EXPENSE -> if (t.walletId == walletId) balance -= t.amount
+                    TxType.TRANSFER -> {
+                        if (t.walletId == walletId) balance -= t.amount
+                        if (t.targetWalletId == walletId) balance += (t.targetAmount ?: t.amount)
+                    }
+                }
+            }
+            return balance
+        }
     }
 
     // Mirrors js/color-picker.js's computeNextDate(dateStr, freq).

@@ -46,7 +46,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,6 +84,11 @@ fun FinanceScreen(
         }
     }
 
+    val app = LocalContext.current.applicationContext as RytmApplication
+    var toolsSheetOpen by remember { mutableStateOf(false) }
+    var budgetsSheetOpen by remember { mutableStateOf(false) }
+    var goalsSheetOpen by remember { mutableStateOf(false) }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
@@ -109,7 +117,14 @@ fun FinanceScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { HeroBalanceCard(viewModel) }
-            item { QuickActionsRow(onNewTransaction = viewModel::openNewTransactionSheet) }
+            item {
+                QuickActionsRow(
+                    onNewTransaction = viewModel::openNewTransactionSheet,
+                    onTools = { toolsSheetOpen = true },
+                    onBudgets = { budgetsSheetOpen = true },
+                    onGoals = { goalsSheetOpen = true },
+                )
+            }
             item { HistoryHeader(viewModel, resultCount = filtered.size) }
             item { SearchField(viewModel) }
             item { TypeFilterRow(viewModel) }
@@ -147,6 +162,15 @@ fun FinanceScreen(
 
     if (viewModel.sheetVisible) {
         TransactionFormSheet(viewModel)
+    }
+    if (toolsSheetOpen) {
+        ToolsSheet(repository = app.financeRepository, onDismiss = { toolsSheetOpen = false })
+    }
+    if (budgetsSheetOpen) {
+        BudgetsManagerSheet(repository = app.financeRepository, onDismiss = { budgetsSheetOpen = false })
+    }
+    if (goalsSheetOpen) {
+        GoalsManagerSheet(repository = app.financeRepository, onDismiss = { goalsSheetOpen = false })
     }
 }
 
@@ -258,15 +282,14 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
 }
 
 @Composable
-private fun QuickActionsRow(onNewTransaction: () -> Unit) {
+private fun QuickActionsRow(onNewTransaction: () -> Unit, onTools: () -> Unit, onBudgets: () -> Unit, onGoals: () -> Unit) {
     data class QuickAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
     val actions = listOf(
         QuickAction("Операція", Icons.Filled.Add, primary = true, onClick = onNewTransaction),
-        // Інструменти/Бюджети/Цілі open real manager screens in a later step (ANDROID_MIGRATION.md).
-        QuickAction("Інструменти", Icons.Filled.Build, primary = false, onClick = {}),
-        QuickAction("Бюджети", Icons.Filled.PieChart, primary = false, onClick = {}),
-        QuickAction("Цілі", Icons.Filled.Flag, primary = false, onClick = {}),
+        QuickAction("Інструменти", Icons.Filled.Build, primary = false, onClick = onTools),
+        QuickAction("Бюджети", Icons.Filled.PieChart, primary = false, onClick = onBudgets),
+        QuickAction("Цілі", Icons.Filled.Flag, primary = false, onClick = onGoals),
     )
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
