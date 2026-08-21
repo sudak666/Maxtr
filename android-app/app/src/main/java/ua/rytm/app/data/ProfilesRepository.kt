@@ -43,6 +43,11 @@ sealed class RedeemInviteResult {
     data class Failed(val reason: String) : RedeemInviteResult()
 }
 
+// Mirrors js/firebase-sync.js's listSharedMembers() return shape — a
+// member absent from `roles` defaults to 'editor' (see firestore.rules'
+// memberRole(), the actual enforcement; this is only ever a UI mirror).
+data class SharedMemberInfo(val members: List<String>, val roles: Map<String, String>)
+
 class ProfilesRepository(private val firestore: FirebaseFirestore) {
 
     companion object {
@@ -240,5 +245,33 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
         val rawList = (snap.get("list") as? List<Map<String, Any?>>)?.toMutableList() ?: return
         rawList.removeAll { it["kind"] == "shared" && it["id"] == profileId && it["ownerUid"] == ownerUid }
         docRef.set(mapOf("list" to rawList, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+    }
+
+    // ── GRANULAR PERMISSIONS (step 33) ──────────────────────────────
+    // Mirrors js/firebase-sync.js's listSharedMembers()/setMemberRole() —
+    // owner-only (enforced by firestore.rules, not just by this function
+    // only ever being called for a profile the caller owns). Returns null
+    // when the profile was never shared (shared_members doc doesn't exist
+    // yet), same as the PWA.
+    suspend fun listSharedMembers(ownerUid: String, profileId: String): SharedMemberInfo? {
+        val snap = sharedMembersDocRef(ownerUid, profileId).get().await()
+        if (!snap.exists()) return null
+        @Suppress("UNCHECKED_CAST")
+        val members = (snap.get("members") as? List<String>) ?: emptyList()
+        @Suppress("UNCHECKED_CAST")
+        val roles = (snap.get("roles") as? Map<String, String>) ?: emptyMap()
+        return SharedMemberInfo(members, roles)
+    }
+
+    // Writes the whole roles map in one read-modify-write, same as
+    // js/firebase-sync.js's setMemberRole() — simpler to reason about than
+    // a dotted-path update for a map this small.
+    suspend fun setMemberRole(ownerUid: String, profileId: String, memberUid: String, role: String) {
+        val ref = sharedMembersDocRef(ownerUid, profileId)
+        val snap = ref.get().await()
+        @Suppress("UNCHECKED_CAST")
+        val existingRoles = (snap.get("roles") as? Map<String, String>) ?: emptyMap()
+        val roles = existingRoles + (memberUid to role)
+        ref.update(mapOf("roles" to roles, "updatedAt" to System.currentTimeMillis())).await()
     }
 }

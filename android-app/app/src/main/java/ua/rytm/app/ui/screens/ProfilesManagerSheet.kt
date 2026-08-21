@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -93,6 +94,7 @@ fun ProfilesManagerSheet(
                     onDelete = { viewModel.requestDelete(profile) },
                     onShare = { viewModel.shareProfile(profile) },
                     onLeave = { viewModel.requestLeave(profile) },
+                    onManageMembers = { viewModel.openMembersManager(profile) },
                 )
             }
 
@@ -188,6 +190,43 @@ fun ProfilesManagerSheet(
             dismissButton = { TextButton(enabled = !viewModel.switching, onClick = viewModel::cancelSwitch) { Text("Скасувати") } },
         )
     }
+
+    viewModel.managingMembersFor?.let { profile ->
+        AlertDialog(
+            onDismissRequest = viewModel::closeMembersManager,
+            title = { Text("Учасники: ${profile.name}") },
+            text = {
+                when {
+                    viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    viewModel.members == null -> Text("Профіль ще не поширювався — немає учасників.")
+                    else -> {
+                        val currentUid = uid
+                        val others = viewModel.members!!.members.filter { it != currentUid }
+                        if (others.isEmpty()) {
+                            Text("Ще ніхто не приєднався за кодом.")
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                others.forEach { memberUid ->
+                                    val role = viewModel.members!!.roles[memberUid] ?: "editor"
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                        // No cross-account display-name infra exists (this app has no
+                                        // contacts/friends list) — a shortened uid is the only real
+                                        // identifier available, same as js/color-picker.js's own
+                                        // renderSharedMembersList().
+                                        Text(memberUid.take(8) + "…", style = MaterialTheme.typography.bodyMedium)
+                                        TextButton(onClick = { viewModel.toggleMemberRole(memberUid, role) }) {
+                                            Text(if (role == "viewer") "Переглядач" else "Редактор")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = viewModel::closeMembersManager) { Text("Готово") } },
+        )
+    }
 }
 
 @Composable
@@ -202,6 +241,7 @@ private fun ProfileRow(
     onDelete: () -> Unit,
     onShare: () -> Unit,
     onLeave: () -> Unit,
+    onManageMembers: () -> Unit,
 ) {
     if (renaming) {
         var text by remember(profile.id) { mutableStateOf(profile.name) }
@@ -228,6 +268,7 @@ private fun ProfileRow(
             IconButton(onClick = onLeave) { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Покинути") }
         } else {
             IconButton(onClick = onShare) { Icon(Icons.Filled.Share, contentDescription = "Поділитися") }
+            IconButton(onClick = onManageMembers) { Icon(Icons.Filled.Group, contentDescription = "Учасники") }
             IconButton(onClick = onStartRename) { Icon(Icons.Filled.Edit, contentDescription = "Перейменувати") }
             IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
         }
