@@ -31,6 +31,8 @@ class RecurringManagerViewModel(private val repository: FinanceRepository) : Vie
         private set
     var wallets by mutableStateOf<List<Wallet>>(emptyList())
         private set
+    var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
     var expandedId by mutableStateOf<String?>(null)
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
@@ -41,6 +43,7 @@ class RecurringManagerViewModel(private val repository: FinanceRepository) : Vie
         combine(repository.categoriesByType, repository.wallets) { cats, wallets -> cats to wallets }
             .onEach { (cats, wallets) -> categoriesByType = cats; this.wallets = wallets }
             .launchIn(viewModelScope)
+        repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
     }
 
     fun toggleEdit(id: String) {
