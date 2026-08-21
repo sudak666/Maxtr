@@ -84,13 +84,13 @@ fun ProfilesManagerSheet(
             viewModel.profiles.forEach { profile ->
                 ProfileRow(
                     profile = profile,
-                    isActive = profile.id == viewModel.activeProfileId,
+                    isActive = viewModel.isRowActive(profile),
                     renaming = renamingId == profile.id,
                     onStartRename = { renamingId = profile.id },
                     onRename = { name -> viewModel.renameProfile(profile.id, name); renamingId = null },
                     onCancelRename = { renamingId = null },
-                    onSwitch = { viewModel.requestSwitch(profile.id) },
-                    onDelete = { viewModel.requestDelete(profile.id) },
+                    onSwitch = { viewModel.requestSwitch(profile) },
+                    onDelete = { viewModel.requestDelete(profile) },
                     onShare = { viewModel.shareProfile(profile) },
                     onLeave = { viewModel.requestLeave(profile) },
                 )
@@ -157,7 +157,7 @@ fun ProfilesManagerSheet(
         )
     }
 
-    viewModel.pendingSwitchId?.let { targetId ->
+    viewModel.pendingSwitch?.let { target ->
         AlertDialog(
             onDismissRequest = { if (!viewModel.switching) viewModel.cancelSwitch() },
             title = { Text("Перемкнути профіль") },
@@ -180,7 +180,7 @@ fun ProfilesManagerSheet(
                             // sheet and show a success toast) only fires on a real
                             // success — see confirmSwitch()'s own doc comment for
                             // the real bug this guards against.
-                            if (viewModel.confirmSwitch()) onSwitched(targetId)
+                            if (viewModel.confirmSwitch()) onSwitched(target.id)
                         }
                     },
                 ) { Text("Перемкнути") }
