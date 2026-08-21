@@ -15,3 +15,6 @@ android-app/app/*.iml
 android-app/captures/
 android-app/.cxx/
 android-app/local.env
+android-app/keystore.properties
+android-app/*.jks
+android-app/*.keystore
