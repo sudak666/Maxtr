@@ -25,6 +25,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid, profileId)
+        app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
         app.budgetsSyncRepository.syncBudgetsOnSignIn(uid, profileId)
         app.tagsSyncRepository.syncTagsOnSignIn(uid, profileId)
         app.recurringSyncRepository.syncRecurringOnSignIn(uid, profileId)

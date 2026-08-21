@@ -114,3 +114,55 @@ interface SubcategoryDao {
     @Query("SELECT COUNT(*) FROM subcategories")
     suspend fun count(): Int
 }
+
+// 1:1 with AppState.categoryIcons (js/state.js) — `Record<categoryName,
+// iconName>`, a manual per-category icon override set via
+// openCategoryIconPicker() (js/settings-managers.js). Keyed by category NAME
+// only, not (type,name) or a CategoryEntity id — confirmed by reading
+// js/core.js's categoryIcon(name): `AppState.categoryIcons[name]`, no type
+// distinction at all (the same simplification BudgetEntity's own doc
+// comment already flags for budgets — a real name collision across
+// income/expense is possible in principle but the PWA itself doesn't guard
+// against it either, so this doesn't regress anything). `iconName` stores
+// the PWA's own icon-name string (one of window.ICON_NAMES, see
+// CategoryColor.kt's PICKER_ICONS) so a value written by either platform
+// round-trips meaningfully on the other, not an Android-only identifier.
+@Entity(tableName = "category_icons")
+data class CategoryIconEntity(
+    @PrimaryKey val categoryName: String,
+    val iconName: String,
+)
+
+@Dao
+interface CategoryIconDao {
+    @Query("SELECT * FROM category_icons")
+    fun observeAll(): Flow<List<CategoryIconEntity>>
+
+    @Query("SELECT * FROM category_icons")
+    suspend fun getAllOnce(): List<CategoryIconEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: CategoryIconEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<CategoryIconEntity>)
+
+    @Query("DELETE FROM category_icons")
+    suspend fun clearAll()
+
+    // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
+    @Transaction
+    suspend fun replaceAll(entities: List<CategoryIconEntity>) {
+        clearAll()
+        insertAll(entities)
+    }
+
+    // Mirrors js/settings-managers.js's renameCategory()/deleteCategory()
+    // moving/dropping AppState.categoryIcons[name] — see
+    // FinanceRepository.renameCategory()/deleteCategory() for the callers.
+    @Query("UPDATE category_icons SET categoryName = :newName WHERE categoryName = :oldName")
+    suspend fun renameCategory(oldName: String, newName: String)
+
+    @Query("DELETE FROM category_icons WHERE categoryName = :categoryName")
+    suspend fun deleteForCategory(categoryName: String)
+}

@@ -1,13 +1,20 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -31,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,7 +80,12 @@ fun CategoriesManagerSheet(
                 val expanded = viewModel.expandedCategoryId == id
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        CategoryIconBadge(name, size = 32.dp)
+                        CategoryIconBadge(
+                            name,
+                            iconOverride = viewModel.categoryIcons[name],
+                            size = 32.dp,
+                            modifier = Modifier.clickable { viewModel.openIconPicker(name) },
+                        )
                         Spacer(Modifier.padding(4.dp))
                         Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         IconButton(onClick = { viewModel.toggleExpanded(id) }) {
@@ -151,5 +164,45 @@ fun CategoriesManagerSheet(
             },
             dismissButton = { TextButton(onClick = { pendingDeleteSub = null }) { Text("Скасувати") } },
         )
+    }
+
+    if (viewModel.iconPickerCategory != null) {
+        CategoryIconPickerSheet(onDismiss = viewModel::closeIconPicker, onSelect = viewModel::selectIcon)
+    }
+}
+
+// Mirrors js/settings-managers.js's category-icon-modal
+// (renderCategoryIconGrid()/selectCategoryIcon()) — offers every name in
+// PICKER_ICONS (window.ICON_NAMES's own set, see that map's doc comment),
+// stacked as a second sheet on top of CategoriesManagerSheet the same way
+// SettingsScreen already stacks independent `if (xOpen) XSheet(...)` sheets.
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val icons = PICKER_ICONS
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Іконка категорії", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(6),
+                modifier = Modifier.fillMaxWidth().height(320.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                gridItems(icons.entries.toList()) { (name, icon) ->
+                    Icon(
+                        icon,
+                        contentDescription = name,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .clickable { onSelect(name) }
+                            .padding(10.dp),
+                    )
+                }
+            }
+        }
     }
 }

@@ -31,11 +31,14 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository) : ViewM
         private set
     var expandedCategory by mutableStateOf<String?>(null)
         private set
+    var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
 
     init {
         combine(repository.categoriesByType, repository.budgets) { byType, budgets ->
             byType[TxType.EXPENSE].orEmpty().map { name -> name to (budgets[name] ?: 0.0) }
         }.onEach { rows = it }.launchIn(viewModelScope)
+        repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
     }
 
     fun toggleEdit(category: String) {

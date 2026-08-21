@@ -54,6 +54,7 @@ fun BudgetsManagerSheet(
                 BudgetRow(
                     category = category,
                     limit = limit,
+                    iconOverride = viewModel.categoryIcons[category],
                     expanded = viewModel.expandedCategory == category,
                     onToggleEdit = { viewModel.toggleEdit(category) },
                     onLimitChange = { viewModel.updateBudget(category, it) },
@@ -64,12 +65,12 @@ fun BudgetsManagerSheet(
 }
 
 @Composable
-private fun BudgetRow(category: String, limit: Double, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
+private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
     val summary = if (limit > 0) "${limit.toInt()} грн/міс" else "Без ліміту"
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            CategoryIconBadge(category, size = 32.dp)
+            CategoryIconBadge(category, iconOverride = iconOverride, size = 32.dp)
             Spacer(Modifier.padding(4.dp))
             Column(Modifier.weight(1f)) {
                 Text(category, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)

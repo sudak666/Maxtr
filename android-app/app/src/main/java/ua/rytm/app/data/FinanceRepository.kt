@@ -53,6 +53,9 @@ class FinanceRepository(private val db: RytmDatabase) {
     /** mirrors AppState.tags (js/state.js). */
     val tags: Flow<List<Tag>> = db.tagDao().observeAll().map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
 
+    /** category name -> manual icon-name override — mirrors AppState.categoryIcons (js/state.js). */
+    val categoryIcons: Flow<Map<String, String>> = db.categoryIconDao().observeAll().map { list -> list.associate { it.categoryName to it.iconName } }
+
     /** mirrors AppState.recurring (js/state.js). */
     val recurring: Flow<List<Recurring>> = db.recurringDao().observeAll().map { list -> list.map { it.toDomain() } }
 
@@ -87,10 +90,11 @@ class FinanceRepository(private val db: RytmDatabase) {
         return true
     }
 
-    // Cascades the rename into subcategories, budgets AND recurring — mirrors
-    // js/settings-managers.js's renameCategory() moving
-    // AppState.subcategories[subKey(type,oldName)]/AppState.budgets[oldName]/
-    // every AppState.recurring entry of this type+name to the new key.
+    // Cascades the rename into subcategories, budgets, recurring AND
+    // categoryIcons — mirrors js/settings-managers.js's renameCategory()
+    // moving AppState.subcategories[subKey(type,oldName)]/
+    // AppState.budgets[oldName]/every AppState.recurring entry of this
+    // type+name/AppState.categoryIcons[oldName] to the new key.
     suspend fun renameCategory(id: String, type: TxType, newName: String) {
         val old = db.categoryDao().getById(id)
         db.categoryDao().insert(CategoryEntity(id = id, type = type.name, name = newName))
@@ -98,18 +102,25 @@ class FinanceRepository(private val db: RytmDatabase) {
             db.subcategoryDao().renameCategoryName(type.name, old.name, newName)
             db.budgetDao().renameCategory(old.name, newName)
             db.recurringDao().renameCategory(type.name, old.name, newName)
+            db.categoryIconDao().renameCategory(old.name, newName)
         }
     }
 
-    // Cascades the delete into subcategories AND budgets — mirrors
-    // js/settings-managers.js's deleteCategory() cascade (see CategoryEntity's
-    // own doc comment, updated now that this cascade is actually implemented).
+    // Cascades the delete into subcategories, budgets AND categoryIcons —
+    // mirrors js/settings-managers.js's deleteCategory() cascade (see
+    // CategoryEntity's own doc comment, updated now that this cascade is
+    // actually implemented). Deliberately does NOT cascade into recurring —
+    // confirmed by reading deleteCategory() itself, which only ever touches
+    // budgets/subcategories/categoryIcons, never AppState.recurring (only
+    // renameCategory() reaches that far — see RecurringEntities.kt's own
+    // doc comment for the same distinction already made there).
     suspend fun deleteCategory(id: String) {
         val category = db.categoryDao().getById(id)
         db.categoryDao().deleteById(id)
         if (category != null) {
             db.subcategoryDao().deleteAllForCategory(category.type, category.name)
             db.budgetDao().deleteByCategory(category.name)
+            db.categoryIconDao().deleteForCategory(category.name)
         }
     }
 
@@ -122,6 +133,12 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun deleteSubcategory(type: TxType, categoryName: String, name: String) {
         db.subcategoryDao().deleteOne(type.name, categoryName, name)
+    }
+
+    // Mirrors js/settings-managers.js's selectCategoryIcon(): sets a manual
+    // icon override for the given category name.
+    suspend fun setCategoryIcon(categoryName: String, iconName: String) {
+        db.categoryIconDao().insert(ua.rytm.app.data.local.CategoryIconEntity(categoryName, iconName))
     }
 
     // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the
