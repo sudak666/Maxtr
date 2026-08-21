@@ -29,6 +29,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.budgetsSyncRepository.syncBudgetsOnSignIn(uid, profileId)
         app.tagsSyncRepository.syncTagsOnSignIn(uid, profileId)
         app.recurringSyncRepository.syncRecurringOnSignIn(uid, profileId)
+        app.goalsSyncRepository.syncGoalsOnSignIn(uid, profileId)
+        app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
         app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
         app.shoppingSyncRepository.syncShoppingListOnSignIn(uid, profileId)
         app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
