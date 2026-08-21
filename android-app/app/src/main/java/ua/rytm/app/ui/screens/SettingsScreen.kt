@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -54,21 +58,17 @@ import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
-// "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own-profile
-// add/rename/delete/switch, step 30)/"Вигляд" (тема)/"Акаунт" (вихід)/
-// "Безпека" (PIN+біометрія) are real so far — the rest of the PWA's
-// Settings IA is deliberately not built yet, disclosed honestly rather than
-// faked:
+// "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
+// invite/join/leave/roles — steps 30/32/33)/"Вигляд" (тема)/"Акаунт" (вихід
+// + видалення, step 35)/"Безпека" (PIN+біометрія) are real so far — the
+// rest of the PWA's Settings IA is deliberately not built yet, disclosed
+// honestly rather than faked:
 //   - Мова (uk/en toggle): blocked on a real prerequisite, not just
 //     unstarted — every screen in this app hardcodes Ukrainian text
 //     directly rather than going through string resources (see strings.xml,
 //     which only covers nav labels). A real language switch needs that
 //     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
 //     which is its own multi-session effort, not a corner of this step.
-//   - Shared profiles (invite/join/leave/roles) and account deletion: real
-//     net-new feature work, not a missing prerequisite — see
-//     ProfilesRepository's own doc comment for exactly what step 30 covers
-//     (this account's own profiles only) versus what's still out.
 // See ANDROID_MIGRATION.md's "Chesno not done" convention.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +85,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var pinSheetOpen by remember { mutableStateOf(false) }
     var notifTypesSheetOpen by remember { mutableStateOf(false) }
     var profilesSheetOpen by remember { mutableStateOf(false) }
+    var pendingDeleteAccount by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
@@ -93,6 +94,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var pendingMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
+    }
+    LaunchedEffect(authViewModel.errorMessage) {
+        authViewModel.errorMessage?.let { snackbarHostState.showSnackbar(it); authViewModel.consumeError() }
     }
 
     var pushBusy by remember { mutableStateOf(false) }
@@ -143,6 +147,12 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     title = "Профілі",
                     subtitle = "Перемикання та керування профілями",
                     onClick = { profilesSheetOpen = true },
+                )
+                SettingsRow(
+                    title = "Видалити акаунт",
+                    subtitle = "Незворотно видаляє ваші дані та обліковий запис",
+                    onClick = { pendingDeleteAccount = true },
+                    titleColor = MaterialTheme.colorScheme.error,
                 )
             }
 
@@ -263,6 +273,36 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val pinViewModel: PinViewModel = viewModel(factory = PinViewModel.factory(app.pinStore, uid), viewModelStoreOwner = activity)
         PinSettingsSheet(pinViewModel, onDismiss = { pinSheetOpen = false })
     }
+
+    if (pendingDeleteAccount) {
+        AlertDialog(
+            onDismissRequest = { if (!authViewModel.isDeletingAccount) pendingDeleteAccount = false },
+            title = { Text("Видалити акаунт") },
+            text = {
+                if (authViewModel.isDeletingAccount) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        Text("Видалення…")
+                    }
+                } else {
+                    Text("Це незворотно видалить ваші дані (гаманці, операції, розрахунки, графік змін) та обліковий запис Google. Скасувати неможливо.")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !authViewModel.isDeletingAccount,
+                    onClick = { authViewModel.deleteAccount(context) },
+                ) { Text("Видалити", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(enabled = !authViewModel.isDeletingAccount, onClick = { pendingDeleteAccount = false }) { Text("Скасувати") }
+            },
+        )
+    }
+    // The dialog above closes itself once the account is actually gone
+    // (authViewModel.currentUser flips to null via the AuthStateListener,
+    // which unmounts this whole screen behind the login screen) — no
+    // explicit onSuccess callback needed.
 }
 
 @Composable
@@ -277,9 +317,9 @@ private fun SettingsSectionLabel(text: String) {
 }
 
 @Composable
-private fun SettingsRow(title: String, subtitle: String, onClick: () -> Unit) {
+private fun SettingsRow(title: String, subtitle: String, onClick: () -> Unit, titleColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 14.dp)) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
         Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
