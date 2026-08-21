@@ -1,5 +1,10 @@
 package ua.rytm.app.navigation
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,17 +21,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
+import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -100,15 +113,90 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController) 
     }
 }
 
+// Matches js/app-init.js's switchTab(): the icon's "pop" (tabIconPop, a
+// scale/translateY overshoot) plus a glow ripple (tabRipple, an expanding
+// disc in the tab's own glow color fading to transparent) replay on EVERY
+// tap of a nav icon — even re-tapping the already-active tab — not just on
+// selection change. Keyframe timings/values are 1:1 with index.html's
+// @keyframes tabIconPop/tabRipple (both 500ms). The label fade-in
+// (tabLabelIn, 300ms) instead only plays when a tab actually becomes
+// selected, mirroring `.tab-btn.active span:last-child`'s animation trigger.
 @Composable
 private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val popScale = remember { Animatable(1f) }
+    val popOffsetDp = remember { Animatable(0f) }
+    val rippleProgress = remember { Animatable(0f) }
+    var popTrigger by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(popTrigger) {
+        if (popTrigger == 0) return@LaunchedEffect
+        popScale.snapTo(1f)
+        popOffsetDp.snapTo(0f)
+        rippleProgress.snapTo(0f)
+        scope.launch {
+            popScale.animateTo(
+                targetValue = 1f,
+                animationSpec = keyframes {
+                    durationMillis = 500
+                    1f at 0
+                    1.2f at 175 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+                    0.94f at 300
+                    1f at 500
+                },
+            )
+        }
+        scope.launch {
+            popOffsetDp.animateTo(
+                targetValue = 0f,
+                animationSpec = keyframes {
+                    durationMillis = 500
+                    0f at 0
+                    -6f at 175 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+                    1f at 300
+                    0f at 500
+                },
+            )
+        }
+        rippleProgress.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = LinearEasing))
+    }
+
+    val labelAlpha = remember { Animatable(1f) }
+    val labelOffsetDp = remember { Animatable(0f) }
+    LaunchedEffect(selected) {
+        if (!selected) return@LaunchedEffect
+        labelAlpha.snapTo(0.35f)
+        labelOffsetDp.snapTo(4f)
+        launch { labelAlpha.animateTo(1f, animationSpec = tween(300, easing = LinearEasing)) }
+        labelOffsetDp.animateTo(0f, animationSpec = tween(300, easing = LinearEasing))
+    }
+
+    val glowColor = destination.activeGradient.first()
+
     Column(
-        modifier = modifier.clickable(onClick = onClick).padding(vertical = 2.dp),
+        modifier = modifier
+            .clickable(onClick = {
+                popTrigger++
+                onClick()
+            })
+            .padding(vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             Modifier
                 .size(48.dp)
+                .drawBehind {
+                    if (rippleProgress.value in 0f..1f && rippleProgress.value > 0f) {
+                        val extraRadiusPx = rippleProgress.value * 15.dp.toPx()
+                        val alpha = (1f - rippleProgress.value) * 0.34f
+                        drawCircle(color = glowColor.copy(alpha = alpha), radius = size.minDimension / 2f + extraRadiusPx)
+                    }
+                }
+                .graphicsLayer {
+                    scaleX = popScale.value
+                    scaleY = popScale.value
+                    translationY = popOffsetDp.value * density
+                }
                 .clip(CircleShape)
                 .background(if (selected) Brush.linearGradient(destination.activeGradient) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))),
             contentAlignment = Alignment.Center,
@@ -125,6 +213,12 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.graphicsLayer {
+                if (selected) {
+                    alpha = labelAlpha.value
+                    translationY = labelOffsetDp.value * density
+                }
+            },
         )
     }
 }
