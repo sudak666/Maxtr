@@ -8,4 +8,6 @@
     <string name="nav_settings">Налаштування</string>
 
     <string name="placeholder_screen">Екран у розробці — %1$s</string>
+
+    <string name="notification_channel_name">Нагадування Rytm</string>
 </resources>

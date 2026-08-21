@@ -17,9 +17,11 @@ import ua.rytm.app.data.ShiftsSyncRepository
 import ua.rytm.app.data.ShoppingRepository
 import ua.rytm.app.data.ShoppingSyncRepository
 import ua.rytm.app.data.TagsSyncRepository
+import ua.rytm.app.data.PushRepository
 import ua.rytm.app.data.local.PinStore
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SettingsStore
+import ua.rytm.app.push.ensureNotificationChannel
 
 class RytmApplication : Application() {
     override fun onCreate() {
@@ -41,6 +43,15 @@ class RytmApplication : Application() {
             FirebaseAuth.getInstance().useEmulator("127.0.0.1", 9099)
             FirebaseFirestore.getInstance().useEmulator("127.0.0.1", 8080)
         }
+        // Created unconditionally at process start, not lazily from Settings —
+        // the system's own auto-display path for a backgrounded push (see
+        // RytmMessagingService's doc comment) needs the channel to already
+        // exist the first time a push arrives, which can happen before the
+        // user ever opens Settings on a device that registered a token on a
+        // previous install/run. NotificationManager.createNotificationChannel()
+        // is a safe no-op when the channel already exists (same id, same
+        // settings), so calling this on every cold start is fine.
+        ensureNotificationChannel(this)
     }
 
     val database: RytmDatabase by lazy {
@@ -66,4 +77,5 @@ class RytmApplication : Application() {
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
 }
