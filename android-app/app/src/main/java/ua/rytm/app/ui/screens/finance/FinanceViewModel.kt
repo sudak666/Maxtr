@@ -38,6 +38,8 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     private var subcategoriesByKey by mutableStateOf<Map<String, List<String>>>(emptyMap())
     var tags by mutableStateOf<List<Tag>>(emptyList())
         private set
+    var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
 
     // Sample-only approximate USD->UAH rate. Real rates come from
@@ -51,6 +53,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         repository.categoriesByType.onEach { categoriesByType = it }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
+        repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")

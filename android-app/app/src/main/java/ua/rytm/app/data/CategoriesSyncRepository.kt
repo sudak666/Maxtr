@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.data.local.CategoryEntity
+import ua.rytm.app.data.local.CategoryIconEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
 import java.util.UUID
@@ -85,6 +86,31 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             val local = db.subcategoryDao().getAllOnce()
             val remoteMap = local.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
             docRef.set(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        }
+    }
+
+    // Third slice of the `finance` doc's category-adjacent state:
+    // `categoryIcons` (js/state.js's AppState.categoryIcons, `Record<name,
+    // iconName>` — confirmed by reading js/settings-managers.js's
+    // selectCategoryIcon()). No type prefix, same as budgets — see
+    // CategoryIconEntity's own doc comment for why a name-only key matches
+    // the PWA's own (lack of) type-scoping here. Same SetOptions.merge()
+    // safety rule, touching only `categoryIcons`/`updatedAt`.
+    suspend fun syncCategoryIconsOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
+        val snapshot = docRef.get().await()
+        val remoteIcons = snapshot.get("categoryIcons") as? Map<*, *>
+        if (snapshot.exists() && remoteIcons != null) {
+            val entities = remoteIcons.mapNotNull { (name, icon) ->
+                val categoryName = name as? String ?: return@mapNotNull null
+                val iconName = icon as? String ?: return@mapNotNull null
+                CategoryIconEntity(categoryName, iconName)
+            }
+            db.categoryIconDao().replaceAll(entities)
+        } else {
+            val local = db.categoryIconDao().getAllOnce()
+            val remoteMap = local.associate { it.categoryName to it.iconName }
+            docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
     }
 }

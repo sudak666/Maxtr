@@ -41,6 +41,14 @@ class CategoriesManagerViewModel(private val repository: FinanceRepository) : Vi
         private set
     var subcategoriesByKey by mutableStateOf<Map<String, List<String>>>(emptyMap())
         private set
+    var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+    // The category name currently showing the icon-picker sheet — null when
+    // closed. Mirrors js/settings-managers.js's catIconPickIdx (an index
+    // there; a name here, same reasoning as expandedCategoryId above for why
+    // Android uses a stable key instead of a positional index).
+    var iconPickerCategory by mutableStateOf<String?>(null)
+        private set
 
     private var allByType: Map<TxType, List<Pair<String, String>>> = emptyMap()
 
@@ -50,6 +58,16 @@ class CategoriesManagerViewModel(private val repository: FinanceRepository) : Vi
             categories = it[activeType].orEmpty()
         }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
+        repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
+    }
+
+    fun openIconPicker(categoryName: String) { iconPickerCategory = categoryName }
+    fun closeIconPicker() { iconPickerCategory = null }
+
+    fun selectIcon(iconName: String) {
+        val categoryName = iconPickerCategory ?: return
+        iconPickerCategory = null
+        viewModelScope.launch { repository.setCategoryIcon(categoryName, iconName) }
     }
 
     fun setType(type: TxType) {

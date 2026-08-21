@@ -126,6 +126,7 @@ fun FinanceScreen(
                         tx = tx,
                         walletName = { id -> viewModel.wallets.firstOrNull { it.id == id }?.name },
                         tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
+                        iconOverride = viewModel.categoryIcons[tx.category],
                         onDelete = { viewModel.deleteTransaction(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
                     )
@@ -399,6 +400,7 @@ private fun TransactionRow(
     tx: Transaction,
     walletName: (String?) -> String?,
     tagLookup: (String) -> Tag?,
+    iconOverride: String?,
     onDelete: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -440,7 +442,7 @@ private fun TransactionRow(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                CategoryIconBadge(tx.category)
+                CategoryIconBadge(tx.category, iconOverride = iconOverride)
                 Spacer(Modifier.padding(6.dp))
                 Column(Modifier.weight(1f)) {
                     val catLine = buildString {

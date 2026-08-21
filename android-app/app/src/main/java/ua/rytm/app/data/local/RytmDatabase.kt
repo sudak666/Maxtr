@@ -8,8 +8,9 @@ import androidx.room.RoomDatabase
         WalletEntity::class, TransactionEntity::class, ShoppingItemEntity::class, CategoryEntity::class,
         ShiftTypeEntity::class, ShiftDayEntity::class, DebtEntity::class, DebtEntryEntity::class,
         SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
+        CategoryIconEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -25,6 +26,7 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun tagDao(): TagDao
     abstract fun recurringDao(): RecurringDao
+    abstract fun categoryIconDao(): CategoryIconDao
 }
 
 // Every local table this app persists is scoped to whichever profile was
@@ -51,4 +53,5 @@ suspend fun RytmDatabase.clearAllProfileScopedTables() {
     budgetDao().clearAll()
     tagDao().clearAll()
     recurringDao().clearAll()
+    categoryIconDao().clearAll()
 }
