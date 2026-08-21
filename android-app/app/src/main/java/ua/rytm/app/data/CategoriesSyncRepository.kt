@@ -27,11 +27,11 @@ import java.util.UUID
 // types before it).
 class CategoriesSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun financeDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun financeDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
-    suspend fun syncCategoriesOnSignIn(uid: String) {
-        val docRef = financeDocRef(uid)
+    suspend fun syncCategoriesOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteCategories = snapshot.get("categories") as? Map<*, *>
         if (snapshot.exists() && remoteCategories != null) {
@@ -65,8 +65,8 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
     // with a real PWA account even though it round-trips fine
     // Android-to-Android. Same SetOptions.merge() safety rule, touching only
     // `subcategories`/`updatedAt`.
-    suspend fun syncSubcategoriesOnSignIn(uid: String) {
-        val docRef = financeDocRef(uid)
+    suspend fun syncSubcategoriesOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteSubs = snapshot.get("subcategories") as? Map<*, *>
         if (snapshot.exists() && remoteSubs != null) {

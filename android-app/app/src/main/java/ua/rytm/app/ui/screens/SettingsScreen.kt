@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
@@ -53,8 +54,9 @@ import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
-// "Push-сповіщення" (+ granular "Типи сповіщень")/"Вигляд" (тема)/"Акаунт"
-// (вихід)/"Безпека" (PIN+біометрія) are real so far — the rest of the PWA's
+// "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own-profile
+// add/rename/delete/switch, step 30)/"Вигляд" (тема)/"Акаунт" (вихід)/
+// "Безпека" (PIN+біометрія) are real so far — the rest of the PWA's
 // Settings IA is deliberately not built yet, disclosed honestly rather than
 // faked:
 //   - Мова (uk/en toggle): blocked on a real prerequisite, not just
@@ -63,12 +65,10 @@ import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 //     which only covers nav labels). A real language switch needs that
 //     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
 //     which is its own multi-session effort, not a corner of this step.
-//   - Profiles, account deletion: Firebase SDK is wired (step 12), sign-in
-//     is real (step 13), Firestore cold-sync covers 9 domains (steps 14-24,
-//     26), and Push has a real client with granular alert types (steps
-//     27-28) — the remaining blocker for these two rows is net-new feature
-//     work (multi-profile switching UI, an account-deletion flow), not a
-//     missing prerequisite.
+//   - Shared profiles (invite/join/leave/roles) and account deletion: real
+//     net-new feature work, not a missing prerequisite — see
+//     ProfilesRepository's own doc comment for exactly what step 30 covers
+//     (this account's own profiles only) versus what's still out.
 // See ANDROID_MIGRATION.md's "Chesno not done" convention.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,8 +84,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
     var notifTypesSheetOpen by remember { mutableStateOf(false) }
+    var profilesSheetOpen by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
+    val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingMessage by remember { mutableStateOf<String?>(null) }
@@ -104,7 +106,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         scope.launch {
             pushBusy = true
             try {
-                if (target) app.pushRepository.enable(accountUid) else app.pushRepository.disable(accountUid)
+                if (target) app.pushRepository.enable(accountUid, activeProfileId) else app.pushRepository.disable(accountUid, activeProfileId)
                 app.settingsStore.setPushEnabled(accountUid, target)
                 pendingMessage = if (target) "Push-сповіщення увімкнено" else "Push-сповіщення вимкнено"
             } catch (e: Exception) {
@@ -136,6 +138,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 subtitle = "Натисніть, щоб вийти",
                 onClick = authViewModel::signOut,
             )
+            if (uid != null) {
+                SettingsRow(
+                    title = "Профілі",
+                    subtitle = "Перемикання та керування профілями",
+                    onClick = { profilesSheetOpen = true },
+                )
+            }
 
             if (uid != null) {
                 SettingsSectionLabel("Безпека")
@@ -235,7 +244,17 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
     }
     if (notifTypesSheetOpen && uid != null) {
-        NotificationSettingsSheet(uid = uid, repository = app.pushRepository, onDismiss = { notifTypesSheetOpen = false })
+        NotificationSettingsSheet(uid = uid, repository = app.pushRepository, profileId = activeProfileId, onDismiss = { notifTypesSheetOpen = false })
+    }
+    if (profilesSheetOpen && uid != null) {
+        ProfilesManagerSheet(
+            uid = uid,
+            onDismiss = { profilesSheetOpen = false },
+            onSwitched = {
+                profilesSheetOpen = false
+                pendingMessage = "Профіль перемкнено"
+            },
+        )
     }
     if (pinSheetOpen && uid != null) {
         // Same Activity-scoped viewModelStoreOwner as MainActivity's own PinViewModel

@@ -24,11 +24,11 @@ import ua.rytm.app.data.local.WalletEntity
 // on either platform renders correctly on the other.
 class FinanceSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun financeDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun financeDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
-    suspend fun syncWalletsOnSignIn(uid: String) {
-        val docRef = financeDocRef(uid)
+    suspend fun syncWalletsOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteWallets = snapshot.get("wallets") as? List<*>
         if (snapshot.exists() && remoteWallets != null) {

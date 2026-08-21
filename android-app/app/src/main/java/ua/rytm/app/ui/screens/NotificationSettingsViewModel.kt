@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
+import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.PushRepository
 
 // Mirrors js/notifications.js's 4 independent toggles (toggleReminders()/
@@ -17,14 +18,20 @@ import ua.rytm.app.data.PushRepository
 // comment disclosed as a separate follow-up (see PushRepository/
 // NotificationSettingsSheet). No Room table backs this domain (unlike every
 // other manager sheet in this app) — notifSettings only has meaning as a
-// device-independent, account-level Firestore field the server sweep reads
-// directly, so a one-shot load + optimistic-local-write-through pattern is
-// used instead of the Room+Flow pipeline every synced domain otherwise gets.
-class NotificationSettingsViewModel(private val uid: String, private val repository: PushRepository) : ViewModel() {
+// per-profile Firestore field the server sweep reads directly (it lives
+// inside the same `finance` doc every other profile-scoped domain does, see
+// step 30's ProfileDocNames.kt), so a one-shot load + optimistic-local-
+// write-through pattern is used instead of the Room+Flow pipeline every
+// synced domain otherwise gets.
+class NotificationSettingsViewModel(
+    private val uid: String,
+    private val repository: PushRepository,
+    private val profileId: String = DEFAULT_PROFILE_ID,
+) : ViewModel() {
 
     companion object {
-        fun factory(uid: String, repository: PushRepository) = viewModelFactory {
-            initializer { NotificationSettingsViewModel(uid, repository) }
+        fun factory(uid: String, repository: PushRepository, profileId: String = DEFAULT_PROFILE_ID) = viewModelFactory {
+            initializer { NotificationSettingsViewModel(uid, repository, profileId) }
         }
     }
 
@@ -45,7 +52,7 @@ class NotificationSettingsViewModel(private val uid: String, private val reposit
 
     init {
         viewModelScope.launch {
-            val s = repository.getNotifSettings(uid)
+            val s = repository.getNotifSettings(uid, profileId)
             val (h, m) = s.time.split(":").let { it.getOrElse(0) { "21" } to it.getOrElse(1) { "00" } }
             dailyReminderEnabled = s.enabled
             reminderHour = h
@@ -65,7 +72,7 @@ class NotificationSettingsViewModel(private val uid: String, private val reposit
     // compile error caught immediately, not a style preference).
     fun onDailyReminderChanged(enabled: Boolean) {
         dailyReminderEnabled = enabled
-        viewModelScope.launch { repository.setDailyReminder(uid, enabled, currentTime()) }
+        viewModelScope.launch { repository.setDailyReminder(uid, enabled, currentTime(), profileId) }
     }
 
     fun onReminderTimeChanged(hour: String, minute: String) {
@@ -75,21 +82,21 @@ class NotificationSettingsViewModel(private val uid: String, private val reposit
         // js/notifications.js's updateNotifTimeFromSelects(), which is only
         // ever reachable while the reminder checkbox is checked (the time
         // <select>s are inside the same conditionally-shown block).
-        if (dailyReminderEnabled) viewModelScope.launch { repository.setDailyReminder(uid, true, "$hour:$minute") }
+        if (dailyReminderEnabled) viewModelScope.launch { repository.setDailyReminder(uid, true, "$hour:$minute", profileId) }
     }
 
     fun onBudgetAlertsChanged(enabled: Boolean) {
         budgetAlerts = enabled
-        viewModelScope.launch { repository.setBudgetAlerts(uid, enabled) }
+        viewModelScope.launch { repository.setBudgetAlerts(uid, enabled, profileId) }
     }
 
     fun onRecurringAlertsChanged(enabled: Boolean) {
         recurringAlerts = enabled
-        viewModelScope.launch { repository.setRecurringAlerts(uid, enabled) }
+        viewModelScope.launch { repository.setRecurringAlerts(uid, enabled, profileId) }
     }
 
     fun onDebtAlertsChanged(enabled: Boolean) {
         debtAlerts = enabled
-        viewModelScope.launch { repository.setDebtAlerts(uid, enabled) }
+        viewModelScope.launch { repository.setDebtAlerts(uid, enabled, profileId) }
     }
 }
