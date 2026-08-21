@@ -1,6 +1,8 @@
 package ua.rytm.app.ui.screens.shifts
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,10 +10,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -21,23 +25,44 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.BeachAccess
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -49,9 +74,10 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
-// Implements SHIFTS_SCREEN_SPEC.md's in-scope subset: hero metric, chip
-// stats, legend, month grid, day-assignment sheet. Quick-fill/autofill/
-// income chart are deliberately deferred (see the spec's "not in this step").
+// Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
+// chip stats, 6-month earnings chart, collapsible quick-fill (template +
+// autofill), legend, month grid, day-assignment sheet — full parity with
+// js/calendar.js, closing step 8's disclosed gap.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftsScreen(
@@ -59,7 +85,10 @@ fun ShiftsScreen(
         factory = ShiftsViewModel.factory((LocalContext.current.applicationContext as RytmApplication).shiftsRepository),
     ),
 ) {
+    val app = LocalContext.current.applicationContext as RytmApplication
     val stats = viewModel.monthStats
+    var shiftTypesSheetOpen by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -67,8 +96,14 @@ fun ShiftsScreen(
     ) {
         item { HeroMetric(stats.earned) }
         item { ChipStats(stats) }
-        item { LegendRow(viewModel.shiftTypes) }
+        item { IncomeChartSection(viewModel.sixMonthEarnings) }
+        item { QuickFillPanel(viewModel, onOpenShiftTypes = { shiftTypesSheetOpen = true }) }
         item { MonthNav(viewModel) }
+        item { LegendRow(viewModel.shiftTypes) }
+        if (stats.shiftsCount + stats.offCount == 0) {
+            item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
+        }
+        item { WeekdayHeaderRow() }
         item { CalendarGrid(viewModel) }
     }
 
@@ -92,36 +127,300 @@ fun ShiftsScreen(
             }
         }
     }
+
+    if (shiftTypesSheetOpen) {
+        ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
+    }
 }
 
+// Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
+// soft brand-purple glow shadow, and a green-gradient progress fill
+// (.salary-bar-fill) rather than the theme's purple — same treatment
+// FinanceScreen's HeroBalanceCard got in step 38.
 @Composable
 private fun HeroMetric(earned: Double) {
-    Card(Modifier.fillMaxWidth()) {
+    val shape = MaterialTheme.shapes.large
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp,
+                shape = shape,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+            )
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
+    ) {
         Column(Modifier.padding(20.dp)) {
             Text("Зароблено цього місяця", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${formatMoney(earned)} грн", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
-            val pct = (earned / SALARY_GOAL * 100).coerceIn(0.0, 100.0)
-            LinearProgressIndicator(progress = { (pct / 100).toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
-            Text("${pct.toInt()}% від цілі ${formatMoney(SALARY_GOAL)} грн", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+            val pct = (earned / SALARY_GOAL).coerceIn(0.0, 1.0)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(pct.toFloat())
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
+                )
+            }
+            Text(
+                "${(pct * 100).toInt()}% від цілі ${formatMoney(SALARY_GOAL)} грн",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+// Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
+// purple-gradient icon badge, not a plain Card — same default gradient every
+// chip-stat-icon gets in index.html regardless of what it's showing.
+@Composable
+private fun ChipStats(stats: ShiftsViewModel.MonthStats) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatChip(Icons.Filled.Schedule, stats.hours.toInt().toString(), "год", Modifier.weight(1f))
+        StatChip(Icons.Filled.EventAvailable, stats.shiftsCount.toString(), "Змін", Modifier.weight(1f))
+        StatChip(Icons.Filled.BeachAccess, stats.offCount.toString(), "Вихідних", Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun StatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, value: String, label: String, modifier: Modifier) {
+    Card(modifier, shape = RoundedCornerShape(999.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+            }
+            Column(Modifier.padding(start = 9.dp)) {
+                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+// Matches the PWA's .chart-section card + .chart-bars single-series bar
+// chart (js/calendar.js's renderIncomeChart()) — current month solid purple,
+// the other 5 faded purple, mirroring var(--purple)/rgba(139,92,246,.35).
+@Composable
+private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
+    Card(shape = RoundedCornerShape(24.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                Text(
+                    "Динаміка заробітку — 6 місяців",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 7.dp),
+                )
+            }
+            val maxVal = (months.maxOfOrNull { it.earned } ?: 0.0).coerceAtLeast(1.0)
+            val curYm = YearMonth.now()
+            val purple = MaterialTheme.colorScheme.primary
+            Row(Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
+                months.forEach { m ->
+                    val isCur = m.yearMonth == curYm
+                    val heightFraction = (m.earned / maxVal).coerceIn(0.0, 1.0).toFloat().coerceAtLeast(0.02f)
+                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(heightFraction)
+                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
+                                .background(if (isCur) purple else purple.copy(alpha = 0.35f)),
+                        )
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                months.forEach { m ->
+                    val isCur = m.yearMonth == curYm
+                    Text(
+                        m.label,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isCur) FontWeight.Black else FontWeight.Bold,
+                        color = if (isCur) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Matches the PWA's #tools-panel-body: collapsed by default (js/calendar.js's
+// toggleQuickFill()), a labeled toggle button with a rotating chevron.
+@Composable
+private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = vm::toggleQuickFillExpanded),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Filled.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
+            Text(
+                "Швидке заповнення",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 6.dp).weight(1f),
+            )
+            val rotation by androidx.compose.animation.core.animateFloatAsState(if (vm.quickFillExpanded) 180f else 0f, label = "chevron")
+            Icon(
+                Icons.Filled.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp).rotate(rotation),
+            )
+        }
+        AnimatedVisibility(visible = vm.quickFillExpanded) {
+            Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                LabeledDropdown(
+                    label = "Тип зміни",
+                    options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
+                    selected = vm.templateTypeId,
+                    onSelect = vm::setTemplateType,
+                )
+                LabeledDropdown(
+                    label = "Періодичність",
+                    options = SHIFT_PATTERN_LABELS.entries.map { it.key to it.value },
+                    selected = vm.templatePattern,
+                    onSelect = vm::onTemplatePatternChanged,
+                )
+                androidx.compose.material3.Button(onClick = vm::applyTemplate, modifier = Modifier.fillMaxWidth()) {
+                    Text("Застосувати")
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.Style, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text("Типи змін", modifier = Modifier.padding(start = 6.dp))
+                    }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = vm::clearCurrentMonth,
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Text("Очистити місяць")
+                    }
+                }
+
+                androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 4.dp))
+
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Автозаповнення кожного дня", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled)
+                }
+                AnimatedVisibility(visible = vm.autoFillSchedule.enabled) {
+                    Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        LabeledDropdown(
+                            label = "Тип зміни",
+                            options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
+                            selected = vm.autoFillDraftTypeId,
+                            onSelect = vm::setAutoFillDraftType,
+                        )
+                        LabeledDropdown(
+                            label = "Періодичність",
+                            options = SHIFT_PATTERN_LABELS.entries.map { it.key to it.value },
+                            selected = vm.autoFillDraftPattern,
+                            onSelect = vm::onAutoFillDraftPatternChanged,
+                        )
+                        OutlinedTextField(
+                            value = vm.autoFillDraftAnchorDate,
+                            onValueChange = vm::onAutoFillDraftAnchorDateChanged,
+                            label = { Text("Перша робоча зміна від") },
+                            placeholder = { Text("yyyy-MM-dd") },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.material3.Button(onClick = vm::saveAutoFillConfig, modifier = Modifier.fillMaxWidth()) {
+                            Text("Зберегти")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, selected: String?, onSelect: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    Column {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = selectedLabel,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (id, name) ->
+                    DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); expanded = false })
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ChipStats(stats: ShiftsViewModel.MonthStats) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(stats.hours.toInt().toString(), "год", Modifier.weight(1f))
-        StatChip(stats.shiftsCount.toString(), "Змін", Modifier.weight(1f))
-        StatChip(stats.offCount.toString(), "Вихідних", Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun StatChip(value: String, label: String, modifier: Modifier) {
-    Card(modifier) {
-        Column(Modifier.padding(12.dp)) {
-            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            }
+            Text(
+                "Ще немає змін цього місяця",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            Text(
+                "Додай зміни вручну, натиснувши на день, або скористайся швидким заповненням.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            androidx.compose.material3.Button(onClick = onQuickFill, modifier = Modifier.padding(top = 14.dp)) {
+                Icon(Icons.Filled.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text("Швидке заповнення", modifier = Modifier.padding(start = 6.dp))
+            }
         }
     }
 }
@@ -131,23 +430,50 @@ private fun LegendRow(types: List<ShiftType>) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items(types) { type ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.height(8.dp).aspectRatio(1f).clip(CircleShape).background(Color(type.colorHex)))
-                Text(type.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 4.dp))
+                Box(
+                    Modifier
+                        .size(10.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(type.colorHex).copy(alpha = 0.25f))
+                        .border(1.dp, Color(type.colorHex).copy(alpha = 0.6f), RoundedCornerShape(4.dp)),
+                )
+                Text(type.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 6.dp))
             }
+        }
+    }
+}
+
+private val WEEKDAYS = listOf("ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД")
+
+@Composable
+private fun WeekdayHeaderRow() {
+    Row(Modifier.fillMaxWidth()) {
+        WEEKDAYS.forEachIndexed { i, d ->
+            Text(
+                d,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = if (i >= 5) MaterialTheme.colorScheme.error.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
 
 @Composable
 private fun MonthNav(viewModel: ShiftsViewModel) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = null) }
-        val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, Locale.Builder().setLanguage("uk").build()) + " " + viewModel.visibleMonth.year
-        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Row {
-            TextButton(onClick = viewModel::goToToday) { Text("Сьогодні") }
-            IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = null) }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = null) }
+            val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, Locale.Builder().setLanguage("uk").build()) + " " + viewModel.visibleMonth.year
+            Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = viewModel::goToToday) { Text("Сьогодні") }
+                IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = null) }
+            }
         }
+        Text("Натисни на день щоб редагувати зміни", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -160,7 +486,7 @@ private fun CalendarGrid(viewModel: ShiftsViewModel) {
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
-        modifier = Modifier.fillMaxWidth().height(((daysInMonth + firstDayOffset + 6) / 7 * 64).dp),
+        modifier = Modifier.fillMaxWidth().height(((daysInMonth + firstDayOffset + 6) / 7 * 80).dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -170,29 +496,50 @@ private fun CalendarGrid(viewModel: ShiftsViewModel) {
             val dateKey = "%04d-%02d-%02d".format(month.year, month.monthValue, day)
             val assigned = viewModel.shiftsFor(dateKey)
             val isToday = dateKey == todayKey
-            DayCell(day = day, assigned = assigned, isToday = isToday, onClick = { viewModel.openDayModal(dateKey) })
+            val dow = (firstDayOffset + index) % 7
+            val isWeekend = dow >= 5
+            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = isWeekend, onClick = { viewModel.openDayModal(dateKey) })
         }
     }
 }
 
 @Composable
-private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, onClick: () -> Unit) {
+private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, onClick: () -> Unit) {
+    val bg = when {
+        isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
+        assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
+        isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.03f)
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val borderColor = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     Column(
         modifier = Modifier
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (isToday) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
+            .aspectRatio(0.82f)
+            .clip(RoundedCornerShape(14.dp))
+            .background(bg)
+            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Text(day.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-        assigned.take(2).forEach { type ->
-            Text(
-                type.code,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(type.colorHex),
-                fontWeight = FontWeight.Bold,
-            )
+        Text(
+            day.toString(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (isToday) FontWeight.Black else FontWeight.SemiBold,
+            color = if (isWeekend) MaterialTheme.colorScheme.error.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            assigned.take(2).forEach { type ->
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(7.dp))
+                        .background(Color(type.colorHex).copy(alpha = 0.22f))
+                        .border(1.dp, Color(type.colorHex).copy(alpha = 0.55f), RoundedCornerShape(7.dp))
+                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                ) {
+                    Text(type.code, style = MaterialTheme.typography.labelSmall, color = Color(type.colorHex), fontWeight = FontWeight.Black)
+                }
+            }
         }
     }
 }

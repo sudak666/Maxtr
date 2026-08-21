@@ -23,6 +23,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
         app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid, profileId)
         app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
+        app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
@@ -35,6 +36,12 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.shoppingSyncRepository.syncShoppingListOnSignIn(uid, profileId)
         app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
         app.financeRepository.processRecurring()
+        // Same "run the day-by-day catch-up once per cold sync" treatment as
+        // processRecurring() above — the PWA re-checks on every visibility
+        // change + a 5-minute interval (js/app-init.js), which this app has
+        // no equivalent long-lived-tab lifecycle for; once per sign-in/
+        // profile-switch is the honest Android analog, not a silent gap.
+        app.shiftsRepository.processAutoFillShifts()
     }
 
     // Called once from MainActivity's sign-in LaunchedEffect — resolves

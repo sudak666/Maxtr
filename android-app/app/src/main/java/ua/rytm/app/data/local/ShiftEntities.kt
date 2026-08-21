@@ -70,6 +70,35 @@ interface ShiftTypeDao {
     suspend fun count(): Int
 }
 
+// Single-row config table (fixed id=0) mirroring js/state.js's
+// AppState.autoFillSchedule — {enabled, typeId, pattern, anchorDate}, the
+// one field of the `shifts` Firestore doc that step 8 deliberately left
+// unimplemented ("chesno not done"). anchorDate is stored as "yyyy-MM-dd"
+// text, same string format the rest of this table's dateKey columns use.
+@Entity(tableName = "autofill_schedule")
+data class AutoFillScheduleEntity(
+    @PrimaryKey val id: Int = 0,
+    val enabled: Boolean,
+    val typeId: String,
+    val pattern: String,
+    val anchorDate: String,
+)
+
+@Dao
+interface AutoFillScheduleDao {
+    @Query("SELECT * FROM autofill_schedule WHERE id = 0")
+    fun observe(): Flow<AutoFillScheduleEntity?>
+
+    @Query("SELECT * FROM autofill_schedule WHERE id = 0")
+    suspend fun getOnce(): AutoFillScheduleEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: AutoFillScheduleEntity)
+
+    @Query("DELETE FROM autofill_schedule")
+    suspend fun clearAll()
+}
+
 @Dao
 interface ShiftDayDao {
     @Query("SELECT * FROM shift_days")
@@ -106,4 +135,24 @@ interface ShiftDayDao {
         deleteForDate(dateKey)
         insertAll(shiftTypeIds.map { ShiftDayEntity(dateKey, it) })
     }
+
+    // "yyyy-MM-" prefix match — mirrors js/calendar.js's clearCurrentMonth()/
+    // applyTemplate() (`Object.keys(AppState.shifts).forEach(k=>{if(k.startsWith(p))...`).
+    @Query("DELETE FROM shift_days WHERE dateKey LIKE :monthPrefix || '%'")
+    suspend fun deleteForMonth(monthPrefix: String)
+
+    // Quick-fill's "Застосувати": wipe the visible month, then write the
+    // pattern-generated set in one transaction — mirrors applyTemplate()'s
+    // own clear-then-fill shape.
+    @Transaction
+    suspend fun applyTemplate(monthPrefix: String, days: List<ShiftDayEntity>) {
+        deleteForMonth(monthPrefix)
+        insertAll(days)
+    }
+
+    // Autofill only ever fills a day that has NO existing assignment
+    // (js/calendar.js's processAutoFillShifts(): `if(!AppState.shifts[key])`)
+    // — never overwrites a day the user already edited by hand.
+    @Query("SELECT DISTINCT dateKey FROM shift_days")
+    suspend fun getAllAssignedDateKeys(): List<String>
 }
