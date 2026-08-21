@@ -40,14 +40,19 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // own default profile) and loads it. Sample-data seeding stays here,
     // unconditional/idempotent exactly as it always was (each seedIfEmpty()
     // only acts on a genuinely empty table) — this is the one real "first
-    // launch ever" path, unlike switchProfile() below.
+    // launch ever" path, unlike switchProfile() below. `dataOwnerUid`
+    // (step 32) resolves to the sharer's uid when the last-active profile is
+    // a joined shared one, else the signed-in account's own uid — every
+    // Firestore path built downstream (users/{dataOwnerUid}/max_tracker/...)
+    // needs this, not the signed-in uid, to actually reach the shared data.
     suspend fun loadOnSignIn(uid: String): String {
         val profileId = app.activeProfileStore.getActiveProfileId(uid)
+        val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
         app.financeRepository.seedIfEmpty()
         app.shiftsRepository.seedIfEmpty()
         app.shoppingRepository.seedIfEmpty()
         app.debtRepository.seedIfEmpty()
-        syncAllDomains(uid, profileId)
+        syncAllDomains(dataOwnerUid, profileId)
         return profileId
     }
 
@@ -58,10 +63,13 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // demo wallets/transactions pushed to Firestore as if they were real
     // content for that profile (a mistake unique to profile-switching: the
     // very first sync call's "no remote doc yet -> push local as seed"
-    // branch would otherwise fire against genuinely fake data).
-    suspend fun switchProfile(uid: String, newProfileId: String) {
+    // branch would otherwise fire against genuinely fake data). `dataOwnerUid`
+    // (step 32) is non-null when switching into a shared profile someone
+    // else owns — persisted via ActiveProfileStore.setActiveProfile() so a
+    // restart resolves the same owner without a second profiles_meta lookup.
+    suspend fun switchProfile(uid: String, newProfileId: String, dataOwnerUid: String? = null) {
         app.database.clearAllProfileScopedTables()
-        app.activeProfileStore.setActiveProfileId(uid, newProfileId)
-        syncAllDomains(uid, newProfileId)
+        app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
+        syncAllDomains(dataOwnerUid ?: uid, newProfileId)
     }
 }
