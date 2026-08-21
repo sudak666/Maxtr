@@ -14,6 +14,7 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.data.RedeemInviteResult
+import ua.rytm.app.data.SharedMemberInfo
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()):
 // addProfile()/renameProfile()/deleteProfile()/switchProfile() for this
@@ -72,6 +73,17 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
     var sharing by mutableStateOf(false)
         private set
     var joining by mutableStateOf(false)
+        private set
+
+    // The own profile whose "Учасники" (members) manager is currently
+    // open, or null when closed — mirrors js/color-picker.js's
+    // currentManagedMembersProfileId (a module-level var there since the
+    // PWA's modal isn't view-model-scoped).
+    var managingMembersFor by mutableStateOf<ProfileMeta?>(null)
+        private set
+    var members by mutableStateOf<SharedMemberInfo?>(null)
+        private set
+    var membersLoading by mutableStateOf(false)
         private set
 
     init {
@@ -250,4 +262,48 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
     }
 
     fun consumeError() { errorMessage = null }
+
+    // Mirrors js/color-picker.js's openSharedMembersManagerUI()/
+    // renderSharedMembersList() — owner-only UI (only ever offered on one
+    // of this account's own, non-shared rows). Loads (or reloads, after a
+    // role change) the current member/role list.
+    fun openMembersManager(profile: ProfileMeta) {
+        if (profile.isShared) return
+        managingMembersFor = profile
+        reloadMembers()
+    }
+
+    fun closeMembersManager() {
+        managingMembersFor = null
+        members = null
+    }
+
+    private fun reloadMembers() {
+        val profile = managingMembersFor ?: return
+        viewModelScope.launch {
+            membersLoading = true
+            try {
+                members = app.profilesRepository.listSharedMembers(uid, profile.id)
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося завантажити учасників"
+            } finally {
+                membersLoading = false
+            }
+        }
+    }
+
+    // Mirrors js/color-picker.js's toggleMemberRoleUI(): flips
+    // editor<->viewer, same as the PWA offers no third state.
+    fun toggleMemberRole(memberUid: String, currentRole: String) {
+        val profile = managingMembersFor ?: return
+        val nextRole = if (currentRole == "viewer") "editor" else "viewer"
+        viewModelScope.launch {
+            try {
+                app.profilesRepository.setMemberRole(uid, profile.id, memberUid, nextRole)
+                reloadMembers()
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося змінити роль"
+            }
+        }
+    }
 }
