@@ -1,8 +1,24 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
+}
+
+// Release signing reads from a local, gitignored keystore.properties (see
+// .gitignore) so the real keystore path/passwords never touch source
+// control or an agent's own context — copy keystore.properties.example to
+// keystore.properties and fill in the real values yourself. This is the
+// SAME upload key the old TWA build (published to Play's Closed testing
+// track, package ua.rytm.app, 2026-07-29) was already signed with — Play
+// requires every new upload for an existing package to share that same
+// upload-key lineage, so the native app can only replace it, not use a
+// fresh key.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
 
 android {
@@ -13,7 +29,10 @@ android {
         applicationId = "ua.rytm.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
+        // Bumped past the TWA build's own versionCode 1 (2026-07-29 Closed
+        // testing release) — Play rejects an upload whose versionCode
+        // doesn't strictly increase over the package's last one, TWA or not.
+        versionCode = 2
         versionName = "1.0"
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
@@ -26,10 +45,27 @@ android {
         buildConfigField("boolean", "USE_FIREBASE_EMULATOR", (project.findProperty("useFirebaseEmulator") == "true").toString())
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Only wired up once keystore.properties exists locally (see its
+            // own doc comment above) — an unsigned/local-only release build
+            // still works for `bundleRelease` without it, it just won't
+            // produce something Play will accept as an update to the
+            // existing package.
+            if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.getByName("release")
         }
     }
 
