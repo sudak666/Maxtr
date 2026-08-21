@@ -523,6 +523,32 @@ PWA використовує кастомні tinted-purple тіні (`--shadow-
 
 `./gradlew assembleDebug` (звичайна збірка, без емулятор-прапора) — успішно, окремо перевірено з `-PuseFirebaseEmulator=true` для наскрізного sync/матеріалізація-тесту вище.
 
+## Крок 27 — Push-сповіщення: реальний FCM-клієнт (реєстрація токена + прийом + Settings-тумблер) (зроблено, реально перевірено наскрізь)
+
+Перший крок цієї серії, узятий не з "просто ще один PWA-домен на порт", а з продуктового аналізу: `com.google.firebase:firebase-messaging` вже стояв у `build.gradle.kts` (додано ще на кроці 12, невикористаний відтоді), і `functions/index.js`'s `sendPush()`/`notificationSweep` вже повністю готові й розгорнуті на сервері — реальна прогалина була суто клієнтська, приймати вже наявний потік пушів не було кому.
+
+**Продуктове рішення, прийняте свідомо, не скопійоване з PWA 1:1**: PWA-шний тумблер "Push" керує лише самим FCM-токеном (`push_tokens/{uid}`) — три типи сповіщень (`notifSettings.enabled`/`budgetAlerts`/`recurringAlerts`/`debtAlerts`) вмикаються окремими тумблерами, яких на Android ще немає. Токен-only тумблер на Android виглядав би робочим (дозвіл надано, перемикач "увімкнено"), але реально нічого б не надсилав — усі ці прапори за замовчуванням `false` на сервері (`functions/lib/sweep.js`, підтверджено читанням). Замість мовчазно неробочої фічі або повноцінного grangular-UI (час нагадування + 4 окремих тумблери — значно ширший скоуп), обрано середній, чесно розкритий варіант: **один тумблер "Push-сповіщення"**, який одночасно (1) реєструє/знімає FCM-токен і (2) вмикає/вимикає всі 4 серверні прапори одразу (з дефолтним часом 21:00, як і в PWA) — підпис рядка в Settings прямо називає, що саме він охоплює. Гранулярний UI з піротсінком часу лишається окремим, розкритим наступним кроком.
+
+**`PushRepository`** (`data/PushRepository.kt`): `enable(uid)` — `FirebaseMessaging.getInstance().token` → `push_tokens/{uid}` (`{token, updatedAt}`, точна форма, яку вже валідує `firestore.rules`) + `finance.notifSettings` (`{enabled:true, time:'21:00', budgetAlerts:true, recurringAlerts:true, debtAlerts:true, timeZone:TimeZone.getDefault().id}`), обидва через `SetOptions.merge()`. `disable(uid)` — видаляє `push_tokens/{uid}` документ повністю + скидає всі 4 прапори `notifSettings` на `false` (час/timeZone лишає — нешкідливо). `updateToken(uid, token)` — викликається з `onNewToken()`, оновлює лише токен, не чіпає `notifSettings` (ротація токена — не переопт-ін).
+
+**`RytmMessagingService`** (`push/RytmMessagingService.kt`, `FirebaseMessagingService`): приймає ті самі повідомлення, що `functions/index.js`'s `sendPush()` вже шле в PWA (жодної серверної зміни не знадобилось) — `{notification:{title,body}, webpush:{...}}` без `android`-специфічного блоку, тож у фоні система сама показує сповіщення дефолтною іконкою/каналом застосунку (meta-data в `AndroidManifest.xml`), а `onMessageReceived()` спрацьовує лише на передньому плані (те саме правило доставки Android для `notification`-повідомлень) — мірорить `js/notifications.js`'s `onMessage()`, який існує рівно для цього ж foreground-кейсу.
+
+**Реальна іконка, не заглушка**: `res/drawable/ic_notification.xml` — той самий bell-гліф з `ICON_PATHS.bell` (`js/classic-globals.js`, Material Symbols, viewBox `0 -960 960 960`), перенесений у VectorDrawable через `<group android:translateY="960">` (viewport не може починатись з від'ємної координати) — суцільний білий силует, той самий принцип, що й `badge-96.png` на PWA-стороні (Android малює статус-бар-іконку лише за альфа-каналом/білим силуетом, кольоровий/непрозорий вигляд зламав би її, той самий клас гочі, що вже задокументований у CLAUDE.md для web push).
+
+**UI**: нова секція "Сповіщення" в Settings (між "Безпека" і "Вигляд") з одним `Switch`-рядком (`SettingsToggleRow`, новий локальний composable поруч із уже наявним `SettingsRow`). `SettingsScreen` отримав власний `Scaffold`+`SnackbarHostState` (той самий патерн, що вже в `FinanceScreen`) для toast-еквівалентів "увімкнено"/"вимкнено"/помилка. Стан тумблера — `SettingsStore.isPushEnabled(uid)`/`setPushEnabled()`, той самий uid-prefixed-ключ-у-спільному-DataStore патерн, що й `PinStore` (друге локальне джерело правди лише для checked-стану UI; Firestore лишається джерелом правди для того, чи реально щось надсилається).
+
+**Runtime-дозвіл (Android 13+)**: `POST_NOTIFICATIONS` запитується лише за потреби (`Build.VERSION.SDK_INT>=33`, перевірено `ContextCompat.checkSelfPermission`) через `rememberLauncherForActivityResult(RequestPermission())` — на відмову показує snackbar, не мовчить.
+
+**Перевірено наскрізь на реальному емуляторі (Firestore-емулятор для даних, справжній FCM/Google Play Services на AVD — токен реальний, не заглушка)**:
+1. **Дозвіл**: увімкнув тумблер → реально з'явився системний діалог "Allow Rytm to send you notifications?" → "Allow".
+2. **Enable**: тумблер зафарбувався, snackbar "Push-сповіщення увімкнено" → `push_tokens/{uid}` реально отримав `{token:"fpoiyf-...", updatedAt}` (справжній FCM-токен) → `finance.notifSettings` реально отримав `{enabled:true, budgetAlerts:true, recurringAlerts:true, debtAlerts:true, time:"21:00", timeZone:"GMT"}` — точний збіг з очікуваним.
+3. **Disable**: тумблер вимкнувся, snackbar "Push-сповіщення вимкнено" → `push_tokens/{uid}` документ реально видалений (порожній результат запиту) → `notifSettings`'s 4 прапори реально скинуті на `false` (час/timeZone лишились).
+4. **Персистентність стану**: force-stop + релонч → тумблер реально показав той самий OFF-стан (DataStore пережив перезапуск процесу).
+
+`./gradlew assembleDebug` (звичайна збірка) — успішно; окремо з `-PuseFirebaseEmulator=true` для наскрізного тесту вище.
+
+**Свідомо не в цьому кроці**: гранулярні тумблери (нагадування з піротсінком часу окремо від бюджету/регулярних/розрахунків) — розкрита прогалина, описана вище. Реальна доставка фонового пуша (коли `onMessageReceived()` НЕ спрацьовує, а систему сама малює сповіщення) не перевірялась живим FCM-надсиланням із сервера — лише клієнтська реєстрація/UI-логіка; підтвердження живого end-to-end пуша (`notificationSweep` реально будить заснулий Android-пристрій) лишається на майбутнє, коли буде реальний привід (наприклад, реальний бюджет-експірад на тестовому акаунті).
+
 ## Наступні кроки
 
-Далі: categoryIcons (чисто оздоблення) чи решта Settings (мова/Push/профілі)? Працюю строго покроково.
+Далі: categoryIcons (чисто оздоблення), гранулярні Push-налаштування (час нагадування + окремі тумблери), чи профілі? Працюю строго покроково.
