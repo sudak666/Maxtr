@@ -13,11 +13,16 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import ua.rytm.app.RytmApplication
+import ua.rytm.app.data.local.clearAllProfileScopedTables
 
 // Google Sign-In is the primary path here too (matches the PWA's
 // `.auth-google.btn-primary` convention — see CLAUDE.md's Auth section),
@@ -57,23 +62,33 @@ class AuthViewModel : ViewModel() {
         auth.removeAuthStateListener(authStateListener)
     }
 
+    // Shared by signInWithGoogle() and reauthenticateWithGoogle() (needed
+    // before deleteAccount() on a session Firebase considers stale — see
+    // that function's own doc comment) — both just want a fresh Google
+    // AuthCredential via Credential Manager, they differ only in what they
+    // do with it afterward.
+    private suspend fun fetchGoogleCredential(context: Context): AuthCredential? {
+        val credentialManager = CredentialManager.create(context)
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(WEB_CLIENT_ID)
+            .build()
+        val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
+        val result = credentialManager.getCredential(context, request)
+        val credential = result.credential
+        if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) return null
+        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+        return GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+    }
+
     fun signInWithGoogle(context: Context) {
         if (isSigningIn) return
         isSigningIn = true
         viewModelScope.launch {
             try {
-                val credentialManager = CredentialManager.create(context)
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(WEB_CLIENT_ID)
-                    .build()
-                val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
-                val result = credentialManager.getCredential(context, request)
-                val credential = result.credential
-                if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                    val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
-                    auth.signInWithCredential(firebaseCredential).await()
+                val credential = fetchGoogleCredential(context)
+                if (credential != null) {
+                    auth.signInWithCredential(credential).await()
                 } else {
                     errorMessage = "Не вдалося отримати обліковий запис Google"
                 }
@@ -91,6 +106,71 @@ class AuthViewModel : ViewModel() {
 
     fun signOut() {
         auth.signOut()
+    }
+
+    var isDeletingAccount by mutableStateOf(false)
+        private set
+
+    // Mirrors js/auth.js's deleteAccountUser(): delete this account's own
+    // (default-profile) Firestore data, then the Firebase Auth account
+    // itself, then wipe local caches. Same disclosed scope simplification
+    // as the PWA — a secondary @profileId-suffixed doc, or shared_members/
+    // profile_invites references, are left behind as harmless orphans under
+    // a uid nobody can ever sign back into (see CLAUDE.md's Multiple
+    // profiles / Shared profiles sections for why the PWA itself doesn't
+    // clean those up either).
+    fun deleteAccount(context: Context) {
+        val user = auth.currentUser ?: return
+        if (isDeletingAccount) return
+        isDeletingAccount = true
+        val uid = user.uid
+        viewModelScope.launch {
+            val db = FirebaseFirestore.getInstance()
+            try {
+                val profileCol = db.collection("users").document(uid).collection("max_tracker")
+                val txSnap = profileCol.document("finance").collection("transactions").get().await()
+                if (txSnap.documents.isNotEmpty()) {
+                    val batch = db.batch()
+                    txSnap.documents.forEach { batch.delete(it.reference) }
+                    batch.commit().await()
+                }
+                listOf("shifts", "finance", "debt").forEach { profileCol.document(it).delete().await() }
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося видалити дані"
+                isDeletingAccount = false
+                return@launch
+            }
+            try {
+                user.delete().await()
+            } catch (e: FirebaseAuthRecentLoginRequiredException) {
+                // Firebase requires a session newer than some threshold for
+                // account deletion specifically — the PWA hits the same
+                // auth/requires-recent-login error and re-authenticates
+                // in place before retrying, same shape here.
+                val credential = try { fetchGoogleCredential(context) } catch (e2: Exception) { null }
+                if (credential == null) {
+                    errorMessage = "Потрібен повторний вхід через Google для видалення акаунту"
+                    isDeletingAccount = false
+                    return@launch
+                }
+                try {
+                    user.reauthenticate(credential).await()
+                    user.delete().await()
+                } catch (e2: Exception) {
+                    errorMessage = "Не вдалося видалити акаунт"
+                    isDeletingAccount = false
+                    return@launch
+                }
+            } catch (e: Exception) {
+                errorMessage = "Не вдалося видалити акаунт"
+                isDeletingAccount = false
+                return@launch
+            }
+            val app = context.applicationContext as RytmApplication
+            app.pinStore.removePin(uid)
+            app.database.clearAllProfileScopedTables()
+            isDeletingAccount = false
+        }
     }
 
     // Only ever wired up behind BuildConfig.USE_FIREBASE_EMULATOR (see
