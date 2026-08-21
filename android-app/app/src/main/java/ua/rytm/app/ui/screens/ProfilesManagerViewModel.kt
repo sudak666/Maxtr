@@ -33,13 +33,31 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         private set
     var activeProfileId by mutableStateOf(DEFAULT_PROFILE_ID)
         private set
+    // Null for one of this account's own profiles. Needed alongside
+    // activeProfileId: a joined shared profile's id can collide with this
+    // account's own profile id (both "default" is the common case), so id
+    // alone can't tell which row is actually active — see isRowActive().
+    var activeProfileOwnerUid by mutableStateOf<String?>(null)
+        private set
     var loading by mutableStateOf(true)
         private set
     var switching by mutableStateOf(false)
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
-    var pendingSwitchId by mutableStateOf<String?>(null)
+    // The full ProfileMeta, not just its id — a bare id is ambiguous
+    // between a joined shared profile and this account's own profile when
+    // both happen to have the same id (the common "default"-vs-"default"
+    // case). A real bug caught during this step's own verification: an
+    // earlier version stored only the id and re-resolved it via
+    // `profiles.find { it.id == id }` in confirmSwitch(), which silently
+    // matched the wrong (own, not shared) profile and made a "switch to
+    // shared profile" look like it succeeded while actually never leaving
+    // the account's own data — see ANDROID_MIGRATION.md's step 32 for the
+    // full account of how this was caught (identical-looking demo data
+    // masked it at first, since a fresh account also seeds the same demo
+    // numbers locally).
+    var pendingSwitch by mutableStateOf<ProfileMeta?>(null)
         private set
     var pendingLeave by mutableStateOf<ProfileMeta?>(null)
         private set
@@ -58,8 +76,14 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
 
     init {
         app.activeProfileStore.activeProfileId(uid).onEach { activeProfileId = it }.launchIn(viewModelScope)
+        app.activeProfileStore.activeProfileOwnerUid(uid).onEach { activeProfileOwnerUid = it }.launchIn(viewModelScope)
         reload()
     }
+
+    // profile.id alone isn't a reliable identity check — see
+    // activeProfileOwnerUid's own doc comment.
+    fun isRowActive(profile: ProfileMeta): Boolean =
+        profile.id == activeProfileId && (if (profile.isShared) profile.ownerUid == activeProfileOwnerUid else activeProfileOwnerUid == null)
 
     // A real crash caught during this step's own verification, not a guess:
     // Firestore's DocumentReference.get() can throw
@@ -102,14 +126,19 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         }
     }
 
-    fun requestDelete(id: String) {
+    fun requestDelete(profile: ProfileMeta) {
         // Mirrors deleteProfile()'s own guards in js/color-picker.js — checked
         // here too (not just left to the UI hiding the button), same
         // "don't trust the caller" precedent as that PWA function's own
-        // comment states for the shared-profile split.
-        if (id == activeProfileId) { errorMessage = "Не можна видалити активний профіль"; return }
+        // comment states for the shared-profile split. Uses isRowActive(),
+        // not a bare id comparison — a joined shared profile's id can
+        // collide with this account's own profile id (see
+        // activeProfileOwnerUid's own doc comment), which would otherwise
+        // wrongly block deleting an own profile whose id happens to match
+        // whatever shared profile is currently active.
+        if (isRowActive(profile)) { errorMessage = "Не можна видалити активний профіль"; return }
         if (profiles.size <= 1) { errorMessage = "Має лишитись хоча б один профіль"; return }
-        pendingDeleteId = id
+        pendingDeleteId = profile.id
     }
 
     fun cancelDelete() { pendingDeleteId = null }
@@ -123,12 +152,12 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         }
     }
 
-    fun requestSwitch(id: String) {
-        if (id == activeProfileId || switching) return
-        pendingSwitchId = id
+    fun requestSwitch(profile: ProfileMeta) {
+        if (isRowActive(profile) || switching) return
+        pendingSwitch = profile
     }
 
-    fun cancelSwitch() { pendingSwitchId = null }
+    fun cancelSwitch() { pendingSwitch = null }
 
     // Returns only after the new profile's full cold-sync has actually
     // finished — the caller (ProfilesManagerSheet) awaits this before
@@ -142,12 +171,11 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
     // it regardless, so a failed switch showed a false success toast with
     // the error banner never actually seen.
     suspend fun confirmSwitch(): Boolean {
-        val id = pendingSwitchId ?: return false
-        pendingSwitchId = null
-        val target = profiles.find { it.id == id }
+        val target = pendingSwitch ?: return false
+        pendingSwitch = null
         switching = true
         return try {
-            app.profileSyncCoordinator.switchProfile(uid, id, target?.let { if (it.isShared) it.ownerUid else null })
+            app.profileSyncCoordinator.switchProfile(uid, target.id, if (target.isShared) target.ownerUid else null)
             true
         } catch (e: Exception) {
             errorMessage = "Не вдалося перемкнути профіль"
@@ -201,7 +229,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
 
     fun requestLeave(profile: ProfileMeta) {
         if (!profile.isShared) return
-        if (profile.id == activeProfileId) { errorMessage = "Спершу перемкніться на інший профіль"; return }
+        if (isRowActive(profile)) { errorMessage = "Спершу перемкніться на інший профіль"; return }
         pendingLeave = profile
     }
 

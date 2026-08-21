@@ -34,6 +34,13 @@ class ActiveProfileStore(private val context: Context) {
     fun activeProfileId(uid: String): Flow<String> =
         context.activeProfileDataStore.data.map { parseProfileId(it[key(uid)] ?: DEFAULT_PROFILE_ID) }
 
+    // Null for one of this account's own profiles — needed alongside
+    // activeProfileId() because a joined shared profile's id can collide
+    // with this account's own profile id (e.g. both are the owner-side
+    // "default" profile), so id alone can't tell two rows apart.
+    fun activeProfileOwnerUid(uid: String): Flow<String?> =
+        context.activeProfileDataStore.data.map { parseOwnerUid(it[key(uid)] ?: DEFAULT_PROFILE_ID) }
+
     suspend fun getActiveProfileId(uid: String): String =
         parseProfileId(context.activeProfileDataStore.data.first()[key(uid)] ?: DEFAULT_PROFILE_ID)
 
