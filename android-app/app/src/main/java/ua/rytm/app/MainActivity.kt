@@ -62,9 +62,17 @@ class MainActivity : FragmentActivity() {
                             app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid)
                             app.budgetsSyncRepository.syncBudgetsOnSignIn(uid)
                             app.tagsSyncRepository.syncTagsOnSignIn(uid)
+                            app.recurringSyncRepository.syncRecurringOnSignIn(uid)
                             app.transactionsSyncRepository.syncTransactionsOnSignIn(uid)
                             app.shoppingSyncRepository.syncShoppingListOnSignIn(uid)
                             app.debtSyncRepository.syncDebtsOnSignIn(uid)
+                            // Mirrors js/color-picker.js's fbLoadNow() calling
+                            // processRecurring() right after config/transactions load —
+                            // materializes any recurring entries whose nextDate has
+                            // fallen due into real transactions. Must run after both
+                            // the recurring AND the transactions/wallets sync above, or
+                            // it would compute against stale/empty local data.
+                            app.financeRepository.processRecurring()
                         }
 
                         // PIN re-lock gate, between Auth and the main nav — mirrors

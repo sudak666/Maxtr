@@ -10,6 +10,7 @@ import ua.rytm.app.data.DebtRepository
 import ua.rytm.app.data.DebtSyncRepository
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
+import ua.rytm.app.data.RecurringSyncRepository
 import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.ShiftsRepository
 import ua.rytm.app.data.ShiftsSyncRepository
@@ -64,4 +65,5 @@ class RytmApplication : Application() {
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
 }

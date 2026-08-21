@@ -1,7 +1,9 @@
 package ua.rytm.app.data
 
+import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.WalletEntity
+import ua.rytm.app.ui.screens.finance.Recurring
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import ua.rytm.app.ui.screens.finance.Wallet
@@ -40,4 +42,28 @@ fun Transaction.toEntity(createdAt: Long = System.currentTimeMillis()) = Transac
     comment = comment,
     tags = tags.joinToString(","),
     createdAt = createdAt,
+)
+
+fun RecurringEntity.toDomain() = Recurring(
+    id = id,
+    type = TxType.valueOf(type),
+    amount = amount,
+    category = category,
+    walletId = walletId,
+    frequency = frequency,
+    nextDate = nextDate,
+    active = active,
+    comment = comment,
+)
+
+fun Recurring.toEntity() = RecurringEntity(
+    id = id,
+    type = type.name,
+    amount = amount,
+    category = category,
+    walletId = walletId,
+    frequency = frequency,
+    nextDate = nextDate,
+    active = active,
+    comment = comment,
 )
