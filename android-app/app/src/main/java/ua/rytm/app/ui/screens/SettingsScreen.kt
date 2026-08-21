@@ -1,11 +1,14 @@
 package ua.rytm.app.ui.screens
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,25 +23,34 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -59,6 +71,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -107,10 +120,17 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var pinSheetOpen by remember { mutableStateOf(false) }
     var notifTypesSheetOpen by remember { mutableStateOf(false) }
     var profilesSheetOpen by remember { mutableStateOf(false) }
+    var pendingSignOut by remember { mutableStateOf(false) }
+    var premiumDialogOpen by remember { mutableStateOf(false) }
     var pendingDeleteAccount by remember { mutableStateOf(false) }
+    var pendingResetProfile by remember { mutableStateOf(false) }
+    var resetProfileBusy by remember { mutableStateOf(false) }
+    var settingsSearch by remember { mutableStateOf("") }
+    var settingsGroup by remember { mutableStateOf("all") }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
+    val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingMessage by remember { mutableStateOf<String?>(null) }
@@ -154,6 +174,17 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         if (needsRuntimePermission) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else applyPushEnabled(target)
     }
 
+    fun sectionVisible(group: String, vararg visibleTexts: String): Boolean {
+        if (settingsGroup != "all" && settingsGroup != group) return false
+        val query = settingsSearch.trim().lowercase()
+        return query.isEmpty() || visibleTexts.any { it.lowercase().contains(query) }
+    }
+
+    fun openExternalUrl(url: String) {
+        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+            .onFailure { pendingMessage = "Не вдалося відкрити посилання" }
+    }
+
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         // Real bug found during step 39's visual-parity pass: this Column had
         // no scroll modifier at all, so on a real device everything past
@@ -165,35 +196,99 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         ) {
             Text("Налаштування", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
 
-            SettingsSectionLabel("Акаунт")
-            SettingsGroupCard {
-                SettingsRow(
-                    icon = Icons.Filled.Groups,
-                    badgeColor = Color(0xFF525158),
-                    title = authViewModel.currentUser?.email ?: authViewModel.currentUser?.displayName ?: "Ваш акаунт",
-                    subtitle = "Натисніть, щоб вийти",
-                    onClick = authViewModel::signOut,
-                )
-                if (uid != null) {
-                    SettingsRow(
-                        icon = Icons.Filled.Groups,
-                        badgeColor = Color(0xFF06B6D4),
-                        title = "Профілі",
-                        subtitle = "Перемикання та керування профілями",
-                        onClick = { profilesSheetOpen = true },
-                    )
-                    SettingsRow(
-                        icon = Icons.Filled.DeleteForever,
-                        badgeColor = MaterialTheme.colorScheme.error,
-                        title = "Видалити акаунт",
-                        subtitle = "Незворотно видаляє ваші дані та обліковий запис",
-                        onClick = { pendingDeleteAccount = true },
-                        titleColor = MaterialTheme.colorScheme.error,
+            OutlinedTextField(
+                value = settingsSearch,
+                onValueChange = { settingsSearch = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = if (settingsSearch.isNotEmpty()) {
+                    {
+                        androidx.compose.material3.IconButton(onClick = { settingsSearch = "" }) {
+                            Icon(Icons.Filled.Clear, contentDescription = "Очистити пошук")
+                        }
+                    }
+                } else null,
+                placeholder = { Text("Пошук: гаманці, категорії, push…") },
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    "all" to "Усі",
+                    "account" to "Акаунт",
+                    "finance" to "Фінанси",
+                    "security" to "Безпека",
+                    "app" to "Вигляд",
+                ).forEach { (key, label) ->
+                    FilterChip(
+                        selected = settingsGroup == key,
+                        onClick = { settingsGroup = key },
+                        label = { Text(label) },
                     )
                 }
             }
 
-            if (uid != null) {
+            val accountVisible = sectionVisible("account", "Акаунт", "Вийти з акаунту", "Завершити сеанс на цьому пристрої", "Профілі", "Перемикання та керування профілями", "Преміум", "Безкоштовний план", "Скинути дані профілю", "Очистити дані та почати спочатку", "Видалити акаунт", "Незворотно видаляє ваші дані та обліковий запис", authViewModel.currentUser?.email.orEmpty())
+            val securityVisible = uid != null && sectionVisible("security", "Безпека", "PIN-код", "Захист застосунку кодом і біометрією")
+            val notificationsVisible = uid != null && sectionVisible("security", "Сповіщення", "Push-сповіщення", "Отримувати сповіщення на цьому пристрої", "Типи сповіщень", "Нагадування, бюджет, регулярні платежі, розрахунки")
+            val appearanceVisible = sectionVisible("app", "Вигляд", "Тема", "Світла", "Темна")
+            val aboutVisible = sectionVisible("app", "Про застосунок", "Веб-версія", "Відкрити Rytm у браузері", "Умови використання", "Правила користування застосунком", "Політика конфіденційності", "Як ми обробляємо твої дані", "Rytm — трекер змін, фінансів і розрахунків")
+            val financeVisible = sectionVisible("finance", "Фінанси", "Гаманці", "Картки, готівка та інші рахунки", "Категорії", "Власні категорії доходів і витрат", "Бюджети", "Місячні ліміти для категорій витрат", "Теги", "Мітки для операцій", "Регулярні платежі", "Автоматичне створення операцій за розкладом", "Типи змін", "Оплата, години та кольори для графіка змін")
+
+            if (accountVisible) {
+                SettingsSectionLabel("Акаунт")
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = Icons.Filled.Groups,
+                        badgeColor = Color(0xFF525158),
+                        title = "Вийти з акаунту",
+                        subtitle = "Завершити сеанс на цьому пристрої",
+                        onClick = { pendingSignOut = true },
+                    )
+                    if (uid != null) {
+                        SettingsRow(
+                            icon = Icons.Filled.Groups,
+                            badgeColor = Color(0xFF06B6D4),
+                            title = "Профілі",
+                            subtitle = "Перемикання та керування профілями",
+                            onClick = { profilesSheetOpen = true },
+                        )
+                        SettingsRow(
+                            icon = Icons.Filled.Star,
+                            badgeColor = Color(0xFFF59E0B),
+                            title = "Преміум",
+                            subtitle = "Безкоштовний план",
+                            onClick = { premiumDialogOpen = true },
+                        )
+                        SettingsRow(
+                            icon = Icons.Filled.DeleteForever,
+                            badgeColor = MaterialTheme.colorScheme.error,
+                            title = "Скинути дані профілю",
+                            subtitle = "Очистити дані та почати спочатку",
+                            onClick = {
+                                if (activeProfileOwnerUid != null) {
+                                    pendingMessage = "Не можна скинути спільний профіль"
+                                } else {
+                                    pendingResetProfile = true
+                                }
+                            },
+                            titleColor = MaterialTheme.colorScheme.error,
+                        )
+                        SettingsRow(
+                            icon = Icons.Filled.DeleteForever,
+                            badgeColor = MaterialTheme.colorScheme.error,
+                            title = "Видалити акаунт",
+                            subtitle = "Незворотно видаляє ваші дані та обліковий запис",
+                            onClick = { pendingDeleteAccount = true },
+                            titleColor = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+
+            if (securityVisible) {
                 SettingsSectionLabel("Безпека")
                 SettingsGroupCard {
                     SettingsRow(
@@ -205,6 +300,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                 }
 
+            }
+
+            if (notificationsVisible) {
                 SettingsSectionLabel("Сповіщення")
                 SettingsGroupCard {
                     SettingsToggleRow(
@@ -232,24 +330,60 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             }
 
-            SettingsSectionLabel("Вигляд")
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                SegmentedButton(
-                    selected = !darkTheme,
-                    onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
-                ) { Text("Світла") }
-                SegmentedButton(
-                    selected = darkTheme,
-                    onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                    icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
-                ) { Text("Темна") }
+            if (appearanceVisible) {
+                SettingsSectionLabel("Вигляд")
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    SegmentedButton(
+                        selected = !darkTheme,
+                        onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
+                    ) { Text("Світла") }
+                    SegmentedButton(
+                        selected = darkTheme,
+                        onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
+                    ) { Text("Темна") }
+                }
             }
 
-            SettingsSectionLabel("Фінанси")
-            SettingsGroupCard {
+            if (aboutVisible) {
+                SettingsSectionLabel("Про застосунок")
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = Icons.Filled.Language,
+                        badgeColor = Color(0xFF3B82F6),
+                        title = "Веб-версія",
+                        subtitle = "Відкрити Rytm у браузері",
+                        onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
+                    )
+                    SettingsRow(
+                        icon = Icons.Filled.Description,
+                        badgeColor = Color(0xFF8B5CF6),
+                        title = "Умови використання",
+                        subtitle = "Правила користування застосунком",
+                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/terms.html") },
+                    )
+                    SettingsRow(
+                        icon = Icons.Filled.PrivacyTip,
+                        badgeColor = Color(0xFF10B981),
+                        title = "Політика конфіденційності",
+                        subtitle = "Як ми обробляємо твої дані",
+                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/privacy.html") },
+                    )
+                }
+                Text(
+                    "Rytm — трекер змін, фінансів і розрахунків",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                )
+            }
+
+            if (financeVisible) {
+                SettingsSectionLabel("Фінанси")
+                SettingsGroupCard {
                 SettingsRow(
                     icon = Icons.Filled.AccountBalanceWallet,
                     badgeColor = Color(0xFF8B5CF6),
@@ -292,6 +426,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     subtitle = "Оплата, години та кольори для графіка змін",
                     onClick = { shiftTypesSheetOpen = true },
                 )
+                }
+            }
+            if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
+                    Text("Нічого не знайдено", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Спробуй інший пошуковий запит", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
@@ -360,10 +506,119 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             },
         )
     }
+    if (pendingSignOut) {
+        AlertDialog(
+            onDismissRequest = { pendingSignOut = false },
+            title = { Text("Вихід") },
+            text = { Text("Вийти з акаунту?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingSignOut = false
+                    authViewModel.signOut()
+                }) { Text("Вийти") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingSignOut = false }) { Text("Скасувати") }
+            },
+        )
+    }
+    if (premiumDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { premiumDialogOpen = false },
+            icon = {
+                Box(
+                    modifier = Modifier.size(52.dp).clip(CircleShape).background(
+                        Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFEC4899))),
+                    ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                }
+            },
+            title = { Text("Rytm Преміум", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:")
+                    PremiumPerkRow(
+                        icon = Icons.Filled.CheckCircle,
+                        color = Color(0xFF10B981),
+                        title = "Вже доступно безкоштовно",
+                        subtitle = "Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення",
+                    )
+                    PremiumPerkRow(
+                        icon = Icons.Filled.AccountBalanceWallet,
+                        color = Color(0xFFF59E0B),
+                        title = "Інтеграція з банками",
+                        subtitle = "Автоматичне підвантаження операцій — у розробці",
+                        badge = "СКОРО",
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { premiumDialogOpen = false }) { Text("Готово") }
+            },
+        )
+    }
+    if (pendingResetProfile && uid != null) {
+        AlertDialog(
+            onDismissRequest = { if (!resetProfileBusy) pendingResetProfile = false },
+            title = { Text("Почати спочатку?") },
+            text = {
+                if (resetProfileBusy) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        Text("Скидання даних…")
+                    }
+                } else {
+                    Text("Буде видалено графік змін, фінанси, покупки та розрахунки поточного профілю. Акаунт і сам профіль залишаться.")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !resetProfileBusy,
+                    onClick = {
+                        resetProfileBusy = true
+                        scope.launch {
+                            try {
+                                app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
+                                pendingResetProfile = false
+                                pendingMessage = "Дані профілю скинуто"
+                            } catch (_: Exception) {
+                                pendingMessage = "Не вдалося скинути дані профілю"
+                            } finally {
+                                resetProfileBusy = false
+                            }
+                        }
+                    },
+                ) { Text("Скинути", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(enabled = !resetProfileBusy, onClick = { pendingResetProfile = false }) { Text("Скасувати") }
+            },
+        )
+    }
     // The dialog above closes itself once the account is actually gone
     // (authViewModel.currentUser flips to null via the AuthStateListener,
     // which unmounts this whole screen behind the login screen) — no
     // explicit onSuccess callback needed.
+}
+
+@Composable
+private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subtitle: String, badge: String? = null) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        SettingsIconBadge(icon, color)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        badge?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = color)
+        }
+    }
 }
 
 @Composable

@@ -36,6 +36,17 @@ class ShiftsRepository(private val db: RytmDatabase) {
         }
     }
 
+    /** Exact no-data defaults from js/core.js DEFAULT_SHIFT_TYPES, not legacy/demo types. */
+    suspend fun seedFreshProfileDefaults() {
+        db.shiftTypeDao().insertAll(
+            listOf(
+                ShiftTypeEntity("st_day", "Денна зміна", "День", "Д", 0xFF3B82F6, 0.0, 8.0, false),
+                ShiftTypeEntity("st_night", "Нічна зміна", "Ніч", "Н", 0xFF8B5CF6, 0.0, 12.0, false),
+                ShiftTypeEntity("st_off", "Вихідний", "Вих", "В", 0xFFF59E0B, 0.0, 0.0, true),
+            ),
+        )
+    }
+
     suspend fun setShiftsForDay(dateKey: String, shiftTypeIds: List<String>) {
         db.shiftDayDao().setForDate(dateKey, shiftTypeIds)
     }

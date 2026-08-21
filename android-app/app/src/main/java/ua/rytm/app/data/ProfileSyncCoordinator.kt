@@ -1,5 +1,7 @@
 package ua.rytm.app.data
 
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 
@@ -80,5 +82,30 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.database.clearAllProfileScopedTables()
         app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
         syncAllDomains(dataOwnerUid ?: uid, newProfileId)
+    }
+
+    // Mirrors the PWA's resetProfileData(): deletes only the active own
+    // profile's data, keeps the Firebase account/profile metadata, clears the
+    // local cache, then recreates the same fresh defaults used on first launch.
+    // Shared ownership is rejected again here, not only by the UI.
+    suspend fun resetOwnProfile(uid: String, profileId: String, activeProfileOwnerUid: String?) {
+        require(activeProfileOwnerUid == null) { "Shared profiles cannot be reset" }
+        val profileCollection = FirebaseFirestore.getInstance()
+            .collection("users").document(uid).collection("max_tracker")
+        val financeRef = profileCollection.document(profileDocName("finance", profileId))
+        val transactions = financeRef.collection("transactions").get().await().documents
+        transactions.chunked(450).forEach { chunk ->
+            val batch = FirebaseFirestore.getInstance().batch()
+            chunk.forEach { batch.delete(it.reference) }
+            batch.commit().await()
+        }
+        listOf("shifts", "finance", "debt").forEach { baseName ->
+            profileCollection.document(profileDocName(baseName, profileId)).delete().await()
+        }
+
+        app.database.clearAllProfileScopedTables()
+        app.financeRepository.seedFreshProfileDefaults()
+        app.shiftsRepository.seedFreshProfileDefaults()
+        syncAllDomains(uid, profileId)
     }
 }
