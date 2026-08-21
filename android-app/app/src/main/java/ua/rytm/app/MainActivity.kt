@@ -36,43 +36,26 @@ class MainActivity : FragmentActivity() {
                     if (uid == null) {
                         LoginScreen(authViewModel)
                     } else {
-                        // One-time cold sync on sign-in — see FinanceSyncRepository's/
-                        // ShiftsSyncRepository's own doc comments for exactly what each
-                        // does and doesn't do (wallets + shift types only so far, no
-                        // continuous two-way sync yet).
+                        // One-time cold sync on sign-in, against whichever profile this
+                        // device was last active on (defaults to the account's own
+                        // default profile — see ActiveProfileStore) — see
+                        // ProfileSyncCoordinator for exactly what runs and in what order
+                        // (step 30 pulled this out of being inlined here directly, so an
+                        // in-session profile switch, see ProfilesManagerSheet, can reuse
+                        // the identical sequence instead of risking the two paths
+                        // drifting apart).
                         //
-                        // Real bug found verifying this against the Firestore emulator:
-                        // each domain's seedIfEmpty() only ever ran from its own
-                        // ViewModel.init, i.e. only once the user actually visited that
-                        // tab — a first-time sign-in landing on Finance (the start
-                        // destination) pushed real seed wallets but pushed an EMPTY
-                        // shiftTypes array, since ShiftsViewModel never got created.
-                        // seedIfEmpty() is idempotent (checks count()==0 first), so
-                        // calling it here for every synced domain before syncing is a
-                        // safe, correct fix — not just a workaround for this test.
+                        // Real bug found verifying this against the Firestore emulator
+                        // (still true after the step-30 extraction): each domain's
+                        // seedIfEmpty() only ever ran from its own ViewModel.init, i.e.
+                        // only once the user actually visited that tab — a first-time
+                        // sign-in landing on Finance (the start destination) pushed real
+                        // seed wallets but pushed an EMPTY shiftTypes array, since
+                        // ShiftsViewModel never got created. seedIfEmpty() is idempotent
+                        // (checks count()==0 first), so calling it for every synced
+                        // domain before syncing is a safe, correct fix.
                         LaunchedEffect(uid) {
-                            app.financeRepository.seedIfEmpty()
-                            app.shiftsRepository.seedIfEmpty()
-                            app.shoppingRepository.seedIfEmpty()
-                            app.debtRepository.seedIfEmpty()
-                            app.financeSyncRepository.syncWalletsOnSignIn(uid)
-                            app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid)
-                            app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid)
-                            app.categoriesSyncRepository.syncCategoriesOnSignIn(uid)
-                            app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid)
-                            app.budgetsSyncRepository.syncBudgetsOnSignIn(uid)
-                            app.tagsSyncRepository.syncTagsOnSignIn(uid)
-                            app.recurringSyncRepository.syncRecurringOnSignIn(uid)
-                            app.transactionsSyncRepository.syncTransactionsOnSignIn(uid)
-                            app.shoppingSyncRepository.syncShoppingListOnSignIn(uid)
-                            app.debtSyncRepository.syncDebtsOnSignIn(uid)
-                            // Mirrors js/color-picker.js's fbLoadNow() calling
-                            // processRecurring() right after config/transactions load —
-                            // materializes any recurring entries whose nextDate has
-                            // fallen due into real transactions. Must run after both
-                            // the recurring AND the transactions/wallets sync above, or
-                            // it would compute against stale/empty local data.
-                            app.financeRepository.processRecurring()
+                            app.profileSyncCoordinator.loadOnSignIn(uid)
                         }
 
                         // PIN re-lock gate, between Auth and the main nav — mirrors

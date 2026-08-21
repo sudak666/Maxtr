@@ -17,11 +17,11 @@ import ua.rytm.app.data.local.ShiftTypeEntity
 // setDoc(userDoc('shifts'), {data, shiftTypes, autoFillSchedule, updatedAt}).
 class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun shiftsDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("shifts")
+    private fun shiftsDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("shifts", profileId))
 
-    suspend fun syncShiftTypesOnSignIn(uid: String) {
-        val docRef = shiftsDocRef(uid)
+    suspend fun syncShiftTypesOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteTypes = snapshot.get("shiftTypes") as? List<*>
         if (snapshot.exists() && remoteTypes != null) {
@@ -44,8 +44,8 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
     // autoFillSchedule itself stays unsynced (chesno not done) — Android's
     // Shifts screen never implemented quick-fill/autofill at all (Step 8's
     // disclosed scope), so there's no local Room field to round-trip yet.
-    suspend fun syncShiftDaysOnSignIn(uid: String) {
-        val docRef = shiftsDocRef(uid)
+    suspend fun syncShiftDaysOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteData = snapshot.get("data") as? Map<*, *>
         if (snapshot.exists() && remoteData != null) {

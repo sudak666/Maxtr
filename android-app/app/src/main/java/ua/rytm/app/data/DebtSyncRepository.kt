@@ -30,11 +30,11 @@ import ua.rytm.app.data.local.RytmDatabase
 // repositories, not a hard requirement the way it is for `finance`.
 class DebtSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun debtDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("debt")
+    private fun debtDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("debt", profileId))
 
-    suspend fun syncDebtsOnSignIn(uid: String) {
-        val docRef = debtDocRef(uid)
+    suspend fun syncDebtsOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = debtDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val data = snapshot.get("data") as? Map<*, *>
         val remoteDebts = data?.get("debts") as? List<*>

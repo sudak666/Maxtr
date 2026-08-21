@@ -43,7 +43,8 @@ fun NotificationSettingsSheet(
     uid: String,
     repository: PushRepository,
     onDismiss: () -> Unit,
-    viewModel: NotificationSettingsViewModel = viewModel(factory = NotificationSettingsViewModel.factory(uid, repository)),
+    profileId: String = ua.rytm.app.data.DEFAULT_PROFILE_ID,
+    viewModel: NotificationSettingsViewModel = viewModel(factory = NotificationSettingsViewModel.factory(uid, repository, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

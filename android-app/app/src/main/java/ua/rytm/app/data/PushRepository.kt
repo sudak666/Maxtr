@@ -27,11 +27,11 @@ data class NotifSettings(
 // registered "wins"), not something introduced here.
 class PushRepository(private val firestore: FirebaseFirestore) {
 
-    private fun financeDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun financeDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
-    suspend fun getNotifSettings(uid: String): NotifSettings {
-        val snap = financeDocRef(uid).get().await()
+    suspend fun getNotifSettings(uid: String, profileId: String = DEFAULT_PROFILE_ID): NotifSettings {
+        val snap = financeDocRef(uid, profileId).get().await()
         @Suppress("UNCHECKED_CAST")
         val notif = snap.get("notifSettings") as? Map<String, Any?> ?: return NotifSettings()
         return NotifSettings(
@@ -61,30 +61,30 @@ class PushRepository(private val firestore: FirebaseFirestore) {
     // 4 alert types are meant to be independently togglable, exactly like
     // the PWA's own 4 separate checkboxes, and overwriting the whole map on
     // every toggle would silently reset the other 3.
-    suspend fun setDailyReminder(uid: String, enabled: Boolean, time: String) {
-        financeDocRef(uid).update(
+    suspend fun setDailyReminder(uid: String, enabled: Boolean, time: String, profileId: String = DEFAULT_PROFILE_ID) {
+        financeDocRef(uid, profileId).update(
             mapOf("notifSettings.enabled" to enabled, "notifSettings.time" to time, "notifSettings.timeZone" to TimeZone.getDefault().id, "updatedAt" to System.currentTimeMillis()),
         ).await()
     }
 
-    suspend fun setBudgetAlerts(uid: String, enabled: Boolean) {
-        financeDocRef(uid).update(mapOf("notifSettings.budgetAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
+    suspend fun setBudgetAlerts(uid: String, enabled: Boolean, profileId: String = DEFAULT_PROFILE_ID) {
+        financeDocRef(uid, profileId).update(mapOf("notifSettings.budgetAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
     }
 
-    suspend fun setRecurringAlerts(uid: String, enabled: Boolean) {
-        financeDocRef(uid).update(mapOf("notifSettings.recurringAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
+    suspend fun setRecurringAlerts(uid: String, enabled: Boolean, profileId: String = DEFAULT_PROFILE_ID) {
+        financeDocRef(uid, profileId).update(mapOf("notifSettings.recurringAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
     }
 
-    suspend fun setDebtAlerts(uid: String, enabled: Boolean) {
-        financeDocRef(uid).update(mapOf("notifSettings.debtAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
+    suspend fun setDebtAlerts(uid: String, enabled: Boolean, profileId: String = DEFAULT_PROFILE_ID) {
+        financeDocRef(uid, profileId).update(mapOf("notifSettings.debtAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
     }
 
-    suspend fun enable(uid: String) {
+    suspend fun enable(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         val token = FirebaseMessaging.getInstance().token.await()
         firestore.collection("push_tokens").document(uid)
             .set(mapOf("token" to token, "updatedAt" to System.currentTimeMillis()), SetOptions.merge())
             .await()
-        financeDocRef(uid).set(
+        financeDocRef(uid, profileId).set(
             mapOf(
                 "notifSettings" to mapOf(
                     "enabled" to true,
@@ -100,9 +100,9 @@ class PushRepository(private val firestore: FirebaseFirestore) {
         ).await()
     }
 
-    suspend fun disable(uid: String) {
+    suspend fun disable(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         firestore.collection("push_tokens").document(uid).delete().await()
-        financeDocRef(uid).set(
+        financeDocRef(uid, profileId).set(
             mapOf(
                 "notifSettings" to mapOf(
                     "enabled" to false,

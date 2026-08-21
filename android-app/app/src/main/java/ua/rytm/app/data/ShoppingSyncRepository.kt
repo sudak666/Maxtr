@@ -17,11 +17,11 @@ import ua.rytm.app.data.local.ShoppingItemEntity
 // other synced field on the shared `finance` doc.
 class ShoppingSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun financeDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun financeDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
-    suspend fun syncShoppingListOnSignIn(uid: String) {
-        val docRef = financeDocRef(uid)
+    suspend fun syncShoppingListOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteList = snapshot.get("shoppingList") as? List<*>
         if (snapshot.exists() && remoteList != null) {

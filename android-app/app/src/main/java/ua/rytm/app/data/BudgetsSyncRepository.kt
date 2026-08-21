@@ -16,11 +16,11 @@ import ua.rytm.app.data.local.RytmDatabase
 // synced field on the shared `finance` doc.
 class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun financeDocRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun financeDocRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
-    suspend fun syncBudgetsOnSignIn(uid: String) {
-        val docRef = financeDocRef(uid)
+    suspend fun syncBudgetsOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteBudgets = snapshot.get("budgets") as? Map<*, *>
         if (snapshot.exists() && remoteBudgets != null) {

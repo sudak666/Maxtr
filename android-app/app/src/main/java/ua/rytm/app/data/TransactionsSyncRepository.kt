@@ -23,12 +23,12 @@ import ua.rytm.app.data.local.TransactionEntity
 // Android has no Tag entity yet either).
 class TransactionsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
-    private fun txCollectionRef(uid: String) =
-        firestore.collection("users").document(uid).collection("max_tracker").document("finance")
+    private fun txCollectionRef(uid: String, profileId: String) =
+        firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
             .collection("transactions")
 
-    suspend fun syncTransactionsOnSignIn(uid: String) {
-        val colRef = txCollectionRef(uid)
+    suspend fun syncTransactionsOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        val colRef = txCollectionRef(uid, profileId)
         val snapshot = colRef.get().await()
         if (!snapshot.isEmpty) {
             // Remote wins on cold sign-in — same bootstrap direction as every other synced domain.

@@ -26,3 +26,29 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun tagDao(): TagDao
     abstract fun recurringDao(): RecurringDao
 }
+
+// Every local table this app persists is scoped to whichever profile was
+// last cold-synced — Room has no per-profile row-tagging (unlike Firestore's
+// per-doc-name suffixing, see ProfileDocNames.kt), so switching the active
+// profile means starting the local cache over: wipe every table, then let
+// the normal cold-sync sequence (MainActivity's LaunchedEffect, or
+// ProfileSwitcher for an in-session switch) repopulate it from the new
+// profile's own Firestore docs. Not run on every app launch — only when the
+// active profile actually changes, mirroring the PWA's switchProfile()
+// (fbSaveNow() the old profile, reassign activeProfileId, fbLoadNow() the
+// new one) minus the local read-through cache the PWA has and Android
+// doesn't.
+suspend fun RytmDatabase.clearAllProfileScopedTables() {
+    walletDao().clearAll()
+    transactionDao().clearAll()
+    shoppingDao().clearAll()
+    categoryDao().clearAll()
+    shiftTypeDao().clearAll()
+    shiftDayDao().clearAll()
+    debtDao().clearAll()
+    debtEntryDao().clearAll()
+    subcategoryDao().clearAll()
+    budgetDao().clearAll()
+    tagDao().clearAll()
+    recurringDao().clearAll()
+}

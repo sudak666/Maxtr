@@ -18,6 +18,9 @@ import ua.rytm.app.data.ShoppingRepository
 import ua.rytm.app.data.ShoppingSyncRepository
 import ua.rytm.app.data.TagsSyncRepository
 import ua.rytm.app.data.PushRepository
+import ua.rytm.app.data.ProfileSyncCoordinator
+import ua.rytm.app.data.ProfilesRepository
+import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.local.PinStore
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SettingsStore
@@ -78,4 +81,7 @@ class RytmApplication : Application() {
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
+    val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
+    val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }
+    val profileSyncCoordinator: ProfileSyncCoordinator by lazy { ProfileSyncCoordinator(this) }
 }
