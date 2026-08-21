@@ -4,19 +4,38 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +57,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -133,55 +155,80 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
-        Column(Modifier.fillMaxWidth().padding(innerPadding).padding(16.dp)) {
-            Text("Налаштування", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        // Real bug found during step 39's visual-parity pass: this Column had
+        // no scroll modifier at all, so on a real device everything past
+        // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
+        // permanently unreachable — not a styling gap, a genuine dead end.
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("Налаштування", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
 
             SettingsSectionLabel("Акаунт")
-            SettingsRow(
-                title = authViewModel.currentUser?.email ?: authViewModel.currentUser?.displayName ?: "Ваш акаунт",
-                subtitle = "Натисніть, щоб вийти",
-                onClick = authViewModel::signOut,
-            )
-            if (uid != null) {
+            SettingsGroupCard {
                 SettingsRow(
-                    title = "Профілі",
-                    subtitle = "Перемикання та керування профілями",
-                    onClick = { profilesSheetOpen = true },
+                    icon = Icons.Filled.Groups,
+                    badgeColor = Color(0xFF525158),
+                    title = authViewModel.currentUser?.email ?: authViewModel.currentUser?.displayName ?: "Ваш акаунт",
+                    subtitle = "Натисніть, щоб вийти",
+                    onClick = authViewModel::signOut,
                 )
-                SettingsRow(
-                    title = "Видалити акаунт",
-                    subtitle = "Незворотно видаляє ваші дані та обліковий запис",
-                    onClick = { pendingDeleteAccount = true },
-                    titleColor = MaterialTheme.colorScheme.error,
-                )
+                if (uid != null) {
+                    SettingsRow(
+                        icon = Icons.Filled.Groups,
+                        badgeColor = Color(0xFF06B6D4),
+                        title = "Профілі",
+                        subtitle = "Перемикання та керування профілями",
+                        onClick = { profilesSheetOpen = true },
+                    )
+                    SettingsRow(
+                        icon = Icons.Filled.DeleteForever,
+                        badgeColor = MaterialTheme.colorScheme.error,
+                        title = "Видалити акаунт",
+                        subtitle = "Незворотно видаляє ваші дані та обліковий запис",
+                        onClick = { pendingDeleteAccount = true },
+                        titleColor = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             if (uid != null) {
                 SettingsSectionLabel("Безпека")
-                SettingsRow(
-                    title = "PIN-код",
-                    subtitle = "Захист застосунку кодом і біометрією",
-                    onClick = { pinSheetOpen = true },
-                )
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = Icons.Filled.Lock,
+                        badgeColor = Color(0xFF525158),
+                        title = "PIN-код",
+                        subtitle = "Захист застосунку кодом і біометрією",
+                        onClick = { pinSheetOpen = true },
+                    )
+                }
 
                 SettingsSectionLabel("Сповіщення")
-                SettingsToggleRow(
-                    title = "Push-сповіщення",
-                    subtitle = "Отримувати сповіщення на цьому пристрої",
-                    checked = pushEnabled,
-                    enabled = !pushBusy,
-                    onCheckedChange = ::onTogglePush,
-                )
-                // Only reachable once push is actually on — configuring
-                // *which* alerts to send is meaningless before the device
-                // has even registered to receive any (see
-                // NotificationSettingsSheet's own doc comment).
-                if (pushEnabled) {
-                    SettingsRow(
-                        title = "Типи сповіщень",
-                        subtitle = "Нагадування, бюджет, регулярні платежі, розрахунки",
-                        onClick = { notifTypesSheetOpen = true },
+                SettingsGroupCard {
+                    SettingsToggleRow(
+                        icon = Icons.Filled.Notifications,
+                        badgeColor = MaterialTheme.colorScheme.primary,
+                        title = "Push-сповіщення",
+                        subtitle = "Отримувати сповіщення на цьому пристрої",
+                        checked = pushEnabled,
+                        enabled = !pushBusy,
+                        onCheckedChange = ::onTogglePush,
                     )
+                    // Only reachable once push is actually on — configuring
+                    // *which* alerts to send is meaningless before the device
+                    // has even registered to receive any (see
+                    // NotificationSettingsSheet's own doc comment).
+                    if (pushEnabled) {
+                        SettingsRow(
+                            icon = Icons.Filled.Tune,
+                            badgeColor = Color(0xFFF59E0B),
+                            title = "Типи сповіщень",
+                            subtitle = "Нагадування, бюджет, регулярні платежі, розрахунки",
+                            onClick = { notifTypesSheetOpen = true },
+                        )
+                    }
                 }
             }
 
@@ -202,36 +249,50 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             SettingsSectionLabel("Фінанси")
-            SettingsRow(
-                title = "Гаманці",
-                subtitle = "Картки, готівка та інші рахунки",
-                onClick = { walletsSheetOpen = true },
-            )
-            SettingsRow(
-                title = "Категорії",
-                subtitle = "Власні категорії доходів і витрат",
-                onClick = { categoriesSheetOpen = true },
-            )
-            SettingsRow(
-                title = "Бюджети",
-                subtitle = "Місячні ліміти для категорій витрат",
-                onClick = { budgetsSheetOpen = true },
-            )
-            SettingsRow(
-                title = "Теги",
-                subtitle = "Мітки для операцій",
-                onClick = { tagsSheetOpen = true },
-            )
-            SettingsRow(
-                title = "Регулярні платежі",
-                subtitle = "Автоматичне створення операцій за розкладом",
-                onClick = { recurringSheetOpen = true },
-            )
-            SettingsRow(
-                title = "Типи змін",
-                subtitle = "Оплата, години та кольори для графіка змін",
-                onClick = { shiftTypesSheetOpen = true },
-            )
+            SettingsGroupCard {
+                SettingsRow(
+                    icon = Icons.Filled.AccountBalanceWallet,
+                    badgeColor = Color(0xFF8B5CF6),
+                    title = "Гаманці",
+                    subtitle = "Картки, готівка та інші рахунки",
+                    onClick = { walletsSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Category,
+                    badgeColor = Color(0xFFEC4899),
+                    title = "Категорії",
+                    subtitle = "Власні категорії доходів і витрат",
+                    onClick = { categoriesSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.PieChart,
+                    badgeColor = Color(0xFFF59E0B),
+                    title = "Бюджети",
+                    subtitle = "Місячні ліміти для категорій витрат",
+                    onClick = { budgetsSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Sell,
+                    badgeColor = Color(0xFF06B6D4),
+                    title = "Теги",
+                    subtitle = "Мітки для операцій",
+                    onClick = { tagsSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Repeat,
+                    badgeColor = Color(0xFF10B981),
+                    title = "Регулярні платежі",
+                    subtitle = "Автоматичне створення операцій за розкладом",
+                    onClick = { recurringSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Style,
+                    badgeColor = Color(0xFF3B82F6),
+                    title = "Типи змін",
+                    subtitle = "Оплата, години та кольори для графіка змін",
+                    onClick = { shiftTypesSheetOpen = true },
+                )
+            }
         }
     }
 
@@ -312,25 +373,94 @@ private fun SettingsSectionLabel(text: String) {
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 20.dp, bottom = 4.dp),
+        modifier = Modifier.padding(top = 20.dp, bottom = 6.dp),
     )
 }
 
+// Matches the PWA's .chart-section.settings-section — a rounded card
+// grouping related rows, with a dashed divider between rows inside it
+// (.settings-row+.settings-row{border-top:1px dashed}), not a flat list.
+// Each row is collected into `rows` via SettingsRowScope.row {} instead of
+// being placed directly, so this composable can insert a divider between
+// every pair of rows without relying on any stateful/order-sensitive trick.
 @Composable
-private fun SettingsRow(title: String, subtitle: String, onClick: () -> Unit, titleColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 14.dp)) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
+    val scope = SettingsRowScope()
+    scope.content()
+    Card(shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+            scope.rows.forEachIndexed { index, row ->
+                if (index > 0) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                }
+                row()
+            }
+        }
     }
 }
 
+private class SettingsRowScope {
+    val rows = mutableListOf<@Composable () -> Unit>()
+}
+
+// Matches the PWA's .icon-badge: a circular badge tinted at ~16% of its own
+// color, with the icon drawn in that full color — not a generic outline icon.
 @Composable
-private fun SettingsToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun SettingsIconBadge(icon: ImageVector, color: Color) {
+    Box(
+        Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(17.dp))
+    }
+}
+
+private fun SettingsRowScope.SettingsRow(
+    icon: ImageVector,
+    badgeColor: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    titleColor: Color = Color.Unspecified,
+) {
+    rows += {
+        Row(
+            Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SettingsIconBadge(icon, badgeColor)
+            Column(Modifier.padding(start = 12.dp)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+    }
+}
+
+private fun SettingsRowScope.SettingsToggleRow(
+    icon: ImageVector,
+    badgeColor: Color,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    rows += {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            SettingsIconBadge(icon, badgeColor)
+            Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        }
     }
 }

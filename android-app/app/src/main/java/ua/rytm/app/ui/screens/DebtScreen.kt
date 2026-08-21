@@ -8,17 +8,24 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
@@ -29,7 +36,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -48,7 +54,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -101,7 +110,6 @@ fun DebtScreen(
                 item { HeroBalance(cd) }
                 item { ProgressBarSection(cd) }
                 item { ChipStatsRow(cd) }
-                item { DueChip(cd) }
                 item { DebtForecastCard(cd) }
                 item { InfoPanel(viewModel, cd) }
                 item { HistoryHeader(viewModel, cd) }
@@ -202,61 +210,109 @@ private fun EmptyDebtState() {
     }
 }
 
+// Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
+// soft brand-purple glow shadow, not a flat Card — same treatment
+// FinanceScreen's HeroBalanceCard (step 38) and Shifts' HeroMetric (step 39) got.
 @Composable
 private fun HeroBalance(cd: Debt) {
-    Card(Modifier.fillMaxWidth()) {
+    val shape = MaterialTheme.shapes.large
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp,
+                shape = shape,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+            )
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
+    ) {
         Column(Modifier.padding(20.dp)) {
-            Text("Залишок", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Поточний залишок", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${formatMoney(cd.currentBalance())} ${cd.currency}", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
         }
     }
 }
 
+// Matches the PWA's .salary-bar-fill (reused as-is for #debt-progress-fill,
+// same class) — a green gradient, not the theme's purple.
 @Composable
 private fun ProgressBarSection(cd: Debt) {
     val target = cd.startAmount
     if (target <= 0) return
     val paid = cd.paid()
-    val pct = (paid / target * 100).coerceIn(0.0, 100.0)
+    val pct = (paid / target).coerceIn(0.0, 1.0)
     Column(Modifier.fillMaxWidth()) {
-        LinearProgressIndicator(progress = { (pct / 100).toFloat() }, modifier = Modifier.fillMaxWidth())
-        Text("${pct.toInt()}% сплачено", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-    }
-}
-
-@Composable
-private fun ChipStatsRow(cd: Debt) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip("${formatMoney(cd.startAmount)} ${cd.currency}", "Стартова сума", Modifier.weight(1f))
-        StatChip("${formatMoney(cd.paid())} ${cd.currency}", "Сплачено", Modifier.weight(1f))
-        StatChip(cd.entries.size.toString(), "Платежів", Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun StatChip(value: String, label: String, modifier: Modifier) {
-    Card(modifier) {
-        Column(Modifier.padding(12.dp)) {
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Сплачено", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${(pct * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 5.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(99.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(pct.toFloat())
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
+            )
         }
     }
 }
 
+// Matches the PWA's .chip-stat-row: due date folded in as a 4th chip
+// (#debt-due-chip lives inside the same row, not a separate banner card).
 @Composable
-private fun DueChip(cd: Debt) {
-    if (cd.dueDate.isBlank()) return
+private fun ChipStatsRow(cd: Debt) {
+    val due = dueChipInfo(cd)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatChip(Icons.Filled.AccountBalanceWallet, "${formatMoney(cd.startAmount)} ${cd.currency}", "Початкова сума", Modifier.weight(1f))
+        StatChip(Icons.Filled.CheckCircle, "${formatMoney(cd.paid())} ${cd.currency}", "Сплачено", Modifier.weight(1f))
+        StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), "Платежів", Modifier.weight(1f))
+        if (due != null) StatChip(Icons.Filled.Event, due, "Термін сплати", Modifier.weight(1f))
+    }
+}
+
+private fun dueChipInfo(cd: Debt): String? {
+    if (cd.dueDate.isBlank()) return null
     val diffDays = try {
         val due = java.time.LocalDate.parse(cd.dueDate)
         java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), due)
-    } catch (e: Exception) { return }
-    val suffix = when {
-        diffDays < 0 -> "прострочено на ${-diffDays} дн."
-        diffDays == 0L -> "сьогодні"
-        else -> "через $diffDays дн."
+    } catch (e: Exception) { return null }
+    return when {
+        diffDays < 0 -> "−${-diffDays} дн."
+        diffDays == 0L -> "Сьогодні"
+        else -> "$diffDays дн."
     }
-    Card(colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = if (diffDays <= 3) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHigh)) {
-        Text("Термін сплати: ${cd.dueDate} · $suffix", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
+}
+
+// Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
+// purple-gradient icon badge, not a plain Card.
+@Composable
+private fun StatChip(icon: ImageVector, value: String, label: String, modifier: Modifier) {
+    Card(modifier, shape = RoundedCornerShape(999.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+            }
+            Column(Modifier.padding(start = 9.dp)) {
+                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

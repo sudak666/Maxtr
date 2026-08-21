@@ -2,13 +2,19 @@ package ua.rytm.app.ui.screens.debt
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -55,9 +61,20 @@ fun DebtForecastCard(debt: Debt) {
     }
     val avgDown = if (downCount > 0) totalDown / downCount else 0.0
 
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Прогноз погашення", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    // Matches the PWA's .debt-forecast: an uppercase icon+label header, same
+    // shape/label treatment as Shifts' IncomeChartSection (step 39).
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))
+                Text(
+                    "Прогноз погашення",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 7.dp),
+                )
+            }
             DebtBurndownCanvas(series, modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp))
             when {
                 currentBalance <= 0 -> Text("Розрахунок повністю погашено! 🎉", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
