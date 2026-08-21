@@ -3,6 +3,7 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -68,6 +69,8 @@ private fun BudgetRow(category: String, limit: Double, expanded: Boolean, onTogg
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            CategoryIconBadge(category, size = 32.dp)
+            Spacer(Modifier.padding(4.dp))
             Column(Modifier.weight(1f)) {
                 Text(category, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
