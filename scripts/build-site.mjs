@@ -19,8 +19,17 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, copyFileSync } from 'node:fs';
 import { relative, sep, join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = new URL('..', import.meta.url).pathname;
+// fileURLToPath(), not new URL('..', import.meta.url).pathname — the raw
+// .pathname of a Windows file:// URL keeps a leading slash before the
+// drive letter ("/C:/Users/..."), which path.join() then turns into a
+// leading backslash ("\C:\Users\...") instead of a clean absolute path.
+// Harmless on POSIX (CI), but running `npm run build`/hosting predeploy
+// on an actual Windows machine hits real Node fs errors like
+// `ENOENT: mkdir 'C:\C:\Users\...\dist'` — confirmed live during a real
+// local Hosting deploy, not a hypothetical.
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DIST = join(ROOT, 'dist');
 
 const EXCLUDE_TOP = new Set([
@@ -108,7 +117,13 @@ writeFileSync(indexPath, html);
 // tree's manually-bumped rytm-vNN scheme, which still governs whatever
 // GitHub Pages serves from source unchanged).
 const swPath = join(DIST, 'sw.js');
-let sw = readFileSync(swPath, 'utf8');
+// Normalized to LF regardless of the checked-out line-ending style — git's
+// core.autocrlf checks this file out with CRLF on Windows (no
+// .gitattributes forcing LF), while literalBlock below is always built
+// with '\n'. CI (Linux, LF checkouts) never hit this, so it only ever
+// surfaced running a real local Hosting deploy on a Windows machine —
+// confirmed live, not hypothetical.
+let sw = readFileSync(swPath, 'utf8').replace(/\r\n/g, '\n');
 const literalBlock = "  './js/app.js',\n" + [...MODULE_GRAPH_FILES].filter(f => f !== 'app.js').map(f => `  './js/${f}',`).join('\n');
 if (!sw.includes(literalBlock)) throw new Error('build-site.mjs: expected sw.js\'s STATIC_ASSETS module-graph block to match the known 20-file list — sw.js may have changed shape upstream, update this script');
 sw = sw.replace(literalBlock, `  './js/${bundleFile}',`);
