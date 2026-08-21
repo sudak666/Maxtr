@@ -53,9 +53,10 @@ import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
-// "Push-сповіщення"/"Вигляд" (тема)/"Акаунт" (вихід)/"Безпека" (PIN+біометрія)
-// are real so far — the rest of the PWA's Settings IA is deliberately not
-// built yet, disclosed honestly rather than faked:
+// "Push-сповіщення" (+ granular "Типи сповіщень")/"Вигляд" (тема)/"Акаунт"
+// (вихід)/"Безпека" (PIN+біометрія) are real so far — the rest of the PWA's
+// Settings IA is deliberately not built yet, disclosed honestly rather than
+// faked:
 //   - Мова (uk/en toggle): blocked on a real prerequisite, not just
 //     unstarted — every screen in this app hardcodes Ukrainian text
 //     directly rather than going through string resources (see strings.xml,
@@ -64,13 +65,10 @@ import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 //     which is its own multi-session effort, not a corner of this step.
 //   - Profiles, account deletion: Firebase SDK is wired (step 12), sign-in
 //     is real (step 13), Firestore cold-sync covers 9 domains (steps 14-24,
-//     26), and Push now has a real client (step 27) — the remaining
-//     blocker for these two rows is net-new feature work (multi-profile
-//     switching UI, an account-deletion flow), not a missing prerequisite.
-//   - Push is a single on/off toggle, not the PWA's 3 separate granular
-//     alert-type rows with a reminder-time picker — see PushRepository's
-//     own doc comment for why this is a disclosed, honest scope decision
-//     for this step rather than a corner cut silently.
+//     26), and Push has a real client with granular alert types (steps
+//     27-28) — the remaining blocker for these two rows is net-new feature
+//     work (multi-profile switching UI, an account-deletion flow), not a
+//     missing prerequisite.
 // See ANDROID_MIGRATION.md's "Chesno not done" convention.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +83,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var recurringSheetOpen by remember { mutableStateOf(false) }
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
+    var notifTypesSheetOpen by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
 
@@ -149,11 +148,22 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel("Сповіщення")
                 SettingsToggleRow(
                     title = "Push-сповіщення",
-                    subtitle = "Нагадування, бюджет, регулярні платежі та розрахунки на цьому пристрої",
+                    subtitle = "Отримувати сповіщення на цьому пристрої",
                     checked = pushEnabled,
                     enabled = !pushBusy,
                     onCheckedChange = ::onTogglePush,
                 )
+                // Only reachable once push is actually on — configuring
+                // *which* alerts to send is meaningless before the device
+                // has even registered to receive any (see
+                // NotificationSettingsSheet's own doc comment).
+                if (pushEnabled) {
+                    SettingsRow(
+                        title = "Типи сповіщень",
+                        subtitle = "Нагадування, бюджет, регулярні платежі, розрахунки",
+                        onClick = { notifTypesSheetOpen = true },
+                    )
+                }
             }
 
             SettingsSectionLabel("Вигляд")
@@ -223,6 +233,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
     if (shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
+    }
+    if (notifTypesSheetOpen && uid != null) {
+        NotificationSettingsSheet(uid = uid, repository = app.pushRepository, onDismiss = { notifTypesSheetOpen = false })
     }
     if (pinSheetOpen && uid != null) {
         // Same Activity-scoped viewModelStoreOwner as MainActivity's own PinViewModel
