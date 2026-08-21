@@ -42,6 +42,23 @@ data class Tag(
     val colorHex: Long,
 )
 
+// Mirrors AppState.recurring (js/state.js) — a scheduled tx template
+// materialized into a real Transaction (js/color-picker.js's
+// processRecurring()) each time nextDate falls due. `type` is never
+// TRANSFER — the PWA's own recurring-modal type <select> only offers
+// income/expense.
+data class Recurring(
+    val id: String,
+    val type: TxType,
+    val amount: Double,
+    val category: String,
+    val walletId: String,
+    val frequency: String, // "daily" | "weekly" | "monthly"
+    val nextDate: String, // "yyyy-MM-dd"
+    val active: Boolean,
+    val comment: String,
+)
+
 enum class TxTypeFilter { ALL, INCOME, EXPENSE, TRANSFER }
 enum class PeriodFilter { DAY, MONTH, ALL }
 

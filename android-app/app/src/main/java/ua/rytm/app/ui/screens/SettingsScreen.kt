@@ -31,14 +31,15 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
+import ua.rytm.app.ui.screens.finance.RecurringManagerSheet
 import ua.rytm.app.ui.screens.finance.TagsManagerSheet
 import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 
-// "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Вигляд" (тема)/"Акаунт" (вихід)/
-// "Безпека" (PIN+біометрія) are real so far — the rest of the PWA's Settings
+// "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
+// "Вигляд" (тема)/"Акаунт" (вихід)/"Безпека" (PIN+біометрія) are real so far — the rest of the PWA's Settings
 // IA is deliberately not built yet, disclosed honestly rather than faked:
 //   - Мова (uk/en toggle): blocked on a real prerequisite, not just
 //     unstarted — every screen in this app hardcodes Ukrainian text
@@ -63,6 +64,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var categoriesSheetOpen by remember { mutableStateOf(false) }
     var budgetsSheetOpen by remember { mutableStateOf(false) }
     var tagsSheetOpen by remember { mutableStateOf(false) }
+    var recurringSheetOpen by remember { mutableStateOf(false) }
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
@@ -125,6 +127,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onClick = { tagsSheetOpen = true },
         )
         SettingsRow(
+            title = "Регулярні платежі",
+            subtitle = "Автоматичне створення операцій за розкладом",
+            onClick = { recurringSheetOpen = true },
+        )
+        SettingsRow(
             title = "Типи змін",
             subtitle = "Оплата, години та кольори для графіка змін",
             onClick = { shiftTypesSheetOpen = true },
@@ -142,6 +149,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
     if (tagsSheetOpen) {
         TagsManagerSheet(repository = app.financeRepository, onDismiss = { tagsSheetOpen = false })
+    }
+    if (recurringSheetOpen) {
+        RecurringManagerSheet(repository = app.financeRepository, onDismiss = { recurringSheetOpen = false })
     }
     if (shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })

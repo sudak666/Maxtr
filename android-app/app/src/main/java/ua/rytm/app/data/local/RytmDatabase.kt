@@ -7,9 +7,9 @@ import androidx.room.RoomDatabase
     entities = [
         WalletEntity::class, TransactionEntity::class, ShoppingItemEntity::class, CategoryEntity::class,
         ShiftTypeEntity::class, ShiftDayEntity::class, DebtEntity::class, DebtEntryEntity::class,
-        SubcategoryEntity::class, BudgetEntity::class, TagEntity::class,
+        SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -24,4 +24,5 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun subcategoryDao(): SubcategoryDao
     abstract fun budgetDao(): BudgetDao
     abstract fun tagDao(): TagDao
+    abstract fun recurringDao(): RecurringDao
 }

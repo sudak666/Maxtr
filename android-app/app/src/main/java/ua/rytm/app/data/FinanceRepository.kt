@@ -4,9 +4,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.CategoryEntity
+import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
 import ua.rytm.app.data.local.TagEntity
+import ua.rytm.app.data.local.TransactionEntity
+import ua.rytm.app.ui.screens.finance.Recurring
 import ua.rytm.app.ui.screens.finance.SampleFinanceData
 import ua.rytm.app.ui.screens.finance.Tag
 import ua.rytm.app.ui.screens.finance.Transaction
@@ -50,6 +53,9 @@ class FinanceRepository(private val db: RytmDatabase) {
     /** mirrors AppState.tags (js/state.js). */
     val tags: Flow<List<Tag>> = db.tagDao().observeAll().map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
 
+    /** mirrors AppState.recurring (js/state.js). */
+    val recurring: Flow<List<Recurring>> = db.recurringDao().observeAll().map { list -> list.map { it.toDomain() } }
+
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
             db.walletDao().insertAll(SampleFinanceData.wallets.map { it.toEntity() })
@@ -81,16 +87,17 @@ class FinanceRepository(private val db: RytmDatabase) {
         return true
     }
 
-    // Cascades the rename into subcategories AND budgets — mirrors
+    // Cascades the rename into subcategories, budgets AND recurring — mirrors
     // js/settings-managers.js's renameCategory() moving
-    // AppState.subcategories[subKey(type,oldName)]/AppState.budgets[oldName]
-    // to the new key.
+    // AppState.subcategories[subKey(type,oldName)]/AppState.budgets[oldName]/
+    // every AppState.recurring entry of this type+name to the new key.
     suspend fun renameCategory(id: String, type: TxType, newName: String) {
         val old = db.categoryDao().getById(id)
         db.categoryDao().insert(CategoryEntity(id = id, type = type.name, name = newName))
         if (old != null && old.name != newName) {
             db.subcategoryDao().renameCategoryName(type.name, old.name, newName)
             db.budgetDao().renameCategory(old.name, newName)
+            db.recurringDao().renameCategory(type.name, old.name, newName)
         }
     }
 
@@ -161,12 +168,134 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.walletDao().update(wallet.toEntity())
     }
 
-    /** Mirrors walletInUse() in js/settings-managers.js — recurring isn't ported yet, so only transactions are checked. */
-    suspend fun isWalletInUse(id: String): Boolean = db.transactionDao().countUsingWallet(id) > 0
+    // Mirrors walletInUse() in js/settings-managers.js: `AppState.transactions.some(t=>
+    // t.wallet===id||t.targetWallet===id) || AppState.recurring.some(r=>r.wallet===id)`.
+    // Was transactions-only before recurring was ported (step 24's predecessor left this
+    // disclosed) — now checks both, same as the PWA.
+    suspend fun isWalletInUse(id: String): Boolean = db.transactionDao().countUsingWallet(id) > 0 || db.recurringDao().countUsingWallet(id) > 0
 
     suspend fun walletCount(): Int = db.walletDao().count()
 
     suspend fun deleteWallet(id: String) {
         db.walletDao().deleteById(id)
+    }
+
+    // Mirrors js/settings-managers.js's addRecurring(): defaults to type=expense,
+    // first expense category, first wallet, monthly, nextDate=today, active, amount=0.
+    suspend fun addRecurring() {
+        val expenseCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name ?: "Інше"
+        val walletId = db.walletDao().getAllOnce().firstOrNull()?.id ?: ""
+        db.recurringDao().insert(
+            RecurringEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                type = TxType.EXPENSE.name,
+                amount = 0.0,
+                category = expenseCategory,
+                walletId = walletId,
+                frequency = "monthly",
+                nextDate = java.time.LocalDate.now().toString(),
+                active = true,
+                comment = "",
+            ),
+        )
+    }
+
+    suspend fun deleteRecurring(id: String) {
+        db.recurringDao().deleteById(id)
+    }
+
+    suspend fun updateRecurringAmount(recurring: Recurring, amount: Double) {
+        db.recurringDao().update(recurring.copy(amount = amount).toEntity())
+    }
+
+    // Mirrors updateRecurring()'s 'type' branch (js/settings-managers.js): switching
+    // type resets category to the first category of the new type, same reasoning as
+    // TransactionFormSheet's own type-switch category reset.
+    suspend fun updateRecurringType(recurring: Recurring, type: TxType) {
+        val newCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == type.name }?.name ?: "Інше"
+        db.recurringDao().update(recurring.copy(type = type, category = newCategory).toEntity())
+    }
+
+    suspend fun updateRecurringCategory(recurring: Recurring, category: String) {
+        db.recurringDao().update(recurring.copy(category = category).toEntity())
+    }
+
+    suspend fun updateRecurringWallet(recurring: Recurring, walletId: String) {
+        db.recurringDao().update(recurring.copy(walletId = walletId).toEntity())
+    }
+
+    suspend fun updateRecurringFrequency(recurring: Recurring, frequency: String) {
+        db.recurringDao().update(recurring.copy(frequency = frequency).toEntity())
+    }
+
+    suspend fun updateRecurringNextDate(recurring: Recurring, nextDate: String) {
+        db.recurringDao().update(recurring.copy(nextDate = nextDate).toEntity())
+    }
+
+    suspend fun updateRecurringActive(recurring: Recurring, active: Boolean) {
+        db.recurringDao().update(recurring.copy(active = active).toEntity())
+    }
+
+    // Mirrors js/color-picker.js's computeNextDate(dateStr, freq).
+    private fun computeNextDate(dateStr: String, frequency: String): String {
+        val d = java.time.LocalDate.parse(dateStr)
+        return when (frequency) {
+            "daily" -> d.plusDays(1)
+            "weekly" -> d.plusWeeks(1)
+            else -> d.plusMonths(1) // monthly (default)
+        }.toString()
+    }
+
+    // Mirrors js/color-picker.js's processRecurring(): materializes every active
+    // recurring entry whose nextDate has fallen due (today or earlier) into a real
+    // Transaction, advancing nextDate each time (guarded at 24 iterations/entry —
+    // same guard as the PWA, protecting against a long-untouched nextDate spinning
+    // through hundreds of daily occurrences in one go). Called once per cold-sync
+    // sign-in (see MainActivity), same "runs on load, not continuously" scope as
+    // the PWA's own call site inside fbLoadNow(). Local-only, same as every other
+    // write in this app — Android has no continuous Firestore push yet (step 19's
+    // disclosed scope), so newly materialized transactions stay local until the
+    // remote catches up some other way.
+    suspend fun processRecurring(): Int {
+        val recurringList = db.recurringDao().getAllOnce()
+        if (recurringList.isEmpty()) return 0
+        val walletCurrency = db.walletDao().getAllOnce().associate { it.id to it.currency }
+        val todayStr = java.time.LocalDate.now().toString()
+        val newTx = mutableListOf<TransactionEntity>()
+        val updated = mutableListOf<RecurringEntity>()
+        var added = 0
+        recurringList.forEach { r ->
+            if (!r.active || r.amount <= 0) return@forEach
+            var nextDate = r.nextDate
+            var guard = 0
+            while (nextDate <= todayStr && guard < 24) {
+                newTx += TransactionEntity(
+                    id = java.util.UUID.randomUUID().toString(),
+                    type = r.type,
+                    amount = r.amount,
+                    currency = walletCurrency[r.walletId] ?: "UAH",
+                    date = nextDate,
+                    walletId = r.walletId,
+                    targetWalletId = null,
+                    targetAmount = null,
+                    targetCurrency = null,
+                    category = r.category,
+                    subcategory = null,
+                    // "повторювана" — matches js/state.js's I18N.uk.recurring_comment_tag exactly.
+                    comment = (if (r.comment.isNotBlank()) r.comment + " · " else "") + "повторювана",
+                    tags = "",
+                    createdAt = System.currentTimeMillis() + added,
+                )
+                nextDate = computeNextDate(nextDate, r.frequency)
+                added++
+                guard++
+            }
+            if (guard > 0) updated += r.copy(nextDate = nextDate)
+        }
+        if (added > 0) {
+            db.transactionDao().insertAll(newTx)
+            updated.forEach { db.recurringDao().update(it) }
+        }
+        return added
     }
 }
