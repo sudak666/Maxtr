@@ -3,6 +3,7 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -71,6 +72,8 @@ fun CategoriesManagerSheet(
                 val expanded = viewModel.expandedCategoryId == id
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        CategoryIconBadge(name, size = 32.dp)
+                        Spacer(Modifier.padding(4.dp))
                         Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         IconButton(onClick = { viewModel.toggleExpanded(id) }) {
                             Icon(if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = "Підкатегорії")

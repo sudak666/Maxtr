@@ -440,12 +440,7 @@ private fun TransactionRow(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.size(40.dp).clip(CircleShape).background(categoryColor(tx.category).copy(alpha = 0.18f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(tx.category.take(1).uppercase(), color = categoryColor(tx.category), fontWeight = FontWeight.Bold)
-                }
+                CategoryIconBadge(tx.category)
                 Spacer(Modifier.padding(6.dp))
                 Column(Modifier.weight(1f)) {
                     val catLine = buildString {
