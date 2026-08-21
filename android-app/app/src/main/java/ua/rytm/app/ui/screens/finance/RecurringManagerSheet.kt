@@ -71,6 +71,7 @@ fun RecurringManagerSheet(
                     expanded = viewModel.expandedId == r.id,
                     categoriesByType = viewModel.categoriesByType,
                     wallets = viewModel.wallets,
+                    iconOverride = viewModel.categoryIcons[r.category],
                     onToggleEdit = { viewModel.toggleEdit(r.id) },
                     onTypeChange = { viewModel.updateType(r, it) },
                     onAmountChange = { viewModel.updateAmount(r, it) },
@@ -109,6 +110,7 @@ private fun RecurringRow(
     expanded: Boolean,
     categoriesByType: Map<TxType, List<String>>,
     wallets: List<Wallet>,
+    iconOverride: String?,
     onToggleEdit: () -> Unit,
     onTypeChange: (TxType) -> Unit,
     onAmountChange: (Double) -> Unit,
@@ -124,6 +126,7 @@ private fun RecurringRow(
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CategoryIconBadge(r.category, iconOverride = iconOverride, size = 32.dp)
             Column(Modifier.weight(1f)) {
                 Text(if (r.type == TxType.INCOME) "Дохід" else "Витрата", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
