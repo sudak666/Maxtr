@@ -10,6 +10,7 @@ import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
 import ua.rytm.app.data.local.TagEntity
 import ua.rytm.app.data.local.TransactionEntity
+import ua.rytm.app.data.local.WalletEntity
 import ua.rytm.app.ui.screens.finance.Goal
 import ua.rytm.app.ui.screens.finance.Recurring
 import ua.rytm.app.ui.screens.finance.SampleFinanceData
@@ -94,6 +95,22 @@ class FinanceRepository(private val db: RytmDatabase) {
             }
             db.subcategoryDao().insertAll(seed)
         }
+    }
+
+    /** Exact fresh-profile defaults from js/core.js; deliberately no sample transactions/subcategories. */
+    suspend fun seedFreshProfileDefaults() {
+        db.walletDao().insertAll(
+            listOf(
+                WalletEntity("w_card", "Картка", 0xFF8B5CF6, "UAH", "card"),
+                WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
+            ),
+        )
+        val income = listOf("Зарплата", "Премія", "Підробіток", "Інше")
+        val expense = listOf("Продукти", "Кафе", "Транспорт", "Покупки", "Комунальні", "Здоров'я", "Розваги", "Інше")
+        db.categoryDao().insertAll(
+            income.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.INCOME.name, it) } +
+                expense.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.EXPENSE.name, it) },
+        )
     }
 
     /** Mirrors addCategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists for that type. */
