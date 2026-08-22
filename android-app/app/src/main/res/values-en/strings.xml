@@ -47,6 +47,17 @@
     <string name="rates_updated">Rates updated</string><string name="rates_update_failed">Could not update rates</string>
     <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string>
     <string name="rates_per_unit">UAH per 1 %1$s</string><string name="rates_save_failed">Could not save rate</string>
+    <string name="profile_load_failed">Could not load profile</string>
+    <string name="profile_save_failed">Could not save profile</string>
+    <string name="profile_invalid_image">Choose a valid image</string>
+    <string name="profile_avatar_updated">Avatar updated</string>
+    <string name="profile_nickname_saved">Nickname saved</string>
+    <string name="profile_nickname">Nickname</string>
+    <string name="profile_edit_nickname">Edit nickname</string>
+    <string name="profile_choose_avatar">Choose an avatar</string>
+    <string name="profile_upload_photo">Upload photo</string>
+    <string name="profile_avatar">Avatar</string>
+    <string name="profile_avatar_preset">Avatar preset</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>
