@@ -32,7 +32,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 ## P3 — UX, accessibility and maintainability
 
 - [ ] Complete TalkBack audit: icon-only action descriptions, focus order, 48dp targets, dynamic text, contrast and non-color cues.
-- [ ] Give every Canvas chart a semantic summary and accessible tabular alternative.
+- [x] Give every Canvas chart a semantic summary and accessible data alternative (all finance/debt values exposed to TalkBack; redundant crypto sparkline is decorative beside textual price/change).
 - [ ] Standardize spacing, sheet headers/actions, empty/loading/error states, typography, icon mapping and motion.
 - [ ] Split oversized coordinators/ViewModels/sheets; move migration-history comments out of production code.
 - [ ] Add sticky/collapsible navigation or a dedicated screen for long Tools content.

@@ -58,6 +58,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
 import java.time.format.TextStyle
@@ -65,6 +67,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.LocalHideAmounts
 import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
 
@@ -149,6 +152,13 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 @Composable
 private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
     val progress = motionProgress(byCategory, 600)
+    val topCategory = byCategory.firstOrNull()
+    val chartDescription = stringResource(
+        R.string.analytics_donut_accessibility,
+        maskedAmount(formatMoney(total)),
+        topCategory?.let { localizedDomainText(it.first) }.orEmpty(),
+        topCategory?.let { maskedAmount(formatMoney(it.second)) }.orEmpty(),
+    )
     Box(
         Modifier.size(170.dp).graphicsLayer {
             alpha = progress
@@ -158,7 +168,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
         },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.size(170.dp)) {
+        Canvas(Modifier.size(170.dp).semantics { contentDescription = chartDescription }) {
             var startAngle = -90f
             val stroke = size.minDimension * 0.22f
             byCategory.forEach { (cat, amt) ->
@@ -314,7 +324,18 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val progress = motionProgress(months, 500)
         val lineColor = MaterialTheme.colorScheme.primary
         val chartSurface = MaterialTheme.colorScheme.surface
-        Canvas(Modifier.fillMaxWidth().height(180.dp)) {
+        val locale = LocalConfiguration.current.locales[0]
+        val hideAmounts = LocalHideAmounts.current
+        val accessibleValues = months.zip(values).joinToString("; ") { (month, value) ->
+            "${month.yearMonth.month.getDisplayName(TextStyle.SHORT, locale)} ${if (hideAmounts) "••••" else formatMoney(value)}"
+        }
+        val chartDescription = stringResource(
+            R.string.finance_chart_accessibility,
+            labels.getValue(vm.chartSeries),
+            maskedAmount(formatMoney(current)),
+            maskedAmount(formatMoney(forecast)),
+        ) + ". " + accessibleValues
+        Canvas(Modifier.fillMaxWidth().height(180.dp).semantics { contentDescription = chartDescription }) {
             val step = size.width / (chartValues.size - 1)
             val points = chartValues.mapIndexed { i, value -> Offset(i * step, size.height - (((value - minVal) / range).toFloat() * size.height * progress)) }
             val area = Path().apply { moveTo(points.first().x, size.height); points.take(values.size).forEach { lineTo(it.x, it.y) }; lineTo(points[values.lastIndex].x, size.height); close() }
@@ -324,7 +345,6 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
             points.forEachIndexed { i, point -> drawCircle(if (i == points.lastIndex) chartSurface else lineColor, 8f, point); if (i == points.lastIndex) drawCircle(lineColor, 8f, point, style = Stroke(4f)) }
             }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            val locale = LocalConfiguration.current.locales[0]
             months.forEach { m -> Text(m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) }
             Text(stringResource(R.string.finance_chart_forecast), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
         }

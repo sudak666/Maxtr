@@ -88,6 +88,9 @@
     <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
     <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрата</string><string name="analytics_net">Різниця</string><string name="analytics_savings_rate">Норма заощаджень</string><string name="analytics_sum">Сума</string>
     <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
+    <string name="analytics_donut_accessibility">Діаграма витрат. Загалом %1$s грн. Найбільша категорія: %2$s, %3$s грн</string>
+    <string name="finance_chart_accessibility">Графік: %1$s. Поточне значення %2$s грн. Прогноз %3$s грн</string>
+    <string name="debt_chart_accessibility">Графік погашення боргу: від %1$s до %2$s</string>
     <string name="finance_chart_title">Баланс за останні 6 місяців</string><string name="finance_chart_net">Баланс</string><string name="finance_chart_income">Дохід</string><string name="finance_chart_expense">Витрата</string><string name="finance_chart_forecast">Прогноз</string><string name="finance_chart_average">%1$s грн · Середнє</string>
     <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
@@ -231,6 +234,7 @@
     <string name="pin_confirm">Підтвердіть PIN</string>
     <string name="pin_save">Зберегти PIN</string>
     <string name="pin_error_invalid">Невірний PIN-код</string>
+    <string name="pin_backspace">Видалити останню цифру</string>
     <string name="pin_error_locked">Забагато спроб. Спробуйте через %1$d с</string>
     <string name="pin_error_length">PIN має містити 4–6 цифр</string>
     <string name="pin_error_mismatch">PIN-коди не збігаються</string>

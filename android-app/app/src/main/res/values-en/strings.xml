@@ -86,6 +86,9 @@
     <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
     <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expense</string><string name="analytics_net">Net</string><string name="analytics_savings_rate">Savings rate</string><string name="analytics_sum">Total</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
+    <string name="analytics_donut_accessibility">Expense chart. Total %1$s UAH. Largest category: %2$s, %3$s UAH</string>
+    <string name="finance_chart_accessibility">Chart: %1$s. Current value %2$s UAH. Forecast %3$s UAH</string>
+    <string name="debt_chart_accessibility">Debt payoff chart: from %1$s to %2$s</string>
     <string name="finance_chart_title">Balance for the last 6 months</string><string name="finance_chart_net">Balance</string><string name="finance_chart_income">Income</string><string name="finance_chart_expense">Expense</string><string name="finance_chart_forecast">Forecast</string><string name="finance_chart_average">%1$s UAH · Average</string>
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
@@ -229,6 +232,7 @@
     <string name="pin_confirm">Confirm PIN</string>
     <string name="pin_save">Save PIN</string>
     <string name="pin_error_invalid">Incorrect PIN</string>
+    <string name="pin_backspace">Delete last digit</string>
     <string name="pin_error_locked">Too many attempts. Try again in %1$d s</string>
     <string name="pin_error_length">PIN must contain 4–6 digits</string>
     <string name="pin_error_mismatch">PINs do not match</string>

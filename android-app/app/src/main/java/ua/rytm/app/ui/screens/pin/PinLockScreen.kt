@@ -34,6 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.fragment.app.FragmentActivity
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
@@ -156,6 +158,7 @@ internal fun PinKeypad(
     onBackspace: () -> Unit,
     trailingSlot: @Composable () -> Unit = {},
 ) {
+    val backspaceDescription = stringResource(R.string.pin_backspace)
     val rows = listOf(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
@@ -171,7 +174,7 @@ internal fun PinKeypad(
             Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { trailingSlot() }
             KeypadButton("0") { onDigit("0") }
             Box(
-                Modifier.size(64.dp).clickable(onClick = onBackspace),
+                Modifier.size(64.dp).semantics { contentDescription = backspaceDescription }.clickable(onClick = onBackspace),
                 contentAlignment = Alignment.Center,
             ) { Text("⌫", style = MaterialTheme.typography.headlineSmall) }
         }

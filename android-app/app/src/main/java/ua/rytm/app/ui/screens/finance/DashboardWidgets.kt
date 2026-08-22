@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.platform.LocalConfiguration
@@ -145,7 +146,7 @@ private fun CryptoRow(quote: CryptoQuote) {
 @Composable
 private fun Sparkline(values: List<Double>, color: Color, modifier: Modifier) {
     if (values.size < 2) return
-    Canvas(modifier) {
+    Canvas(modifier.clearAndSetSemantics { }) {
         val min = values.min()
         val span = (values.max() - min).takeIf { it > 0 } ?: 1.0
         val path = Path()
