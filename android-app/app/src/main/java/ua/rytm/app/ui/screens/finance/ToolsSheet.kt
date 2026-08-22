@@ -17,8 +17,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -45,6 +45,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -60,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
 import java.time.format.TextStyle
@@ -70,6 +73,8 @@ import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.LocalHideAmounts
 import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.fillMaxHeight
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
@@ -82,21 +87,48 @@ fun ToolsSheet(
     viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(repository)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val activeSection by remember { derivedStateOf { (listState.firstVisibleItemIndex / 2).coerceIn(0, 3) } }
+    val sections = listOf(
+        stringResource(R.string.analytics_title),
+        stringResource(R.string.rates_title),
+        stringResource(R.string.converter_title),
+        stringResource(R.string.finance_chart_title),
+    )
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.fillMaxWidth().fillMaxHeight(0.92f).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
             Text(stringResource(R.string.tools_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-            AnalyticsSection(viewModel)
-            HorizontalDivider()
-            FxRatesSection(viewModel)
-            HorizontalDivider()
-            ConverterSection(viewModel)
-            HorizontalDivider()
-            SixMonthChartSection(viewModel)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                sections.forEachIndexed { index, label ->
+                    FilterChip(
+                        modifier = Modifier.testTag("tools-nav-$index"),
+                        selected = activeSection == index,
+                        onClick = { scope.launch { listState.animateScrollToItem(index * 2) } },
+                        label = { Text(label) },
+                    )
+                }
+            }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item { Box(Modifier.testTag("tools-section-analytics")) { AnalyticsSection(viewModel) } }
+                item { HorizontalDivider() }
+                item { Box(Modifier.testTag("tools-section-rates")) { FxRatesSection(viewModel) } }
+                item { HorizontalDivider() }
+                item { Box(Modifier.testTag("tools-section-converter")) { ConverterSection(viewModel) } }
+                item { HorizontalDivider() }
+                item { Box(Modifier.testTag("tools-section-chart")) { SixMonthChartSection(viewModel) } }
+            }
         }
     }
 }

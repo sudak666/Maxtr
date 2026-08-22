@@ -35,7 +35,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 - [x] Give every Canvas chart a semantic summary and accessible data alternative (all finance/debt values exposed to TalkBack; redundant crypto sparkline is decorative beside textual price/change).
 - [ ] Standardize spacing, sheet headers/actions, empty/loading/error states, typography, icon mapping and motion.
 - [ ] Split oversized coordinators/ViewModels/sheets; move migration-history comments out of production code.
-- [ ] Add sticky/collapsible navigation or a dedicated screen for long Tools content.
+- [x] Add sticky/collapsible navigation or a dedicated screen for long Tools content (fixed four-section chip navigation remains visible above a lazy list and jumps to Analytics, Rates, Converter or 6-month chart; emulator interaction test covers forward/back navigation).
 
 ## Verification matrix
 
