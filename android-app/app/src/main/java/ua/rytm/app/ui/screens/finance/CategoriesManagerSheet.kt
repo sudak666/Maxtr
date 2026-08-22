@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
@@ -63,6 +64,7 @@ fun CategoriesManagerSheet(
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
     var newSubName by remember { mutableStateOf("") }
     var pendingDeleteSub by remember { mutableStateOf<Pair<String, String>?>(null) } // (categoryName, subName)
+    var pendingRename by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -98,6 +100,10 @@ fun CategoriesManagerSheet(
                         IconButton(onClick = { pendingDeleteId = id }) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
                     }
                     if (expanded) {
+                        TextButton(onClick = { pendingRename = id to name }) {
+                            Icon(Icons.Filled.Edit, contentDescription = null)
+                            Text("Перейменувати", modifier = Modifier.padding(start = 6.dp))
+                        }
                         val subs = viewModel.subcategoriesFor(name)
                         if (subs.isNotEmpty()) {
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)) {
@@ -140,6 +146,19 @@ fun CategoriesManagerSheet(
                 TextButton(onClick = { viewModel.addCategory(newName); newName = "" }) { Text("Додати") }
             }
         }
+    }
+
+    pendingRename?.let { (id, initialName) ->
+        var editedName by remember(id) { mutableStateOf(initialName) }
+        AlertDialog(
+            onDismissRequest = { pendingRename = null },
+            title = { Text("Перейменувати категорію") },
+            text = { OutlinedTextField(value = editedName, onValueChange = { editedName = it }, singleLine = true, label = { Text("Назва") }) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty()) { Text("Зберегти") }
+            },
+            dismissButton = { TextButton(onClick = { pendingRename = null }) { Text("Скасувати") } },
+        )
     }
 
     pendingDeleteId?.let { id ->

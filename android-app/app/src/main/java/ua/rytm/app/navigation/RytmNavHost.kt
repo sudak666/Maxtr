@@ -21,7 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +38,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.flowOf
+import androidx.compose.runtime.produceState
+import ua.rytm.app.RytmApplication
+import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.ui.LocalCanEditProfile
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -54,7 +63,15 @@ import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 @Composable
 fun RytmNavHost() {
     val navController = rememberNavController()
+    val app = LocalContext.current.applicationContext as RytmApplication
+    val accountUid = FirebaseAuth.getInstance().currentUser?.uid
+    val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
+    val ownerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null)).collectAsState(initial = null)
+    val canEdit by produceState(initialValue = ownerUid == null, accountUid, ownerUid, profileId) {
+        value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
+    }
 
+    CompositionLocalProvider(LocalCanEditProfile provides canEdit) {
     Scaffold(
         bottomBar = { RytmBottomBar(navController) },
     ) { innerPadding ->
@@ -69,6 +86,7 @@ fun RytmNavHost() {
             composable(RytmDestination.Shopping.route) { ShoppingScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }
         }
+    }
     }
 }
 

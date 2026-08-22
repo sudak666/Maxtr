@@ -10,6 +10,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DebtRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -20,11 +22,12 @@ import java.util.Locale
 // ANDROID_MIGRATION.md's "chesno not done" for this step) — everything else
 // (chips, hero balance, progress bar, due chip, collapsible info/history,
 // payment CRUD with swipe-to-delete) is real.
-class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
+class DebtViewModel(private val app: RytmApplication) : ViewModel() {
+    private val repository = app.debtRepository
 
     companion object {
-        fun factory(repository: DebtRepository) = viewModelFactory {
-            initializer { DebtViewModel(repository) }
+        fun factory(app: RytmApplication) = viewModelFactory {
+            initializer { DebtViewModel(app) }
         }
     }
 
@@ -57,6 +60,8 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
 
     var errorMessage by mutableStateOf<String?>(null)
         private set
+    var saving by mutableStateOf(false)
+        private set
     fun consumeError() { errorMessage = null }
 
     init {
@@ -74,7 +79,7 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
     fun addDebt(name: String) {
         val clean = name.trim().ifBlank { "Новий розрахунок" }
         val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "грн", startAmount = 0.0, dueDate = "", entries = emptyList())
-        viewModelScope.launch { repository.addDebt(debt) }
+        mutate(debt.id) { repository.addDebt(debt) }
         currentDebtId = debt.id
     }
 
@@ -85,7 +90,7 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
 
     fun confirmDeleteDebt() {
         val id = currentDebtId ?: return
-        viewModelScope.launch { repository.deleteDebt(id) }
+        mutate(null) { repository.deleteDebt(id) }
         pendingDeleteDebt = false
     }
 
@@ -93,7 +98,7 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
 
     fun updateInfo(name: String, note: String, currency: String, startAmount: Double, dueDate: String) {
         val cd = currentDebt ?: return
-        viewModelScope.launch {
+        mutate(cd.id) {
             repository.updateDebt(cd.copy(name = name.trim().ifBlank { "Розрахунок" }, note = note.trim(), currency = currency.ifBlank { "у.о." }, startAmount = startAmount, dueDate = dueDate))
         }
     }
@@ -122,7 +127,7 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
             balance = if (plain != null) cd.currentBalance() - plain else { errorMessage = "Вкажіть залишок"; return }
         }
         val date = dateText.trim().ifBlank { todayLabel() }
-        viewModelScope.launch { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
+        mutate(cd.id) { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
         newEntrySheetOpen = false
     }
 
@@ -130,27 +135,52 @@ class DebtViewModel(private val repository: DebtRepository) : ViewModel() {
 
     fun updateEntryAmount(entry: DebtEntry, amount: String) {
         val cd = currentDebt ?: return
-        viewModelScope.launch { repository.updateEntry(cd.id, entry.copy(amount = amount)) }
+        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(amount = amount)) }
     }
 
     fun updateEntryBalance(entry: DebtEntry, balanceText: String) {
         val cd = currentDebt ?: return
-        viewModelScope.launch { repository.updateEntry(cd.id, entry.copy(balance = balanceText.toDoubleOrNull() ?: 0.0)) }
+        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(balance = balanceText.toDoubleOrNull() ?: 0.0)) }
     }
 
     fun updateEntryDate(entry: DebtEntry, date: String) {
         val cd = currentDebt ?: return
-        viewModelScope.launch { repository.updateEntry(cd.id, entry.copy(date = date)) }
+        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(date = date)) }
     }
 
     fun requestDeleteEntry(id: Long) { pendingDeleteEntryId = id }
     fun confirmDeleteEntry() {
         val id = pendingDeleteEntryId ?: return
-        viewModelScope.launch { repository.deleteEntry(id) }
+        mutate(currentDebtId) { repository.deleteEntry(id) }
         pendingDeleteEntryId = null
         if (entryEditId == id) entryEditId = null
     }
     fun cancelDeleteEntry() { pendingDeleteEntryId = null }
+
+    private fun mutate(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
+        if (saving) return
+        viewModelScope.launch {
+            val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
+            val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
+            val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
+            if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
+                errorMessage = "Профіль доступний лише для перегляду"
+                return@launch
+            }
+            val ownerUid = activeOwnerUid ?: accountUid
+            val before = repository.snapshot()
+            saving = true
+            try {
+                change()
+                app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
+            } catch (e: Exception) {
+                repository.restore(before)
+                errorMessage = e.localizedMessage ?: "Не вдалося зберегти зміни"
+            } finally {
+                saving = false
+            }
+        }
+    }
 }
 
 fun Debt.paid(): Double = (startAmount) - currentBalance()

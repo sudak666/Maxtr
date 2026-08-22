@@ -1,5 +1,6 @@
 package ua.rytm.app.data
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import ua.rytm.app.data.local.DebtEntity
@@ -60,5 +61,14 @@ class DebtRepository(private val db: RytmDatabase) {
 
     suspend fun deleteEntry(id: Long) {
         db.debtEntryDao().deleteById(id)
+    }
+
+    data class Snapshot(val debts: List<DebtEntity>, val entries: List<DebtEntryEntity>)
+    suspend fun snapshot() = Snapshot(db.debtDao().getAllOnce(), db.debtEntryDao().getAllOnce())
+    suspend fun restore(snapshot: Snapshot) = db.withTransaction {
+        db.debtEntryDao().clearAll()
+        db.debtDao().clearAll()
+        db.debtDao().insertAll(snapshot.debts)
+        db.debtEntryDao().insertAll(snapshot.entries)
     }
 }

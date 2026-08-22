@@ -55,6 +55,14 @@ class TransactionsSyncRepository(private val db: RytmDatabase, private val fires
     suspend fun deleteTransaction(uid: String, profileId: String, id: String) {
         txCollectionRef(uid, profileId).document(id).delete().await()
     }
+
+    suspend fun saveTransactions(uid: String, profileId: String, transactions: List<TransactionEntity>) {
+        transactions.chunked(450).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { tx -> batch.set(txCollectionRef(uid, profileId).document(tx.id), tx.toRemoteMap()) }
+            batch.commit().await()
+        }
+    }
 }
 
 internal fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(

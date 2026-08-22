@@ -76,6 +76,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -88,6 +89,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftsScreen() {
+    val canEdit = LocalCanEditProfile.current
     val app = LocalContext.current.applicationContext as RytmApplication
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
     val profileId by app.activeProfileStore.activeProfileId(accountUid).collectAsState(initial = DEFAULT_PROFILE_ID)
@@ -113,19 +115,19 @@ fun ShiftsScreen() {
         item { HeroMetric(stats.earned) }
         item { ChipStats(stats) }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
-        item { QuickFillPanel(viewModel, onOpenShiftTypes = { shiftTypesSheetOpen = true }) }
+        if (canEdit) item { QuickFillPanel(viewModel, onOpenShiftTypes = { shiftTypesSheetOpen = true }) }
         item { MonthNav(viewModel) }
         item { LegendRow(viewModel.shiftTypes) }
-        if (stats.shiftsCount + stats.offCount == 0) {
+        if (canEdit && stats.shiftsCount + stats.offCount == 0) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
         item { WeekdayHeaderRow() }
-        item { CalendarGrid(viewModel) }
+        item { CalendarGrid(viewModel, canEdit) }
     }
     }
 
     val dateKey = viewModel.dayModalDateKey
-    if (dateKey != null) {
+    if (canEdit && dateKey != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -145,7 +147,7 @@ fun ShiftsScreen() {
         }
     }
 
-    if (shiftTypesSheetOpen) {
+    if (canEdit && shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = dataUid, profileId = profileId, onDismiss = { shiftTypesSheetOpen = false })
     }
 }
@@ -495,7 +497,7 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
 }
 
 @Composable
-private fun CalendarGrid(viewModel: ShiftsViewModel) {
+private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
     val month = viewModel.visibleMonth
     val firstDayOffset = (month.atDay(1).dayOfWeek.value - 1) // Monday=1 -> 0
     val daysInMonth = month.lengthOfMonth()
@@ -515,7 +517,7 @@ private fun CalendarGrid(viewModel: ShiftsViewModel) {
             val isToday = dateKey == todayKey
             val dow = (firstDayOffset + index) % 7
             val isWeekend = dow >= 5
-            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = isWeekend, onClick = { viewModel.openDayModal(dateKey) })
+            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = isWeekend, onClick = { if (canEdit) viewModel.openDayModal(dateKey) })
         }
     }
 }

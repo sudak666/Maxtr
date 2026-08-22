@@ -126,6 +126,20 @@ class CategoriesManagerViewModel(
         }
     }
 
+    fun renameCategory(id: String, newName: String) {
+        val clean = newName.trim()
+        val current = categories.firstOrNull { it.first == id }?.second ?: return
+        if (clean.isEmpty() || clean == current) return
+        if (categories.any { it.second == clean }) {
+            errorMessage = "Така категорія вже є"
+            return
+        }
+        mutateAndSync(syncRepository::saveAllCategorySnapshots) {
+            repository.renameCategory(id, activeType, clean)
+            true
+        }
+    }
+
     fun deleteCategory(id: String) {
         mutateAndSync(syncRepository::saveAllCategorySnapshots) {
             repository.deleteCategory(id)
@@ -141,10 +155,11 @@ class CategoriesManagerViewModel(
                 val iconsBefore = repository.categoryIconSnapshot()
                 val budgetsBefore = repository.categoryBudgetSnapshot()
                 val recurringBefore = repository.categoryRecurringSnapshot()
+                val transactionsBefore = repository.categoryTransactionSnapshot()
                 if (!mutate()) return@withLock
                 runCatching { save(uid, profileId) }.onFailure {
                     repository.restoreCategoryMutationSnapshot(
-                        categoriesBefore, subcategoriesBefore, iconsBefore, budgetsBefore, recurringBefore,
+                        categoriesBefore, subcategoriesBefore, iconsBefore, budgetsBefore, recurringBefore, transactionsBefore,
                     )
                     errorMessage = "Не вдалося синхронізувати зміни"
                 }

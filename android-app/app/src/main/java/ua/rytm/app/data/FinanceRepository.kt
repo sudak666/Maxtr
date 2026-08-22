@@ -137,6 +137,7 @@ class FinanceRepository(private val db: RytmDatabase) {
             db.budgetDao().renameCategory(old.name, newName)
             db.recurringDao().renameCategory(type.name, old.name, newName)
             db.categoryIconDao().renameCategory(old.name, newName)
+            db.transactionDao().renameCategory(type.name, old.name, newName)
         }
     }
 
@@ -180,6 +181,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun categoryIconSnapshot(): List<CategoryIconEntity> = db.categoryIconDao().getAllOnce()
     suspend fun categoryBudgetSnapshot(): List<BudgetEntity> = db.budgetDao().getAllOnce()
     suspend fun categoryRecurringSnapshot(): List<RecurringEntity> = db.recurringDao().getAllOnce()
+    suspend fun categoryTransactionSnapshot(): List<TransactionEntity> = db.transactionDao().getAllOnce()
 
     suspend fun restoreCategoryMutationSnapshot(
         categories: List<CategoryEntity>,
@@ -187,12 +189,14 @@ class FinanceRepository(private val db: RytmDatabase) {
         icons: List<CategoryIconEntity>,
         budgets: List<BudgetEntity>,
         recurring: List<RecurringEntity>,
+        transactions: List<TransactionEntity>,
     ) = db.withTransaction {
         db.categoryDao().replaceAll(categories)
         db.subcategoryDao().replaceAll(subcategories)
         db.categoryIconDao().replaceAll(icons)
         db.budgetDao().replaceAll(budgets)
         db.recurringDao().replaceAll(recurring)
+        db.transactionDao().replaceAll(transactions)
     }
 
     // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the

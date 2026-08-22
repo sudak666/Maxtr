@@ -35,4 +35,7 @@ class ShoppingRepository(private val db: RytmDatabase) {
     suspend fun clearBought() {
         db.shoppingDao().deleteBought()
     }
+
+    suspend fun snapshot(): List<ShoppingItemEntity> = db.shoppingDao().getAllOnce()
+    suspend fun restore(snapshot: List<ShoppingItemEntity>) = db.shoppingDao().replaceAll(snapshot)
 }

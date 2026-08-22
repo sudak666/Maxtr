@@ -68,6 +68,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
@@ -87,6 +88,7 @@ fun FinanceScreen(
         factory = FinanceViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
+    val canEdit = LocalCanEditProfile.current
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel.pendingMessage) {
         viewModel.pendingMessage?.let { message ->
@@ -114,7 +116,7 @@ fun FinanceScreen(
             // Matches the PWA's .fin-fab.finance-fab green gradient
             // (linear-gradient(135deg,--green,#059669)), not the theme's
             // brand purple — see ANDROID_MIGRATION.md visual-parity note.
-            ExtendedFloatingActionButton(
+            if (canEdit) ExtendedFloatingActionButton(
                 onClick = viewModel::openNewTransactionSheet,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White) },
                 text = { Text("Нова операція", color = Color.White) },
@@ -148,6 +150,7 @@ fun FinanceScreen(
             item { HeroBalanceCard(viewModel) }
             item {
                 QuickActionsRow(
+                    canEdit = canEdit,
                     onNewTransaction = viewModel::openNewTransactionSheet,
                     onTools = { toolsSheetOpen = true },
                     onBudgets = { budgetsSheetOpen = true },
@@ -174,6 +177,7 @@ fun FinanceScreen(
                         walletName = { id -> viewModel.wallets.firstOrNull { it.id == id }?.name },
                         tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
                         iconOverride = viewModel.categoryIcons[tx.category],
+                        canEdit = canEdit,
                         onDelete = { viewModel.deleteTransaction(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
                     )
@@ -343,7 +347,7 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
 }
 
 @Composable
-private fun QuickActionsRow(onNewTransaction: () -> Unit, onTools: () -> Unit, onBudgets: () -> Unit, onGoals: () -> Unit) {
+private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTools: () -> Unit, onBudgets: () -> Unit, onGoals: () -> Unit) {
     data class QuickAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
     val actions = listOf(
@@ -351,7 +355,7 @@ private fun QuickActionsRow(onNewTransaction: () -> Unit, onTools: () -> Unit, o
         QuickAction("Інструменти", Icons.Filled.Build, primary = false, onClick = onTools),
         QuickAction("Бюджети", Icons.Filled.PieChart, primary = false, onClick = onBudgets),
         QuickAction("Цілі", Icons.Filled.Flag, primary = false, onClick = onGoals),
-    )
+    ).filterIndexed { index, _ -> canEdit || index == 1 }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.forEach { action ->
@@ -506,6 +510,7 @@ private fun TransactionRow(
     walletName: (String?) -> String?,
     tagLookup: (String) -> Tag?,
     iconOverride: String?,
+    canEdit: Boolean,
     onDelete: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -514,7 +519,7 @@ private fun TransactionRow(
     // AnchoredDraggable rewrite for this step; revisit if it's ever removed.
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+            if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
                 onDelete()
                 true
             } else {
@@ -526,7 +531,7 @@ private fun TransactionRow(
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
+        enableDismissFromEndToStart = canEdit,
         backgroundContent = {
             Box(
                 Modifier.fillMaxSize().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.error),
@@ -543,6 +548,7 @@ private fun TransactionRow(
     ) {
         Card(
             onClick = onClick,
+            enabled = canEdit,
             shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
         ) {

@@ -4,6 +4,8 @@ import androidx.room.withTransaction
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.DebtEntity
 import ua.rytm.app.data.local.DebtEntryEntity
 import ua.rytm.app.data.local.RytmDatabase
@@ -29,6 +31,7 @@ import ua.rytm.app.data.local.RytmDatabase
 // belt-and-suspenders consistency choice with the rest of this file's
 // repositories, not a hard requirement the way it is for `finance`.
 class DebtSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+    private val saveMutex = Mutex()
 
     private fun debtDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("debt", profileId))
@@ -66,6 +69,18 @@ class DebtSyncRepository(private val db: RytmDatabase, private val firestore: Fi
                 SetOptions.merge(),
             ).await()
         }
+    }
+
+    suspend fun saveSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID, currentDebtId: Long? = null) = saveMutex.withLock {
+        val debts = db.debtDao().getAllOnce()
+        val entries = db.debtEntryDao().getAllOnce().groupBy { it.debtId }
+        debtDocRef(uid, profileId).set(
+            mapOf(
+                "data" to mapOf("debts" to debts.map { it.toRemoteMap(entries[it.id].orEmpty()) }, "currentDebtId" to currentDebtId),
+                "updatedAt" to System.currentTimeMillis(),
+            ),
+            SetOptions.merge(),
+        ).await()
     }
 }
 

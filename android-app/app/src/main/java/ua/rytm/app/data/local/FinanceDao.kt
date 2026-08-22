@@ -70,6 +70,9 @@ interface TransactionDao {
     @Query("DELETE FROM transactions")
     suspend fun clearAll()
 
+    @Query("UPDATE transactions SET category = :newName WHERE type = :type AND category = :oldName")
+    suspend fun renameCategory(type: String, oldName: String, newName: String)
+
     // Same "remote wins" cold-sync bootstrap pattern as WalletDao/CategoryDao's
     // replaceAll() — a real @Transaction so a crash mid-sync can't leave the
     // table half-cleared. Row identity here is the tx id itself (not rowid),

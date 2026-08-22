@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.screens.debt.DEBT_COLORS
 import ua.rytm.app.ui.screens.debt.Debt
 import ua.rytm.app.ui.screens.debt.DebtEntry
@@ -81,14 +82,15 @@ import ua.rytm.app.ui.screens.finance.formatMoney
 @Composable
 fun DebtScreen(
     viewModel: DebtViewModel = viewModel(
-        factory = DebtViewModel.factory((LocalContext.current.applicationContext as RytmApplication).debtRepository),
+        factory = DebtViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
     val cd = viewModel.currentDebt
+    val canEdit = LocalCanEditProfile.current
 
     Scaffold(
         floatingActionButton = {
-            if (cd != null) {
+            if (cd != null && canEdit) {
                 ExtendedFloatingActionButton(
                     onClick = viewModel::openNewEntrySheet,
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
@@ -102,7 +104,7 @@ fun DebtScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + 96.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { DebtChipsRow(viewModel) }
+            item { DebtChipsRow(viewModel, canEdit) }
 
             if (cd == null) {
                 item { EmptyDebtState() }
@@ -111,7 +113,7 @@ fun DebtScreen(
                 item { ProgressBarSection(cd) }
                 item { ChipStatsRow(cd) }
                 item { DebtForecastCard(cd) }
-                item { InfoPanel(viewModel, cd) }
+                item { InfoPanel(viewModel, cd, canEdit) }
                 item { HistoryHeader(viewModel, cd) }
                 if (viewModel.historyExpanded) {
                     if (cd.entries.isEmpty()) {
@@ -119,7 +121,7 @@ fun DebtScreen(
                     } else {
                         // Newest first, matching js/debt.js's lc.prepend() display order.
                         items(cd.entries.reversed(), key = { it.id }) { entry ->
-                            DebtEntryRow(viewModel, entry, cd.currency)
+                            DebtEntryRow(viewModel, entry, cd.currency, canEdit)
                         }
                     }
                 }
@@ -127,7 +129,7 @@ fun DebtScreen(
         }
     }
 
-    if (viewModel.newEntrySheetOpen && cd != null) {
+    if (canEdit && viewModel.newEntrySheetOpen && cd != null) {
         NewEntrySheet(viewModel, cd)
     }
 
@@ -162,7 +164,7 @@ fun DebtScreen(
 }
 
 @Composable
-private fun DebtChipsRow(viewModel: DebtViewModel) {
+private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(viewModel.debts, key = { it.id }) { debt ->
             val index = viewModel.debts.indexOf(debt)
@@ -178,7 +180,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel) {
                 Text(debt.name, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
             }
         }
-        item {
+        if (canEdit) item {
             var addOpen by remember { mutableStateOf(false) }
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(50)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -317,7 +319,7 @@ private fun StatChip(icon: ImageVector, value: String, label: String, modifier: 
 }
 
 @Composable
-private fun InfoPanel(viewModel: DebtViewModel, cd: Debt) {
+private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth(),
@@ -325,7 +327,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Дані розрахунку", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            IconButton(onClick = viewModel::toggleInfoPanel) {
+            if (canEdit) IconButton(onClick = viewModel::toggleInfoPanel) {
                 Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
             }
         }
@@ -381,10 +383,10 @@ private fun EmptyEntriesState() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String) {
+private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+            if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
                 viewModel.requestDeleteEntry(entry.id)
                 true
             } else false
@@ -395,7 +397,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
+        enableDismissFromEndToStart = canEdit,
         backgroundContent = {
             Box(Modifier.fillMaxSize().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.CenterEnd) {
                 Icon(Icons.Filled.Delete, contentDescription = "Видалити", tint = MaterialTheme.colorScheme.onError, modifier = Modifier.padding(end = 20.dp))

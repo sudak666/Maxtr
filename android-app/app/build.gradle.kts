@@ -112,4 +112,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.biometric)
     debugImplementation(libs.androidx.ui.tooling)
+    testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
 }

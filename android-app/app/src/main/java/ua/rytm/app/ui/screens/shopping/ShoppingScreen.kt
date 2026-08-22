@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -52,20 +53,21 @@ import ua.rytm.app.RytmApplication
 @Composable
 fun ShoppingScreen(
     viewModel: ShoppingViewModel = viewModel(
-        factory = ShoppingViewModel.factory((LocalContext.current.applicationContext as RytmApplication).shoppingRepository),
+        factory = ShoppingViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
+    val canEdit = LocalCanEditProfile.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { ChipStatsRow(remaining = viewModel.remainingCount, bought = viewModel.boughtCount) }
-        item { AddItemForm(viewModel) }
+        if (canEdit) item { AddItemForm(viewModel) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("Список покупок", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                if (viewModel.boughtCount > 0) {
+                if (canEdit && viewModel.boughtCount > 0) {
                     TextButton(onClick = viewModel::requestClearBought) { Text("Очистити куплені", color = MaterialTheme.colorScheme.error) }
                 }
             }
@@ -76,7 +78,7 @@ fun ShoppingScreen(
             item { ShoppingEmptyState() }
         } else {
             items(sorted, key = { it.id }) { item ->
-                ShoppingRow(item = item, onToggle = { viewModel.toggle(item, it) }, onDelete = { viewModel.delete(item.id) })
+                ShoppingRow(item = item, canEdit = canEdit, onToggle = { viewModel.toggle(item, it) }, onDelete = { viewModel.delete(item.id) })
             }
         }
     }
@@ -88,6 +90,14 @@ fun ShoppingScreen(
             text = { Text("Видалити всі куплені товари зі списку?") },
             confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
             dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text("Скасувати") } },
+        )
+    }
+    viewModel.errorMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = viewModel::consumeError,
+            title = { Text("Не вдалося зберегти") },
+            text = { Text(message) },
+            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text("Гаразд") } },
         )
     }
 }
@@ -150,10 +160,10 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
 }
 
 @Composable
-private fun ShoppingRow(item: ShoppingItem, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+private fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = item.done, onCheckedChange = onToggle)
+            Checkbox(checked = item.done, onCheckedChange = if (canEdit) onToggle else null, enabled = canEdit)
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.bodyLarge,
@@ -170,7 +180,7 @@ private fun ShoppingRow(item: ShoppingItem, onToggle: (Boolean) -> Unit, onDelet
                     modifier = Modifier.padding(end = 4.dp),
                 )
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
         }
     }
 }

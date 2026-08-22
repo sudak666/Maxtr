@@ -87,6 +87,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.TransactionsCsvRepository
@@ -121,6 +122,7 @@ import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
+    val canEdit = LocalCanEditProfile.current
     val context = LocalContext.current
     val app = context.applicationContext as RytmApplication
     val scope = rememberCoroutineScope()
@@ -441,7 +443,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 )
             }
 
-            if (financeVisible) {
+            if (canEdit && financeVisible) {
                 SettingsSectionLabel("Фінанси")
                 SettingsGroupCard {
                 SettingsRow(
