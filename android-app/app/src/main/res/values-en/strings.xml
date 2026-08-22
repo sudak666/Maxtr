@@ -66,6 +66,17 @@
     <string name="pin_reset_sign_out">Reset and sign out</string>
     <string name="pin_biometric_title">Quick unlock</string>
     <string name="pin_biometric_body">Enable fingerprint or face unlock? Your PIN remains available as a backup.</string>
+    <string name="pin_settings_title">PIN</string>
+    <string name="pin_is_set">PIN is set</string>
+    <string name="pin_biometric_toggle">Fingerprint/face unlock</string>
+    <string name="pin_lock_now">Lock now</string>
+    <string name="pin_remove">Remove PIN</string>
+    <string name="pin_new">New PIN (4–6 digits)</string>
+    <string name="pin_confirm">Confirm PIN</string>
+    <string name="pin_save">Save PIN</string>
+    <string name="pin_error_invalid">Incorrect PIN</string>
+    <string name="pin_error_length">PIN must contain 4–6 digits</string>
+    <string name="pin_error_mismatch">PINs do not match</string>
     <string name="action_enable">Enable</string>
     <string name="action_not_now">Not now</string>
     <string name="auth_error_generic">Sign-in failed. Try again.</string>

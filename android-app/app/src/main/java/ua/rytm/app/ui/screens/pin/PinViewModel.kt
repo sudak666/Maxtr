@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.local.PinStore
 import com.google.firebase.auth.FirebaseAuth
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/auth.js's PIN section (checkPinLock()/tryUnlockPin()/setPin()/
 // removePin()/openPinSettings()) — a local re-lock gate layered on top of the
@@ -38,9 +40,10 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     var pinInput by mutableStateOf("")
         private set
 
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     // Settings-sheet-only state (new/confirm PIN entry), kept separate from
     // the unlock-screen's own pinInput so opening Settings mid-unlock-flow
@@ -72,10 +75,10 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         viewModelScope.launch {
             if (pinStore.verifyPin(uid, entered)) {
                 isUnlocked = true
-                errorMessage = null
+                errorMessageRes = null
                 pinInput = ""
             } else if (!silentIfMismatchAndNotFull) {
-                errorMessage = "Невірний PIN-код"
+                errorMessageRes = R.string.pin_error_invalid
                 pinInput = ""
             }
         }
@@ -83,7 +86,7 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
 
     fun unlockWithBiometric() {
         isUnlocked = true
-        errorMessage = null
+        errorMessageRes = null
         pinInput = ""
     }
 
@@ -98,13 +101,13 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     fun resetPinEntryFields() { newPin = ""; confirmPin = "" }
 
     fun savePin() {
-        if (!Regex("^\\d{4,6}$").matches(newPin)) { errorMessage = "PIN має бути 4-6 цифр"; return }
-        if (newPin != confirmPin) { errorMessage = "PIN-коди не збігаються"; return }
+        if (!Regex("^\\d{4,6}$").matches(newPin)) { errorMessageRes = R.string.pin_error_length; return }
+        if (newPin != confirmPin) { errorMessageRes = R.string.pin_error_mismatch; return }
         viewModelScope.launch {
             pinStore.setPin(uid, newPin)
             isUnlocked = true
             resetPinEntryFields()
-            errorMessage = null
+            errorMessageRes = null
         }
     }
 

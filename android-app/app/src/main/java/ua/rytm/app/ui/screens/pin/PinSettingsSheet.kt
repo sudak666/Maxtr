@@ -26,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.fragment.app.FragmentActivity
 
 // Mirrors js/auth.js's openPinSettings()/setPin()/removePin()/renderBioSettingsUI() —
@@ -44,10 +46,10 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("PIN-код", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.pin_settings_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (hasPin == true) {
-                Text("PIN встановлено", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.pin_is_set), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 if (activity != null && biometricAvailable(activity)) {
                     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
@@ -56,33 +58,33 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("Розблокування відбитком/обличчям")
+                            Text(stringResource(R.string.pin_biometric_toggle))
                             Switch(checked = biometricEnabled, onCheckedChange = viewModel::setBiometricEnabled)
                         }
                     }
                 }
 
                 TextButton(onClick = { viewModel.lockNow(); onDismiss() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Заблокувати зараз")
+                    Text(stringResource(R.string.pin_lock_now))
                 }
                 TextButton(onClick = { viewModel.removePin(); onDismiss() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Видалити PIN", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.pin_remove), color = MaterialTheme.colorScheme.error)
                 }
             } else {
-                Text("Новий PIN (4-6 цифр)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.pin_new), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 PinDots(viewModel.newPin.length)
                 PinKeypad(onDigit = viewModel::setNewPinDigit, onBackspace = viewModel::newPinBackspace)
 
-                Text("Підтвердіть PIN", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.pin_confirm), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 PinDots(viewModel.confirmPin.length)
                 PinKeypad(onDigit = viewModel::setConfirmPinDigit, onBackspace = viewModel::confirmPinBackspace)
 
-                viewModel.errorMessage?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                viewModel.errorMessageRes?.let {
+                    Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
 
                 TextButton(onClick = { viewModel.savePin() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Зберегти PIN")
+                    Text(stringResource(R.string.pin_save))
                 }
             }
         }

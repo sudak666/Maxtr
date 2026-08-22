@@ -68,6 +68,17 @@
     <string name="pin_reset_sign_out">Скинути й вийти</string>
     <string name="pin_biometric_title">Швидке розблокування</string>
     <string name="pin_biometric_body">Увімкнути розблокування відбитком пальця або обличчям? PIN залишиться резервним способом входу.</string>
+    <string name="pin_settings_title">PIN-код</string>
+    <string name="pin_is_set">PIN встановлено</string>
+    <string name="pin_biometric_toggle">Розблокування відбитком/обличчям</string>
+    <string name="pin_lock_now">Заблокувати зараз</string>
+    <string name="pin_remove">Видалити PIN</string>
+    <string name="pin_new">Новий PIN (4–6 цифр)</string>
+    <string name="pin_confirm">Підтвердіть PIN</string>
+    <string name="pin_save">Зберегти PIN</string>
+    <string name="pin_error_invalid">Невірний PIN-код</string>
+    <string name="pin_error_length">PIN має містити 4–6 цифр</string>
+    <string name="pin_error_mismatch">PIN-коди не збігаються</string>
     <string name="action_enable">Увімкнути</string>
     <string name="action_not_now">Не зараз</string>
     <string name="auth_error_generic">Помилка входу. Спробуйте ще раз.</string>
