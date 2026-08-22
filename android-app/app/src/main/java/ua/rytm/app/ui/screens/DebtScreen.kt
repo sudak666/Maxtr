@@ -67,6 +67,7 @@ import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
@@ -104,7 +105,7 @@ fun DebtScreen(
                 ExtendedFloatingActionButton(
                     onClick = viewModel::openNewEntrySheet,
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text("Платіж") },
+                    text = { Text(stringResource(R.string.debt_payment)) },
                 )
             }
         },
@@ -146,29 +147,29 @@ fun DebtScreen(
     if (viewModel.pendingDeleteDebt) {
         AlertDialog(
             onDismissRequest = viewModel::cancelDeleteDebt,
-            title = { Text("Видалити розрахунок") },
-            text = { Text("Видалити цей розрахунок і всю історію платежів?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDeleteDebt) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDeleteDebt) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.debt_delete_title)) },
+            text = { Text(stringResource(R.string.debt_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDeleteDebt, enabled = !viewModel.saving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDeleteDebt) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     if (viewModel.pendingDeleteEntryId != null) {
         AlertDialog(
             onDismissRequest = viewModel::cancelDeleteEntry,
-            title = { Text("Видалити платіж") },
-            text = { Text("Видалити цей запис з історії?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDeleteEntry) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDeleteEntry) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.debt_payment_delete_title)) },
+            text = { Text(stringResource(R.string.debt_payment_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDeleteEntry, enabled = !viewModel.saving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDeleteEntry) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     viewModel.errorMessageRes?.let { messageRes ->
         AlertDialog(
             onDismissRequest = viewModel::consumeError,
-            title = { Text("Увага") },
+            title = { Text(stringResource(R.string.attention_title)) },
             text = { Text(stringResource(messageRes)) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text("Гаразд") } },
+            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
@@ -195,20 +196,20 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(50)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier)
-                    Text("Новий розрахунок", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.debt_new_default), fontWeight = FontWeight.SemiBold)
                 }
             }
             if (addOpen) {
                 var name by remember { mutableStateOf("") }
                 AlertDialog(
                     onDismissRequest = { addOpen = false },
-                    title = { Text("Новий розрахунок") },
-                    text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text("Назва") }) },
+                    title = { Text(stringResource(R.string.debt_new_default)) },
+                    text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
                         TextButton(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }) { Text(stringResource(R.string.action_add)) }
                     },
-                    dismissButton = { TextButton(onClick = { addOpen = false }) { Text("Скасувати") } },
+                    dismissButton = { TextButton(onClick = { addOpen = false }) { Text(stringResource(R.string.action_cancel)) } },
                 )
             }
         }
@@ -218,8 +219,8 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
 @Composable
 private fun EmptyDebtState() {
     Column(Modifier.fillMaxWidth().padding(vertical = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Немає розрахунків", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text("Додай перший розрахунок кнопкою вище", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.debt_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.debt_empty_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -242,7 +243,7 @@ private fun HeroBalance(cd: Debt) {
             .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
     ) {
         Column(Modifier.padding(20.dp)) {
-            Text("Поточний залишок", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
         }
     }
@@ -258,7 +259,7 @@ private fun ProgressBarSection(cd: Debt) {
     val pct = (paid / target).coerceIn(0.0, 1.0)
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Сплачено", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.debt_paid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${(pct * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         }
         Box(
@@ -286,13 +287,14 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), "Початкова сума", Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), "Сплачено", Modifier.weight(1f))
-        StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), "Платежів", Modifier.weight(1f))
-        if (due != null) StatChip(Icons.Filled.Event, due, "Термін сплати", Modifier.weight(1f))
+        StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount), Modifier.weight(1f))
+        StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid), Modifier.weight(1f))
+        StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments), Modifier.weight(1f))
+        if (due != null) StatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date), Modifier.weight(1f))
     }
 }
 
+@Composable
 private fun dueChipInfo(cd: Debt): String? {
     if (cd.dueDate.isBlank()) return null
     val diffDays = try {
@@ -300,9 +302,9 @@ private fun dueChipInfo(cd: Debt): String? {
         java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), due)
     } catch (e: Exception) { return null }
     return when {
-        diffDays < 0 -> "−${-diffDays} дн."
-        diffDays == 0L -> "Сьогодні"
-        else -> "$diffDays дн."
+        diffDays < 0 -> stringResource(R.string.debt_days_overdue, -diffDays)
+        diffDays == 0L -> stringResource(R.string.action_today)
+        else -> stringResource(R.string.debt_days_future, diffDays)
     }
 }
 
@@ -337,9 +339,9 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Дані розрахунку", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             if (canEdit) IconButton(onClick = viewModel::toggleInfoPanel) {
-                Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
+                Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
         }
         if (viewModel.infoExpanded) {
@@ -352,16 +354,16 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
             fun commit() { viewModel.updateInfo(name, note, currency, startAmount.toDoubleOrNull() ?: 0.0, dueDate) }
 
             Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Назва") })
-                OutlinedTextField(value = note, onValueChange = { note = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Нотатка") })
+                OutlinedTextField(value = name, onValueChange = { name = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.field_name)) })
+                OutlinedTextField(value = note, onValueChange = { note = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.note_label)) })
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = startAmount, onValueChange = { startAmount = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text("Стартова сума") })
+                    OutlinedTextField(value = startAmount, onValueChange = { startAmount = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text(stringResource(R.string.debt_start_amount)) })
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
-                DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = "Термін сплати", modifier = Modifier.fillMaxWidth())
+                DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
                 TextButton(onClick = viewModel::requestDeleteCurrentDebt) {
                     Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                    Text("Видалити розрахунок", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -376,11 +378,11 @@ private fun HistoryHeader(viewModel: DebtViewModel, cd: Debt) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
-            Text("Історія платежів", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            Text("${cd.entries.size} записів", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.debt_history), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(pluralStringResource(R.plurals.finance_records, cd.entries.size, cd.entries.size), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         IconButton(onClick = viewModel::toggleHistoryPanel) {
-            Icon(Icons.Filled.ChevronRight, contentDescription = "Згорнути/розгорнути", modifier = Modifier)
+            Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.action_toggle_section), modifier = Modifier)
         }
     }
 }
@@ -388,7 +390,7 @@ private fun HistoryHeader(viewModel: DebtViewModel, cd: Debt) {
 @Composable
 private fun EmptyEntriesState() {
     Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Ще немає платежів", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.debt_payments_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -414,7 +416,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
         backgroundContent = {
             Box(Modifier.fillMaxSize().clip(MaterialTheme.shapes.large), contentAlignment = Alignment.CenterEnd) {
                 Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Видалити", tint = MaterialTheme.colorScheme.onError)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
                 }
             }
         },
@@ -425,19 +427,19 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
                     var amount by remember(entry.id) { mutableStateOf(entry.amount) }
                     var balance by remember(entry.id) { mutableStateOf(entry.balance.toString()) }
                     var date by remember(entry.id) { mutableStateOf(entry.date) }
-                    OutlinedTextField(value = amount, onValueChange = { amount = it; viewModel.updateEntryAmount(entry, it) }, singleLine = true, label = { Text("Сума") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = amount, onValueChange = { amount = it; viewModel.updateEntryAmount(entry, it) }, singleLine = true, label = { Text(stringResource(R.string.amount_label)) }, modifier = Modifier.fillMaxWidth())
                     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(value = balance, onValueChange = { balance = it; viewModel.updateEntryBalance(entry, it) }, singleLine = true, label = { Text("Залишок") }, modifier = Modifier.weight(1f))
-                        DatePickerField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, label = "Дата", modifier = Modifier.weight(1f), allowEmpty = false)
+                        OutlinedTextField(value = balance, onValueChange = { balance = it; viewModel.updateEntryBalance(entry, it) }, singleLine = true, label = { Text(stringResource(R.string.debt_balance)) }, modifier = Modifier.weight(1f))
+                        DatePickerField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, label = stringResource(R.string.date_label), modifier = Modifier.weight(1f), allowEmpty = false)
                     }
-                    TextButton(onClick = { viewModel.toggleEntryEdit(entry.id) }, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
+                    TextButton(onClick = { viewModel.toggleEntryEdit(entry.id) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text("${entry.amount} $currency", fontWeight = FontWeight.SemiBold)
-                            Text(maskedAmount("Залишок: ${formatMoney(entry.balance)} $currency") + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(Icons.Filled.Edit, contentDescription = "Редагувати") }
+                        IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit)) }
                     }
                 }
             }
@@ -455,7 +457,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
 
     ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Новий платіж", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.debt_new_payment), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->
@@ -470,13 +472,13 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Сума платежу") },
+                label = { Text(stringResource(R.string.debt_payment_amount)) },
             )
-            OutlinedTextField(value = balance, onValueChange = { balance = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Новий залишок") })
-            DatePickerField(value = date, onValueChange = { date = it }, label = "Дата", modifier = Modifier.fillMaxWidth(), allowEmpty = false)
+            OutlinedTextField(value = balance, onValueChange = { balance = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.debt_new_balance)) })
+            DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = viewModel::closeNewEntrySheet) { Text("Скасувати") }
-                TextButton(onClick = { viewModel.addEntry(amount, balance, date) }) { Text("Додати") }
+                TextButton(onClick = viewModel::closeNewEntrySheet) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = { viewModel.addEntry(amount, balance, date) }, enabled = !viewModel.saving) { Text(stringResource(R.string.action_add)) }
             }
         }
     }
