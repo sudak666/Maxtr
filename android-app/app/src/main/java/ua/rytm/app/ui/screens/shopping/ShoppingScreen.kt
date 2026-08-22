@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,6 +32,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -144,23 +155,47 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
             placeholder = { Text("напр. Молоко") },
             modifier = Modifier.weight(1f),
             singleLine = true,
+            isError = viewModel.nameInvalid,
+            supportingText = if (viewModel.nameInvalid) ({ Text(stringResource(R.string.shopping_name_required)) }) else null,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
         OutlinedTextField(
             value = viewModel.qtyInput,
             onValueChange = viewModel::onQtyChange,
             label = { Text("К-сть") },
             placeholder = { Text("1") },
-            modifier = Modifier.size(width = 84.dp, height = 64.dp),
+            modifier = Modifier.width(108.dp),
             singleLine = true,
+            isError = viewModel.quantityInvalid,
+            supportingText = if (viewModel.quantityInvalid) ({ Text(stringResource(R.string.shopping_quantity_invalid)) }) else null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { viewModel.addItem() }),
         )
-        FilledTonalButton(onClick = viewModel::addItem) {
+        FilledTonalButton(onClick = viewModel::addItem, enabled = !viewModel.saving && viewModel.nameInput.isNotBlank()) {
             Icon(Icons.Filled.Add, contentDescription = null)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { value ->
+        if (canEdit && value == SwipeToDismissBoxValue.EndToStart) { onDelete(); true } else false
+    })
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = canEdit,
+        backgroundContent = {
+            Box(
+                Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.error),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError, modifier = Modifier.padding(end = 20.dp))
+            }
+        },
+    ) {
     Card(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = item.done, onCheckedChange = if (canEdit) onToggle else null, enabled = canEdit)
@@ -182,6 +217,7 @@ private fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean
             }
             if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
         }
+    }
     }
 }
 

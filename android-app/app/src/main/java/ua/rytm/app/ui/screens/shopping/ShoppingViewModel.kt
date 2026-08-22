@@ -39,6 +39,10 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+    var nameInvalid by mutableStateOf(false)
+        private set
+    var quantityInvalid by mutableStateOf(false)
+        private set
     fun consumeError() { errorMessage = null }
 
     init {
@@ -46,11 +50,15 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         repository.items.onEach { items = it }.launchIn(viewModelScope)
     }
 
-    fun onNameChange(value: String) { nameInput = value }
-    fun onQtyChange(value: String) { qtyInput = value.filter { it.isDigit() } }
+    fun onNameChange(value: String) { nameInput = value; nameInvalid = false }
+    fun onQtyChange(value: String) { qtyInput = value.filter { it.isDigit() }; quantityInvalid = false }
 
     fun addItem() {
         val name = nameInput.trim()
+        val validation = validateShoppingDraft(name, qtyInput)
+        nameInvalid = validation.nameInvalid
+        quantityInvalid = validation.quantityInvalid
+        if (!validation.valid) return
         if (name.isEmpty()) { errorMessage = "Введи назву покупки"; return }
         val qty = if (qtyInput.isBlank()) 1 else qtyInput.toIntOrNull()?.takeIf { it >= 1 }
         if (qty == null) { errorMessage = "Кількість має бути цілим числом від 1"; return }

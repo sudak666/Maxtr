@@ -7,8 +7,6 @@
     <string name="nav_shopping">Покупки</string>
     <string name="nav_settings">Налаштування</string>
 
-    <string name="placeholder_screen">Екран у розробці — %1$s</string>
-
     <string name="notification_channel_name">Нагадування Rytm</string>
     <string name="action_skip">Пропустити</string>
     <string name="action_done">Готово</string>
@@ -26,4 +24,7 @@
     <string name="sync_status_syncing">Синхронізація…</string>
     <string name="sync_status_offline">Офлайн · показано кеш</string>
     <string name="sync_status_error">Помилка синхронізації</string>
+    <string name="action_delete">Видалити</string>
+    <string name="shopping_name_required">Введіть назву покупки</string>
+    <string name="shopping_quantity_invalid">Кількість має бути цілим числом від 1</string>
 </resources>
