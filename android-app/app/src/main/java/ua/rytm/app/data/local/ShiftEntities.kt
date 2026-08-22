@@ -52,8 +52,8 @@ interface ShiftTypeDao {
     // Used only by the Firestore cold-sync bootstrap (ShiftsSyncRepository), same
     // reasoning as WalletDao.replaceAll().
     @Transaction
-    suspend fun replaceAll(types: List<ShiftTypeEntity>) {
-        clearAll()
+    suspend fun replaceAll(types: List<ShiftTypeEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(types)
     }
 
@@ -123,8 +123,8 @@ interface ShiftDayDao {
     // replaceAll() — a real @Transaction so a crash mid-sync can't leave the
     // table half-cleared.
     @Transaction
-    suspend fun replaceAll(days: List<ShiftDayEntity>) {
-        clearAll()
+    suspend fun replaceAll(days: List<ShiftDayEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(days)
     }
 
@@ -137,9 +137,9 @@ interface ShiftDayDao {
 
     /** Replaces the full assignment set for one day in a single call site (see ShiftsRepository.setShiftsForDay()). */
     @androidx.room.Transaction
-    suspend fun setForDate(dateKey: String, shiftTypeIds: List<String>) {
-        deleteForDate(dateKey)
-        insertAll(shiftTypeIds.map { ShiftDayEntity(dateKey, it) })
+    suspend fun setForDate(dateKey: String, shiftTypeIds: List<String>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        deleteForDate(dateKey, ownerUid, profileId)
+        insertAll(shiftTypeIds.map { ShiftDayEntity(dateKey, it, ownerUid, profileId) })
     }
 
     // "yyyy-MM-" prefix match — mirrors js/calendar.js's clearCurrentMonth()/
@@ -151,8 +151,8 @@ interface ShiftDayDao {
     // pattern-generated set in one transaction — mirrors applyTemplate()'s
     // own clear-then-fill shape.
     @Transaction
-    suspend fun applyTemplate(monthPrefix: String, days: List<ShiftDayEntity>) {
-        deleteForMonth(monthPrefix)
+    suspend fun applyTemplate(monthPrefix: String, days: List<ShiftDayEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        deleteForMonth(monthPrefix, ownerUid, profileId)
         insertAll(days)
     }
 

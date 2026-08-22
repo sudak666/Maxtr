@@ -93,6 +93,7 @@ import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.OperationSyncStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
@@ -115,7 +116,7 @@ fun ShiftsScreen() {
     val dataUid = ownerUid ?: accountUid
     val viewModel: ShiftsViewModel = viewModel(
         key = "$dataUid|$profileId",
-        factory = ShiftsViewModel.factory(app.shiftsRepository, dataUid, profileId),
+        factory = ShiftsViewModel.factory(app.shiftsRepository, app.shiftsSyncRepository, dataUid, profileId),
     )
     val stats = viewModel.monthStats
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
@@ -132,6 +133,7 @@ fun ShiftsScreen() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { RealtimeStateBanner() }
+        item { OperationSyncStateBanner(viewModel.syncState) }
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { HeroMetric(stats.earned) }

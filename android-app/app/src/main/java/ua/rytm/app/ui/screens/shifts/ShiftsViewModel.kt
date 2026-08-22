@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
+import ua.rytm.app.data.ShiftsSyncRepository
+import ua.rytm.app.data.TransactionSyncState
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -21,11 +23,16 @@ import java.time.YearMonth
 // applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
 // step 39 (quick-fill/autofill/6-month chart, previously deferred by
 // SHIFTS_SCREEN_SPEC.md's step 8 scoping).
-class ShiftsViewModel(private val repository: ShiftsRepository, private val uid: String, private val profileId: String) : ViewModel() {
+class ShiftsViewModel(
+    private val repository: ShiftsRepository,
+    syncRepository: ShiftsSyncRepository,
+    private val uid: String,
+    private val profileId: String,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: ShiftsRepository, uid: String, profileId: String) = viewModelFactory {
-            initializer { ShiftsViewModel(repository, uid, profileId) }
+        fun factory(repository: ShiftsRepository, syncRepository: ShiftsSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { ShiftsViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -37,6 +44,8 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     var loading by mutableStateOf(true)
         private set
     var loadFailed by mutableStateOf(false)
+        private set
+    var syncState by mutableStateOf<TransactionSyncState?>(null)
         private set
 
     private fun markLoaded() { loading = !(typesLoaded && shiftsLoaded); loadFailed = false }
@@ -90,6 +99,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
             if (autoFillDraftTypeId == null || types.none { it.id == autoFillDraftTypeId }) autoFillDraftTypeId = firstNonOff
         }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.shiftsByDate.onEach { shiftsByDate = it; shiftsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        syncRepository.operationState.onEach { syncState = it }.launchIn(viewModelScope)
         repository.autoFillSchedule.onEach { schedule ->
             autoFillSchedule = schedule
             autoFillDraftPattern = schedule.pattern

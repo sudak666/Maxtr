@@ -20,6 +20,9 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.ShoppingItemEntity
 import ua.rytm.app.data.local.DebtEntity
+import ua.rytm.app.data.local.AutoFillScheduleEntity
+import ua.rytm.app.data.local.ShiftDayEntity
+import ua.rytm.app.data.local.ShiftTypeEntity
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.clearActiveProfileTables
 
@@ -112,6 +115,28 @@ class TransactionsOutboxFirebaseE2eTest {
         app.database.debtDao().clearAll(uid, otherProfile)
     }
 
+    @Test fun shiftsSnapshotSurvivesProfileSwitchWithoutCrossProfileLeak() = runBlocking {
+        val shiftsSync = ShiftsSyncRepository(app.database, firestore)
+        shiftsSync.queueSnapshot(uid, profileId) {
+            app.database.shiftTypeDao().insert(ShiftTypeEntity("work", "Work", "W", "W", 0xff0000, 100.0, 8.0, false, uid, profileId))
+            app.database.shiftDayDao().insertAll(listOf(ShiftDayEntity("2026-08-22", "work", uid, profileId)))
+            app.database.autoFillScheduleDao().upsert(AutoFillScheduleEntity(0, false, "", "every", "", uid, profileId))
+        }
+
+        val otherProfile = "other_profile"
+        RoomProfileScope.activate(uid, otherProfile)
+        app.database.shiftTypeDao().insert(ShiftTypeEntity("private", "Private", "P", "P", 0x00ff00, 200.0, 8.0, false, uid, otherProfile))
+        assertTrue(shiftsSync.drainOutbox())
+
+        val remote = shiftsRef(profileId).get(Source.SERVER).await()
+        val typeIds = (remote.get("shiftTypes") as List<*>).map { (it as Map<*, *>)["id"] }
+        assertEquals(listOf("work"), typeIds)
+        val days = remote.get("data") as Map<*, *>
+        assertEquals(listOf("work"), days["2026-08-22"])
+        RoomProfileScope.activate(uid, profileId)
+        app.database.shiftTypeDao().clearAll(uid, otherProfile)
+    }
+
     private fun remoteCollection() = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("finance", profileId)).collection("transactions")
 
@@ -120,6 +145,9 @@ class TransactionsOutboxFirebaseE2eTest {
 
     private fun debtRef(profile: String) = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("debt", profile))
+
+    private fun shiftsRef(profile: String) = firestore.collection("users").document(uid)
+        .collection("max_tracker").document(profileDocName("shifts", profile))
 
     private fun transaction(id: String) = TransactionEntity(
         id = id, type = "EXPENSE", amount = 42.5, currency = "UAH", date = "2026-08-22",

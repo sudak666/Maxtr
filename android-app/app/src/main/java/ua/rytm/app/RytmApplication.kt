@@ -98,7 +98,7 @@ class RytmApplication : Application() {
     val settingsStore: SettingsStore by lazy { SettingsStore(this) }
     val pinStore: PinStore by lazy { PinStore(this) }
     val financeSyncRepository: FinanceSyncRepository by lazy { FinanceSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val shiftsSyncRepository: ShiftsSyncRepository by lazy { ShiftsSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val shiftsSyncRepository: ShiftsSyncRepository by lazy { ShiftsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val categoriesSyncRepository: CategoriesSyncRepository by lazy { CategoriesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance(), this) }
