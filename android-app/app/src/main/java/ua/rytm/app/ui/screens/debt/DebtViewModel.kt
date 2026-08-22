@@ -65,7 +65,6 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun consumeError() { errorMessage = null }
 
     init {
-        viewModelScope.launch { repository.seedIfEmpty() }
         repository.debts.onEach { list ->
             debts = list
             if (currentDebtId == null || list.none { it.id == currentDebtId }) {

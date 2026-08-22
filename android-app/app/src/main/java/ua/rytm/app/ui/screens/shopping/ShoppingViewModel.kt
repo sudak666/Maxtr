@@ -46,7 +46,6 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
     fun consumeError() { errorMessage = null }
 
     init {
-        viewModelScope.launch { repository.seedIfEmpty() }
         repository.items.onEach { items = it }.launchIn(viewModelScope)
     }
 

@@ -16,7 +16,6 @@ import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.WalletEntity
 import ua.rytm.app.ui.screens.finance.Goal
 import ua.rytm.app.ui.screens.finance.Recurring
-import ua.rytm.app.ui.screens.finance.SampleFinanceData
 import ua.rytm.app.ui.screens.finance.Tag
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
@@ -79,25 +78,20 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
-            db.walletDao().insertAll(SampleFinanceData.wallets.map { it.toEntity() })
-        }
-        if (db.transactionDao().count() == 0) {
-            db.transactionDao().insertAll(SampleFinanceData.transactions.mapIndexed { index, tx -> tx.toEntity(createdAt = index.toLong()) })
+            db.walletDao().insertAll(
+                listOf(
+                    WalletEntity("w_card", "Картка", 0xFF8B5CF6, "UAH", "card"),
+                    WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
+                ),
+            )
         }
         if (db.categoryDao().count() == 0) {
-            val seed = SampleFinanceData.incomeCategories.map { CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = TxType.INCOME.name, name = it) } +
-                SampleFinanceData.expenseCategories.map { CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = TxType.EXPENSE.name, name = it) }
-            db.categoryDao().insertAll(seed)
-        }
-        // SampleFinanceData.subcategories is keyed by name only (all its entries
-        // happen to be expense categories) — EXPENSE is the real type here, not
-        // a guess, since js/state.js's real DEFAULT_CATEGORIES has no default
-        // subcategories to seed from at all (this is illustrative sample content).
-        if (db.subcategoryDao().count() == 0) {
-            val seed = SampleFinanceData.subcategories.flatMap { (categoryName, names) ->
-                names.map { SubcategoryEntity(categoryType = TxType.EXPENSE.name, categoryName = categoryName, name = it) }
-            }
-            db.subcategoryDao().insertAll(seed)
+            val income = listOf("Зарплата", "Премія", "Підробіток", "Інше")
+            val expense = listOf("Продукти", "Кафе", "Транспорт", "Покупки", "Комунальні", "Здоров'я", "Розваги", "Інше")
+            db.categoryDao().insertAll(
+                income.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.INCOME.name, it) } +
+                    expense.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.EXPENSE.name, it) },
+            )
         }
     }
 

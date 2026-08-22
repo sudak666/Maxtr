@@ -91,8 +91,6 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
         app.financeRepository.seedIfEmpty()
         app.shiftsRepository.seedIfEmpty()
-        app.shoppingRepository.seedIfEmpty()
-        app.debtRepository.seedIfEmpty()
         syncAllDomains(dataOwnerUid, profileId)
         startRealtimeSync(dataOwnerUid, profileId)
         return profileId
