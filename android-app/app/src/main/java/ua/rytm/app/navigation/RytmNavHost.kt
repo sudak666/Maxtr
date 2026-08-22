@@ -7,7 +7,7 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
@@ -55,6 +56,7 @@ import androidx.compose.runtime.produceState
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.LocalReducedMotion
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -179,6 +181,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController) 
 // selected, mirroring `.tab-btn.active span:last-child`'s animation trigger.
 @Composable
 private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val reducedMotion = LocalReducedMotion.current
     val scope = rememberCoroutineScope()
     val popScale = remember { Animatable(1f) }
     val popOffsetDp = remember { Animatable(0f) }
@@ -190,6 +193,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
         popScale.snapTo(1f)
         popOffsetDp.snapTo(0f)
         rippleProgress.snapTo(0f)
+        if (reducedMotion) return@LaunchedEffect
         scope.launch {
             popScale.animateTo(
                 targetValue = 1f,
@@ -221,6 +225,11 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
     val labelOffsetDp = remember { Animatable(0f) }
     LaunchedEffect(selected) {
         if (!selected) return@LaunchedEffect
+        if (reducedMotion) {
+            labelAlpha.snapTo(1f)
+            labelOffsetDp.snapTo(0f)
+            return@LaunchedEffect
+        }
         labelAlpha.snapTo(0.35f)
         labelOffsetDp.snapTo(4f)
         launch { labelAlpha.animateTo(1f, animationSpec = tween(300, easing = LinearEasing)) }
@@ -231,7 +240,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
 
     Column(
         modifier = modifier
-            .clickable(onClick = {
+            .selectable(selected = selected, role = Role.Tab, onClick = {
                 popTrigger++
                 onClick()
             })
