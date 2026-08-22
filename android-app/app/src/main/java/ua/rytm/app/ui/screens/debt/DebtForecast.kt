@@ -25,6 +25,9 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import ua.rytm.app.R
 import ua.rytm.app.ui.screens.finance.formatMoney
 import ua.rytm.app.ui.maskedAmount
 import kotlin.math.ceil
@@ -69,7 +72,7 @@ fun DebtForecastCard(debt: Debt) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))
                 Text(
-                    "Прогноз погашення",
+                    stringResource(R.string.debt_forecast_title),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -78,13 +81,13 @@ fun DebtForecastCard(debt: Debt) {
             }
             DebtBurndownCanvas(series, modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp))
             when {
-                currentBalance <= 0 -> Text("Розрахунок повністю погашено! 🎉", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                avgDown <= 0 -> Text("Замало даних для оцінки темпу погашення", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())
                     val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
-                    Text("Залишилось приблизно $paymentsLeft платежів", style = MaterialTheme.typography.bodyMedium)
-                    Text("Середній платіж: $avgStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(pluralStringResource(R.plurals.debt_payments_left, paymentsLeft, paymentsLeft), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -66,6 +66,8 @@ import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
@@ -161,11 +163,11 @@ fun DebtScreen(
         )
     }
 
-    viewModel.errorMessage?.let { message ->
+    viewModel.errorMessageRes?.let { messageRes ->
         AlertDialog(
             onDismissRequest = viewModel::consumeError,
             title = { Text("Увага") },
-            text = { Text(message) },
+            text = { Text(stringResource(messageRes)) },
             confirmButton = { TextButton(onClick = viewModel::consumeError) { Text("Гаразд") } },
         )
     }
@@ -203,7 +205,8 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                     title = { Text("Новий розрахунок") },
                     text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text("Назва") }) },
                     confirmButton = {
-                        TextButton(onClick = { viewModel.addDebt(name); addOpen = false }) { Text("Додати") }
+                        val fallbackName = stringResource(R.string.debt_new_default)
+                        TextButton(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }) { Text(stringResource(R.string.action_add)) }
                     },
                     dismissButton = { TextButton(onClick = { addOpen = false }) { Text("Скасувати") } },
                 )

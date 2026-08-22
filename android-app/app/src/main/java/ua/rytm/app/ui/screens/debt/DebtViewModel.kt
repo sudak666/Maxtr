@@ -15,6 +15,8 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DebtRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/debt.js's getCurrentDebt()/renderDebt()/addDebtEntry()/etc.
 // Deliberately scoped like SHIFTS_SCREEN_SPEC.md's precedent: the SVG/Preact
@@ -58,11 +60,12 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     var pendingDeleteEntryId by mutableStateOf<Long?>(null)
         private set
 
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
     var saving by mutableStateOf(false)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     init {
         repository.debts.onEach { list ->
@@ -75,15 +78,15 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun switchDebt(id: Long) { currentDebtId = id }
 
-    fun addDebt(name: String) {
-        val clean = name.trim().ifBlank { "Новий розрахунок" }
+    fun addDebt(name: String, fallbackName: String) {
+        val clean = name.trim().ifBlank { fallbackName }
         val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList())
         mutate(debt.id) { repository.addDebt(debt) }
         currentDebtId = debt.id
     }
 
     fun requestDeleteCurrentDebt() {
-        if (debts.size <= 1) { errorMessage = "Має лишитись хоча б один розрахунок"; return }
+        if (debts.size <= 1) { errorMessageRes = R.string.debt_last_required; return }
         pendingDeleteDebt = true
     }
 
@@ -98,7 +101,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun updateInfo(name: String, note: String, currency: String, startAmount: Double, dueDate: String) {
         val cd = currentDebt ?: return
         mutate(cd.id) {
-            repository.updateDebt(cd.copy(name = name.trim().ifBlank { "Розрахунок" }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
+            repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
         }
     }
 
@@ -117,11 +120,11 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun addEntry(amountText: String, balanceText: String, dateText: String) {
         val cd = currentDebt ?: return
         val amount = amountText.trim()
-        if (amount.isEmpty()) { errorMessage = "Вкажіть суму"; return }
+        if (amount.isEmpty()) { errorMessageRes = R.string.debt_amount_required; return }
         var balance = balanceText.toDoubleOrNull()
         if (balance == null) {
             val plain = parsePlainDebtAmount(amount)
-            balance = if (plain != null) cd.currentBalance() - plain else { errorMessage = "Вкажіть залишок"; return }
+            balance = if (plain != null) cd.currentBalance() - plain else { errorMessageRes = R.string.debt_balance_required; return }
         }
         val date = normalizeDebtEntryDate(dateText).ifBlank { todayLabel() }
         mutate(cd.id) { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
@@ -161,7 +164,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
             val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
             val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
             if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
-                errorMessage = "Профіль доступний лише для перегляду"
+                errorMessageRes = R.string.profile_read_only
                 return@launch
             }
             val ownerUid = activeOwnerUid ?: accountUid
@@ -172,7 +175,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
                 app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
             } catch (e: Exception) {
                 repository.restore(before)
-                errorMessage = e.localizedMessage ?: "Не вдалося зберегти зміни"
+                errorMessageRes = R.string.common_save_failed
             } finally {
                 saving = false
             }
