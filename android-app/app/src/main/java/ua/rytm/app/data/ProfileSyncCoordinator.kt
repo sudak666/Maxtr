@@ -31,9 +31,11 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
         app.budgetsSyncRepository.syncBudgetsOnSignIn(uid, profileId)
         app.tagsSyncRepository.syncTagsOnSignIn(uid, profileId)
+        app.autoRulesSyncRepository.syncOnSignIn(uid, profileId)
         app.recurringSyncRepository.syncRecurringOnSignIn(uid, profileId)
         app.goalsSyncRepository.syncGoalsOnSignIn(uid, profileId)
         app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
+        app.widgetSettingsSyncRepository.syncOnSignIn(uid, profileId)
         app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
         app.shoppingSyncRepository.syncShoppingListOnSignIn(uid, profileId)
         app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
@@ -43,7 +45,9 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         // change + a 5-minute interval (js/app-init.js), which this app has
         // no equivalent long-lived-tab lifecycle for; once per sign-in/
         // profile-switch is the honest Android analog, not a silent gap.
-        app.shiftsRepository.processAutoFillShifts()
+        if (app.shiftsRepository.processAutoFillShifts() > 0) {
+            app.shiftsSyncRepository.saveShiftDays(uid, profileId)
+        }
     }
 
     // Called once from MainActivity's sign-in LaunchedEffect — resolves

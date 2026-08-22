@@ -12,7 +12,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.TransactionsSyncRepository
+import ua.rytm.app.data.local.ActiveProfileStore
+import ua.rytm.app.data.toEntity
+import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.subKey
+import ua.rytm.app.data.local.AutoRuleEntity
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -23,11 +28,16 @@ import java.time.YearMonth
 // Filtering logic mirrors renderFinance() in js/analytics-csv.js
 // line-for-line (see FINANCE_SCREEN_SPEC.md §5) so behavior parity is
 // checkable against the real PWA, not guessed.
-class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() {
+class FinanceViewModel(
+    private val repository: FinanceRepository,
+    private val syncRepository: TransactionsSyncRepository,
+    private val auth: FirebaseAuth,
+    private val activeProfileStore: ActiveProfileStore,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { FinanceViewModel(repository) }
+        fun factory(app: RytmApplication) = viewModelFactory {
+            initializer { FinanceViewModel(app.financeRepository, app.transactionsSyncRepository, FirebaseAuth.getInstance(), app.activeProfileStore) }
         }
     }
 
@@ -40,6 +50,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         private set
     var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
         private set
+    private var autoRules by mutableStateOf<List<AutoRuleEntity>>(emptyList())
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
 
     // Sample-only approximate USD->UAH rate. Real rates come from
@@ -54,6 +65,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
         repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
+        repository.autoRules.onEach { autoRules = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -75,7 +87,13 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     fun toggleListExpanded() { listExpanded = !listExpanded }
 
     fun deleteTransaction(id: String) {
-        viewModelScope.launch { repository.deleteTransaction(id) }
+        viewModelScope.launch {
+            runCatching {
+                val (ownerUid, profileId) = activeProfilePath()
+                syncRepository.deleteTransaction(ownerUid, profileId, id)
+                repository.deleteTransaction(id)
+            }.onFailure { pendingMessage = "Не вдалося видалити операцію: ${it.localizedMessage.orEmpty()}" }
+        }
     }
 
     private fun toUah(amount: Double, currency: String): Double =
@@ -117,6 +135,8 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     var formSelectedTagIds by mutableStateOf<List<String>>(emptyList())
         private set
     var formError by mutableStateOf<String?>(null)
+        private set
+    var isSaving by mutableStateOf(false)
         private set
 
     fun toggleFormTag(id: String) {
@@ -175,7 +195,17 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
     fun onFormSubcategoryChange(sub: String?) { formSubcategory = sub }
     fun onFormDateChange(date: String) { formDate = date }
     fun onFormCommentChange(text: String) {
-        if (text.length <= TX_COMMENT_MAX) formComment = text
+        if (text.length <= TX_COMMENT_MAX) {
+            formComment = text
+            if (formType != TxType.TRANSFER) {
+                val rule = autoRules.firstOrNull { it.type.equals(formType.name, true) && it.keyword.isNotEmpty() && text.lowercase().contains(it.keyword.lowercase()) }
+                if (rule != null && rule.category in categoriesByType[formType].orEmpty() && formCategory != rule.category) {
+                    formCategory = rule.category
+                    formSubcategory = null
+                    pendingMessage = "Категорія визначена автоматично: ${rule.category}"
+                }
+            }
+        }
     }
     fun setFormDateToday() { formDate = LocalDate.now().toString() }
     fun setFormAmount(value: Double) { formAmountText = if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString() }
@@ -201,6 +231,7 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
         }
 
     fun submitForm() {
+        if (isSaving) return
         val amount = formAmountText.toDoubleOrNull() ?: Double.NaN
         val isTransfer = formType == TxType.TRANSFER
         val draft = TransactionDraft(
@@ -234,16 +265,34 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
             date = formDate, comment = draft.comment.ifBlank { null },
             tags = formSelectedTagIds,
         )
-        viewModelScope.launch { repository.upsertTransaction(toSave) }
-        pendingMessage = when {
-            existing != null -> "Запис оновлено"
-            isTransfer -> "Переказ виконано"
-            else -> "Запис додано"
+        isSaving = true
+        viewModelScope.launch {
+            runCatching {
+                val (ownerUid, profileId) = activeProfilePath()
+                syncRepository.saveTransaction(ownerUid, profileId, toSave.toEntity())
+                repository.upsertTransaction(toSave)
+            }.onSuccess {
+                pendingMessage = when {
+                    existing != null -> "Запис оновлено"
+                    isTransfer -> "Переказ виконано"
+                    else -> "Запис додано"
+                }
+                sheetVisible = false
+            }.onFailure {
+                formError = "Не вдалося зберегти операцію: ${it.localizedMessage.orEmpty()}"
+            }
+            isSaving = false
         }
-        sheetVisible = false
     }
 
-    /** Per-wallet balance in the wallet's own currency — mirrors computeWalletBalances(). */
+    private suspend fun activeProfilePath(): Pair<String, String> {
+        val accountUid = checkNotNull(auth.currentUser?.uid) { "Потрібна авторизація" }
+        val profileId = activeProfileStore.getActiveProfileId(accountUid)
+        val ownerUid = activeProfileStore.getActiveProfileOwnerUid(accountUid) ?: accountUid
+        return ownerUid to profileId
+    }
+
+    /** Per-wallet balance in the wallet's own currency - mirrors computeWalletBalances(). */
     fun walletBalance(walletId: String): Double = FinanceRepository.walletBalance(transactions, walletId)
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */

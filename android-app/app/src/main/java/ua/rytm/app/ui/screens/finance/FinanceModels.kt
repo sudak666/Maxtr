@@ -34,6 +34,8 @@ data class Transaction(
     val subcategory: String? = null,
     val comment: String? = null,
     val tags: List<String> = emptyList(),
+    val createdAt: Long = System.currentTimeMillis(),
+    val monobankId: String? = null,
 )
 
 data class Tag(

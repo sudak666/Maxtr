@@ -11,17 +11,25 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.RecurringSyncRepository
 
 // Mirrors js/settings-managers.js's recurring-modal (openRecurringManager()/
 // renderRecurringList()/updateRecurring()/addRecurring()/deleteRecurring()) —
 // same collapsed-summary-row-with-pencil-toggle-to-expand shape as
 // BudgetsManagerViewModel/ShiftTypesManagerViewModel.
-class RecurringManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class RecurringManagerViewModel(
+    private val repository: FinanceRepository,
+    private val syncRepository: RecurringSyncRepository,
+    private val uid: String,
+    private val profileId: String,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { RecurringManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: RecurringSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { RecurringManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -37,6 +45,13 @@ class RecurringManagerViewModel(private val repository: FinanceRepository) : Vie
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
+    var isSaving by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    private val mutationMutex = Mutex()
+
+    fun consumeError() { errorMessage = null }
 
     init {
         repository.recurring.onEach { rows = it }.launchIn(viewModelScope)
@@ -51,35 +66,35 @@ class RecurringManagerViewModel(private val repository: FinanceRepository) : Vie
     }
 
     fun addRecurring() {
-        viewModelScope.launch { repository.addRecurring() }
+        mutateAndSync { repository.addRecurring() }
     }
 
     fun updateType(r: Recurring, type: TxType) {
-        viewModelScope.launch { repository.updateRecurringType(r, type) }
+        mutateAndSync { repository.updateRecurringType(r, type) }
     }
 
     fun updateAmount(r: Recurring, amount: Double) {
-        viewModelScope.launch { repository.updateRecurringAmount(r, amount) }
+        mutateAndSync { repository.updateRecurringAmount(r, amount) }
     }
 
     fun updateCategory(r: Recurring, category: String) {
-        viewModelScope.launch { repository.updateRecurringCategory(r, category) }
+        mutateAndSync { repository.updateRecurringCategory(r, category) }
     }
 
     fun updateWallet(r: Recurring, walletId: String) {
-        viewModelScope.launch { repository.updateRecurringWallet(r, walletId) }
+        mutateAndSync { repository.updateRecurringWallet(r, walletId) }
     }
 
     fun updateFrequency(r: Recurring, frequency: String) {
-        viewModelScope.launch { repository.updateRecurringFrequency(r, frequency) }
+        mutateAndSync { repository.updateRecurringFrequency(r, frequency) }
     }
 
     fun updateNextDate(r: Recurring, nextDate: String) {
-        viewModelScope.launch { repository.updateRecurringNextDate(r, nextDate) }
+        mutateAndSync { repository.updateRecurringNextDate(r, nextDate) }
     }
 
     fun updateActive(r: Recurring, active: Boolean) {
-        viewModelScope.launch { repository.updateRecurringActive(r, active) }
+        mutateAndSync { repository.updateRecurringActive(r, active) }
     }
 
     fun requestDelete(id: String) {
@@ -88,12 +103,31 @@ class RecurringManagerViewModel(private val repository: FinanceRepository) : Vie
 
     fun confirmDelete() {
         val id = pendingDeleteId ?: return
-        viewModelScope.launch { repository.deleteRecurring(id) }
+        mutateAndSync { repository.deleteRecurring(id) }
         pendingDeleteId = null
         if (expandedId == id) expandedId = null
     }
 
     fun cancelDelete() {
         pendingDeleteId = null
+    }
+
+    private fun mutateAndSync(mutation: suspend () -> Unit) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val before = repository.recurringSnapshot()
+                isSaving = true
+                errorMessage = null
+                try {
+                    mutation()
+                    syncRepository.saveRecurringSnapshot(uid, profileId)
+                } catch (_: Exception) {
+                    repository.replaceRecurring(before)
+                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                } finally {
+                    isSaving = false
+                }
+            }
+        }
     }
 }

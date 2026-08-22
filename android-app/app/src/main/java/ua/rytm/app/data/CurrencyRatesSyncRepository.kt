@@ -3,6 +3,11 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import java.net.HttpURLConnection
+import java.net.URL
 import ua.rytm.app.data.local.CurrencyRateEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -33,4 +38,63 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
             db.currencyRateDao().replaceAll(entities)
         }
     }
+
+    suspend fun saveRate(uid: String, profileId: String, code: String, value: Double) {
+        require(code in SEED_RATES && value > 0.0)
+        val current = db.currencyRateDao().getAllOnce().associate { it.code to it.rateToUah }.toMutableMap()
+        current[code] = value
+        persist(uid, profileId, current)
+    }
+
+    suspend fun refreshOnline(uid: String, profileId: String, usePrivatCashRates: Boolean): Long {
+        val current = db.currencyRateDao().getAllOnce().associate { it.code to it.rateToUah }.toMutableMap()
+        val nbu = fetchJsonArray("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json")
+        var updated = 0
+        SEED_RATES.keys.forEach { code ->
+            for (index in 0 until nbu.length()) {
+                val entry = nbu.getJSONObject(index)
+                if (entry.optString("cc") == code && entry.optDouble("rate") > 0.0) {
+                    current[code] = roundRate(entry.getDouble("rate"))
+                    updated++
+                    break
+                }
+            }
+        }
+        check(updated > 0) { "NBU did not return tracked currencies" }
+
+        if (usePrivatCashRates) {
+            runCatching {
+                val privat = fetchJsonArray("https://maxtr-c238f.web.app/api/privat-rates")
+                for (index in 0 until privat.length()) {
+                    val entry = privat.getJSONObject(index)
+                    val code = entry.optString("ccy")
+                    val buy = entry.optDouble("buy")
+                    val sale = entry.optDouble("sale")
+                    if (code in SEED_RATES && buy > 0.0 && sale > 0.0) current[code] = roundRate((buy + sale) / 2.0)
+                }
+            }
+        }
+        persist(uid, profileId, current)
+        return System.currentTimeMillis()
+    }
+
+    private suspend fun persist(uid: String, profileId: String, rates: Map<String, Double>) {
+        db.currencyRateDao().replaceAll(rates.map { CurrencyRateEntity(it.key, it.value) })
+        financeDocRef(uid, profileId).set(mapOf("currencyRates" to rates, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+    }
+
+    private suspend fun fetchJsonArray(url: String): JSONArray = withContext(Dispatchers.IO) {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        try {
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 15_000
+            connection.requestMethod = "GET"
+            check(connection.responseCode in 200..299) { "HTTP ${connection.responseCode}" }
+            JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun roundRate(value: Double): Double = kotlin.math.round(value * 100.0) / 100.0
 }

@@ -10,16 +10,19 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.TagsSyncRepository
 
 // Mirrors js/finance.js's tags-modal (addTag()/updateTag()/deleteTag()) — same
 // collapsed-row-with-pencil-toggle pattern as WalletsManagerViewModel, color
 // fixed at creation (PALETTE rotation), no interactive picker yet.
-class TagsManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class TagsManagerViewModel(private val repository: FinanceRepository, private val syncRepository: TagsSyncRepository, private val uid: String, private val profileId: String) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { TagsManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: TagsSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { TagsManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -27,6 +30,10 @@ class TagsManagerViewModel(private val repository: FinanceRepository) : ViewMode
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    fun consumeError() { errorMessage = null }
+    private val mutationMutex = Mutex()
 
     init {
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
@@ -36,21 +43,38 @@ class TagsManagerViewModel(private val repository: FinanceRepository) : ViewMode
         val clean = name.trim()
         if (clean.isEmpty()) return
         val color = PALETTE[tags.size % PALETTE.size]
-        viewModelScope.launch { repository.addTag(clean, color) }
+        mutateAndSync { repository.addTag(clean, color) }
     }
 
     fun renameTag(tag: Tag, newName: String) {
         val name = newName.trim().ifBlank { "Тег" }
-        viewModelScope.launch { repository.renameTag(tag.id, name, tag.colorHex) }
+        mutateAndSync { repository.renameTag(tag.id, name, tag.colorHex) }
     }
 
     fun requestDelete(id: String) { pendingDeleteId = id }
 
     fun confirmDelete() {
         val id = pendingDeleteId ?: return
-        viewModelScope.launch { repository.deleteTag(id) }
+        mutateAndSync { repository.deleteTag(id) }
         pendingDeleteId = null
     }
 
     fun cancelDelete() { pendingDeleteId = null }
+
+    private fun mutateAndSync(mutation: suspend () -> Unit) {
+        viewModelScope.launch { mutationMutex.withLock {
+            val before = repository.tagsRollbackSnapshot()
+            try {
+                mutation()
+                val after = repository.tagsRollbackSnapshot()
+                val beforeById = before.transactions.associateBy { it.id }
+                val changedTransactions = after.transactions.filter { beforeById[it.id]?.tags != it.tags }
+                if (changedTransactions.isEmpty()) syncRepository.saveTagsSnapshot(uid, profileId)
+                else syncRepository.saveTagsAndChangedTransactions(uid, profileId, changedTransactions)
+            } catch (_: Exception) {
+                repository.restoreTagsSnapshot(before)
+                errorMessage = "Не вдалося зберегти теги. Спробуйте ще раз."
+            }
+        } }
+    }
 }

@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -15,6 +17,7 @@ import ua.rytm.app.data.local.RytmDatabase
 // touching only `budgets`/`updatedAt`, same safety rule as every other
 // synced field on the shared `finance` doc.
 class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+    private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -38,5 +41,12 @@ class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore:
             val remoteMap = local.associate { it.category to it.amount }
             docRef.set(mapOf("budgets" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
+    }
+
+    suspend fun saveBudgetsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val budgets = db.budgetDao().getAllOnce().associate { it.category to it.amount }
+        financeDocRef(uid, profileId).set(
+            mapOf("budgets" to budgets, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
+        ).await()
     }
 }

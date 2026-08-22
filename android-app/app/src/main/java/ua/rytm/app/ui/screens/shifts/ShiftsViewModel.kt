@@ -20,11 +20,11 @@ import java.util.Locale
 // applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
 // step 39 (quick-fill/autofill/6-month chart, previously deferred by
 // SHIFTS_SCREEN_SPEC.md's step 8 scoping).
-class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
+class ShiftsViewModel(private val repository: ShiftsRepository, private val uid: String, private val profileId: String) : ViewModel() {
 
     companion object {
-        fun factory(repository: ShiftsRepository) = viewModelFactory {
-            initializer { ShiftsViewModel(repository) }
+        fun factory(repository: ShiftsRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { ShiftsViewModel(repository, uid, profileId) }
         }
     }
 
@@ -61,6 +61,12 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
         private set
     var autoFillDraftAnchorDate by mutableStateOf("")
         private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    fun consumeError() { errorMessage = null }
+    private fun launchMutation(block: suspend () -> Unit) = viewModelScope.launch {
+        runCatching { block() }.onFailure { errorMessage = "Не вдалося зберегти зміни" }
+    }
 
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
@@ -99,7 +105,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
 
     fun saveDayModal() {
         val dateKey = dayModalDateKey ?: return
-        viewModelScope.launch { repository.setShiftsForDay(dateKey, dayModalSelection.toList()) }
+        launchMutation { repository.setShiftsForDay(uid, profileId, dateKey, dayModalSelection.toList()) }
         dayModalDateKey = null
     }
 
@@ -110,12 +116,12 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
     fun applyTemplate() {
         val typeId = templateTypeId ?: return
         val monthPrefix = visibleMonth.toString() // "yyyy-MM"
-        viewModelScope.launch { repository.applyTemplate(monthPrefix, visibleMonth.lengthOfMonth(), typeId, templatePattern) }
+        launchMutation { repository.applyTemplate(uid, profileId, monthPrefix, visibleMonth.lengthOfMonth(), typeId, templatePattern) }
     }
 
     fun clearCurrentMonth() {
         val monthPrefix = visibleMonth.toString()
-        viewModelScope.launch { repository.clearMonth(monthPrefix) }
+        launchMutation { repository.clearMonth(uid, profileId, monthPrefix) }
     }
 
     fun setAutoFillEnabled(enabled: Boolean) {
@@ -124,10 +130,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
             typeId = autoFillSchedule.typeId.ifBlank { autoFillDraftTypeId.orEmpty() },
             anchorDate = autoFillSchedule.anchorDate.ifBlank { LocalDate.now().toString() },
         )
-        viewModelScope.launch {
-            repository.setAutoFillSchedule(next)
-            if (enabled) repository.processAutoFillShifts()
-        }
+        launchMutation { repository.setAutoFillSchedule(uid, profileId, next, processDays = enabled) }
     }
 
     fun setAutoFillDraftType(id: String) { autoFillDraftTypeId = id }
@@ -141,10 +144,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository) : ViewModel() {
             pattern = autoFillDraftPattern,
             anchorDate = autoFillDraftAnchorDate.ifBlank { LocalDate.now().toString() },
         )
-        viewModelScope.launch {
-            repository.setAutoFillSchedule(next)
-            repository.processAutoFillShifts()
-        }
+        launchMutation { repository.setAutoFillSchedule(uid, profileId, next, processDays = true) }
     }
 
     data class MonthStats(val earned: Double, val hours: Double, val shiftsCount: Int, val offCount: Int)

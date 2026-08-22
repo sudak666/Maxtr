@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.GoalEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -12,6 +14,8 @@ import ua.rytm.app.data.local.RytmDatabase
 // confirmAddGoal()). Field names round-trip as-is, no upper/lowercase
 // translation needed (unlike recurring's type field).
 class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+
+    private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -30,6 +34,14 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
                 SetOptions.merge(),
             ).await()
         }
+    }
+
+    suspend fun saveGoalsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val goals = db.goalDao().getAllOnce()
+        financeDocRef(uid, profileId).set(
+            mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
     }
 }
 

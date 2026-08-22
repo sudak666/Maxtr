@@ -1,4 +1,14 @@
-# ANDROID_MIGRATION.md — Rytm Native Android
+# ANDROID_MIGRATION.md - Rytm Native Android
+
+## Session checkpoint — 2026-08-22 (resume here)
+
+Active branch: `Codex-android-settings-tools-batch`. The large batch is intentionally kept in one PR-sized branch per the owner's request; at this checkpoint it is committed locally but not yet pushed/PR'd/merged.
+
+Completed in this batch: Settings search/group filters, exact reset defaults, explicit sign-out, Premium/About, email/password auth, profile nickname/avatar picker, Goals and full rates manager, CSV import/export, widget manager/dashboard with PWA Firestore `widgets`/`widgetOrder` sync, auto-rules, full Monobank connect/sync/disconnect (explicitly authorized token flow), notification-path/parity corrections, and Room schema migrations 13→14 (`auto_rules`) and 14→15 (`transactions.monobankId`). Firestore write-through with owner/profile paths, isolated merge-only writes, serialized mutations, rollback/error states now covers transactions, wallets, shifts/autofill, categories/subcategories/icons, budgets, tags (including affected transaction docs), recurring operations, and goals.
+
+Verification: final `:app:clean :app:compileDebugKotlin --quiet` passed after stopping a stale Gradle daemon that had corrupted the shared KSP symbol cache. No live emulator/pixel pass and no final `assembleDebug` have been run for this accumulated batch yet.
+
+Next session: continue remaining Room-only write-through in this order: Shopping, Debts/settlement entries, then audit any category rename/delete transaction cascades and viewer-role UI guards. After that run focused tests, real `assembleDebug`, emulator visual/interaction verification against PWA, update this checkpoint, then create one consolidated PR and wait for all CI checks before merge.
 
 Ціль: нативний Android-клієнт (Kotlin, Jetpack Compose + Material 3, MVVM/Clean, Room + DataStore) зі 100% функціоналом PWA `Rytm`, з покращеннями під нативні Android-патерни там, де PWA-рішення були браузерним компромісом.
 

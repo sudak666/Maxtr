@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.CategoryEntity
 import ua.rytm.app.data.local.CategoryIconEntity
 import ua.rytm.app.data.local.RytmDatabase
@@ -27,6 +29,8 @@ import java.util.UUID
 // Room models for yet (chesno not done, same disclosed scope as wallets/shift
 // types before it).
 class CategoriesSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+
+    private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -112,5 +116,42 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             val remoteMap = local.associate { it.categoryName to it.iconName }
             docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
+    }
+
+    suspend fun saveCategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val local = db.categoryDao().getAllOnce()
+        val remote = mapOf(
+            "income" to local.filter { it.type == "INCOME" }.map { it.name },
+            "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
+        )
+        financeDocRef(uid, profileId).set(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+    }
+
+    suspend fun saveSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val remote = db.subcategoryDao().getAllOnce().groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
+        financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+    }
+
+    suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val remote = db.categoryIconDao().getAllOnce().associate { it.categoryName to it.iconName }
+        financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+    }
+
+    suspend fun saveAllCategorySnapshots(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val categories = db.categoryDao().getAllOnce()
+        val subcategories = db.subcategoryDao().getAllOnce()
+        val icons = db.categoryIconDao().getAllOnce()
+        financeDocRef(uid, profileId).set(
+            mapOf(
+                "categories" to mapOf(
+                    "income" to categories.filter { it.type == "INCOME" }.map { it.name },
+                    "expense" to categories.filter { it.type == "EXPENSE" }.map { it.name },
+                ),
+                "subcategories" to subcategories.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name }),
+                "categoryIcons" to icons.associate { it.categoryName to it.iconName },
+                "updatedAt" to System.currentTimeMillis(),
+            ),
+            SetOptions.merge(),
+        ).await()
     }
 }

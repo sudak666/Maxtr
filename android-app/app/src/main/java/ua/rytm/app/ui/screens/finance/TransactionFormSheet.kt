@@ -171,8 +171,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
-            Button(onClick = vm::submitForm, modifier = Modifier.fillMaxWidth()) {
-                Text(if (vm.editingTxId != null) "Зберегти зміни" else "Додати запис")
+            Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth()) {
+                Text(if (vm.isSaving) "Збереження…" else if (vm.editingTxId != null) "Зберегти зміни" else "Додати запис")
             }
         }
     }

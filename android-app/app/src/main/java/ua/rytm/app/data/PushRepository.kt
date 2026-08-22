@@ -79,41 +79,15 @@ class PushRepository(private val firestore: FirebaseFirestore) {
         financeDocRef(uid, profileId).update(mapOf("notifSettings.debtAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
     }
 
-    suspend fun enable(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+    suspend fun enable(accountUid: String, @Suppress("UNUSED_PARAMETER") dataOwnerUid: String = accountUid, @Suppress("UNUSED_PARAMETER") profileId: String = DEFAULT_PROFILE_ID) {
         val token = FirebaseMessaging.getInstance().token.await()
-        firestore.collection("push_tokens").document(uid)
+        firestore.collection("push_tokens").document(accountUid)
             .set(mapOf("token" to token, "updatedAt" to System.currentTimeMillis()), SetOptions.merge())
             .await()
-        financeDocRef(uid, profileId).set(
-            mapOf(
-                "notifSettings" to mapOf(
-                    "enabled" to true,
-                    "time" to "21:00",
-                    "budgetAlerts" to true,
-                    "recurringAlerts" to true,
-                    "debtAlerts" to true,
-                    "timeZone" to TimeZone.getDefault().id,
-                ),
-                "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).await()
     }
 
-    suspend fun disable(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
-        firestore.collection("push_tokens").document(uid).delete().await()
-        financeDocRef(uid, profileId).set(
-            mapOf(
-                "notifSettings" to mapOf(
-                    "enabled" to false,
-                    "budgetAlerts" to false,
-                    "recurringAlerts" to false,
-                    "debtAlerts" to false,
-                ),
-                "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).await()
+    suspend fun disable(accountUid: String, @Suppress("UNUSED_PARAMETER") dataOwnerUid: String = accountUid, @Suppress("UNUSED_PARAMETER") profileId: String = DEFAULT_PROFILE_ID) {
+        firestore.collection("push_tokens").document(accountUid).delete().await()
     }
 
     // Called from RytmMessagingService.onNewToken() — FCM can rotate the

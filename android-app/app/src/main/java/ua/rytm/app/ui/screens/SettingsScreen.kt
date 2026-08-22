@@ -22,14 +22,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PieChart
@@ -41,6 +46,7 @@ import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -82,12 +88,19 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.data.CsvImportPreview
+import ua.rytm.app.data.TransactionsCsvRepository
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
+import ua.rytm.app.ui.screens.finance.AutoRulesManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
+import ua.rytm.app.ui.screens.finance.GoalsManagerSheet
+import ua.rytm.app.ui.screens.finance.MonobankManagerSheet
 import ua.rytm.app.ui.screens.finance.RecurringManagerSheet
 import ua.rytm.app.ui.screens.finance.TagsManagerSheet
+import ua.rytm.app.ui.screens.finance.RatesManagerSheet
 import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
+import ua.rytm.app.ui.screens.finance.WidgetsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
@@ -116,6 +129,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var budgetsSheetOpen by remember { mutableStateOf(false) }
     var tagsSheetOpen by remember { mutableStateOf(false) }
     var recurringSheetOpen by remember { mutableStateOf(false) }
+    var autoRulesSheetOpen by remember { mutableStateOf(false) }
+    var goalsSheetOpen by remember { mutableStateOf(false) }
+    var ratesSheetOpen by remember { mutableStateOf(false) }
+    var monobankSheetOpen by remember { mutableStateOf(false) }
+    var widgetsSheetOpen by remember { mutableStateOf(false) }
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
     var pinSheetOpen by remember { mutableStateOf(false) }
     var notifTypesSheetOpen by remember { mutableStateOf(false) }
@@ -127,6 +145,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var resetProfileBusy by remember { mutableStateOf(false) }
     var settingsSearch by remember { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
+    val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
+    var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
+    var csvBusy by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
@@ -152,7 +173,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         scope.launch {
             pushBusy = true
             try {
-                if (target) app.pushRepository.enable(accountUid, activeProfileId) else app.pushRepository.disable(accountUid, activeProfileId)
+                val dataOwnerUid = activeProfileOwnerUid ?: accountUid
+                if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
+                else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
                 app.settingsStore.setPushEnabled(accountUid, target)
                 pendingMessage = if (target) "Push-сповіщення увімкнено" else "Push-сповіщення вимкнено"
             } catch (e: Exception) {
@@ -183,6 +206,33 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     fun openExternalUrl(url: String) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
             .onFailure { pendingMessage = "Не вдалося відкрити посилання" }
+    }
+
+    val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) scope.launch {
+            csvBusy = true
+            try {
+                val csv = csvRepository.export()
+                context.contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                    ?: error("Не вдалося відкрити файл")
+                pendingMessage = "CSV експортовано"
+            } catch (e: Exception) { pendingMessage = e.message ?: "Не вдалося експортувати CSV" }
+            finally { csvBusy = false }
+        }
+    }
+    val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            csvBusy = true
+            try {
+                val text = context.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                    ?: error("Не вдалося прочитати файл")
+                val preview = csvRepository.parse(text)
+                if (preview.transactions.isEmpty()) pendingMessage =
+                    if (preview.errors.isEmpty()) "CSV не містить транзакцій" else "Немає коректних рядків (${preview.errors.size} помилок)"
+                else csvImportPreview = preview
+            } catch (e: Exception) { pendingMessage = e.message ?: "Не вдалося імпортувати CSV" }
+            finally { csvBusy = false }
+        }
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
@@ -235,7 +285,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             val notificationsVisible = uid != null && sectionVisible("security", "Сповіщення", "Push-сповіщення", "Отримувати сповіщення на цьому пристрої", "Типи сповіщень", "Нагадування, бюджет, регулярні платежі, розрахунки")
             val appearanceVisible = sectionVisible("app", "Вигляд", "Тема", "Світла", "Темна")
             val aboutVisible = sectionVisible("app", "Про застосунок", "Веб-версія", "Відкрити Rytm у браузері", "Умови використання", "Правила користування застосунком", "Політика конфіденційності", "Як ми обробляємо твої дані", "Rytm — трекер змін, фінансів і розрахунків")
-            val financeVisible = sectionVisible("finance", "Фінанси", "Гаманці", "Картки, готівка та інші рахунки", "Категорії", "Власні категорії доходів і витрат", "Бюджети", "Місячні ліміти для категорій витрат", "Теги", "Мітки для операцій", "Регулярні платежі", "Автоматичне створення операцій за розкладом", "Типи змін", "Оплата, години та кольори для графіка змін")
+            val financeVisible = sectionVisible("finance", "Фінанси", "Гаманці", "Картки, готівка та інші рахунки", "Прив'язати Monobank", "Підтягувати операції з карток і банок автоматично", "Курси валют", "Автоматичне оновлення з НБУ", "Категорії", "Власні категорії доходів і витрат", "Бюджети", "Місячні ліміти для категорій витрат", "Теги", "Мітки для операцій", "Цілі", "Накопичення на гаманці з ціллю", "Віджети", "Що показувати на вкладці Фінанси", "Регулярні платежі", "Автоматичне створення операцій за розкладом", "Типи змін", "Оплата, години та кольори для графіка змін")
 
             if (accountVisible) {
                 if (uid != null) {
@@ -402,11 +452,25 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     onClick = { walletsSheetOpen = true },
                 )
                 SettingsRow(
+                    icon = Icons.Filled.AccountBalance,
+                    badgeColor = Color(0xFF111111),
+                    title = "Прив'язати Monobank",
+                    subtitle = "Підтягувати операції з карток і банок автоматично",
+                    onClick = { monobankSheetOpen = true },
+                )
+                SettingsRow(
                     icon = Icons.Filled.Category,
                     badgeColor = Color(0xFFEC4899),
                     title = "Категорії",
                     subtitle = "Власні категорії доходів і витрат",
                     onClick = { categoriesSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.CurrencyExchange,
+                    badgeColor = Color(0xFF3B82F6),
+                    title = "Курси валют",
+                    subtitle = "Синхронізовані курси до гривні",
+                    onClick = { ratesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.PieChart,
@@ -423,6 +487,20 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     onClick = { tagsSheetOpen = true },
                 )
                 SettingsRow(
+                    icon = Icons.Filled.Flag,
+                    badgeColor = Color(0xFF10B981),
+                    title = "Цілі",
+                    subtitle = "Накопичення на гаманці з ціллю",
+                    onClick = { goalsSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.GridView,
+                    badgeColor = Color(0xFF14B8A6),
+                    title = "Віджети",
+                    subtitle = "Що показувати на вкладці Фінанси",
+                    onClick = { widgetsSheetOpen = true },
+                )
+                SettingsRow(
                     icon = Icons.Filled.Repeat,
                     badgeColor = Color(0xFF10B981),
                     title = "Регулярні платежі",
@@ -430,11 +508,32 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     onClick = { recurringSheetOpen = true },
                 )
                 SettingsRow(
+                    icon = Icons.Filled.Tune,
+                    badgeColor = Color(0xFFA78BFA),
+                    title = "Автоматичні правила",
+                    subtitle = "Категорія за ключовим словом у коментарі",
+                    onClick = { autoRulesSheetOpen = true },
+                )
+                SettingsRow(
                     icon = Icons.Filled.Style,
                     badgeColor = Color(0xFF3B82F6),
                     title = "Типи змін",
                     subtitle = "Оплата, години та кольори для графіка змін",
                     onClick = { shiftTypesSheetOpen = true },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Download,
+                    badgeColor = Color(0xFF10B981),
+                    title = "Експорт CSV",
+                    subtitle = "Зберегти всі фінансові операції",
+                    onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
+                )
+                SettingsRow(
+                    icon = Icons.Filled.Upload,
+                    badgeColor = Color(0xFF3B82F6),
+                    title = "Імпорт CSV",
+                    subtitle = "Додати операції з експорту Rytm",
+                    onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
                 )
                 }
             }
@@ -452,26 +551,92 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
-    if (walletsSheetOpen) {
-        WalletsManagerSheet(repository = app.financeRepository, onDismiss = { walletsSheetOpen = false })
+    if (walletsSheetOpen && uid != null) {
+        WalletsManagerSheet(
+            repository = app.financeRepository,
+            syncRepository = app.financeSyncRepository,
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            onDismiss = { walletsSheetOpen = false },
+        )
     }
-    if (categoriesSheetOpen) {
-        CategoriesManagerSheet(repository = app.financeRepository, onDismiss = { categoriesSheetOpen = false })
+    if (categoriesSheetOpen && uid != null) {
+        CategoriesManagerSheet(
+            repository = app.financeRepository,
+            syncRepository = app.categoriesSyncRepository,
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            onDismiss = { categoriesSheetOpen = false },
+        )
     }
-    if (budgetsSheetOpen) {
-        BudgetsManagerSheet(repository = app.financeRepository, onDismiss = { budgetsSheetOpen = false })
+    if (budgetsSheetOpen && uid != null) {
+        BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })
     }
-    if (tagsSheetOpen) {
-        TagsManagerSheet(repository = app.financeRepository, onDismiss = { tagsSheetOpen = false })
+    if (tagsSheetOpen && uid != null) {
+        TagsManagerSheet(repository = app.financeRepository, syncRepository = app.tagsSyncRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { tagsSheetOpen = false })
     }
     if (recurringSheetOpen) {
-        RecurringManagerSheet(repository = app.financeRepository, onDismiss = { recurringSheetOpen = false })
+        val accountUid = uid
+        if (accountUid != null) RecurringManagerSheet(
+            repository = app.financeRepository,
+            syncRepository = app.recurringSyncRepository,
+            uid = activeProfileOwnerUid ?: accountUid,
+            profileId = activeProfileId,
+            onDismiss = { recurringSheetOpen = false },
+        )
     }
-    if (shiftTypesSheetOpen) {
-        ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
+    if (autoRulesSheetOpen && uid != null) {
+        AutoRulesManagerSheet(
+            repository = app.financeRepository,
+            sync = app.autoRulesSyncRepository,
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            onDismiss = { autoRulesSheetOpen = false },
+        )
+    }
+    if (goalsSheetOpen) {
+        val accountUid = uid
+        if (accountUid != null) GoalsManagerSheet(
+            repository = app.financeRepository,
+            syncRepository = app.goalsSyncRepository,
+            uid = activeProfileOwnerUid ?: accountUid,
+            profileId = activeProfileId,
+            onDismiss = { goalsSheetOpen = false },
+        )
+    }
+    if (widgetsSheetOpen && uid != null) {
+        WidgetsManagerSheet(
+            settingsStore = app.settingsStore,
+            syncRepository = app.widgetSettingsSyncRepository,
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            onDismiss = { widgetsSheetOpen = false },
+        )
+    }
+    if (ratesSheetOpen && uid != null) {
+        RatesManagerSheet(
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            financeRepository = app.financeRepository,
+            syncRepository = app.currencyRatesSyncRepository,
+            settingsStore = app.settingsStore,
+            onDismiss = { ratesSheetOpen = false },
+        )
+    }
+    if (monobankSheetOpen && uid != null) {
+        MonobankManagerSheet(
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            repository = app.monobankRepository,
+            financeRepository = app.financeRepository,
+            onDismiss = { monobankSheetOpen = false },
+        )
+    }
+    if (shiftTypesSheetOpen && uid != null) {
+        ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { shiftTypesSheetOpen = false })
     }
     if (notifTypesSheetOpen && uid != null) {
-        NotificationSettingsSheet(uid = uid, repository = app.pushRepository, profileId = activeProfileId, onDismiss = { notifTypesSheetOpen = false })
+        NotificationSettingsSheet(uid = activeProfileOwnerUid ?: uid, repository = app.pushRepository, profileId = activeProfileId, onDismiss = { notifTypesSheetOpen = false })
     }
     if (profilesSheetOpen && uid != null) {
         ProfilesManagerSheet(
@@ -489,6 +654,32 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val activity = context as androidx.fragment.app.FragmentActivity
         val pinViewModel: PinViewModel = viewModel(factory = PinViewModel.factory(app.pinStore, uid), viewModelStoreOwner = activity)
         PinSettingsSheet(pinViewModel, onDismiss = { pinSheetOpen = false })
+    }
+
+    csvImportPreview?.let { preview ->
+        AlertDialog(
+            onDismissRequest = { if (!csvBusy) csvImportPreview = null },
+            title = { Text("Імпорт CSV") },
+            text = { Text(
+                if (preview.errors.isEmpty()) "Імпортувати ${preview.transactions.size} операцій? Повторний імпорт створить дублікати."
+                else "Імпортувати ${preview.transactions.size} операцій? Пропущено рядків: ${preview.errors.size}. Повторний імпорт створить дублікати.",
+            ) },
+            confirmButton = {
+                TextButton(enabled = !csvBusy && uid != null, onClick = {
+                    val accountUid = activeProfileOwnerUid ?: uid ?: return@TextButton
+                    scope.launch {
+                        csvBusy = true
+                        try {
+                            csvRepository.import(accountUid, activeProfileId, preview.transactions)
+                            pendingMessage = "Імпортовано операцій: ${preview.transactions.size}"
+                            csvImportPreview = null
+                        } catch (_: Exception) { pendingMessage = "Не вдалося зберегти імпортовані операції" }
+                        finally { csvBusy = false }
+                    }
+                }) { Text("Імпортувати") }
+            },
+            dismissButton = { TextButton(enabled = !csvBusy, onClick = { csvImportPreview = null }) { Text("Скасувати") } },
+        )
     }
 
     if (pendingDeleteAccount) {

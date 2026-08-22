@@ -2,11 +2,16 @@ package ua.rytm.app
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import ua.rytm.app.data.BudgetsSyncRepository
+import ua.rytm.app.data.AutoRulesSyncRepository
 import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.data.CurrencyRatesSyncRepository
+import ua.rytm.app.data.MonobankRepository
+import ua.rytm.app.data.WidgetSettingsSyncRepository
 import ua.rytm.app.data.DebtRepository
 import ua.rytm.app.data.DebtSyncRepository
 import ua.rytm.app.data.FinanceRepository
@@ -65,12 +70,23 @@ class RytmApplication : Application() {
         // fallback across local schema bumps is fine; there's no user data to
         // protect through a real migration path.
         Room.databaseBuilder(this, RytmDatabase::class.java, "rytm.db")
+            .addMigrations(object : Migration(13, 14) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("CREATE TABLE IF NOT EXISTS `auto_rules` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `keyword` TEXT NOT NULL, `category` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+                }
+            })
+            .addMigrations(object : Migration(14, 15) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `transactions` ADD COLUMN `monobankId` TEXT")
+                    db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_monobankId` ON `transactions` (`monobankId`)")
+                }
+            })
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
     val shoppingRepository: ShoppingRepository by lazy { ShoppingRepository(database) }
-    val shiftsRepository: ShiftsRepository by lazy { ShiftsRepository(database) }
+    val shiftsRepository: ShiftsRepository by lazy { ShiftsRepository(database, shiftsSyncRepository) }
     val debtRepository: DebtRepository by lazy { DebtRepository(database) }
     val settingsStore: SettingsStore by lazy { SettingsStore(this) }
     val pinStore: PinStore by lazy { PinStore(this) }
@@ -85,6 +101,9 @@ class RytmApplication : Application() {
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
     val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val monobankRepository: MonobankRepository by lazy { MonobankRepository(database, FirebaseFirestore.getInstance(), FirebaseAuth.getInstance()) }
+    val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
+    val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }

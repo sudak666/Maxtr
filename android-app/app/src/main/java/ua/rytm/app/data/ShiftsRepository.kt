@@ -19,7 +19,7 @@ fun ShiftType.toEntity() = ShiftTypeEntity(id, name, short, code, colorHex, amou
 fun AutoFillScheduleEntity.toDomain() = AutoFillSchedule(enabled, typeId, pattern, anchorDate)
 fun AutoFillSchedule.toEntity() = AutoFillScheduleEntity(id = 0, enabled = enabled, typeId = typeId, pattern = pattern, anchorDate = anchorDate)
 
-class ShiftsRepository(private val db: RytmDatabase) {
+class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyncRepository) {
 
     val shiftTypes: Flow<List<ShiftType>> = db.shiftTypeDao().observeAll().map { list -> list.map { it.toDomain() } }
 
@@ -47,27 +47,37 @@ class ShiftsRepository(private val db: RytmDatabase) {
         )
     }
 
-    suspend fun setShiftsForDay(dateKey: String, shiftTypeIds: List<String>) {
-        db.shiftDayDao().setForDate(dateKey, shiftTypeIds)
+    suspend fun setShiftsForDay(uid: String, profileId: String, dateKey: String, shiftTypeIds: List<String>) {
+        mutateDays(uid, profileId) { db.shiftDayDao().setForDate(dateKey, shiftTypeIds) }
     }
 
     // Quick-fill's "Застосувати" — mirrors js/calendar.js's applyTemplate():
     // wipe the given month, then write `typeId` on every day the pattern's
     // on/off cycle covers.
-    suspend fun applyTemplate(monthPrefix: String, daysInMonth: Int, typeId: String, pattern: String) {
+    suspend fun applyTemplate(uid: String, profileId: String, monthPrefix: String, daysInMonth: Int, typeId: String, pattern: String) {
         val (on, off) = SHIFT_PATTERN_CYCLES[pattern] ?: SHIFT_PATTERN_CYCLES.getValue("every")
         val period = on + off
         val entities = (1..daysInMonth).filter { d -> period > 0 && ((d - 1) % period) < on }
             .map { d -> ShiftDayEntity("$monthPrefix-" + d.toString().padStart(2, '0'), typeId) }
-        db.shiftDayDao().applyTemplate(monthPrefix, entities)
+        mutateDays(uid, profileId) { db.shiftDayDao().applyTemplate(monthPrefix, entities) }
     }
 
-    suspend fun clearMonth(monthPrefix: String) {
-        db.shiftDayDao().deleteForMonth(monthPrefix)
+    suspend fun clearMonth(uid: String, profileId: String, monthPrefix: String) {
+        mutateDays(uid, profileId) { db.shiftDayDao().deleteForMonth(monthPrefix) }
     }
 
-    suspend fun setAutoFillSchedule(schedule: AutoFillSchedule) {
-        db.autoFillScheduleDao().upsert(schedule.toEntity())
+    suspend fun setAutoFillSchedule(uid: String, profileId: String, schedule: AutoFillSchedule, processDays: Boolean) {
+        val oldSchedule = db.autoFillScheduleDao().getOnce()
+        val oldDays = db.shiftDayDao().getAllOnce()
+        try {
+            db.autoFillScheduleDao().upsert(schedule.toEntity())
+            if (processDays) processAutoFillShifts()
+            sync.saveAutoFillAndDays(uid, profileId)
+        } catch (e: Exception) {
+            if (oldSchedule == null) db.autoFillScheduleDao().clearAll() else db.autoFillScheduleDao().upsert(oldSchedule)
+            db.shiftDayDao().replaceAll(oldDays)
+            throw e
+        }
     }
 
     // Mirrors js/calendar.js's autoFillTypeForDate()/processAutoFillShifts():
@@ -102,18 +112,35 @@ class ShiftsRepository(private val db: RytmDatabase) {
         return newEntities.size
     }
 
-    suspend fun addShiftType(type: ShiftType) {
-        db.shiftTypeDao().insert(type.toEntity())
+    suspend fun addShiftType(uid: String, profileId: String, type: ShiftType) {
+        mutateTypes(uid, profileId) { db.shiftTypeDao().insert(type.toEntity()) }
     }
 
-    suspend fun updateShiftType(type: ShiftType) {
-        db.shiftTypeDao().update(type.toEntity())
+    suspend fun updateShiftType(uid: String, profileId: String, type: ShiftType) {
+        mutateTypes(uid, profileId) { db.shiftTypeDao().update(type.toEntity()) }
     }
 
     // Mirrors js/settings-managers.js's deleteShiftType(): delete the type, then
     // strip its id from every calendar day so counts/renders stay correct.
-    suspend fun deleteShiftType(id: String) {
-        db.shiftTypeDao().deleteById(id)
-        db.shiftDayDao().deleteByShiftTypeId(id)
+    suspend fun deleteShiftType(uid: String, profileId: String, id: String) {
+        val oldTypes = db.shiftTypeDao().getAllOnce(); val oldDays = db.shiftDayDao().getAllOnce()
+        try {
+            db.shiftTypeDao().deleteById(id); db.shiftDayDao().deleteByShiftTypeId(id)
+            sync.saveShiftTypesAndDays(uid, profileId)
+        } catch (e: Exception) {
+            db.shiftTypeDao().replaceAll(oldTypes); db.shiftDayDao().replaceAll(oldDays); throw e
+        }
+    }
+
+    private suspend fun mutateDays(uid: String, profileId: String, block: suspend () -> Unit) {
+        val old = db.shiftDayDao().getAllOnce()
+        try { block(); sync.saveShiftDays(uid, profileId) }
+        catch (e: Exception) { db.shiftDayDao().replaceAll(old); throw e }
+    }
+
+    private suspend fun mutateTypes(uid: String, profileId: String, block: suspend () -> Unit) {
+        val old = db.shiftTypeDao().getAllOnce()
+        try { block(); sync.saveShiftTypes(uid, profileId) }
+        catch (e: Exception) { db.shiftTypeDao().replaceAll(old); throw e }
     }
 }

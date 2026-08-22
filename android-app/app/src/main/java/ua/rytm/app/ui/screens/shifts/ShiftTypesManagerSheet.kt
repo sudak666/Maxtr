@@ -49,13 +49,16 @@ import ua.rytm.app.data.ShiftsRepository
 @Composable
 fun ShiftTypesManagerSheet(
     repository: ShiftsRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: ShiftTypesManagerViewModel = viewModel(factory = ShiftTypesManagerViewModel.factory(repository)),
+    viewModel: ShiftTypesManagerViewModel = viewModel(key = "$uid|$profileId", factory = ShiftTypesManagerViewModel.factory(repository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            viewModel.errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Text("Типи змін", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.shiftTypes.isEmpty()) {

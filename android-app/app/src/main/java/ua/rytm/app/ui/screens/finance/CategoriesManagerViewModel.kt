@@ -10,6 +10,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.local.CategoryEntity
 import ua.rytm.app.data.subKey
@@ -17,11 +20,16 @@ import ua.rytm.app.data.subKey
 // Mirrors js/settings-managers.js's categories-modal (addCategory/deleteCategory,
 // scoped to a flat name list per type — no subcategories/icons/budgets, see
 // CategoryEntity's doc comment).
-class CategoriesManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class CategoriesManagerViewModel(
+    private val repository: FinanceRepository,
+    private val syncRepository: CategoriesSyncRepository,
+    private val uid: String,
+    private val profileId: String,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { CategoriesManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: CategoriesSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { CategoriesManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -51,6 +59,7 @@ class CategoriesManagerViewModel(private val repository: FinanceRepository) : Vi
         private set
 
     private var allByType: Map<TxType, List<Pair<String, String>>> = emptyMap()
+    private val mutationMutex = Mutex()
 
     init {
         repository.categoryEntriesByType.onEach {
@@ -67,7 +76,10 @@ class CategoriesManagerViewModel(private val repository: FinanceRepository) : Vi
     fun selectIcon(iconName: String) {
         val categoryName = iconPickerCategory ?: return
         iconPickerCategory = null
-        viewModelScope.launch { repository.setCategoryIcon(categoryName, iconName) }
+        mutateAndSync(syncRepository::saveCategoryIconsSnapshot) {
+            repository.setCategoryIcon(categoryName, iconName)
+            true
+        }
     }
 
     fun setType(type: TxType) {
@@ -86,28 +98,57 @@ class CategoriesManagerViewModel(private val repository: FinanceRepository) : Vi
     fun addSubcategory(categoryName: String, name: String) {
         val clean = name.trim()
         if (clean.isEmpty()) return
-        viewModelScope.launch {
-            if (!repository.addSubcategory(activeType, categoryName, clean)) {
+        mutateAndSync(syncRepository::saveSubcategoriesSnapshot) {
+            val added = repository.addSubcategory(activeType, categoryName, clean)
+            if (!added) {
                 errorMessage = "Така підкатегорія вже є"
             }
+            added
         }
     }
 
     fun deleteSubcategory(categoryName: String, name: String) {
-        viewModelScope.launch { repository.deleteSubcategory(activeType, categoryName, name) }
+        mutateAndSync(syncRepository::saveSubcategoriesSnapshot) {
+            repository.deleteSubcategory(activeType, categoryName, name)
+            true
+        }
     }
 
     fun addCategory(name: String) {
         val clean = name.trim()
         if (clean.isEmpty()) return
-        viewModelScope.launch {
-            if (!repository.addCategory(activeType, clean)) {
+        mutateAndSync(syncRepository::saveCategoriesSnapshot) {
+            val added = repository.addCategory(activeType, clean)
+            if (!added) {
                 errorMessage = "Така категорія вже є"
             }
+            added
         }
     }
 
     fun deleteCategory(id: String) {
-        viewModelScope.launch { repository.deleteCategory(id) }
+        mutateAndSync(syncRepository::saveAllCategorySnapshots) {
+            repository.deleteCategory(id)
+            true
+        }
+    }
+
+    private fun mutateAndSync(save: suspend (String, String) -> Unit, mutate: suspend () -> Boolean) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val categoriesBefore = repository.categorySnapshot()
+                val subcategoriesBefore = repository.subcategorySnapshot()
+                val iconsBefore = repository.categoryIconSnapshot()
+                val budgetsBefore = repository.categoryBudgetSnapshot()
+                val recurringBefore = repository.categoryRecurringSnapshot()
+                if (!mutate()) return@withLock
+                runCatching { save(uid, profileId) }.onFailure {
+                    repository.restoreCategoryMutationSnapshot(
+                        categoriesBefore, subcategoriesBefore, iconsBefore, budgetsBefore, recurringBefore,
+                    )
+                    errorMessage = "Не вдалося синхронізувати зміни"
+                }
+            }
+        }
     }
 }

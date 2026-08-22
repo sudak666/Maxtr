@@ -22,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.RecurringSyncRepository
 
 // Mirrors js/settings-managers.js's recurring-modal — see
 // RecurringManagerViewModel's doc comment for scope. The most field-heavy
@@ -49,8 +51,14 @@ import ua.rytm.app.data.FinanceRepository
 @Composable
 fun RecurringManagerSheet(
     repository: FinanceRepository,
+    syncRepository: RecurringSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: RecurringManagerViewModel = viewModel(factory = RecurringManagerViewModel.factory(repository)),
+    viewModel: RecurringManagerViewModel = viewModel(
+        key = "recurring-$uid-$profileId",
+        factory = RecurringManagerViewModel.factory(repository, syncRepository, uid, profileId),
+    ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -60,6 +68,14 @@ fun RecurringManagerSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Регулярні платежі", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
+            viewModel.errorMessage?.let { message ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                }
+            }
 
             if (viewModel.rows.isEmpty()) {
                 Text("Немає регулярних платежів", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -84,7 +100,7 @@ fun RecurringManagerSheet(
                 )
             }
 
-            TextButton(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth()) {
+            TextButton(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text("Додати регулярний платіж")
             }

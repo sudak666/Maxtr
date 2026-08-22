@@ -2,8 +2,11 @@ package ua.rytm.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import androidx.room.withTransaction
 import ua.rytm.app.data.local.BudgetEntity
+import ua.rytm.app.data.local.AutoRuleEntity
 import ua.rytm.app.data.local.CategoryEntity
+import ua.rytm.app.data.local.CategoryIconEntity
 import ua.rytm.app.data.local.GoalEntity
 import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.RytmDatabase
@@ -60,6 +63,7 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** mirrors AppState.tags (js/state.js). */
     val tags: Flow<List<Tag>> = db.tagDao().observeAll().map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
+    val autoRules: Flow<List<AutoRuleEntity>> = db.autoRuleDao().observeAll()
 
     /** category name -> manual icon-name override — mirrors AppState.categoryIcons (js/state.js). */
     val categoryIcons: Flow<Map<String, String>> = db.categoryIconDao().observeAll().map { list -> list.associate { it.categoryName to it.iconName } }
@@ -171,11 +175,35 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.categoryIconDao().insert(ua.rytm.app.data.local.CategoryIconEntity(categoryName, iconName))
     }
 
+    suspend fun categorySnapshot(): List<CategoryEntity> = db.categoryDao().getAllOnce()
+    suspend fun subcategorySnapshot(): List<SubcategoryEntity> = db.subcategoryDao().getAllOnce()
+    suspend fun categoryIconSnapshot(): List<CategoryIconEntity> = db.categoryIconDao().getAllOnce()
+    suspend fun categoryBudgetSnapshot(): List<BudgetEntity> = db.budgetDao().getAllOnce()
+    suspend fun categoryRecurringSnapshot(): List<RecurringEntity> = db.recurringDao().getAllOnce()
+
+    suspend fun restoreCategoryMutationSnapshot(
+        categories: List<CategoryEntity>,
+        subcategories: List<SubcategoryEntity>,
+        icons: List<CategoryIconEntity>,
+        budgets: List<BudgetEntity>,
+        recurring: List<RecurringEntity>,
+    ) = db.withTransaction {
+        db.categoryDao().replaceAll(categories)
+        db.subcategoryDao().replaceAll(subcategories)
+        db.categoryIconDao().replaceAll(icons)
+        db.budgetDao().replaceAll(budgets)
+        db.recurringDao().replaceAll(recurring)
+    }
+
     // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the
     // row entirely rather than being stored as a zero-or-negative value.
     suspend fun setBudget(category: String, amount: Double) {
         if (amount <= 0) db.budgetDao().deleteByCategory(category) else db.budgetDao().upsert(BudgetEntity(category, amount))
     }
+
+    suspend fun budgetRollbackSnapshot(): List<BudgetEntity> = db.budgetDao().getAllOnce()
+    suspend fun budgetSnapshot(): List<BudgetEntity> = budgetRollbackSnapshot()
+    suspend fun replaceBudgets(budgets: List<BudgetEntity>) = db.budgetDao().replaceAll(budgets)
 
     // Mirrors js/finance.js's addTag() — color picked by rotating PALETTE, same
     // as ShiftTypeDao's own creation convention (no interactive color picker yet).
@@ -198,6 +226,24 @@ class FinanceRepository(private val db: RytmDatabase) {
             }
         }
     }
+
+    data class TagsRollbackSnapshot(val tags: List<TagEntity>, val transactions: List<TransactionEntity>)
+
+    suspend fun tagsRollbackSnapshot() = TagsRollbackSnapshot(db.tagDao().getAllOnce(), db.transactionDao().getAllOnce())
+
+    suspend fun restoreTagsSnapshot(snapshot: TagsRollbackSnapshot) = db.withTransaction {
+        db.tagDao().replaceAll(snapshot.tags)
+        db.transactionDao().replaceAll(snapshot.transactions)
+    }
+
+    suspend fun addAutoRule(): AutoRuleEntity {
+        val current = db.autoRuleDao().getAllOnce()
+        val category = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name.orEmpty()
+        return AutoRuleEntity(java.util.UUID.randomUUID().toString(), "expense", "", category, current.size).also { db.autoRuleDao().upsert(it) }
+    }
+
+    suspend fun updateAutoRule(rule: AutoRuleEntity) = db.autoRuleDao().upsert(rule)
+    suspend fun deleteAutoRule(id: String) = db.autoRuleDao().deleteById(id)
 
     suspend fun upsertTransaction(transaction: Transaction) {
         db.transactionDao().upsert(transaction.toEntity())
@@ -226,6 +272,12 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun deleteWallet(id: String) {
         db.walletDao().deleteById(id)
     }
+
+    suspend fun replaceWallets(wallets: List<Wallet>) {
+        db.walletDao().replaceAll(wallets.map { it.toEntity() })
+    }
+
+    suspend fun walletSnapshot(): List<Wallet> = db.walletDao().getAllOnce().map { it.toDomain() }
 
     // Mirrors js/settings-managers.js's addRecurring(): defaults to type=expense,
     // first expense category, first wallet, monthly, nextDate=today, active, amount=0.
@@ -283,6 +335,9 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.recurringDao().update(recurring.copy(active = active).toEntity())
     }
 
+    suspend fun recurringSnapshot(): List<RecurringEntity> = db.recurringDao().getAllOnce()
+    suspend fun replaceRecurring(recurring: List<RecurringEntity>) = db.recurringDao().replaceAll(recurring)
+
     // Mirrors js/goals-profile.js's confirmAddGoal(): defaults to the first
     // wallet, target 0, no date — the PWA's own new-goal form starts blank too.
     suspend fun addGoal() {
@@ -304,6 +359,12 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun updateGoalTargetDate(goal: Goal, targetDate: String) {
         db.goalDao().update(GoalEntity(goal.id, goal.walletId, goal.targetAmount, targetDate))
+    }
+
+    suspend fun goalsSnapshot(): List<Goal> = db.goalDao().getAllOnce().map { Goal(it.id, it.walletId, it.targetAmount, it.targetDate) }
+
+    suspend fun replaceGoals(goals: List<Goal>) {
+        db.goalDao().replaceAll(goals.map { GoalEntity(it.id, it.walletId, it.targetAmount, it.targetDate) })
     }
 
     // Mirrors js/core.js's convertCurrency(): cross-rate via UAH as the base,

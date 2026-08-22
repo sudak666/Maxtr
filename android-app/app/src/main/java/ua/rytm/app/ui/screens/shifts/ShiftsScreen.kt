@@ -51,8 +51,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,6 +73,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
@@ -80,17 +87,26 @@ import java.util.Locale
 // js/calendar.js, closing step 8's disclosed gap.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShiftsScreen(
-    viewModel: ShiftsViewModel = viewModel(
-        factory = ShiftsViewModel.factory((LocalContext.current.applicationContext as RytmApplication).shiftsRepository),
-    ),
-) {
+fun ShiftsScreen() {
     val app = LocalContext.current.applicationContext as RytmApplication
+    val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val profileId by app.activeProfileStore.activeProfileId(accountUid).collectAsState(initial = DEFAULT_PROFILE_ID)
+    val ownerUid by app.activeProfileStore.activeProfileOwnerUid(accountUid).collectAsState(initial = null)
+    val dataUid = ownerUid ?: accountUid
+    val viewModel: ShiftsViewModel = viewModel(
+        key = "$dataUid|$profileId",
+        factory = ShiftsViewModel.factory(app.shiftsRepository, dataUid, profileId),
+    )
     val stats = viewModel.monthStats
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel.errorMessage) {
+        viewModel.errorMessage?.let { snackbar.showSnackbar(it); viewModel.consumeError() }
+    }
 
+    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -105,6 +121,7 @@ fun ShiftsScreen(
         }
         item { WeekdayHeaderRow() }
         item { CalendarGrid(viewModel) }
+    }
     }
 
     val dateKey = viewModel.dayModalDateKey
@@ -129,7 +146,7 @@ fun ShiftsScreen(
     }
 
     if (shiftTypesSheetOpen) {
-        ShiftTypesManagerSheet(repository = app.shiftsRepository, onDismiss = { shiftTypesSheetOpen = false })
+        ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = dataUid, profileId = profileId, onDismiss = { shiftTypesSheetOpen = false })
     }
 }
 

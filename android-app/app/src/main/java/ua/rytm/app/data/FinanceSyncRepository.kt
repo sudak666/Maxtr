@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.WalletEntity
 
@@ -24,6 +26,8 @@ import ua.rytm.app.data.local.WalletEntity
 // on either platform renders correctly on the other.
 class FinanceSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
 
+    private val walletSaveMutex = Mutex()
+
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
 
@@ -42,6 +46,20 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
             val local = db.walletDao().getAllOnce()
             docRef.set(
                 mapOf("wallets" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
+                SetOptions.merge(),
+            ).await()
+        }
+    }
+
+    /** Serializes Room snapshots so an older write can never overtake a newer wallet edit. */
+    suspend fun saveWalletsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
+        walletSaveMutex.withLock {
+            val wallets = db.walletDao().getAllOnce()
+            financeDocRef(uid, profileId).set(
+                mapOf(
+                    "wallets" to wallets.map { it.toRemoteMap() },
+                    "updatedAt" to System.currentTimeMillis(),
+                ),
                 SetOptions.merge(),
             ).await()
         }
