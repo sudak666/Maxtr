@@ -2,6 +2,7 @@ package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,11 +44,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.CategoriesSyncRepository
+import ua.rytm.app.ui.theme.RytmDimens
 
 // Mirrors js/settings-managers.js's categories-modal, including the
 // toggleSubcatPanel()/addSubcategory()/deleteSubcategory() subcategory panel
@@ -89,12 +94,16 @@ fun CategoriesManagerSheet(
                 val expanded = viewModel.expandedCategoryId == id
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        CategoryIconBadge(
-                            name,
-                            iconOverride = viewModel.categoryIcons[name],
-                            size = 32.dp,
-                            modifier = Modifier.clickable { viewModel.openIconPicker(name) },
-                        )
+                        val iconAction = stringResource(R.string.category_change_icon, localizedDomainText(name))
+                        Box(
+                            Modifier
+                                .size(RytmDimens.TouchTarget)
+                                .clickable(role = Role.Button) { viewModel.openIconPicker(name) }
+                                .semantics { contentDescription = iconAction },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CategoryIconBadge(name, iconOverride = viewModel.categoryIcons[name], size = 32.dp)
+                        }
                         Spacer(Modifier.padding(4.dp))
                         Text(localizedDomainText(name), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         IconButton(onClick = { viewModel.toggleExpanded(id) }) {
@@ -222,7 +231,7 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
                         icon,
                         contentDescription = name,
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(RytmDimens.TouchTarget)
                             .clip(CircleShape)
                             .clickable { onSelect(name) }
                             .padding(10.dp),

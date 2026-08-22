@@ -420,4 +420,5 @@
     <string name="action_dismiss">Закрити повідомлення</string>
     <string name="action_previous_month">Попередній місяць</string>
     <string name="action_next_month">Наступний місяць</string>
+    <string name="category_change_icon">Змінити іконку категорії %1$s</string>
 </resources>
