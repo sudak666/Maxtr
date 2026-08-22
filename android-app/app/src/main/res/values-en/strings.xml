@@ -87,6 +87,13 @@
     <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
+    <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
+    <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
+    <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
+    <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
+    <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
+    <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
+    <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

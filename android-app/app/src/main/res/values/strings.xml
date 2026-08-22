@@ -89,6 +89,13 @@
     <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string>
     <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
     <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
+    <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
+    <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
+    <string name="transaction_edit_title">Редагування операції</string><string name="transaction_new_title">Нова операція</string>
+    <string name="transaction_wallet_expense">Звідки списати</string><string name="transaction_wallet_source">Звідки переказати</string><string name="transaction_wallet_target">Куди переказати</string>
+    <string name="transaction_wallet_same">Оберіть інший гаманець для переказу.</string><string name="transaction_conversion_hint">Орієнтовно за поточним курсом: %1$s → %2$s</string>
+    <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
+    <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

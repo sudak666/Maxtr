@@ -21,6 +21,8 @@ import ua.rytm.app.data.local.AutoRuleEntity
 import java.time.LocalDate
 import java.time.YearMonth
 
+data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
+
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
 // FINANCE_SCREEN_SPEC.md §8) — data is real and persisted, though still
 // bootstrapped from the PWA's exact empty-profile defaults.
@@ -213,18 +215,18 @@ class FinanceViewModel(
     val formSubcategoryOptions: List<String>
         get() = subcategoriesByKey[subKey(formType.name, formCategory.orEmpty())].orEmpty()
 
-    val formTransferHint: Pair<String, Boolean>? // text, isWarning
+    val formTransferHint: TransferHint?
         get() {
             if (formType != TxType.TRANSFER) return null
             if (formWalletId.isBlank() || formTargetWalletId.isBlank()) return null
-            if (formWalletId == formTargetWalletId) return "Оберіть інший гаманець для переказу." to true
+            if (formWalletId == formTargetWalletId) return TransferHint(isWarning = true)
             val srcCur = formWalletCurrency
             val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
             val amount = formAmountText.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
-            return "Орієнтовно за поточним курсом: $sourceText → $targetText" to false
+            return TransferHint(sourceText, targetText)
         }
 
     fun submitForm() {

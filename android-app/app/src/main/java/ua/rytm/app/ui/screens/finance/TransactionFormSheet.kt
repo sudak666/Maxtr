@@ -53,6 +53,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -68,6 +70,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     var ocrBusy by remember { mutableStateOf(false) }
     var ocrMessage by remember { mutableStateOf<String?>(null) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val ocrFound = stringResource(R.string.receipt_found)
+    val ocrNotFound = stringResource(R.string.receipt_not_found)
+    val ocrFailed = stringResource(R.string.receipt_failed)
     fun processReceipt(uri: android.net.Uri) {
         if (ocrBusy) return
         scope.launch {
@@ -77,9 +82,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 val result = ocr.scan(context, uri)
                 result.amount?.let { vm.onFormAmountChange(it.toString()) }
                 result.date?.let(vm::onFormDateChange)
-                ocrMessage = if (result.amount != null || result.date != null) "Дані чека розпізнано — перевір перед збереженням" else "Суму й дату не знайдено"
+                ocrMessage = if (result.amount != null || result.date != null) ocrFound else ocrNotFound
             } catch (e: Exception) {
-                ocrMessage = e.localizedMessage ?: "Не вдалося розпізнати чек"
+                ocrMessage = ocrFailed
             } finally {
                 ocrBusy = false
             }
@@ -98,12 +103,12 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = if (vm.editingTxId != null) "Редагування операції" else "Нова операція",
+                    text = stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
                 if (vm.editingTxId != null) {
-                    TextButton(onClick = vm::closeSheet) { Text("Скасувати") }
+                    TextButton(onClick = vm::closeSheet) { Text(stringResource(R.string.action_cancel)) }
                 }
             }
 
@@ -119,29 +124,29 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         },
                         enabled = !ocrBusy,
                         modifier = Modifier.weight(1f),
-                    ) { Icon(Icons.Filled.CameraAlt, contentDescription = null); Text("Камера") }
+                    ) { Icon(Icons.Filled.CameraAlt, contentDescription = null); Text(stringResource(R.string.receipt_camera)) }
                     Button(onClick = { galleryLauncher.launch("image/*") }, enabled = !ocrBusy, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null); Text("Галерея")
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null); Text(stringResource(R.string.receipt_gallery))
                     }
                 }
-                if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text("Розпізнавання чека…") }
+                if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
                 ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
 
             val walletLabel = when (vm.formType) {
-                TxType.INCOME -> "Гаманець"
-                TxType.EXPENSE -> "Звідки списати"
-                TxType.TRANSFER -> "Звідки переказати"
+                TxType.INCOME -> stringResource(R.string.wallet_label)
+                TxType.EXPENSE -> stringResource(R.string.transaction_wallet_expense)
+                TxType.TRANSFER -> stringResource(R.string.transaction_wallet_source)
             }
             WalletDropdown(label = walletLabel, wallets = vm.wallets, selectedId = vm.formWalletId, onSelect = vm::onFormWalletChange)
 
             if (vm.formType == TxType.TRANSFER) {
-                WalletDropdown(label = "Куди переказати", wallets = vm.wallets, selectedId = vm.formTargetWalletId, onSelect = vm::onFormTargetWalletChange)
-                vm.formTransferHint?.let { (text, isWarning) ->
+                WalletDropdown(label = stringResource(R.string.transaction_wallet_target), wallets = vm.wallets, selectedId = vm.formTargetWalletId, onSelect = vm::onFormTargetWalletChange)
+                vm.formTransferHint?.let { hint ->
                     Text(
-                        text = text,
+                        text = if (hint.isWarning) stringResource(R.string.transaction_wallet_same) else stringResource(R.string.transaction_conversion_hint, hint.sourceText, hint.targetText),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (hint.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -150,7 +155,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 OutlinedTextField(
                     value = vm.formAmountText,
                     onValueChange = vm::onFormAmountChange,
-                    label = { Text("Сума (${currencySymbol(vm.formWalletCurrency)})") },
+                    label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
                     placeholder = { Text("0.00") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
@@ -167,7 +172,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 val categories = vm.categoriesByType[vm.formType].orEmpty()
                 if (categories.isNotEmpty()) {
                     DropdownField(
-                        label = "Категорія",
+                        label = stringResource(R.string.tx_category),
                         options = categories,
                         selected = vm.formCategory ?: categories.first(),
                         onSelect = vm::onFormCategoryChange,
@@ -175,7 +180,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
                 if (vm.formSubcategoryOptions.isNotEmpty()) {
                     DropdownField(
-                        label = "Підкатегорія",
+                        label = stringResource(R.string.transaction_subcategory),
                         options = listOf("—") + vm.formSubcategoryOptions,
                         selected = vm.formSubcategory ?: "—",
                         onSelect = { vm.onFormSubcategoryChange(it.takeIf { s -> s != "—" }) },
@@ -183,26 +188,13 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = "Дата", modifier = Modifier.fillMaxWidth(), allowEmpty = false)
-            /* Replaced by DatePickerField above.
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = vm.formDate,
-                    onValueChange = vm::onFormDateChange,
-                    label = { Text("Дата") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                )
-                TextButton(onClick = vm::setFormDateToday) { Text("Сьогодні") }
-            }
-
-            */
+            DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Column {
                 OutlinedTextField(
                     value = vm.formComment,
                     onValueChange = vm::onFormCommentChange,
-                    label = { Text("Коментар") },
-                    placeholder = { Text("Деталі операції...") },
+                    label = { Text(stringResource(R.string.comment_label)) },
+                    placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
@@ -229,7 +221,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
 
             Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth()) {
-                Text(if (vm.isSaving) "Збереження…" else if (vm.editingTxId != null) "Зберегти зміни" else "Додати запис")
+                Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
             }
         }
     }
@@ -238,9 +230,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 @Composable
 private fun TypeSegmentedRow(vm: FinanceViewModel) {
     val options = listOf(
-        Triple(TxType.INCOME, "+ Дохід", Icons.Filled.ArrowUpward),
-        Triple(TxType.EXPENSE, "− Витрата", Icons.Filled.ArrowDownward),
-        Triple(TxType.TRANSFER, "⇄ Переказ", Icons.Filled.SwapHoriz),
+        Triple(TxType.INCOME, "+ " + stringResource(R.string.tx_income), Icons.Filled.ArrowUpward),
+        Triple(TxType.EXPENSE, "− " + stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward),
+        Triple(TxType.TRANSFER, "⇄ " + stringResource(R.string.tx_transfer), Icons.Filled.SwapHoriz),
     )
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
         options.forEachIndexed { index, (type, label, icon) ->
