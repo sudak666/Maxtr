@@ -159,7 +159,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     )
 
                     Text(
-                        text = viewModel.formMessage.orEmpty(),
+                        text = viewModel.formMessageRes?.let { stringResource(it) }.orEmpty(),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 18.dp),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 13.sp,

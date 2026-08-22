@@ -55,4 +55,17 @@
     <string name="pin_biometric_body">Enable fingerprint or face unlock? Your PIN remains available as a backup.</string>
     <string name="action_enable">Enable</string>
     <string name="action_not_now">Not now</string>
+    <string name="auth_error_generic">Sign-in failed. Try again.</string>
+    <string name="auth_error_google_unavailable">Google sign-in was cancelled or is unavailable.</string>
+    <string name="auth_error_google_token">Unable to process the Google account.</string>
+    <string name="auth_error_invalid_email">Invalid email.</string>
+    <string name="auth_error_weak_password">Password is too weak (at least 6 characters).</string>
+    <string name="auth_error_network">No network connection. Check your internet connection and try again.</string>
+    <string name="auth_error_reset_email_required">Enter your email to reset the password.</string>
+    <string name="auth_reset_sent">Password reset email sent.</string>
+    <string name="auth_error_user_not_found">User not found.</string>
+    <string name="auth_error_wrong_password">Incorrect password.</string>
+    <string name="auth_error_invalid_credentials">Incorrect email or password.</string>
+    <string name="auth_error_email_in_use">This email is already registered.</string>
+    <string name="auth_error_too_many">Too many attempts. Try again later.</string>
 </resources>

@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.auth
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,6 +25,7 @@ import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.R
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 
 // Google Sign-In is the primary path here too (matches the PWA's
@@ -56,7 +58,7 @@ class AuthViewModel : ViewModel() {
 
     var authMode by mutableStateOf(AuthMode.LOGIN)
         private set
-    var formMessage by mutableStateOf<String?>(null)
+    var formMessageRes by mutableStateOf<Int?>(null)
         private set
 
     private val authStateListener = FirebaseAuth.AuthStateListener { currentUser = it.currentUser }
@@ -97,14 +99,14 @@ class AuthViewModel : ViewModel() {
                 if (credential != null) {
                     auth.signInWithCredential(credential).await()
                 } else {
-                    publishFormMessage("Помилка входу. Спробуйте ще раз.")
+                    publishFormMessage(R.string.auth_error_generic)
                 }
             } catch (e: GetCredentialException) {
-                publishFormMessage("Вхід через Google скасовано або недоступний.")
+                publishFormMessage(R.string.auth_error_google_unavailable)
             } catch (e: GoogleIdTokenParsingException) {
-                publishFormMessage("Помилка обробки облікового запису Google.")
+                publishFormMessage(R.string.auth_error_google_token)
             } catch (e: Exception) {
-                publishFormMessage("Помилка входу. Спробуйте ще раз.")
+                publishFormMessage(R.string.auth_error_generic)
             } finally {
                 isSigningIn = false
             }
@@ -113,32 +115,32 @@ class AuthViewModel : ViewModel() {
 
     fun onAuthModeChanged(mode: AuthMode) {
         authMode = mode
-        formMessage = null
+        formMessageRes = null
     }
 
     fun submitEmail(emailInput: String, password: String) {
         if (isSigningIn) return
         val email = emailInput.trim()
         if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            publishFormMessage("Некоректний email.")
+            publishFormMessage(R.string.auth_error_invalid_email)
             return
         }
         if (password.length < 6) {
-            publishFormMessage("Пароль надто простий (мінімум 6 символів).")
+            publishFormMessage(R.string.auth_error_weak_password)
             return
         }
         isSigningIn = true
-        formMessage = null
+        formMessageRes = null
         viewModelScope.launch {
             try {
                 if (authMode == AuthMode.LOGIN) auth.signInWithEmailAndPassword(email, password).await()
                 else auth.createUserWithEmailAndPassword(email, password).await()
             } catch (_: FirebaseNetworkException) {
-                publishFormMessage("Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз.")
+                publishFormMessage(R.string.auth_error_network)
             } catch (e: FirebaseAuthException) {
                 publishFormMessage(authErrorMessage(e.errorCode))
             } catch (_: Exception) {
-                publishFormMessage("Помилка входу. Спробуйте ще раз.")
+                publishFormMessage(R.string.auth_error_generic)
             } finally {
                 isSigningIn = false
             }
@@ -149,50 +151,50 @@ class AuthViewModel : ViewModel() {
         if (isSigningIn) return
         val email = emailInput.trim()
         if (email.isBlank()) {
-            publishFormMessage("Введіть email, щоб скинути пароль.")
+            publishFormMessage(R.string.auth_error_reset_email_required)
             return
         }
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            publishFormMessage("Некоректний email.")
+            publishFormMessage(R.string.auth_error_invalid_email)
             return
         }
         isSigningIn = true
-        formMessage = null
+        formMessageRes = null
         viewModelScope.launch {
             try {
                 auth.sendPasswordResetEmail(email).await()
-                publishFormMessage("Лист для скидання пароля надіслано.")
+                publishFormMessage(R.string.auth_reset_sent)
             } catch (_: FirebaseNetworkException) {
-                publishFormMessage("Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз.")
+                publishFormMessage(R.string.auth_error_network)
             } catch (e: FirebaseAuthException) {
                 publishFormMessage(authErrorMessage(e.errorCode))
             } catch (_: Exception) {
-                publishFormMessage("Помилка входу. Спробуйте ще раз.")
+                publishFormMessage(R.string.auth_error_generic)
             } finally {
                 isSigningIn = false
             }
         }
     }
 
-    private fun publishFormMessage(message: String) {
-        formMessage = message
+    private fun publishFormMessage(@StringRes message: Int) {
+        formMessageRes = message
     }
 
-    private fun authErrorMessage(code: String): String = when (code) {
-        "ERROR_INVALID_EMAIL" -> "Некоректний email."
-        "ERROR_USER_NOT_FOUND" -> "Користувача не знайдено."
-        "ERROR_WRONG_PASSWORD" -> "Невірний пароль."
-        "ERROR_INVALID_CREDENTIAL" -> "Невірний email або пароль."
-        "ERROR_EMAIL_ALREADY_IN_USE" -> "Цей email вже зареєстровано."
-        "ERROR_WEAK_PASSWORD" -> "Пароль надто простий (мінімум 6 символів)."
-        "ERROR_TOO_MANY_REQUESTS" -> "Забагато спроб. Спробуйте пізніше."
-        "ERROR_NETWORK_REQUEST_FAILED" -> "Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз."
-        else -> "Помилка входу. Спробуйте ще раз."
+    @StringRes private fun authErrorMessage(code: String): Int = when (code) {
+        "ERROR_INVALID_EMAIL" -> R.string.auth_error_invalid_email
+        "ERROR_USER_NOT_FOUND" -> R.string.auth_error_user_not_found
+        "ERROR_WRONG_PASSWORD" -> R.string.auth_error_wrong_password
+        "ERROR_INVALID_CREDENTIAL" -> R.string.auth_error_invalid_credentials
+        "ERROR_EMAIL_ALREADY_IN_USE" -> R.string.auth_error_email_in_use
+        "ERROR_WEAK_PASSWORD" -> R.string.auth_error_weak_password
+        "ERROR_TOO_MANY_REQUESTS" -> R.string.auth_error_too_many
+        "ERROR_NETWORK_REQUEST_FAILED" -> R.string.auth_error_network
+        else -> R.string.auth_error_generic
     }
 
     fun signOut() {
         authMode = AuthMode.LOGIN
-        formMessage = null
+        formMessageRes = null
         auth.signOut()
     }
 

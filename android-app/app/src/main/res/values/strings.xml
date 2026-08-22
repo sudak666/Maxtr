@@ -57,4 +57,17 @@
     <string name="pin_biometric_body">Увімкнути розблокування відбитком пальця або обличчям? PIN залишиться резервним способом входу.</string>
     <string name="action_enable">Увімкнути</string>
     <string name="action_not_now">Не зараз</string>
+    <string name="auth_error_generic">Помилка входу. Спробуйте ще раз.</string>
+    <string name="auth_error_google_unavailable">Вхід через Google скасовано або недоступний.</string>
+    <string name="auth_error_google_token">Помилка обробки облікового запису Google.</string>
+    <string name="auth_error_invalid_email">Некоректний email.</string>
+    <string name="auth_error_weak_password">Пароль надто простий (мінімум 6 символів).</string>
+    <string name="auth_error_network">Немає з’єднання з мережею. Перевір інтернет і спробуй ще раз.</string>
+    <string name="auth_error_reset_email_required">Введіть email, щоб скинути пароль.</string>
+    <string name="auth_reset_sent">Лист для скидання пароля надіслано.</string>
+    <string name="auth_error_user_not_found">Користувача не знайдено.</string>
+    <string name="auth_error_wrong_password">Невірний пароль.</string>
+    <string name="auth_error_invalid_credentials">Невірний email або пароль.</string>
+    <string name="auth_error_email_in_use">Цей email вже зареєстровано.</string>
+    <string name="auth_error_too_many">Забагато спроб. Спробуйте пізніше.</string>
 </resources>
