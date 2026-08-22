@@ -12,6 +12,7 @@ import ua.rytm.app.ui.screens.shifts.ShiftType
 import ua.rytm.app.ui.screens.shifts.daysForShiftPattern
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import androidx.room.withTransaction
 
 fun ShiftTypeEntity.toDomain() = ShiftType(id, name, short, code, colorHex, amount, hours, isOff)
 fun ShiftType.toEntity() = ShiftTypeEntity(id, name, short, code, colorHex, amount, hours, isOff)
@@ -82,16 +83,15 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
     // walks from the schedule's anchor date (capped 60 days back) to today,
     // filling only days with NO existing assignment — never overwrites a
     // hand-edited day. Returns how many days were newly filled.
-    suspend fun processAutoFillShifts(): Int {
-        val schedule = db.autoFillScheduleDao().getOnce()?.toDomain() ?: return 0
-        if (!schedule.enabled || schedule.typeId.isBlank() || schedule.anchorDate.isBlank()) return 0
-        if (db.shiftTypeDao().getAllOnce().none { it.id == schedule.typeId }) return 0
+    suspend fun processAutoFillShifts(today: LocalDate = LocalDate.now()): Int = db.withTransaction {
+        val schedule = db.autoFillScheduleDao().getOnce()?.toDomain() ?: return@withTransaction 0
+        if (!schedule.enabled || schedule.typeId.isBlank() || schedule.anchorDate.isBlank()) return@withTransaction 0
+        if (db.shiftTypeDao().getAllOnce().none { it.id == schedule.typeId }) return@withTransaction 0
         val (on, off) = SHIFT_PATTERN_CYCLES[schedule.pattern] ?: SHIFT_PATTERN_CYCLES.getValue("every")
         val period = on + off
-        if (period <= 0) return 0
+        if (period <= 0) return@withTransaction 0
 
-        val anchor = runCatching { LocalDate.parse(schedule.anchorDate) }.getOrNull() ?: return 0
-        val today = LocalDate.now()
+        val anchor = runCatching { LocalDate.parse(schedule.anchorDate) }.getOrNull() ?: return@withTransaction 0
         val earliest = today.minusDays(60)
         var cursor = if (anchor < earliest) earliest else anchor
         val existing = db.shiftDayDao().getAllAssignedDateKeys().toHashSet()
@@ -107,7 +107,7 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
             guard++
         }
         if (newEntities.isNotEmpty()) db.shiftDayDao().insertAll(newEntities)
-        return newEntities.size
+        newEntities.size
     }
 
     suspend fun addShiftType(uid: String, profileId: String, type: ShiftType) {

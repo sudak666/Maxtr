@@ -37,6 +37,7 @@ import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.RytmMigrations
 import ua.rytm.app.data.local.SettingsStore
 import ua.rytm.app.push.ensureNotificationChannel
+import ua.rytm.app.work.scheduleDailyMaintenance
 
 class RytmApplication : Application() {
     override fun onCreate() {
@@ -77,6 +78,7 @@ class RytmApplication : Application() {
         // is a safe no-op when the channel already exists (same id, same
         // settings), so calling this on every cold start is fine.
         ensureNotificationChannel(this)
+        scheduleDailyMaintenance(this)
     }
 
     val database: RytmDatabase by lazy {

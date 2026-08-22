@@ -21,6 +21,9 @@ import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import ua.rytm.app.ui.screens.finance.Wallet
 
+internal fun recurringOccurrenceId(recurringId: String, date: String): String =
+    java.util.UUID.nameUUIDFromBytes("recurring:$recurringId:$date".toByteArray(Charsets.UTF_8)).toString()
+
 // Mirrors js/core.js's SEED_RATES — the fallback used when a currency code
 // has no synced rate yet (a brand-new account before its first FX-widget
 // load, or a currency the account owner never manually rated).
@@ -427,11 +430,11 @@ class FinanceRepository(private val db: RytmDatabase) {
     // write in this app — Android has no continuous Firestore push yet (step 19's
     // disclosed scope), so newly materialized transactions stay local until the
     // remote catches up some other way.
-    suspend fun processRecurring(): Int {
+    suspend fun processRecurring(today: java.time.LocalDate = java.time.LocalDate.now()): Int = db.withTransaction {
         val recurringList = db.recurringDao().getAllOnce()
-        if (recurringList.isEmpty()) return 0
+        if (recurringList.isEmpty()) return@withTransaction 0
         val walletCurrency = db.walletDao().getAllOnce().associate { it.id to it.currency }
-        val todayStr = java.time.LocalDate.now().toString()
+        val todayStr = today.toString()
         val newTx = mutableListOf<TransactionEntity>()
         val updated = mutableListOf<RecurringEntity>()
         var added = 0
@@ -441,7 +444,7 @@ class FinanceRepository(private val db: RytmDatabase) {
             var guard = 0
             while (nextDate <= todayStr && guard < 24) {
                 newTx += TransactionEntity(
-                    id = java.util.UUID.randomUUID().toString(),
+                    id = recurringOccurrenceId(r.id, nextDate),
                     type = r.type,
                     amount = r.amount,
                     currency = walletCurrency[r.walletId] ?: "UAH",
@@ -467,6 +470,6 @@ class FinanceRepository(private val db: RytmDatabase) {
             db.transactionDao().insertAll(newTx)
             updated.forEach { db.recurringDao().update(it) }
         }
-        return added
+        added
     }
 }
