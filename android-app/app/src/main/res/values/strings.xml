@@ -78,6 +78,13 @@
     <string name="goals_choose_wallet">Оберіть гаманець</string><string name="goals_default_name">Ціль</string>
     <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
     <string name="wallet_label">Гаманець</string>
+    <string name="amount_label">Сума</string>
+    <string name="recurring_title">Регулярні платежі</string><string name="recurring_empty">Немає регулярних платежів</string>
+    <string name="recurring_add">Додати регулярний платіж</string><string name="recurring_delete_title">Видалити регулярний платіж</string>
+    <string name="recurring_delete_body">Видалити цей регулярний платіж?</string>
+    <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
+    <string name="recurring_summary">%1$s · %2$d грн · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$d грн · %3$s · %4$s · на паузі</string>
+    <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

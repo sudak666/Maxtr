@@ -76,6 +76,13 @@
     <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
     <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
     <string name="wallet_label">Wallet</string>
+    <string name="amount_label">Amount</string>
+    <string name="recurring_title">Recurring payments</string><string name="recurring_empty">No recurring payments</string>
+    <string name="recurring_add">Add recurring payment</string><string name="recurring_delete_title">Delete recurring payment</string>
+    <string name="recurring_delete_body">Delete this recurring payment?</string>
+    <string name="frequency_daily">Daily</string><string name="frequency_weekly">Weekly</string><string name="frequency_monthly">Monthly</string><string name="frequency_label">Frequency</string>
+    <string name="recurring_summary">%1$s · UAH %2$d · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · UAH %2$d · %3$s · %4$s · paused</string>
+    <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>
