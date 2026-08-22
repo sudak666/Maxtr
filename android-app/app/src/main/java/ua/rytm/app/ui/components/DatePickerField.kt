@@ -2,8 +2,8 @@ package ua.rytm.app.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.DatePicker
@@ -20,10 +20,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import ua.rytm.app.R
 
 private val displayDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
@@ -48,7 +50,7 @@ fun DatePickerField(
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
-            trailingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) },
+            trailingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = stringResource(R.string.action_choose_date)) },
             modifier = Modifier.fillMaxWidth(),
         )
         Box(Modifier.fillMaxSize().clickable { open = true })
@@ -61,11 +63,11 @@ fun DatePickerField(
                 TextButton(onClick = {
                     state.selectedDateMillis?.let { millis -> onValueChange(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()) }
                     open = false
-                }) { Text("Готово") }
+                }) { Text(stringResource(R.string.action_done)) }
             },
             dismissButton = {
-                if (allowEmpty) TextButton(onClick = { onValueChange(""); open = false }) { Text("Очистити") }
-                TextButton(onClick = { open = false }) { Text("Скасувати") }
+                if (allowEmpty) TextButton(onClick = { onValueChange(""); open = false }) { Text(stringResource(R.string.action_clear)) }
+                TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) { DatePicker(state = state) }
     }

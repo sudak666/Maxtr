@@ -16,4 +16,8 @@
     <string name="onboarding_shifts_body">Plan shifts, calculate income, and forecast your working month.</string>
     <string name="onboarding_security_title">Privacy and synchronization</string>
     <string name="onboarding_security_body">Data is synchronized through your Firebase account. PIN and biometrics protect access on this device.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_choose_date">Choose date</string>
+    <string name="field_currency">Currency</string>
 </resources>

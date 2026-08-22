@@ -19,4 +19,8 @@
     <string name="onboarding_shifts_body">Плануйте зміни, рахуйте дохід і прогнозуйте робочий місяць.</string>
     <string name="onboarding_security_title">Приватність і синхронізація</string>
     <string name="onboarding_security_body">Дані синхронізуються через ваш Firebase-акаунт. PIN і біометрія захищають доступ на пристрої.</string>
+    <string name="action_cancel">Скасувати</string>
+    <string name="action_clear">Очистити</string>
+    <string name="action_choose_date">Обрати дату</string>
+    <string name="field_currency">Валюта</string>
 </resources>

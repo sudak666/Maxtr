@@ -14,12 +14,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 
 val SUPPORTED_CURRENCIES = listOf("UAH", "USD", "EUR", "GBP", "PLN")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CurrencyPickerField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier, label: String = "Валюта") {
+fun CurrencyPickerField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+) {
     var expanded by remember { mutableStateOf(false) }
     val normalized = value.takeIf { it in SUPPORTED_CURRENCIES } ?: "UAH"
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
@@ -28,7 +35,7 @@ fun CurrencyPickerField(value: String, onValueChange: (String) -> Unit, modifier
             onValueChange = {},
             readOnly = true,
             singleLine = true,
-            label = { Text(label) },
+            label = { Text(label ?: stringResource(R.string.field_currency)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
