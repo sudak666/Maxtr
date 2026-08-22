@@ -253,6 +253,7 @@ private fun localizedPatternOptions(): List<Pair<String, String>> = listOf(
 // the other 5 faded purple, mirroring var(--purple)/rgba(139,92,246,.35).
 @Composable
 private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
+    val locale = LocalConfiguration.current.locales[0]
     Card(shape = RoundedCornerShape(24.dp)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
@@ -287,7 +288,7 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
                 months.forEach { m ->
                     val isCur = m.yearMonth == curYm
                     Text(
-                        m.label,
+                        m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (isCur) FontWeight.Black else FontWeight.Bold,

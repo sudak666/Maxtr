@@ -15,8 +15,6 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
 
 // Mirrors js/calendar.js's renderCalendar()/openModal()/saveModalSelection()/
 // applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
@@ -167,7 +165,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
             return MonthStats(earned, hours, shiftsCount, offCount)
         }
 
-    data class MonthEarning(val yearMonth: YearMonth, val label: String, val earned: Double)
+    data class MonthEarning(val yearMonth: YearMonth, val earned: Double)
 
     // Mirrors js/calendar.js's renderIncomeChart() — trailing 6 months ending
     // on the currently visible one's calendar month is NOT what the PWA
@@ -184,7 +182,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
                     if (!dateKey.startsWith(prefix)) return@forEach
                     ids.forEach { id -> shiftTypes.firstOrNull { it.id == id }?.let { earned += it.amount } }
                 }
-                MonthEarning(ym, ym.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage("uk").build()), earned)
+                MonthEarning(ym, earned)
             }
         }
 
