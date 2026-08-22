@@ -229,6 +229,7 @@
     <string name="pin_confirm">Confirm PIN</string>
     <string name="pin_save">Save PIN</string>
     <string name="pin_error_invalid">Incorrect PIN</string>
+    <string name="pin_error_locked">Too many attempts. Try again in %1$d s</string>
     <string name="pin_error_length">PIN must contain 4–6 digits</string>
     <string name="pin_error_mismatch">PINs do not match</string>
     <string name="action_enable">Enable</string>

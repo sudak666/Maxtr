@@ -80,7 +80,11 @@ fun PinLockScreen(viewModel: PinViewModel) {
 
         viewModel.errorMessageRes?.let { messageRes ->
             Spacer(Modifier.height(16.dp))
-            Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                if (messageRes == R.string.pin_error_locked) stringResource(messageRes, viewModel.lockoutSeconds) else stringResource(messageRes),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         Spacer(Modifier.height(40.dp))

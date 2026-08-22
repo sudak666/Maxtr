@@ -231,6 +231,7 @@
     <string name="pin_confirm">Підтвердіть PIN</string>
     <string name="pin_save">Зберегти PIN</string>
     <string name="pin_error_invalid">Невірний PIN-код</string>
+    <string name="pin_error_locked">Забагато спроб. Спробуйте через %1$d с</string>
     <string name="pin_error_length">PIN має містити 4–6 цифр</string>
     <string name="pin_error_mismatch">PIN-коди не збігаються</string>
     <string name="action_enable">Увімкнути</string>

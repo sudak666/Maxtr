@@ -13,7 +13,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 
 ## P1 — security, reliability and scale
 
-- [ ] Replace fast unsalted PIN hashing with Keystore-backed verification, attempt throttling and privacy protection in recents.
+- [x] Replace fast unsalted PIN hashing with Keystore-backed verification, escalating persistent attempt throttling, background re-lock and privacy protection in recents.
 - [ ] Enable R8/resource shrinking and verify every auth, Firestore, FCM, ML Kit and Credential Manager flow in release. (Enabled; release/device verification pending.)
 - [ ] Replace full-domain realtime reloads with domain-specific listeners, explicit revisions/conflict policy and durable offline outbox/retry.
 - [ ] Make Room data profile-scoped (`ownerUid` + `profileId`) so profiles remain isolated and available offline.

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.local.PinStore
+import ua.rytm.app.data.local.PinVerification
 import com.google.firebase.auth.FirebaseAuth
 import androidx.annotation.StringRes
 import ua.rytm.app.R
@@ -43,7 +44,9 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     @get:StringRes
     var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessageRes = null }
+    var lockoutSeconds by mutableStateOf(0L)
+        private set
+    fun consumeError() { errorMessageRes = null; lockoutSeconds = 0 }
 
     // Settings-sheet-only state (new/confirm PIN entry), kept separate from
     // the unlock-screen's own pinInput so opening Settings mid-unlock-flow
@@ -73,13 +76,23 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     fun tryUnlock(silentIfMismatchAndNotFull: Boolean = false) {
         val entered = pinInput
         viewModelScope.launch {
-            if (pinStore.verifyPin(uid, entered)) {
-                isUnlocked = true
-                errorMessageRes = null
-                pinInput = ""
-            } else if (!silentIfMismatchAndNotFull) {
-                errorMessageRes = R.string.pin_error_invalid
-                pinInput = ""
+            when (val result = pinStore.verifyPin(uid, entered)) {
+                PinVerification.Valid -> {
+                    isUnlocked = true
+                    errorMessageRes = null
+                    lockoutSeconds = 0
+                    pinInput = ""
+                }
+                PinVerification.Incomplete -> Unit
+                PinVerification.Invalid -> if (!silentIfMismatchAndNotFull) {
+                    errorMessageRes = R.string.pin_error_invalid
+                    pinInput = ""
+                }
+                is PinVerification.Locked -> {
+                    errorMessageRes = R.string.pin_error_locked
+                    lockoutSeconds = (result.remainingMs + 999) / 1000
+                    pinInput = ""
+                }
             }
         }
     }
@@ -87,6 +100,7 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     fun unlockWithBiometric() {
         isUnlocked = true
         errorMessageRes = null
+        lockoutSeconds = 0
         pinInput = ""
     }
 

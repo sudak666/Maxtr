@@ -1,6 +1,7 @@
 package ua.rytm.app
 
 import android.os.Bundle
+import android.os.Build
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.launch
 import ua.rytm.app.navigation.RytmNavHost
 import ua.rytm.app.ui.screens.auth.AuthViewModel
@@ -34,6 +37,7 @@ import ua.rytm.app.ui.rememberReducedMotion
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setRecentsScreenshotEnabled(false)
         enableEdgeToEdge()
         val app = application as RytmApplication
         setContent {
@@ -89,6 +93,13 @@ class MainActivity : FragmentActivity() {
                             factory = PinViewModel.factory(app.pinStore, uid),
                             viewModelStoreOwner = this@MainActivity,
                         )
+                        DisposableEffect(pinViewModel) {
+                            val observer = LifecycleEventObserver { _, event ->
+                                if (event == Lifecycle.Event.ON_STOP) pinViewModel.lockNow()
+                            }
+                            lifecycle.addObserver(observer)
+                            onDispose { lifecycle.removeObserver(observer) }
+                        }
                         // Nullable initial value on purpose: collapsing "still reading
                         // DataStore" and "confirmed no PIN set" into the same `false`
                         // would flash the real app content for a frame before a PIN
