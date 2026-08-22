@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.CategoriesSyncRepository
@@ -95,7 +96,7 @@ fun CategoriesManagerSheet(
                             modifier = Modifier.clickable { viewModel.openIconPicker(name) },
                         )
                         Spacer(Modifier.padding(4.dp))
-                        Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        Text(localizedDomainText(name), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         IconButton(onClick = { viewModel.toggleExpanded(id) }) {
                             Icon(if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = stringResource(R.string.subcategories_title))
                         }

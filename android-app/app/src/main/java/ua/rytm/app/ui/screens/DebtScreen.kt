@@ -73,6 +73,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
 import ua.rytm.app.ui.components.CurrencyPickerField
 import ua.rytm.app.ui.screens.debt.DEBT_COLORS
@@ -188,7 +189,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 ),
                 shape = RoundedCornerShape(50),
             ) {
-                Text(debt.name, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
+                Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
             }
         }
         if (canEdit) item {

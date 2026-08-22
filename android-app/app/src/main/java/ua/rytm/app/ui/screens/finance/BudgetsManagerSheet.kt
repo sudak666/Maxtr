@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
@@ -86,7 +87,7 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
             CategoryIconBadge(category, iconOverride = iconOverride, size = 32.dp)
             Spacer(Modifier.padding(4.dp))
             Column(Modifier.weight(1f)) {
-                Text(category, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(localizedDomainText(category), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {

@@ -45,6 +45,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.FinanceRepository
 import java.net.HttpURLConnection
 import java.net.URL
@@ -80,7 +81,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
             val progress = if (goal.targetAmount > 0) (current / goal.targetAmount).coerceIn(0.0, 1.0) else 0.0
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(wallet?.name ?: stringResource(R.string.goals_default_name), fontWeight = FontWeight.SemiBold)
+                    Text(wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name), fontWeight = FontWeight.SemiBold)
                     Text(maskedAmount("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}"), style = MaterialTheme.typography.bodySmall)
                 }
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {

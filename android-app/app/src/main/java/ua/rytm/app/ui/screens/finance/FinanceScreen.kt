@@ -79,6 +79,7 @@ import kotlinx.coroutines.flow.flowOf
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
@@ -102,7 +103,12 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val pendingMessage = viewModel.pendingMessage?.let { stringResource(it.resource, *it.arguments.toTypedArray()) }
+    val pendingMessage = viewModel.pendingMessage?.let { message ->
+        val arguments = if (message.resource == R.string.transaction_auto_category || message.resource == R.string.transaction_budget_exceeded) {
+            message.arguments.mapIndexed { index, value -> if (index == 0) localizedDomainText(value.toString()) else value }
+        } else message.arguments
+        stringResource(message.resource, *arguments.toTypedArray())
+    }
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
@@ -348,7 +354,7 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).clip(CircleShape).background(Color(wallet.colorHex)))
             Spacer(Modifier.padding(4.dp))
-            Text(wallet.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.padding(4.dp))
             Text(
                 maskedAmount("${formatMoney(balance)} ${currencySymbol(wallet.currency)}"),
@@ -481,7 +487,7 @@ private fun CategoryFilterChip(category: String, onClear: () -> Unit) {
     FilterChip(
         selected = true,
         onClick = onClear,
-        label = { Text(stringResource(R.string.finance_category_clear, category)) },
+        label = { Text(stringResource(R.string.finance_category_clear, localizedDomainText(category))) },
         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
     )
 }
@@ -574,12 +580,15 @@ private fun TransactionRow(
                 CategoryIconBadge(tx.category, iconOverride = iconOverride)
                 Spacer(Modifier.padding(6.dp))
                 Column(Modifier.weight(1f)) {
+                    val categoryLabel = localizedDomainText(tx.category)
+                    val walletLabel = walletName(tx.walletId)?.let { localizedDomainText(it) }
+                    val targetWalletLabel = walletName(tx.targetWalletId)?.let { localizedDomainText(it) }
                     val catLine = buildString {
-                        append(tx.category)
+                        append(categoryLabel)
                         tx.subcategory?.let { append(" · $it") }
-                        walletName(tx.walletId)?.let { append(" · $it") }
+                        walletLabel?.let { append(" · $it") }
                         if (tx.type == TxType.TRANSFER) {
-                            walletName(tx.targetWalletId)?.let { append(" → $it") }
+                            targetWalletLabel?.let { append(" → $it") }
                         }
                     }
                     Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)

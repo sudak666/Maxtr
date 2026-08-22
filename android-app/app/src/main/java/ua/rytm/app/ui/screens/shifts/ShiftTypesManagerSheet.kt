@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.ShiftsRepository
 
@@ -116,7 +117,7 @@ private fun ShiftTypeRow(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(28.dp).clip(CircleShape).background(Color(type.colorHex)))
             Column(Modifier.weight(1f)) {
-                Text(type.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(localizedDomainText(type.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {

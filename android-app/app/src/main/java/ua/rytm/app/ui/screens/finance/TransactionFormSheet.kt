@@ -55,6 +55,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -255,7 +256,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = selected?.let { "${it.name} (${it.currency})" } ?: "",
+            value = selected?.let { "${localizedDomainText(it.name)} (${it.currency})" } ?: "",
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -265,7 +266,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             wallets.forEach { wallet ->
                 DropdownMenuItem(
-                    text = { Text("${wallet.name} (${wallet.currency})") },
+                    text = { Text("${localizedDomainText(wallet.name)} (${wallet.currency})") },
                     onClick = { onSelect(wallet.id); expanded = false },
                 )
             }
@@ -279,7 +280,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = selected,
+            value = localizedDomainText(selected),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -288,7 +289,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
-                DropdownMenuItem(text = { Text(option) }, onClick = { onSelect(option); expanded = false })
+                DropdownMenuItem(text = { Text(localizedDomainText(option)) }, onClick = { onSelect(option); expanded = false })
             }
         }
     }

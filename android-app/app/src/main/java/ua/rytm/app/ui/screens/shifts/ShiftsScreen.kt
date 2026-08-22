@@ -82,6 +82,7 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
@@ -142,7 +143,7 @@ fun ShiftsScreen() {
                 viewModel.shiftTypes.forEach { type ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = type.id in viewModel.dayModalSelection, onCheckedChange = { viewModel.toggleDayModalType(type.id) })
-                        Text(type.name, modifier = Modifier.weight(1f))
+                        Text(localizedDomainText(type.name), modifier = Modifier.weight(1f))
                     }
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
@@ -409,7 +410,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
 @Composable
 private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, selected: String?, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    val selectedLabel = localizedDomainText(options.firstOrNull { it.first == selected }?.second.orEmpty())
     Column {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -422,7 +423,7 @@ private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, 
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 options.forEach { (id, name) ->
-                    DropdownMenuItem(text = { Text(name) }, onClick = { onSelect(id); expanded = false })
+                    DropdownMenuItem(text = { Text(localizedDomainText(name)) }, onClick = { onSelect(id); expanded = false })
                 }
             }
         }
@@ -475,7 +476,7 @@ private fun LegendRow(types: List<ShiftType>) {
                         .background(Color(type.colorHex).copy(alpha = 0.25f))
                         .border(1.dp, Color(type.colorHex).copy(alpha = 0.6f), RoundedCornerShape(4.dp)),
                 )
-                Text(type.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 6.dp))
+                Text(localizedDomainText(type.name), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 6.dp))
             }
         }
     }

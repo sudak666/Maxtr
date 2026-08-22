@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -142,7 +143,7 @@ private fun RecurringRow(
     val expenseLabel = stringResource(R.string.tx_expense)
     val frequencyOptions = listOf("daily" to stringResource(R.string.frequency_daily), "weekly" to stringResource(R.string.frequency_weekly), "monthly" to stringResource(R.string.frequency_monthly))
     val freqLabel = frequencyOptions.firstOrNull { it.first == r.frequency }?.second ?: stringResource(R.string.frequency_monthly)
-    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, r.category, r.amount.toInt(), freqLabel, r.nextDate)
+    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category), r.amount.toInt(), freqLabel, r.nextDate)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -232,7 +233,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
-                DropdownMenuItem(text = { Text(option) }, onClick = { onSelect(option); expanded = false })
+                DropdownMenuItem(text = { Text(localizedDomainText(option)) }, onClick = { onSelect(option); expanded = false })
             }
         }
     }
@@ -255,7 +256,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             wallets.forEach { wallet ->
                 DropdownMenuItem(
-                    text = { Text("${wallet.name} (${wallet.currency})") },
+                    text = { Text("${localizedDomainText(wallet.name)} (${wallet.currency})") },
                     onClick = { onSelect(wallet.id); expanded = false },
                 )
             }

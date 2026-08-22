@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.AutoRulesSyncRepository
 import ua.rytm.app.data.FinanceRepository
@@ -67,7 +68,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(if (rule.keyword.isEmpty()) stringResource(R.string.auto_rules_example) else stringResource(R.string.auto_rules_summary, rule.keyword, rule.category), fontWeight = FontWeight.SemiBold)
+                            Text(if (rule.keyword.isEmpty()) stringResource(R.string.auto_rules_example) else stringResource(R.string.auto_rules_summary, rule.keyword, localizedDomainText(rule.category)), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
                         IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(Icons.Filled.Edit, stringResource(R.string.action_edit)) }
@@ -102,9 +103,8 @@ private fun RuleEditor(rule: AutoRuleEntity, categories: Map<TxType, List<String
 private fun RuleDropdown(@StringRes labelRes: Int, options: List<String>, selected: String, typeValues: Boolean, onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(open, { open = it }) {
-        fun display(value: String) = if (typeValues) value else value
-        val selectedText = if (typeValues) stringResource(if (selected == "income") R.string.tx_income else R.string.tx_expense) else selected
+        val selectedText = if (typeValues) stringResource(if (selected == "income") R.string.tx_income else R.string.tx_expense) else localizedDomainText(selected)
         OutlinedTextField(selectedText, {}, readOnly = true, label = { Text(stringResource(labelRes)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) }, modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable))
-        ExposedDropdownMenu(open, { open = false }) { options.forEach { value -> DropdownMenuItem(text = { Text(if (typeValues) stringResource(if (value == "income") R.string.tx_income else R.string.tx_expense) else display(value)) }, onClick = { onSelect(value); open = false }) } }
+        ExposedDropdownMenu(open, { open = false }) { options.forEach { value -> DropdownMenuItem(text = { Text(if (typeValues) stringResource(if (value == "income") R.string.tx_income else R.string.tx_expense) else localizedDomainText(value)) }, onClick = { onSelect(value); open = false }) } }
     }
 }

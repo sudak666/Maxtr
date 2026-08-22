@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
+import ua.rytm.app.ui.localizedDomainText
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
 // (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
@@ -145,7 +146,7 @@ fun ProfilesManagerSheet(
         AlertDialog(
             onDismissRequest = viewModel::cancelLeave,
             title = { Text(stringResource(R.string.profile_leave_title)) },
-            text = { Text(stringResource(R.string.profile_leave_body, profile.name)) },
+            text = { Text(stringResource(R.string.profile_leave_body, localizedDomainText(profile.name))) },
             confirmButton = { TextButton(onClick = viewModel::confirmLeave) { Text(stringResource(R.string.profile_leave), color = MaterialTheme.colorScheme.error) } },
             dismissButton = { TextButton(onClick = viewModel::cancelLeave) { Text(stringResource(R.string.action_cancel)) } },
         )
@@ -196,7 +197,7 @@ fun ProfilesManagerSheet(
     viewModel.managingMembersFor?.let { profile ->
         AlertDialog(
             onDismissRequest = viewModel::closeMembersManager,
-            title = { Text(stringResource(R.string.profile_members_title, profile.name)) },
+            title = { Text(stringResource(R.string.profile_members_title, localizedDomainText(profile.name))) },
             text = {
                 when {
                     viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -257,7 +258,7 @@ private fun ProfileRow(
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(profile.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(localizedDomainText(profile.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 if (profile.isShared) Text(stringResource(R.string.profile_shared), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)

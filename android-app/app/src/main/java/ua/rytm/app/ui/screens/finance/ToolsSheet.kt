@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import java.time.format.TextStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
@@ -152,7 +153,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
 private fun CategoryBar(category: String, amount: Double, total: Double) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(category, style = MaterialTheme.typography.bodySmall)
+        Text(localizedDomainText(category), style = MaterialTheme.typography.bodySmall)
         Text(maskedAmount(formatMoney(amount)) + " · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

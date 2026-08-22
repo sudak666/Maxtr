@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
 import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.MonobankConnection
 import ua.rytm.app.data.MonobankHttpException
@@ -132,7 +133,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                             Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(account.label)
                                 val walletName = mono.mapping[account.id]?.let { id -> wallets.firstOrNull { it.id == id }?.name }
-                                Text(walletName ?: stringResource(R.string.monobank_unmapped, account.currency))
+                                Text(walletName?.let { localizedDomainText(it) } ?: stringResource(R.string.monobank_unmapped, account.currency))
                             }
                         }
                     }
