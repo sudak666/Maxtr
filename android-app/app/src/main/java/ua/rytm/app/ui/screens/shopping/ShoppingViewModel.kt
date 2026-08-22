@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.ShoppingRepository
 
@@ -37,13 +39,14 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         private set
     var saving by mutableStateOf(false)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
     var nameInvalid by mutableStateOf(false)
         private set
     var quantityInvalid by mutableStateOf(false)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     init {
         repository.items.onEach { items = it }.launchIn(viewModelScope)
@@ -58,9 +61,7 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         nameInvalid = validation.nameInvalid
         quantityInvalid = validation.quantityInvalid
         if (!validation.valid) return
-        if (name.isEmpty()) { errorMessage = "Введи назву покупки"; return }
-        val qty = if (qtyInput.isBlank()) 1 else qtyInput.toIntOrNull()?.takeIf { it >= 1 }
-        if (qty == null) { errorMessage = "Кількість має бути цілим числом від 1"; return }
+        val qty = if (qtyInput.isBlank()) 1 else requireNotNull(qtyInput.toIntOrNull()?.takeIf { it >= 1 })
         mutate { repository.addItem(name, qty) }
         nameInput = ""
         qtyInput = ""
@@ -95,7 +96,7 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
             val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
             val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
             if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
-                errorMessage = "Профіль доступний лише для перегляду"
+                errorMessageRes = R.string.profile_read_only
                 return@launch
             }
             val ownerUid = activeOwnerUid ?: accountUid
@@ -106,7 +107,7 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
                 app.shoppingSyncRepository.saveSnapshot(ownerUid, profileId)
             } catch (e: Exception) {
                 repository.restore(before)
-                errorMessage = e.localizedMessage ?: "Не вдалося зберегти зміни"
+                errorMessageRes = R.string.shopping_save_changes_failed
             } finally {
                 saving = false
             }

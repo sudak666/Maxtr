@@ -57,6 +57,7 @@ import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
@@ -81,9 +82,9 @@ fun ShoppingScreen(
         if (canEdit) item { AddItemForm(viewModel) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Список покупок", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.shopping_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (canEdit && viewModel.boughtCount > 0) {
-                    TextButton(onClick = viewModel::requestClearBought) { Text("Очистити куплені", color = MaterialTheme.colorScheme.error) }
+                    TextButton(onClick = viewModel::requestClearBought) { Text(stringResource(R.string.shopping_clear_bought), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }
@@ -101,18 +102,18 @@ fun ShoppingScreen(
     if (viewModel.clearConfirmVisible) {
         AlertDialog(
             onDismissRequest = viewModel::cancelClearBought,
-            title = { Text("Очистити куплені") },
-            text = { Text("Видалити всі куплені товари зі списку?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.shopping_clear_bought)) },
+            text = { Text(stringResource(R.string.shopping_clear_confirmation)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
-    viewModel.errorMessage?.let { message ->
+    viewModel.errorMessageRes?.let { messageRes ->
         AlertDialog(
             onDismissRequest = viewModel::consumeError,
-            title = { Text("Не вдалося зберегти") },
-            text = { Text(message) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text("Гаразд") } },
+            title = { Text(stringResource(R.string.shopping_save_failed)) },
+            text = { Text(stringResource(messageRes)) },
+            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
@@ -120,8 +121,8 @@ fun ShoppingScreen(
 @Composable
 private fun ChipStatsRow(remaining: Int, bought: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.Checklist, remaining.toString(), "Залишилось", Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, bought.toString(), "Куплено", Modifier.weight(1f))
+        StatChip(Icons.Filled.Checklist, remaining.toString(), R.string.shopping_remaining, Modifier.weight(1f))
+        StatChip(Icons.Filled.CheckCircle, bought.toString(), R.string.shopping_bought, Modifier.weight(1f))
     }
 }
 
@@ -129,7 +130,7 @@ private fun ChipStatsRow(remaining: Int, bought: Int) {
 // purple-gradient icon badge, not a plain Card — same treatment Finance/
 // Shifts/Debt's chip stats got (steps 38-39 and the Debt visual-parity pass).
 @Composable
-private fun StatChip(icon: ImageVector, value: String, label: String, modifier: Modifier = Modifier) {
+private fun StatChip(icon: ImageVector, value: String, @StringRes labelRes: Int, modifier: Modifier = Modifier) {
     Card(modifier, shape = RoundedCornerShape(999.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -143,7 +144,7 @@ private fun StatChip(icon: ImageVector, value: String, label: String, modifier: 
             }
             Column(Modifier.padding(start = 9.dp)) {
                 Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(labelRes), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -155,8 +156,8 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
         OutlinedTextField(
             value = viewModel.nameInput,
             onValueChange = viewModel::onNameChange,
-            label = { Text("Назва товару") },
-            placeholder = { Text("напр. Молоко") },
+            label = { Text(stringResource(R.string.shopping_item_name)) },
+            placeholder = { Text(stringResource(R.string.shopping_item_example)) },
             modifier = Modifier.weight(1f),
             singleLine = true,
             isError = viewModel.nameInvalid,
@@ -166,7 +167,7 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
         OutlinedTextField(
             value = viewModel.qtyInput,
             onValueChange = viewModel::onQtyChange,
-            label = { Text("К-сть") },
+            label = { Text(stringResource(R.string.shopping_quantity)) },
             placeholder = { Text("1") },
             modifier = Modifier.width(108.dp),
             singleLine = true,
@@ -222,7 +223,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                     modifier = Modifier.padding(end = 4.dp),
                 )
             }
-            if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
     }
@@ -235,9 +236,9 @@ private fun ShoppingEmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(Icons.Filled.ShoppingCart, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("Список порожній", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+        Text(stringResource(R.string.shopping_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Text(
-            "Додай товари перед походом у магазин і відмічай куплене одним тапом.",
+            stringResource(R.string.shopping_empty_body),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, start = 24.dp, end = 24.dp),
