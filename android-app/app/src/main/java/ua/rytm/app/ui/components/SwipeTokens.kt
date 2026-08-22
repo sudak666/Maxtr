@@ -1,6 +1,6 @@
 package ua.rytm.app.ui.components
 
-import androidx.compose.ui.unit.dp
+import ua.rytm.app.ui.theme.RytmDimens
 
-val SwipeRevealWidth = 60.dp
-val SwipeOpenThreshold = 30.dp
+val SwipeRevealWidth = RytmDimens.SwipeReveal
+val SwipeOpenThreshold = RytmDimens.SwipeThreshold

@@ -39,6 +39,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +61,7 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
+import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -73,6 +76,7 @@ import ua.rytm.app.ui.screens.SettingsScreen
 import ua.rytm.app.ui.screens.finance.FinanceScreen
 import ua.rytm.app.ui.screens.shifts.ShiftsScreen
 import ua.rytm.app.ui.screens.shopping.ShoppingScreen
+import ua.rytm.app.ui.theme.RytmDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,9 +158,9 @@ fun RytmNavHost() {
 private fun RytmBottomBar(navController: androidx.navigation.NavHostController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
-    val shape = RoundedCornerShape(26.dp)
+    val shape = RoundedCornerShape(RytmDimens.BottomNavRadius)
 
-    Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp)) {
+    Box(Modifier.fillMaxWidth().padding(horizontal = RytmDimens.BottomNavHorizontal, vertical = RytmDimens.BottomNavBottom)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -201,6 +205,13 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
     val popOffsetDp = remember { Animatable(0f) }
     val rippleProgress = remember { Animatable(0f) }
     var popTrigger by remember { mutableIntStateOf(0) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val pressedScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (pressed && !reducedMotion) 0.88f else 1f,
+        animationSpec = motionAwareSpec(tween(durationMillis = 180)),
+        label = "tabPressedScale",
+    )
 
     LaunchedEffect(popTrigger) {
         if (popTrigger == 0) return@LaunchedEffect
@@ -254,7 +265,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
 
     Column(
         modifier = modifier
-            .selectable(selected = selected, role = Role.Tab, onClick = {
+            .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = {
                 popTrigger++
                 onClick()
             })
@@ -263,7 +274,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
     ) {
         Box(
             Modifier
-                .size(48.dp)
+                .size(RytmDimens.TabIcon)
                 .drawBehind {
                     if (rippleProgress.value in 0f..1f && rippleProgress.value > 0f) {
                         val extraRadiusPx = rippleProgress.value * 15.dp.toPx()
@@ -272,8 +283,8 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
                     }
                 }
                 .graphicsLayer {
-                    scaleX = popScale.value
-                    scaleY = popScale.value
+                    scaleX = popScale.value * pressedScale
+                    scaleY = popScale.value * pressedScale
                     translationY = popOffsetDp.value * density
                 }
                 .clip(CircleShape)
@@ -284,7 +295,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
                 destination.icon,
                 contentDescription = stringResource(destination.labelRes),
                 tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(23.dp),
+                modifier = Modifier.size(RytmDimens.TabGlyph),
             )
         }
         Text(

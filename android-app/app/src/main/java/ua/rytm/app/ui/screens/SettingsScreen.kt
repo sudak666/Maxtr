@@ -113,6 +113,8 @@ import ua.rytm.app.ui.screens.finance.WidgetsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
+import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmRadii
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -266,7 +268,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
         // permanently unreachable — not a styling gap, a genuine dead end.
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(16.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(RytmDimens.ContentHorizontal),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
@@ -942,7 +944,7 @@ private fun SettingsSectionLabel(text: String) {
 private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
     val scope = SettingsRowScope()
     scope.content()
-    Card(shape = RoundedCornerShape(20.dp)) {
+    Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             scope.rows.forEachIndexed { index, row ->
                 if (index > 0) {
@@ -964,12 +966,12 @@ private class SettingsRowScope {
 private fun SettingsIconBadge(icon: ImageVector, color: Color) {
     Box(
         Modifier
-            .size(34.dp)
+            .size(RytmDimens.IconBadge)
             .clip(CircleShape)
             .background(color.copy(alpha = 0.16f)),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(17.dp))
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
     }
 }
 

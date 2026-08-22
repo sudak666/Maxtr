@@ -6,13 +6,13 @@ import androidx.compose.ui.unit.dp
 
 // --radius-row (16px, compact list rows) and --radius-card (22px, hero
 // surfaces/modals/tx rows) from index.html — ANDROID_MIGRATION.md §4.
-val RowRadius = 16.dp
-val CardRadius = 22.dp
+val RowRadius = RytmRadii.Row
+val CardRadius = RytmRadii.Card
 
 val Shapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
+    extraSmall = RoundedCornerShape(RytmRadii.Compact),
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(RowRadius),
     large = RoundedCornerShape(CardRadius),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(RytmRadii.Sheet),
 )

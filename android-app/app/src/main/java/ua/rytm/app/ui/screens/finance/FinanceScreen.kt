@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -79,6 +80,8 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -244,7 +247,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             .clip(shape)
             .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(horizontal = RytmDimens.HeroHorizontal, vertical = RytmDimens.HeroVertical)) {
             Text(
                 text = stringResource(if (vm.isMultiCurrency) R.string.finance_estimated_balance else R.string.finance_total_balance),
                 style = MaterialTheme.typography.labelMedium,
@@ -318,7 +321,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
     // green/red gradient wash + matching border, not a neutral surface —
     // see ANDROID_MIGRATION.md visual-parity note.
     val tint = if (positive) GreenDarkLike else RedLike
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(RytmRadii.Input)
     Box(
         modifier = modifier
             .clip(shape)
@@ -340,7 +343,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
 
 @Composable
 private fun WalletChip(wallet: Wallet, balance: Double) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+    Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).clip(CircleShape).background(Color(wallet.colorHex)))
@@ -374,7 +377,8 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
             // whole-card color fill — see ANDROID_MIGRATION.md visual-parity note.
             Card(
                 onClick = action.onClick,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).heightIn(min = RytmDimens.QuickActionMinHeight),
+                shape = RoundedCornerShape(RytmRadii.Row),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
@@ -384,7 +388,7 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(RytmDimens.QuickActionIcon)
                             .clip(CircleShape)
                             .background(
                                 if (action.primary) {
