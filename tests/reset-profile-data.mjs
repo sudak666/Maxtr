@@ -116,9 +116,9 @@ async function newPage(browser, uid, seed, initScript) {
   await page.route('**/firebasejs/**firebase-firestore.js', (r) => r.fulfill({ contentType: 'application/javascript', body: stubFirestore(seed) }));
   await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: stubAuth(uid) }));
   await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
-  await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1200);
-  await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
+  await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof window.finishOnboarding === 'function');
+  await page.evaluate(() => window.finishOnboarding());
   await page.waitForTimeout(300);
   return { context, page, pageErrors };
 }
