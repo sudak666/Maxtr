@@ -38,12 +38,15 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.WidgetSettingsSyncRepository
 import ua.rytm.app.data.local.SettingsStore
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 
-private data class WidgetDef(val key: String, val title: String, val subtitle: String, val icon: ImageVector, val color: Color)
+private data class WidgetDef(val key: String, @StringRes val title: Int, @StringRes val subtitle: Int, val icon: ImageVector, val color: Color)
 private val widgetDefs = listOf(
-    WidgetDef("goals", "Цілі", "Прогрес накопичення на гаманцях", Icons.Filled.Flag, Color(0xFF10B981)),
-    WidgetDef("dailyTip", "Порада дня", "Коротка фінансова порада, що змінюється щодня", Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)),
-    WidgetDef("cryptoTop", "Топ криптовалюти", "Курс і графік за 7 днів (BTC, ETH)", Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)),
+    WidgetDef("goals", R.string.widget_goals, R.string.widget_goals_subtitle, Icons.Filled.Flag, Color(0xFF10B981)),
+    WidgetDef("dailyTip", R.string.widget_tip, R.string.widget_tip_subtitle, Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)),
+    WidgetDef("cryptoTop", R.string.widget_crypto, R.string.widget_crypto_subtitle, Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,34 +54,37 @@ private val widgetDefs = listOf(
 fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSettingsSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
     val config by settingsStore.financeWidgets.collectAsState(initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()))
     val scope = rememberCoroutineScope()
-    var syncError by remember { mutableStateOf<String?>(null) }
+    var syncError by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
     fun update(block: suspend () -> Unit) = scope.launch {
-        block()
-        runCatching { syncRepository.save(uid, profileId) }
-            .onSuccess { syncError = null }
-            .onFailure { syncError = "Не вдалося синхронізувати налаштування віджетів" }
+        if (busy) return@launch
+        busy = true
+        runCatching { block(); syncRepository.save(uid, profileId) }
+            .onSuccess { syncError = false }
+            .onFailure { syncError = true }
+        busy = false
     }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Віджети", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, modifier = Modifier.align(Alignment.CenterHorizontally))
-            Text("Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp).align(Alignment.CenterHorizontally))
+            Text(stringResource(R.string.widgets_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(stringResource(R.string.widgets_body), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp).align(Alignment.CenterHorizontally))
             config.order.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEachIndexed { index, item ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.foundation.layout.Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
                         Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
                     }
                     Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                        Text(item.title, fontWeight = FontWeight.SemiBold)
-                        Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Column {
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = index > 0, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowUpward, "Вище", modifier = Modifier.size(18.dp)) }
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = index < config.order.lastIndex, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowDownward, "Нижче", modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
                     }
-                    Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } })
+                    Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                 }
             }
-            syncError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (syncError) Text(stringResource(R.string.widgets_sync_failed), color = MaterialTheme.colorScheme.error)
         }
     }
 }

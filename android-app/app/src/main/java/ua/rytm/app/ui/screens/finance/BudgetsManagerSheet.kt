@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
@@ -48,17 +50,17 @@ fun BudgetsManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Бюджети", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.budgets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
                 }
             }
 
             if (viewModel.rows.isEmpty()) {
-                Text("Немає категорій витрат", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.budgets_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.rows.forEach { (category, limit) ->
@@ -77,7 +79,7 @@ fun BudgetsManagerSheet(
 
 @Composable
 private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
-    val summary = if (limit > 0) "${limit.toInt()} грн/міс" else "Без ліміту"
+    val summary = if (limit > 0) stringResource(R.string.budgets_summary, limit.toInt()) else stringResource(R.string.budgets_unlimited)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -88,7 +90,7 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
+                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
         }
 
@@ -99,7 +101,7 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 onValueChange = { limitText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Ліміт на місяць (грн)") },
+                label = { Text(stringResource(R.string.budgets_monthly_limit)) },
             )
             LaunchedEffect(limitText) {
                 delay(400)

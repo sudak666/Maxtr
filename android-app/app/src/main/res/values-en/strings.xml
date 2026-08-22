@@ -98,6 +98,10 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$d/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
+    <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
+    <string name="action_move_up">Move up</string><string name="action_move_down">Move down</string><string name="widgets_sync_failed">Could not sync widget settings</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

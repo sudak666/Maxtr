@@ -100,6 +100,10 @@
     <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$d грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
+    <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
+    <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
+    <string name="action_move_up">Вище</string><string name="action_move_down">Нижче</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
