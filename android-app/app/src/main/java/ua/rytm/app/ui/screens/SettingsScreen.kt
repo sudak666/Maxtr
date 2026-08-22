@@ -83,6 +83,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -134,6 +135,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val canEdit = LocalCanEditProfile.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val app = context.applicationContext as RytmApplication
     val scope = rememberCoroutineScope()
     var walletsSheetOpen by remember { mutableStateOf(false) }
@@ -183,7 +185,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
     }
     LaunchedEffect(authViewModel.errorMessageRes) {
-        authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(context.getString(it)); authViewModel.consumeError() }
+        authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(resources.getString(it)); authViewModel.consumeError() }
     }
 
     var pushBusy by remember { mutableStateOf(false) }
@@ -252,9 +254,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     ?: error(csvReadFailedMessage)
                 val preview = csvRepository.parse(text)
                 if (preview.transactions.isEmpty()) pendingMessage = if (preview.errors.isEmpty()) {
-                    context.getString(R.string.settings_csv_empty)
+                    resources.getString(R.string.settings_csv_empty)
                 } else {
-                    context.resources.getQuantityString(R.plurals.settings_csv_no_valid_rows, preview.errors.size, preview.errors.size)
+                    resources.getQuantityString(R.plurals.settings_csv_no_valid_rows, preview.errors.size, preview.errors.size)
                 }
                 else csvImportPreview = preview
             } catch (_: Exception) { pendingMessage = csvImportFailedMessage }
@@ -369,7 +371,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             subtitle = stringResource(R.string.settings_reset_profile_subtitle),
                             onClick = {
                                 if (activeProfileOwnerUid != null) {
-                                    pendingMessage = context.getString(R.string.settings_reset_shared_error)
+                                    pendingMessage = resources.getString(R.string.settings_reset_shared_error)
                                 } else {
                                     pendingResetProfile = true
                                 }
@@ -716,7 +718,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onDismiss = { profilesSheetOpen = false },
             onSwitched = {
                 profilesSheetOpen = false
-                pendingMessage = context.getString(R.string.settings_profile_switched)
+                pendingMessage = resources.getString(R.string.settings_profile_switched)
             },
         )
     }
@@ -867,9 +869,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             try {
                                 app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
                                 pendingResetProfile = false
-                                pendingMessage = context.getString(R.string.settings_reset_success)
+                                pendingMessage = resources.getString(R.string.settings_reset_success)
                             } catch (_: Exception) {
-                                pendingMessage = context.getString(R.string.settings_reset_failed)
+                                pendingMessage = resources.getString(R.string.settings_reset_failed)
                             } finally {
                                 resetProfileBusy = false
                             }

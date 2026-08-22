@@ -9,6 +9,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -102,6 +103,8 @@ class AuthViewModel : ViewModel() {
                 } else {
                     publishFormMessage(R.string.auth_error_generic)
                 }
+            } catch (e: NoCredentialException) {
+                publishFormMessage(R.string.auth_error_google_unavailable)
             } catch (e: GetCredentialException) {
                 publishFormMessage(R.string.auth_error_google_unavailable)
             } catch (e: GoogleIdTokenParsingException) {

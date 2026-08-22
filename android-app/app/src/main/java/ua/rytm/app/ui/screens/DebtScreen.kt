@@ -447,7 +447,7 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, con
 @Composable
 private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currency: String) {
     val editing = viewModel.entryEditId == entry.id
-        Card(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+    Card(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
                 if (editing) {
                     var amount by remember(entry.id) { mutableStateOf(entry.amount) }
@@ -469,7 +469,7 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                     }
                 }
             }
-        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
