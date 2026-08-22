@@ -238,6 +238,16 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             val financeVisible = sectionVisible("finance", "Фінанси", "Гаманці", "Картки, готівка та інші рахунки", "Категорії", "Власні категорії доходів і витрат", "Бюджети", "Місячні ліміти для категорій витрат", "Теги", "Мітки для операцій", "Регулярні платежі", "Автоматичне створення операцій за розкладом", "Типи змін", "Оплата, години та кольори для графіка змін")
 
             if (accountVisible) {
+                if (uid != null) {
+                    ProfileAppearanceCard(
+                        uid = uid,
+                        dataOwnerUid = activeProfileOwnerUid ?: uid,
+                        profileId = activeProfileId,
+                        email = authViewModel.currentUser?.email.orEmpty(),
+                        repository = app.profileAppearanceRepository,
+                        onMessage = { pendingMessage = it },
+                    )
+                }
                 SettingsSectionLabel("Акаунт")
                 SettingsGroupCard {
                     SettingsRow(

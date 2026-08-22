@@ -21,6 +21,7 @@ import ua.rytm.app.data.ShoppingSyncRepository
 import ua.rytm.app.data.TagsSyncRepository
 import ua.rytm.app.data.PushRepository
 import ua.rytm.app.data.ProfileSyncCoordinator
+import ua.rytm.app.data.ProfileAppearanceRepository
 import ua.rytm.app.data.ProfilesRepository
 import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.local.PinStore
@@ -87,5 +88,6 @@ class RytmApplication : Application() {
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }
+    val profileAppearanceRepository: ProfileAppearanceRepository by lazy { ProfileAppearanceRepository(FirebaseFirestore.getInstance()) }
     val profileSyncCoordinator: ProfileSyncCoordinator by lazy { ProfileSyncCoordinator(this) }
 }
