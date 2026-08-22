@@ -40,18 +40,13 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     val realtimeState = _realtimeState.asStateFlow()
     private var listeners = emptyList<ListenerRegistration>()
     private var pendingRealtimeSync: Job? = null
+    private val pendingDomains = mutableSetOf<SyncDomain>()
     private var listenerGeneration = 0L
 
-    // Every domain's cold sync against the given profile, plus recurring
-    // materialization — same order MainActivity always ran these in.
-    // Deliberately does NOT seed sample data — see switchProfile()'s own
-    // comment for why a fresh non-default profile must never get demo
-    // content pushed to it.
-    private suspend fun syncAllDomains(uid: String, profileId: String) {
+    private enum class SyncDomain { FINANCE, SHIFTS, DEBT, TRANSACTIONS }
+
+    private suspend fun syncFinanceDocumentDomains(uid: String, profileId: String) {
         app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid, profileId)
         app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
@@ -62,8 +57,24 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.goalsSyncRepository.syncGoalsOnSignIn(uid, profileId)
         app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
         app.widgetSettingsSyncRepository.syncOnSignIn(uid, profileId)
-        app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
         app.shoppingSyncRepository.syncShoppingListOnSignIn(uid, profileId)
+    }
+
+    private suspend fun syncShiftsDocumentDomains(uid: String, profileId: String) {
+        app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid, profileId)
+        app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
+        app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
+    }
+
+    // Every domain's cold sync against the given profile, plus recurring
+    // materialization — same order MainActivity always ran these in.
+    // Deliberately does NOT seed sample data — see switchProfile()'s own
+    // comment for why a fresh non-default profile must never get demo
+    // content pushed to it.
+    private suspend fun syncAllDomains(uid: String, profileId: String) {
+        syncFinanceDocumentDomains(uid, profileId)
+        syncShiftsDocumentDomains(uid, profileId)
+        app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
         app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
         app.financeRepository.processRecurring()
         // Same "run the day-by-day catch-up once per cold sync" treatment as
@@ -156,7 +167,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         var initialSnapshotsRemaining = watched.size + 1
         var initialSnapshotWasOffline = false
 
-        fun remoteChanged(error: Exception?, fromCache: Boolean) {
+        fun remoteChanged(error: Exception?, fromCache: Boolean, domain: SyncDomain) {
             if (generation != listenerGeneration) return
             if (error != null) {
                 _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
@@ -174,27 +185,38 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                 _realtimeState.value = RealtimeState.Offline
                 return
             }
+            synchronized(pendingDomains) { pendingDomains += domain }
             pendingRealtimeSync?.cancel()
             pendingRealtimeSync = scope.launch {
                 delay(250)
                 realtimeSyncMutex.withLock {
                     if (generation != listenerGeneration) return@withLock
                     _realtimeState.value = RealtimeState.Syncing
-                    runCatching { syncAllDomains(ownerUid, profileId) }
+                    val domains = synchronized(pendingDomains) { pendingDomains.toSet().also { pendingDomains.clear() } }
+                    runCatching {
+                        domains.forEach {
+                            when (it) {
+                                SyncDomain.FINANCE -> syncFinanceDocumentDomains(ownerUid, profileId)
+                                SyncDomain.SHIFTS -> syncShiftsDocumentDomains(ownerUid, profileId)
+                                SyncDomain.DEBT -> app.debtSyncRepository.syncDebtsOnSignIn(ownerUid, profileId)
+                                SyncDomain.TRANSACTIONS -> app.transactionsSyncRepository.syncTransactionsOnSignIn(ownerUid, profileId)
+                            }
+                        }
+                    }
                         .onSuccess { _realtimeState.value = RealtimeState.Listening }
                         .onFailure { _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed") }
                 }
             }
         }
 
-        listeners = watched.map { ref ->
+        listeners = watched.mapIndexed { index, ref ->
             ref.addSnapshotListener { snapshot, error ->
                 if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-                remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+                remoteChanged(error, snapshot?.metadata?.isFromCache() == true, SyncDomain.entries[index])
             }
         } + finance.collection("transactions").addSnapshotListener { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+            remoteChanged(error, snapshot?.metadata?.isFromCache() == true, SyncDomain.TRANSACTIONS)
         }
     }
 
@@ -202,6 +224,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         listenerGeneration++
         pendingRealtimeSync?.cancel()
         pendingRealtimeSync = null
+        synchronized(pendingDomains) { pendingDomains.clear() }
         listeners.forEach(ListenerRegistration::remove)
         listeners = emptyList()
         _realtimeState.value = RealtimeState.Stopped
