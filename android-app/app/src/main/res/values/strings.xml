@@ -39,6 +39,16 @@
     <string name="auto_rules_delete_body">Видалити це правило?</string>
     <string name="auto_rules_keyword">Слово в коментарі</string>
     <string name="auto_rules_save_failed">Не вдалося зберегти правило. Спробуйте ще раз.</string>
+    <string name="rates_title">Курси валют</string>
+    <string name="rates_body">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</string>
+    <string name="rates_source">Джерело курсу</string>
+    <string name="rates_nbu">НБУ (офіційний)</string>
+    <string name="rates_privat">ПриватБанк (готівка)</string>
+    <string name="rates_privat_note">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</string>
+    <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
+    <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
+    <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string>
+    <string name="rates_per_unit">грн за 1 %1$s</string><string name="rates_save_failed">Не вдалося зберегти курс</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

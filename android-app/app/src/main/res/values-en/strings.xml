@@ -37,6 +37,16 @@
     <string name="auto_rules_delete_body">Delete this rule?</string>
     <string name="auto_rules_keyword">Word in comment</string>
     <string name="auto_rules_save_failed">Could not save the rule. Try again.</string>
+    <string name="rates_title">Exchange rates</string>
+    <string name="rates_body">The UAH value of one currency unit. The base is UAH (always 1).</string>
+    <string name="rates_source">Rate source</string>
+    <string name="rates_nbu">NBU (official)</string>
+    <string name="rates_privat">PrivatBank (cash)</string>
+    <string name="rates_privat_note">PrivatBank provides cash rates only for USD/EUR; other currencies use NBU rates.</string>
+    <string name="rates_updating">Updating…</string><string name="rates_refresh">Update online</string>
+    <string name="rates_updated">Rates updated</string><string name="rates_update_failed">Could not update rates</string>
+    <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string>
+    <string name="rates_per_unit">UAH per 1 %1$s</string><string name="rates_save_failed">Could not save rate</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>
