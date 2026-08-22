@@ -1,6 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -72,6 +71,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ua.rytm.app.ui.ReducedMotionVisibility
+import ua.rytm.app.ui.motionAwareSpec
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
@@ -305,7 +306,11 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 6.dp).weight(1f),
             )
-            val rotation by androidx.compose.animation.core.animateFloatAsState(if (vm.quickFillExpanded) 180f else 0f, label = "chevron")
+            val rotation by androidx.compose.animation.core.animateFloatAsState(
+                if (vm.quickFillExpanded) 180f else 0f,
+                animationSpec = motionAwareSpec(androidx.compose.animation.core.spring()),
+                label = "chevron",
+            )
             Icon(
                 Icons.Filled.ExpandMore,
                 contentDescription = null,
@@ -313,7 +318,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 modifier = Modifier.size(18.dp).rotate(rotation),
             )
         }
-        AnimatedVisibility(visible = vm.quickFillExpanded) {
+        ReducedMotionVisibility(visible = vm.quickFillExpanded) {
             Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 LabeledDropdown(
                     label = "Тип зміни",
@@ -357,7 +362,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     }
                     Switch(checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled)
                 }
-                AnimatedVisibility(visible = vm.autoFillSchedule.enabled) {
+                ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
                     Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         LabeledDropdown(
                             label = "Тип зміни",

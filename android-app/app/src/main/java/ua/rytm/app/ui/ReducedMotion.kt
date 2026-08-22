@@ -13,6 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.FiniteAnimationSpec
 
 val LocalReducedMotion = compositionLocalOf { false }
 
@@ -36,3 +39,16 @@ fun rememberReducedMotion(): Boolean {
     }
     return reduced
 }
+
+@Composable
+fun ReducedMotionVisibility(visible: Boolean, content: @Composable () -> Unit) {
+    if (LocalReducedMotion.current) {
+        if (visible) content()
+    } else {
+        AnimatedVisibility(visible = visible) { content() }
+    }
+}
+
+@Composable
+fun <T> motionAwareSpec(default: FiniteAnimationSpec<T>): FiniteAnimationSpec<T> =
+    if (LocalReducedMotion.current) snap() else default
