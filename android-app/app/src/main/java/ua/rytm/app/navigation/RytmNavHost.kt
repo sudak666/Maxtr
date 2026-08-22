@@ -90,7 +90,10 @@ import ua.rytm.app.ui.theme.RytmInteraction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RytmNavHost() {
+fun RytmNavHost(
+    launchRequest: LaunchRequest? = null,
+    onLaunchRequestConsumed: (LaunchRequest) -> Unit = {},
+) {
     val navController = rememberNavController()
     val app = LocalContext.current.applicationContext as RytmApplication
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
@@ -105,6 +108,12 @@ fun RytmNavHost() {
     val reducedMotion = LocalReducedMotion.current
     val contentOffsetPx = with(LocalDensity.current) { 4.dp.roundToPx() }
     var refreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(launchRequest?.nonce) {
+        launchRequest?.let { request ->
+            navController.navigate(request.route) { launchSingleTop = true }
+            if (!request.openTransaction) onLaunchRequestConsumed(request)
+        }
+    }
     fun refresh() {
         val uid = accountUid ?: return
         if (refreshing) return
@@ -159,7 +168,13 @@ fun RytmNavHost() {
             },
             popExitTransition = { ExitTransition.None },
         ) {
-            composable(RytmDestination.Finance.route) { FinanceScreen() }
+            composable(RytmDestination.Finance.route) {
+                FinanceScreen(
+                    sharedText = launchRequest?.takeIf { it.openTransaction }?.sharedText,
+                    openNewTransaction = launchRequest?.openTransaction == true,
+                    onLaunchRequestConsumed = { launchRequest?.let(onLaunchRequestConsumed) },
+                )
+            }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
             composable(RytmDestination.Shopping.route) { ShoppingScreen() }

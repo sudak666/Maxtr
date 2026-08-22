@@ -13,6 +13,10 @@
     <string name="nav_debt">Борги</string>
     <string name="nav_shopping">Покупки</string>
     <string name="nav_settings">Налашт.</string>
+    <string name="shortcut_new_transaction">Нова операція</string>
+    <string name="widget_quick_title">Швидкі дії Rytm</string>
+    <string name="widget_new_short">Операція</string>
+    <string name="widget_quick_description">Швидке додавання операції, зміни або покупки</string>
 
     <string name="notification_channel_name">Нагадування Rytm</string>
     <string name="action_skip">Пропустити</string>

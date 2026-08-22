@@ -160,7 +160,9 @@ class FinanceViewModel(
         private set
     fun consumeMessage() { pendingMessage = null }
 
-    fun openNewTransactionSheet() {
+    fun openNewTransactionSheet() = openNewTransactionSheet(null)
+
+    fun openNewTransactionSheet(sharedText: String?) {
         editingTxId = null
         formType = TxType.EXPENSE
         formWalletId = wallets.firstOrNull()?.id.orEmpty()
@@ -169,7 +171,7 @@ class FinanceViewModel(
         formCategory = categoriesByType[TxType.EXPENSE]?.firstOrNull()
         formSubcategory = null
         formDate = LocalDate.now().toString()
-        formComment = ""
+        formComment = sharedText.orEmpty().take(500)
         formSelectedTagIds = emptyList()
         formErrorRes = null
         sheetVisible = true

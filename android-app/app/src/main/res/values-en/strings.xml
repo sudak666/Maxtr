@@ -12,6 +12,10 @@
     <string name="nav_debt">Debts</string>
     <string name="nav_shopping">Shopping</string>
     <string name="nav_settings">Settings</string>
+    <string name="shortcut_new_transaction">New transaction</string>
+    <string name="widget_quick_title">Rytm quick actions</string>
+    <string name="widget_new_short">Transaction</string>
+    <string name="widget_quick_description">Quickly add a transaction, shift, or shopping item</string>
     <string name="notification_channel_name">Rytm reminders</string>
     <string name="action_skip">Skip</string>
     <string name="action_done">Done</string>

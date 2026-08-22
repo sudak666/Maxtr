@@ -107,11 +107,20 @@ private val FinanceFabShape = RoundedCornerShape(16.dp)
 
 @Composable
 fun FinanceScreen(
+    sharedText: String? = null,
+    openNewTransaction: Boolean = false,
+    onLaunchRequestConsumed: () -> Unit = {},
     viewModel: FinanceViewModel = viewModel(
         factory = FinanceViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
+    LaunchedEffect(openNewTransaction, sharedText, canEdit) {
+        if (openNewTransaction) {
+            if (canEdit) viewModel.openNewTransactionSheet(sharedText)
+            onLaunchRequestConsumed()
+        }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val pendingMessage = viewModel.pendingMessage?.let { message ->
         val arguments = if (message.resource == R.string.transaction_auto_category || message.resource == R.string.transaction_budget_exceeded) {

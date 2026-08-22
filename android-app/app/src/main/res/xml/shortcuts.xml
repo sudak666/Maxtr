@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="new_transaction" android:enabled="true" android:icon="@drawable/ic_shortcut_add" android:shortcutShortLabel="@string/shortcut_new_transaction">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="ua.rytm.app" android:targetClass="ua.rytm.app.MainActivity" android:data="rytm://finance/new" />
+    </shortcut>
+    <shortcut android:shortcutId="shifts" android:enabled="true" android:icon="@drawable/ic_shortcut_calendar" android:shortcutShortLabel="@string/nav_shifts">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="ua.rytm.app" android:targetClass="ua.rytm.app.MainActivity" android:data="rytm://shifts" />
+    </shortcut>
+    <shortcut android:shortcutId="shopping" android:enabled="true" android:icon="@drawable/ic_shortcut_shopping" android:shortcutShortLabel="@string/nav_shopping">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="ua.rytm.app" android:targetClass="ua.rytm.app.MainActivity" android:data="rytm://shopping" />
+    </shortcut>
+</shortcuts>

@@ -2,6 +2,7 @@ package ua.rytm.app
 
 import android.os.Bundle
 import android.os.Build
+import android.content.Intent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,14 +30,20 @@ import ua.rytm.app.ui.LocalHideAmounts
 import ua.rytm.app.ui.applyAppLanguage
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.rememberReducedMotion
+import androidx.compose.runtime.mutableStateOf
+import ua.rytm.app.navigation.LaunchRequest
+import ua.rytm.app.navigation.parseLaunchRequest
 
 // FragmentActivity (not plain ComponentActivity) — androidx.biometric's
 // BiometricPrompt requires a FragmentActivity host for the PIN screen's
 // fingerprint/face fallback (see ui/screens/pin/BiometricUtil.kt). Compose's
 // setContent extension works identically on either base class.
 class MainActivity : FragmentActivity() {
+    private val launchRequest = mutableStateOf<LaunchRequest?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        launchRequest.value = parseLaunchRequest(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setRecentsScreenshotEnabled(false)
         enableEdgeToEdge()
         val app = application as RytmApplication
@@ -114,12 +121,23 @@ class MainActivity : FragmentActivity() {
                             })
                             hasPin == null -> {}
                             hasPin == true && !pinViewModel.isUnlocked -> PinLockScreen(pinViewModel)
-                            else -> RytmNavHost()
+                            else -> RytmNavHost(
+                                launchRequest = launchRequest.value,
+                                onLaunchRequestConsumed = { request ->
+                                    if (launchRequest.value?.nonce == request.nonce) launchRequest.value = null
+                                },
+                            )
                         }
                     }
                 }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        launchRequest.value = parseLaunchRequest(intent)
     }
 }
