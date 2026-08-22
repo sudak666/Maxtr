@@ -68,6 +68,7 @@ import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.LocalRealtimeState
+import ua.rytm.app.ui.LocalSyncRetry
 import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,11 +110,11 @@ fun RytmNavHost() {
         if (refreshing) return
         scope.launch {
             refreshing = true
-            try { app.profileSyncCoordinator.loadOnSignIn(uid) } finally { refreshing = false }
+            try { app.profileSyncCoordinator.retryLoad(uid) } finally { refreshing = false }
         }
     }
 
-    CompositionLocalProvider(LocalCanEditProfile provides canEdit, LocalRealtimeState provides realtimeState) {
+    CompositionLocalProvider(LocalCanEditProfile provides canEdit, LocalRealtimeState provides realtimeState, LocalSyncRetry provides ::refresh) {
     Scaffold(
         topBar = {
             TopAppBar(

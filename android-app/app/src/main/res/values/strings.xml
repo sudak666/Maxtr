@@ -1,4 +1,11 @@
 <resources>
+    <string name="action_retry">Повторити</string>
+    <string name="sync_error_network">Немає з’єднання. Зміни збережено локально.</string>
+    <string name="sync_error_auth">Сеанс завершився. Увійдіть знову.</string>
+    <string name="sync_error_permission">Немає дозволу змінювати цей профіль.</string>
+    <string name="sync_error_rate_limited">Забагато запитів. Спробуйте трохи пізніше.</string>
+    <string name="sync_error_conflict">Дані змінилися на іншому пристрої. Повторіть синхронізацію.</string>
+    <string name="sync_error_data">Не вдалося синхронізувати некоректні дані.</string>
     <string name="app_name">Rytm</string>
 
     <string name="nav_finance">Фінанси</string>

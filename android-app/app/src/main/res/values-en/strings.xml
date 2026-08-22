@@ -1,4 +1,11 @@
 <resources>
+    <string name="action_retry">Retry</string>
+    <string name="sync_error_network">No connection. Changes are saved locally.</string>
+    <string name="sync_error_auth">Your session expired. Sign in again.</string>
+    <string name="sync_error_permission">You do not have permission to edit this profile.</string>
+    <string name="sync_error_rate_limited">Too many requests. Try again shortly.</string>
+    <string name="sync_error_conflict">Data changed on another device. Sync again.</string>
+    <string name="sync_error_data">Invalid data could not be synchronized.</string>
     <string name="app_name">Rytm</string>
     <string name="nav_finance">Finance</string>
     <string name="nav_shifts">Shifts</string>

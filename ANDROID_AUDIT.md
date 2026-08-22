@@ -17,7 +17,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 - [ ] Enable R8/resource shrinking and verify every auth, Firestore, FCM, ML Kit and Credential Manager flow in release. (Enabled; release/device verification pending.)
 - [ ] Replace full-domain realtime reloads with domain-specific listeners, explicit revisions/conflict policy and durable offline outbox/retry. (Domain-specific listener dispatch completed; revisions/outbox/conflict tests pending.)
 - [ ] Make Room data profile-scoped (`ownerUid` + `profileId`) so profiles remain isolated and available offline.
-- [ ] Add structured error types, safe diagnostics/Crashlytics redaction and actionable retry states.
+- [ ] Add structured error types, safe diagnostics/Crashlytics redaction and actionable retry states. (Realtime/cold sync now classifies network/auth/permission/rate-limit/conflict/data failures, logs only stable redacted codes, localizes actionable messages and exposes tested retry. Remaining feature-specific error paths and crash reporting policy pending.)
 - [ ] Show operation-level local/pending/synced/error state instead of only a global sync banner.
 
 ## P2 — product and PWA parity

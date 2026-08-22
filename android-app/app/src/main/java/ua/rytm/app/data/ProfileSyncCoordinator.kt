@@ -1,5 +1,6 @@
 package ua.rytm.app.data
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +32,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         data object Listening : RealtimeState
         data object Syncing : RealtimeState
         data object Offline : RealtimeState
-        data class Error(val message: String) : RealtimeState
+        data class Error(val failure: SyncFailure) : RealtimeState
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -44,6 +45,12 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     private var listenerGeneration = 0L
 
     private enum class SyncDomain { FINANCE, SHIFTS, DEBT, TRANSACTIONS }
+
+    private fun publishFailure(error: Throwable) {
+        val failure = SyncFailure.from(error)
+        Log.w("RytmSync", failure.diagnosticCode)
+        _realtimeState.value = RealtimeState.Error(failure)
+    }
 
     private suspend fun syncFinanceDocumentDomains(uid: String, profileId: String) {
         app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
@@ -105,6 +112,12 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         syncAllDomains(dataOwnerUid, profileId)
         startRealtimeSync(dataOwnerUid, profileId)
         return profileId
+    }
+
+    suspend fun retryLoad(uid: String): Boolean {
+        _realtimeState.value = RealtimeState.Syncing
+        return runCatching { loadOnSignIn(uid) }
+            .fold(onSuccess = { true }, onFailure = { publishFailure(it); false })
     }
 
     // Mirrors js/color-picker.js's switchProfile(): flush-then-reload,
@@ -170,7 +183,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         fun remoteChanged(error: Exception?, fromCache: Boolean, domain: SyncDomain) {
             if (generation != listenerGeneration) return
             if (error != null) {
-                _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
+                publishFailure(error)
                 return
             }
             if (initialSnapshotsRemaining > 0) {
@@ -204,7 +217,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                         }
                     }
                         .onSuccess { _realtimeState.value = RealtimeState.Listening }
-                        .onFailure { _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed") }
+                        .onFailure(::publishFailure)
                 }
             }
         }
