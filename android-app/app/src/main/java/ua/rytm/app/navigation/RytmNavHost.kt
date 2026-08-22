@@ -20,12 +20,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -60,6 +70,7 @@ import ua.rytm.app.ui.screens.finance.FinanceScreen
 import ua.rytm.app.ui.screens.shifts.ShiftsScreen
 import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RytmNavHost() {
     val navController = rememberNavController()
@@ -70,21 +81,48 @@ fun RytmNavHost() {
     val canEdit by produceState(initialValue = ownerUid == null, accountUid, ownerUid, profileId) {
         value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
     }
+    val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+    val scope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    fun refresh() {
+        val uid = accountUid ?: return
+        if (refreshing) return
+        scope.launch {
+            refreshing = true
+            try { app.profileSyncCoordinator.loadOnSignIn(uid) } finally { refreshing = false }
+        }
+    }
 
     CompositionLocalProvider(LocalCanEditProfile provides canEdit) {
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Rytm", fontWeight = FontWeight.Black) },
+                actions = {
+                    IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
+                        Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (hideAmounts) "Показати суми" else "Приховати суми")
+                    }
+                    IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = "Оновити") }
+                    IconButton(onClick = { navController.navigate(RytmDestination.Settings.route) { launchSingleTop = true } }) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Налаштування")
+                    }
+                },
+            )
+        },
         bottomBar = { RytmBottomBar(navController) },
     ) { innerPadding ->
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = ::refresh, modifier = Modifier.padding(innerPadding)) {
         NavHost(
             navController = navController,
             startDestination = RytmDestination.Finance.route,
-            modifier = androidx.compose.ui.Modifier.padding(innerPadding),
+            modifier = androidx.compose.ui.Modifier,
         ) {
             composable(RytmDestination.Finance.route) { FinanceScreen() }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
             composable(RytmDestination.Shopping.route) { ShoppingScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }
+        }
         }
     }
     }

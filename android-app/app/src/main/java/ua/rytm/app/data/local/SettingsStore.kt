@@ -19,12 +19,25 @@ private val Context.settingsDataStore by preferencesDataStore(name = "rytm_setti
 
 class SettingsStore(private val context: Context) {
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
+    private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
+    private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
+    private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
 
     val isDarkTheme: Flow<Boolean> = context.settingsDataStore.data.map { it[darkThemeKey] ?: true }
 
     suspend fun setDarkTheme(dark: Boolean) {
         context.settingsDataStore.edit { it[darkThemeKey] = dark }
     }
+
+    val hideAmounts: Flow<Boolean> = context.settingsDataStore.data.map { it[hideAmountsKey] ?: false }
+    suspend fun setHideAmounts(hidden: Boolean) { context.settingsDataStore.edit { it[hideAmountsKey] = hidden } }
+
+    val privacyCacheEnabled: Flow<Boolean> = context.settingsDataStore.data.map { it[privacyCacheKey] ?: true }
+    suspend fun setPrivacyCacheEnabled(enabled: Boolean) { context.settingsDataStore.edit { it[privacyCacheKey] = enabled } }
+    suspend fun isPrivacyCacheEnabled(): Boolean = privacyCacheEnabled.first()
+
+    val onboardingComplete: Flow<Boolean> = context.settingsDataStore.data.map { it[onboardingCompleteKey] ?: false }
+    suspend fun setOnboardingComplete(complete: Boolean) { context.settingsDataStore.edit { it[onboardingCompleteKey] = complete } }
 
     // Mirrors js/notifications.js's pushEnabledKey() (`mx_pushEnabled_<uid>`
     // in localStorage) — per-account, same uid-prefixed-key-in-one-shared-

@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.data.FinanceRepository
 import java.net.HttpURLConnection
 import java.net.URL
@@ -84,7 +85,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(wallet?.name ?: "Ціль", fontWeight = FontWeight.SemiBold)
-                    Text("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}", style = MaterialTheme.typography.bodySmall)
+                    Text(maskedAmount("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}"), style = MaterialTheme.typography.bodySmall)
                 }
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
                     Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(Color(0xFF10B981), CircleShape))

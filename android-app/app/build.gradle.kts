@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.biometric)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")

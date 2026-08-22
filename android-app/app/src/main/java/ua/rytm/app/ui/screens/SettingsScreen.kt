@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
@@ -91,6 +92,7 @@ import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.TransactionsCsvRepository
+import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.AutoRulesManagerSheet
@@ -151,6 +153,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
     var csvBusy by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+    val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+    val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
@@ -407,6 +411,26 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                         icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
                     ) { Text("Темна") }
+                }
+                SettingsGroupCard {
+                    SettingsToggleRow(
+                        icon = Icons.Filled.VisibilityOff,
+                        badgeColor = Color(0xFF64748B),
+                        title = "Приховувати суми",
+                        subtitle = "Маскувати грошові значення на всіх екранах",
+                        checked = hideAmounts,
+                        enabled = true,
+                        onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
+                    )
+                    SettingsToggleRow(
+                        icon = Icons.Filled.PrivacyTip,
+                        badgeColor = Color(0xFF10B981),
+                        title = "Офлайн-кеш",
+                        subtitle = if (privacyCacheEnabled) "Дані доступні без мережі" else "Локальні дані очищаються після виходу",
+                        checked = privacyCacheEnabled,
+                        enabled = true,
+                        onCheckedChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
+                    )
                 }
             }
 
@@ -717,7 +741,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             confirmButton = {
                 TextButton(onClick = {
                     pendingSignOut = false
-                    authViewModel.signOut()
+                    scope.launch {
+                        if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
+                        authViewModel.signOut()
+                    }
                 }) { Text("Вийти") }
             },
             dismissButton = {

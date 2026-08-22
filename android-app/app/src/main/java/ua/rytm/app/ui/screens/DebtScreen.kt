@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.screens.debt.DEBT_COLORS
 import ua.rytm.app.ui.screens.debt.Debt
 import ua.rytm.app.ui.screens.debt.DebtEntry
@@ -232,7 +233,7 @@ private fun HeroBalance(cd: Debt) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text("Поточний залишок", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("${formatMoney(cd.currentBalance())} ${cd.currency}", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -275,8 +276,8 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.AccountBalanceWallet, "${formatMoney(cd.startAmount)} ${cd.currency}", "Початкова сума", Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, "${formatMoney(cd.paid())} ${cd.currency}", "Сплачено", Modifier.weight(1f))
+        StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), "Початкова сума", Modifier.weight(1f))
+        StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), "Сплачено", Modifier.weight(1f))
         StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), "Платежів", Modifier.weight(1f))
         if (due != null) StatChip(Icons.Filled.Event, due, "Термін сплати", Modifier.weight(1f))
     }
@@ -420,7 +421,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text("${entry.amount} $currency", fontWeight = FontWeight.SemiBold)
-                            Text("Залишок: ${formatMoney(entry.balance)} $currency · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(maskedAmount("Залишок: ${formatMoney(entry.balance)} $currency") + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(Icons.Filled.Edit, contentDescription = "Редагувати") }
                     }

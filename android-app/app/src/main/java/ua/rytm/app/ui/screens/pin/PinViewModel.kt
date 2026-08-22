@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.local.PinStore
+import com.google.firebase.auth.FirebaseAuth
 
 // Mirrors js/auth.js's PIN section (checkPinLock()/tryUnlockPin()/setPin()/
 // removePin()/openPinSettings()) — a local re-lock gate layered on top of the
@@ -109,6 +110,15 @@ class PinViewModel(private val pinStore: PinStore, private val uid: String) : Vi
 
     fun removePin() {
         viewModelScope.launch { pinStore.removePin(uid) }
+    }
+
+    fun forgotPin(clearSensitiveCache: suspend () -> Unit) {
+        viewModelScope.launch {
+            clearSensitiveCache()
+            pinStore.removePin(uid)
+            isUnlocked = true
+            FirebaseAuth.getInstance().signOut()
+        }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {

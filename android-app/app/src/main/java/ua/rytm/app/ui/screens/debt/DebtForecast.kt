@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.maskedAmount
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -81,7 +82,7 @@ fun DebtForecastCard(debt: Debt) {
                 avgDown <= 0 -> Text("Замало даних для оцінки темпу погашення", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())
-                    val avgStr = "${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}"
+                    val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
                     Text("Залишилось приблизно $paymentsLeft платежів", style = MaterialTheme.typography.bodyMedium)
                     Text("Середній платіж: $avgStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

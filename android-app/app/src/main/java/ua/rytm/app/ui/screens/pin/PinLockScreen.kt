@@ -19,15 +19,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import ua.rytm.app.RytmApplication
+import ua.rytm.app.data.local.clearAllProfileScopedTables
 
 // Mirrors the PWA's #pin-screen: touch keypad (0-9 + back), dot indicators
 // (never the raw digits, per the account owner's original design reference —
@@ -38,6 +45,7 @@ import androidx.fragment.app.FragmentActivity
 fun PinLockScreen(viewModel: PinViewModel) {
     val context = LocalContext.current
     val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+    var forgotConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -81,7 +89,25 @@ fun PinLockScreen(viewModel: PinViewModel) {
                 }
             },
         )
+        Spacer(Modifier.height(20.dp))
+        TextButton(onClick = { forgotConfirm = true }) { Text("Забув PIN?") }
     }
+
+    if (forgotConfirm) AlertDialog(
+        onDismissRequest = { forgotConfirm = false },
+        title = { Text("Забули PIN?") },
+        text = { Text("Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.") },
+        confirmButton = {
+            TextButton(onClick = {
+                forgotConfirm = false
+                val app = context.applicationContext as RytmApplication
+                viewModel.forgotPin {
+                    if (!app.settingsStore.isPrivacyCacheEnabled()) app.database.clearAllProfileScopedTables()
+                }
+            }) { Text("Скинути й вийти", color = MaterialTheme.colorScheme.error) }
+        },
+        dismissButton = { TextButton(onClick = { forgotConfirm = false }) { Text("Скасувати") } },
+    )
 }
 
 @Composable

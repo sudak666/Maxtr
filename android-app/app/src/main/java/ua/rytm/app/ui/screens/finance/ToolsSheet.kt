@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
+import ua.rytm.app.ui.maskedAmount
 import kotlin.math.max
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
@@ -96,8 +97,8 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Дохід: ${formatMoney(vm.totalIncome)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            Text("Витрата: ${formatMoney(vm.totalExpense)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(maskedAmount("Дохід: ${formatMoney(vm.totalIncome)}"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            Text(maskedAmount("Витрата: ${formatMoney(vm.totalExpense)}"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         }
 
         val expenseByCategory = vm.expenseByCategory
@@ -145,7 +146,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
                 startAngle += sweep
             }
         }
-        Text(formatMoney(total), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -154,7 +155,7 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(category, style = MaterialTheme.typography.bodySmall)
-        Text("${formatMoney(amount)} · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(maskedAmount(formatMoney(amount)) + " · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -169,7 +170,7 @@ private fun FxRatesSection(vm: ToolsViewModel) {
             rates.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("1 $code", style = MaterialTheme.typography.bodyMedium)
-                    Text("${formatMoney(rate)} UAH", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(maskedAmount("${formatMoney(rate)} UAH"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -194,7 +195,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
             CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(1f))
         }
         Text(
-            "${formatMoney(vm.converterResult)} ${vm.converterTo}",
+            maskedAmount("${formatMoney(vm.converterResult)} ${vm.converterTo}"),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),

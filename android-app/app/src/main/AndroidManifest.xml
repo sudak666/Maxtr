@@ -32,6 +32,14 @@
             </intent-filter>
         </service>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Used by the FCM SDK's own auto-display path when a `notification`-
              shaped push arrives while this app is backgrounded (see
              RytmMessagingService's doc comment for why onMessageReceived()

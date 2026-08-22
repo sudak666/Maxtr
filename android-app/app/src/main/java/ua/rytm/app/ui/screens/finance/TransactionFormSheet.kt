@@ -15,6 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -37,6 +40,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import kotlinx.coroutines.launch
+import java.io.File
+import ua.rytm.app.data.ReceiptOcrRepository
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,12 +57,35 @@ import androidx.compose.ui.unit.dp
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
 // js/tx-validation.js exactly. Tags are now real (Tag entity + FilterChip
 // multi-select, see FinanceViewModel.formSelectedTagIds/toggleFormTag()).
-// Deliberately still out of scope: receipt scan.
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFormSheet(vm: FinanceViewModel) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val ocr = remember { ReceiptOcrRepository() }
+    var ocrBusy by remember { mutableStateOf(false) }
+    var ocrMessage by remember { mutableStateOf<String?>(null) }
+    var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    fun processReceipt(uri: android.net.Uri) {
+        if (ocrBusy) return
+        scope.launch {
+            ocrBusy = true
+            ocrMessage = null
+            try {
+                val result = ocr.scan(context, uri)
+                result.amount?.let { vm.onFormAmountChange(it.toString()) }
+                result.date?.let(vm::onFormDateChange)
+                ocrMessage = if (result.amount != null || result.date != null) "Дані чека розпізнано — перевір перед збереженням" else "Суму й дату не знайдено"
+            } catch (e: Exception) {
+                ocrMessage = e.localizedMessage ?: "Не вдалося розпізнати чек"
+            } finally {
+                ocrBusy = false
+            }
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
     ModalBottomSheet(onDismissRequest = vm::closeSheet, sheetState = sheetState) {
         Column(
@@ -73,6 +107,25 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
 
             TypeSegmentedRow(vm)
+
+            if (vm.formType != TxType.TRANSFER) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
+                            cameraUri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
+                            cameraLauncher.launch(cameraUri!!)
+                        },
+                        enabled = !ocrBusy,
+                        modifier = Modifier.weight(1f),
+                    ) { Icon(Icons.Filled.CameraAlt, contentDescription = null); Text("Камера") }
+                    Button(onClick = { galleryLauncher.launch("image/*") }, enabled = !ocrBusy, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null); Text("Галерея")
+                    }
+                }
+                if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text("Розпізнавання чека…") }
+                ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
 
             val walletLabel = when (vm.formType) {
                 TxType.INCOME -> "Гаманець"

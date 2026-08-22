@@ -77,6 +77,7 @@ import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -173,7 +174,7 @@ private fun HeroMetric(earned: Double) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text("Зароблено цього місяця", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("${formatMoney(earned)} грн", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount("${formatMoney(earned)} грн"), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
             val pct = (earned / SALARY_GOAL).coerceIn(0.0, 1.0)
             Box(
                 Modifier
@@ -192,7 +193,7 @@ private fun HeroMetric(earned: Double) {
                 )
             }
             Text(
-                "${(pct * 100).toInt()}% від цілі ${formatMoney(SALARY_GOAL)} грн",
+                maskedAmount("${(pct * 100).toInt()}% від цілі ${formatMoney(SALARY_GOAL)} грн"),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),

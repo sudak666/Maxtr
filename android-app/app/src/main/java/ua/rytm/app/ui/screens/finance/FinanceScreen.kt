@@ -69,6 +69,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
@@ -241,7 +242,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "${if (vm.isMultiCurrency) "≈ " else ""}${formatMoney(vm.totalBalanceUah)} грн",
+                text = maskedAmount("${if (vm.isMultiCurrency) "≈ " else ""}${formatMoney(vm.totalBalanceUah)} грн"),
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black,
             )
@@ -262,7 +263,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                 Spacer(Modifier.padding(2.dp))
                 val sign = if (net > 0) "+" else if (net < 0) "−" else ""
                 Text(
-                    text = "$sign${formatMoney(kotlin.math.abs(net))} грн цього місяця",
+                    text = maskedAmount("$sign${formatMoney(kotlin.math.abs(net))} грн цього місяця"),
                     style = MaterialTheme.typography.bodySmall,
                     color = trendColor,
                     fontWeight = FontWeight.Bold,
@@ -319,7 +320,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
         Column {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                text = "${if (positive) "+" else "−"}${formatMoney(value)} грн",
+                text = maskedAmount("${if (positive) "+" else "−"}${formatMoney(value)} грн"),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = tint,
@@ -338,7 +339,7 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
             Text(wallet.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.padding(4.dp))
             Text(
-                "${formatMoney(balance)} ${currencySymbol(wallet.currency)}",
+                maskedAmount("${formatMoney(balance)} ${currencySymbol(wallet.currency)}"),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -590,9 +591,9 @@ private fun TransactionRow(
                 }
                 Spacer(Modifier.padding(4.dp))
                 val (amountText, amountColor) = when (tx.type) {
-                    TxType.INCOME -> "+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}" to GreenDarkLike
-                    TxType.EXPENSE -> "−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}" to RedLike
-                    TxType.TRANSFER -> "${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}" to MaterialTheme.colorScheme.onSurfaceVariant
+                    TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to GreenDarkLike
+                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RedLike
+                    TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Text(amountText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = amountColor)
             }
