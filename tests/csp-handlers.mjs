@@ -172,9 +172,9 @@ async function main() {
     await page.route('**/firebasejs/**firebase-auth.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_AUTH }));
     await page.route('**/firebasejs/**firebase-messaging.js', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB_MESSAGING }));
 
-    await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
-    await page.evaluate(() => window.finishOnboarding && window.finishOnboarding());
+    await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => typeof window.finishOnboarding === 'function');
+    await page.evaluate(() => window.finishOnboarding());
     console.log(`[ok] app boots under the deployed CSP (script-src without 'unsafe-inline')`);
 
     // ── Finance: the swipe-revealed delete button must delete (confirm
