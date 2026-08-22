@@ -58,6 +58,18 @@
     <string name="profile_upload_photo">Upload photo</string>
     <string name="profile_avatar">Avatar</string>
     <string name="profile_avatar_preset">Avatar preset</string>
+    <string name="monobank_intro">Enter a personal Monobank Open API token to import cards, jars, and transactions. The token is stored in your profile and sent only to Monobank through Rytm’s secure server.</string>
+    <string name="monobank_get_token">Get a token at api.monobank.ua</string><string name="monobank_token">Personal token</string>
+    <string name="monobank_connect">Connect</string><string name="monobank_connected">Monobank connected</string>
+    <string name="monobank_invalid_token">The token is invalid. Check it and try again.</string>
+    <string name="monobank_rate_limit">Monobank allows no more than one request per minute. Try again later.</string>
+    <string name="monobank_connection_failed">Could not connect to Monobank</string>
+    <string name="monobank_unmapped">%1$s · not linked</string><string name="monobank_never_synced">not synced yet</string>
+    <string name="monobank_last_sync">Last synced: %1$s</string><string name="monobank_sync_progress">Syncing account %1$d/%2$d…</string>
+    <string name="monobank_sync_result">Synced, new transactions: %1$d</string><string name="monobank_sync">Sync</string>
+    <string name="monobank_disconnect">Disconnect</string><string name="monobank_disconnected">Monobank disconnected</string>
+    <string name="monobank_disconnect_title">Disconnect Monobank</string>
+    <string name="monobank_disconnect_body">Wallets and imported transactions will remain, but automatic import of new transactions will stop.</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

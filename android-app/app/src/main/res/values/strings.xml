@@ -60,6 +60,18 @@
     <string name="profile_upload_photo">Завантажити фото</string>
     <string name="profile_avatar">Аватар</string>
     <string name="profile_avatar_preset">Варіант аватара</string>
+    <string name="monobank_intro">Вкажіть персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен зберігається у вашому профілі й передається лише Monobank через захищений сервер Rytm.</string>
+    <string name="monobank_get_token">Отримати токен на api.monobank.ua</string><string name="monobank_token">Персональний токен</string>
+    <string name="monobank_connect">Підключити</string><string name="monobank_connected">Monobank підключено</string>
+    <string name="monobank_invalid_token">Токен недійсний. Перевірте його та спробуйте ще раз.</string>
+    <string name="monobank_rate_limit">Monobank дозволяє не більше одного запиту на хвилину. Спробуйте пізніше.</string>
+    <string name="monobank_connection_failed">Не вдалося з’єднатися з Monobank</string>
+    <string name="monobank_unmapped">%1$s · не прив’язано</string><string name="monobank_never_synced">ще не синхронізовано</string>
+    <string name="monobank_last_sync">Востаннє синхронізовано: %1$s</string><string name="monobank_sync_progress">Синхронізую рахунок %1$d/%2$d…</string>
+    <string name="monobank_sync_result">Синхронізовано, нових операцій: %1$d</string><string name="monobank_sync">Синхронізувати</string>
+    <string name="monobank_disconnect">Відключити</string><string name="monobank_disconnected">Monobank відключено</string>
+    <string name="monobank_disconnect_title">Відключити Monobank</string>
+    <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
