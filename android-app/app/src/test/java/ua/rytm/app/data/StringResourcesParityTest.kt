@@ -33,6 +33,24 @@ class StringResourcesParityTest {
         }
     }
 
+    private fun plurals(path: String): Map<String, Map<String, String>> {
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File(path))
+        val nodes = document.getElementsByTagName("plurals")
+        return buildMap {
+            repeat(nodes.length) { index ->
+                val node = nodes.item(index)
+                val items = buildMap {
+                    val children = node.childNodes
+                    repeat(children.length) { childIndex ->
+                        val item = children.item(childIndex)
+                        if (item.nodeName == "item") put(item.attributes.getNamedItem("quantity").nodeValue, item.textContent)
+                    }
+                }
+                put(node.attributes.getNamedItem("name").nodeValue, items)
+            }
+        }
+    }
+
     @Test
     fun ukrainianAndEnglishResourcesHaveExactKeyParityAndValidText() {
         val uk = strings("src/main/res/values/strings.xml")
@@ -50,6 +68,16 @@ class StringResourcesParityTest {
         (ukArrays.values.flatten() + enArrays.values.flatten()).forEach { value ->
             assertFalse("Replacement character found in array resource: $value", '\uFFFD' in value)
             assertFalse("Empty localized array item", value.isBlank())
+        }
+        val ukPlurals = plurals("src/main/res/values/strings.xml")
+        val enPlurals = plurals("src/main/res/values-en/strings.xml")
+        assertEquals(ukPlurals.keys, enPlurals.keys)
+        (ukPlurals + enPlurals).forEach { (key, quantities) ->
+            assertFalse("Plural resource has no other quantity: $key", "other" !in quantities)
+            quantities.values.forEach { value ->
+                assertFalse("Replacement character found in plural resource: $value", '\uFFFD' in value)
+                assertFalse("Empty localized plural item", value.isBlank())
+            }
         }
     }
 }
