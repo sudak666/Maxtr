@@ -2,6 +2,7 @@ package ua.rytm.app.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -13,6 +14,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import ua.rytm.app.data.local.AutoRuleEntity
 import ua.rytm.app.data.local.RytmDatabase
+import ua.rytm.app.data.local.MonobankTokenStore
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.WalletEntity
 import java.net.HttpURLConnection
@@ -38,6 +40,7 @@ class MonobankRepository(
     private val db: RytmDatabase,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
+    private val tokenStore: MonobankTokenStore,
 ) {
     private val requestMutex = Mutex()
     private var lastRequestAt = 0L
@@ -47,7 +50,13 @@ class MonobankRepository(
 
     suspend fun load(uid: String, profileId: String): MonobankConnection? {
         val map = financeRef(uid, profileId).get().await().get("integrations.monobank") as? Map<*, *> ?: return null
-        return parseConnection(map)
+        val legacyToken = map["token"] as? String
+        if (!legacyToken.isNullOrBlank()) {
+            tokenStore.write(uid, profileId, legacyToken)
+            financeRef(uid, profileId).update("integrations.monobank.token", FieldValue.delete()).await()
+        }
+        val token = tokenStore.read(uid, profileId) ?: return null
+        return parseConnection(map, token)
     }
 
     suspend fun connect(uid: String, profileId: String, rawToken: String): MonobankConnection {
@@ -69,9 +78,11 @@ class MonobankRepository(
         }
         db.walletDao().insertAll(wallets)
         val connection = MonobankConnection(token, info.optString("name"), accounts, accounts.mapIndexed { i, a -> a.id to wallets[i].id }.toMap(), null)
+        tokenStore.write(uid, profileId, token)
         try {
             save(uid, profileId, connection, existing + wallets)
         } catch (error: Throwable) {
+            tokenStore.delete(uid, profileId)
             wallets.forEach { db.walletDao().deleteById(it.id) }
             throw error
         }
@@ -83,6 +94,7 @@ class MonobankRepository(
             mapOf("integrations" to mapOf("monobank" to null), "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
         ).await()
+        tokenStore.delete(uid, profileId)
     }
 
     suspend fun sync(
@@ -209,8 +221,7 @@ class MonobankRepository(
         return result
     }
 
-    private fun parseConnection(map: Map<*, *>): MonobankConnection? {
-        val token = map["token"] as? String ?: return null
+    private fun parseConnection(map: Map<*, *>, token: String): MonobankConnection? {
         val accounts = (map["accounts"] as? List<*>)?.mapNotNull { raw ->
             val a = raw as? Map<*, *> ?: return@mapNotNull null
             MonobankAccount(a["id"] as? String ?: return@mapNotNull null, a["kind"] as? String ?: "account", a["label"] as? String ?: "Monobank", a["currencyAlpha"] as? String ?: "UAH")
@@ -218,12 +229,6 @@ class MonobankRepository(
         val mapping = (map["mapping"] as? Map<*, *>)?.entries?.mapNotNull { (key, value) -> (key as? String)?.let { it to (value as? String ?: return@mapNotNull null) } }?.toMap().orEmpty()
         return MonobankConnection(token, map["clientName"] as? String ?: "", accounts, mapping, (map["lastSyncAt"] as? Number)?.toLong())
     }
-
-    private fun MonobankConnection.toRemoteMap() = mapOf(
-        "token" to token, "clientName" to clientName,
-        "accounts" to accounts.map { mapOf("id" to it.id, "kind" to it.kind, "label" to it.label, "currencyAlpha" to it.currency) },
-        "mapping" to mapping, "lastSyncAt" to lastSyncAt,
-    )
 
     private fun WalletEntity.toRemoteWalletMap() = mapOf(
         "id" to id, "name" to name, "color" to colorHexToWebString(colorHex), "icon" to icon, "currency" to currency,
@@ -238,3 +243,10 @@ class MonobankRepository(
         const val MAX_CHUNKS = 14
     }
 }
+
+internal fun MonobankConnection.toRemoteMap() = mapOf(
+    "clientName" to clientName,
+    "accounts" to accounts.map { mapOf("id" to it.id, "kind" to it.kind, "label" to it.label, "currencyAlpha" to it.currency) },
+    "mapping" to mapping,
+    "lastSyncAt" to lastSyncAt,
+)

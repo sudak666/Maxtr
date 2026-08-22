@@ -5,6 +5,10 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.AppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.firestore.FirebaseFirestore
 import ua.rytm.app.data.BudgetsSyncRepository
 import ua.rytm.app.data.AutoRulesSyncRepository
@@ -30,6 +34,7 @@ import ua.rytm.app.data.ProfileAppearanceRepository
 import ua.rytm.app.data.ProfilesRepository
 import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.local.PinStore
+import ua.rytm.app.data.local.MonobankTokenStore
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SettingsStore
 import ua.rytm.app.push.ensureNotificationChannel
@@ -37,6 +42,16 @@ import ua.rytm.app.push.ensureNotificationChannel
 class RytmApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
+        val appCheckProvider = if (BuildConfig.DEBUG) {
+            runCatching {
+                val type = Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory")
+                type.getMethod("getInstance").invoke(null) as AppCheckProviderFactory
+            }.getOrElse { PlayIntegrityAppCheckProviderFactory.getInstance() }
+        } else {
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        }
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(appCheckProvider)
         // See build.gradle.kts's USE_FIREBASE_EMULATOR comment — off by default,
         // only set by an explicit -PuseFirebaseEmulator=true build. Must run before
         // anything touches FirebaseAuth/FirebaseFirestore (both below are `by lazy`,
@@ -81,7 +96,6 @@ class RytmApplication : Application() {
                     db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_monobankId` ON `transactions` (`monobankId`)")
                 }
             })
-            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
@@ -101,7 +115,7 @@ class RytmApplication : Application() {
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
     val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val monobankRepository: MonobankRepository by lazy { MonobankRepository(database, FirebaseFirestore.getInstance(), FirebaseAuth.getInstance()) }
+    val monobankRepository: MonobankRepository by lazy { MonobankRepository(database, FirebaseFirestore.getInstance(), FirebaseAuth.getInstance(), MonobankTokenStore(this)) }
     val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
     val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
