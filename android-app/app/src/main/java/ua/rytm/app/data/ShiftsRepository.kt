@@ -8,7 +8,6 @@ import ua.rytm.app.data.local.ShiftDayEntity
 import ua.rytm.app.data.local.ShiftTypeEntity
 import ua.rytm.app.ui.screens.shifts.AutoFillSchedule
 import ua.rytm.app.ui.screens.shifts.SHIFT_PATTERN_CYCLES
-import ua.rytm.app.ui.screens.shifts.SeedShiftTypes
 import ua.rytm.app.ui.screens.shifts.ShiftType
 import ua.rytm.app.ui.screens.shifts.daysForShiftPattern
 import java.time.LocalDate
@@ -19,6 +18,12 @@ fun ShiftType.toEntity() = ShiftTypeEntity(id, name, short, code, colorHex, amou
 
 fun AutoFillScheduleEntity.toDomain() = AutoFillSchedule(enabled, typeId, pattern, anchorDate)
 fun AutoFillSchedule.toEntity() = AutoFillScheduleEntity(id = 0, enabled = enabled, typeId = typeId, pattern = pattern, anchorDate = anchorDate)
+
+internal fun defaultShiftTypeEntities() = listOf(
+    ShiftTypeEntity("st_day", "Денна зміна", "День", "Д", 0xFF3B82F6, 0.0, 8.0, false),
+    ShiftTypeEntity("st_night", "Нічна зміна", "Ніч", "Н", 0xFF8B5CF6, 0.0, 12.0, false),
+    ShiftTypeEntity("st_off", "Вихідний", "Вих", "В", 0xFFF59E0B, 0.0, 0.0, true),
+)
 
 class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyncRepository) {
 
@@ -33,19 +38,13 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
 
     suspend fun seedIfEmpty() {
         if (db.shiftTypeDao().count() == 0) {
-            db.shiftTypeDao().insertAll(SeedShiftTypes.types.map { it.toEntity() })
+            db.shiftTypeDao().insertAll(defaultShiftTypeEntities())
         }
     }
 
     /** Exact no-data defaults from js/core.js DEFAULT_SHIFT_TYPES, not legacy/demo types. */
     suspend fun seedFreshProfileDefaults() {
-        db.shiftTypeDao().insertAll(
-            listOf(
-                ShiftTypeEntity("st_day", "Денна зміна", "День", "Д", 0xFF3B82F6, 0.0, 8.0, false),
-                ShiftTypeEntity("st_night", "Нічна зміна", "Ніч", "Н", 0xFF8B5CF6, 0.0, 12.0, false),
-                ShiftTypeEntity("st_off", "Вихідний", "Вих", "В", 0xFFF59E0B, 0.0, 0.0, true),
-            ),
-        )
+        db.shiftTypeDao().insertAll(defaultShiftTypeEntities())
     }
 
     suspend fun setShiftsForDay(uid: String, profileId: String, dateKey: String, shiftTypeIds: List<String>) {

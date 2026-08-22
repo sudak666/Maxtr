@@ -10,6 +10,12 @@ import ua.rytm.app.ui.screens.shifts.monthCalendarCells
 import ua.rytm.app.ui.screens.shifts.daysForShiftPattern
 
 class CalendarLayoutTest {
+    @Test fun freshProfileUsesOnlyExactPwaDefaultShiftTypes() {
+        val defaults = defaultShiftTypeEntities()
+        assertEquals(listOf("st_day", "st_night", "st_off"), defaults.map { it.id })
+        assertEquals(listOf(8.0, 12.0, 0.0), defaults.map { it.hours })
+        assertEquals(listOf(false, false, true), defaults.map { it.isOff })
+    }
     @Test fun mondayFirstMonthHasNoLeadingCells() {
         val cells = monthCalendarCells(YearMonth.of(2026, 6))
         assertEquals(1, cells.first().date?.dayOfMonth)
