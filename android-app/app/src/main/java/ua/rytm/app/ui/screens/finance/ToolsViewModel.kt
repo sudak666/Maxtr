@@ -15,6 +15,7 @@ import ua.rytm.app.data.SEED_RATES
 import java.time.YearMonth
 
 enum class AnalyticsPeriod { MONTH, PREV, M3, ALL }
+enum class FinanceChartSeries { NET, INCOME, EXPENSE }
 
 data class MonthTotal(val yearMonth: YearMonth, val income: Double, val expense: Double)
 
@@ -40,6 +41,8 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
 
     var period by mutableStateOf(AnalyticsPeriod.MONTH)
         private set
+    var chartSeries by mutableStateOf(FinanceChartSeries.NET)
+        private set
 
     init {
         repository.transactions.onEach { transactions = it }.launchIn(viewModelScope)
@@ -48,6 +51,7 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     }
 
     fun onPeriodChange(value: AnalyticsPeriod) { period = value }
+    fun onChartSeriesChange(value: FinanceChartSeries) { chartSeries = value }
 
     // Mirrors analyticsPredicates(): a "yyyy-MM" date prefix (or `>=` window
     // for 3m/all) selecting which transactions count for the current period.
