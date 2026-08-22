@@ -41,8 +41,13 @@ android {
     defaultConfig {
         applicationId = "ua.rytm.app"
         minSdk = 26
-        targetSdk = 37
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    targetSdk = 37
+    testBuildType = if (project.findProperty("testRelease") == "true") "release" else "debug"
+        testInstrumentationRunner = if (project.findProperty("testRelease") == "true") {
+            "ua.rytm.app.ReleaseSmokeInstrumentation"
+        } else {
+            "androidx.test.runner.AndroidJUnitRunner"
+        }
         // Bumped past the TWA build's own versionCode 1 (2026-07-29 Closed
         // testing release) — Play rejects an upload whose versionCode
         // doesn't strictly increase over the package's last one, TWA or not.
@@ -75,6 +80,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            testProguardFiles("proguard-test-rules.pro")
             // Only wired up once keystore.properties exists locally (see its
             // own doc comment above) — an unsigned/local-only release build
             // still works for `bundleRelease` without it, it just won't
@@ -154,7 +160,7 @@ val verifyRoomSchemaAssets = tasks.register("verifyRoomSchemaAssets") {
         }
     }
 }
-tasks.matching { it.name == "mergeDebugAndroidTestAssets" }.configureEach {
+tasks.matching { it.name.matches(Regex("merge(?:Debug|Release)AndroidTestAssets")) }.configureEach {
     dependsOn(verifyRoomSchemaAssets)
 }
 

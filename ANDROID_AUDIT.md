@@ -14,7 +14,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 ## P1 — security, reliability and scale
 
 - [x] Replace fast unsalted PIN hashing with Keystore-backed verification, escalating persistent attempt throttling, background re-lock and privacy protection in recents.
-- [ ] Enable R8/resource shrinking and verify every auth, Firestore, FCM, ML Kit and Credential Manager flow in release. (Enabled; release/device verification pending.)
+- [ ] Enable R8/resource shrinking and verify every auth, Firestore, FCM, ML Kit and Credential Manager flow in release. (Enabled. A dedicated `connectedReleaseAndroidTest -PtestRelease=true` gate now runs against the signed, minified/resource-shrunk APK and proves `MainActivity` plus Auth, Firestore, FCM, App Check, Credential Manager and ML Kit entry points survive R8 on-device. Fresh `assembleRelease` + `lintVitalRelease` and the gate pass on `emulator-5554`; authenticated CRUD, real FCM delivery, OCR image and credential-picker release flows still need end-to-end device verification.)
 - [ ] Replace full-domain realtime reloads with domain-specific listeners, explicit revisions/conflict policy and durable offline outbox/retry. (Domain-specific listener dispatch completed; revisions/outbox/conflict tests pending.)
 - [x] Make Room data profile-scoped (`ownerUid` + `profileId`) so profiles remain isolated and available offline (Room v16 adds composite scope keys to all 17 tables; every DAO read/update/delete is scope-bound; repository Flows rebind on profile changes; legacy v15 rows are adopted once; account/privacy-cache clearing still removes every retained scope. Connected 13→16 migration and same-ID cross-profile isolation tests pass).
 - [ ] Add structured error types, safe diagnostics/Crashlytics redaction and actionable retry states. (Realtime/cold sync now classifies network/auth/permission/rate-limit/conflict/data failures, logs only stable redacted codes, localizes actionable messages and exposes tested retry. Remaining feature-specific error paths and crash reporting policy pending.)
@@ -46,7 +46,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 - [ ] Golden tests for all main screens and sheets: uk/en, light/dark, 320dp, standard phone, large font and landscape.
 - [ ] Accessibility tests plus manual TalkBack pass.
 - [ ] Large-dataset/performance/startup/memory/network-failure tests.
-- [ ] R8 release smoke test, signed APK/AAB verification and final physical-device regression.
+- [ ] R8 release smoke test, signed APK/AAB verification and final physical-device regression. (Automated signed/minified APK SDK+activity smoke and signed AAB verification pass; full feature smoke and Samsung A51 regression remain.)
 
 ## Competitive quality bar
 
