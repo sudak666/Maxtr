@@ -116,11 +116,11 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         val net = vm.totalIncome - vm.totalExpense
         val savingsRate = if (vm.totalIncome > 0) (net / vm.totalIncome * 100).toInt() else 0
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AnalyticsStatCard(stringResource(R.string.analytics_income_label), formatMoney(vm.totalIncome) + " грн", true, Modifier.weight(1f))
-            AnalyticsStatCard(stringResource(R.string.analytics_expense_label), formatMoney(vm.totalExpense) + " грн", false, Modifier.weight(1f))
+            AnalyticsStatCard(stringResource(R.string.analytics_income_label), formatMoneyWithCurrency(vm.totalIncome, "UAH"), true, Modifier.weight(1f))
+            AnalyticsStatCard(stringResource(R.string.analytics_expense_label), formatMoneyWithCurrency(vm.totalExpense, "UAH"), false, Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AnalyticsStatCard(stringResource(R.string.analytics_net), formatMoney(net) + " грн", net >= 0, Modifier.weight(1f))
+            AnalyticsStatCard(stringResource(R.string.analytics_net), formatMoneyWithCurrency(net, "UAH"), net >= 0, Modifier.weight(1f))
             AnalyticsStatCard(stringResource(R.string.analytics_savings_rate), "$savingsRate%", savingsRate >= 0, Modifier.weight(1f))
         }
 
@@ -220,7 +220,7 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
         CategoryIconBadge(category, size = 40.dp)
         Spacer(Modifier.width(10.dp))
         Text(localizedDomainText(category), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        Text(maskedAmount(formatMoney(amount)) + " грн · $pct%", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(maskedAmount(formatMoneyWithCurrency(amount, "UAH")) + " · $pct%", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         LinearProgressIndicator(
             progress = { if (total > 0) (amount / total).toFloat().coerceIn(0f, 1f) else 0f },
@@ -242,7 +242,7 @@ private fun FxRatesSection(vm: ToolsViewModel) {
             rates.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("1 $code", style = MaterialTheme.typography.bodyMedium)
-                    Text(maskedAmount("${formatMoney(rate)} UAH"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(maskedAmount(formatMoneyWithCurrency(rate, "UAH")), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -318,7 +318,7 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val previous = values.getOrNull(values.lastIndex - 1) ?: 0.0
         val trend = if (previous != 0.0) (((current - previous) / kotlin.math.abs(previous)) * 100).toInt() else 0
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(maskedAmount(formatMoney(current) + " грн"), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(maskedAmount(formatMoneyWithCurrency(current, "UAH")), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             if (previous != 0.0) Text((if (trend >= 0) "↑ " else "↓ ") + kotlin.math.abs(trend) + "%", color = if (trend >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.Bold)
         }
         val progress = motionProgress(months, 500)

@@ -23,7 +23,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 ## P2 — product and PWA parity
 
 - [ ] Move recurring payments and shift auto-fill to idempotent WorkManager/server-safe scheduling with timezone/DST coverage.
-- [ ] Centralize locale/currency-aware money formatting; remove manually concatenated `грн`/`UAH` strings.
+- [ ] Centralize locale/currency-aware money formatting; remove manually concatenated `грн`/`UAH` strings. (Thread-safe locale-aware formatter and shared amount+currency API added; Tools migrated, remaining screens pending.)
 - [ ] Complete pixel-level PWA parity for every screen, sheet, state and theme; retain the restored Tools card/category/converter/chart design.
 - [ ] Add bulk edit, undo, encrypted backup/restore and reliable import/export recovery.
 - [ ] Add app links, launcher shortcuts, share-to-Rytm and useful widgets where they reduce entry friction.
