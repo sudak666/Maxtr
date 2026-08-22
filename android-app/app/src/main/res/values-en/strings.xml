@@ -455,4 +455,10 @@
     <string name="settings_backup_create">Create</string>
     <string name="settings_backup_exported">Backup saved</string>
     <string name="settings_backup_export_failed">Could not create backup</string>
+    <string name="sync_operation_pending">Pending sync</string>
+    <string name="sync_operation_synced">Synced</string>
+    <string name="sync_operation_error">Sync error</string>
+    <string name="sync_operations_pending">Pending: %1$d</string>
+    <string name="sync_operations_error">Errors: %1$d</string>
+    <string name="sync_operations_synced">All synced</string>
 </resources>

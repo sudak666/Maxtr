@@ -17,14 +17,14 @@ class RytmMigrationTest {
     )
 
     @Test
-    fun migrate13To16PreservesDataAndCreatesNewSchema() {
+    fun migrate13To17PreservesDataAndCreatesNewSchema() {
         helper.createDatabase(DB_NAME, 13).apply {
             execSQL("INSERT INTO wallets (id, name, colorHex, currency, icon) VALUES ('wallet', 'Card', 1, 'UAH', 'card')")
             execSQL("INSERT INTO transactions (id, type, amount, currency, date, walletId, targetWalletId, targetAmount, targetCurrency, category, subcategory, comment, tags, createdAt) VALUES ('tx', 'EXPENSE', 42.5, 'UAH', '2026-08-22', 'wallet', NULL, NULL, NULL, 'Food', NULL, 'kept', '', 1)")
             close()
         }
 
-        helper.runMigrationsAndValidate(DB_NAME, 16, true, *RytmMigrations.ALL).use { db ->
+        helper.runMigrationsAndValidate(DB_NAME, 17, true, *RytmMigrations.ALL).use { db ->
             db.query("SELECT amount, comment, monobankId, ownerUid, profileId FROM transactions WHERE id = 'tx'").use { cursor ->
                 assertEquals(true, cursor.moveToFirst())
                 assertEquals(42.5, cursor.getDouble(0), 0.0)
@@ -34,6 +34,10 @@ class RytmMigrationTest {
                 assertEquals("default", cursor.getString(4))
             }
             db.query("SELECT COUNT(*) FROM auto_rules").use { cursor ->
+                assertEquals(true, cursor.moveToFirst())
+                assertEquals(0, cursor.getInt(0))
+            }
+            db.query("SELECT COUNT(*) FROM sync_outbox").use { cursor ->
                 assertEquals(true, cursor.moveToFirst())
                 assertEquals(0, cursor.getInt(0))
             }

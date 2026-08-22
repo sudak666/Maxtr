@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.TransactionsSyncRepository
+import ua.rytm.app.data.TransactionSyncState
 import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.toEntity
 import com.google.firebase.auth.FirebaseAuth
@@ -65,6 +66,8 @@ class FinanceViewModel(
         private set
     var loadFailed by mutableStateOf(false)
         private set
+    var transactionSyncStates by mutableStateOf<Map<String, TransactionSyncState>>(emptyMap())
+        private set
 
     private fun markLoaded() { loading = !(walletsLoaded && transactionsLoaded); loadFailed = false }
     private fun markLoadFailed() { loading = false; loadFailed = true }
@@ -80,6 +83,7 @@ class FinanceViewModel(
         repository.autoRules.onEach { autoRules = it }.launchIn(viewModelScope)
         repository.currencyRates.onEach { currencyRates = it }.launchIn(viewModelScope)
         repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
+        syncRepository.operationStates.onEach { transactionSyncStates = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -120,8 +124,7 @@ class FinanceViewModel(
         viewModelScope.launch {
             runCatching {
                 val (ownerUid, profileId) = activeProfilePath()
-                syncRepository.deleteTransactions(ownerUid, profileId, ids)
-                repository.deleteTransactions(ids)
+                syncRepository.queueDeletes(ownerUid, profileId, ids)
             }.onSuccess {
                 selectedTransactionIds = emptySet()
                 pendingUndoTransactions = removed
@@ -139,8 +142,7 @@ class FinanceViewModel(
             runCatching {
                 val entities = restored.map { it.toEntity() }
                 val (ownerUid, profileId) = activeProfilePath()
-                syncRepository.saveTransactions(ownerUid, profileId, entities)
-                repository.restoreTransactions(entities)
+                syncRepository.queueSaves(ownerUid, profileId, entities)
             }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_restore_failed) }
         }
     }
@@ -152,8 +154,7 @@ class FinanceViewModel(
             runCatching {
                 val entities = updated.map { it.toEntity() }
                 val (ownerUid, profileId) = activeProfilePath()
-                syncRepository.saveTransactions(ownerUid, profileId, entities)
-                repository.restoreTransactions(entities)
+                syncRepository.queueSaves(ownerUid, profileId, entities)
             }.onSuccess { selectedTransactionIds = emptySet() }
                 .onFailure { pendingMessage = FinanceMessage(R.string.transaction_save_failed) }
         }
@@ -342,8 +343,7 @@ class FinanceViewModel(
         viewModelScope.launch {
             runCatching {
                 val (ownerUid, profileId) = activeProfilePath()
-                syncRepository.saveTransaction(ownerUid, profileId, toSave.toEntity())
-                repository.upsertTransaction(toSave)
+                syncRepository.queueSave(ownerUid, profileId, toSave.toEntity())
             }.onSuccess {
                 val budgetFeedback = if (toSave.type == TxType.EXPENSE) {
                     budgetExceededFeedback(

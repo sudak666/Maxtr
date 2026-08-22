@@ -46,5 +46,12 @@ object RytmMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16)
+    val MIGRATION_16_17 = object : Migration(16, 17) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sync_outbox` (`operationId` TEXT NOT NULL, `ownerUid` TEXT NOT NULL, `profileId` TEXT NOT NULL, `domain` TEXT NOT NULL, `entityId` TEXT NOT NULL, `operation` TEXT NOT NULL, `payload` TEXT, `createdAt` INTEGER NOT NULL, `attemptCount` INTEGER NOT NULL, `lastErrorCode` TEXT, PRIMARY KEY(`operationId`))")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_sync_outbox_ownerUid_profileId_domain_entityId` ON `sync_outbox` (`ownerUid`, `profileId`, `domain`, `entityId`)")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17)
 }

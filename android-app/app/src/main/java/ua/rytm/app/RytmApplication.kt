@@ -38,6 +38,7 @@ import ua.rytm.app.data.local.RytmMigrations
 import ua.rytm.app.data.local.SettingsStore
 import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.work.scheduleDailyMaintenance
+import ua.rytm.app.work.scheduleSyncOutbox
 
 class RytmApplication : Application() {
     override fun onCreate() {
@@ -79,6 +80,7 @@ class RytmApplication : Application() {
         // settings), so calling this on every cold start is fine.
         ensureNotificationChannel(this)
         scheduleDailyMaintenance(this)
+        scheduleSyncOutbox(this)
     }
 
     val database: RytmDatabase by lazy {
@@ -98,7 +100,7 @@ class RytmApplication : Application() {
     val financeSyncRepository: FinanceSyncRepository by lazy { FinanceSyncRepository(database, FirebaseFirestore.getInstance()) }
     val shiftsSyncRepository: ShiftsSyncRepository by lazy { ShiftsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val categoriesSyncRepository: CategoriesSyncRepository by lazy { CategoriesSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance()) }
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }

@@ -40,6 +40,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.SyncProblem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -95,6 +98,7 @@ import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.data.TransactionSyncState
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmInteraction
@@ -244,6 +248,7 @@ fun FinanceScreen(
                         onDelete = { viewModel.deleteTransaction(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
                         onToggleSelection = { viewModel.toggleTransactionSelection(tx.id) },
+                        syncState = viewModel.transactionSyncStates[tx.id],
                     )
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
@@ -498,7 +503,16 @@ private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int, onBulkEdit: ()
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         if (vm.selectedTransactionIds.isEmpty()) {
             Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(horizontalAlignment = Alignment.End) {
+                Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val errors = vm.transactionSyncStates.values.count { it == TransactionSyncState.ERROR }
+                val status = when {
+                    errors > 0 -> stringResource(R.string.sync_operations_error, errors)
+                    vm.transactionSyncStates.isNotEmpty() -> stringResource(R.string.sync_operations_pending, vm.transactionSyncStates.size)
+                    else -> stringResource(R.string.sync_operations_synced)
+                }
+                Text(status, style = MaterialTheme.typography.labelSmall, color = if (errors > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         } else {
             Text(pluralStringResource(R.plurals.transaction_selected_count, vm.selectedTransactionIds.size, vm.selectedTransactionIds.size), fontWeight = FontWeight.Bold)
             Row {
@@ -618,6 +632,7 @@ internal fun TransactionRow(
     onDelete: () -> Unit,
     onClick: () -> Unit,
     onToggleSelection: () -> Unit,
+    syncState: TransactionSyncState? = null,
 ) {
     // confirmValueChange is deprecated (in favor of dynamic anchors) as of
     // this Compose BOM but still functional — not worth the bigger
@@ -715,6 +730,13 @@ internal fun TransactionRow(
                     }
                 }
                 Spacer(Modifier.padding(4.dp))
+                val (syncIcon, syncDescription, syncColor) = when (syncState) {
+                    TransactionSyncState.PENDING -> Triple(Icons.Filled.CloudUpload, stringResource(R.string.sync_operation_pending), MaterialTheme.colorScheme.primary)
+                    TransactionSyncState.ERROR -> Triple(Icons.Filled.SyncProblem, stringResource(R.string.sync_operation_error), MaterialTheme.colorScheme.error)
+                    null -> Triple(Icons.Filled.CloudDone, stringResource(R.string.sync_operation_synced), MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(syncIcon, contentDescription = syncDescription, tint = syncColor, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.padding(3.dp))
                 val (amountText, amountColor) = when (tx.type) {
                     TxType.INCOME -> maskedAmount(formatSignedMoneyWithCurrency(tx.amount, tx.currency, showPlus = true)) to GreenDarkLike
                     TxType.EXPENSE -> maskedAmount(formatSignedMoneyWithCurrency(-tx.amount, tx.currency)) to RedLike

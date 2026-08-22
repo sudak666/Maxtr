@@ -457,4 +457,10 @@
     <string name="settings_backup_create">Створити</string>
     <string name="settings_backup_exported">Резервну копію збережено</string>
     <string name="settings_backup_export_failed">Не вдалося створити резервну копію</string>
+    <string name="sync_operation_pending">Очікує синхронізації</string>
+    <string name="sync_operation_synced">Синхронізовано</string>
+    <string name="sync_operation_error">Помилка синхронізації</string>
+    <string name="sync_operations_pending">Очікують: %1$d</string>
+    <string name="sync_operations_error">Помилки: %1$d</string>
+    <string name="sync_operations_synced">Усе синхронізовано</string>
 </resources>
