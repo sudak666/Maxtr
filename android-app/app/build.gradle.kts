@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 // Release signing reads from a local, gitignored keystore.properties (see
 // .gitignore) so the real keystore path/passwords never touch source
 // control or an agent's own context — copy keystore.properties.example to

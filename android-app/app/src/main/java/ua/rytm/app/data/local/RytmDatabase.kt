@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class, AutoRuleEntity::class,
     ],
     version = 15,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class RytmDatabase : RoomDatabase() {
     abstract fun walletDao(): WalletDao

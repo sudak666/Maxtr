@@ -6,7 +6,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 
 - [ ] Remove the plaintext Monobank token from Firestore; store it only with Android Keystore-backed encryption, migrate/delete legacy remote tokens, and test reconnect/sync/disconnect.
 - [ ] Add Firebase App Check with Play Integrity for release and debug provider support for local/emulator testing; document staged enforcement.
-- [ ] Replace `fallbackToDestructiveMigration` with explicit, tested Room migrations.
+- [ ] Replace `fallbackToDestructiveMigration` with explicit, tested Room migrations. (Destructive fallback removed; schema v15 export baseline added, future migration-test harness pending.)
 - [x] Disable Android backup for financial, authentication, PIN and integration data.
 - [ ] Add Firebase-emulator E2E coverage for two-account realtime shared-profile sync, viewer denial, editor writes, reconnect and conflicts.
 - [ ] Verify the final release on a real Samsung A51 before production rollout.
