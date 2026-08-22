@@ -27,7 +27,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 - [ ] Complete pixel-level PWA parity for every screen, sheet, state and theme; retain the restored Tools card/category/converter/chart design.
 - [ ] Add bulk edit, undo, encrypted backup/restore and reliable import/export recovery.
 - [ ] Add app links, launcher shortcuts, share-to-Rytm and useful widgets where they reduce entry friction.
-- [ ] Automate release versioning and signed AAB verification.
+- [x] Automate release versioning and signed AAB verification (`version.properties` is the single version source; `:app:verifyReleaseBundle` builds the AAB, rejects missing signing/version regressions, verifies every payload entry and matches the signer certificate to the configured upload key).
 
 ## P3 — UX, accessibility and maintainability
 

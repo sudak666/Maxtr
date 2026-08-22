@@ -1,4 +1,6 @@
 import java.util.Properties
+import java.security.KeyStore
+import java.util.jar.JarFile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -24,6 +26,13 @@ val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
+val versionProperties = Properties().apply {
+    rootProject.file("version.properties").inputStream().use { load(it) }
+}
+val releaseVersionCode = providers.gradleProperty("versionCode").orNull?.toIntOrNull()
+    ?: versionProperties.getProperty("VERSION_CODE").toInt()
+val releaseVersionName = providers.gradleProperty("versionName").orNull
+    ?: versionProperties.getProperty("VERSION_NAME")
 
 android {
     namespace = "ua.rytm.app"
@@ -37,8 +46,8 @@ android {
         // Bumped past the TWA build's own versionCode 1 (2026-07-29 Closed
         // testing release) — Play rejects an upload whose versionCode
         // doesn't strictly increase over the package's last one, TWA or not.
-        versionCode = 2
-        versionName = "1.0"
+        versionCode = releaseVersionCode
+        versionName = releaseVersionName
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
         // with `./gradlew assembleDebug -PuseFirebaseEmulator=true`. See
@@ -93,6 +102,42 @@ android {
 
     // In-app locale switching needs both bundled translations available offline.
     bundle.language.enableSplit = false
+}
+
+tasks.register("verifyReleaseBundle") {
+    group = "verification"
+    description = "Builds the release AAB and verifies its upload-key signature."
+    dependsOn("bundleRelease")
+    val bundle = layout.buildDirectory.file("outputs/bundle/release/app-release.aab")
+    doFirst {
+        check(keystorePropertiesFile.exists()) { "keystore.properties is required for a signed release bundle" }
+        check(releaseVersionCode > 1) { "Release versionCode must exceed the published TWA versionCode 1" }
+        check(releaseVersionName.isNotBlank()) { "Release versionName must not be blank" }
+    }
+    doLast {
+        val signerCertificates = mutableSetOf<String>()
+        JarFile(bundle.get().asFile, true).use { jar ->
+            val unsignedEntries = jar.entries().asSequence()
+                .filterNot { it.isDirectory || it.name.startsWith("META-INF/") }
+                .mapNotNull { entry ->
+                    jar.getInputStream(entry).use { it.readBytes() }
+                    val certificates = entry.certificates.orEmpty()
+                    certificates.forEach { signerCertificates += it.encoded.joinToString("") { byte -> "%02x".format(byte) } }
+                    entry.name.takeIf { certificates.isEmpty() }
+                }
+                .toList()
+            check(unsignedEntries.isEmpty()) { "Unsigned AAB entries: ${unsignedEntries.take(5)}" }
+        }
+        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+            rootProject.file(keystoreProperties.getProperty("storeFile")).inputStream().use {
+                load(it, keystoreProperties.getProperty("storePassword").toCharArray())
+            }
+        }
+        val uploadCertificate = keyStore.getCertificate(keystoreProperties.getProperty("keyAlias"))
+            ?: error("Upload-key certificate not found")
+        val encodedUploadCertificate = uploadCertificate.encoded.joinToString("") { "%02x".format(it) }
+        check(encodedUploadCertificate in signerCertificates) { "AAB signer does not match the configured upload key" }
+    }
 }
 
 dependencies {
