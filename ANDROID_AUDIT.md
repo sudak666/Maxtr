@@ -8,7 +8,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 - [ ] Add Firebase App Check with Play Integrity for release and debug provider support for local/emulator testing; document staged enforcement. (Release/debug providers are wired; emulator debug token is registered and a live token exchange passes. Play Integrity provider registration, metrics review and staged service enforcement still require Firebase Console verification.)
 - [ ] Replace `fallbackToDestructiveMigration` with explicit, tested Room migrations. (Destructive fallback removed; schema v15 export baseline added, future migration-test harness pending.)
 - [x] Disable Android backup for financial, authentication, PIN and integration data.
-- [ ] Add Firebase-emulator E2E coverage for two-account realtime shared-profile sync, viewer denial, editor writes, reconnect and conflicts.
+- [x] Add Firebase-emulator E2E coverage for two-account realtime shared-profile sync, viewer denial, editor writes, reconnect and conflicts (`SharedProfileFirebaseE2eTest`: two anonymous Auth clients, server reads, snapshot listener, role transition, network disable/enable and concurrent Firestore transactions against deployed rules).
 - [ ] Verify the final release on a real Samsung A51 before production rollout.
 
 ## P1 — security, reliability and scale
