@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -69,6 +70,7 @@ import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.LocalRealtimeState
 import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
@@ -179,7 +181,12 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController) 
     val currentDestination = backStackEntry?.destination
     val shape = RoundedCornerShape(RytmDimens.BottomNavRadius)
 
-    Box(Modifier.fillMaxWidth().padding(horizontal = RytmDimens.BottomNavHorizontal, vertical = RytmDimens.BottomNavBottom)) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = RytmDimens.BottomNavHorizontal, vertical = RytmDimens.BottomNavBottom),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -328,6 +335,8 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
                     translationY = labelOffsetDp.value * density
                 }
             },
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
         )
     }
 }

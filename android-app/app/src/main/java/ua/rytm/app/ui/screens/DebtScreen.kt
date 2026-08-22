@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -298,11 +299,11 @@ private fun ProgressBarSection(cd: Debt) {
 @Composable
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount), Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid), Modifier.weight(1f))
-        StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments), Modifier.weight(1f))
-        if (due != null) StatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date), Modifier.weight(1f))
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        item { StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
+        item { StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
+        item { StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
+        if (due != null) item { StatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date)) }
     }
 }
 
@@ -323,8 +324,8 @@ private fun dueChipInfo(cd: Debt): String? {
 // Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
 // purple-gradient icon badge, not a plain Card.
 @Composable
-private fun StatChip(icon: ImageVector, value: String, label: String, modifier: Modifier) {
-    Card(modifier, shape = RoundedCornerShape(999.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+private fun StatChip(icon: ImageVector, value: String, label: String) {
+    Card(Modifier.widthIn(min = 150.dp), shape = RoundedCornerShape(999.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
@@ -336,8 +337,8 @@ private fun StatChip(icon: ImageVector, value: String, label: String, modifier: 
                 Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
             }
             Column(Modifier.padding(start = 9.dp)) {
-                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, maxLines = 1)
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
     }

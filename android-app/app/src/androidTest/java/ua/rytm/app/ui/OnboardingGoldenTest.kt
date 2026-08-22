@@ -26,9 +26,9 @@ import ua.rytm.app.ui.theme.RytmTheme
 class OnboardingGoldenTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "becc08b6449c29ca3203f3a9b7e8d0e312a4ec4fc2e5e5d2813929f9506643e9")
+    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "b54d8ec6273c5b350a0453bfe5066a33b19c070397337e7a3e41dc37b986c0f7")
 
-    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "2bea06caef7cb58837bb217759c4f1bbdd30f919624655ab9fdee327674a7087")
+    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "a80e1de629b4dd1e7951f131c430385c0fe8a6117a8b991433293d4a99f723bd")
 
     private fun verifyGolden(language: String, dark: Boolean, expected: String) {
         val base = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
