@@ -401,4 +401,13 @@
     <string name="transaction_added">Entry added</string>
     <string name="notifications_load_failed">Could not load notification settings</string>
     <string name="notifications_save_failed">Could not save notification settings</string>
+    <string name="settings_csv_more_errors">More errors: %1$d</string>
+    <string name="settings_csv_error_row">Row %1$d: %2$s</string>
+    <string name="settings_csv_error_columns">not enough columns</string>
+    <string name="settings_csv_error_type">unknown type: %1$s</string>
+    <string name="settings_csv_error_wallet">unknown wallet: %1$s</string>
+    <string name="settings_csv_error_amount">invalid amount</string>
+    <string name="settings_csv_error_date">invalid date</string>
+    <string name="settings_csv_error_same_wallets">transfer wallets must differ</string>
+    <string name="settings_csv_error_transfer_amount">invalid transfer amount</string>
 </resources>

@@ -403,4 +403,13 @@
     <string name="transaction_added">Запис додано</string>
     <string name="notifications_load_failed">Не вдалося завантажити налаштування сповіщень</string>
     <string name="notifications_save_failed">Не вдалося зберегти налаштування сповіщень</string>
+    <string name="settings_csv_more_errors">Ще помилок: %1$d</string>
+    <string name="settings_csv_error_row">Рядок %1$d: %2$s</string>
+    <string name="settings_csv_error_columns">недостатньо колонок</string>
+    <string name="settings_csv_error_type">невідомий тип: %1$s</string>
+    <string name="settings_csv_error_wallet">невідомий гаманець: %1$s</string>
+    <string name="settings_csv_error_amount">невірна сума</string>
+    <string name="settings_csv_error_date">невірна дата</string>
+    <string name="settings_csv_error_same_wallets">гаманці переказу мають відрізнятися</string>
+    <string name="settings_csv_error_transfer_amount">невірна сума переказу</string>
 </resources>

@@ -95,6 +95,8 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.CsvImportPreview
+import ua.rytm.app.data.CsvImportError
+import ua.rytm.app.data.CsvImportErrorReason
 import ua.rytm.app.data.TransactionsCsvRepository
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
@@ -232,7 +234,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         if (uri != null) scope.launch {
             csvBusy = true
             try {
-                val csv = csvRepository.export()
+                val csv = csvRepository.export(language)
                 context.contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
                     ?: error(csvExportFailedMessage)
                 pendingMessage = csvExportedMessage
@@ -732,10 +734,15 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         AlertDialog(
             onDismissRequest = { if (!csvBusy) csvImportPreview = null },
             title = { Text(stringResource(R.string.settings_csv_import)) },
-            text = { Text(
-                if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount)
-                else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount),
-            ) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
+                    preview.errors.take(10).forEach { error ->
+                        Text(csvImportErrorText(error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    }
+                    if (preview.errors.size > 10) Text(stringResource(R.string.settings_csv_more_errors, preview.errors.size - 10), style = MaterialTheme.typography.bodySmall)
+                }
+            },
             confirmButton = {
                 TextButton(enabled = !csvBusy && uid != null, onClick = {
                     val accountUid = activeProfileOwnerUid ?: uid ?: return@TextButton
@@ -895,6 +902,20 @@ private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subti
             Text(it, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = color)
         }
     }
+}
+
+@Composable
+private fun csvImportErrorText(error: CsvImportError): String {
+    val reason = when (error.reason) {
+        CsvImportErrorReason.TOO_FEW_COLUMNS -> stringResource(R.string.settings_csv_error_columns)
+        CsvImportErrorReason.UNKNOWN_TYPE -> stringResource(R.string.settings_csv_error_type, error.detail.orEmpty())
+        CsvImportErrorReason.UNKNOWN_WALLET -> stringResource(R.string.settings_csv_error_wallet, error.detail.orEmpty())
+        CsvImportErrorReason.INVALID_AMOUNT -> stringResource(R.string.settings_csv_error_amount)
+        CsvImportErrorReason.INVALID_DATE -> stringResource(R.string.settings_csv_error_date)
+        CsvImportErrorReason.SAME_WALLETS -> stringResource(R.string.settings_csv_error_same_wallets)
+        CsvImportErrorReason.INVALID_TRANSFER_AMOUNT -> stringResource(R.string.settings_csv_error_transfer_amount)
+    }
+    return stringResource(R.string.settings_csv_error_row, error.row, reason)
 }
 
 @Composable

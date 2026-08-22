@@ -7,23 +7,34 @@ import ua.rytm.app.data.local.TransactionEntity
 import java.time.LocalDate
 import java.util.UUID
 
-data class CsvImportError(val row: Int, val reason: String)
+enum class CsvImportErrorReason { TOO_FEW_COLUMNS, UNKNOWN_TYPE, UNKNOWN_WALLET, INVALID_AMOUNT, INVALID_DATE, SAME_WALLETS, INVALID_TRANSFER_AMOUNT }
+data class CsvImportError(val row: Int, val reason: CsvImportErrorReason, val detail: String? = null)
 data class CsvImportPreview(val transactions: List<TransactionEntity>, val errors: List<CsvImportError>)
+
+internal data class CsvDialect(val header: List<String>, val income: String, val expense: String, val transfer: String)
+
+internal fun csvDialect(language: String) = if (language == "en") CsvDialect(
+    listOf("Date", "Type", "Category", "Subcategory", "Wallet", "Amount", "Currency", "To wallet", "Transfer amount", "Transfer currency", "Comment"),
+    "Income", "Expense", "Transfer",
+) else CsvDialect(
+    listOf("Дата", "Тип", "Категорія", "Підкатегорія", "Гаманець", "Сума", "Валюта", "Куди", "Сума переказу", "Валюта переказу", "Коментар"),
+    "Дохід", "Витрата", "Переказ",
+)
 
 /** The Android counterpart of analytics-csv.js's deliberately small CSV dialect. */
 class TransactionsCsvRepository(
     private val db: RytmDatabase,
     private val firestore: FirebaseFirestore,
 ) {
-    suspend fun export(): String {
+    suspend fun export(language: String): String {
         val wallets = db.walletDao().getAllOnce().associateBy { it.id }
         val transactions = db.transactionDao().getAllOnce()
         require(transactions.isNotEmpty()) { "Немає транзакцій для експорту" }
-        val header = listOf("Дата", "Тип", "Категорія", "Підкатегорія", "Гаманець", "Сума", "Валюта", "Куди", "Сума переказу", "Валюта переказу", "Коментар")
+        val dialect = csvDialect(language)
         val rows = transactions.sortedBy { it.date }.map { tx ->
             listOf(
                 tx.date,
-                when (tx.type.uppercase()) { "INCOME" -> "Дохід"; "EXPENSE" -> "Витрата"; else -> "Переказ" },
+                when (tx.type.uppercase()) { "INCOME" -> dialect.income; "EXPENSE" -> dialect.expense; else -> dialect.transfer },
                 tx.category,
                 tx.subcategory.orEmpty(),
                 wallets[tx.walletId]?.name.orEmpty(),
@@ -35,7 +46,7 @@ class TransactionsCsvRepository(
                 tx.comment.orEmpty(),
             )
         }
-        return "\uFEFF" + (listOf(header) + rows).joinToString("\r\n") { row -> row.joinToString(";") { csvEscape(it) } }
+        return "\uFEFF" + (listOf(dialect.header) + rows).joinToString("\r\n") { row -> row.joinToString(";") { csvEscape(it) } }
     }
 
     suspend fun parse(text: String): CsvImportPreview {
@@ -48,25 +59,25 @@ class TransactionsCsvRepository(
         val errors = mutableListOf<CsvImportError>()
         rows.drop(1).forEachIndexed { index, row ->
             val rowNumber = index + 2
-            fun reject(reason: String) { errors += CsvImportError(rowNumber, reason) }
-            if (row.size < 11) { reject("недостатньо колонок"); return@forEachIndexed }
+            fun reject(reason: CsvImportErrorReason, detail: String? = null) { errors += CsvImportError(rowNumber, reason, detail) }
+            if (row.size < 11) { reject(CsvImportErrorReason.TOO_FEW_COLUMNS); return@forEachIndexed }
             val type = when (row[1].trim().lowercase()) {
                 "дохід", "income" -> "INCOME"
                 "витрата", "expense" -> "EXPENSE"
                 "переказ", "transfer" -> "TRANSFER"
-                else -> { reject("невідомий тип: ${row[1]}"); return@forEachIndexed }
+                else -> { reject(CsvImportErrorReason.UNKNOWN_TYPE, row[1]); return@forEachIndexed }
             }
             val wallet = walletByName[row[4].trim()]
-            if (wallet == null) { reject("невідомий гаманець: ${row[4]}"); return@forEachIndexed }
+            if (wallet == null) { reject(CsvImportErrorReason.UNKNOWN_WALLET, row[4]); return@forEachIndexed }
             val amount = row[5].csvNumber()
-            if (amount == null || amount <= 0.0) { reject("невірна сума"); return@forEachIndexed }
+            if (amount == null || amount <= 0.0) { reject(CsvImportErrorReason.INVALID_AMOUNT); return@forEachIndexed }
             val date = runCatching { LocalDate.parse(row[0].trim()) }.getOrNull()
-            if (date == null) { reject("невірна дата"); return@forEachIndexed }
+            if (date == null) { reject(CsvImportErrorReason.INVALID_DATE); return@forEachIndexed }
             val targetWallet = if (type == "TRANSFER") walletByName[row[7].trim()] else null
-            if (type == "TRANSFER" && targetWallet == null) { reject("невідомий гаманець: ${row[7]}"); return@forEachIndexed }
-            if (targetWallet?.id == wallet.id) { reject("гаманці переказу мають відрізнятися"); return@forEachIndexed }
+            if (type == "TRANSFER" && targetWallet == null) { reject(CsvImportErrorReason.UNKNOWN_WALLET, row[7]); return@forEachIndexed }
+            if (targetWallet?.id == wallet.id) { reject(CsvImportErrorReason.SAME_WALLETS); return@forEachIndexed }
             val targetAmount = if (type == "TRANSFER") row[8].csvNumber() else null
-            if (type == "TRANSFER" && (targetAmount == null || targetAmount <= 0.0)) { reject("невірна сума переказу"); return@forEachIndexed }
+            if (type == "TRANSFER" && (targetAmount == null || targetAmount <= 0.0)) { reject(CsvImportErrorReason.INVALID_TRANSFER_AMOUNT); return@forEachIndexed }
             val now = System.currentTimeMillis()
             valid += TransactionEntity(
                 id = "tx_${now}_${UUID.randomUUID()}", createdAt = now + index, type = type,
