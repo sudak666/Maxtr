@@ -41,6 +41,8 @@ class MonobankRepository(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val tokenStore: MonobankTokenStore,
+    private val requestOverride: (suspend (String, Map<String, String>, String) -> Any)? = null,
+    private val requestGapMs: Long = REQUEST_GAP_MS,
 ) {
     private val requestMutex = Mutex()
     private var lastRequestAt = 0L
@@ -179,7 +181,8 @@ class MonobankRepository(
     }
 
     private suspend fun request(action: String, params: Map<String, String>, token: String): Any = requestMutex.withLock {
-        val waitMs = REQUEST_GAP_MS - (System.currentTimeMillis() - lastRequestAt)
+        requestOverride?.let { return@withLock it(action, params, token) }
+        val waitMs = requestGapMs - (System.currentTimeMillis() - lastRequestAt)
         if (waitMs > 0) delay(waitMs)
         try {
             val firebaseToken = auth.currentUser?.getIdToken(false)?.await()?.token ?: error("Потрібно увійти в акаунт")
