@@ -82,6 +82,7 @@ import ua.rytm.app.ui.screens.finance.FinanceScreen
 import ua.rytm.app.ui.screens.shifts.ShiftsScreen
 import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmInteraction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -225,7 +226,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val pressedScale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (pressed && !reducedMotion) 0.88f else 1f,
+        targetValue = if (pressed && !reducedMotion) RytmInteraction.TabPressedScale else 1f,
         animationSpec = motionAwareSpec(tween(durationMillis = 180)),
         label = "tabPressedScale",
     )

@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -61,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -83,6 +88,8 @@ import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.theme.RytmInteraction
+import ua.rytm.app.ui.motionAwareSpec
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -378,15 +385,23 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.forEach { action ->
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(
+                targetValue = if (pressed) RytmInteraction.ButtonPressedScale else 1f,
+                animationSpec = motionAwareSpec(tween(100)),
+                label = "quick-action-press",
+            )
             // Matches the PWA's .quick-action: a plain neutral card with a
             // circular tinted icon badge inside (.quick-action-icon), not a
             // whole-card color fill — see ANDROID_MIGRATION.md visual-parity note.
             Card(
                 onClick = action.onClick,
-                modifier = Modifier.weight(1f).heightIn(min = RytmDimens.QuickActionMinHeight),
+                modifier = Modifier.weight(1f).heightIn(min = RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },
                 shape = RoundedCornerShape(RytmRadii.Row),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                interactionSource = interactionSource,
             ) {
                 Column(
                     Modifier.padding(vertical = 12.dp, horizontal = 4.dp).fillMaxWidth(),

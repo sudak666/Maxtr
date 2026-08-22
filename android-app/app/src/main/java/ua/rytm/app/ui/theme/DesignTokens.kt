@@ -43,3 +43,17 @@ object RytmElevation {
     val LockLogo = 10.dp
     val EmptyIcon = 8.dp
 }
+
+/** Exact CSS interaction-state values used by custom Compose controls. */
+object RytmInteraction {
+    const val TabPressedScale = 0.88f
+    const val ButtonPressedScale = 0.97f
+    const val CardPressedScale = 0.98f
+    const val IconPressedScale = 0.92f
+    const val DisabledAlpha = 0.4f
+    const val ReorderDisabledAlpha = 0.3f
+    const val FocusGlowAlpha = 0.22f
+    val FocusOutline = 2.dp
+    val FocusOffset = 3.dp
+    val FocusGlow = 4.dp
+}
