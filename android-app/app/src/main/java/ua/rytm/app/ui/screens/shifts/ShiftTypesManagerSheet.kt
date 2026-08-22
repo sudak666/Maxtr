@@ -36,6 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.ShiftsRepository
 
@@ -58,11 +60,11 @@ fun ShiftTypesManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            viewModel.errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            Text("Типи змін", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+            Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.shiftTypes.isEmpty()) {
-                Text("Немає типів змін", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.shiftTypes.forEach { type ->
@@ -78,9 +80,10 @@ fun ShiftTypesManagerSheet(
                 )
             }
 
-            TextButton(onClick = viewModel::addShiftType, modifier = Modifier.fillMaxWidth()) {
+            val newShiftName = stringResource(R.string.shift_type_new_default)
+            TextButton(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Add, contentDescription = null)
-                Text("Додати тип зміни")
+                Text(stringResource(R.string.shift_type_add))
             }
         }
     }
@@ -88,10 +91,10 @@ fun ShiftTypesManagerSheet(
     viewModel.pendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити тип зміни") },
-            text = { Text("Видалити цей тип зміни? Він буде знятий з усіх днів календаря.") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.shift_type_delete_title)) },
+            text = { Text(stringResource(R.string.shift_type_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -107,7 +110,7 @@ private fun ShiftTypeRow(
     onIsOffChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val summary = if (type.isOff) "Вихідний" else "${type.amount.toInt()} грн · ${type.hours} год"
+    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, type.amount.toInt(), type.hours)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -117,9 +120,9 @@ private fun ShiftTypeRow(
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
+                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -132,7 +135,7 @@ private fun ShiftTypeRow(
                 onValueChange = { nameText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Назва") },
+                label = { Text(stringResource(R.string.field_name)) },
             )
             androidx.compose.runtime.LaunchedEffect(nameText) {
                 kotlinx.coroutines.delay(400)
@@ -145,7 +148,7 @@ private fun ShiftTypeRow(
                     onValueChange = { amountText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    label = { Text("Оплата") },
+                    label = { Text(stringResource(R.string.shift_pay)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(amountText) {
                     kotlinx.coroutines.delay(400)
@@ -158,7 +161,7 @@ private fun ShiftTypeRow(
                     onValueChange = { hoursText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    label = { Text("Години") },
+                    label = { Text(stringResource(R.string.shift_hours)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(hoursText) {
                     kotlinx.coroutines.delay(400)
@@ -169,7 +172,7 @@ private fun ShiftTypeRow(
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = type.isOff, onCheckedChange = onIsOffChange)
-                Text("Вихідний (без оплати)", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.shift_day_off_unpaid), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
