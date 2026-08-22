@@ -96,6 +96,10 @@
     <string name="transaction_wallet_same">Оберіть інший гаманець для переказу.</string><string name="transaction_conversion_hint">Орієнтовно за поточним курсом: %1$s → %2$s</string>
     <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
     <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
+    <string name="validation_invalid_amount">Введіть коректну суму</string><string name="validation_amount_too_large">Сума завелика</string>
+    <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
+    <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
+    <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

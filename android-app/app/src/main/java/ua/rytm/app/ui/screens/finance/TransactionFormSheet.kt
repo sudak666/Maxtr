@@ -216,8 +216,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            vm.formError?.let { error ->
-                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            vm.formErrorRes?.let { errorRes ->
+                Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
             Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth()) {

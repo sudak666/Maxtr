@@ -20,6 +20,8 @@ import ua.rytm.app.data.subKey
 import ua.rytm.app.data.local.AutoRuleEntity
 import java.time.LocalDate
 import java.time.YearMonth
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
 
@@ -133,7 +135,8 @@ class FinanceViewModel(
         private set
     var formSelectedTagIds by mutableStateOf<List<String>>(emptyList())
         private set
-    var formError by mutableStateOf<String?>(null)
+    @get:StringRes
+    var formErrorRes by mutableStateOf<Int?>(null)
         private set
     var isSaving by mutableStateOf(false)
         private set
@@ -157,7 +160,7 @@ class FinanceViewModel(
         formDate = LocalDate.now().toString()
         formComment = ""
         formSelectedTagIds = emptyList()
-        formError = null
+        formErrorRes = null
         sheetVisible = true
     }
 
@@ -172,7 +175,7 @@ class FinanceViewModel(
         formDate = tx.date
         formComment = tx.comment.orEmpty()
         formSelectedTagIds = tx.tags
-        formError = null
+        formErrorRes = null
         sheetVisible = true
     }
 
@@ -243,7 +246,16 @@ class FinanceViewModel(
             comment = formComment.trim(),
         )
         val error = validateTransactionDraft(draft, isTransfer)
-        if (error != null) { formError = error; return }
+        if (error != null) { formErrorRes = when (error) {
+            TxValidationError.INVALID_AMOUNT -> R.string.validation_invalid_amount
+            TxValidationError.AMOUNT_TOO_LARGE -> R.string.validation_amount_too_large
+            TxValidationError.DATE_REQUIRED -> R.string.validation_date_required
+            TxValidationError.INVALID_DATE -> R.string.validation_invalid_date
+            TxValidationError.WALLET_REQUIRED -> R.string.validation_wallet_required
+            TxValidationError.COMMENT_TOO_LONG -> R.string.validation_comment_too_long
+            TxValidationError.CATEGORY_TOO_LONG -> R.string.validation_category_too_long
+            TxValidationError.SAME_WALLETS -> R.string.validation_same_wallets
+        }; return }
 
         val srcCur = formWalletCurrency
         var targetAmount: Double? = null
@@ -291,7 +303,7 @@ class FinanceViewModel(
                 }
                 sheetVisible = false
             }.onFailure {
-                formError = "Не вдалося зберегти операцію: ${it.localizedMessage.orEmpty()}"
+                formErrorRes = R.string.transaction_save_failed
             }
             isSaving = false
         }
