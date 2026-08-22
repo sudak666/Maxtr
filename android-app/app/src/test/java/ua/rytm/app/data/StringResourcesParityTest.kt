@@ -19,6 +19,20 @@ class StringResourcesParityTest {
         }
     }
 
+    private fun arrays(path: String): Map<String, List<String>> {
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File(path))
+        val nodes = document.getElementsByTagName("string-array")
+        return buildMap {
+            repeat(nodes.length) { index ->
+                val node = nodes.item(index)
+                val items = node.childNodes.let { children ->
+                    (0 until children.length).mapNotNull { childIndex -> children.item(childIndex).takeIf { it.nodeName == "item" }?.textContent }
+                }
+                put(node.attributes.getNamedItem("name").nodeValue, items)
+            }
+        }
+    }
+
     @Test
     fun ukrainianAndEnglishResourcesHaveExactKeyParityAndValidText() {
         val uk = strings("src/main/res/values/strings.xml")
@@ -28,6 +42,14 @@ class StringResourcesParityTest {
         (uk.values + en.values).forEach { value ->
             assertFalse("Replacement character found in resource: $value", '\uFFFD' in value)
             assertFalse("Empty localized resource", value.isBlank())
+        }
+        val ukArrays = arrays("src/main/res/values/strings.xml")
+        val enArrays = arrays("src/main/res/values-en/strings.xml")
+        assertEquals(ukArrays.keys, enArrays.keys)
+        ukArrays.forEach { (key, items) -> assertEquals("Localized array size differs: $key", items.size, enArrays.getValue(key).size) }
+        (ukArrays.values.flatten() + enArrays.values.flatten()).forEach { value ->
+            assertFalse("Replacement character found in array resource: $value", '\uFFFD' in value)
+            assertFalse("Empty localized array item", value.isBlank())
         }
     }
 }
