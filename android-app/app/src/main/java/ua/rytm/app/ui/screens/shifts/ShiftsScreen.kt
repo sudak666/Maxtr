@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -88,6 +89,7 @@ import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
+import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -252,7 +254,8 @@ internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -
         Modifier
             .fillMaxWidth()
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
-            .semantics(mergeDescendants = true) {},
+            .semantics(mergeDescendants = true) {}
+            .heightIn(min = RytmDimens.TouchTarget),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(checked = checked, onCheckedChange = null)

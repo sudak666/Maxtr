@@ -412,11 +412,12 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
 @Composable
 internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, content: @Composable () -> Unit) {
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
+    var deleteCommitted by remember { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
+                if (!deleteCommitted) { deleteCommitted = true; onDelete() }
                 true
             } else false
         },

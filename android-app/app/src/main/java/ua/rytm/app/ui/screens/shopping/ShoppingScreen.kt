@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,6 +46,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +69,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.theme.RytmDimens
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -189,8 +195,12 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
 @Composable
 internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
+    var deleteCommitted by remember(item.id) { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { swipeThresholdPx }, confirmValueChange = { value ->
-        if (canEdit && value == SwipeToDismissBoxValue.EndToStart) { onDelete(); true } else false
+        if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
+            if (!deleteCommitted) { deleteCommitted = true; onDelete() }
+            true
+        } else false
     })
     SwipeToDismissBox(
         state = dismissState,
@@ -213,6 +223,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                 .fillMaxWidth()
                 .toggleable(value = item.done, enabled = canEdit, role = Role.Checkbox, onValueChange = onToggle)
                 .semantics(mergeDescendants = true) {}
+                .heightIn(min = RytmDimens.TouchTarget)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
