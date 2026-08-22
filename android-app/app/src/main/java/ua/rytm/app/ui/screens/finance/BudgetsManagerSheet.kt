@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.BudgetsSyncRepository
 
 // Mirrors js/settings-managers.js's budgets-modal — see BudgetsManagerViewModel's
 // doc comment for scope (expense categories only).
@@ -37,14 +38,24 @@ import ua.rytm.app.data.FinanceRepository
 @Composable
 fun BudgetsManagerSheet(
     repository: FinanceRepository,
+    syncRepository: BudgetsSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: BudgetsManagerViewModel = viewModel(factory = BudgetsManagerViewModel.factory(repository)),
+    viewModel: BudgetsManagerViewModel = viewModel(key = "budgets-$uid-$profileId", factory = BudgetsManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Бюджети", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            viewModel.errorMessage?.let { message ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                }
+            }
 
             if (viewModel.rows.isEmpty()) {
                 Text("Немає категорій витрат", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

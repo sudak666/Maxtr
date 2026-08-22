@@ -47,9 +47,17 @@ class TransactionsSyncRepository(private val db: RytmDatabase, private val fires
             }
         }
     }
+
+    suspend fun saveTransaction(uid: String, profileId: String, transaction: TransactionEntity) {
+        txCollectionRef(uid, profileId).document(transaction.id).set(transaction.toRemoteMap()).await()
+    }
+
+    suspend fun deleteTransaction(uid: String, profileId: String, id: String) {
+        txCollectionRef(uid, profileId).document(id).delete().await()
+    }
 }
 
-private fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
+internal fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "id" to id,
     "createdAt" to createdAt,
     "type" to type.lowercase(),
@@ -64,6 +72,7 @@ private fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "targetCurrency" to targetCurrency,
     "date" to date,
     "comment" to comment,
+    "monobankId" to monobankId,
 )
 
 private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
@@ -88,5 +97,6 @@ private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
         comment = m["comment"] as? String,
         tags = tags,
         createdAt = (m["createdAt"] as? Number)?.toLong() ?: 0L,
+        monobankId = m["monobankId"] as? String,
     )
 }

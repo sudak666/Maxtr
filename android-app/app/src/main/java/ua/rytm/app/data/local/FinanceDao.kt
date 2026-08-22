@@ -55,6 +55,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions")
     suspend fun getAllOnce(): List<TransactionEntity>
 
+    @Query("SELECT monobankId FROM transactions WHERE monobankId IS NOT NULL")
+    suspend fun getAllMonobankIds(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(transaction: TransactionEntity)
 

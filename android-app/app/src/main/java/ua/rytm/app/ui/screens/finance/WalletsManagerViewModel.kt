@@ -11,15 +11,23 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.FinanceSyncRepository
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 // Mirrors js/settings-managers.js's openWalletsManager()/renderWalletsList()/
 // updateWallet()/addWallet()/deleteWallet()/walletInUse() — see
 // FINANCE_SCREEN_SPEC.md §10 for the exact rules ported here.
-class WalletsManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class WalletsManagerViewModel(
+    private val repository: FinanceRepository,
+    private val syncRepository: FinanceSyncRepository,
+    private val uid: String,
+    private val profileId: String,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { WalletsManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: FinanceSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { WalletsManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -33,6 +41,8 @@ class WalletsManagerViewModel(private val repository: FinanceRepository) : ViewM
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
 
+    private val mutationMutex = Mutex()
+
     init {
         repository.wallets.onEach { wallets = it }.launchIn(viewModelScope)
     }
@@ -40,18 +50,18 @@ class WalletsManagerViewModel(private val repository: FinanceRepository) : ViewM
     fun addWallet() {
         val name = "Новий гаманець"
         val color = PALETTE[wallets.size % PALETTE.size]
-        viewModelScope.launch {
+        mutateAndSync {
             repository.addWallet(Wallet(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = color, currency = "UAH"))
         }
     }
 
     fun renameWallet(wallet: Wallet, newName: String) {
         val name = newName.trim().ifBlank { "Гаманець" }
-        viewModelScope.launch { repository.updateWallet(wallet.copy(name = name)) }
+        mutateAndSync { repository.updateWallet(wallet.copy(name = name)) }
     }
 
     fun changeCurrency(wallet: Wallet, currency: String) {
-        viewModelScope.launch { repository.updateWallet(wallet.copy(currency = currency)) }
+        mutateAndSync { repository.updateWallet(wallet.copy(currency = currency)) }
     }
 
     fun requestDelete(id: String) {
@@ -70,9 +80,24 @@ class WalletsManagerViewModel(private val repository: FinanceRepository) : ViewM
 
     fun confirmDelete() {
         val id = pendingDeleteId ?: return
-        viewModelScope.launch { repository.deleteWallet(id) }
+        mutateAndSync { repository.deleteWallet(id) }
         pendingDeleteId = null
     }
 
     fun cancelDelete() { pendingDeleteId = null }
+
+    private fun mutateAndSync(mutation: suspend () -> Unit) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val before = repository.walletSnapshot()
+                try {
+                    mutation()
+                    syncRepository.saveWalletsSnapshot(uid, profileId)
+                } catch (_: Exception) {
+                    repository.replaceWallets(before)
+                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                }
+            }
+        }
+    }
 }

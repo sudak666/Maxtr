@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.GoalsSyncRepository
 
 // Mirrors js/goals-profile.js's goals-modal — see GoalsManagerViewModel's
 // doc comment. Same collapsed-summary-row-with-pencil-toggle shape as
@@ -49,8 +50,14 @@ import ua.rytm.app.data.FinanceRepository
 @Composable
 fun GoalsManagerSheet(
     repository: FinanceRepository,
+    syncRepository: GoalsSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: GoalsManagerViewModel = viewModel(factory = GoalsManagerViewModel.factory(repository)),
+    viewModel: GoalsManagerViewModel = viewModel(
+        key = "goals-$uid-$profileId",
+        factory = GoalsManagerViewModel.factory(repository, syncRepository, uid, profileId),
+    ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -60,6 +67,14 @@ fun GoalsManagerSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Цілі", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
+            viewModel.errorMessage?.let { message ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                }
+            }
 
             if (viewModel.goals.isEmpty()) {
                 Text("Немає цілей", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -79,7 +94,7 @@ fun GoalsManagerSheet(
                 )
             }
 
-            TextButton(onClick = viewModel::addGoal, modifier = Modifier.fillMaxWidth(), enabled = viewModel.wallets.isNotEmpty()) {
+            TextButton(onClick = viewModel::addGoal, modifier = Modifier.fillMaxWidth(), enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text("Додати ціль")
             }

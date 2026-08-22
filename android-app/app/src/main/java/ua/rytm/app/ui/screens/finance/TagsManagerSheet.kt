@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,14 +34,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.TagsSyncRepository
 
 // Mirrors js/finance.js's tags-modal — see TagsManagerViewModel's doc comment for scope.
 @androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun TagsManagerSheet(
     repository: FinanceRepository,
+    syncRepository: TagsSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: TagsManagerViewModel = viewModel(factory = TagsManagerViewModel.factory(repository)),
+    viewModel: TagsManagerViewModel = viewModel(key = "tags-$uid-$profileId", factory = TagsManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var newName by remember { mutableStateOf("") }
@@ -51,6 +56,13 @@ fun TagsManagerSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Теги", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            viewModel.errorMessage?.let { message ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                }
+            }
 
             if (viewModel.tags.isEmpty()) {
                 Text("Немає тегів", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

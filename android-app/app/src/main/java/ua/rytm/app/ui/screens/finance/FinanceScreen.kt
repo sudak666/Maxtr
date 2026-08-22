@@ -49,6 +49,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,7 +65,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.flowOf
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.data.DEFAULT_PROFILE_ID
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -80,7 +84,7 @@ private val FinanceFabShape = RoundedCornerShape(16.dp)
 @Composable
 fun FinanceScreen(
     viewModel: FinanceViewModel = viewModel(
-        factory = FinanceViewModel.factory((LocalContext.current.applicationContext as RytmApplication).financeRepository),
+        factory = FinanceViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -92,6 +96,14 @@ fun FinanceScreen(
     }
 
     val app = LocalContext.current.applicationContext as RytmApplication
+    val accountUid = FirebaseAuth.getInstance().currentUser?.uid
+    val activeProfileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID))
+        .collectAsState(initial = DEFAULT_PROFILE_ID)
+    val activeProfileOwnerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null))
+        .collectAsState(initial = null)
+    val widgetConfig by app.settingsStore.financeWidgets.collectAsState(
+        initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
+    )
     var toolsSheetOpen by remember { mutableStateOf(false) }
     var budgetsSheetOpen by remember { mutableStateOf(false) }
     var goalsSheetOpen by remember { mutableStateOf(false) }
@@ -142,6 +154,9 @@ fun FinanceScreen(
                     onGoals = { goalsSheetOpen = true },
                 )
             }
+            widgetConfig.order.filter { it in widgetConfig.enabled }.forEach { key ->
+                item(key = "dashboard-widget-$key") { FinanceDashboardWidget(key, app) }
+            }
             item { HistoryHeader(viewModel, resultCount = filtered.size) }
             item { SearchField(viewModel) }
             item { TypeFilterRow(viewModel) }
@@ -183,11 +198,17 @@ fun FinanceScreen(
     if (toolsSheetOpen) {
         ToolsSheet(repository = app.financeRepository, onDismiss = { toolsSheetOpen = false })
     }
-    if (budgetsSheetOpen) {
-        BudgetsManagerSheet(repository = app.financeRepository, onDismiss = { budgetsSheetOpen = false })
+    if (budgetsSheetOpen && accountUid != null) {
+        BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: accountUid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })
     }
-    if (goalsSheetOpen) {
-        GoalsManagerSheet(repository = app.financeRepository, onDismiss = { goalsSheetOpen = false })
+    if (goalsSheetOpen && accountUid != null) {
+        GoalsManagerSheet(
+            repository = app.financeRepository,
+            syncRepository = app.goalsSyncRepository,
+            uid = activeProfileOwnerUid ?: accountUid,
+            profileId = activeProfileId,
+            onDismiss = { goalsSheetOpen = false },
+        )
     }
 }
 

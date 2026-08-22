@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -17,6 +19,8 @@ import ua.rytm.app.data.local.RytmDatabase
 // TxType.name (uppercase), see that entity's own doc comment. Uses
 // SetOptions.merge() touching only `recurring`/`updatedAt`.
 class RecurringSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+
+    private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -35,6 +39,14 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
                 SetOptions.merge(),
             ).await()
         }
+    }
+
+    suspend fun saveRecurringSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val recurring = db.recurringDao().getAllOnce()
+        financeDocRef(uid, profileId).set(
+            mapOf("recurring" to recurring.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
     }
 }
 

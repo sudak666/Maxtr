@@ -11,15 +11,23 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.GoalsSyncRepository
 
 // Mirrors js/goals-profile.js's goals-modal (openGoalsManager()/
 // renderGoalsManagerList()/updateGoal()/confirmAddGoal()/deleteGoal()).
-class GoalsManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class GoalsManagerViewModel(
+    private val repository: FinanceRepository,
+    private val syncRepository: GoalsSyncRepository,
+    private val uid: String,
+    private val profileId: String,
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { GoalsManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: GoalsSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { GoalsManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -33,6 +41,13 @@ class GoalsManagerViewModel(private val repository: FinanceRepository) : ViewMod
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
+    var isSaving by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    private val mutationMutex = Mutex()
+
+    fun consumeError() { errorMessage = null }
 
     init {
         combine(repository.goals, repository.wallets) { goals, wallets -> goals to wallets }
@@ -52,19 +67,19 @@ class GoalsManagerViewModel(private val repository: FinanceRepository) : ViewMod
     }
 
     fun addGoal() {
-        viewModelScope.launch { repository.addGoal() }
+        mutateAndSync { repository.addGoal() }
     }
 
     fun updateWallet(goal: Goal, walletId: String) {
-        viewModelScope.launch { repository.updateGoalWallet(goal, walletId) }
+        mutateAndSync { repository.updateGoalWallet(goal, walletId) }
     }
 
     fun updateTargetAmount(goal: Goal, amount: Double) {
-        viewModelScope.launch { repository.updateGoalTargetAmount(goal, amount) }
+        mutateAndSync { repository.updateGoalTargetAmount(goal, amount) }
     }
 
     fun updateTargetDate(goal: Goal, date: String) {
-        viewModelScope.launch { repository.updateGoalTargetDate(goal, date) }
+        mutateAndSync { repository.updateGoalTargetDate(goal, date) }
     }
 
     fun requestDelete(id: String) {
@@ -73,12 +88,31 @@ class GoalsManagerViewModel(private val repository: FinanceRepository) : ViewMod
 
     fun confirmDelete() {
         val id = pendingDeleteId ?: return
-        viewModelScope.launch { repository.deleteGoal(id) }
+        mutateAndSync { repository.deleteGoal(id) }
         pendingDeleteId = null
         if (expandedId == id) expandedId = null
     }
 
     fun cancelDelete() {
         pendingDeleteId = null
+    }
+
+    private fun mutateAndSync(mutation: suspend () -> Unit) {
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                val before = repository.goalsSnapshot()
+                isSaving = true
+                errorMessage = null
+                try {
+                    mutation()
+                    syncRepository.saveGoalsSnapshot(uid, profileId)
+                } catch (_: Exception) {
+                    repository.replaceGoals(before)
+                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                } finally {
+                    isSaving = false
+                }
+            }
+        }
     }
 }

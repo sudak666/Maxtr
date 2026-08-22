@@ -25,9 +25,11 @@ fun TransactionEntity.toDomain() = Transaction(
     subcategory = subcategory,
     comment = comment,
     tags = if (tags.isBlank()) emptyList() else tags.split(","),
+    createdAt = createdAt,
+    monobankId = monobankId,
 )
 
-fun Transaction.toEntity(createdAt: Long = System.currentTimeMillis()) = TransactionEntity(
+fun Transaction.toEntity(createdAt: Long = this.createdAt) = TransactionEntity(
     id = id,
     type = type.name,
     amount = amount,
@@ -42,6 +44,7 @@ fun Transaction.toEntity(createdAt: Long = System.currentTimeMillis()) = Transac
     comment = comment,
     tags = tags.joinToString(","),
     createdAt = createdAt,
+    monobankId = monobankId,
 )
 
 fun RecurringEntity.toDomain() = Recurring(

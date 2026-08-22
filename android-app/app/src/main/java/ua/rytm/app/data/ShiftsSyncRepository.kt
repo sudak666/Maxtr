@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.AutoFillScheduleEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShiftDayEntity
@@ -17,6 +19,7 @@ import ua.rytm.app.data.local.ShiftTypeEntity
 // user's calendar. Mirrors js/color-picker.js's fbSaveNow() write shape:
 // setDoc(userDoc('shifts'), {data, shiftTypes, autoFillSchedule, updatedAt}).
 class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+    private val saveMutex = Mutex()
 
     private fun shiftsDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("shifts", profileId))
@@ -101,7 +104,55 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             ).await()
         }
     }
+
+    suspend fun saveShiftTypes(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val types = db.shiftTypeDao().getAllOnce().map { it.toRemoteMap() }
+        shiftsDocRef(uid, profileId).set(
+            mapOf("shiftTypes" to types, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
+        ).await()
+    }
+
+    suspend fun saveShiftDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        saveShiftDaysLocked(uid, profileId)
+    }
+
+    suspend fun saveAutoFillSchedule(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val schedule = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(0, false, "", "every", "")
+        shiftsDocRef(uid, profileId).set(
+            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
+    }
+
+    suspend fun saveShiftTypesAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val types = db.shiftTypeDao().getAllOnce().map { it.toRemoteMap() }
+        val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
+        shiftsDocRef(uid, profileId).set(
+            mapOf("shiftTypes" to types, "data" to days, "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
+    }
+
+    suspend fun saveAutoFillAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val schedule = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(0, false, "", "every", "")
+        val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
+        shiftsDocRef(uid, profileId).set(
+            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "data" to days, "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
+    }
+
+    private suspend fun saveShiftDaysLocked(uid: String, profileId: String) {
+        val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
+        shiftsDocRef(uid, profileId).set(
+            mapOf("data" to days, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
+        ).await()
+    }
 }
+
+private fun AutoFillScheduleEntity.toRemoteMap(): Map<String, Any> = mapOf(
+    "enabled" to enabled, "typeId" to typeId, "pattern" to pattern, "anchorDate" to anchorDate,
+)
 
 private fun ShiftTypeEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "id" to id,

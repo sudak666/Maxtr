@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import ua.rytm.app.data.BudgetsSyncRepository
 import ua.rytm.app.data.FinanceRepository
 
 // Mirrors js/settings-managers.js's budgets-modal (openBudgetsManager()/
@@ -18,11 +21,11 @@ import ua.rytm.app.data.FinanceRepository
 // row-with-pencil-toggle-to-expand shape as ShiftTypesManagerViewModel,
 // scoped to EXPENSE categories only (the PWA never lets a budget target an
 // income category).
-class BudgetsManagerViewModel(private val repository: FinanceRepository) : ViewModel() {
+class BudgetsManagerViewModel(private val repository: FinanceRepository, private val syncRepository: BudgetsSyncRepository, private val uid: String, private val profileId: String) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository) = viewModelFactory {
-            initializer { BudgetsManagerViewModel(repository) }
+        fun factory(repository: FinanceRepository, syncRepository: BudgetsSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { BudgetsManagerViewModel(repository, syncRepository, uid, profileId) }
         }
     }
 
@@ -33,6 +36,10 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository) : ViewM
         private set
     var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
         private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    fun consumeError() { errorMessage = null }
+    private val mutationMutex = Mutex()
 
     init {
         combine(repository.categoriesByType, repository.budgets) { byType, budgets ->
@@ -46,6 +53,15 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository) : ViewM
     }
 
     fun updateBudget(category: String, amount: Double) {
-        viewModelScope.launch { repository.setBudget(category, amount) }
+        viewModelScope.launch { mutationMutex.withLock {
+            val before = repository.budgetRollbackSnapshot()
+            try {
+                repository.setBudget(category, amount)
+                syncRepository.saveBudgetsSnapshot(uid, profileId)
+            } catch (_: Exception) {
+                repository.replaceBudgets(before)
+                errorMessage = "Не вдалося зберегти бюджет. Спробуйте ще раз."
+            }
+        } }
     }
 }

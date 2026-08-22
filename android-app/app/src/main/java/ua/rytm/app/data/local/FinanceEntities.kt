@@ -2,6 +2,7 @@ package ua.rytm.app.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.Index
 
 // Room-persisted shape of ua.rytm.app.ui.screens.finance's domain models
 // (ANDROID_MIGRATION.md §2.1). `tags` is a comma-joined string, not a
@@ -17,7 +18,7 @@ data class WalletEntity(
     val icon: String = "card",
 )
 
-@Entity(tableName = "transactions")
+@Entity(tableName = "transactions", indices = [Index(value = ["monobankId"], unique = true)])
 data class TransactionEntity(
     @PrimaryKey val id: String,
     val type: String, // TxType.name
@@ -33,4 +34,5 @@ data class TransactionEntity(
     val comment: String?,
     val tags: String, // comma-joined; "" when empty
     val createdAt: Long,
+    val monobankId: String? = null,
 )

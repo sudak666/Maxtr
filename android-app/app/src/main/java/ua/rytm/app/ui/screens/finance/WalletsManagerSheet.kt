@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.FinanceSyncRepository
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, color swatch
@@ -50,8 +51,14 @@ import ua.rytm.app.data.FinanceRepository
 @Composable
 fun WalletsManagerSheet(
     repository: FinanceRepository,
+    syncRepository: FinanceSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: WalletsManagerViewModel = viewModel(factory = WalletsManagerViewModel.factory(repository)),
+    viewModel: WalletsManagerViewModel = viewModel(
+        key = "wallets-$uid-$profileId",
+        factory = WalletsManagerViewModel.factory(repository, syncRepository, uid, profileId),
+    ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

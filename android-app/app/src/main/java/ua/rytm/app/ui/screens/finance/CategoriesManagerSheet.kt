@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.CategoriesSyncRepository
 
 // Mirrors js/settings-managers.js's categories-modal, including the
 // toggleSubcatPanel()/addSubcategory()/deleteSubcategory() subcategory panel
@@ -51,8 +52,11 @@ import ua.rytm.app.data.FinanceRepository
 @Composable
 fun CategoriesManagerSheet(
     repository: FinanceRepository,
+    syncRepository: CategoriesSyncRepository,
+    uid: String,
+    profileId: String,
     onDismiss: () -> Unit,
-    viewModel: CategoriesManagerViewModel = viewModel(factory = CategoriesManagerViewModel.factory(repository)),
+    viewModel: CategoriesManagerViewModel = viewModel(factory = CategoriesManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var newName by remember { mutableStateOf("") }
