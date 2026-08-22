@@ -33,7 +33,7 @@ class DebtRepository(private val db: RytmDatabase) {
 
     suspend fun seedIfEmpty() {
         if (db.debtDao().count() == 0) {
-            db.debtDao().insert(DebtEntity(id = System.currentTimeMillis(), name = "Кредит", note = "", currency = "грн", startAmount = 0.0, dueDate = ""))
+            db.debtDao().insert(DebtEntity(id = System.currentTimeMillis(), name = "Кредит", note = "", currency = "UAH", startAmount = 0.0, dueDate = ""))
         }
     }
 

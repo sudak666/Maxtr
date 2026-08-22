@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.clearAllProfileScopedTables
+import kotlinx.coroutines.launch
 
 // Mirrors the PWA's #pin-screen: touch keypad (0-9 + back), dot indicators
 // (never the raw digits, per the account owner's original design reference —
@@ -45,7 +47,15 @@ import ua.rytm.app.data.local.clearAllProfileScopedTables
 fun PinLockScreen(viewModel: PinViewModel) {
     val context = LocalContext.current
     val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+    val app = context.applicationContext as RytmApplication
+    val biometricOnboardingDismissed by app.settingsStore.biometricOnboardingDismissed(viewModel.uid).collectAsState(initial = true)
+    val scope = rememberCoroutineScope()
     var forgotConfirm by remember { mutableStateOf(false) }
+    var biometricOnboardingVisible by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(biometricEnabled, biometricOnboardingDismissed) {
+        val activity = context as? FragmentActivity
+        biometricOnboardingVisible = activity != null && !biometricEnabled && !biometricOnboardingDismissed && biometricAvailable(activity)
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -100,13 +110,37 @@ fun PinLockScreen(viewModel: PinViewModel) {
         confirmButton = {
             TextButton(onClick = {
                 forgotConfirm = false
-                val app = context.applicationContext as RytmApplication
                 viewModel.forgotPin {
                     if (!app.settingsStore.isPrivacyCacheEnabled()) app.database.clearAllProfileScopedTables()
                 }
             }) { Text("Скинути й вийти", color = MaterialTheme.colorScheme.error) }
         },
         dismissButton = { TextButton(onClick = { forgotConfirm = false }) { Text("Скасувати") } },
+    )
+    if (biometricOnboardingVisible) AlertDialog(
+        onDismissRequest = {
+            biometricOnboardingVisible = false
+            scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
+        },
+        title = { Text("Швидке розблокування") },
+        text = { Text("Увімкнути розблокування відбитком пальця або обличчям? PIN залишиться резервним способом входу.") },
+        confirmButton = {
+            TextButton(onClick = {
+                val activity = context as? FragmentActivity ?: return@TextButton
+                showBiometricPrompt(activity) {
+                    viewModel.setBiometricEnabled(true)
+                    viewModel.unlockWithBiometric()
+                    biometricOnboardingVisible = false
+                    scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
+                }
+            }) { Text("Увімкнути") }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                biometricOnboardingVisible = false
+                scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
+            }) { Text("Не зараз") }
+        },
     )
 }
 

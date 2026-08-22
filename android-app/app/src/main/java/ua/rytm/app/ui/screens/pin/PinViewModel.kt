@@ -18,7 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 // gate and the main nav. isUnlocked resets to false on every process start
 // (in-memory only, not persisted) — same "lock on every app open" semantic
 // as the PWA's per-page-load AppState.pinUnlocked.
-class PinViewModel(private val pinStore: PinStore, private val uid: String) : ViewModel() {
+class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel() {
 
     companion object {
         fun factory(pinStore: PinStore, uid: String) = viewModelFactory {

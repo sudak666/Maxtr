@@ -78,6 +78,7 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.components.DatePickerField
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -370,12 +371,21 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                             selected = vm.autoFillDraftPattern,
                             onSelect = vm::onAutoFillDraftPatternChanged,
                         )
+                        /* Replaced by DatePickerField below.
                         OutlinedTextField(
                             value = vm.autoFillDraftAnchorDate,
                             onValueChange = vm::onAutoFillDraftAnchorDateChanged,
                             label = { Text("Перша робоча зміна від") },
                             placeholder = { Text("yyyy-MM-dd") },
                             modifier = Modifier.fillMaxWidth(),
+                        )
+                        */
+                        DatePickerField(
+                            value = vm.autoFillDraftAnchorDate,
+                            onValueChange = vm::onAutoFillDraftAnchorDateChanged,
+                            label = "Перший робочий день циклу",
+                            modifier = Modifier.fillMaxWidth(),
+                            allowEmpty = false,
                         )
                         androidx.compose.material3.Button(onClick = vm::saveAutoFillConfig, modifier = Modifier.fillMaxWidth()) {
                             Text("Зберегти")

@@ -103,7 +103,7 @@ private fun parseRemoteDebt(m: Map<*, *>): DebtEntity? {
         id = id,
         name = name,
         note = m["note"] as? String ?: "",
-        currency = m["currency"] as? String ?: "грн",
+        currency = when (val currency = m["currency"] as? String) { "грн", "₴", null -> "UAH"; else -> currency },
         startAmount = (m["startAmount"] as? Number)?.toDouble() ?: 0.0,
         dueDate = m["dueDate"] as? String ?: "",
     )

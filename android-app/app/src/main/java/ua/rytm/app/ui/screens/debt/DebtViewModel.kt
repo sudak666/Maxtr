@@ -78,7 +78,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun addDebt(name: String) {
         val clean = name.trim().ifBlank { "Новий розрахунок" }
-        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "грн", startAmount = 0.0, dueDate = "", entries = emptyList())
+        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList())
         mutate(debt.id) { repository.addDebt(debt) }
         currentDebtId = debt.id
     }
@@ -99,7 +99,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun updateInfo(name: String, note: String, currency: String, startAmount: Double, dueDate: String) {
         val cd = currentDebt ?: return
         mutate(cd.id) {
-            repository.updateDebt(cd.copy(name = name.trim().ifBlank { "Розрахунок" }, note = note.trim(), currency = currency.ifBlank { "у.о." }, startAmount = startAmount, dueDate = dueDate))
+            repository.updateDebt(cd.copy(name = name.trim().ifBlank { "Розрахунок" }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
         }
     }
 

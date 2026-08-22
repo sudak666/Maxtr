@@ -65,6 +65,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.components.DatePickerField
+import ua.rytm.app.ui.components.CurrencyPickerField
 import ua.rytm.app.ui.screens.debt.DEBT_COLORS
 import ua.rytm.app.ui.screens.debt.Debt
 import ua.rytm.app.ui.screens.debt.DebtEntry
@@ -346,9 +348,9 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 OutlinedTextField(value = note, onValueChange = { note = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Нотатка") })
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = startAmount, onValueChange = { startAmount = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text("Стартова сума") })
-                    OutlinedTextField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text("Валюта") })
+                    CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
-                OutlinedTextField(value = dueDate, onValueChange = { dueDate = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Термін сплати (yyyy-MM-dd)") })
+                DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = "Термін сплати", modifier = Modifier.fillMaxWidth())
                 TextButton(onClick = viewModel::requestDeleteCurrentDebt) {
                     Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                     Text("Видалити розрахунок", color = MaterialTheme.colorScheme.error)
@@ -414,7 +416,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
                     OutlinedTextField(value = amount, onValueChange = { amount = it; viewModel.updateEntryAmount(entry, it) }, singleLine = true, label = { Text("Сума") }, modifier = Modifier.fillMaxWidth())
                     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(value = balance, onValueChange = { balance = it; viewModel.updateEntryBalance(entry, it) }, singleLine = true, label = { Text("Залишок") }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, singleLine = true, label = { Text("Дата") }, modifier = Modifier.weight(1f))
+                        DatePickerField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, label = "Дата", modifier = Modifier.weight(1f), allowEmpty = false)
                     }
                     TextButton(onClick = { viewModel.toggleEntryEdit(entry.id) }, modifier = Modifier.fillMaxWidth()) { Text("Готово") }
                 } else {
@@ -459,7 +461,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 label = { Text("Сума платежу") },
             )
             OutlinedTextField(value = balance, onValueChange = { balance = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Новий залишок") })
-            OutlinedTextField(value = date, onValueChange = { date = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Дата") })
+            DatePickerField(value = date, onValueChange = { date = it }, label = "Дата", modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = viewModel::closeNewEntrySheet) { Text("Скасувати") }
                 TextButton(onClick = { viewModel.addEntry(amount, balance, date) }) { Text("Додати") }

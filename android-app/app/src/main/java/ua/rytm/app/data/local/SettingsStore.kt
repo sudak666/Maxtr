@@ -39,6 +39,12 @@ class SettingsStore(private val context: Context) {
     val onboardingComplete: Flow<Boolean> = context.settingsDataStore.data.map { it[onboardingCompleteKey] ?: false }
     suspend fun setOnboardingComplete(complete: Boolean) { context.settingsDataStore.edit { it[onboardingCompleteKey] = complete } }
 
+    private fun biometricOnboardingDismissedKey(uid: String) = booleanPreferencesKey("biometric_onboarding_dismissed_$uid")
+    fun biometricOnboardingDismissed(uid: String): Flow<Boolean> = context.settingsDataStore.data.map { it[biometricOnboardingDismissedKey(uid)] ?: false }
+    suspend fun setBiometricOnboardingDismissed(uid: String, dismissed: Boolean) {
+        context.settingsDataStore.edit { it[biometricOnboardingDismissedKey(uid)] = dismissed }
+    }
+
     // Mirrors js/notifications.js's pushEnabledKey() (`mx_pushEnabled_<uid>`
     // in localStorage) — per-account, same uid-prefixed-key-in-one-shared-
     // DataStore convention PinStore already established (a second account on

@@ -48,6 +48,7 @@ import androidx.core.content.FileProvider
 import kotlinx.coroutines.launch
 import java.io.File
 import ua.rytm.app.data.ReceiptOcrRepository
+import ua.rytm.app.ui.components.DatePickerField
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -182,6 +183,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
+            DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = "Дата", modifier = Modifier.fillMaxWidth(), allowEmpty = false)
+            /* Replaced by DatePickerField above.
             Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = vm.formDate,
@@ -193,6 +196,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 TextButton(onClick = vm::setFormDateToday) { Text("Сьогодні") }
             }
 
+            */
             Column {
                 OutlinedTextField(
                     value = vm.formComment,

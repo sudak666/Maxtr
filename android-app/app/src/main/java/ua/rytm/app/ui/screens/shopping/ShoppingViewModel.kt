@@ -51,8 +51,9 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun addItem() {
         val name = nameInput.trim()
-        if (name.isEmpty()) return
-        val qty = qtyInput.toIntOrNull()?.takeIf { it >= 1 } ?: 1
+        if (name.isEmpty()) { errorMessage = "Введи назву покупки"; return }
+        val qty = if (qtyInput.isBlank()) 1 else qtyInput.toIntOrNull()?.takeIf { it >= 1 }
+        if (qty == null) { errorMessage = "Кількість має бути цілим числом від 1"; return }
         mutate { repository.addItem(name, qty) }
         nameInput = ""
         qtyInput = ""
