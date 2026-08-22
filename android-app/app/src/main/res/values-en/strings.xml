@@ -26,6 +26,17 @@
     <string name="wallet_in_use">This wallet is used in transactions</string>
     <string name="wallet_color">Wallet color</string>
     <string name="common_save_retry">Could not save changes. Try again.</string>
+    <string name="tx_income">Income</string><string name="tx_expense">Expense</string><string name="tx_type">Type</string><string name="tx_category">Category</string>
+    <string name="auto_rules_title">Automatic rules</string>
+    <string name="auto_rules_body">When a comment contains a keyword, its category is selected automatically while you enter the transaction.</string>
+    <string name="auto_rules_empty">No rules</string>
+    <string name="auto_rules_example">e.g. Grocery</string>
+    <string name="auto_rules_summary">“%1$s” → %2$s</string>
+    <string name="auto_rules_add">Add rule</string>
+    <string name="auto_rules_delete_title">Delete rule</string>
+    <string name="auto_rules_delete_body">Delete this rule?</string>
+    <string name="auto_rules_keyword">Word in comment</string>
+    <string name="auto_rules_save_failed">Could not save the rule. Try again.</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

@@ -28,6 +28,17 @@
     <string name="wallet_in_use">Гаманець використовується в операціях</string>
     <string name="wallet_color">Колір гаманця</string>
     <string name="common_save_retry">Не вдалося зберегти зміни. Спробуйте ще раз.</string>
+    <string name="tx_income">Дохід</string><string name="tx_expense">Витрата</string><string name="tx_type">Тип</string><string name="tx_category">Категорія</string>
+    <string name="auto_rules_title">Автоматичні правила</string>
+    <string name="auto_rules_body">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</string>
+    <string name="auto_rules_empty">Немає правил</string>
+    <string name="auto_rules_example">напр. Сільпо</string>
+    <string name="auto_rules_summary">“%1$s” → %2$s</string>
+    <string name="auto_rules_add">Додати правило</string>
+    <string name="auto_rules_delete_title">Видалити правило</string>
+    <string name="auto_rules_delete_body">Видалити це правило?</string>
+    <string name="auto_rules_keyword">Слово в коментарі</string>
+    <string name="auto_rules_save_failed">Не вдалося зберегти правило. Спробуйте ще раз.</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
