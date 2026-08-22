@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
+import ua.rytm.app.ui.theme.RytmDimens
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
@@ -77,7 +78,7 @@ fun WalletsManagerSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
@@ -130,7 +131,7 @@ private fun WalletRow(
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box {
-            IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(40.dp).semantics { contentDescription = colorDescription }) {
+            IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
                 Box(Modifier.size(28.dp).clip(CircleShape).background(Color(wallet.colorHex)))
             }
             DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {

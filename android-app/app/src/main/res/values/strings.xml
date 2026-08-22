@@ -417,4 +417,7 @@
     <string name="builtin_category_groceries">Продукти</string><string name="builtin_category_cafe">Кафе</string><string name="builtin_category_transport">Транспорт</string><string name="builtin_category_shopping">Покупки</string><string name="builtin_category_utilities">Комунальні</string><string name="builtin_category_health">Здоров’я</string><string name="builtin_category_entertainment">Розваги</string><string name="builtin_category_other">Інше</string><string name="builtin_category_transfer">Внутрішній переказ</string>
     <string name="builtin_shift_day">Денна зміна</string><string name="builtin_shift_night">Нічна зміна</string><string name="builtin_shift_day_off">Вихідний</string><string name="builtin_shift_day_short">День</string><string name="builtin_shift_night_short">Ніч</string><string name="builtin_shift_off_short">Вих</string>
     <string name="builtin_debt_credit">Кредит</string><string name="builtin_profile_me">Я</string><string name="builtin_monobank_jar">Банка</string>
+    <string name="action_dismiss">Закрити повідомлення</string>
+    <string name="action_previous_month">Попередній місяць</string>
+    <string name="action_next_month">Наступний місяць</string>
 </resources>

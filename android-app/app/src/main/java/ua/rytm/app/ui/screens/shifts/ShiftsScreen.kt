@@ -3,6 +3,7 @@ package ua.rytm.app.ui.screens.shifts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,6 +72,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.ReducedMotionVisibility
@@ -141,10 +144,11 @@ fun ShiftsScreen() {
                 Text(stringResource(R.string.shifts_choose), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(dateKey, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 viewModel.shiftTypes.forEach { type ->
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = type.id in viewModel.dayModalSelection, onCheckedChange = { viewModel.toggleDayModalType(type.id) })
-                        Text(localizedDomainText(type.name), modifier = Modifier.weight(1f))
-                    }
+                    ShiftSelectionRow(
+                        type = type,
+                        checked = type.id in viewModel.dayModalSelection,
+                        onToggle = { viewModel.toggleDayModalType(type.id) },
+                    )
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = viewModel::closeDayModal) { Text(stringResource(R.string.action_cancel)) }
@@ -238,6 +242,20 @@ private fun StatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, valu
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+@Composable
+internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
+            .semantics(mergeDescendants = true) {},
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Text(localizedDomainText(type.name), modifier = Modifier.weight(1f))
     }
 }
 
@@ -503,13 +521,13 @@ private fun WeekdayHeaderRow() {
 private fun MonthNav(viewModel: ShiftsViewModel) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = null) }
+            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month)) }
             val locale = LocalConfiguration.current.locales[0]
             val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, locale) + " " + viewModel.visibleMonth.year
             Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = viewModel::goToToday) { Text(stringResource(R.string.action_today)) }
-                IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = null) }
+                IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.action_next_month)) }
             }
         }
         Text(stringResource(R.string.shifts_edit_hint), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

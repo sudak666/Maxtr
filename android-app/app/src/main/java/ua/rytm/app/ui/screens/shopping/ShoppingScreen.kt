@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.shopping
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
@@ -205,8 +208,15 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
         },
     ) {
     Card(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = item.done, onCheckedChange = if (canEdit) onToggle else null, enabled = canEdit)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .toggleable(value = item.done, enabled = canEdit, role = Role.Checkbox, onValueChange = onToggle)
+                .semantics(mergeDescendants = true) {}
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = item.done, onCheckedChange = null, enabled = canEdit)
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.bodyLarge,

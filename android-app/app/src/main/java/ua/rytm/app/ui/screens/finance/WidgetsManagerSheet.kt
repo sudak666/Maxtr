@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import ua.rytm.app.ui.theme.RytmDimens
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,8 +79,8 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Column {
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(Icons.Filled.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(Icons.Filled.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
                     }
                     Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                 }
