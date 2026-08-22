@@ -8,6 +8,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import ua.rytm.app.ui.screens.shifts.monthCalendarCells
 import ua.rytm.app.ui.screens.shifts.daysForShiftPattern
+import ua.rytm.app.ui.screens.shifts.toggleShiftSelection
+import java.util.TimeZone
 
 class CalendarLayoutTest {
     @Test fun freshProfileUsesOnlyExactPwaDefaultShiftTypes() {
@@ -45,5 +47,30 @@ class CalendarLayoutTest {
         assertEquals(listOf(1, 3, 5, 7, 9), daysForShiftPattern(10, "alt"))
         assertEquals(listOf(1, 2, 5, 6, 9, 10), daysForShiftPattern(10, "2_2"))
         assertEquals(listOf(1, 2, 3, 7, 8, 9), daysForShiftPattern(10, "3_3"))
+    }
+
+    @Test fun monthWithoutAssignmentsStillProducesEveryCalendarDay() {
+        val cells = monthCalendarCells(YearMonth.of(2025, 4))
+        assertEquals(31, cells.size)
+        assertEquals(30, cells.count { it.date != null })
+    }
+
+    @Test fun multiShiftSelectionAddsAndRemovesWithoutDroppingOtherTypes() {
+        val selected = toggleShiftSelection(setOf("st_day"), "st_night")
+        assertEquals(setOf("st_day", "st_night"), selected)
+        assertEquals(setOf("st_night"), toggleShiftSelection(selected, "st_day"))
+    }
+
+    @Test fun calendarLayoutIsTimezoneAndDstIndependent() {
+        val original = TimeZone.getDefault()
+        try {
+            val month = YearMonth.of(2026, 3)
+            TimeZone.setDefault(TimeZone.getTimeZone("Europe/Kyiv"))
+            val kyiv = monthCalendarCells(month)
+            TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"))
+            assertEquals(kyiv, monthCalendarCells(month))
+        } finally {
+            TimeZone.setDefault(original)
+        }
     }
 }

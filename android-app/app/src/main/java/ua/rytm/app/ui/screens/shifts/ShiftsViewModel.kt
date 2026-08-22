@@ -111,7 +111,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     }
 
     fun toggleDayModalType(id: String) {
-        dayModalSelection = if (id in dayModalSelection) dayModalSelection - id else dayModalSelection + id
+        dayModalSelection = toggleShiftSelection(dayModalSelection, id)
     }
 
     fun closeDayModal() { dayModalDateKey = null }

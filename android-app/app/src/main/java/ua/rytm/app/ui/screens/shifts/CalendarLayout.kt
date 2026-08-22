@@ -20,3 +20,6 @@ fun daysForShiftPattern(daysInMonth: Int, pattern: String): List<Int> {
     val period = on + off
     return (1..daysInMonth).filter { day -> period > 0 && ((day - 1) % period) < on }
 }
+
+fun toggleShiftSelection(selection: Set<String>, id: String): Set<String> =
+    if (id in selection) selection - id else selection + id
