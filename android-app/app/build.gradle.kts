@@ -114,6 +114,7 @@ tasks.register("verifyReleaseBundle") {
         check(releaseVersionCode > 1) { "Release versionCode must exceed the published TWA versionCode 1" }
         check(releaseVersionName.isNotBlank()) { "Release versionName must not be blank" }
     }
+
     doLast {
         val signerCertificates = mutableSetOf<String>()
         JarFile(bundle.get().asFile, true).use { jar ->
@@ -138,6 +139,23 @@ tasks.register("verifyReleaseBundle") {
         val encodedUploadCertificate = uploadCertificate.encoded.joinToString("") { "%02x".format(it) }
         check(encodedUploadCertificate in signerCertificates) { "AAB signer does not match the configured upload key" }
     }
+}
+
+val verifyRoomSchemaAssets = tasks.register("verifyRoomSchemaAssets") {
+    group = "verification"
+    description = "Rejects stale Room schemas packaged for migration tests."
+    doLast {
+        listOf(13, 15).forEach { version ->
+            val exported = file("schemas/ua.rytm.app.data.local.RytmDatabase/$version.json")
+            val packaged = file("src/androidTest/assets/ua.rytm.app.data.local.RytmDatabase/$version.json")
+            check(exported.readBytes().contentEquals(packaged.readBytes())) {
+                "Room schema asset $version.json is stale"
+            }
+        }
+    }
+}
+tasks.matching { it.name == "mergeDebugAndroidTestAssets" }.configureEach {
+    dependsOn(verifyRoomSchemaAssets)
 }
 
 dependencies {
@@ -166,10 +184,12 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1")
     implementation(libs.androidx.biometric)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.google.mlkit:text-recognition:16.0.1")

@@ -2,8 +2,6 @@ package ua.rytm.app
 
 import android.app.Application
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
@@ -36,6 +34,7 @@ import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.local.PinStore
 import ua.rytm.app.data.local.MonobankTokenStore
 import ua.rytm.app.data.local.RytmDatabase
+import ua.rytm.app.data.local.RytmMigrations
 import ua.rytm.app.data.local.SettingsStore
 import ua.rytm.app.push.ensureNotificationChannel
 
@@ -85,17 +84,7 @@ class RytmApplication : Application() {
         // fallback across local schema bumps is fine; there's no user data to
         // protect through a real migration path.
         Room.databaseBuilder(this, RytmDatabase::class.java, "rytm.db")
-            .addMigrations(object : Migration(13, 14) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL("CREATE TABLE IF NOT EXISTS `auto_rules` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `keyword` TEXT NOT NULL, `category` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-                }
-            })
-            .addMigrations(object : Migration(14, 15) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL("ALTER TABLE `transactions` ADD COLUMN `monobankId` TEXT")
-                    db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_monobankId` ON `transactions` (`monobankId`)")
-                }
-            })
+            .addMigrations(*RytmMigrations.ALL)
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
