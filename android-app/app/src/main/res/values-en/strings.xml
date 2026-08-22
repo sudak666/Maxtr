@@ -1,0 +1,424 @@
+<resources>
+    <string name="app_name">Rytm</string>
+    <string name="nav_finance">Finance</string>
+    <string name="nav_shifts">Shift schedule</string>
+    <string name="nav_debt">Settlements</string>
+    <string name="nav_shopping">Shopping</string>
+    <string name="nav_settings">Settings</string>
+    <string name="notification_channel_name">Rytm reminders</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_done">Done</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_add">Add</string>
+    <string name="tags_title">Tags</string>
+    <string name="tags_empty">No tags</string>
+    <string name="tags_name">Tag name</string>
+    <string name="tags_delete_title">Delete tag</string>
+    <string name="tags_delete_body">Delete this tag? It will be removed from every transaction.</string>
+    <string name="tags_save_failed">Could not save tags. Try again.</string>
+    <string name="wallets_title">Wallets</string>
+    <string name="wallets_empty">No wallets</string>
+    <string name="wallet_new_default">New wallet</string>
+    <string name="wallet_add">Add wallet</string>
+    <string name="wallet_delete_title">Delete wallet</string>
+    <string name="wallet_delete_body">Delete this wallet?</string>
+    <string name="wallet_last_required">At least one wallet must remain</string>
+    <string name="wallet_in_use">This wallet is used in transactions</string>
+    <string name="wallet_color">Wallet color</string>
+    <string name="common_save_retry">Could not save changes. Try again.</string>
+    <string name="tx_income">Income</string><string name="tx_expense">Expense</string><string name="tx_type">Type</string><string name="tx_category">Category</string>
+    <string name="auto_rules_title">Automatic rules</string>
+    <string name="auto_rules_body">When a comment contains a keyword, its category is selected automatically while you enter the transaction.</string>
+    <string name="auto_rules_empty">No rules</string>
+    <string name="auto_rules_example">e.g. Grocery</string>
+    <string name="auto_rules_summary">“%1$s” → %2$s</string>
+    <string name="auto_rules_add">Add rule</string>
+    <string name="auto_rules_delete_title">Delete rule</string>
+    <string name="auto_rules_delete_body">Delete this rule?</string>
+    <string name="auto_rules_keyword">Word in comment</string>
+    <string name="auto_rules_save_failed">Could not save the rule. Try again.</string>
+    <string name="rates_title">Exchange rates</string>
+    <string name="rates_body">The UAH value of one currency unit. The base is UAH (always 1).</string>
+    <string name="rates_source">Rate source</string>
+    <string name="rates_nbu">NBU (official)</string>
+    <string name="rates_privat">PrivatBank (cash)</string>
+    <string name="rates_privat_note">PrivatBank provides cash rates only for USD/EUR; other currencies use NBU rates.</string>
+    <string name="rates_updating">Updating…</string><string name="rates_refresh">Update online</string>
+    <string name="rates_updated">Rates updated</string><string name="rates_update_failed">Could not update rates</string>
+    <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string>
+    <string name="rates_per_unit">UAH per 1 %1$s</string><string name="rates_save_failed">Could not save rate</string>
+    <string name="profile_load_failed">Could not load profile</string>
+    <string name="profile_save_failed">Could not save profile</string>
+    <string name="profile_invalid_image">Choose a valid image</string>
+    <string name="profile_avatar_updated">Avatar updated</string>
+    <string name="profile_nickname_saved">Nickname saved</string>
+    <string name="profile_nickname">Nickname</string>
+    <string name="profile_edit_nickname">Edit nickname</string>
+    <string name="profile_choose_avatar">Choose an avatar</string>
+    <string name="profile_upload_photo">Upload photo</string>
+    <string name="profile_avatar">Avatar</string>
+    <string name="profile_avatar_preset">Avatar preset</string>
+    <string name="monobank_intro">Enter a personal Monobank Open API token to import cards, jars, and transactions. The token is stored in your profile and sent only to Monobank through Rytm’s secure server.</string>
+    <string name="monobank_get_token">Get a token at api.monobank.ua</string><string name="monobank_token">Personal token</string>
+    <string name="monobank_connect">Connect</string><string name="monobank_connected">Monobank connected</string>
+    <string name="monobank_invalid_token">The token is invalid. Check it and try again.</string>
+    <string name="monobank_rate_limit">Monobank allows no more than one request per minute. Try again later.</string>
+    <string name="monobank_connection_failed">Could not connect to Monobank</string>
+    <string name="monobank_unmapped">%1$s · not linked</string><string name="monobank_never_synced">not synced yet</string>
+    <string name="monobank_last_sync">Last synced: %1$s</string><string name="monobank_sync_progress">Syncing account %1$d/%2$d…</string>
+    <string name="monobank_sync_result">Synced, new transactions: %1$d</string><string name="monobank_sync">Sync</string>
+    <string name="monobank_disconnect">Disconnect</string><string name="monobank_disconnected">Monobank disconnected</string>
+    <string name="monobank_disconnect_title">Disconnect Monobank</string>
+    <string name="monobank_disconnect_body">Wallets and imported transactions will remain, but automatic import of new transactions will stop.</string>
+    <string name="goals_title">Goals</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
+    <string name="goals_delete_title">Delete goal</string><string name="goals_delete_body">Delete this goal?</string>
+    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Reached</string>
+    <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
+    <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
+    <string name="wallet_label">Wallet</string>
+    <string name="amount_label">Amount</string>
+    <string name="recurring_title">Recurring payments</string><string name="recurring_empty">No recurring payments</string>
+    <string name="recurring_add">Add recurring payment</string><string name="recurring_delete_title">Delete recurring payment</string>
+    <string name="recurring_delete_body">Delete this recurring payment?</string>
+    <string name="frequency_daily">Daily</string><string name="frequency_weekly">Weekly</string><string name="frequency_monthly">Monthly</string><string name="frequency_label">Frequency</string>
+    <string name="recurring_summary">%1$s · UAH %2$d · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · UAH %2$d · %3$s · %4$s · paused</string>
+    <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
+    <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
+    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string>
+    <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
+    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
+    <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
+    <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
+    <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
+    <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
+    <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
+    <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
+    <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
+    <string name="validation_invalid_amount">Enter a valid amount</string><string name="validation_amount_too_large">Amount is too large</string>
+    <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
+    <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
+    <string name="transaction_save_failed">Could not save the transaction</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$d/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
+    <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
+    <string name="action_move_up">Move up</string><string name="action_move_down">Move down</string><string name="widgets_sync_failed">Could not sync widget settings</string>
+    <string name="crypto_loading">Updating rates…</string><string name="crypto_error">Could not load cryptocurrency rates</string>
+    <string name="action_collapse">Collapse</string><string name="action_view_all">View all</string>
+    <string name="finance_estimated_balance">Estimated balance (UAH)</string><string name="finance_total_balance">Total balance (UAH)</string><string name="finance_conversion_note">The amount is converted to hryvnia using current wallet rates.</string>
+    <string name="finance_month_income">Income this month</string><string name="finance_month_expense">Expense this month</string><string name="finance_action_transaction">Transaction</string><string name="finance_history">Transaction history</string>
+    <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
+    <string name="finance_search_hint">Search by comment, category, or wallet…</string><string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
+    <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>
+    <string name="finance_amount_uah">UAH %1$s</string><string name="finance_amount_uah_estimated">≈ UAH %1$s</string><string name="finance_month_net">%1$sUAH %2$s this month</string><string name="finance_signed_uah">%1$sUAH %2$s</string>
+    <string name="categories_title">Categories</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
+    <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
+    <string name="subcategory_delete_title">Delete subcategory</string><string name="subcategory_delete_body">Delete subcategory “%1$s”?</string><string name="category_icon_title">Category icon</string>
+    <string name="subcategory_too_long">Subcategory name cannot exceed 120 characters</string><string name="subcategory_exists">This subcategory already exists</string><string name="category_too_long">Category name cannot exceed 120 characters</string><string name="category_exists">This category already exists</string><string name="categories_sync_failed">Could not sync changes</string>
+    <string name="debt_new_default">New debt</string><string name="debt_last_required">At least one debt must remain</string><string name="debt_amount_required">Enter an amount</string><string name="debt_balance_required">Enter the remaining balance</string>
+    <string name="debt_forecast_title">Payoff forecast</string><string name="debt_paid_off">Debt fully paid off! 🎉</string><string name="debt_forecast_insufficient">Not enough data to estimate the payoff rate</string><string name="debt_average_payment">Average payment: %1$s</string>
+    <plurals name="debt_payments_left"><item quantity="one">About %1$d payment remaining</item><item quantity="other">About %1$d payments remaining</item></plurals>
+    <string name="debt_payment">Payment</string><string name="debt_delete_title">Delete debt</string><string name="debt_delete_body">Delete this debt and its entire payment history?</string><string name="debt_payment_delete_title">Delete payment</string><string name="debt_payment_delete_body">Delete this history entry?</string><string name="attention_title">Attention</string>
+    <string name="debt_empty_title">No debts</string><string name="debt_empty_body">Add your first debt using the button above</string><string name="debt_current_balance">Current balance</string><string name="debt_paid">Paid</string><string name="debt_start_amount">Starting amount</string><string name="debt_payments">Payments</string><string name="debt_due_date">Due date</string>
+    <string name="debt_days_overdue">−%1$d days</string><string name="debt_days_future">%1$d days</string><string name="debt_details">Debt details</string><string name="note_label">Note</string><string name="debt_history">Payment history</string><string name="action_toggle_section">Collapse or expand</string><string name="debt_payments_empty">No payments yet</string>
+    <string name="debt_balance">Balance</string><string name="debt_balance_value">Balance: %1$s %2$s</string><string name="debt_new_payment">New payment</string><string name="debt_payment_amount">Payment amount</string><string name="debt_new_balance">New balance</string>
+    <string-array name="finance_tips"><item>Save at least 10% of income as soon as you receive it, not from what remains at month-end.</item><item>Wait 24 hours before a large purchase; impulsive desire often passes.</item><item>Build an emergency fund covering 3–6 months of expenses.</item><item>Automate savings: a recurring transfer works better than willpower.</item><item>Review subscriptions and recurring payments once a week.</item><item>Plan irregular expenses in advance with separate categories.</item><item>Compare a discount with your actual need, not the original price.</item></string-array>
+    <string name="action_save">Save</string>
+    <string name="action_today">Today</string>
+    <string name="money_uah">UAH %1$s</string>
+    <string name="shifts_choose">Choose shifts</string>
+    <string name="shifts_earned_month">Earned this month</string>
+    <string name="shifts_goal_progress">%1$d%% of the UAH %2$s goal</string>
+    <string name="shifts_hours_short">hr</string>
+    <string name="shifts_count">Shifts</string>
+    <string name="shifts_days_off">Days off</string>
+    <string name="shifts_income_chart">Income trend — 6 months</string>
+    <string name="shifts_quick_fill">Quick fill</string>
+    <string name="shift_type">Shift type</string>
+    <string name="shift_pattern">Pattern</string>
+    <string name="shift_pattern_daily">Daily</string>
+    <string name="shift_pattern_alternate">Every other day</string>
+    <string name="shift_pattern_2_2">2 on / 2 off</string>
+    <string name="shift_pattern_3_3">3 on / 3 off</string>
+    <string name="shifts_clear_month">Clear month</string>
+    <string name="shifts_autofill_title">Daily auto-fill</string>
+    <string name="shifts_autofill_body">When a new day starts, the required shift is added automatically without manually filling the month.</string>
+    <string name="shifts_anchor_date">First working day of the cycle</string>
+    <string name="shifts_empty_title">No shifts this month yet</string>
+    <string name="shifts_empty_body">Add shifts manually by tapping a day, or use quick fill.</string>
+    <string name="weekday_mon">MON</string><string name="weekday_tue">TUE</string><string name="weekday_wed">WED</string><string name="weekday_thu">THU</string><string name="weekday_fri">FRI</string><string name="weekday_sat">SAT</string><string name="weekday_sun">SUN</string>
+    <string name="shifts_edit_hint">Tap a day to edit shifts</string>
+    <string name="action_next">Next</string>
+    <string name="onboarding_finance_title">Finances under control</string>
+    <string name="onboarding_finance_body">Wallets, categories, budgets, goals, and analytics in one place.</string>
+    <string name="onboarding_shifts_title">Your work rhythm</string>
+    <string name="onboarding_shifts_body">Plan shifts, calculate income, and forecast your working month.</string>
+    <string name="onboarding_security_title">Privacy and synchronization</string>
+    <string name="onboarding_security_body">Data is synchronized through your Firebase account. PIN and biometrics protect access on this device.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_choose_date">Choose date</string>
+    <string name="field_currency">Currency</string>
+    <string name="sync_status_syncing">Synchronizing…</string>
+    <string name="sync_status_offline">Offline · showing cache</string>
+    <string name="sync_status_error">Synchronization error</string>
+    <string name="action_delete">Delete</string>
+    <string name="shopping_name_required">Enter an item name</string>
+    <string name="shopping_quantity_invalid">Quantity must be an integer of at least 1</string>
+    <string name="shopping_title">Shopping list</string>
+    <string name="shopping_clear_bought">Clear bought</string>
+    <string name="shopping_clear_confirmation">Remove all bought items from the list?</string>
+    <string name="shopping_save_failed">Could not save</string>
+    <string name="shopping_save_changes_failed">Could not save changes</string>
+    <string name="profile_read_only">This profile is read-only</string>
+    <string name="shopping_remaining">Remaining</string>
+    <string name="shopping_bought">Bought</string>
+    <string name="shopping_item_name">Item name</string>
+    <string name="shopping_item_example">e.g. Milk</string>
+    <string name="shopping_quantity">Qty</string>
+    <string name="shopping_empty_title">The list is empty</string>
+    <string name="shopping_empty_body">Add items before shopping, then mark them bought with one tap.</string>
+    <string name="action_show_amounts">Show amounts</string>
+    <string name="action_hide_amounts">Hide amounts</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_ok">OK</string>
+    <string name="action_edit">Edit</string>
+    <string name="field_name">Name</string>
+    <string name="common_save_failed">Could not save changes</string>
+    <string name="shift_types_title">Shift types</string>
+    <string name="shift_types_empty">No shift types</string>
+    <string name="shift_type_new_default">New shift</string>
+    <string name="shift_type_add">Add shift type</string>
+    <string name="shift_type_delete_title">Delete shift type</string>
+    <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
+    <string name="shift_day_off">Day off</string>
+    <string name="shift_type_summary">%1$d UAH · %2$s hr</string>
+    <string name="shift_pay">Pay</string>
+    <string name="shift_hours">Hours</string>
+    <string name="shift_day_off_unpaid">Day off (unpaid)</string>
+    <string name="auth_tagline">Finances, shifts, and debts in one place</string>
+    <string name="auth_continue_google">Continue with Google</string>
+    <string name="auth_or">OR</string>
+    <string name="auth_password">PASSWORD</string>
+    <string name="auth_password_hint">At least 6 characters</string>
+    <string name="auth_sign_in">Sign in</string>
+    <string name="auth_register">Create account</string>
+    <string name="auth_forgot_password">Forgot password?</string>
+    <string name="auth_emulator_sign_in">[emulator] Anonymous test sign-in</string>
+    <string name="auth_sign_in_failed">Unable to sign in</string>
+    <string name="auth_login_tab">Sign in</string>
+    <string name="auth_register_tab">Register</string>
+    <string name="auth_terms_prefix">By registering, you agree to the</string>
+    <string name="terms_title">Terms of Use</string>
+    <string name="privacy_title">Privacy Policy</string>
+    <string name="common_and">and</string>
+    <string name="pin_enter">Enter PIN</string>
+    <string name="pin_unlock_biometric">Unlock with biometrics</string>
+    <string name="pin_forgot_short">Forgot PIN?</string>
+    <string name="pin_forgot_title">Forgot PIN?</string>
+    <string name="pin_forgot_body">Reset the PIN on this device and sign out? You can set a new PIN after signing in again.</string>
+    <string name="pin_reset_sign_out">Reset and sign out</string>
+    <string name="pin_biometric_title">Quick unlock</string>
+    <string name="pin_biometric_body">Enable fingerprint or face unlock? Your PIN remains available as a backup.</string>
+    <string name="pin_settings_title">PIN</string>
+    <string name="pin_is_set">PIN is set</string>
+    <string name="pin_biometric_toggle">Fingerprint/face unlock</string>
+    <string name="pin_lock_now">Lock now</string>
+    <string name="pin_remove">Remove PIN</string>
+    <string name="pin_new">New PIN (4–6 digits)</string>
+    <string name="pin_confirm">Confirm PIN</string>
+    <string name="pin_save">Save PIN</string>
+    <string name="pin_error_invalid">Incorrect PIN</string>
+    <string name="pin_error_length">PIN must contain 4–6 digits</string>
+    <string name="pin_error_mismatch">PINs do not match</string>
+    <string name="action_enable">Enable</string>
+    <string name="action_not_now">Not now</string>
+    <string name="auth_error_generic">Sign-in failed. Try again.</string>
+    <string name="auth_error_google_unavailable">Google sign-in was cancelled or is unavailable.</string>
+    <string name="auth_error_google_token">Unable to process the Google account.</string>
+    <string name="auth_error_invalid_email">Invalid email.</string>
+    <string name="auth_error_weak_password">Password is too weak (at least 6 characters).</string>
+    <string name="auth_error_network">No network connection. Check your internet connection and try again.</string>
+    <string name="auth_error_reset_email_required">Enter your email to reset the password.</string>
+    <string name="auth_reset_sent">Password reset email sent.</string>
+    <string name="auth_error_user_not_found">User not found.</string>
+    <string name="auth_error_wrong_password">Incorrect password.</string>
+    <string name="auth_error_invalid_credentials">Incorrect email or password.</string>
+    <string name="auth_error_email_in_use">This email is already registered.</string>
+    <string name="auth_error_too_many">Too many attempts. Try again later.</string>
+    <string name="profiles_title">Profiles</string>
+    <string name="profile_name">Profile name</string>
+    <string name="profile_join_by_code">Join with a code</string>
+    <string name="profile_invite_code">Invite code</string>
+    <string name="profile_join">Join</string>
+    <string name="profile_invite_body">Send this code to the person joining the profile:\n\n%1$s\n\nValid for 24 hours and one use.</string>
+    <string name="profile_leave_title">Leave profile</string>
+    <string name="profile_leave_body">Leave the shared profile “%1$s”? You will lose access until invited again.</string>
+    <string name="profile_leave">Leave</string>
+    <string name="profile_delete_title">Delete profile</string>
+    <string name="profile_delete_body">Delete this profile? Its server data will remain, but this app will lose access to it.</string>
+    <string name="profile_switch_title">Switch profile</string>
+    <string name="profile_switching">Switching…</string>
+    <string name="profile_switch_body">Switch to this profile? The selected profile’s data will replace the data currently shown.</string>
+    <string name="profile_switch">Switch</string>
+    <string name="profile_members_title">Members: %1$s</string>
+    <string name="profile_members_not_shared">This profile has not been shared yet — there are no members.</string>
+    <string name="profile_members_empty">No one has joined with a code yet.</string>
+    <string name="profile_role_viewer">Viewer</string>
+    <string name="profile_role_editor">Editor</string>
+    <string name="profile_active">Active</string>
+    <string name="profile_shared">Shared</string>
+    <string name="profile_share">Share</string>
+    <string name="profile_members">Members</string>
+    <string name="profile_rename">Rename</string>
+    <string name="profiles_load_failed">Could not load profiles</string>
+    <string name="profile_delete_active_error">The active profile cannot be deleted</string>
+    <string name="profile_delete_last_error">At least one profile must remain</string>
+    <string name="profile_switch_failed">Could not switch profile</string>
+    <string name="profile_share_failed">Could not share profile</string>
+    <string name="profile_join_own_error">This is your own profile</string>
+    <string name="profile_join_used_error">This code has already been used</string>
+    <string name="profile_join_expired_error">This code has expired</string>
+    <string name="profile_join_failed">Could not join the profile</string>
+    <string name="profile_join_not_found_error">Code not found</string>
+    <string name="profile_leave_active_error">Switch to another profile first</string>
+    <string name="profile_leave_failed">Could not leave the profile</string>
+    <string name="profile_members_load_failed">Could not load members</string>
+    <string name="profile_role_change_failed">Could not change the role</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_clear_search">Clear search</string>
+    <string name="settings_search_hint">Search: wallets, categories, push…</string>
+    <string name="settings_group_all">All</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_finance">Finance</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_sign_out_subtitle">End the session on this device</string>
+    <string name="settings_profiles_subtitle">Switch and manage profiles</string>
+    <string name="settings_premium">Premium</string>
+    <string name="settings_free_plan">Free plan</string>
+    <string name="settings_reset_profile">Reset profile data</string>
+    <string name="settings_reset_profile_subtitle">Clear data and start over</string>
+    <string name="settings_delete_account">Delete account</string>
+    <string name="settings_delete_account_subtitle">Permanently deletes your data and account</string>
+    <string name="settings_pin_subtitle">Protect the app with a code and biometrics</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_push">Push notifications</string>
+    <string name="settings_push_subtitle">Receive notifications on this device</string>
+    <string name="settings_notification_types">Notification types</string>
+    <string name="settings_notification_types_subtitle">Reminders, budgets, recurring payments, debts</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language_uk">Українська</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_hide_amounts">Hide amounts</string>
+    <string name="settings_hide_amounts_subtitle">Mask monetary values on every screen</string>
+    <string name="settings_offline_cache">Offline cache</string>
+    <string name="settings_offline_cache_on">Data is available offline</string>
+    <string name="settings_offline_cache_off">Local data is cleared after sign-out</string>
+    <string name="settings_about">About</string>
+    <string name="settings_web">Web version</string>
+    <string name="settings_web_subtitle">Open Rytm in a browser</string>
+    <string name="settings_terms_subtitle">Rules for using the app</string>
+    <string name="settings_privacy_subtitle">How we process your data</string>
+    <string name="settings_about_summary">Rytm — a tracker for shifts, finances, and debts</string>
+    <string name="settings_wallets_subtitle">Cards, cash, and other accounts</string>
+    <string name="settings_monobank">Connect Monobank</string>
+    <string name="settings_monobank_subtitle">Import card and jar transactions automatically</string>
+    <string name="settings_rates_subtitle">Synchronized exchange rates against UAH</string>
+    <string name="settings_categories_subtitle">Custom income and expense categories</string>
+    <string name="settings_budgets_subtitle">Monthly limits for expense categories</string>
+    <string name="settings_tags_subtitle">Labels for transactions</string>
+    <string name="settings_goals_subtitle">Wallet savings goals</string>
+    <string name="settings_widgets_subtitle">What appears on the Finance tab</string>
+    <string name="settings_recurring_subtitle">Create scheduled transactions automatically</string>
+    <string name="settings_auto_rules_subtitle">Choose a category from a comment keyword</string>
+    <string name="settings_shift_types_subtitle">Pay, hours, and colors for the shift calendar</string>
+    <string name="settings_csv_export">Export CSV</string>
+    <string name="settings_csv_export_subtitle">Save all financial transactions</string>
+    <string name="settings_csv_import">Import CSV</string>
+    <string name="settings_csv_import_subtitle">Add transactions from a Rytm export</string>
+    <string name="settings_search_empty">Nothing found</string>
+    <string name="settings_search_empty_body">Try another search query</string>
+    <string name="settings_push_enabled">Push notifications enabled</string>
+    <string name="settings_push_disabled">Push notifications disabled</string>
+    <string name="settings_push_change_failed">Could not change notification settings</string>
+    <string name="settings_push_permission_denied">Notification permission was not granted</string>
+    <string name="settings_link_open_failed">Could not open the link</string>
+    <string name="settings_csv_exported">CSV exported</string>
+    <string name="settings_csv_export_failed">Could not export CSV</string>
+    <string name="settings_csv_read_failed">Could not read the file</string>
+    <string name="settings_csv_import_failed">Could not import CSV</string>
+    <string name="settings_csv_empty">CSV contains no transactions</string>
+    <string name="settings_profile_switched">Profile switched</string>
+    <string name="settings_csv_confirm">Import %1$s? Importing the same file again will create duplicates.</string>
+    <string name="settings_csv_confirm_with_errors">Import %1$s? %2$s skipped. Importing the same file again will create duplicates.</string>
+    <string name="settings_csv_imported">Transactions imported: %1$d</string>
+    <string name="settings_csv_import_save_failed">Could not save imported transactions</string>
+    <string name="settings_csv_import_action">Import</string>
+    <string name="settings_deleting_account">Deleting…</string>
+    <string name="settings_delete_account_body">This permanently deletes your data (wallets, transactions, debts, and shift calendar) and Google account. It cannot be undone.</string>
+    <string name="settings_sign_out_title">Sign out</string>
+    <string name="settings_sign_out_body">Sign out of your account?</string>
+    <string name="settings_sign_out_action">Sign out</string>
+    <string name="settings_premium_title">Rytm Premium</string>
+    <string name="settings_premium_body">Rytm is currently completely free with no limits. Here is what comes next:</string>
+    <string name="settings_premium_free_title">Already free</string>
+    <string name="settings_premium_free_body">Unlimited wallets, categories, rules, recurring payments, and push notifications</string>
+    <string name="settings_premium_banks_title">Bank integrations</string>
+    <string name="settings_premium_banks_body">Automatic transaction imports are in development</string>
+    <string name="settings_soon">SOON</string>
+    <string name="settings_reset_title">Start over?</string>
+    <string name="settings_resetting">Resetting data…</string>
+    <string name="settings_reset_body">The current profile’s shift calendar, finances, shopping, and debts will be deleted. The account and profile will remain.</string>
+    <string name="settings_reset_success">Profile data reset</string>
+    <string name="settings_reset_failed">Could not reset profile data</string>
+    <string name="settings_reset_action">Reset</string>
+    <string name="settings_reset_shared_error">A shared profile cannot be reset</string>
+    <plurals name="settings_csv_operations"><item quantity="one">%1$d transaction</item><item quantity="other">%1$d transactions</item></plurals>
+    <plurals name="settings_csv_errors"><item quantity="one">%1$d row</item><item quantity="other">%1$d rows</item></plurals>
+    <plurals name="settings_csv_no_valid_rows"><item quantity="one">No valid rows (%1$d error)</item><item quantity="other">No valid rows (%1$d errors)</item></plurals>
+    <string name="auth_delete_data_failed">Could not delete data</string>
+    <string name="auth_delete_reauth_required">Sign in with Google again to delete the account</string>
+    <string name="auth_delete_account_failed">Could not delete the account</string>
+    <string name="auth_emulator_sign_in_failed">Test sign-in failed</string>
+    <string name="notifications_daily">Daily reminder</string>
+    <string name="notifications_daily_subtitle">When no transactions have been added today</string>
+    <string name="notifications_hour">Hour</string>
+    <string name="notifications_minute">Minute</string>
+    <string name="notifications_budget">Budget exceeded</string>
+    <string name="notifications_budget_subtitle">When category spending exceeds its monthly limit</string>
+    <string name="notifications_recurring_subtitle">One day before the next recurring payment</string>
+    <string name="notifications_debt_subtitle">One day before the due date</string>
+    <string name="biometric_unlock_title">Unlock Rytm</string>
+    <string name="biometric_unlock_subtitle">Confirm with your fingerprint or face</string>
+    <string name="transaction_delete_failed">Could not delete the transaction</string>
+    <string name="transaction_auto_category">Category selected automatically: %1$s</string>
+    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: UAH %2$s / UAH %3$s</string>
+    <string name="transaction_updated">Entry updated</string>
+    <string name="transaction_transfer_done">Transfer completed</string>
+    <string name="transaction_added">Entry added</string>
+    <string name="notifications_load_failed">Could not load notification settings</string>
+    <string name="notifications_save_failed">Could not save notification settings</string>
+    <string name="settings_csv_more_errors">More errors: %1$d</string>
+    <string name="settings_csv_error_row">Row %1$d: %2$s</string>
+    <string name="settings_csv_error_columns">not enough columns</string>
+    <string name="settings_csv_error_type">unknown type: %1$s</string>
+    <string name="settings_csv_error_wallet">unknown wallet: %1$s</string>
+    <string name="settings_csv_error_amount">invalid amount</string>
+    <string name="settings_csv_error_date">invalid date</string>
+    <string name="settings_csv_error_same_wallets">transfer wallets must differ</string>
+    <string name="settings_csv_error_transfer_amount">invalid transfer amount</string>
+    <string name="builtin_wallet_card">Card</string><string name="builtin_wallet_cash">Cash</string>
+    <string name="builtin_category_salary">Salary</string><string name="builtin_category_bonus">Bonus</string><string name="builtin_category_side_job">Side job</string>
+    <string name="builtin_category_groceries">Groceries</string><string name="builtin_category_cafe">Cafe</string><string name="builtin_category_transport">Transport</string><string name="builtin_category_shopping">Shopping</string><string name="builtin_category_utilities">Utilities</string><string name="builtin_category_health">Health</string><string name="builtin_category_entertainment">Entertainment</string><string name="builtin_category_other">Other</string><string name="builtin_category_transfer">Internal transfer</string>
+    <string name="builtin_shift_day">Day shift</string><string name="builtin_shift_night">Night shift</string><string name="builtin_shift_day_off">Day off</string><string name="builtin_shift_day_short">Day</string><string name="builtin_shift_night_short">Night</string><string name="builtin_shift_off_short">Off</string>
+    <string name="builtin_debt_credit">Loan</string><string name="builtin_profile_me">Me</string><string name="builtin_monobank_jar">Jar</string>
+    <string name="action_dismiss">Dismiss message</string>
+    <string name="action_previous_month">Previous month</string>
+    <string name="action_next_month">Next month</string>
+    <string name="category_change_icon">Change icon for category %1$s</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_data_load_failed">Could not load data</string>
+</resources>

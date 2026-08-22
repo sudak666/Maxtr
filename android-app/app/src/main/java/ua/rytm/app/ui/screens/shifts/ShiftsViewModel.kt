@@ -3,18 +3,19 @@ package ua.rytm.app.ui.screens.shifts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
 
 // Mirrors js/calendar.js's renderCalendar()/openModal()/saveModalSelection()/
 // applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
@@ -31,6 +32,15 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     var shiftTypes by mutableStateOf<List<ShiftType>>(emptyList())
         private set
     private var shiftsByDate by mutableStateOf<Map<String, List<String>>>(emptyMap())
+    private var typesLoaded = false
+    private var shiftsLoaded = false
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
+        private set
+
+    private fun markLoaded() { loading = !(typesLoaded && shiftsLoaded); loadFailed = false }
+    private fun markLoadFailed() { loading = false; loadFailed = true }
 
     var visibleMonth by mutableStateOf(YearMonth.now())
         private set
@@ -61,22 +71,25 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
         private set
     var autoFillDraftAnchorDate by mutableStateOf("")
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
     private fun launchMutation(block: suspend () -> Unit) = viewModelScope.launch {
-        runCatching { block() }.onFailure { errorMessage = "Не вдалося зберегти зміни" }
+        runCatching { block() }.onFailure { errorMessageRes = R.string.common_save_failed }
     }
 
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
         repository.shiftTypes.onEach { types ->
             shiftTypes = types
+            typesLoaded = true
+            markLoaded()
             val firstNonOff = types.firstOrNull { !it.isOff }?.id
             if (templateTypeId == null || types.none { it.id == templateTypeId }) templateTypeId = firstNonOff
             if (autoFillDraftTypeId == null || types.none { it.id == autoFillDraftTypeId }) autoFillDraftTypeId = firstNonOff
-        }.launchIn(viewModelScope)
-        repository.shiftsByDate.onEach { shiftsByDate = it }.launchIn(viewModelScope)
+        }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.shiftsByDate.onEach { shiftsByDate = it; shiftsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.autoFillSchedule.onEach { schedule ->
             autoFillSchedule = schedule
             autoFillDraftPattern = schedule.pattern
@@ -98,7 +111,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     }
 
     fun toggleDayModalType(id: String) {
-        dayModalSelection = if (id in dayModalSelection) dayModalSelection - id else dayModalSelection + id
+        dayModalSelection = toggleShiftSelection(dayModalSelection, id)
     }
 
     fun closeDayModal() { dayModalDateKey = null }
@@ -164,7 +177,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
             return MonthStats(earned, hours, shiftsCount, offCount)
         }
 
-    data class MonthEarning(val yearMonth: YearMonth, val label: String, val earned: Double)
+    data class MonthEarning(val yearMonth: YearMonth, val earned: Double)
 
     // Mirrors js/calendar.js's renderIncomeChart() — trailing 6 months ending
     // on the currently visible one's calendar month is NOT what the PWA
@@ -181,7 +194,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
                     if (!dateKey.startsWith(prefix)) return@forEach
                     ids.forEach { id -> shiftTypes.firstOrNull { it.id == id }?.let { earned += it.amount } }
                 }
-                MonthEarning(ym, ym.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage("uk").build()), earned)
+                MonthEarning(ym, earned)
             }
         }
 

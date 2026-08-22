@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
@@ -80,16 +82,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.CsvImportPreview
+import ua.rytm.app.data.CsvImportError
+import ua.rytm.app.data.CsvImportErrorReason
 import ua.rytm.app.data.TransactionsCsvRepository
+import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.AutoRulesManagerSheet
@@ -104,6 +114,8 @@ import ua.rytm.app.ui.screens.finance.WidgetsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
+import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmRadii
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -121,7 +133,9 @@ import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
+    val canEdit = LocalCanEditProfile.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val app = context.applicationContext as RytmApplication
     val scope = rememberCoroutineScope()
     var walletsSheetOpen by remember { mutableStateOf(false) }
@@ -149,17 +163,29 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
     var csvBusy by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+    val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+    val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
+    val language by app.settingsStore.language.collectAsState(initial = "uk")
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
+    val pushEnabledMessage = stringResource(R.string.settings_push_enabled)
+    val pushDisabledMessage = stringResource(R.string.settings_push_disabled)
+    val pushChangeFailedMessage = stringResource(R.string.settings_push_change_failed)
+    val pushPermissionDeniedMessage = stringResource(R.string.settings_push_permission_denied)
+    val linkOpenFailedMessage = stringResource(R.string.settings_link_open_failed)
+    val csvExportedMessage = stringResource(R.string.settings_csv_exported)
+    val csvExportFailedMessage = stringResource(R.string.settings_csv_export_failed)
+    val csvReadFailedMessage = stringResource(R.string.settings_csv_read_failed)
+    val csvImportFailedMessage = stringResource(R.string.settings_csv_import_failed)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
     }
-    LaunchedEffect(authViewModel.errorMessage) {
-        authViewModel.errorMessage?.let { snackbarHostState.showSnackbar(it); authViewModel.consumeError() }
+    LaunchedEffect(authViewModel.errorMessageRes) {
+        authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(resources.getString(it)); authViewModel.consumeError() }
     }
 
     var pushBusy by remember { mutableStateOf(false) }
@@ -177,9 +203,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
                 else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
                 app.settingsStore.setPushEnabled(accountUid, target)
-                pendingMessage = if (target) "Push-сповіщення увімкнено" else "Push-сповіщення вимкнено"
+                pendingMessage = if (target) pushEnabledMessage else pushDisabledMessage
             } catch (e: Exception) {
-                pendingMessage = "Не вдалося змінити налаштування сповіщень"
+                pendingMessage = pushChangeFailedMessage
             } finally {
                 pushBusy = false
             }
@@ -187,7 +213,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) applyPushEnabled(true) else pendingMessage = "Дозвіл на сповіщення не надано"
+        if (granted) applyPushEnabled(true) else pendingMessage = pushPermissionDeniedMessage
     }
 
     fun onTogglePush(target: Boolean) {
@@ -197,7 +223,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         if (needsRuntimePermission) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else applyPushEnabled(target)
     }
 
-    fun sectionVisible(group: String, vararg visibleTexts: String): Boolean {
+    fun sectionVisible(group: String, visibleTexts: List<String>): Boolean {
         if (settingsGroup != "all" && settingsGroup != group) return false
         val query = settingsSearch.trim().lowercase()
         return query.isEmpty() || visibleTexts.any { it.lowercase().contains(query) }
@@ -205,18 +231,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
     fun openExternalUrl(url: String) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-            .onFailure { pendingMessage = "Не вдалося відкрити посилання" }
+            .onFailure { pendingMessage = linkOpenFailedMessage }
     }
 
     val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) scope.launch {
             csvBusy = true
             try {
-                val csv = csvRepository.export()
+                val csv = csvRepository.export(language)
                 context.contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
-                    ?: error("Не вдалося відкрити файл")
-                pendingMessage = "CSV експортовано"
-            } catch (e: Exception) { pendingMessage = e.message ?: "Не вдалося експортувати CSV" }
+                    ?: error(csvExportFailedMessage)
+                pendingMessage = csvExportedMessage
+            } catch (_: Exception) { pendingMessage = csvExportFailedMessage }
             finally { csvBusy = false }
         }
     }
@@ -225,12 +251,15 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             csvBusy = true
             try {
                 val text = context.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
-                    ?: error("Не вдалося прочитати файл")
+                    ?: error(csvReadFailedMessage)
                 val preview = csvRepository.parse(text)
-                if (preview.transactions.isEmpty()) pendingMessage =
-                    if (preview.errors.isEmpty()) "CSV не містить транзакцій" else "Немає коректних рядків (${preview.errors.size} помилок)"
+                if (preview.transactions.isEmpty()) pendingMessage = if (preview.errors.isEmpty()) {
+                    resources.getString(R.string.settings_csv_empty)
+                } else {
+                    resources.getQuantityString(R.plurals.settings_csv_no_valid_rows, preview.errors.size, preview.errors.size)
+                }
                 else csvImportPreview = preview
-            } catch (e: Exception) { pendingMessage = e.message ?: "Не вдалося імпортувати CSV" }
+            } catch (_: Exception) { pendingMessage = csvImportFailedMessage }
             finally { csvBusy = false }
         }
     }
@@ -241,10 +270,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
         // permanently unreachable — not a styling gap, a genuine dead end.
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(16.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(RytmDimens.ContentHorizontal),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("Налаштування", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+            Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
 
             OutlinedTextField(
                 value = settingsSearch,
@@ -255,22 +284,22 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 trailingIcon = if (settingsSearch.isNotEmpty()) {
                     {
                         androidx.compose.material3.IconButton(onClick = { settingsSearch = "" }) {
-                            Icon(Icons.Filled.Clear, contentDescription = "Очистити пошук")
+                            Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_clear_search))
                         }
                     }
                 } else null,
-                placeholder = { Text("Пошук: гаманці, категорії, push…") },
+                placeholder = { Text(stringResource(R.string.settings_search_hint)) },
             )
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(
-                    "all" to "Усі",
-                    "account" to "Акаунт",
-                    "finance" to "Фінанси",
-                    "security" to "Безпека",
-                    "app" to "Вигляд",
+                    "all" to stringResource(R.string.settings_group_all),
+                    "account" to stringResource(R.string.settings_account),
+                    "finance" to stringResource(R.string.settings_finance),
+                    "security" to stringResource(R.string.settings_security),
+                    "app" to stringResource(R.string.settings_appearance),
                 ).forEach { (key, label) ->
                     FilterChip(
                         selected = settingsGroup == key,
@@ -280,12 +309,25 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             }
 
-            val accountVisible = sectionVisible("account", "Акаунт", "Вийти з акаунту", "Завершити сеанс на цьому пристрої", "Профілі", "Перемикання та керування профілями", "Преміум", "Безкоштовний план", "Скинути дані профілю", "Очистити дані та почати спочатку", "Видалити акаунт", "Незворотно видаляє ваші дані та обліковий запис", authViewModel.currentUser?.email.orEmpty())
-            val securityVisible = uid != null && sectionVisible("security", "Безпека", "PIN-код", "Захист застосунку кодом і біометрією")
-            val notificationsVisible = uid != null && sectionVisible("security", "Сповіщення", "Push-сповіщення", "Отримувати сповіщення на цьому пристрої", "Типи сповіщень", "Нагадування, бюджет, регулярні платежі, розрахунки")
-            val appearanceVisible = sectionVisible("app", "Вигляд", "Тема", "Світла", "Темна")
-            val aboutVisible = sectionVisible("app", "Про застосунок", "Веб-версія", "Відкрити Rytm у браузері", "Умови використання", "Правила користування застосунком", "Політика конфіденційності", "Як ми обробляємо твої дані", "Rytm — трекер змін, фінансів і розрахунків")
-            val financeVisible = sectionVisible("finance", "Фінанси", "Гаманці", "Картки, готівка та інші рахунки", "Прив'язати Monobank", "Підтягувати операції з карток і банок автоматично", "Курси валют", "Автоматичне оновлення з НБУ", "Категорії", "Власні категорії доходів і витрат", "Бюджети", "Місячні ліміти для категорій витрат", "Теги", "Мітки для операцій", "Цілі", "Накопичення на гаманці з ціллю", "Віджети", "Що показувати на вкладці Фінанси", "Регулярні платежі", "Автоматичне створення операцій за розкладом", "Типи змін", "Оплата, години та кольори для графіка змін")
+            val accountVisible = sectionVisible("account", localizedSettingsStrings(
+                R.string.settings_account, R.string.settings_sign_out, R.string.settings_sign_out_subtitle,
+                R.string.profiles_title, R.string.settings_profiles_subtitle, R.string.settings_premium,
+                R.string.settings_free_plan, R.string.settings_reset_profile, R.string.settings_reset_profile_subtitle,
+                R.string.settings_delete_account, R.string.settings_delete_account_subtitle,
+            ) + authViewModel.currentUser?.email.orEmpty())
+            val securityVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle))
+            val notificationsVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle))
+            val appearanceVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark))
+            val aboutVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary))
+            val financeVisible = sectionVisible("finance", localizedSettingsStrings(
+                R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
+                R.string.settings_monobank, R.string.settings_monobank_subtitle, R.string.rates_title,
+                R.string.settings_rates_subtitle, R.string.categories_title, R.string.settings_categories_subtitle,
+                R.string.budgets_title, R.string.settings_budgets_subtitle, R.string.tags_title,
+                R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
+                R.string.widgets_title, R.string.settings_widgets_subtitle, R.string.recurring_title,
+                R.string.settings_recurring_subtitle, R.string.shift_types_title, R.string.settings_shift_types_subtitle,
+            ))
 
             if (accountVisible) {
                 if (uid != null) {
@@ -298,38 +340,38 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         onMessage = { pendingMessage = it },
                     )
                 }
-                SettingsSectionLabel("Акаунт")
+                SettingsSectionLabel(stringResource(R.string.settings_account))
                 SettingsGroupCard {
                     SettingsRow(
                         icon = Icons.Filled.Groups,
                         badgeColor = Color(0xFF525158),
-                        title = "Вийти з акаунту",
-                        subtitle = "Завершити сеанс на цьому пристрої",
+                        title = stringResource(R.string.settings_sign_out),
+                        subtitle = stringResource(R.string.settings_sign_out_subtitle),
                         onClick = { pendingSignOut = true },
                     )
                     if (uid != null) {
                         SettingsRow(
                             icon = Icons.Filled.Groups,
                             badgeColor = Color(0xFF06B6D4),
-                            title = "Профілі",
-                            subtitle = "Перемикання та керування профілями",
+                            title = stringResource(R.string.profiles_title),
+                            subtitle = stringResource(R.string.settings_profiles_subtitle),
                             onClick = { profilesSheetOpen = true },
                         )
                         SettingsRow(
                             icon = Icons.Filled.Star,
                             badgeColor = Color(0xFFF59E0B),
-                            title = "Преміум",
-                            subtitle = "Безкоштовний план",
+                            title = stringResource(R.string.settings_premium),
+                            subtitle = stringResource(R.string.settings_free_plan),
                             onClick = { premiumDialogOpen = true },
                         )
                         SettingsRow(
                             icon = Icons.Filled.DeleteForever,
                             badgeColor = MaterialTheme.colorScheme.error,
-                            title = "Скинути дані профілю",
-                            subtitle = "Очистити дані та почати спочатку",
+                            title = stringResource(R.string.settings_reset_profile),
+                            subtitle = stringResource(R.string.settings_reset_profile_subtitle),
                             onClick = {
                                 if (activeProfileOwnerUid != null) {
-                                    pendingMessage = "Не можна скинути спільний профіль"
+                                    pendingMessage = resources.getString(R.string.settings_reset_shared_error)
                                 } else {
                                     pendingResetProfile = true
                                 }
@@ -339,8 +381,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         SettingsRow(
                             icon = Icons.Filled.DeleteForever,
                             badgeColor = MaterialTheme.colorScheme.error,
-                            title = "Видалити акаунт",
-                            subtitle = "Незворотно видаляє ваші дані та обліковий запис",
+                            title = stringResource(R.string.settings_delete_account),
+                            subtitle = stringResource(R.string.settings_delete_account_subtitle),
                             onClick = { pendingDeleteAccount = true },
                             titleColor = MaterialTheme.colorScheme.error,
                         )
@@ -349,13 +391,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             if (securityVisible) {
-                SettingsSectionLabel("Безпека")
+                SettingsSectionLabel(stringResource(R.string.settings_security))
                 SettingsGroupCard {
                     SettingsRow(
                         icon = Icons.Filled.Lock,
                         badgeColor = Color(0xFF525158),
-                        title = "PIN-код",
-                        subtitle = "Захист застосунку кодом і біометрією",
+                        title = stringResource(R.string.pin_settings_title),
+                        subtitle = stringResource(R.string.settings_pin_subtitle),
                         onClick = { pinSheetOpen = true },
                     )
                 }
@@ -363,13 +405,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             if (notificationsVisible) {
-                SettingsSectionLabel("Сповіщення")
+                SettingsSectionLabel(stringResource(R.string.settings_notifications))
                 SettingsGroupCard {
                     SettingsToggleRow(
                         icon = Icons.Filled.Notifications,
                         badgeColor = MaterialTheme.colorScheme.primary,
-                        title = "Push-сповіщення",
-                        subtitle = "Отримувати сповіщення на цьому пристрої",
+                        title = stringResource(R.string.settings_push),
+                        subtitle = stringResource(R.string.settings_push_subtitle),
                         checked = pushEnabled,
                         enabled = !pushBusy,
                         onCheckedChange = ::onTogglePush,
@@ -382,8 +424,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         SettingsRow(
                             icon = Icons.Filled.Tune,
                             badgeColor = Color(0xFFF59E0B),
-                            title = "Типи сповіщень",
-                            subtitle = "Нагадування, бюджет, регулярні платежі, розрахунки",
+                            title = stringResource(R.string.settings_notification_types),
+                            subtitle = stringResource(R.string.settings_notification_types_subtitle),
                             onClick = { notifTypesSheetOpen = true },
                         )
                     }
@@ -391,148 +433,180 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             if (appearanceVisible) {
-                SettingsSectionLabel("Вигляд")
+                SettingsSectionLabel(stringResource(R.string.settings_appearance))
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                     SegmentedButton(
                         selected = !darkTheme,
                         onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
                         shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                         icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
-                    ) { Text("Світла") }
+                    ) { Text(stringResource(R.string.settings_theme_light)) }
                     SegmentedButton(
                         selected = darkTheme,
                         onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                         icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
-                    ) { Text("Темна") }
+                    ) { Text(stringResource(R.string.settings_theme_dark)) }
+                }
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                    SegmentedButton(
+                        selected = language == "uk",
+                        onClick = { scope.launch { app.settingsStore.setLanguage("uk") } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    ) { Text(stringResource(R.string.settings_language_uk)) }
+                    SegmentedButton(
+                        selected = language == "en",
+                        onClick = { scope.launch { app.settingsStore.setLanguage("en") } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    ) { Text(stringResource(R.string.settings_language_en)) }
+                }
+                SettingsGroupCard {
+                    SettingsToggleRow(
+                        icon = Icons.Filled.VisibilityOff,
+                        badgeColor = Color(0xFF64748B),
+                        title = stringResource(R.string.settings_hide_amounts),
+                        subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
+                        checked = hideAmounts,
+                        enabled = true,
+                        onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
+                    )
+                    SettingsToggleRow(
+                        icon = Icons.Filled.PrivacyTip,
+                        badgeColor = Color(0xFF10B981),
+                        title = stringResource(R.string.settings_offline_cache),
+                        subtitle = stringResource(if (privacyCacheEnabled) R.string.settings_offline_cache_on else R.string.settings_offline_cache_off),
+                        checked = privacyCacheEnabled,
+                        enabled = true,
+                        onCheckedChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
+                    )
                 }
             }
 
             if (aboutVisible) {
-                SettingsSectionLabel("Про застосунок")
+                SettingsSectionLabel(stringResource(R.string.settings_about))
                 SettingsGroupCard {
                     SettingsRow(
                         icon = Icons.Filled.Language,
                         badgeColor = Color(0xFF3B82F6),
-                        title = "Веб-версія",
-                        subtitle = "Відкрити Rytm у браузері",
+                        title = stringResource(R.string.settings_web),
+                        subtitle = stringResource(R.string.settings_web_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
                     )
                     SettingsRow(
                         icon = Icons.Filled.Description,
                         badgeColor = Color(0xFF8B5CF6),
-                        title = "Умови використання",
-                        subtitle = "Правила користування застосунком",
+                        title = stringResource(R.string.terms_title),
+                        subtitle = stringResource(R.string.settings_terms_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app/terms.html") },
                     )
                     SettingsRow(
                         icon = Icons.Filled.PrivacyTip,
                         badgeColor = Color(0xFF10B981),
-                        title = "Політика конфіденційності",
-                        subtitle = "Як ми обробляємо твої дані",
+                        title = stringResource(R.string.privacy_title),
+                        subtitle = stringResource(R.string.settings_privacy_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app/privacy.html") },
                     )
                 }
                 Text(
-                    "Rytm — трекер змін, фінансів і розрахунків",
+                    stringResource(R.string.settings_about_summary),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 )
             }
 
-            if (financeVisible) {
-                SettingsSectionLabel("Фінанси")
+            if (canEdit && financeVisible) {
+                SettingsSectionLabel(stringResource(R.string.settings_finance))
                 SettingsGroupCard {
                 SettingsRow(
                     icon = Icons.Filled.AccountBalanceWallet,
                     badgeColor = Color(0xFF8B5CF6),
-                    title = "Гаманці",
-                    subtitle = "Картки, готівка та інші рахунки",
+                    title = stringResource(R.string.wallets_title),
+                    subtitle = stringResource(R.string.settings_wallets_subtitle),
                     onClick = { walletsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.AccountBalance,
                     badgeColor = Color(0xFF111111),
-                    title = "Прив'язати Monobank",
-                    subtitle = "Підтягувати операції з карток і банок автоматично",
+                    title = stringResource(R.string.settings_monobank),
+                    subtitle = stringResource(R.string.settings_monobank_subtitle),
                     onClick = { monobankSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Category,
                     badgeColor = Color(0xFFEC4899),
-                    title = "Категорії",
-                    subtitle = "Власні категорії доходів і витрат",
+                    title = stringResource(R.string.categories_title),
+                    subtitle = stringResource(R.string.settings_categories_subtitle),
                     onClick = { categoriesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.CurrencyExchange,
                     badgeColor = Color(0xFF3B82F6),
-                    title = "Курси валют",
-                    subtitle = "Синхронізовані курси до гривні",
+                    title = stringResource(R.string.rates_title),
+                    subtitle = stringResource(R.string.settings_rates_subtitle),
                     onClick = { ratesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.PieChart,
                     badgeColor = Color(0xFFF59E0B),
-                    title = "Бюджети",
-                    subtitle = "Місячні ліміти для категорій витрат",
+                    title = stringResource(R.string.budgets_title),
+                    subtitle = stringResource(R.string.settings_budgets_subtitle),
                     onClick = { budgetsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Sell,
                     badgeColor = Color(0xFF06B6D4),
-                    title = "Теги",
-                    subtitle = "Мітки для операцій",
+                    title = stringResource(R.string.tags_title),
+                    subtitle = stringResource(R.string.settings_tags_subtitle),
                     onClick = { tagsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Flag,
                     badgeColor = Color(0xFF10B981),
-                    title = "Цілі",
-                    subtitle = "Накопичення на гаманці з ціллю",
+                    title = stringResource(R.string.goals_title),
+                    subtitle = stringResource(R.string.settings_goals_subtitle),
                     onClick = { goalsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.GridView,
                     badgeColor = Color(0xFF14B8A6),
-                    title = "Віджети",
-                    subtitle = "Що показувати на вкладці Фінанси",
+                    title = stringResource(R.string.widgets_title),
+                    subtitle = stringResource(R.string.settings_widgets_subtitle),
                     onClick = { widgetsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Repeat,
                     badgeColor = Color(0xFF10B981),
-                    title = "Регулярні платежі",
-                    subtitle = "Автоматичне створення операцій за розкладом",
+                    title = stringResource(R.string.recurring_title),
+                    subtitle = stringResource(R.string.settings_recurring_subtitle),
                     onClick = { recurringSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Tune,
                     badgeColor = Color(0xFFA78BFA),
-                    title = "Автоматичні правила",
-                    subtitle = "Категорія за ключовим словом у коментарі",
+                    title = stringResource(R.string.auto_rules_title),
+                    subtitle = stringResource(R.string.settings_auto_rules_subtitle),
                     onClick = { autoRulesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Style,
                     badgeColor = Color(0xFF3B82F6),
-                    title = "Типи змін",
-                    subtitle = "Оплата, години та кольори для графіка змін",
+                    title = stringResource(R.string.shift_types_title),
+                    subtitle = stringResource(R.string.settings_shift_types_subtitle),
                     onClick = { shiftTypesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Download,
                     badgeColor = Color(0xFF10B981),
-                    title = "Експорт CSV",
-                    subtitle = "Зберегти всі фінансові операції",
+                    title = stringResource(R.string.settings_csv_export),
+                    subtitle = stringResource(R.string.settings_csv_export_subtitle),
                     onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
                 )
                 SettingsRow(
                     icon = Icons.Filled.Upload,
                     badgeColor = Color(0xFF3B82F6),
-                    title = "Імпорт CSV",
-                    subtitle = "Додати операції з експорту Rytm",
+                    title = stringResource(R.string.settings_csv_import),
+                    subtitle = stringResource(R.string.settings_csv_import_subtitle),
                     onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
                 )
                 }
@@ -544,8 +618,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
-                    Text("Нічого не знайдено", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("Спробуй інший пошуковий запит", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.settings_search_empty), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_search_empty_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -644,7 +718,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onDismiss = { profilesSheetOpen = false },
             onSwitched = {
                 profilesSheetOpen = false
-                pendingMessage = "Профіль перемкнено"
+                pendingMessage = resources.getString(R.string.settings_profile_switched)
             },
         )
     }
@@ -657,13 +731,22 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     csvImportPreview?.let { preview ->
+        val importCount = pluralStringResource(R.plurals.settings_csv_operations, preview.transactions.size, preview.transactions.size)
+        val skippedCount = pluralStringResource(R.plurals.settings_csv_errors, preview.errors.size, preview.errors.size)
+        val importSuccess = stringResource(R.string.settings_csv_imported, preview.transactions.size)
+        val importSaveFailed = stringResource(R.string.settings_csv_import_save_failed)
         AlertDialog(
             onDismissRequest = { if (!csvBusy) csvImportPreview = null },
-            title = { Text("Імпорт CSV") },
-            text = { Text(
-                if (preview.errors.isEmpty()) "Імпортувати ${preview.transactions.size} операцій? Повторний імпорт створить дублікати."
-                else "Імпортувати ${preview.transactions.size} операцій? Пропущено рядків: ${preview.errors.size}. Повторний імпорт створить дублікати.",
-            ) },
+            title = { Text(stringResource(R.string.settings_csv_import)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
+                    preview.errors.take(10).forEach { error ->
+                        Text(csvImportErrorText(error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    }
+                    if (preview.errors.size > 10) Text(stringResource(R.string.settings_csv_more_errors, preview.errors.size - 10), style = MaterialTheme.typography.bodySmall)
+                }
+            },
             confirmButton = {
                 TextButton(enabled = !csvBusy && uid != null, onClick = {
                     val accountUid = activeProfileOwnerUid ?: uid ?: return@TextButton
@@ -671,55 +754,58 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         csvBusy = true
                         try {
                             csvRepository.import(accountUid, activeProfileId, preview.transactions)
-                            pendingMessage = "Імпортовано операцій: ${preview.transactions.size}"
+                            pendingMessage = importSuccess
                             csvImportPreview = null
-                        } catch (_: Exception) { pendingMessage = "Не вдалося зберегти імпортовані операції" }
+                        } catch (_: Exception) { pendingMessage = importSaveFailed }
                         finally { csvBusy = false }
                     }
-                }) { Text("Імпортувати") }
+                }) { Text(stringResource(R.string.settings_csv_import_action)) }
             },
-            dismissButton = { TextButton(enabled = !csvBusy, onClick = { csvImportPreview = null }) { Text("Скасувати") } },
+            dismissButton = { TextButton(enabled = !csvBusy, onClick = { csvImportPreview = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     if (pendingDeleteAccount) {
         AlertDialog(
             onDismissRequest = { if (!authViewModel.isDeletingAccount) pendingDeleteAccount = false },
-            title = { Text("Видалити акаунт") },
+            title = { Text(stringResource(R.string.settings_delete_account)) },
             text = {
                 if (authViewModel.isDeletingAccount) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text("Видалення…")
+                        Text(stringResource(R.string.settings_deleting_account))
                     }
                 } else {
-                    Text("Це незворотно видалить ваші дані (гаманці, операції, розрахунки, графік змін) та обліковий запис Google. Скасувати неможливо.")
+                    Text(stringResource(R.string.settings_delete_account_body))
                 }
             },
             confirmButton = {
                 TextButton(
                     enabled = !authViewModel.isDeletingAccount,
                     onClick = { authViewModel.deleteAccount(context) },
-                ) { Text("Видалити", color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(enabled = !authViewModel.isDeletingAccount, onClick = { pendingDeleteAccount = false }) { Text("Скасувати") }
+                TextButton(enabled = !authViewModel.isDeletingAccount, onClick = { pendingDeleteAccount = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
     if (pendingSignOut) {
         AlertDialog(
             onDismissRequest = { pendingSignOut = false },
-            title = { Text("Вихід") },
-            text = { Text("Вийти з акаунту?") },
+            title = { Text(stringResource(R.string.settings_sign_out_title)) },
+            text = { Text(stringResource(R.string.settings_sign_out_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     pendingSignOut = false
-                    authViewModel.signOut()
-                }) { Text("Вийти") }
+                    scope.launch {
+                        if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
+                        authViewModel.signOut()
+                    }
+                }) { Text(stringResource(R.string.settings_sign_out_action)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingSignOut = false }) { Text("Скасувати") }
+                TextButton(onClick = { pendingSignOut = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -736,42 +822,42 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     Icon(Icons.Filled.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
                 }
             },
-            title = { Text("Rytm Преміум", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:")
+                    Text(stringResource(R.string.settings_premium_body))
                     PremiumPerkRow(
                         icon = Icons.Filled.CheckCircle,
                         color = Color(0xFF10B981),
-                        title = "Вже доступно безкоштовно",
-                        subtitle = "Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення",
+                        title = stringResource(R.string.settings_premium_free_title),
+                        subtitle = stringResource(R.string.settings_premium_free_body),
                     )
                     PremiumPerkRow(
                         icon = Icons.Filled.AccountBalanceWallet,
                         color = Color(0xFFF59E0B),
-                        title = "Інтеграція з банками",
-                        subtitle = "Автоматичне підвантаження операцій — у розробці",
-                        badge = "СКОРО",
+                        title = stringResource(R.string.settings_premium_banks_title),
+                        subtitle = stringResource(R.string.settings_premium_banks_body),
+                        badge = stringResource(R.string.settings_soon),
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { premiumDialogOpen = false }) { Text("Готово") }
+                TextButton(onClick = { premiumDialogOpen = false }) { Text(stringResource(R.string.action_done)) }
             },
         )
     }
     if (pendingResetProfile && uid != null) {
         AlertDialog(
             onDismissRequest = { if (!resetProfileBusy) pendingResetProfile = false },
-            title = { Text("Почати спочатку?") },
+            title = { Text(stringResource(R.string.settings_reset_title)) },
             text = {
                 if (resetProfileBusy) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text("Скидання даних…")
+                        Text(stringResource(R.string.settings_resetting))
                     }
                 } else {
-                    Text("Буде видалено графік змін, фінанси, покупки та розрахунки поточного профілю. Акаунт і сам профіль залишаться.")
+                    Text(stringResource(R.string.settings_reset_body))
                 }
             },
             confirmButton = {
@@ -783,18 +869,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             try {
                                 app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
                                 pendingResetProfile = false
-                                pendingMessage = "Дані профілю скинуто"
+                                pendingMessage = resources.getString(R.string.settings_reset_success)
                             } catch (_: Exception) {
-                                pendingMessage = "Не вдалося скинути дані профілю"
+                                pendingMessage = resources.getString(R.string.settings_reset_failed)
                             } finally {
                                 resetProfileBusy = false
                             }
                         }
                     },
-                ) { Text("Скинути", color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.settings_reset_action), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(enabled = !resetProfileBusy, onClick = { pendingResetProfile = false }) { Text("Скасувати") }
+                TextButton(enabled = !resetProfileBusy, onClick = { pendingResetProfile = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -823,6 +909,23 @@ private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subti
 }
 
 @Composable
+private fun csvImportErrorText(error: CsvImportError): String {
+    val reason = when (error.reason) {
+        CsvImportErrorReason.TOO_FEW_COLUMNS -> stringResource(R.string.settings_csv_error_columns)
+        CsvImportErrorReason.UNKNOWN_TYPE -> stringResource(R.string.settings_csv_error_type, error.detail.orEmpty())
+        CsvImportErrorReason.UNKNOWN_WALLET -> stringResource(R.string.settings_csv_error_wallet, error.detail.orEmpty())
+        CsvImportErrorReason.INVALID_AMOUNT -> stringResource(R.string.settings_csv_error_amount)
+        CsvImportErrorReason.INVALID_DATE -> stringResource(R.string.settings_csv_error_date)
+        CsvImportErrorReason.SAME_WALLETS -> stringResource(R.string.settings_csv_error_same_wallets)
+        CsvImportErrorReason.INVALID_TRANSFER_AMOUNT -> stringResource(R.string.settings_csv_error_transfer_amount)
+    }
+    return stringResource(R.string.settings_csv_error_row, error.row, reason)
+}
+
+@Composable
+private fun localizedSettingsStrings(vararg @StringRes ids: Int): List<String> = ids.map { stringResource(it) }
+
+@Composable
 private fun SettingsSectionLabel(text: String) {
     Text(
         text,
@@ -843,7 +946,7 @@ private fun SettingsSectionLabel(text: String) {
 private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
     val scope = SettingsRowScope()
     scope.content()
-    Card(shape = RoundedCornerShape(20.dp)) {
+    Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             scope.rows.forEachIndexed { index, row ->
                 if (index > 0) {
@@ -865,12 +968,12 @@ private class SettingsRowScope {
 private fun SettingsIconBadge(icon: ImageVector, color: Color) {
     Box(
         Modifier
-            .size(34.dp)
+            .size(RytmDimens.IconBadge)
             .clip(CircleShape)
             .background(color.copy(alpha = 0.16f)),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(17.dp))
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
     }
 }
 

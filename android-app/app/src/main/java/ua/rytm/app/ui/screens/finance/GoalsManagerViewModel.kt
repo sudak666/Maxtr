@@ -15,6 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.GoalsSyncRepository
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/goals-profile.js's goals-modal (openGoalsManager()/
 // renderGoalsManagerList()/updateGoal()/confirmAddGoal()/deleteGoal()).
@@ -43,11 +45,12 @@ class GoalsManagerViewModel(
         private set
     var isSaving by mutableStateOf(false)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
     private val mutationMutex = Mutex()
 
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     init {
         combine(repository.goals, repository.wallets) { goals, wallets -> goals to wallets }
@@ -102,13 +105,13 @@ class GoalsManagerViewModel(
             mutationMutex.withLock {
                 val before = repository.goalsSnapshot()
                 isSaving = true
-                errorMessage = null
+                errorMessageRes = null
                 try {
                     mutation()
                     syncRepository.saveGoalsSnapshot(uid, profileId)
                 } catch (_: Exception) {
                     repository.replaceGoals(before)
-                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                    errorMessageRes = R.string.common_save_retry
                 } finally {
                     isSaving = false
                 }

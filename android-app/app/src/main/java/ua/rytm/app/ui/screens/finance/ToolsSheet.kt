@@ -38,13 +38,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
+import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
+import java.time.format.TextStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
+import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
@@ -64,7 +72,7 @@ fun ToolsSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Інструменти", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.tools_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             AnalyticsSection(viewModel)
             HorizontalDivider()
@@ -77,27 +85,21 @@ fun ToolsSheet(
     }
 }
 
-private val PERIOD_LABELS = mapOf(
-    AnalyticsPeriod.MONTH to "Цей місяць",
-    AnalyticsPeriod.PREV to "Минулий місяць",
-    AnalyticsPeriod.M3 to "3 місяці",
-    AnalyticsPeriod.ALL to "Весь час",
-)
-
 @Composable
 private fun AnalyticsSection(vm: ToolsViewModel) {
+    val periodLabels = mapOf(AnalyticsPeriod.MONTH to stringResource(R.string.period_month), AnalyticsPeriod.PREV to stringResource(R.string.period_previous), AnalyticsPeriod.M3 to stringResource(R.string.period_three_months), AnalyticsPeriod.ALL to stringResource(R.string.period_all))
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Аналітика витрат і доходів", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.analytics_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(AnalyticsPeriod.entries.toList()) { p ->
-                FilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(PERIOD_LABELS.getValue(p)) })
+                FilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(periodLabels.getValue(p)) })
             }
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Дохід: ${formatMoney(vm.totalIncome)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            Text("Витрата: ${formatMoney(vm.totalExpense)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(maskedAmount(stringResource(R.string.analytics_income, formatMoney(vm.totalIncome))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            Text(maskedAmount(stringResource(R.string.analytics_expense, formatMoney(vm.totalExpense))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         }
 
         val expenseByCategory = vm.expenseByCategory
@@ -108,16 +110,16 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         }
 
         if (expenseByCategory.isNotEmpty()) {
-            Text("Витрати за категоріями", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.analytics_expense_categories), style = MaterialTheme.typography.labelLarge)
             expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) }
         }
         val incomeByCategory = vm.incomeByCategory
         if (incomeByCategory.isNotEmpty()) {
-            Text("Доходи за категоріями", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.analytics_income_categories), style = MaterialTheme.typography.labelLarge)
             incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) }
         }
         if (expenseByCategory.isEmpty() && incomeByCategory.isEmpty()) {
-            Text("Немає даних за цей період", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.analytics_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -127,7 +129,16 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 // deterministic per-category color used for transaction-list icon badges).
 @Composable
 private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
-    Box(Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+    val progress = motionProgress(byCategory, 600)
+    Box(
+        Modifier.size(100.dp).graphicsLayer {
+            alpha = progress
+            scaleX = 0.85f + 0.15f * progress
+            scaleY = 0.85f + 0.15f * progress
+            rotationZ = -8f * (1f - progress)
+        },
+        contentAlignment = Alignment.Center,
+    ) {
         Canvas(Modifier.size(100.dp)) {
             var startAngle = -90f
             val stroke = size.minDimension * 0.22f
@@ -145,7 +156,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
                 startAngle += sweep
             }
         }
-        Text(formatMoney(total), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -153,23 +164,23 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
 private fun CategoryBar(category: String, amount: Double, total: Double) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(category, style = MaterialTheme.typography.bodySmall)
-        Text("${formatMoney(amount)} · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(localizedDomainText(category), style = MaterialTheme.typography.bodySmall)
+        Text(maskedAmount(formatMoney(amount)) + " · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun FxRatesSection(vm: ToolsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Курси валют", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.rates_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val rates = vm.currencyRates.ifEmpty { SEED_RATES }
         if (rates.isEmpty()) {
-            Text("Немає даних про курси", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.rates_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             rates.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("1 $code", style = MaterialTheme.typography.bodyMedium)
-                    Text("${formatMoney(rate)} UAH", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(maskedAmount("${formatMoney(rate)} UAH"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -180,21 +191,21 @@ private fun FxRatesSection(vm: ToolsViewModel) {
 @Composable
 private fun ConverterSection(vm: ToolsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Конвертер валют", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.converter_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = vm.converterAmount,
                 onValueChange = vm::onConverterAmountChange,
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                label = { Text("Сума") },
+                label = { Text(stringResource(R.string.amount_label)) },
             )
             CurrencyDropdown(vm.availableCurrencies, vm.converterFrom, vm::onConverterFromChange, Modifier.weight(1f))
-            IconButton(onClick = vm::swapConverter) { Icon(Icons.Filled.SwapHoriz, contentDescription = "Поміняти місцями") }
+            IconButton(onClick = vm::swapConverter) { Icon(Icons.Filled.SwapHoriz, contentDescription = stringResource(R.string.converter_swap)) }
             CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(1f))
         }
         Text(
-            "${formatMoney(vm.converterResult)} ${vm.converterTo}",
+            maskedAmount("${formatMoney(vm.converterResult)} ${vm.converterTo}"),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
@@ -226,24 +237,26 @@ private fun CurrencyDropdown(options: List<String>, selected: String, onSelect: 
 @Composable
 private fun SixMonthChartSection(vm: ToolsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Динаміка за 6 місяців", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.analytics_six_months), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val months = vm.sixMonthTotals
         val maxVal = max(1.0, months.maxOf { max(it.income, it.expense) })
         val incomeColor = MaterialTheme.colorScheme.primary
         val expenseColor = MaterialTheme.colorScheme.error
+        val progress = motionProgress(months, 500)
         Canvas(Modifier.fillMaxWidth().height(140.dp)) {
             val barGroupWidth = size.width / months.size
             val barWidth = barGroupWidth / 3.2f
             months.forEachIndexed { i, m ->
                 val groupLeft = i * barGroupWidth
-                val incomeHeight = (m.income / maxVal * size.height).toFloat()
-                val expenseHeight = (m.expense / maxVal * size.height).toFloat()
+                val incomeHeight = (m.income / maxVal * size.height).toFloat() * progress
+                val expenseHeight = (m.expense / maxVal * size.height).toFloat() * progress
                 drawRect(incomeColor, topLeft = Offset(groupLeft + barWidth * 0.4f, size.height - incomeHeight), size = Size(barWidth, incomeHeight))
                 drawRect(expenseColor, topLeft = Offset(groupLeft + barWidth * 1.8f, size.height - expenseHeight), size = Size(barWidth, expenseHeight))
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            months.forEach { m -> Text(m.label, style = MaterialTheme.typography.labelSmall) }
+            val locale = LocalConfiguration.current.locales[0]
+            months.forEach { m -> Text(m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) }
         }
     }
 }

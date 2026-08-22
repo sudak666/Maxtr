@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.BudgetsSyncRepository
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import ua.rytm.app.data.FinanceRepository
 
 // Mirrors js/settings-managers.js's budgets-modal (openBudgetsManager()/
@@ -36,9 +38,10 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
         private set
     var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
     private val mutationMutex = Mutex()
 
     init {
@@ -60,7 +63,7 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
                 syncRepository.saveBudgetsSnapshot(uid, profileId)
             } catch (_: Exception) {
                 repository.replaceBudgets(before)
-                errorMessage = "Не вдалося зберегти бюджет. Спробуйте ще раз."
+                errorMessageRes = R.string.budgets_save_failed
             }
         } }
     }

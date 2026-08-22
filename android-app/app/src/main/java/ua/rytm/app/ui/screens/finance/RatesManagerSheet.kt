@@ -32,6 +32,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.CurrencyRatesSyncRepository
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
@@ -40,6 +44,7 @@ import ua.rytm.app.data.SEED_RATES
 import ua.rytm.app.data.local.SettingsStore
 import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +61,7 @@ fun RatesManagerSheet(
     val updatedAt by settingsStore.ratesUpdatedAt.collectAsState(initial = null)
     val drafts = remember { mutableStateMapOf<String, String>() }
     var busy by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
+    @StringRes var messageRes by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -68,10 +73,10 @@ fun RatesManagerSheet(
         if (busy) return
         scope.launch {
             busy = true
-            message = null
+            messageRes = null
             runCatching { syncRepository.refreshOnline(uid, profileId, selectedSource == "privat") }
-                .onSuccess { settingsStore.setRatesUpdatedAt(it); message = "Курси оновлено" }
-                .onFailure { message = "Не вдалося оновити курси" }
+                .onSuccess { settingsStore.setRatesUpdatedAt(it); messageRes = R.string.rates_updated }
+                .onFailure { messageRes = R.string.rates_update_failed }
             busy = false
         }
     }
@@ -81,11 +86,11 @@ fun RatesManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Курси валют", fontWeight = FontWeight.Bold)
-            Text("Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).")
-            Text("Джерело курсу")
+            Text(stringResource(R.string.rates_title), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.rates_body))
+            Text(stringResource(R.string.rates_source))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("nbu" to "НБУ (офіційний)", "privat" to "ПриватБанк (готівка)").forEach { (value, label) ->
+                listOf("nbu" to R.string.rates_nbu, "privat" to R.string.rates_privat).forEach { (value, labelRes) ->
                     FilterChip(
                         selected = source == value,
                         onClick = {
@@ -94,25 +99,27 @@ fun RatesManagerSheet(
                                 refresh(value)
                             }
                         },
-                        label = { Text(label) },
+                        label = { Text(stringResource(labelRes)) },
                         enabled = !busy,
                     )
                 }
             }
-            Text("ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.")
+            Text(stringResource(R.string.rates_privat_note))
             Button(onClick = { refresh() }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Refresh, contentDescription = null)
-                Text(if (busy) "Оновлення…" else "Оновити онлайн")
+                Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh))
             }
-            Text(updatedAt?.let { "Оновлено ${DateFormat.getDateTimeInstance().format(Date(it))}" } ?: "Ще не оновлювалося")
-            message?.let { Text(it) }
+            val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
+            val updatedText = updatedAt?.let { stringResource(R.string.rates_updated_at, DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it))) } ?: stringResource(R.string.rates_never_updated)
+            Text(updatedText)
+            messageRes?.let { Text(stringResource(it)) }
 
             SEED_RATES.forEach { (code, fallback) ->
                 OutlinedTextField(
                     value = drafts[code] ?: (rates[code] ?: fallback).toString(),
                     onValueChange = { drafts[code] = it },
                     label = { Text(code) },
-                    supportingText = { Text("грн за 1 $code") },
+                    supportingText = { Text(stringResource(R.string.rates_per_unit, code)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     enabled = !busy,
                     singleLine = true,
@@ -122,7 +129,7 @@ fun RatesManagerSheet(
                             if (value != null && value > 0.0 && value != rates[code]) {
                                 scope.launch {
                                     runCatching { syncRepository.saveRate(uid, profileId, code, value) }
-                                        .onFailure { drafts[code] = (rates[code] ?: fallback).toString(); message = "Не вдалося зберегти курс" }
+                                        .onFailure { drafts[code] = (rates[code] ?: fallback).toString(); messageRes = R.string.rates_save_failed }
                                 }
                             } else if (value == null || value <= 0.0) drafts[code] = (rates[code] ?: fallback).toString()
                         }

@@ -16,7 +16,6 @@ import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.WalletEntity
 import ua.rytm.app.ui.screens.finance.Goal
 import ua.rytm.app.ui.screens.finance.Recurring
-import ua.rytm.app.ui.screens.finance.SampleFinanceData
 import ua.rytm.app.ui.screens.finance.Tag
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
@@ -26,6 +25,13 @@ import ua.rytm.app.ui.screens.finance.Wallet
 // has no synced rate yet (a brand-new account before its first FX-widget
 // load, or a currency the account owner never manually rated).
 val SEED_RATES = mapOf("USD" to 41.0, "EUR" to 44.0, "GBP" to 51.0, "PLN" to 10.5)
+
+fun convertCurrencyAmount(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
+    if (from == to) return amount
+    val fromRate = rates[from] ?: SEED_RATES[from] ?: 1.0
+    val toRate = rates[to] ?: SEED_RATES[to] ?: 1.0
+    return Math.round(amount * fromRate / toRate * 100) / 100.0
+}
 
 // Mirrors js/core.js's subKey(type,name) => `${type}:${name}` — the PWA's own
 // composite key for AppState.subcategories, since a category name alone isn't
@@ -79,25 +85,20 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
-            db.walletDao().insertAll(SampleFinanceData.wallets.map { it.toEntity() })
-        }
-        if (db.transactionDao().count() == 0) {
-            db.transactionDao().insertAll(SampleFinanceData.transactions.mapIndexed { index, tx -> tx.toEntity(createdAt = index.toLong()) })
+            db.walletDao().insertAll(
+                listOf(
+                    WalletEntity("w_card", "Картка", 0xFF8B5CF6, "UAH", "card"),
+                    WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
+                ),
+            )
         }
         if (db.categoryDao().count() == 0) {
-            val seed = SampleFinanceData.incomeCategories.map { CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = TxType.INCOME.name, name = it) } +
-                SampleFinanceData.expenseCategories.map { CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = TxType.EXPENSE.name, name = it) }
-            db.categoryDao().insertAll(seed)
-        }
-        // SampleFinanceData.subcategories is keyed by name only (all its entries
-        // happen to be expense categories) — EXPENSE is the real type here, not
-        // a guess, since js/state.js's real DEFAULT_CATEGORIES has no default
-        // subcategories to seed from at all (this is illustrative sample content).
-        if (db.subcategoryDao().count() == 0) {
-            val seed = SampleFinanceData.subcategories.flatMap { (categoryName, names) ->
-                names.map { SubcategoryEntity(categoryType = TxType.EXPENSE.name, categoryName = categoryName, name = it) }
-            }
-            db.subcategoryDao().insertAll(seed)
+            val income = listOf("Зарплата", "Премія", "Підробіток", "Інше")
+            val expense = listOf("Продукти", "Кафе", "Транспорт", "Покупки", "Комунальні", "Здоров'я", "Розваги", "Інше")
+            db.categoryDao().insertAll(
+                income.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.INCOME.name, it) } +
+                    expense.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.EXPENSE.name, it) },
+            )
         }
     }
 
@@ -119,6 +120,7 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** Mirrors addCategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists for that type. */
     suspend fun addCategory(type: TxType, name: String): Boolean {
+        require(name.isNotBlank() && name.length <= 120) { "Category name must contain 1..120 characters" }
         if (db.categoryDao().countByTypeAndName(type.name, name) > 0) return false
         db.categoryDao().insert(CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = type.name, name = name))
         return true
@@ -130,6 +132,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // AppState.budgets[oldName]/every AppState.recurring entry of this
     // type+name/AppState.categoryIcons[oldName] to the new key.
     suspend fun renameCategory(id: String, type: TxType, newName: String) {
+        require(newName.isNotBlank() && newName.length <= 120) { "Category name must contain 1..120 characters" }
         val old = db.categoryDao().getById(id)
         db.categoryDao().insert(CategoryEntity(id = id, type = type.name, name = newName))
         if (old != null && old.name != newName) {
@@ -137,6 +140,7 @@ class FinanceRepository(private val db: RytmDatabase) {
             db.budgetDao().renameCategory(old.name, newName)
             db.recurringDao().renameCategory(type.name, old.name, newName)
             db.categoryIconDao().renameCategory(old.name, newName)
+            db.transactionDao().renameCategory(type.name, old.name, newName)
         }
     }
 
@@ -160,6 +164,7 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** Mirrors addSubcategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists under that category. */
     suspend fun addSubcategory(type: TxType, categoryName: String, name: String): Boolean {
+        require(name.isNotBlank() && name.length <= 120) { "Subcategory name must contain 1..120 characters" }
         if (db.subcategoryDao().countOne(type.name, categoryName, name) > 0) return false
         db.subcategoryDao().insert(SubcategoryEntity(categoryType = type.name, categoryName = categoryName, name = name))
         return true
@@ -180,6 +185,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun categoryIconSnapshot(): List<CategoryIconEntity> = db.categoryIconDao().getAllOnce()
     suspend fun categoryBudgetSnapshot(): List<BudgetEntity> = db.budgetDao().getAllOnce()
     suspend fun categoryRecurringSnapshot(): List<RecurringEntity> = db.recurringDao().getAllOnce()
+    suspend fun categoryTransactionSnapshot(): List<TransactionEntity> = db.transactionDao().getAllOnce()
 
     suspend fun restoreCategoryMutationSnapshot(
         categories: List<CategoryEntity>,
@@ -187,17 +193,20 @@ class FinanceRepository(private val db: RytmDatabase) {
         icons: List<CategoryIconEntity>,
         budgets: List<BudgetEntity>,
         recurring: List<RecurringEntity>,
+        transactions: List<TransactionEntity>,
     ) = db.withTransaction {
         db.categoryDao().replaceAll(categories)
         db.subcategoryDao().replaceAll(subcategories)
         db.categoryIconDao().replaceAll(icons)
         db.budgetDao().replaceAll(budgets)
         db.recurringDao().replaceAll(recurring)
+        db.transactionDao().replaceAll(transactions)
     }
 
     // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the
     // row entirely rather than being stored as a zero-or-negative value.
     suspend fun setBudget(category: String, amount: Double) {
+        requireValidStoredAmount(amount, "budget")
         if (amount <= 0) db.budgetDao().deleteByCategory(category) else db.budgetDao().upsert(BudgetEntity(category, amount))
     }
 
@@ -246,6 +255,8 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun deleteAutoRule(id: String) = db.autoRuleDao().deleteById(id)
 
     suspend fun upsertTransaction(transaction: Transaction) {
+        requireValidStoredAmount(transaction.amount)
+        transaction.targetAmount?.let { requireValidStoredAmount(it, "targetAmount") }
         db.transactionDao().upsert(transaction.toEntity())
     }
 
@@ -304,6 +315,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateRecurringAmount(recurring: Recurring, amount: Double) {
+        requireValidStoredAmount(amount, "recurring amount")
         db.recurringDao().update(recurring.copy(amount = amount).toEntity())
     }
 
@@ -354,6 +366,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateGoalTargetAmount(goal: Goal, targetAmount: Double) {
+        requireValidStoredAmount(targetAmount, "goal target")
         db.goalDao().update(GoalEntity(goal.id, goal.walletId, targetAmount, goal.targetDate))
     }
 
@@ -370,10 +383,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // Mirrors js/core.js's convertCurrency(): cross-rate via UAH as the base,
     // falling back to SEED_RATES when no synced rate exists for a code yet.
     fun convertCurrency(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
-        if (from == to) return amount
-        val fromRate = rates[from] ?: SEED_RATES[from] ?: 1.0
-        val toRate = rates[to] ?: SEED_RATES[to] ?: 1.0
-        return Math.round(amount * fromRate / toRate * 100) / 100.0
+        return convertCurrencyAmount(amount, from, to, rates)
     }
 
     companion object {

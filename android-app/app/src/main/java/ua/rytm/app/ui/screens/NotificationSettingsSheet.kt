@@ -17,6 +17,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,10 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.PushRepository
+import ua.rytm.app.R
 
 // Mirrors js/notifications.js's 4 independent alert-type checkboxes plus its
 // reminder-time <select> pair — see NotificationSettingsViewModel's own doc
@@ -50,7 +53,7 @@ fun NotificationSettingsSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Типи сповіщень", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.settings_notification_types), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.loading) {
                 Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
@@ -59,47 +62,60 @@ fun NotificationSettingsSheet(
                 return@Column
             }
 
+            viewModel.errorMessageRes?.let { messageRes ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                    TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) }
+                }
+            }
+
             NotifToggleRow(
-                title = "Щоденне нагадування",
-                subtitle = "Якщо сьогодні ще немає жодної операції",
+                title = stringResource(R.string.notifications_daily),
+                subtitle = stringResource(R.string.notifications_daily_subtitle),
                 checked = viewModel.dailyReminderEnabled,
+                enabled = !viewModel.saving,
                 onCheckedChange = viewModel::onDailyReminderChanged,
             )
             if (viewModel.dailyReminderEnabled) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TimeDropdown(
-                        label = "Година",
+                        label = stringResource(R.string.notifications_hour),
                         options = (0..23).map { it.toString().padStart(2, '0') },
                         selected = viewModel.reminderHour,
                         onSelect = { viewModel.onReminderTimeChanged(it, viewModel.reminderMinute) },
+                        enabled = !viewModel.saving,
                         modifier = Modifier.weight(1f),
                     )
                     TimeDropdown(
-                        label = "Хвилина",
+                        label = stringResource(R.string.notifications_minute),
                         options = (0..55 step 5).map { it.toString().padStart(2, '0') },
                         selected = viewModel.reminderMinute,
                         onSelect = { viewModel.onReminderTimeChanged(viewModel.reminderHour, it) },
+                        enabled = !viewModel.saving,
                         modifier = Modifier.weight(1f),
                     )
                 }
             }
 
             NotifToggleRow(
-                title = "Перевищення бюджету",
-                subtitle = "Коли витрати за категорією перевищують місячний ліміт",
+                title = stringResource(R.string.notifications_budget),
+                subtitle = stringResource(R.string.notifications_budget_subtitle),
                 checked = viewModel.budgetAlerts,
+                enabled = !viewModel.saving,
                 onCheckedChange = viewModel::onBudgetAlertsChanged,
             )
             NotifToggleRow(
-                title = "Регулярні платежі",
-                subtitle = "За день до наступного регулярного платежу",
+                title = stringResource(R.string.recurring_title),
+                subtitle = stringResource(R.string.notifications_recurring_subtitle),
                 checked = viewModel.recurringAlerts,
+                enabled = !viewModel.saving,
                 onCheckedChange = viewModel::onRecurringAlertsChanged,
             )
             NotifToggleRow(
-                title = "Розрахунки",
-                subtitle = "За день до терміну сплати",
+                title = stringResource(R.string.nav_debt),
+                subtitle = stringResource(R.string.notifications_debt_subtitle),
                 checked = viewModel.debtAlerts,
+                enabled = !viewModel.saving,
                 onCheckedChange = viewModel::onDebtAlertsChanged,
             )
         }
@@ -107,25 +123,26 @@ fun NotificationSettingsSheet(
 }
 
 @Composable
-private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TimeDropdown(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun TimeDropdown(label: String, options: List<String>, selected: String, enabled: Boolean, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { if (enabled) expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = selected,
             onValueChange = {},
             readOnly = true,
+            enabled = enabled,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),

@@ -25,7 +25,12 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ua.rytm.app.ui.motionProgress
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import ua.rytm.app.R
 import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.maskedAmount
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -68,7 +73,7 @@ fun DebtForecastCard(debt: Debt) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))
                 Text(
-                    "Прогноз погашення",
+                    stringResource(R.string.debt_forecast_title),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -77,13 +82,13 @@ fun DebtForecastCard(debt: Debt) {
             }
             DebtBurndownCanvas(series, modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp))
             when {
-                currentBalance <= 0 -> Text("Розрахунок повністю погашено! 🎉", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                avgDown <= 0 -> Text("Замало даних для оцінки темпу погашення", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())
-                    val avgStr = "${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}"
-                    Text("Залишилось приблизно $paymentsLeft платежів", style = MaterialTheme.typography.bodyMedium)
-                    Text("Середній платіж: $avgStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
+                    Text(pluralStringResource(R.plurals.debt_payments_left, paymentsLeft, paymentsLeft), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -95,6 +100,7 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
     val lineColor = MaterialTheme.colorScheme.primary
     val fillColor = lineColor.copy(alpha = 0.34f)
     val transparent = lineColor.copy(alpha = 0f)
+    val progress = motionProgress(series, 500)
 
     Canvas(modifier) {
         val w = size.width
@@ -104,7 +110,10 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
         val span = (maxV - minV).let { if (it == 0.0) 1.0 else it }
 
         fun xAt(i: Int) = (w * i / (series.size - 1))
-        fun yAt(v: Double) = (h * (1 - (v - minV) / span)).toFloat()
+        fun yAt(v: Double): Float {
+            val target = (h * (1 - (v - minV) / span)).toFloat()
+            return h + (target - h) * progress
+        }
 
         val points = series.mapIndexed { i, v -> Offset(xAt(i), yAt(v)) }
 

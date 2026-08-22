@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShoppingItemEntity
-import ua.rytm.app.ui.screens.shopping.SampleShoppingData
 import ua.rytm.app.ui.screens.shopping.ShoppingItem
 
 fun ShoppingItemEntity.toDomain() = ShoppingItem(id = id, name = name, qty = qty, done = done, createdAt = createdAt)
@@ -15,9 +14,7 @@ class ShoppingRepository(private val db: RytmDatabase) {
     val items: Flow<List<ShoppingItem>> = db.shoppingDao().observeAll().map { list -> list.map { it.toDomain() } }
 
     suspend fun seedIfEmpty() {
-        if (db.shoppingDao().count() == 0) {
-            db.shoppingDao().insertAll(SampleShoppingData.items.mapIndexed { index, item -> item.copy(createdAt = index.toLong()).toEntity() })
-        }
+        // The PWA starts with an empty shopping list.
     }
 
     suspend fun addItem(name: String, qty: Int) {
@@ -35,4 +32,7 @@ class ShoppingRepository(private val db: RytmDatabase) {
     suspend fun clearBought() {
         db.shoppingDao().deleteBought()
     }
+
+    suspend fun snapshot(): List<ShoppingItemEntity> = db.shoppingDao().getAllOnce()
+    suspend fun restore(snapshot: List<ShoppingItemEntity>) = db.shoppingDao().replaceAll(snapshot)
 }

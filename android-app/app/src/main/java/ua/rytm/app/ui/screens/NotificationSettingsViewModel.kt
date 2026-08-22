@@ -3,6 +3,7 @@ package ua.rytm.app.ui.screens
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.PushRepository
+import ua.rytm.app.R
 
 // Mirrors js/notifications.js's 4 independent toggles (toggleReminders()/
 // toggleBudgetAlerts()/toggleRecurringAlerts()/toggleDebtAlerts()) plus the
@@ -37,6 +39,11 @@ class NotificationSettingsViewModel(
 
     var loading by mutableStateOf(true)
         private set
+    var saving by mutableStateOf(false)
+        private set
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
+        private set
     var dailyReminderEnabled by mutableStateOf(false)
         private set
     var reminderHour by mutableStateOf("21")
@@ -51,16 +58,36 @@ class NotificationSettingsViewModel(
         private set
 
     init {
+        load()
+    }
+
+    private fun load() = viewModelScope.launch {
+        loading = true
+        runCatching { repository.getNotifSettings(uid, profileId) }
+            .onSuccess { s ->
+                val (h, m) = s.time.split(":").let { it.getOrElse(0) { "21" } to it.getOrElse(1) { "00" } }
+                dailyReminderEnabled = s.enabled
+                reminderHour = h
+                reminderMinute = m
+                budgetAlerts = s.budgetAlerts
+                recurringAlerts = s.recurringAlerts
+                debtAlerts = s.debtAlerts
+            }
+            .onFailure { errorMessageRes = R.string.notifications_load_failed }
+        loading = false
+    }
+
+    fun consumeError() { errorMessageRes = null }
+
+    private fun save(write: suspend () -> Unit) {
+        if (saving) return
         viewModelScope.launch {
-            val s = repository.getNotifSettings(uid, profileId)
-            val (h, m) = s.time.split(":").let { it.getOrElse(0) { "21" } to it.getOrElse(1) { "00" } }
-            dailyReminderEnabled = s.enabled
-            reminderHour = h
-            reminderMinute = m
-            budgetAlerts = s.budgetAlerts
-            recurringAlerts = s.recurringAlerts
-            debtAlerts = s.debtAlerts
-            loading = false
+            saving = true
+            runCatching { write() }.onFailure {
+                errorMessageRes = R.string.notifications_save_failed
+                load().join()
+            }
+            saving = false
         }
     }
 
@@ -71,32 +98,37 @@ class NotificationSettingsViewModel(
     // above (identical JVM signature, a real "platform declaration clash"
     // compile error caught immediately, not a style preference).
     fun onDailyReminderChanged(enabled: Boolean) {
+        if (saving) return
         dailyReminderEnabled = enabled
-        viewModelScope.launch { repository.setDailyReminder(uid, enabled, currentTime(), profileId) }
+        save { repository.setDailyReminder(uid, enabled, currentTime(), profileId) }
     }
 
     fun onReminderTimeChanged(hour: String, minute: String) {
+        if (saving) return
         reminderHour = hour
         reminderMinute = minute
         // Only writes if the reminder is actually on — matches
         // js/notifications.js's updateNotifTimeFromSelects(), which is only
         // ever reachable while the reminder checkbox is checked (the time
         // <select>s are inside the same conditionally-shown block).
-        if (dailyReminderEnabled) viewModelScope.launch { repository.setDailyReminder(uid, true, "$hour:$minute", profileId) }
+        if (dailyReminderEnabled) save { repository.setDailyReminder(uid, true, "$hour:$minute", profileId) }
     }
 
     fun onBudgetAlertsChanged(enabled: Boolean) {
+        if (saving) return
         budgetAlerts = enabled
-        viewModelScope.launch { repository.setBudgetAlerts(uid, enabled, profileId) }
+        save { repository.setBudgetAlerts(uid, enabled, profileId) }
     }
 
     fun onRecurringAlertsChanged(enabled: Boolean) {
+        if (saving) return
         recurringAlerts = enabled
-        viewModelScope.launch { repository.setRecurringAlerts(uid, enabled, profileId) }
+        save { repository.setRecurringAlerts(uid, enabled, profileId) }
     }
 
     fun onDebtAlertsChanged(enabled: Boolean) {
+        if (saving) return
         debtAlerts = enabled
-        viewModelScope.launch { repository.setDebtAlerts(uid, enabled, profileId) }
+        save { repository.setDebtAlerts(uid, enabled, profileId) }
     }
 }

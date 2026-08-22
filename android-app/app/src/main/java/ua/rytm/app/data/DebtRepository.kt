@@ -1,5 +1,6 @@
 package ua.rytm.app.data
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import ua.rytm.app.data.local.DebtEntity
@@ -32,15 +33,17 @@ class DebtRepository(private val db: RytmDatabase) {
 
     suspend fun seedIfEmpty() {
         if (db.debtDao().count() == 0) {
-            db.debtDao().insert(DebtEntity(id = System.currentTimeMillis(), name = "Кредит", note = "", currency = "грн", startAmount = 0.0, dueDate = ""))
+            db.debtDao().insert(DebtEntity(id = System.currentTimeMillis(), name = "Кредит", note = "", currency = "UAH", startAmount = 0.0, dueDate = ""))
         }
     }
 
     suspend fun addDebt(debt: Debt) {
+        requireValidStoredAmount(debt.startAmount, "debt start amount")
         db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
     }
 
     suspend fun updateDebt(debt: Debt) {
+        requireValidStoredAmount(debt.startAmount, "debt start amount")
         db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
     }
 
@@ -51,14 +54,25 @@ class DebtRepository(private val db: RytmDatabase) {
     }
 
     suspend fun addEntry(debtId: Long, entry: DebtEntry) {
+        requireValidStoredAmount(entry.balance, "debt balance")
         db.debtEntryDao().insert(entry.toEntity(debtId))
     }
 
     suspend fun updateEntry(debtId: Long, entry: DebtEntry) {
+        requireValidStoredAmount(entry.balance, "debt balance")
         db.debtEntryDao().update(entry.toEntity(debtId))
     }
 
     suspend fun deleteEntry(id: Long) {
         db.debtEntryDao().deleteById(id)
+    }
+
+    data class Snapshot(val debts: List<DebtEntity>, val entries: List<DebtEntryEntity>)
+    suspend fun snapshot() = Snapshot(db.debtDao().getAllOnce(), db.debtEntryDao().getAllOnce())
+    suspend fun restore(snapshot: Snapshot) = db.withTransaction {
+        db.debtEntryDao().clearAll()
+        db.debtDao().clearAll()
+        db.debtDao().insertAll(snapshot.debts)
+        db.debtEntryDao().insertAll(snapshot.entries)
     }
 }

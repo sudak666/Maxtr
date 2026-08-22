@@ -4,6 +4,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import ua.rytm.app.R
 
 // Native equivalent of the PWA's WebAuthn biometric unlock (js/auth.js) — see
 // CLAUDE.md's Auth section: a local re-lock convenience on top of the
@@ -28,9 +29,9 @@ fun showBiometricPrompt(activity: FragmentActivity, onSuccess: () -> Unit) {
         },
     )
     val info = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Розблокування Rytm")
-        .setSubtitle("Підтвердіть відбитком пальця або обличчям")
-        .setNegativeButtonText("Скасувати")
+        .setTitle(activity.getString(R.string.biometric_unlock_title))
+        .setSubtitle(activity.getString(R.string.biometric_unlock_subtitle))
+        .setNegativeButtonText(activity.getString(R.string.action_cancel))
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
         .build()
     prompt.authenticate(info)

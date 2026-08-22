@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -38,13 +39,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import ua.rytm.app.R
+import ua.rytm.app.ui.theme.RytmDimens
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
-// wallets-modal: inline-editable name, currency dropdown, color swatch
-// (fixed at creation, no picker yet — disclosed in the spec), two-guard
+// wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
 // delete (last-wallet / in-use), matching UK copy.
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,21 +69,21 @@ fun WalletsManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Гаманці", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.wallets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
             if (viewModel.wallets.isEmpty()) {
-                Text("Немає гаманців", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.wallets_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.wallets.forEach { wallet ->
@@ -86,13 +91,15 @@ fun WalletsManagerSheet(
                     wallet = wallet,
                     onRename = { viewModel.renameWallet(wallet, it) },
                     onCurrencyChange = { viewModel.changeCurrency(wallet, it) },
+                    onColorChange = { viewModel.changeColor(wallet, it) },
                     onDelete = { viewModel.requestDelete(wallet.id) },
                 )
             }
 
-            TextButton(onClick = viewModel::addWallet, modifier = Modifier.fillMaxWidth()) {
+            val newWalletName = stringResource(R.string.wallet_new_default)
+            TextButton(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Add, contentDescription = null)
-                Text("Додати гаманець")
+                Text(stringResource(R.string.wallet_add))
             }
         }
     }
@@ -100,10 +107,10 @@ fun WalletsManagerSheet(
     viewModel.pendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити гаманець") },
-            text = { Text("Видалити цей гаманець?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.wallet_delete_title)) },
+            text = { Text(stringResource(R.string.wallet_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -114,20 +121,38 @@ private fun WalletRow(
     wallet: Wallet,
     onRename: (String) -> Unit,
     onCurrencyChange: (String) -> Unit,
+    onColorChange: (Long) -> Unit,
     onDelete: () -> Unit,
 ) {
     var nameText by remember(wallet.id) { mutableStateOf(wallet.name) }
     var currencyExpanded by remember { mutableStateOf(false) }
+    var colorExpanded by remember { mutableStateOf(false) }
+    val colorDescription = stringResource(R.string.wallet_color)
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(Modifier.size(28.dp).clip(CircleShape).background(Color(wallet.colorHex)))
+        Box {
+            IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
+                Box(Modifier.size(28.dp).clip(CircleShape).background(Color(wallet.colorHex)))
+            }
+            DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
+                PALETTE.chunked(4).forEach { colors ->
+                    Row {
+                        colors.forEach { color ->
+                            IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
+                                Box(Modifier.size(28.dp).clip(CircleShape).background(Color(color)))
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         OutlinedTextField(
             value = nameText,
             onValueChange = { nameText = it },
             modifier = Modifier.weight(1f),
             singleLine = true,
-            label = { Text("Назва") },
+            label = { Text(stringResource(R.string.field_name)) },
             // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
             trailingIcon = null,
         )
@@ -154,6 +179,6 @@ private fun WalletRow(
             }
         }
 
-        IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+        IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
     }
 }

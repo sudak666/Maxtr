@@ -263,6 +263,12 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
         return SharedMemberInfo(members, roles)
     }
 
+    suspend fun canEditProfile(signedInUid: String, ownerUid: String?, profileId: String): Boolean {
+        if (ownerUid == null || ownerUid == signedInUid) return true
+        val info = listSharedMembers(ownerUid, profileId) ?: return false
+        return canEditProfile(signedInUid, ownerUid, info.members, info.roles)
+    }
+
     // Writes the whole roles map in one read-modify-write, same as
     // js/firebase-sync.js's setMemberRole() — simpler to reason about than
     // a dotted-path update for a map this small.

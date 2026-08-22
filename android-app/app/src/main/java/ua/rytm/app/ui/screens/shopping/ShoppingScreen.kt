@@ -1,15 +1,19 @@
 package ua.rytm.app.ui.screens.shopping
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,7 +35,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +57,22 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import ua.rytm.app.ui.components.SwipeOpenThreshold
+import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -52,31 +81,35 @@ import ua.rytm.app.RytmApplication
 @Composable
 fun ShoppingScreen(
     viewModel: ShoppingViewModel = viewModel(
-        factory = ShoppingViewModel.factory((LocalContext.current.applicationContext as RytmApplication).shoppingRepository),
+        factory = ShoppingViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
     ),
 ) {
+    val canEdit = LocalCanEditProfile.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { RealtimeStateBanner() }
+        if (viewModel.loading) item { ScreenLoadingState() }
+        if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { ChipStatsRow(remaining = viewModel.remainingCount, bought = viewModel.boughtCount) }
-        item { AddItemForm(viewModel) }
+        if (canEdit) item { AddItemForm(viewModel) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Список покупок", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                if (viewModel.boughtCount > 0) {
-                    TextButton(onClick = viewModel::requestClearBought) { Text("Очистити куплені", color = MaterialTheme.colorScheme.error) }
+                Text(stringResource(R.string.shopping_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                if (canEdit && viewModel.boughtCount > 0) {
+                    TextButton(onClick = viewModel::requestClearBought) { Text(stringResource(R.string.shopping_clear_bought), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }
 
         val sorted = viewModel.sortedItems
-        if (sorted.isEmpty()) {
+        if (!viewModel.loading && !viewModel.loadFailed && sorted.isEmpty()) {
             item { ShoppingEmptyState() }
         } else {
             items(sorted, key = { it.id }) { item ->
-                ShoppingRow(item = item, onToggle = { viewModel.toggle(item, it) }, onDelete = { viewModel.delete(item.id) })
+                ShoppingRow(item = item, canEdit = canEdit, onToggle = { viewModel.toggle(item, it) }, onDelete = { viewModel.delete(item.id) })
             }
         }
     }
@@ -84,10 +117,18 @@ fun ShoppingScreen(
     if (viewModel.clearConfirmVisible) {
         AlertDialog(
             onDismissRequest = viewModel::cancelClearBought,
-            title = { Text("Очистити куплені") },
-            text = { Text("Видалити всі куплені товари зі списку?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.shopping_clear_bought)) },
+            text = { Text(stringResource(R.string.shopping_clear_confirmation)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+    viewModel.errorMessageRes?.let { messageRes ->
+        AlertDialog(
+            onDismissRequest = viewModel::consumeError,
+            title = { Text(stringResource(R.string.shopping_save_failed)) },
+            text = { Text(stringResource(messageRes)) },
+            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
@@ -95,8 +136,8 @@ fun ShoppingScreen(
 @Composable
 private fun ChipStatsRow(remaining: Int, bought: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.Checklist, remaining.toString(), "Залишилось", Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, bought.toString(), "Куплено", Modifier.weight(1f))
+        StatChip(Icons.Filled.Checklist, remaining.toString(), R.string.shopping_remaining, Modifier.weight(1f))
+        StatChip(Icons.Filled.CheckCircle, bought.toString(), R.string.shopping_bought, Modifier.weight(1f))
     }
 }
 
@@ -104,7 +145,7 @@ private fun ChipStatsRow(remaining: Int, bought: Int) {
 // purple-gradient icon badge, not a plain Card — same treatment Finance/
 // Shifts/Debt's chip stats got (steps 38-39 and the Debt visual-parity pass).
 @Composable
-private fun StatChip(icon: ImageVector, value: String, label: String, modifier: Modifier = Modifier) {
+private fun StatChip(icon: ImageVector, value: String, @StringRes labelRes: Int, modifier: Modifier = Modifier) {
     Card(modifier, shape = RoundedCornerShape(999.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -118,7 +159,7 @@ private fun StatChip(icon: ImageVector, value: String, label: String, modifier: 
             }
             Column(Modifier.padding(start = 9.dp)) {
                 Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(labelRes), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -130,30 +171,69 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
         OutlinedTextField(
             value = viewModel.nameInput,
             onValueChange = viewModel::onNameChange,
-            label = { Text("Назва товару") },
-            placeholder = { Text("напр. Молоко") },
+            label = { Text(stringResource(R.string.shopping_item_name)) },
+            placeholder = { Text(stringResource(R.string.shopping_item_example)) },
             modifier = Modifier.weight(1f),
             singleLine = true,
+            isError = viewModel.nameInvalid,
+            supportingText = if (viewModel.nameInvalid) ({ Text(stringResource(R.string.shopping_name_required)) }) else null,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
         OutlinedTextField(
             value = viewModel.qtyInput,
             onValueChange = viewModel::onQtyChange,
-            label = { Text("К-сть") },
+            label = { Text(stringResource(R.string.shopping_quantity)) },
             placeholder = { Text("1") },
-            modifier = Modifier.size(width = 84.dp, height = 64.dp),
+            modifier = Modifier.width(108.dp),
             singleLine = true,
+            isError = viewModel.quantityInvalid,
+            supportingText = if (viewModel.quantityInvalid) ({ Text(stringResource(R.string.shopping_quantity_invalid)) }) else null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { viewModel.addItem() }),
         )
-        FilledTonalButton(onClick = viewModel::addItem) {
+        FilledTonalButton(onClick = viewModel::addItem, enabled = !viewModel.saving && viewModel.nameInput.isNotBlank()) {
             Icon(Icons.Filled.Add, contentDescription = null)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ShoppingRow(item: ShoppingItem, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+    val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
+    var deleteCommitted by remember(item.id) { mutableStateOf(false) }
+    val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { swipeThresholdPx }, confirmValueChange = { value ->
+        if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
+            if (!deleteCommitted) { deleteCommitted = true; onDelete() }
+            true
+        } else false
+    })
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = canEdit,
+        backgroundContent = {
+            Box(
+                Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
+                }
+            }
+        },
+    ) {
     Card(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = item.done, onCheckedChange = onToggle)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .toggleable(value = item.done, enabled = canEdit, role = Role.Checkbox, onValueChange = onToggle)
+                .semantics(mergeDescendants = true) {}
+                .heightIn(min = RytmDimens.TouchTarget)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = item.done, onCheckedChange = null, enabled = canEdit)
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.bodyLarge,
@@ -170,8 +250,9 @@ private fun ShoppingRow(item: ShoppingItem, onToggle: (Boolean) -> Unit, onDelet
                     modifier = Modifier.padding(end = 4.dp),
                 )
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
+    }
     }
 }
 
@@ -182,9 +263,9 @@ private fun ShoppingEmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(Icons.Filled.ShoppingCart, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("Список порожній", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+        Text(stringResource(R.string.shopping_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Text(
-            "Додай товари перед походом у магазин і відмічай куплене одним тапом.",
+            stringResource(R.string.shopping_empty_body),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, start = 24.dp, end = 24.dp),

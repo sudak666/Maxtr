@@ -14,6 +14,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.TagsSyncRepository
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/finance.js's tags-modal (addTag()/updateTag()/deleteTag()) — same
 // collapsed-row-with-pencil-toggle pattern as WalletsManagerViewModel, color
@@ -30,9 +32,10 @@ class TagsManagerViewModel(private val repository: FinanceRepository, private va
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
     private val mutationMutex = Mutex()
 
     init {
@@ -47,7 +50,7 @@ class TagsManagerViewModel(private val repository: FinanceRepository, private va
     }
 
     fun renameTag(tag: Tag, newName: String) {
-        val name = newName.trim().ifBlank { "Тег" }
+        val name = newName.trim().ifBlank { tag.name }
         mutateAndSync { repository.renameTag(tag.id, name, tag.colorHex) }
     }
 
@@ -73,7 +76,7 @@ class TagsManagerViewModel(private val repository: FinanceRepository, private va
                 else syncRepository.saveTagsAndChangedTransactions(uid, profileId, changedTransactions)
             } catch (_: Exception) {
                 repository.restoreTagsSnapshot(before)
-                errorMessage = "Не вдалося зберегти теги. Спробуйте ще раз."
+                errorMessageRes = R.string.tags_save_failed
             }
         } }
     }

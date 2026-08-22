@@ -15,6 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.RecurringSyncRepository
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/settings-managers.js's recurring-modal (openRecurringManager()/
 // renderRecurringList()/updateRecurring()/addRecurring()/deleteRecurring()) —
@@ -47,11 +49,12 @@ class RecurringManagerViewModel(
         private set
     var isSaving by mutableStateOf(false)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
     private val mutationMutex = Mutex()
 
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     init {
         repository.recurring.onEach { rows = it }.launchIn(viewModelScope)
@@ -117,13 +120,13 @@ class RecurringManagerViewModel(
             mutationMutex.withLock {
                 val before = repository.recurringSnapshot()
                 isSaving = true
-                errorMessage = null
+                errorMessageRes = null
                 try {
                     mutation()
                     syncRepository.saveRecurringSnapshot(uid, profileId)
                 } catch (_: Exception) {
                     repository.replaceRecurring(before)
-                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                    errorMessageRes = R.string.common_save_retry
                 } finally {
                     isSaving = false
                 }

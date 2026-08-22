@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShoppingItemEntity
 
@@ -16,6 +18,7 @@ import ua.rytm.app.data.local.ShoppingItemEntity
 // keys — never a full-doc setDoc(..., {merge:false}) — same safety rule as every
 // other synced field on the shared `finance` doc.
 class ShoppingSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+    private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -37,6 +40,14 @@ class ShoppingSyncRepository(private val db: RytmDatabase, private val firestore
                 SetOptions.merge(),
             ).await()
         }
+    }
+
+    suspend fun saveSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val local = db.shoppingDao().getAllOnce()
+        financeDocRef(uid, profileId).set(
+            mapOf("shoppingList" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
     }
 }
 

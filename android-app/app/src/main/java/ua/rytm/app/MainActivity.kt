@@ -6,17 +6,26 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import ua.rytm.app.navigation.RytmNavHost
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.auth.LoginScreen
 import ua.rytm.app.ui.screens.pin.PinLockScreen
 import ua.rytm.app.ui.screens.pin.PinViewModel
+import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
+import ua.rytm.app.ui.LocalHideAmounts
+import ua.rytm.app.ui.applyAppLanguage
+import ua.rytm.app.ui.LocalReducedMotion
+import ua.rytm.app.ui.rememberReducedMotion
 
 // FragmentActivity (not plain ComponentActivity) — androidx.biometric's
 // BiometricPrompt requires a FragmentActivity host for the PIN screen's
@@ -29,7 +38,12 @@ class MainActivity : FragmentActivity() {
         val app = application as RytmApplication
         setContent {
             val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+            val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+            val language by app.settingsStore.language.collectAsState(initial = "uk")
+            val reducedMotion = rememberReducedMotion()
+            LaunchedEffect(language) { if (applyAppLanguage(this@MainActivity, language)) recreate() }
             RytmTheme(darkTheme = darkTheme) {
+                CompositionLocalProvider(LocalHideAmounts provides hideAmounts, LocalReducedMotion provides reducedMotion) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val authViewModel: AuthViewModel = viewModel()
                     val uid = authViewModel.currentUser?.uid
@@ -57,6 +71,9 @@ class MainActivity : FragmentActivity() {
                         LaunchedEffect(uid) {
                             app.profileSyncCoordinator.loadOnSignIn(uid)
                         }
+                        DisposableEffect(uid) {
+                            onDispose { app.profileSyncCoordinator.stopRealtimeSync() }
+                        }
 
                         // PIN re-lock gate, between Auth and the main nav — mirrors
                         // js/auth.js's checkPinLock(), a local gate on top of the
@@ -78,12 +95,18 @@ class MainActivity : FragmentActivity() {
                         // gate kicks in — a real gap for a security feature. Render
                         // nothing until the read actually completes.
                         val hasPin by pinViewModel.hasPin.collectAsState(initial = null)
+                        val onboardingComplete by app.settingsStore.onboardingComplete.collectAsState(initial = null)
                         when {
+                            onboardingComplete == null -> {}
+                            onboardingComplete == false -> OnboardingScreen(onComplete = {
+                                lifecycleScope.launch { app.settingsStore.setOnboardingComplete(true) }
+                            })
                             hasPin == null -> {}
                             hasPin == true && !pinViewModel.isUnlocked -> PinLockScreen(pinViewModel)
                             else -> RytmNavHost()
                         }
                     }
+                }
                 }
             }
         }

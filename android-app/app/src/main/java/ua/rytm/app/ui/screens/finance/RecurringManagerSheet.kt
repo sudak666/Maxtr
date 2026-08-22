@@ -38,6 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
+import ua.rytm.app.ui.components.DatePickerField
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
@@ -67,18 +71,18 @@ fun RecurringManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Регулярні платежі", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.recurring_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
             if (viewModel.rows.isEmpty()) {
-                Text("Немає регулярних платежів", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.recurring_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.rows.forEach { r ->
@@ -102,7 +106,7 @@ fun RecurringManagerSheet(
 
             TextButton(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving) {
                 Icon(Icons.Filled.Add, contentDescription = null)
-                Text("Додати регулярний платіж")
+                Text(stringResource(R.string.recurring_add))
             }
         }
     }
@@ -110,15 +114,13 @@ fun RecurringManagerSheet(
     viewModel.pendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити регулярний платіж") },
-            text = { Text("Видалити цей регулярний платіж?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.recurring_delete_title)) },
+            text = { Text(stringResource(R.string.recurring_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete, enabled = !viewModel.isSaving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
-
-private val FREQUENCY_OPTIONS = listOf("daily" to "Щодня", "weekly" to "Щотижня", "monthly" to "Щомісяця")
 
 @Composable
 private fun RecurringRow(
@@ -137,29 +139,32 @@ private fun RecurringRow(
     onActiveChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val freqLabel = FREQUENCY_OPTIONS.firstOrNull { it.first == r.frequency }?.second ?: "Щомісяця"
-    val summary = "${r.category} · ${r.amount.toInt()} грн · $freqLabel · ${r.nextDate}" + if (!r.active) " · на паузі" else ""
+    val incomeLabel = stringResource(R.string.tx_income)
+    val expenseLabel = stringResource(R.string.tx_expense)
+    val frequencyOptions = listOf("daily" to stringResource(R.string.frequency_daily), "weekly" to stringResource(R.string.frequency_weekly), "monthly" to stringResource(R.string.frequency_monthly))
+    val freqLabel = frequencyOptions.firstOrNull { it.first == r.frequency }?.second ?: stringResource(R.string.frequency_monthly)
+    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category), r.amount.toInt(), freqLabel, r.nextDate)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CategoryIconBadge(r.category, iconOverride = iconOverride, size = 32.dp)
             Column(Modifier.weight(1f)) {
-                Text(if (r.type == TxType.INCOME) "Дохід" else "Витрата", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(if (r.type == TxType.INCOME) incomeLabel else expenseLabel, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
+                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DropdownField(
-                    label = "Тип",
-                    options = listOf("Дохід", "Витрата"),
-                    selected = if (r.type == TxType.INCOME) "Дохід" else "Витрата",
-                    onSelect = { onTypeChange(if (it == "Дохід") TxType.INCOME else TxType.EXPENSE) },
+                    label = stringResource(R.string.tx_type),
+                    options = listOf(incomeLabel, expenseLabel),
+                    selected = if (r.type == TxType.INCOME) incomeLabel else expenseLabel,
+                    onSelect = { onTypeChange(if (it == incomeLabel) TxType.INCOME else TxType.EXPENSE) },
                     modifier = Modifier.weight(1f),
                 )
 
@@ -169,7 +174,7 @@ private fun RecurringRow(
                     onValueChange = { amountText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    label = { Text("Сума") },
+                    label = { Text(stringResource(R.string.amount_label)) },
                 )
                 LaunchedEffect(amountText) {
                     delay(400)
@@ -179,40 +184,35 @@ private fun RecurringRow(
             }
 
             DropdownField(
-                label = "Категорія",
+                label = stringResource(R.string.tx_category),
                 options = categoriesByType[r.type].orEmpty(),
                 selected = r.category,
                 onSelect = onCategoryChange,
             )
 
-            WalletDropdown(label = "Гаманець", wallets = wallets, selectedId = r.walletId, onSelect = onWalletChange)
+            WalletDropdown(label = stringResource(R.string.wallet_label), wallets = wallets, selectedId = r.walletId, onSelect = onWalletChange)
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DropdownField(
-                    label = "Частота",
-                    options = FREQUENCY_OPTIONS.map { it.second },
+                    label = stringResource(R.string.frequency_label),
+                    options = frequencyOptions.map { it.second },
                     selected = freqLabel,
-                    onSelect = { label -> FREQUENCY_OPTIONS.firstOrNull { it.second == label }?.let { onFrequencyChange(it.first) } },
+                    onSelect = { label -> frequencyOptions.firstOrNull { it.second == label }?.let { onFrequencyChange(it.first) } },
                     modifier = Modifier.weight(1f),
                 )
 
-                var nextDateText by remember(r.id, r.nextDate) { mutableStateOf(r.nextDate) }
-                OutlinedTextField(
-                    value = nextDateText,
-                    onValueChange = { nextDateText = it },
+                DatePickerField(
+                    value = r.nextDate,
+                    onValueChange = onNextDateChange,
                     modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text("Наступного разу") },
+                    label = stringResource(R.string.recurring_next_date),
+                    allowEmpty = false,
                 )
-                LaunchedEffect(nextDateText) {
-                    delay(400)
-                    if (nextDateText != r.nextDate && nextDateText.matches(Regex("""\d{4}-\d{2}-\d{2}"""))) onNextDateChange(nextDateText)
-                }
             }
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = r.active, onCheckedChange = onActiveChange)
-                Text("Активна", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -233,7 +233,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
-                DropdownMenuItem(text = { Text(option) }, onClick = { onSelect(option); expanded = false })
+                DropdownMenuItem(text = { Text(localizedDomainText(option)) }, onClick = { onSelect(option); expanded = false })
             }
         }
     }
@@ -256,7 +256,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             wallets.forEach { wallet ->
                 DropdownMenuItem(
-                    text = { Text("${wallet.name} (${wallet.currency})") },
+                    text = { Text("${localizedDomainText(wallet.name)} (${wallet.currency})") },
                     onClick = { onSelect(wallet.id); expanded = false },
                 )
             }

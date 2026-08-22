@@ -153,5 +153,11 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             ),
             SetOptions.merge(),
         ).await()
+        val txCollection = financeDocRef(uid, profileId).collection("transactions")
+        db.transactionDao().getAllOnce().chunked(450).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { tx -> batch.set(txCollection.document(tx.id), tx.toRemoteMap()) }
+            batch.commit().await()
+        }
     }
 }

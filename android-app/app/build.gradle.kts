@@ -29,6 +29,7 @@ android {
         applicationId = "ua.rytm.app"
         minSdk = 26
         targetSdk = 37
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Bumped past the TWA build's own versionCode 1 (2026-07-29 Closed
         // testing release) — Play rejects an upload whose versionCode
         // doesn't strictly increase over the package's last one, TWA or not.
@@ -84,6 +85,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // In-app locale switching needs both bundled translations available offline.
+    bundle.language.enableSplit = false
 }
 
 dependencies {
@@ -111,5 +115,13 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.biometric)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     debugImplementation(libs.androidx.ui.tooling)
+    testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
 }

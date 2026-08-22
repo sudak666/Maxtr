@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.BuildConfig
+import ua.rytm.app.R
 import ua.rytm.app.ui.theme.Purple3
 import ua.rytm.app.ui.theme.PurpleDark
 
@@ -93,7 +95,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                 }
                 Text("Rytm", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
                 Text(
-                    "Фінанси, зміни та борги в одному місці",
+                    stringResource(R.string.auth_tagline),
                     fontSize = 13.5.sp,
                     lineHeight = 20.25.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -118,12 +120,12 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         colors = ButtonDefaults.buttonColors(containerColor = PurpleDark, contentColor = Color.White),
                     ) {
                         Text("G", fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
-                        Text("Продовжити через Google", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.auth_continue_google), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
-                        Text("АБО", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.auth_or), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                     }
 
@@ -141,14 +143,14 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         colors = authFieldColors(),
                     )
 
-                    AuthFieldLabel("ПАРОЛЬ")
+                    AuthFieldLabel(stringResource(R.string.auth_password))
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
-                        placeholder = { Text("Мінімум 6 символів") },
+                        placeholder = { Text(stringResource(R.string.auth_password_hint)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { submit() }),
@@ -157,7 +159,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     )
 
                     Text(
-                        text = viewModel.formMessage.orEmpty(),
+                        text = viewModel.formMessageRes?.let { stringResource(it) }.orEmpty(),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 18.dp),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 13.sp,
@@ -172,11 +174,11 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         shape = RoundedCornerShape(999.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PurpleDark, contentColor = Color.White),
                     ) {
-                        Text(if (viewModel.authMode == AuthMode.LOGIN) "Увійти" else "Зареєструватися", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(stringResource(if (viewModel.authMode == AuthMode.LOGIN) R.string.auth_sign_in else R.string.auth_register), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                     }
 
                     TextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Забули пароль?", color = PurpleDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.auth_forgot_password), color = PurpleDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
 
                     TermsFooter(
@@ -186,7 +188,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
 
                     if (BuildConfig.USE_FIREBASE_EMULATOR) {
                         TextButton(onClick = viewModel::signInAnonymouslyForTesting, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                            Text("[emulator] Анонімний вхід для тестів")
+                            Text(stringResource(R.string.auth_emulator_sign_in))
                         }
                     }
                 }
@@ -194,12 +196,12 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
         }
     }
 
-    viewModel.errorMessage?.let { message ->
+    viewModel.errorMessageRes?.let { messageRes ->
         AlertDialog(
             onDismissRequest = viewModel::consumeError,
-            title = { Text("Не вдалося увійти") },
-            text = { Text(message) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text("Гаразд") } },
+            title = { Text(stringResource(R.string.auth_sign_in_failed)) },
+            text = { Text(stringResource(messageRes)) },
+            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
@@ -211,8 +213,8 @@ private fun AuthModeTabs(mode: AuthMode, enabled: Boolean, onModeChanged: (AuthM
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(999.dp)).padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        AuthModeTab("Вхід", mode == AuthMode.LOGIN, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.LOGIN) }
-        AuthModeTab("Реєстрація", mode == AuthMode.REGISTER, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.REGISTER) }
+        AuthModeTab(stringResource(R.string.auth_login_tab), mode == AuthMode.LOGIN, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.LOGIN) }
+        AuthModeTab(stringResource(R.string.auth_register_tab), mode == AuthMode.REGISTER, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.REGISTER) }
     }
 }
 
@@ -249,11 +251,11 @@ private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
 @Composable
 private fun TermsFooter(onTerms: () -> Unit, onPrivacy: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Реєструючись, ти погоджуєшся з", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.auth_terms_prefix), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TextButton(onClick = onTerms, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text("Умовами використання", color = PurpleDark, fontSize = 13.sp) }
-            Text("і", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = onPrivacy, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text("Політикою конфіденційності", color = PurpleDark, fontSize = 13.sp) }
+            TextButton(onClick = onTerms, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text(stringResource(R.string.terms_title), color = PurpleDark, fontSize = 13.sp) }
+            Text(stringResource(R.string.common_and), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onPrivacy, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text(stringResource(R.string.privacy_title), color = PurpleDark, fontSize = 13.sp) }
         }
     }
 }

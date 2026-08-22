@@ -1,6 +1,17 @@
 package ua.rytm.app.data
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.clearAllProfileScopedTables
@@ -15,6 +26,21 @@ import ua.rytm.app.data.local.clearAllProfileScopedTables
 // reassign activeProfileId, fbLoadNow() the new one), minus the local
 // read-through cache the PWA has and this app doesn't.
 class ProfileSyncCoordinator(private val app: RytmApplication) {
+    sealed interface RealtimeState {
+        data object Stopped : RealtimeState
+        data object Listening : RealtimeState
+        data object Syncing : RealtimeState
+        data object Offline : RealtimeState
+        data class Error(val message: String) : RealtimeState
+    }
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val realtimeSyncMutex = Mutex()
+    private val _realtimeState = MutableStateFlow<RealtimeState>(RealtimeState.Stopped)
+    val realtimeState = _realtimeState.asStateFlow()
+    private var listeners = emptyList<ListenerRegistration>()
+    private var pendingRealtimeSync: Job? = null
+    private var listenerGeneration = 0L
 
     // Every domain's cold sync against the given profile, plus recurring
     // materialization — same order MainActivity always ran these in.
@@ -65,9 +91,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
         app.financeRepository.seedIfEmpty()
         app.shiftsRepository.seedIfEmpty()
-        app.shoppingRepository.seedIfEmpty()
-        app.debtRepository.seedIfEmpty()
         syncAllDomains(dataOwnerUid, profileId)
+        startRealtimeSync(dataOwnerUid, profileId)
         return profileId
     }
 
@@ -83,9 +108,12 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // else owns — persisted via ActiveProfileStore.setActiveProfile() so a
     // restart resolves the same owner without a second profiles_meta lookup.
     suspend fun switchProfile(uid: String, newProfileId: String, dataOwnerUid: String? = null) {
+        stopRealtimeSync()
         app.database.clearAllProfileScopedTables()
         app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
-        syncAllDomains(dataOwnerUid ?: uid, newProfileId)
+        val ownerUid = dataOwnerUid ?: uid
+        syncAllDomains(ownerUid, newProfileId)
+        startRealtimeSync(ownerUid, newProfileId)
     }
 
     // Mirrors the PWA's resetProfileData(): deletes only the active own
@@ -111,5 +139,71 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.financeRepository.seedFreshProfileDefaults()
         app.shiftsRepository.seedFreshProfileDefaults()
         syncAllDomains(uid, profileId)
+    }
+
+    /** Keeps Room current when another signed-in client changes the active profile. */
+    fun startRealtimeSync(ownerUid: String, profileId: String) {
+        stopRealtimeSync()
+        val generation = ++listenerGeneration
+        val profileCollection = FirebaseFirestore.getInstance()
+            .collection("users").document(ownerUid).collection("max_tracker")
+        val finance = profileCollection.document(profileDocName("finance", profileId))
+        val watched = listOf(
+            finance,
+            profileCollection.document(profileDocName("shifts", profileId)),
+            profileCollection.document(profileDocName("debt", profileId)),
+        )
+        var initialSnapshotsRemaining = watched.size + 1
+        var initialSnapshotWasOffline = false
+
+        fun remoteChanged(error: Exception?, fromCache: Boolean) {
+            if (generation != listenerGeneration) return
+            if (error != null) {
+                _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
+                return
+            }
+            if (initialSnapshotsRemaining > 0) {
+                initialSnapshotWasOffline = initialSnapshotWasOffline || fromCache
+                initialSnapshotsRemaining--
+                if (initialSnapshotsRemaining == 0) {
+                    _realtimeState.value = if (initialSnapshotWasOffline) RealtimeState.Offline else RealtimeState.Listening
+                }
+                return
+            }
+            if (fromCache) {
+                _realtimeState.value = RealtimeState.Offline
+                return
+            }
+            pendingRealtimeSync?.cancel()
+            pendingRealtimeSync = scope.launch {
+                delay(250)
+                realtimeSyncMutex.withLock {
+                    if (generation != listenerGeneration) return@withLock
+                    _realtimeState.value = RealtimeState.Syncing
+                    runCatching { syncAllDomains(ownerUid, profileId) }
+                        .onSuccess { _realtimeState.value = RealtimeState.Listening }
+                        .onFailure { _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed") }
+                }
+            }
+        }
+
+        listeners = watched.map { ref ->
+            ref.addSnapshotListener { snapshot, error ->
+                if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
+                remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+            }
+        } + finance.collection("transactions").addSnapshotListener { snapshot, error ->
+            if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
+            remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+        }
+    }
+
+    fun stopRealtimeSync() {
+        listenerGeneration++
+        pendingRealtimeSync?.cancel()
+        pendingRealtimeSync = null
+        listeners.forEach(ListenerRegistration::remove)
+        listeners = emptyList()
+        _realtimeState.value = RealtimeState.Stopped
     }
 }

@@ -7,7 +7,420 @@
     <string name="nav_shopping">Покупки</string>
     <string name="nav_settings">Налаштування</string>
 
-    <string name="placeholder_screen">Екран у розробці — %1$s</string>
-
     <string name="notification_channel_name">Нагадування Rytm</string>
+    <string name="action_skip">Пропустити</string>
+    <string name="action_done">Готово</string>
+    <string name="action_apply">Застосувати</string>
+    <string name="action_add">Додати</string>
+    <string name="tags_title">Теги</string>
+    <string name="tags_empty">Немає тегів</string>
+    <string name="tags_name">Назва тега</string>
+    <string name="tags_delete_title">Видалити тег</string>
+    <string name="tags_delete_body">Видалити цей тег? Він буде знятий з усіх операцій.</string>
+    <string name="tags_save_failed">Не вдалося зберегти теги. Спробуйте ще раз.</string>
+    <string name="wallets_title">Гаманці</string>
+    <string name="wallets_empty">Немає гаманців</string>
+    <string name="wallet_new_default">Новий гаманець</string>
+    <string name="wallet_add">Додати гаманець</string>
+    <string name="wallet_delete_title">Видалити гаманець</string>
+    <string name="wallet_delete_body">Видалити цей гаманець?</string>
+    <string name="wallet_last_required">Має лишитися хоча б один гаманець</string>
+    <string name="wallet_in_use">Гаманець використовується в операціях</string>
+    <string name="wallet_color">Колір гаманця</string>
+    <string name="common_save_retry">Не вдалося зберегти зміни. Спробуйте ще раз.</string>
+    <string name="tx_income">Дохід</string><string name="tx_expense">Витрата</string><string name="tx_type">Тип</string><string name="tx_category">Категорія</string>
+    <string name="auto_rules_title">Автоматичні правила</string>
+    <string name="auto_rules_body">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</string>
+    <string name="auto_rules_empty">Немає правил</string>
+    <string name="auto_rules_example">напр. Сільпо</string>
+    <string name="auto_rules_summary">“%1$s” → %2$s</string>
+    <string name="auto_rules_add">Додати правило</string>
+    <string name="auto_rules_delete_title">Видалити правило</string>
+    <string name="auto_rules_delete_body">Видалити це правило?</string>
+    <string name="auto_rules_keyword">Слово в коментарі</string>
+    <string name="auto_rules_save_failed">Не вдалося зберегти правило. Спробуйте ще раз.</string>
+    <string name="rates_title">Курси валют</string>
+    <string name="rates_body">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</string>
+    <string name="rates_source">Джерело курсу</string>
+    <string name="rates_nbu">НБУ (офіційний)</string>
+    <string name="rates_privat">ПриватБанк (готівка)</string>
+    <string name="rates_privat_note">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</string>
+    <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
+    <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
+    <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string>
+    <string name="rates_per_unit">грн за 1 %1$s</string><string name="rates_save_failed">Не вдалося зберегти курс</string>
+    <string name="profile_load_failed">Не вдалося завантажити профіль</string>
+    <string name="profile_save_failed">Не вдалося зберегти профіль</string>
+    <string name="profile_invalid_image">Оберіть коректне зображення</string>
+    <string name="profile_avatar_updated">Аватар оновлено</string>
+    <string name="profile_nickname_saved">Нікнейм збережено</string>
+    <string name="profile_nickname">Нікнейм</string>
+    <string name="profile_edit_nickname">Редагувати нікнейм</string>
+    <string name="profile_choose_avatar">Оберіть аватар</string>
+    <string name="profile_upload_photo">Завантажити фото</string>
+    <string name="profile_avatar">Аватар</string>
+    <string name="profile_avatar_preset">Варіант аватара</string>
+    <string name="monobank_intro">Вкажіть персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен зберігається у вашому профілі й передається лише Monobank через захищений сервер Rytm.</string>
+    <string name="monobank_get_token">Отримати токен на api.monobank.ua</string><string name="monobank_token">Персональний токен</string>
+    <string name="monobank_connect">Підключити</string><string name="monobank_connected">Monobank підключено</string>
+    <string name="monobank_invalid_token">Токен недійсний. Перевірте його та спробуйте ще раз.</string>
+    <string name="monobank_rate_limit">Monobank дозволяє не більше одного запиту на хвилину. Спробуйте пізніше.</string>
+    <string name="monobank_connection_failed">Не вдалося з’єднатися з Monobank</string>
+    <string name="monobank_unmapped">%1$s · не прив’язано</string><string name="monobank_never_synced">ще не синхронізовано</string>
+    <string name="monobank_last_sync">Востаннє синхронізовано: %1$s</string><string name="monobank_sync_progress">Синхронізую рахунок %1$d/%2$d…</string>
+    <string name="monobank_sync_result">Синхронізовано, нових операцій: %1$d</string><string name="monobank_sync">Синхронізувати</string>
+    <string name="monobank_disconnect">Відключити</string><string name="monobank_disconnected">Monobank відключено</string>
+    <string name="monobank_disconnect_title">Відключити Monobank</string>
+    <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
+    <string name="goals_title">Цілі</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
+    <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
+    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Досягнуто</string>
+    <string name="goals_choose_wallet">Оберіть гаманець</string><string name="goals_default_name">Ціль</string>
+    <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
+    <string name="wallet_label">Гаманець</string>
+    <string name="amount_label">Сума</string>
+    <string name="recurring_title">Регулярні платежі</string><string name="recurring_empty">Немає регулярних платежів</string>
+    <string name="recurring_add">Додати регулярний платіж</string><string name="recurring_delete_title">Видалити регулярний платіж</string>
+    <string name="recurring_delete_body">Видалити цей регулярний платіж?</string>
+    <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
+    <string name="recurring_summary">%1$s · %2$d грн · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$d грн · %3$s · %4$s · на паузі</string>
+    <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
+    <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
+    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string>
+    <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
+    <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
+    <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
+    <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
+    <string name="transaction_edit_title">Редагування операції</string><string name="transaction_new_title">Нова операція</string>
+    <string name="transaction_wallet_expense">Звідки списати</string><string name="transaction_wallet_source">Звідки переказати</string><string name="transaction_wallet_target">Куди переказати</string>
+    <string name="transaction_wallet_same">Оберіть інший гаманець для переказу.</string><string name="transaction_conversion_hint">Орієнтовно за поточним курсом: %1$s → %2$s</string>
+    <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
+    <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
+    <string name="validation_invalid_amount">Введіть коректну суму</string><string name="validation_amount_too_large">Сума завелика</string>
+    <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
+    <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
+    <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$d грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
+    <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
+    <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
+    <string name="action_move_up">Вище</string><string name="action_move_down">Нижче</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
+    <string name="crypto_loading">Оновлюємо курси…</string><string name="crypto_error">Не вдалося завантажити курси криптовалют</string>
+    <string name="action_collapse">Згорнути</string><string name="action_view_all">Переглянути всі</string>
+    <string name="finance_estimated_balance">Орієнтовний баланс (у грн)</string><string name="finance_total_balance">Загальний баланс (у грн)</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
+    <string name="finance_month_income">Дохід цього місяця</string><string name="finance_month_expense">Витрата цього місяця</string><string name="finance_action_transaction">Операція</string><string name="finance_history">Історія операцій</string>
+    <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
+    <string name="finance_search_hint">Пошук за коментарем, категорією, гаманцем…</string><string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
+    <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
+    <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
+    <string name="categories_title">Категорії</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
+    <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
+    <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
+    <string name="subcategory_too_long">Назва підкатегорії не може перевищувати 120 символів</string><string name="subcategory_exists">Така підкатегорія вже є</string><string name="category_too_long">Назва категорії не може перевищувати 120 символів</string><string name="category_exists">Така категорія вже є</string><string name="categories_sync_failed">Не вдалося синхронізувати зміни</string>
+    <string name="debt_new_default">Новий розрахунок</string><string name="debt_last_required">Має лишитися хоча б один розрахунок</string><string name="debt_amount_required">Вкажіть суму</string><string name="debt_balance_required">Вкажіть залишок</string>
+    <string name="debt_forecast_title">Прогноз погашення</string><string name="debt_paid_off">Розрахунок повністю погашено! 🎉</string><string name="debt_forecast_insufficient">Замало даних для оцінки темпу погашення</string><string name="debt_average_payment">Середній платіж: %1$s</string>
+    <plurals name="debt_payments_left"><item quantity="one">Залишився приблизно %1$d платіж</item><item quantity="few">Залишилося приблизно %1$d платежі</item><item quantity="many">Залишилося приблизно %1$d платежів</item><item quantity="other">Залишилося приблизно %1$d платежу</item></plurals>
+    <string name="debt_payment">Платіж</string><string name="debt_delete_title">Видалити розрахунок</string><string name="debt_delete_body">Видалити цей розрахунок і всю історію платежів?</string><string name="debt_payment_delete_title">Видалити платіж</string><string name="debt_payment_delete_body">Видалити цей запис з історії?</string><string name="attention_title">Увага</string>
+    <string name="debt_empty_title">Немає розрахунків</string><string name="debt_empty_body">Додай перший розрахунок кнопкою вище</string><string name="debt_current_balance">Поточний залишок</string><string name="debt_paid">Сплачено</string><string name="debt_start_amount">Початкова сума</string><string name="debt_payments">Платежів</string><string name="debt_due_date">Термін сплати</string>
+    <string name="debt_days_overdue">−%1$d дн.</string><string name="debt_days_future">%1$d дн.</string><string name="debt_details">Дані розрахунку</string><string name="note_label">Нотатка</string><string name="debt_history">Історія платежів</string><string name="action_toggle_section">Згорнути або розгорнути</string><string name="debt_payments_empty">Ще немає платежів</string>
+    <string name="debt_balance">Залишок</string><string name="debt_balance_value">Залишок: %1$s %2$s</string><string name="debt_new_payment">Новий платіж</string><string name="debt_payment_amount">Сума платежу</string><string name="debt_new_balance">Новий залишок</string>
+    <string-array name="finance_tips"><item>Відкладай хоча б 10% доходу одразу після отримання, а не «з залишку» в кінці місяця.</item><item>Перед великою покупкою зачекай 24 години — імпульсивне бажання часто минає.</item><item>Створи резерв на 3–6 місяців витрат, щоб несподівані події не руйнували бюджет.</item><item>Автоматизуй заощадження: регулярний переказ працює краще за силу волі.</item><item>Раз на тиждень переглядай підписки й регулярні платежі.</item><item>Плануй нерегулярні витрати заздалегідь окремими категоріями.</item><item>Порівнюй знижку не з початковою ціною, а з реальною потребою в покупці.</item></string-array>
+    <string name="action_save">Зберегти</string>
+    <string name="action_today">Сьогодні</string>
+    <string name="money_uah">%1$s грн</string>
+    <string name="shifts_choose">Оберіть зміни</string>
+    <string name="shifts_earned_month">Зароблено цього місяця</string>
+    <string name="shifts_goal_progress">%1$d%% від цілі %2$s грн</string>
+    <string name="shifts_hours_short">год</string>
+    <string name="shifts_count">Змін</string>
+    <string name="shifts_days_off">Вихідних</string>
+    <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
+    <string name="shifts_quick_fill">Швидке заповнення</string>
+    <string name="shift_type">Тип зміни</string>
+    <string name="shift_pattern">Періодичність</string>
+    <string name="shift_pattern_daily">Щодня</string>
+    <string name="shift_pattern_alternate">День через день</string>
+    <string name="shift_pattern_2_2">2 через 2</string>
+    <string name="shift_pattern_3_3">3 через 3</string>
+    <string name="shifts_clear_month">Очистити місяць</string>
+    <string name="shifts_autofill_title">Автозаповнення кожного дня</string>
+    <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
+    <string name="shifts_anchor_date">Перший робочий день циклу</string>
+    <string name="shifts_empty_title">Ще немає змін цього місяця</string>
+    <string name="shifts_empty_body">Додай зміни вручну, натиснувши на день, або скористайся швидким заповненням.</string>
+    <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
+    <string name="shifts_edit_hint">Натисни на день, щоб редагувати зміни</string>
+    <string name="action_next">Далі</string>
+    <string name="onboarding_finance_title">Фінанси під контролем</string>
+    <string name="onboarding_finance_body">Гаманці, категорії, бюджети, цілі й аналітика в одному місці.</string>
+    <string name="onboarding_shifts_title">Робочий ритм</string>
+    <string name="onboarding_shifts_body">Плануйте зміни, рахуйте дохід і прогнозуйте робочий місяць.</string>
+    <string name="onboarding_security_title">Приватність і синхронізація</string>
+    <string name="onboarding_security_body">Дані синхронізуються через ваш Firebase-акаунт. PIN і біометрія захищають доступ на пристрої.</string>
+    <string name="action_cancel">Скасувати</string>
+    <string name="action_clear">Очистити</string>
+    <string name="action_choose_date">Обрати дату</string>
+    <string name="field_currency">Валюта</string>
+    <string name="sync_status_syncing">Синхронізація…</string>
+    <string name="sync_status_offline">Офлайн · показано кеш</string>
+    <string name="sync_status_error">Помилка синхронізації</string>
+    <string name="action_delete">Видалити</string>
+    <string name="shopping_name_required">Введіть назву покупки</string>
+    <string name="shopping_quantity_invalid">Кількість має бути цілим числом від 1</string>
+    <string name="shopping_title">Список покупок</string>
+    <string name="shopping_clear_bought">Очистити куплені</string>
+    <string name="shopping_clear_confirmation">Видалити всі куплені товари зі списку?</string>
+    <string name="shopping_save_failed">Не вдалося зберегти</string>
+    <string name="shopping_save_changes_failed">Не вдалося зберегти зміни</string>
+    <string name="profile_read_only">Профіль доступний лише для перегляду</string>
+    <string name="shopping_remaining">Залишилось</string>
+    <string name="shopping_bought">Куплено</string>
+    <string name="shopping_item_name">Назва товару</string>
+    <string name="shopping_item_example">напр. Молоко</string>
+    <string name="shopping_quantity">К-сть</string>
+    <string name="shopping_empty_title">Список порожній</string>
+    <string name="shopping_empty_body">Додай товари перед походом у магазин і відмічай куплене одним тапом.</string>
+    <string name="action_show_amounts">Показати суми</string>
+    <string name="action_hide_amounts">Приховати суми</string>
+    <string name="action_refresh">Оновити</string>
+    <string name="action_ok">Гаразд</string>
+    <string name="action_edit">Редагувати</string>
+    <string name="field_name">Назва</string>
+    <string name="common_save_failed">Не вдалося зберегти зміни</string>
+    <string name="shift_types_title">Типи змін</string>
+    <string name="shift_types_empty">Немає типів змін</string>
+    <string name="shift_type_new_default">Нова зміна</string>
+    <string name="shift_type_add">Додати тип зміни</string>
+    <string name="shift_type_delete_title">Видалити тип зміни</string>
+    <string name="shift_type_delete_body">Видалити цей тип зміни? Він буде знятий з усіх днів календаря.</string>
+    <string name="shift_day_off">Вихідний</string>
+    <string name="shift_type_summary">%1$d грн · %2$s год</string>
+    <string name="shift_pay">Оплата</string>
+    <string name="shift_hours">Години</string>
+    <string name="shift_day_off_unpaid">Вихідний (без оплати)</string>
+    <string name="auth_tagline">Фінанси, зміни та борги в одному місці</string>
+    <string name="auth_continue_google">Продовжити через Google</string>
+    <string name="auth_or">АБО</string>
+    <string name="auth_password">ПАРОЛЬ</string>
+    <string name="auth_password_hint">Мінімум 6 символів</string>
+    <string name="auth_sign_in">Увійти</string>
+    <string name="auth_register">Зареєструватися</string>
+    <string name="auth_forgot_password">Забули пароль?</string>
+    <string name="auth_emulator_sign_in">[emulator] Анонімний вхід для тестів</string>
+    <string name="auth_sign_in_failed">Не вдалося увійти</string>
+    <string name="auth_login_tab">Вхід</string>
+    <string name="auth_register_tab">Реєстрація</string>
+    <string name="auth_terms_prefix">Реєструючись, ти погоджуєшся з</string>
+    <string name="terms_title">Умовами використання</string>
+    <string name="privacy_title">Політикою конфіденційності</string>
+    <string name="common_and">і</string>
+    <string name="pin_enter">Введіть PIN-код</string>
+    <string name="pin_unlock_biometric">Розблокувати відбитком</string>
+    <string name="pin_forgot_short">Забув PIN?</string>
+    <string name="pin_forgot_title">Забули PIN?</string>
+    <string name="pin_forgot_body">Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.</string>
+    <string name="pin_reset_sign_out">Скинути й вийти</string>
+    <string name="pin_biometric_title">Швидке розблокування</string>
+    <string name="pin_biometric_body">Увімкнути розблокування відбитком пальця або обличчям? PIN залишиться резервним способом входу.</string>
+    <string name="pin_settings_title">PIN-код</string>
+    <string name="pin_is_set">PIN встановлено</string>
+    <string name="pin_biometric_toggle">Розблокування відбитком/обличчям</string>
+    <string name="pin_lock_now">Заблокувати зараз</string>
+    <string name="pin_remove">Видалити PIN</string>
+    <string name="pin_new">Новий PIN (4–6 цифр)</string>
+    <string name="pin_confirm">Підтвердіть PIN</string>
+    <string name="pin_save">Зберегти PIN</string>
+    <string name="pin_error_invalid">Невірний PIN-код</string>
+    <string name="pin_error_length">PIN має містити 4–6 цифр</string>
+    <string name="pin_error_mismatch">PIN-коди не збігаються</string>
+    <string name="action_enable">Увімкнути</string>
+    <string name="action_not_now">Не зараз</string>
+    <string name="auth_error_generic">Помилка входу. Спробуйте ще раз.</string>
+    <string name="auth_error_google_unavailable">Вхід через Google скасовано або недоступний.</string>
+    <string name="auth_error_google_token">Помилка обробки облікового запису Google.</string>
+    <string name="auth_error_invalid_email">Некоректний email.</string>
+    <string name="auth_error_weak_password">Пароль надто простий (мінімум 6 символів).</string>
+    <string name="auth_error_network">Немає з’єднання з мережею. Перевір інтернет і спробуй ще раз.</string>
+    <string name="auth_error_reset_email_required">Введіть email, щоб скинути пароль.</string>
+    <string name="auth_reset_sent">Лист для скидання пароля надіслано.</string>
+    <string name="auth_error_user_not_found">Користувача не знайдено.</string>
+    <string name="auth_error_wrong_password">Невірний пароль.</string>
+    <string name="auth_error_invalid_credentials">Невірний email або пароль.</string>
+    <string name="auth_error_email_in_use">Цей email вже зареєстровано.</string>
+    <string name="auth_error_too_many">Забагато спроб. Спробуйте пізніше.</string>
+    <string name="profiles_title">Профілі</string>
+    <string name="profile_name">Назва профілю</string>
+    <string name="profile_join_by_code">Приєднатися за кодом</string>
+    <string name="profile_invite_code">Код запрошення</string>
+    <string name="profile_join">Приєднатися</string>
+    <string name="profile_invite_body">Передайте цей код тому, хто має приєднатися до профілю:\n\n%1$s\n\nДійсний 24 години, одноразовий.</string>
+    <string name="profile_leave_title">Покинути профіль</string>
+    <string name="profile_leave_body">Покинути спільний профіль «%1$s»? Доступ до нього буде втрачено, доки вас не запросять знову.</string>
+    <string name="profile_leave">Покинути</string>
+    <string name="profile_delete_title">Видалити профіль</string>
+    <string name="profile_delete_body">Видалити цей профіль? Дані на сервері залишаться, але доступ до них із цього застосунку буде втрачено.</string>
+    <string name="profile_switch_title">Перемкнути профіль</string>
+    <string name="profile_switching">Перемикання…</string>
+    <string name="profile_switch_body">Перемкнутися на цей профіль? Поточні дані на екрані заміняться даними вибраного профілю.</string>
+    <string name="profile_switch">Перемкнути</string>
+    <string name="profile_members_title">Учасники: %1$s</string>
+    <string name="profile_members_not_shared">Профіль ще не поширювався — немає учасників.</string>
+    <string name="profile_members_empty">Ще ніхто не приєднався за кодом.</string>
+    <string name="profile_role_viewer">Переглядач</string>
+    <string name="profile_role_editor">Редактор</string>
+    <string name="profile_active">Активний</string>
+    <string name="profile_shared">Спільний</string>
+    <string name="profile_share">Поділитися</string>
+    <string name="profile_members">Учасники</string>
+    <string name="profile_rename">Перейменувати</string>
+    <string name="profiles_load_failed">Не вдалося завантажити профілі</string>
+    <string name="profile_delete_active_error">Не можна видалити активний профіль</string>
+    <string name="profile_delete_last_error">Має лишитись хоча б один профіль</string>
+    <string name="profile_switch_failed">Не вдалося перемкнути профіль</string>
+    <string name="profile_share_failed">Не вдалося поділитися профілем</string>
+    <string name="profile_join_own_error">Це ваш власний профіль</string>
+    <string name="profile_join_used_error">Цей код уже використано</string>
+    <string name="profile_join_expired_error">Код прострочено</string>
+    <string name="profile_join_failed">Не вдалося приєднатися</string>
+    <string name="profile_join_not_found_error">Код не знайдено</string>
+    <string name="profile_leave_active_error">Спершу перемкніться на інший профіль</string>
+    <string name="profile_leave_failed">Не вдалося покинути профіль</string>
+    <string name="profile_members_load_failed">Не вдалося завантажити учасників</string>
+    <string name="profile_role_change_failed">Не вдалося змінити роль</string>
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_clear_search">Очистити пошук</string>
+    <string name="settings_search_hint">Пошук: гаманці, категорії, push…</string>
+    <string name="settings_group_all">Усі</string>
+    <string name="settings_account">Акаунт</string>
+    <string name="settings_finance">Фінанси</string>
+    <string name="settings_security">Безпека</string>
+    <string name="settings_appearance">Вигляд</string>
+    <string name="settings_sign_out">Вийти з акаунту</string>
+    <string name="settings_sign_out_subtitle">Завершити сеанс на цьому пристрої</string>
+    <string name="settings_profiles_subtitle">Перемикання та керування профілями</string>
+    <string name="settings_premium">Преміум</string>
+    <string name="settings_free_plan">Безкоштовний план</string>
+    <string name="settings_reset_profile">Скинути дані профілю</string>
+    <string name="settings_reset_profile_subtitle">Очистити дані та почати спочатку</string>
+    <string name="settings_delete_account">Видалити акаунт</string>
+    <string name="settings_delete_account_subtitle">Незворотно видаляє ваші дані та обліковий запис</string>
+    <string name="settings_pin_subtitle">Захист застосунку кодом і біометрією</string>
+    <string name="settings_notifications">Сповіщення</string>
+    <string name="settings_push">Push-сповіщення</string>
+    <string name="settings_push_subtitle">Отримувати сповіщення на цьому пристрої</string>
+    <string name="settings_notification_types">Типи сповіщень</string>
+    <string name="settings_notification_types_subtitle">Нагадування, бюджет, регулярні платежі, розрахунки</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_theme_light">Світла</string>
+    <string name="settings_theme_dark">Темна</string>
+    <string name="settings_language_uk">Українська</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_hide_amounts">Приховувати суми</string>
+    <string name="settings_hide_amounts_subtitle">Маскувати грошові значення на всіх екранах</string>
+    <string name="settings_offline_cache">Офлайн-кеш</string>
+    <string name="settings_offline_cache_on">Дані доступні без мережі</string>
+    <string name="settings_offline_cache_off">Локальні дані очищаються після виходу</string>
+    <string name="settings_about">Про застосунок</string>
+    <string name="settings_web">Веб-версія</string>
+    <string name="settings_web_subtitle">Відкрити Rytm у браузері</string>
+    <string name="settings_terms_subtitle">Правила користування застосунком</string>
+    <string name="settings_privacy_subtitle">Як ми обробляємо твої дані</string>
+    <string name="settings_about_summary">Rytm — трекер змін, фінансів і розрахунків</string>
+    <string name="settings_wallets_subtitle">Картки, готівка та інші рахунки</string>
+    <string name="settings_monobank">Прив’язати Monobank</string>
+    <string name="settings_monobank_subtitle">Підтягувати операції з карток і банок автоматично</string>
+    <string name="settings_rates_subtitle">Синхронізовані курси до гривні</string>
+    <string name="settings_categories_subtitle">Власні категорії доходів і витрат</string>
+    <string name="settings_budgets_subtitle">Місячні ліміти для категорій витрат</string>
+    <string name="settings_tags_subtitle">Мітки для операцій</string>
+    <string name="settings_goals_subtitle">Накопичення на гаманці з ціллю</string>
+    <string name="settings_widgets_subtitle">Що показувати на вкладці «Фінанси»</string>
+    <string name="settings_recurring_subtitle">Автоматичне створення операцій за розкладом</string>
+    <string name="settings_auto_rules_subtitle">Категорія за ключовим словом у коментарі</string>
+    <string name="settings_shift_types_subtitle">Оплата, години та кольори для графіка змін</string>
+    <string name="settings_csv_export">Експорт CSV</string>
+    <string name="settings_csv_export_subtitle">Зберегти всі фінансові операції</string>
+    <string name="settings_csv_import">Імпорт CSV</string>
+    <string name="settings_csv_import_subtitle">Додати операції з експорту Rytm</string>
+    <string name="settings_search_empty">Нічого не знайдено</string>
+    <string name="settings_search_empty_body">Спробуй інший пошуковий запит</string>
+    <string name="settings_push_enabled">Push-сповіщення увімкнено</string>
+    <string name="settings_push_disabled">Push-сповіщення вимкнено</string>
+    <string name="settings_push_change_failed">Не вдалося змінити налаштування сповіщень</string>
+    <string name="settings_push_permission_denied">Дозвіл на сповіщення не надано</string>
+    <string name="settings_link_open_failed">Не вдалося відкрити посилання</string>
+    <string name="settings_csv_exported">CSV експортовано</string>
+    <string name="settings_csv_export_failed">Не вдалося експортувати CSV</string>
+    <string name="settings_csv_read_failed">Не вдалося прочитати файл</string>
+    <string name="settings_csv_import_failed">Не вдалося імпортувати CSV</string>
+    <string name="settings_csv_empty">CSV не містить транзакцій</string>
+    <string name="settings_profile_switched">Профіль перемкнено</string>
+    <string name="settings_csv_confirm">Імпортувати %1$s? Повторний імпорт створить дублікати.</string>
+    <string name="settings_csv_confirm_with_errors">Імпортувати %1$s? %2$s пропущено. Повторний імпорт створить дублікати.</string>
+    <string name="settings_csv_imported">Імпортовано операцій: %1$d</string>
+    <string name="settings_csv_import_save_failed">Не вдалося зберегти імпортовані операції</string>
+    <string name="settings_csv_import_action">Імпортувати</string>
+    <string name="settings_deleting_account">Видалення…</string>
+    <string name="settings_delete_account_body">Це незворотно видалить ваші дані (гаманці, операції, розрахунки, графік змін) та обліковий запис Google. Скасувати неможливо.</string>
+    <string name="settings_sign_out_title">Вихід</string>
+    <string name="settings_sign_out_body">Вийти з акаунту?</string>
+    <string name="settings_sign_out_action">Вийти</string>
+    <string name="settings_premium_title">Rytm Преміум</string>
+    <string name="settings_premium_body">Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:</string>
+    <string name="settings_premium_free_title">Вже доступно безкоштовно</string>
+    <string name="settings_premium_free_body">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</string>
+    <string name="settings_premium_banks_title">Інтеграція з банками</string>
+    <string name="settings_premium_banks_body">Автоматичне підвантаження операцій — у розробці</string>
+    <string name="settings_soon">СКОРО</string>
+    <string name="settings_reset_title">Почати спочатку?</string>
+    <string name="settings_resetting">Скидання даних…</string>
+    <string name="settings_reset_body">Буде видалено графік змін, фінанси, покупки та розрахунки поточного профілю. Акаунт і сам профіль залишаться.</string>
+    <string name="settings_reset_success">Дані профілю скинуто</string>
+    <string name="settings_reset_failed">Не вдалося скинути дані профілю</string>
+    <string name="settings_reset_action">Скинути</string>
+    <string name="settings_reset_shared_error">Не можна скинути спільний профіль</string>
+    <plurals name="settings_csv_operations"><item quantity="one">%1$d операцію</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
+    <plurals name="settings_csv_errors"><item quantity="one">%1$d рядок</item><item quantity="few">%1$d рядки</item><item quantity="many">%1$d рядків</item><item quantity="other">%1$d рядка</item></plurals>
+    <plurals name="settings_csv_no_valid_rows"><item quantity="one">Немає коректних рядків (%1$d помилка)</item><item quantity="few">Немає коректних рядків (%1$d помилки)</item><item quantity="many">Немає коректних рядків (%1$d помилок)</item><item quantity="other">Немає коректних рядків (%1$d помилки)</item></plurals>
+    <string name="auth_delete_data_failed">Не вдалося видалити дані</string>
+    <string name="auth_delete_reauth_required">Потрібен повторний вхід через Google для видалення акаунту</string>
+    <string name="auth_delete_account_failed">Не вдалося видалити акаунт</string>
+    <string name="auth_emulator_sign_in_failed">Не вдалося виконати тестовий вхід</string>
+    <string name="notifications_daily">Щоденне нагадування</string>
+    <string name="notifications_daily_subtitle">Якщо сьогодні ще немає жодної операції</string>
+    <string name="notifications_hour">Година</string>
+    <string name="notifications_minute">Хвилина</string>
+    <string name="notifications_budget">Перевищення бюджету</string>
+    <string name="notifications_budget_subtitle">Коли витрати за категорією перевищують місячний ліміт</string>
+    <string name="notifications_recurring_subtitle">За день до наступного регулярного платежу</string>
+    <string name="notifications_debt_subtitle">За день до терміну сплати</string>
+    <string name="biometric_unlock_title">Розблокування Rytm</string>
+    <string name="biometric_unlock_subtitle">Підтвердіть відбитком пальця або обличчям</string>
+    <string name="transaction_delete_failed">Не вдалося видалити операцію</string>
+    <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
+    <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s грн</string>
+    <string name="transaction_updated">Запис оновлено</string>
+    <string name="transaction_transfer_done">Переказ виконано</string>
+    <string name="transaction_added">Запис додано</string>
+    <string name="notifications_load_failed">Не вдалося завантажити налаштування сповіщень</string>
+    <string name="notifications_save_failed">Не вдалося зберегти налаштування сповіщень</string>
+    <string name="settings_csv_more_errors">Ще помилок: %1$d</string>
+    <string name="settings_csv_error_row">Рядок %1$d: %2$s</string>
+    <string name="settings_csv_error_columns">недостатньо колонок</string>
+    <string name="settings_csv_error_type">невідомий тип: %1$s</string>
+    <string name="settings_csv_error_wallet">невідомий гаманець: %1$s</string>
+    <string name="settings_csv_error_amount">невірна сума</string>
+    <string name="settings_csv_error_date">невірна дата</string>
+    <string name="settings_csv_error_same_wallets">гаманці переказу мають відрізнятися</string>
+    <string name="settings_csv_error_transfer_amount">невірна сума переказу</string>
+    <string name="builtin_wallet_card">Картка</string><string name="builtin_wallet_cash">Готівка</string>
+    <string name="builtin_category_salary">Зарплата</string><string name="builtin_category_bonus">Премія</string><string name="builtin_category_side_job">Підробіток</string>
+    <string name="builtin_category_groceries">Продукти</string><string name="builtin_category_cafe">Кафе</string><string name="builtin_category_transport">Транспорт</string><string name="builtin_category_shopping">Покупки</string><string name="builtin_category_utilities">Комунальні</string><string name="builtin_category_health">Здоров’я</string><string name="builtin_category_entertainment">Розваги</string><string name="builtin_category_other">Інше</string><string name="builtin_category_transfer">Внутрішній переказ</string>
+    <string name="builtin_shift_day">Денна зміна</string><string name="builtin_shift_night">Нічна зміна</string><string name="builtin_shift_day_off">Вихідний</string><string name="builtin_shift_day_short">День</string><string name="builtin_shift_night_short">Ніч</string><string name="builtin_shift_off_short">Вих</string>
+    <string name="builtin_debt_credit">Кредит</string><string name="builtin_profile_me">Я</string><string name="builtin_monobank_jar">Банка</string>
+    <string name="action_dismiss">Закрити повідомлення</string>
+    <string name="action_previous_month">Попередній місяць</string>
+    <string name="action_next_month">Наступний місяць</string>
+    <string name="category_change_icon">Змінити іконку категорії %1$s</string>
+    <string name="common_loading">Завантаження…</string>
+    <string name="common_data_load_failed">Не вдалося завантажити дані</string>
 </resources>

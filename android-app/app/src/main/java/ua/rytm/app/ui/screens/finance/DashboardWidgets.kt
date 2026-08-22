@@ -35,26 +35,23 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.platform.LocalConfiguration
+import ua.rytm.app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.FinanceRepository
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.NumberFormat
 import java.util.Locale
-
-private val tips = listOf(
-    "Відкладай хоча б 10% доходу одразу після отримання, а не «з залишку» в кінці місяця.",
-    "Перед великою покупкою зачекай 24 години — імпульсивне бажання часто минає.",
-    "Створи резерв на 3–6 місяців витрат, щоб несподівані події не руйнували бюджет.",
-    "Автоматизуй заощадження: регулярний переказ працює краще за силу волі.",
-    "Раз на тиждень переглядай підписки й регулярні платежі.",
-    "Плануй нерегулярні витрати заздалегідь окремими категоріями.",
-    "Порівнюй знижку не з початковою ціною, а з реальною потребою в покупці.",
-)
+import java.util.Currency
 
 data class CryptoQuote(val symbol: String, val price: Double, val change: Double, val spark: List<Double>)
 
@@ -62,7 +59,8 @@ data class CryptoQuote(val symbol: String, val price: Double, val change: Double
 fun FinanceDashboardWidget(key: String, app: RytmApplication) {
     when (key) {
         "goals" -> GoalsDashboardWidget(app)
-        "dailyTip" -> WidgetCard("Порада дня", Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)) {
+        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)) {
+            val tips = stringArrayResource(R.array.finance_tips)
             val day = System.currentTimeMillis() / 86_400_000L
             Text(tips[(day % tips.size).toInt()], color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -76,15 +74,15 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
     val wallets by app.financeRepository.wallets.collectAsState(initial = emptyList())
     val transactions by app.financeRepository.transactions.collectAsState(initial = emptyList())
     if (goals.isEmpty()) return
-    WidgetCard("Цілі", Icons.Filled.Flag, Color(0xFF10B981)) {
+    WidgetCard(stringResource(R.string.widget_goals), Icons.Filled.Flag, Color(0xFF10B981)) {
         goals.forEach { goal ->
             val wallet = wallets.firstOrNull { it.id == goal.walletId }
             val current = FinanceRepository.walletBalance(transactions, goal.walletId)
             val progress = if (goal.targetAmount > 0) (current / goal.targetAmount).coerceIn(0.0, 1.0) else 0.0
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(wallet?.name ?: "Ціль", fontWeight = FontWeight.SemiBold)
-                    Text("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}", style = MaterialTheme.typography.bodySmall)
+                    Text(wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name), fontWeight = FontWeight.SemiBold)
+                    Text(maskedAmount("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}"), style = MaterialTheme.typography.bodySmall)
                 }
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
                     Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(Color(0xFF10B981), CircleShape))
@@ -114,12 +112,12 @@ private fun CryptoDashboardWidget(app: RytmApplication) {
         }
         loading = false
     }
-    WidgetCard("Топ криптовалюти", Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)) {
+    WidgetCard(stringResource(R.string.widget_crypto), Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)) {
         if (loading && quotes.isEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            Text("Оновлюємо курси…", Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.crypto_loading), Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (error) Text("Не вдалося завантажити курси криптовалют", color = MaterialTheme.colorScheme.error)
+        if (error) Text(stringResource(R.string.crypto_error), color = MaterialTheme.colorScheme.error)
         quotes.forEach { quote -> CryptoRow(quote) }
     }
 }
@@ -128,16 +126,19 @@ private fun CryptoDashboardWidget(app: RytmApplication) {
 private fun CryptoRow(quote: CryptoQuote) {
     val positive = quote.change >= 0
     val trend = if (positive) Color(0xFF10B981) else Color(0xFFEF4444)
+    val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
+    val changeText = NumberFormat.getNumberInstance(locale).apply { minimumFractionDigits = 1; maximumFractionDigits = 1 }.format(quote.change)
+    val priceText = NumberFormat.getCurrencyInstance(locale).apply { currency = Currency.getInstance("USD"); maximumFractionDigits = if (quote.price < 10) 4 else 0 }.format(quote.price)
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(34.dp).background(if (quote.symbol == "BTC") Color(0x29F7931A) else Color(0x29627EEA), CircleShape), contentAlignment = Alignment.Center) {
             Text(quote.symbol.first().toString(), color = if (quote.symbol == "BTC") Color(0xFFF7931A) else Color(0xFF627EEA), fontWeight = FontWeight.Bold)
         }
         Column(Modifier.padding(start = 10.dp).weight(1f)) {
             Text(quote.symbol, fontWeight = FontWeight.SemiBold)
-            Text("${if (positive) "+" else ""}${"%.1f".format(Locale.US, quote.change)}%", color = trend, style = MaterialTheme.typography.bodySmall)
+            Text("${if (positive) "+" else ""}$changeText%", color = trend, style = MaterialTheme.typography.bodySmall)
         }
         Sparkline(quote.spark, trend, Modifier.size(60.dp, 24.dp))
-        Text("$${NumberFormat.getNumberInstance(Locale("uk", "UA")).apply { maximumFractionDigits = if (quote.price < 10) 4 else 0 }.format(quote.price)}", Modifier.padding(start = 10.dp), fontWeight = FontWeight.Bold)
+        Text(priceText, Modifier.padding(start = 10.dp), fontWeight = FontWeight.Bold)
     }
 }
 

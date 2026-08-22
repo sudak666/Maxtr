@@ -42,6 +42,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
+import ua.rytm.app.R
+import ua.rytm.app.ui.localizedDomainText
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.MonobankConnection
 import ua.rytm.app.data.MonobankHttpException
@@ -50,6 +54,7 @@ import ua.rytm.app.data.MonobankSyncProgress
 import ua.rytm.app.data.FinanceRepository
 import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +63,9 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
     var token by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var errorRes by remember { mutableStateOf<Int?>(null) }
+    var messageRes by remember { mutableStateOf<Int?>(null) }
+    var importedCount by remember { mutableStateOf<Int?>(null) }
     var progress by remember { mutableStateOf<MonobankSyncProgress?>(null) }
     var confirmDisconnect by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -69,16 +75,16 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
 
     fun errorText(throwable: Throwable) = when (throwable) {
         is MonobankHttpException -> when (throwable.status) {
-            401, 403 -> "Токен недійсний. Перевірте його та спробуйте ще раз."
-            429 -> "Monobank дозволяє не більше одного запиту на хвилину. Спробуйте пізніше."
-            else -> "Не вдалося з’єднатися з Monobank"
+            401, 403 -> R.string.monobank_invalid_token
+            429 -> R.string.monobank_rate_limit
+            else -> R.string.monobank_connection_failed
         }
-        else -> throwable.message ?: "Не вдалося з’єднатися з Monobank"
+        else -> R.string.monobank_connection_failed
     }
 
     LaunchedEffect(uid, profileId) {
         loading = true
-        runCatching { repository.load(uid, profileId) }.onSuccess { connection = it }.onFailure { error = errorText(it) }
+        runCatching { repository.load(uid, profileId) }.onSuccess { connection = it }.onFailure { errorRes = errorText(it) }
         loading = false
     }
 
@@ -91,70 +97,73 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
             when {
                 loading -> CircularProgressIndicator()
                 connection == null -> {
-                    Text("Вкажіть персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен зберігається у вашому профілі й передається лише Monobank через захищений сервер Rytm.")
+                    Text(stringResource(R.string.monobank_intro))
                     TextButton(
                         onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://api.monobank.ua/"))) },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Отримати токен на api.monobank.ua") }
+                    ) { Text(stringResource(R.string.monobank_get_token)) }
                     OutlinedTextField(
                         value = token,
-                        onValueChange = { token = it; error = null },
+                        onValueChange = { token = it; errorRes = null },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Персональний токен") },
+                        label = { Text(stringResource(R.string.monobank_token)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         enabled = !busy,
-                        isError = error != null,
-                        supportingText = error?.let { text -> { Text(text) } },
+                        isError = errorRes != null,
+                        supportingText = errorRes?.let { textRes -> { Text(stringResource(textRes)) } },
                     )
                     Button(
                         onClick = { scope.launch {
-                            busy = true; error = null
+                            busy = true; errorRes = null
                             runCatching { repository.connect(uid, profileId, token) }
-                                .onSuccess { connection = it; token = ""; message = "Monobank підключено" }
-                                .onFailure { error = errorText(it) }
+                                .onSuccess { connection = it; token = ""; messageRes = R.string.monobank_connected }
+                                .onFailure { errorRes = errorText(it) }
                             busy = false
                         } },
                         enabled = !busy && token.isNotBlank(),
                         modifier = Modifier.fillMaxWidth(),
-                    ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text("Підключити") }
+                    ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(R.string.monobank_connect)) }
                 }
                 else -> {
                     val mono = connection!!
-                    Text(mono.clientName.ifBlank { "Monobank підключено" }, fontWeight = FontWeight.SemiBold)
+                    Text(mono.clientName.ifBlank { stringResource(R.string.monobank_connected) }, fontWeight = FontWeight.SemiBold)
                     mono.accounts.forEach { account ->
                         Card(Modifier.fillMaxWidth()) {
                             Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(account.label)
                                 val walletName = mono.mapping[account.id]?.let { id -> wallets.firstOrNull { it.id == id }?.name }
-                                Text(walletName ?: "${account.currency} · не прив’язано")
+                                Text(walletName?.let { localizedDomainText(it) } ?: stringResource(R.string.monobank_unmapped, account.currency))
                             }
                         }
                     }
-                    Text("Востаннє синхронізовано: " + (mono.lastSyncAt?.let { DateFormat.getDateTimeInstance().format(Date(it * 1000)) } ?: "ще не синхронізовано"))
-                    progress?.let { Text("Синхронізую рахунок ${it.current}/${it.total}…") }
-                    error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    message?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+                    val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
+                    val lastSync = mono.lastSyncAt?.let { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it * 1000)) } ?: stringResource(R.string.monobank_never_synced)
+                    Text(stringResource(R.string.monobank_last_sync, lastSync))
+                    progress?.let { Text(stringResource(R.string.monobank_sync_progress, it.current, it.total)) }
+                    errorRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+                    messageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
+                    importedCount?.let { Text(stringResource(R.string.monobank_sync_result, it), color = MaterialTheme.colorScheme.primary) }
                     Button(
                         onClick = { scope.launch {
-                            busy = true; error = null; message = null
+                            busy = true; errorRes = null; messageRes = null; importedCount = null
                             runCatching { repository.sync(uid, profileId, mono) { progress = it } }
-                                .onSuccess { (next, count) -> connection = next; message = "Синхронізовано, нових операцій: $count" }
-                                .onFailure { error = errorText(it) }
+                                .onSuccess { (next, count) -> connection = next; importedCount = count }
+                                .onFailure { errorRes = errorText(it) }
                             progress = null; busy = false
                         } },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                        else { Icon(Icons.Filled.Sync, null); Spacer(Modifier.width(8.dp)); Text("Синхронізувати") }
+                        else { Icon(Icons.Filled.Sync, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.monobank_sync)) }
                     }
                     OutlinedButton(
                         onClick = { confirmDisconnect = true },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) { Text("Відключити") }
+                    ) { Text(stringResource(R.string.monobank_disconnect)) }
                 }
             }
             Spacer(Modifier.height(20.dp))
@@ -163,18 +172,18 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
 
     if (confirmDisconnect) AlertDialog(
         onDismissRequest = { confirmDisconnect = false },
-        title = { Text("Відключити Monobank") },
-        text = { Text("Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.") },
+        title = { Text(stringResource(R.string.monobank_disconnect_title)) },
+        text = { Text(stringResource(R.string.monobank_disconnect_body)) },
         confirmButton = { TextButton(onClick = {
             confirmDisconnect = false
             scope.launch {
                 busy = true
                 runCatching { repository.disconnect(uid, profileId) }
-                    .onSuccess { connection = null; message = "Monobank відключено" }
-                    .onFailure { error = errorText(it) }
+                    .onSuccess { connection = null; messageRes = R.string.monobank_disconnected }
+                    .onFailure { errorRes = errorText(it) }
                 busy = false
             }
-        }) { Text("Відключити", color = MaterialTheme.colorScheme.error) } },
-        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text("Скасувати") } },
+        }) { Text(stringResource(R.string.monobank_disconnect), color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

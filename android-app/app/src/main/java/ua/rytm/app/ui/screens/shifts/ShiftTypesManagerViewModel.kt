@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
 import ua.rytm.app.ui.screens.finance.PALETTE
 import java.util.UUID
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/settings-managers.js's openShiftTypesManager()/renderShiftTypesList()/
 // updateShiftType()/addShiftType()/deleteShiftType() — collapsed-summary-row-with-
@@ -33,10 +35,11 @@ class ShiftTypesManagerViewModel(private val repository: ShiftsRepository, priva
 
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
     private fun persist(block: suspend () -> Unit) = viewModelScope.launch {
-        runCatching { block() }.onFailure { errorMessage = "Не вдалося зберегти зміни" }
+        runCatching { block() }.onFailure { errorMessageRes = R.string.common_save_failed }
     }
 
     init {
@@ -47,9 +50,8 @@ class ShiftTypesManagerViewModel(private val repository: ShiftsRepository, priva
         expandedId = if (expandedId == id) null else id
     }
 
-    fun addShiftType() {
+    fun addShiftType(name: String) {
         val color = PALETTE[shiftTypes.size % PALETTE.size]
-        val name = "Нова зміна"
         persist {
             repository.addShiftType(uid, profileId,
                 ShiftType(id = UUID.randomUUID().toString(), name = name, short = name.take(4), code = "", colorHex = color, amount = 0.0, hours = 8.0, isOff = false)
@@ -58,7 +60,7 @@ class ShiftTypesManagerViewModel(private val repository: ShiftsRepository, priva
     }
 
     fun updateName(type: ShiftType, name: String) {
-        val clean = name.trim().ifBlank { "Зміна" }
+        val clean = name.trim().ifBlank { type.name }
         persist { repository.updateShiftType(uid, profileId, type.copy(name = clean, short = clean.take(4))) }
     }
 

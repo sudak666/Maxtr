@@ -14,6 +14,8 @@ import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 
 // Mirrors js/settings-managers.js's openWalletsManager()/renderWalletsList()/
 // updateWallet()/addWallet()/deleteWallet()/walletInUse() — see
@@ -34,9 +36,10 @@ class WalletsManagerViewModel(
     var wallets by mutableStateOf<List<Wallet>>(emptyList())
         private set
 
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
@@ -47,8 +50,7 @@ class WalletsManagerViewModel(
         repository.wallets.onEach { wallets = it }.launchIn(viewModelScope)
     }
 
-    fun addWallet() {
-        val name = "Новий гаманець"
+    fun addWallet(name: String) {
         val color = PALETTE[wallets.size % PALETTE.size]
         mutateAndSync {
             repository.addWallet(Wallet(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = color, currency = "UAH"))
@@ -56,7 +58,7 @@ class WalletsManagerViewModel(
     }
 
     fun renameWallet(wallet: Wallet, newName: String) {
-        val name = newName.trim().ifBlank { "Гаманець" }
+        val name = newName.trim().ifBlank { wallet.name }
         mutateAndSync { repository.updateWallet(wallet.copy(name = name)) }
     }
 
@@ -64,14 +66,18 @@ class WalletsManagerViewModel(
         mutateAndSync { repository.updateWallet(wallet.copy(currency = currency)) }
     }
 
+    fun changeColor(wallet: Wallet, colorHex: Long) {
+        mutateAndSync { repository.updateWallet(wallet.copy(colorHex = colorHex)) }
+    }
+
     fun requestDelete(id: String) {
         viewModelScope.launch {
             if (wallets.size <= 1) {
-                errorMessage = "Має лишитись хоча б один гаманець"
+                errorMessageRes = R.string.wallet_last_required
                 return@launch
             }
             if (repository.isWalletInUse(id)) {
-                errorMessage = "Гаманець використовується в операціях"
+                errorMessageRes = R.string.wallet_in_use
                 return@launch
             }
             pendingDeleteId = id
@@ -95,7 +101,7 @@ class WalletsManagerViewModel(
                     syncRepository.saveWalletsSnapshot(uid, profileId)
                 } catch (_: Exception) {
                     repository.replaceWallets(before)
-                    errorMessage = "Не вдалося зберегти зміни. Спробуйте ще раз."
+                    errorMessageRes = R.string.common_save_retry
                 }
             }
         }

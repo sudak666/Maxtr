@@ -19,11 +19,33 @@ private val Context.settingsDataStore by preferencesDataStore(name = "rytm_setti
 
 class SettingsStore(private val context: Context) {
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
+    private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
+    private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
+    private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
+    private val languageKey = stringPreferencesKey("language")
 
     val isDarkTheme: Flow<Boolean> = context.settingsDataStore.data.map { it[darkThemeKey] ?: true }
 
     suspend fun setDarkTheme(dark: Boolean) {
         context.settingsDataStore.edit { it[darkThemeKey] = dark }
+    }
+
+    val hideAmounts: Flow<Boolean> = context.settingsDataStore.data.map { it[hideAmountsKey] ?: false }
+    suspend fun setHideAmounts(hidden: Boolean) { context.settingsDataStore.edit { it[hideAmountsKey] = hidden } }
+
+    val privacyCacheEnabled: Flow<Boolean> = context.settingsDataStore.data.map { it[privacyCacheKey] ?: true }
+    suspend fun setPrivacyCacheEnabled(enabled: Boolean) { context.settingsDataStore.edit { it[privacyCacheKey] = enabled } }
+    suspend fun isPrivacyCacheEnabled(): Boolean = privacyCacheEnabled.first()
+
+    val onboardingComplete: Flow<Boolean> = context.settingsDataStore.data.map { it[onboardingCompleteKey] ?: false }
+    suspend fun setOnboardingComplete(complete: Boolean) { context.settingsDataStore.edit { it[onboardingCompleteKey] = complete } }
+    val language: Flow<String> = context.settingsDataStore.data.map { if (it[languageKey] == "en") "en" else "uk" }
+    suspend fun setLanguage(language: String) { context.settingsDataStore.edit { it[languageKey] = if (language == "en") "en" else "uk" } }
+
+    private fun biometricOnboardingDismissedKey(uid: String) = booleanPreferencesKey("biometric_onboarding_dismissed_$uid")
+    fun biometricOnboardingDismissed(uid: String): Flow<Boolean> = context.settingsDataStore.data.map { it[biometricOnboardingDismissedKey(uid)] ?: false }
+    suspend fun setBiometricOnboardingDismissed(uid: String, dismissed: Boolean) {
+        context.settingsDataStore.edit { it[biometricOnboardingDismissedKey(uid)] = dismissed }
     }
 
     // Mirrors js/notifications.js's pushEnabledKey() (`mx_pushEnabled_<uid>`

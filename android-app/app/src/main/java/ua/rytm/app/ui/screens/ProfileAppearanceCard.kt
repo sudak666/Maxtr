@@ -54,6 +54,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -88,11 +90,18 @@ fun ProfileAppearanceCard(
     var editing by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var avatarDialog by remember { mutableStateOf(false) }
+    val loadFailed = stringResource(R.string.profile_load_failed)
+    val saveFailed = stringResource(R.string.profile_save_failed)
+    val invalidImage = stringResource(R.string.profile_invalid_image)
+    val avatarUpdated = stringResource(R.string.profile_avatar_updated)
+    val nicknameSaved = stringResource(R.string.profile_nickname_saved)
+    val avatarDescription = stringResource(R.string.profile_avatar)
+    val presetDescription = stringResource(R.string.profile_avatar_preset)
 
     LaunchedEffect(uid, dataOwnerUid, profileId) {
         runCatching { repository.load(dataOwnerUid, profileId) }
             .onSuccess { appearance = it; draft = it.nickname }
-            .onFailure { onMessage("Не вдалося завантажити профіль") }
+            .onFailure { onMessage(loadFailed) }
     }
 
     fun save(next: ProfileAppearance, success: String) {
@@ -101,7 +110,7 @@ fun ProfileAppearanceCard(
         scope.launch {
             runCatching { repository.save(dataOwnerUid, profileId, next) }
                 .onSuccess { appearance = next; draft = next.nickname; onMessage(success) }
-                .onFailure { onMessage("Не вдалося зберегти профіль") }
+                .onFailure { onMessage(saveFailed) }
             busy = false
         }
     }
@@ -124,10 +133,10 @@ fun ProfileAppearanceCard(
             }
             if (encoded == null) {
                 busy = false
-                onMessage("Оберіть коректне зображення")
+                onMessage(invalidImage)
             } else {
                 busy = false
-                save(appearance.copy(avatar = encoded), "Аватар оновлено")
+                save(appearance.copy(avatar = encoded), avatarUpdated)
             }
         }
     }
@@ -138,7 +147,7 @@ fun ProfileAppearanceCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProfileAvatar(appearance, draft.ifBlank { email }, Modifier.clickable(enabled = !busy) { avatarDialog = true })
+            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clickable(enabled = !busy) { avatarDialog = true })
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -147,10 +156,10 @@ fun ProfileAppearanceCard(
                         modifier = Modifier.weight(1f),
                         enabled = editing && !busy,
                         singleLine = true,
-                        placeholder = { Text("Нікнейм") },
+                        placeholder = { Text(stringResource(R.string.profile_nickname)) },
                     )
-                    if (!editing) IconButton(onClick = { editing = true }, enabled = !busy) { Icon(Icons.Filled.Edit, "Редагувати нікнейм") }
-                    else Button(onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), "Нікнейм збережено") }, enabled = !busy && draft.trim() != appearance.nickname) { Text("Зберегти") }
+                    if (!editing) IconButton(onClick = { editing = true }, enabled = !busy) { Icon(Icons.Filled.Edit, stringResource(R.string.profile_edit_nickname)) }
+                    else Button(onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) }, enabled = !busy && draft.trim() != appearance.nickname) { Text(stringResource(R.string.action_save)) }
                 }
                 Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -160,25 +169,25 @@ fun ProfileAppearanceCard(
     if (avatarDialog) {
         AlertDialog(
             onDismissRequest = { avatarDialog = false },
-            title = { Text("Оберіть аватар") },
+            title = { Text(stringResource(R.string.profile_choose_avatar)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        builtinAvatars.take(3).forEach { avatar -> AvatarOption(avatar) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), "Аватар оновлено") } }
+                        builtinAvatars.take(3).forEach { avatar -> AvatarOption(avatar, presetDescription) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), avatarUpdated) } }
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        builtinAvatars.drop(3).forEach { avatar -> AvatarOption(avatar) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), "Аватар оновлено") } }
+                        builtinAvatars.drop(3).forEach { avatar -> AvatarOption(avatar, presetDescription) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), avatarUpdated) } }
                     }
-                    Button(onClick = { avatarDialog = false; imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text("Завантажити фото") }
+                    Button(onClick = { avatarDialog = false; imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.profile_upload_photo)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { avatarDialog = false }) { Text("Готово") } },
+            confirmButton = { TextButton(onClick = { avatarDialog = false }) { Text(stringResource(R.string.action_done)) } },
         )
     }
 }
 
 @Composable
-private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, modifier: Modifier) {
+private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, description: String, modifier: Modifier) {
     val builtin = builtinAvatars.firstOrNull { appearance.avatar == "builtin:${it.id}" }
     val bytes = remember(appearance.avatar) {
         appearance.avatar.takeIf { it.startsWith("data:image/") }?.substringAfter("base64,")?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
@@ -191,7 +200,7 @@ private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, modif
         contentAlignment = Alignment.Center,
     ) {
         when {
-            bitmap != null -> Image(bitmap, contentDescription = "Аватар", modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+            bitmap != null -> Image(bitmap, contentDescription = description, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
             builtin != null -> Icon(builtin.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
             else -> Text(fallback.trim().firstOrNull()?.uppercase() ?: "?", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
         }
@@ -199,9 +208,9 @@ private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, modif
 }
 
 @Composable
-private fun AvatarOption(avatar: BuiltinAvatar, onClick: () -> Unit) {
+private fun AvatarOption(avatar: BuiltinAvatar, description: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(avatar.colors)).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(avatar.icon, contentDescription = avatar.id, tint = Color.White) }
+    ) { Icon(avatar.icon, contentDescription = description, tint = Color.White) }
 }

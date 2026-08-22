@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.CategoriesSyncRepository
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.local.CategoryEntity
 import ua.rytm.app.data.subKey
@@ -38,9 +40,10 @@ class CategoriesManagerViewModel(
     /** (id, name) pairs for the active type. */
     var categories by mutableStateOf<List<Pair<String, String>>>(emptyList())
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     // Mirrors js/state.js's AppState.expandedCatIdx — which category row (by id,
     // not index — Android's list isn't positionally stable the way the PWA's
@@ -97,11 +100,15 @@ class CategoriesManagerViewModel(
 
     fun addSubcategory(categoryName: String, name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessageRes = R.string.subcategory_too_long; return }
+            CategoryNameValidation.VALID -> Unit
+        }
         mutateAndSync(syncRepository::saveSubcategoriesSnapshot) {
             val added = repository.addSubcategory(activeType, categoryName, clean)
             if (!added) {
-                errorMessage = "Така підкатегорія вже є"
+                errorMessageRes = R.string.subcategory_exists
             }
             added
         }
@@ -116,13 +123,36 @@ class CategoriesManagerViewModel(
 
     fun addCategory(name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessageRes = R.string.category_too_long; return }
+            CategoryNameValidation.VALID -> Unit
+        }
         mutateAndSync(syncRepository::saveCategoriesSnapshot) {
             val added = repository.addCategory(activeType, clean)
             if (!added) {
-                errorMessage = "Така категорія вже є"
+                errorMessageRes = R.string.category_exists
             }
             added
+        }
+    }
+
+    fun renameCategory(id: String, newName: String) {
+        val clean = newName.trim()
+        val current = categories.firstOrNull { it.first == id }?.second ?: return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessageRes = R.string.category_too_long; return }
+            CategoryNameValidation.VALID -> Unit
+        }
+        if (clean == current) return
+        if (categories.any { it.second == clean }) {
+            errorMessageRes = R.string.category_exists
+            return
+        }
+        mutateAndSync(syncRepository::saveAllCategorySnapshots) {
+            repository.renameCategory(id, activeType, clean)
+            true
         }
     }
 
@@ -141,12 +171,13 @@ class CategoriesManagerViewModel(
                 val iconsBefore = repository.categoryIconSnapshot()
                 val budgetsBefore = repository.categoryBudgetSnapshot()
                 val recurringBefore = repository.categoryRecurringSnapshot()
+                val transactionsBefore = repository.categoryTransactionSnapshot()
                 if (!mutate()) return@withLock
                 runCatching { save(uid, profileId) }.onFailure {
                     repository.restoreCategoryMutationSnapshot(
-                        categoriesBefore, subcategoriesBefore, iconsBefore, budgetsBefore, recurringBefore,
+                        categoriesBefore, subcategoriesBefore, iconsBefore, budgetsBefore, recurringBefore, transactionsBefore,
                     )
-                    errorMessage = "Не вдалося синхронізувати зміни"
+                    errorMessageRes = R.string.categories_sync_failed
                 }
             }
         }

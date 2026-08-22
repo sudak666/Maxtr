@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
@@ -20,11 +21,15 @@ import ua.rytm.app.data.subKey
 import ua.rytm.app.data.local.AutoRuleEntity
 import java.time.LocalDate
 import java.time.YearMonth
+import androidx.annotation.StringRes
+import ua.rytm.app.R
+
+data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
+data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any> = emptyList())
 
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
 // FINANCE_SCREEN_SPEC.md §8) — data is real and persisted, though still
-// bootstrapped from SampleFinanceData on first launch since there's no
-// Firestore/auth sync yet (see FinanceRepository.seedIfEmpty()'s comment).
+// bootstrapped from the PWA's exact empty-profile defaults.
 // Filtering logic mirrors renderFinance() in js/analytics-csv.js
 // line-for-line (see FINANCE_SCREEN_SPEC.md §5) so behavior parity is
 // checkable against the real PWA, not guessed.
@@ -52,20 +57,29 @@ class FinanceViewModel(
         private set
     private var autoRules by mutableStateOf<List<AutoRuleEntity>>(emptyList())
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
+    private var currencyRates by mutableStateOf<Map<String, Double>>(emptyMap())
+    private var budgets by mutableStateOf<Map<String, Double>>(emptyMap())
+    private var walletsLoaded = false
+    private var transactionsLoaded = false
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
+        private set
 
-    // Sample-only approximate USD->UAH rate. Real rates come from
-    // AppState.currencyRates (Firestore) once real sync exists.
-    private val sampleRatesToUah = mapOf("UAH" to 1.0, "USD" to 41.5)
+    private fun markLoaded() { loading = !(walletsLoaded && transactionsLoaded); loadFailed = false }
+    private fun markLoadFailed() { loading = false; loadFailed = true }
 
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
-        repository.wallets.onEach { wallets = it }.launchIn(viewModelScope)
-        repository.transactions.onEach { transactions = it }.launchIn(viewModelScope)
+        repository.wallets.onEach { wallets = it; walletsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.transactions.onEach { transactions = it; transactionsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.categoriesByType.onEach { categoriesByType = it }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
         repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
         repository.autoRules.onEach { autoRules = it }.launchIn(viewModelScope)
+        repository.currencyRates.onEach { currencyRates = it }.launchIn(viewModelScope)
+        repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -92,19 +106,17 @@ class FinanceViewModel(
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.deleteTransaction(ownerUid, profileId, id)
                 repository.deleteTransaction(id)
-            }.onFailure { pendingMessage = "Не вдалося видалити операцію: ${it.localizedMessage.orEmpty()}" }
+            }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_delete_failed) }
         }
     }
 
     private fun toUah(amount: Double, currency: String): Double =
-        amount * (sampleRatesToUah[currency] ?: 1.0)
+        repository.convertCurrency(amount, currency, "UAH", currencyRates)
 
     /** Cross-rate via UAH as the base, matching convertCurrency() in js/core.js. */
     private fun convertSample(amount: Double, from: String, to: String): Double {
         if (from == to) return amount
-        val uah = toUah(amount, from)
-        val toRate = sampleRatesToUah[to] ?: 1.0
-        return uah / toRate
+        return repository.convertCurrency(amount, from, to, currencyRates)
     }
 
     // ---- New/edit transaction sheet — mirrors setFinanceType()/
@@ -134,7 +146,8 @@ class FinanceViewModel(
         private set
     var formSelectedTagIds by mutableStateOf<List<String>>(emptyList())
         private set
-    var formError by mutableStateOf<String?>(null)
+    @get:StringRes
+    var formErrorRes by mutableStateOf<Int?>(null)
         private set
     var isSaving by mutableStateOf(false)
         private set
@@ -143,7 +156,7 @@ class FinanceViewModel(
         formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
     }
 
-    var pendingMessage by mutableStateOf<String?>(null)
+    var pendingMessage by mutableStateOf<FinanceMessage?>(null)
         private set
     fun consumeMessage() { pendingMessage = null }
 
@@ -158,7 +171,7 @@ class FinanceViewModel(
         formDate = LocalDate.now().toString()
         formComment = ""
         formSelectedTagIds = emptyList()
-        formError = null
+        formErrorRes = null
         sheetVisible = true
     }
 
@@ -173,7 +186,7 @@ class FinanceViewModel(
         formDate = tx.date
         formComment = tx.comment.orEmpty()
         formSelectedTagIds = tx.tags
-        formError = null
+        formErrorRes = null
         sheetVisible = true
     }
 
@@ -202,7 +215,7 @@ class FinanceViewModel(
                 if (rule != null && rule.category in categoriesByType[formType].orEmpty() && formCategory != rule.category) {
                     formCategory = rule.category
                     formSubcategory = null
-                    pendingMessage = "Категорія визначена автоматично: ${rule.category}"
+                    pendingMessage = FinanceMessage(R.string.transaction_auto_category, listOf(rule.category))
                 }
             }
         }
@@ -216,18 +229,18 @@ class FinanceViewModel(
     val formSubcategoryOptions: List<String>
         get() = subcategoriesByKey[subKey(formType.name, formCategory.orEmpty())].orEmpty()
 
-    val formTransferHint: Pair<String, Boolean>? // text, isWarning
+    val formTransferHint: TransferHint?
         get() {
             if (formType != TxType.TRANSFER) return null
             if (formWalletId.isBlank() || formTargetWalletId.isBlank()) return null
-            if (formWalletId == formTargetWalletId) return "Оберіть інший гаманець для переказу." to true
+            if (formWalletId == formTargetWalletId) return TransferHint(isWarning = true)
             val srcCur = formWalletCurrency
             val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
             val amount = formAmountText.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
-            return "Орієнтовно за поточним курсом: $sourceText → $targetText" to false
+            return TransferHint(sourceText, targetText)
         }
 
     fun submitForm() {
@@ -244,7 +257,16 @@ class FinanceViewModel(
             comment = formComment.trim(),
         )
         val error = validateTransactionDraft(draft, isTransfer)
-        if (error != null) { formError = error; return }
+        if (error != null) { formErrorRes = when (error) {
+            TxValidationError.INVALID_AMOUNT -> R.string.validation_invalid_amount
+            TxValidationError.AMOUNT_TOO_LARGE -> R.string.validation_amount_too_large
+            TxValidationError.DATE_REQUIRED -> R.string.validation_date_required
+            TxValidationError.INVALID_DATE -> R.string.validation_invalid_date
+            TxValidationError.WALLET_REQUIRED -> R.string.validation_wallet_required
+            TxValidationError.COMMENT_TOO_LONG -> R.string.validation_comment_too_long
+            TxValidationError.CATEGORY_TOO_LONG -> R.string.validation_category_too_long
+            TxValidationError.SAME_WALLETS -> R.string.validation_same_wallets
+        }; return }
 
         val srcCur = formWalletCurrency
         var targetAmount: Double? = null
@@ -272,14 +294,27 @@ class FinanceViewModel(
                 syncRepository.saveTransaction(ownerUid, profileId, toSave.toEntity())
                 repository.upsertTransaction(toSave)
             }.onSuccess {
-                pendingMessage = when {
-                    existing != null -> "Запис оновлено"
-                    isTransfer -> "Переказ виконано"
-                    else -> "Запис додано"
+                val budgetFeedback = if (toSave.type == TxType.EXPENSE) {
+                    budgetExceededFeedback(
+                        category = toSave.category,
+                        limit = budgets[toSave.category],
+                        existingMonthAmountsUah = transactions.asSequence()
+                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.date.startsWith(currentMonthPrefix) }
+                            .map { toUah(it.amount, it.currency) }
+                            .toList(),
+                        savedAmountUah = toUah(toSave.amount, toSave.currency),
+                    )
+                } else null
+                pendingMessage = budgetFeedback?.let {
+                    FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoney(it.spent), formatMoney(it.limit)))
+                } ?: when {
+                    existing != null -> FinanceMessage(R.string.transaction_updated)
+                    isTransfer -> FinanceMessage(R.string.transaction_transfer_done)
+                    else -> FinanceMessage(R.string.transaction_added)
                 }
                 sheetVisible = false
             }.onFailure {
-                formError = "Не вдалося зберегти операцію: ${it.localizedMessage.orEmpty()}"
+                formErrorRes = R.string.transaction_save_failed
             }
             isSaving = false
         }
