@@ -26,6 +26,13 @@ import ua.rytm.app.ui.screens.finance.Wallet
 // load, or a currency the account owner never manually rated).
 val SEED_RATES = mapOf("USD" to 41.0, "EUR" to 44.0, "GBP" to 51.0, "PLN" to 10.5)
 
+fun convertCurrencyAmount(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
+    if (from == to) return amount
+    val fromRate = rates[from] ?: SEED_RATES[from] ?: 1.0
+    val toRate = rates[to] ?: SEED_RATES[to] ?: 1.0
+    return Math.round(amount * fromRate / toRate * 100) / 100.0
+}
+
 // Mirrors js/core.js's subKey(type,name) => `${type}:${name}` — the PWA's own
 // composite key for AppState.subcategories, since a category name alone isn't
 // unique across income/expense.
@@ -368,10 +375,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // Mirrors js/core.js's convertCurrency(): cross-rate via UAH as the base,
     // falling back to SEED_RATES when no synced rate exists for a code yet.
     fun convertCurrency(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
-        if (from == to) return amount
-        val fromRate = rates[from] ?: SEED_RATES[from] ?: 1.0
-        val toRate = rates[to] ?: SEED_RATES[to] ?: 1.0
-        return Math.round(amount * fromRate / toRate * 100) / 100.0
+        return convertCurrencyAmount(amount, from, to, rates)
     }
 
     companion object {

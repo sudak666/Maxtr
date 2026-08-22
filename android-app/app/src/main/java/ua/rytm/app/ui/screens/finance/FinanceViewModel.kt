@@ -23,8 +23,7 @@ import java.time.YearMonth
 
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
 // FINANCE_SCREEN_SPEC.md §8) — data is real and persisted, though still
-// bootstrapped from SampleFinanceData on first launch since there's no
-// Firestore/auth sync yet (see FinanceRepository.seedIfEmpty()'s comment).
+// bootstrapped from the PWA's exact empty-profile defaults.
 // Filtering logic mirrors renderFinance() in js/analytics-csv.js
 // line-for-line (see FINANCE_SCREEN_SPEC.md §5) so behavior parity is
 // checkable against the real PWA, not guessed.
@@ -52,10 +51,8 @@ class FinanceViewModel(
         private set
     private var autoRules by mutableStateOf<List<AutoRuleEntity>>(emptyList())
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
-
-    // Sample-only approximate USD->UAH rate. Real rates come from
-    // AppState.currencyRates (Firestore) once real sync exists.
-    private val sampleRatesToUah = mapOf("UAH" to 1.0, "USD" to 41.5)
+    private var currencyRates by mutableStateOf<Map<String, Double>>(emptyMap())
+    private var budgets by mutableStateOf<Map<String, Double>>(emptyMap())
 
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
@@ -66,6 +63,8 @@ class FinanceViewModel(
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
         repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
         repository.autoRules.onEach { autoRules = it }.launchIn(viewModelScope)
+        repository.currencyRates.onEach { currencyRates = it }.launchIn(viewModelScope)
+        repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -97,14 +96,12 @@ class FinanceViewModel(
     }
 
     private fun toUah(amount: Double, currency: String): Double =
-        amount * (sampleRatesToUah[currency] ?: 1.0)
+        repository.convertCurrency(amount, currency, "UAH", currencyRates)
 
     /** Cross-rate via UAH as the base, matching convertCurrency() in js/core.js. */
     private fun convertSample(amount: Double, from: String, to: String): Double {
         if (from == to) return amount
-        val uah = toUah(amount, from)
-        val toRate = sampleRatesToUah[to] ?: 1.0
-        return uah / toRate
+        return repository.convertCurrency(amount, from, to, currencyRates)
     }
 
     // ---- New/edit transaction sheet — mirrors setFinanceType()/
@@ -272,7 +269,20 @@ class FinanceViewModel(
                 syncRepository.saveTransaction(ownerUid, profileId, toSave.toEntity())
                 repository.upsertTransaction(toSave)
             }.onSuccess {
-                pendingMessage = when {
+                val budgetFeedback = if (toSave.type == TxType.EXPENSE) {
+                    budgetExceededFeedback(
+                        category = toSave.category,
+                        limit = budgets[toSave.category],
+                        existingMonthAmountsUah = transactions.asSequence()
+                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.date.startsWith(currentMonthPrefix) }
+                            .map { toUah(it.amount, it.currency) }
+                            .toList(),
+                        savedAmountUah = toUah(toSave.amount, toSave.currency),
+                    )
+                } else null
+                pendingMessage = budgetFeedback?.let {
+                    "Бюджет «${it.category}» перевищено: ${formatMoney(it.spent)} / ${formatMoney(it.limit)} грн"
+                } ?: when {
                     existing != null -> "Запис оновлено"
                     isTransfer -> "Переказ виконано"
                     else -> "Запис додано"
