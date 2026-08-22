@@ -38,9 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
@@ -69,11 +71,11 @@ fun ProfilesManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Профілі", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
                 }
             }
@@ -102,29 +104,29 @@ fun ProfilesManagerSheet(
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Назва профілю") },
+                    label = { Text(stringResource(R.string.profile_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(onClick = { viewModel.addProfile(newName); newName = "" }) {
+                TextButton(enabled = newName.isNotBlank() && !viewModel.loading, onClick = { viewModel.addProfile(newName); newName = "" }) {
                     Icon(Icons.Filled.Add, contentDescription = null)
-                    Text("Додати")
+                    Text(stringResource(R.string.action_add))
                 }
             }
 
             HorizontalDivider()
 
-            Text("Приєднатися за кодом", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.profile_join_by_code), style = MaterialTheme.typography.labelLarge)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = joinCode,
                     onValueChange = { joinCode = it },
-                    label = { Text("Код запрошення") },
+                    label = { Text(stringResource(R.string.profile_invite_code)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(enabled = !viewModel.joining, onClick = { viewModel.joinByCode(joinCode); joinCode = "" }) {
-                    Text("Приєднатися")
+                TextButton(enabled = joinCode.isNotBlank() && !viewModel.joining, onClick = { viewModel.joinByCode(joinCode); joinCode = "" }) {
+                    Text(stringResource(R.string.profile_join))
                 }
             }
         }
@@ -133,44 +135,44 @@ fun ProfilesManagerSheet(
     viewModel.inviteCode?.let { code ->
         AlertDialog(
             onDismissRequest = viewModel::consumeInviteCode,
-            title = { Text("Код запрошення") },
-            text = { Text("Передайте цей код тому, хто має приєднатися до профілю:\n\n$code\n\nДійсний 24 години, одноразовий.") },
-            confirmButton = { TextButton(onClick = viewModel::consumeInviteCode) { Text("Готово") } },
+            title = { Text(stringResource(R.string.profile_invite_code)) },
+            text = { Text(stringResource(R.string.profile_invite_body, code)) },
+            confirmButton = { TextButton(onClick = viewModel::consumeInviteCode) { Text(stringResource(R.string.action_done)) } },
         )
     }
 
     viewModel.pendingLeave?.let { profile ->
         AlertDialog(
             onDismissRequest = viewModel::cancelLeave,
-            title = { Text("Покинути профіль") },
-            text = { Text("Покинути спільний профіль \"${profile.name}\"? Доступ до нього буде втрачено, доки вас не запросять знову.") },
-            confirmButton = { TextButton(onClick = viewModel::confirmLeave) { Text("Покинути", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelLeave) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.profile_leave_title)) },
+            text = { Text(stringResource(R.string.profile_leave_body, profile.name)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmLeave) { Text(stringResource(R.string.profile_leave), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelLeave) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     viewModel.pendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити профіль") },
-            text = { Text("Видалити цей профіль? Дані на сервері залишаться, але доступ до них з цього застосунку буде втрачено.") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.profile_delete_title)) },
+            text = { Text(stringResource(R.string.profile_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     viewModel.pendingSwitch?.let { target ->
         AlertDialog(
             onDismissRequest = { if (!viewModel.switching) viewModel.cancelSwitch() },
-            title = { Text("Перемкнути профіль") },
+            title = { Text(stringResource(R.string.profile_switch_title)) },
             text = {
                 if (viewModel.switching) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text("Перемикання…")
+                        Text(stringResource(R.string.profile_switching))
                     }
                 } else {
-                    Text("Перемкнутися на цей профіль? Поточні дані на екрані заміняться даними вибраного профілю.")
+                    Text(stringResource(R.string.profile_switch_body))
                 }
             },
             confirmButton = {
@@ -185,25 +187,25 @@ fun ProfilesManagerSheet(
                             if (viewModel.confirmSwitch()) onSwitched(target.id)
                         }
                     },
-                ) { Text("Перемкнути") }
+                ) { Text(stringResource(R.string.profile_switch)) }
             },
-            dismissButton = { TextButton(enabled = !viewModel.switching, onClick = viewModel::cancelSwitch) { Text("Скасувати") } },
+            dismissButton = { TextButton(enabled = !viewModel.switching, onClick = viewModel::cancelSwitch) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     viewModel.managingMembersFor?.let { profile ->
         AlertDialog(
             onDismissRequest = viewModel::closeMembersManager,
-            title = { Text("Учасники: ${profile.name}") },
+            title = { Text(stringResource(R.string.profile_members_title, profile.name)) },
             text = {
                 when {
                     viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    viewModel.members == null -> Text("Профіль ще не поширювався — немає учасників.")
+                    viewModel.members == null -> Text(stringResource(R.string.profile_members_not_shared))
                     else -> {
                         val currentUid = uid
                         val others = viewModel.members!!.members.filter { it != currentUid }
                         if (others.isEmpty()) {
-                            Text("Ще ніхто не приєднався за кодом.")
+                            Text(stringResource(R.string.profile_members_empty))
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 others.forEach { memberUid ->
@@ -215,7 +217,7 @@ fun ProfilesManagerSheet(
                                         // renderSharedMembersList().
                                         Text(memberUid.take(8) + "…", style = MaterialTheme.typography.bodyMedium)
                                         TextButton(onClick = { viewModel.toggleMemberRole(memberUid, role) }) {
-                                            Text(if (role == "viewer") "Переглядач" else "Редактор")
+                                            Text(stringResource(if (role == "viewer") R.string.profile_role_viewer else R.string.profile_role_editor))
                                         }
                                     }
                                 }
@@ -224,7 +226,7 @@ fun ProfilesManagerSheet(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = viewModel::closeMembersManager) { Text("Готово") } },
+            confirmButton = { TextButton(onClick = viewModel::closeMembersManager) { Text(stringResource(R.string.action_done)) } },
         )
     }
 }
@@ -247,8 +249,8 @@ private fun ProfileRow(
         var text by remember(profile.id) { mutableStateOf(profile.name) }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.weight(1f), singleLine = true)
-            IconButton(onClick = { onRename(text) }) { Icon(Icons.Filled.Check, contentDescription = "Зберегти") }
-            IconButton(onClick = onCancelRename) { Icon(Icons.Filled.Close, contentDescription = "Скасувати") }
+            IconButton(onClick = { onRename(text) }) { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_save)) }
+            IconButton(onClick = onCancelRename) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_cancel)) }
         }
         return
     }
@@ -257,20 +259,20 @@ private fun ProfileRow(
         Column(Modifier.weight(1f)) {
             Text(profile.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (isActive) Text("Активний", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                if (profile.isShared) Text("Спільний", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                if (profile.isShared) Text(stringResource(R.string.profile_shared), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
             }
         }
         if (!isActive) {
-            TextButton(onClick = onSwitch) { Text("Перемкнути") }
+            TextButton(onClick = onSwitch) { Text(stringResource(R.string.profile_switch)) }
         }
         if (profile.isShared) {
-            IconButton(onClick = onLeave) { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Покинути") }
+            IconButton(onClick = onLeave) { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.profile_leave)) }
         } else {
-            IconButton(onClick = onShare) { Icon(Icons.Filled.Share, contentDescription = "Поділитися") }
-            IconButton(onClick = onManageMembers) { Icon(Icons.Filled.Group, contentDescription = "Учасники") }
-            IconButton(onClick = onStartRename) { Icon(Icons.Filled.Edit, contentDescription = "Перейменувати") }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            IconButton(onClick = onShare) { Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.profile_share)) }
+            IconButton(onClick = onManageMembers) { Icon(Icons.Filled.Group, contentDescription = stringResource(R.string.profile_members)) }
+            IconButton(onClick = onStartRename) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.profile_rename)) }
+            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
 }

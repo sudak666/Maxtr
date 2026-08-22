@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.ProfileMeta
@@ -62,7 +64,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         private set
     var pendingLeave by mutableStateOf<ProfileMeta?>(null)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
 
     // Set right after shareProfile() succeeds; the sheet shows this in a
@@ -113,7 +116,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             try {
                 profiles = app.profilesRepository.list(uid)
             } catch (e: Exception) {
-                errorMessage = "Не вдалося завантажити профілі"
+                errorMessageRes = R.string.profiles_load_failed
             } finally {
                 loading = false
             }
@@ -148,8 +151,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         // activeProfileOwnerUid's own doc comment), which would otherwise
         // wrongly block deleting an own profile whose id happens to match
         // whatever shared profile is currently active.
-        if (isRowActive(profile)) { errorMessage = "Не можна видалити активний профіль"; return }
-        if (profiles.size <= 1) { errorMessage = "Має лишитись хоча б один профіль"; return }
+        if (isRowActive(profile)) { errorMessageRes = R.string.profile_delete_active_error; return }
+        if (profiles.size <= 1) { errorMessageRes = R.string.profile_delete_last_error; return }
         pendingDeleteId = profile.id
     }
 
@@ -190,7 +193,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             app.profileSyncCoordinator.switchProfile(uid, target.id, if (target.isShared) target.ownerUid else null)
             true
         } catch (e: Exception) {
-            errorMessage = "Не вдалося перемкнути профіль"
+            errorMessageRes = R.string.profile_switch_failed
             false
         } finally {
             switching = false
@@ -208,7 +211,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             try {
                 inviteCode = app.profilesRepository.shareProfile(uid, profile.id, profile.name)
             } catch (e: Exception) {
-                errorMessage = "Не вдалося поділитися профілем"
+                errorMessageRes = R.string.profile_share_failed
             } finally {
                 sharing = false
             }
@@ -227,12 +230,12 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             joining = true
             when (val result = app.profilesRepository.redeemInvite(uid, code)) {
                 is RedeemInviteResult.Ok -> reload()
-                is RedeemInviteResult.Failed -> errorMessage = when (result.reason) {
-                    "own-profile" -> "Це ваш власний профіль"
-                    "used" -> "Цей код уже використано"
-                    "expired" -> "Код прострочено"
-                    "failed" -> "Не вдалося приєднатися"
-                    else -> "Код не знайдено"
+                is RedeemInviteResult.Failed -> errorMessageRes = when (result.reason) {
+                    "own-profile" -> R.string.profile_join_own_error
+                    "used" -> R.string.profile_join_used_error
+                    "expired" -> R.string.profile_join_expired_error
+                    "failed" -> R.string.profile_join_failed
+                    else -> R.string.profile_join_not_found_error
                 }
             }
             joining = false
@@ -241,7 +244,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
 
     fun requestLeave(profile: ProfileMeta) {
         if (!profile.isShared) return
-        if (isRowActive(profile)) { errorMessage = "Спершу перемкніться на інший профіль"; return }
+        if (isRowActive(profile)) { errorMessageRes = R.string.profile_leave_active_error; return }
         pendingLeave = profile
     }
 
@@ -256,12 +259,12 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
                 app.profilesRepository.leaveSharedProfile(uid, ownerUid, profile.id)
                 reload()
             } catch (e: Exception) {
-                errorMessage = "Не вдалося покинути профіль"
+                errorMessageRes = R.string.profile_leave_failed
             }
         }
     }
 
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     // Mirrors js/color-picker.js's openSharedMembersManagerUI()/
     // renderSharedMembersList() — owner-only UI (only ever offered on one
@@ -285,7 +288,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             try {
                 members = app.profilesRepository.listSharedMembers(uid, profile.id)
             } catch (e: Exception) {
-                errorMessage = "Не вдалося завантажити учасників"
+                errorMessageRes = R.string.profile_members_load_failed
             } finally {
                 membersLoading = false
             }
@@ -302,7 +305,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
                 app.profilesRepository.setMemberRole(uid, profile.id, memberUid, nextRole)
                 reloadMembers()
             } catch (e: Exception) {
-                errorMessage = "Не вдалося змінити роль"
+                errorMessageRes = R.string.profile_role_change_failed
             }
         }
     }
