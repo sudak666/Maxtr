@@ -116,11 +116,11 @@ fun RytmNavHost() {
                 },
                 actions = {
                     IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
-                        Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (hideAmounts) "Показати суми" else "Приховати суми")
+                        Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = stringResource(if (hideAmounts) R.string.action_show_amounts else R.string.action_hide_amounts))
                     }
-                    IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = "Оновити") }
+                    IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh)) }
                     IconButton(onClick = { navController.navigate(RytmDestination.Settings.route) { launchSingleTop = true } }) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Налаштування")
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.nav_settings))
                     }
                 },
             )

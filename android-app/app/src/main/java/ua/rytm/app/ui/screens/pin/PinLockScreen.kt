@@ -31,10 +31,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.R
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import kotlinx.coroutines.launch
 
@@ -62,7 +64,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("Введіть PIN-код", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.pin_enter), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(24.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -94,36 +96,36 @@ fun PinLockScreen(viewModel: PinViewModel) {
                             showBiometricPrompt(activity, onSuccess = viewModel::unlockWithBiometric)
                         }
                     }) {
-                        Icon(Icons.Filled.Fingerprint, contentDescription = "Розблокувати відбитком", modifier = Modifier.size(28.dp))
+                        Icon(Icons.Filled.Fingerprint, contentDescription = stringResource(R.string.pin_unlock_biometric), modifier = Modifier.size(28.dp))
                     }
                 }
             },
         )
         Spacer(Modifier.height(20.dp))
-        TextButton(onClick = { forgotConfirm = true }) { Text("Забув PIN?") }
+        TextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
     }
 
     if (forgotConfirm) AlertDialog(
         onDismissRequest = { forgotConfirm = false },
-        title = { Text("Забули PIN?") },
-        text = { Text("Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.") },
+        title = { Text(stringResource(R.string.pin_forgot_title)) },
+        text = { Text(stringResource(R.string.pin_forgot_body)) },
         confirmButton = {
             TextButton(onClick = {
                 forgotConfirm = false
                 viewModel.forgotPin {
                     if (!app.settingsStore.isPrivacyCacheEnabled()) app.database.clearAllProfileScopedTables()
                 }
-            }) { Text("Скинути й вийти", color = MaterialTheme.colorScheme.error) }
+            }) { Text(stringResource(R.string.pin_reset_sign_out), color = MaterialTheme.colorScheme.error) }
         },
-        dismissButton = { TextButton(onClick = { forgotConfirm = false }) { Text("Скасувати") } },
+        dismissButton = { TextButton(onClick = { forgotConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
     )
     if (biometricOnboardingVisible) AlertDialog(
         onDismissRequest = {
             biometricOnboardingVisible = false
             scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
         },
-        title = { Text("Швидке розблокування") },
-        text = { Text("Увімкнути розблокування відбитком пальця або обличчям? PIN залишиться резервним способом входу.") },
+        title = { Text(stringResource(R.string.pin_biometric_title)) },
+        text = { Text(stringResource(R.string.pin_biometric_body)) },
         confirmButton = {
             TextButton(onClick = {
                 val activity = context as? FragmentActivity ?: return@TextButton
@@ -133,13 +135,13 @@ fun PinLockScreen(viewModel: PinViewModel) {
                     biometricOnboardingVisible = false
                     scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
                 }
-            }) { Text("Увімкнути") }
+            }) { Text(stringResource(R.string.action_enable)) }
         },
         dismissButton = {
             TextButton(onClick = {
                 biometricOnboardingVisible = false
                 scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
-            }) { Text("Не зараз") }
+            }) { Text(stringResource(R.string.action_not_now)) }
         },
     )
 }
