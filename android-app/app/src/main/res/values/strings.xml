@@ -381,4 +381,24 @@
     <plurals name="settings_csv_operations"><item quantity="one">%1$d операцію</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
     <plurals name="settings_csv_errors"><item quantity="one">%1$d рядок</item><item quantity="few">%1$d рядки</item><item quantity="many">%1$d рядків</item><item quantity="other">%1$d рядка</item></plurals>
     <plurals name="settings_csv_no_valid_rows"><item quantity="one">Немає коректних рядків (%1$d помилка)</item><item quantity="few">Немає коректних рядків (%1$d помилки)</item><item quantity="many">Немає коректних рядків (%1$d помилок)</item><item quantity="other">Немає коректних рядків (%1$d помилки)</item></plurals>
+    <string name="auth_delete_data_failed">Не вдалося видалити дані</string>
+    <string name="auth_delete_reauth_required">Потрібен повторний вхід через Google для видалення акаунту</string>
+    <string name="auth_delete_account_failed">Не вдалося видалити акаунт</string>
+    <string name="auth_emulator_sign_in_failed">Не вдалося виконати тестовий вхід</string>
+    <string name="notifications_daily">Щоденне нагадування</string>
+    <string name="notifications_daily_subtitle">Якщо сьогодні ще немає жодної операції</string>
+    <string name="notifications_hour">Година</string>
+    <string name="notifications_minute">Хвилина</string>
+    <string name="notifications_budget">Перевищення бюджету</string>
+    <string name="notifications_budget_subtitle">Коли витрати за категорією перевищують місячний ліміт</string>
+    <string name="notifications_recurring_subtitle">За день до наступного регулярного платежу</string>
+    <string name="notifications_debt_subtitle">За день до терміну сплати</string>
+    <string name="biometric_unlock_title">Розблокування Rytm</string>
+    <string name="biometric_unlock_subtitle">Підтвердіть відбитком пальця або обличчям</string>
+    <string name="transaction_delete_failed">Не вдалося видалити операцію</string>
+    <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
+    <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s грн</string>
+    <string name="transaction_updated">Запис оновлено</string>
+    <string name="transaction_transfer_done">Переказ виконано</string>
+    <string name="transaction_added">Запис додано</string>
 </resources>

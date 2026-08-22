@@ -49,9 +49,10 @@ class AuthViewModel : ViewModel() {
     var currentUser by mutableStateOf<FirebaseUser?>(auth.currentUser)
         private set
 
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
 
     var isSigningIn by mutableStateOf(false)
         private set
@@ -226,7 +227,7 @@ class AuthViewModel : ViewModel() {
                 }
                 listOf("shifts", "finance", "debt").forEach { profileCol.document(it).delete().await() }
             } catch (e: Exception) {
-                errorMessage = "Не вдалося видалити дані"
+                errorMessageRes = R.string.auth_delete_data_failed
                 isDeletingAccount = false
                 return@launch
             }
@@ -239,7 +240,7 @@ class AuthViewModel : ViewModel() {
                 // in place before retrying, same shape here.
                 val credential = try { fetchGoogleCredential(context) } catch (e2: Exception) { null }
                 if (credential == null) {
-                    errorMessage = "Потрібен повторний вхід через Google для видалення акаунту"
+                    errorMessageRes = R.string.auth_delete_reauth_required
                     isDeletingAccount = false
                     return@launch
                 }
@@ -247,12 +248,12 @@ class AuthViewModel : ViewModel() {
                     user.reauthenticate(credential).await()
                     user.delete().await()
                 } catch (e2: Exception) {
-                    errorMessage = "Не вдалося видалити акаунт"
+                    errorMessageRes = R.string.auth_delete_account_failed
                     isDeletingAccount = false
                     return@launch
                 }
             } catch (e: Exception) {
-                errorMessage = "Не вдалося видалити акаунт"
+                errorMessageRes = R.string.auth_delete_account_failed
                 isDeletingAccount = false
                 return@launch
             }
@@ -274,7 +275,7 @@ class AuthViewModel : ViewModel() {
             try {
                 auth.signInAnonymously().await()
             } catch (e: Exception) {
-                errorMessage = "Emulator anonymous sign-in failed: ${e.message}"
+                errorMessageRes = R.string.auth_emulator_sign_in_failed
             } finally {
                 isSigningIn = false
             }

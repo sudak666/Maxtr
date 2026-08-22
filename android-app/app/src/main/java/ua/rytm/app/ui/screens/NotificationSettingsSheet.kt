@@ -25,10 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.PushRepository
+import ua.rytm.app.R
 
 // Mirrors js/notifications.js's 4 independent alert-type checkboxes plus its
 // reminder-time <select> pair — see NotificationSettingsViewModel's own doc
@@ -50,7 +52,7 @@ fun NotificationSettingsSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Типи сповіщень", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.settings_notification_types), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.loading) {
                 Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
@@ -60,22 +62,22 @@ fun NotificationSettingsSheet(
             }
 
             NotifToggleRow(
-                title = "Щоденне нагадування",
-                subtitle = "Якщо сьогодні ще немає жодної операції",
+                title = stringResource(R.string.notifications_daily),
+                subtitle = stringResource(R.string.notifications_daily_subtitle),
                 checked = viewModel.dailyReminderEnabled,
                 onCheckedChange = viewModel::onDailyReminderChanged,
             )
             if (viewModel.dailyReminderEnabled) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TimeDropdown(
-                        label = "Година",
+                        label = stringResource(R.string.notifications_hour),
                         options = (0..23).map { it.toString().padStart(2, '0') },
                         selected = viewModel.reminderHour,
                         onSelect = { viewModel.onReminderTimeChanged(it, viewModel.reminderMinute) },
                         modifier = Modifier.weight(1f),
                     )
                     TimeDropdown(
-                        label = "Хвилина",
+                        label = stringResource(R.string.notifications_minute),
                         options = (0..55 step 5).map { it.toString().padStart(2, '0') },
                         selected = viewModel.reminderMinute,
                         onSelect = { viewModel.onReminderTimeChanged(viewModel.reminderHour, it) },
@@ -85,20 +87,20 @@ fun NotificationSettingsSheet(
             }
 
             NotifToggleRow(
-                title = "Перевищення бюджету",
-                subtitle = "Коли витрати за категорією перевищують місячний ліміт",
+                title = stringResource(R.string.notifications_budget),
+                subtitle = stringResource(R.string.notifications_budget_subtitle),
                 checked = viewModel.budgetAlerts,
                 onCheckedChange = viewModel::onBudgetAlertsChanged,
             )
             NotifToggleRow(
-                title = "Регулярні платежі",
-                subtitle = "За день до наступного регулярного платежу",
+                title = stringResource(R.string.recurring_title),
+                subtitle = stringResource(R.string.notifications_recurring_subtitle),
                 checked = viewModel.recurringAlerts,
                 onCheckedChange = viewModel::onRecurringAlertsChanged,
             )
             NotifToggleRow(
-                title = "Розрахунки",
-                subtitle = "За день до терміну сплати",
+                title = stringResource(R.string.nav_debt),
+                subtitle = stringResource(R.string.notifications_debt_subtitle),
                 checked = viewModel.debtAlerts,
                 onCheckedChange = viewModel::onDebtAlertsChanged,
             )

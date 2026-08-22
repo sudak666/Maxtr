@@ -24,6 +24,7 @@ import androidx.annotation.StringRes
 import ua.rytm.app.R
 
 data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
+data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any> = emptyList())
 
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
 // FINANCE_SCREEN_SPEC.md §8) — data is real and persisted, though still
@@ -95,7 +96,7 @@ class FinanceViewModel(
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.deleteTransaction(ownerUid, profileId, id)
                 repository.deleteTransaction(id)
-            }.onFailure { pendingMessage = "Не вдалося видалити операцію: ${it.localizedMessage.orEmpty()}" }
+            }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_delete_failed) }
         }
     }
 
@@ -145,7 +146,7 @@ class FinanceViewModel(
         formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
     }
 
-    var pendingMessage by mutableStateOf<String?>(null)
+    var pendingMessage by mutableStateOf<FinanceMessage?>(null)
         private set
     fun consumeMessage() { pendingMessage = null }
 
@@ -204,7 +205,7 @@ class FinanceViewModel(
                 if (rule != null && rule.category in categoriesByType[formType].orEmpty() && formCategory != rule.category) {
                     formCategory = rule.category
                     formSubcategory = null
-                    pendingMessage = "Категорія визначена автоматично: ${rule.category}"
+                    pendingMessage = FinanceMessage(R.string.transaction_auto_category, listOf(rule.category))
                 }
             }
         }
@@ -295,11 +296,11 @@ class FinanceViewModel(
                     )
                 } else null
                 pendingMessage = budgetFeedback?.let {
-                    "Бюджет «${it.category}» перевищено: ${formatMoney(it.spent)} / ${formatMoney(it.limit)} грн"
+                    FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoney(it.spent), formatMoney(it.limit)))
                 } ?: when {
-                    existing != null -> "Запис оновлено"
-                    isTransfer -> "Переказ виконано"
-                    else -> "Запис додано"
+                    existing != null -> FinanceMessage(R.string.transaction_updated)
+                    isTransfer -> FinanceMessage(R.string.transaction_transfer_done)
+                    else -> FinanceMessage(R.string.transaction_added)
                 }
                 sheetVisible = false
             }.onFailure {

@@ -178,8 +178,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
     }
-    LaunchedEffect(authViewModel.errorMessage) {
-        authViewModel.errorMessage?.let { snackbarHostState.showSnackbar(it); authViewModel.consumeError() }
+    LaunchedEffect(authViewModel.errorMessageRes) {
+        authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(context.getString(it)); authViewModel.consumeError() }
     }
 
     var pushBusy by remember { mutableStateOf(false) }

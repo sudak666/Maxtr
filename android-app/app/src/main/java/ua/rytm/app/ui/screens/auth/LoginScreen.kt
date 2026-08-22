@@ -196,11 +196,11 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
         }
     }
 
-    viewModel.errorMessage?.let { message ->
+    viewModel.errorMessageRes?.let { messageRes ->
         AlertDialog(
             onDismissRequest = viewModel::consumeError,
             title = { Text(stringResource(R.string.auth_sign_in_failed)) },
-            text = { Text(message) },
+            text = { Text(stringResource(messageRes)) },
             confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }

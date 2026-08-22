@@ -379,4 +379,24 @@
     <plurals name="settings_csv_operations"><item quantity="one">%1$d transaction</item><item quantity="other">%1$d transactions</item></plurals>
     <plurals name="settings_csv_errors"><item quantity="one">%1$d row</item><item quantity="other">%1$d rows</item></plurals>
     <plurals name="settings_csv_no_valid_rows"><item quantity="one">No valid rows (%1$d error)</item><item quantity="other">No valid rows (%1$d errors)</item></plurals>
+    <string name="auth_delete_data_failed">Could not delete data</string>
+    <string name="auth_delete_reauth_required">Sign in with Google again to delete the account</string>
+    <string name="auth_delete_account_failed">Could not delete the account</string>
+    <string name="auth_emulator_sign_in_failed">Test sign-in failed</string>
+    <string name="notifications_daily">Daily reminder</string>
+    <string name="notifications_daily_subtitle">When no transactions have been added today</string>
+    <string name="notifications_hour">Hour</string>
+    <string name="notifications_minute">Minute</string>
+    <string name="notifications_budget">Budget exceeded</string>
+    <string name="notifications_budget_subtitle">When category spending exceeds its monthly limit</string>
+    <string name="notifications_recurring_subtitle">One day before the next recurring payment</string>
+    <string name="notifications_debt_subtitle">One day before the due date</string>
+    <string name="biometric_unlock_title">Unlock Rytm</string>
+    <string name="biometric_unlock_subtitle">Confirm with your fingerprint or face</string>
+    <string name="transaction_delete_failed">Could not delete the transaction</string>
+    <string name="transaction_auto_category">Category selected automatically: %1$s</string>
+    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: UAH %2$s / UAH %3$s</string>
+    <string name="transaction_updated">Entry updated</string>
+    <string name="transaction_transfer_done">Transfer completed</string>
+    <string name="transaction_added">Entry added</string>
 </resources>

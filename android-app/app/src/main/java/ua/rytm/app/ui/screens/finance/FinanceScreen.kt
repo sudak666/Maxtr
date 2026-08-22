@@ -99,8 +99,9 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(viewModel.pendingMessage) {
-        viewModel.pendingMessage?.let { message ->
+    val pendingMessage = viewModel.pendingMessage?.let { stringResource(it.resource, *it.arguments.toTypedArray()) }
+    LaunchedEffect(pendingMessage) {
+        pendingMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.consumeMessage()
         }
