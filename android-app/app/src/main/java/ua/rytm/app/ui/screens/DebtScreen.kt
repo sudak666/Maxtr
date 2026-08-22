@@ -89,7 +89,8 @@ import ua.rytm.app.ui.screens.debt.DebtViewModel
 import ua.rytm.app.ui.screens.debt.currentBalance
 import ua.rytm.app.ui.screens.debt.paid
 import ua.rytm.app.ui.screens.debt.todayLabel
-import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
+import ua.rytm.app.ui.screens.finance.formatMoneyInputWithCurrency
 
 // Implements the in-scope subset of CLAUDE.md §1.4: debt chips, hero balance,
 // progress bar, chip stats, due chip, payoff-forecast burndown chart,
@@ -257,7 +258,7 @@ private fun HeroBalance(cd: Debt) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount(formatMoneyWithCurrency(cd.currentBalance(), cd.currency)), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -300,8 +301,8 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
-        item { StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
+        item { StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount(formatMoneyWithCurrency(cd.startAmount, cd.currency)), stringResource(R.string.debt_start_amount)) }
+        item { StatChip(Icons.Filled.CheckCircle, maskedAmount(formatMoneyWithCurrency(cd.paid(), cd.currency)), stringResource(R.string.debt_paid)) }
         item { StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
         if (due != null) item { StatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date)) }
     }
@@ -463,8 +464,8 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("${entry.amount} $currency", fontWeight = FontWeight.SemiBold)
-                            Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(maskedAmount(formatMoneyInputWithCurrency(entry.amount, currency)), fontWeight = FontWeight.SemiBold)
+                            Text(maskedAmount(formatMoneyWithCurrency(entry.balance, currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit)) }
                     }

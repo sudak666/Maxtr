@@ -155,9 +155,9 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
     val topCategory = byCategory.firstOrNull()
     val chartDescription = stringResource(
         R.string.analytics_donut_accessibility,
-        maskedAmount(formatMoney(total)),
+        maskedAmount(formatMoneyWithCurrency(total, "UAH")),
         topCategory?.let { localizedDomainText(it.first) }.orEmpty(),
-        topCategory?.let { maskedAmount(formatMoney(it.second)) }.orEmpty(),
+        topCategory?.let { maskedAmount(formatMoneyWithCurrency(it.second, "UAH")) }.orEmpty(),
     )
     Box(
         Modifier.size(170.dp).graphicsLayer {
@@ -186,7 +186,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(maskedAmount(formatMoneyWithCurrency(total, "UAH")), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.analytics_sum), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -267,7 +267,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
         }
         CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.fillMaxWidth())
         Text(
-            maskedAmount("1 ${vm.converterFrom} = ${formatMoney(vm.converterResult)} ${vm.converterTo}"),
+            maskedAmount("1 ${vm.converterFrom} = ${formatMoneyWithCurrency(vm.converterResult, vm.converterTo)}"),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
@@ -327,13 +327,13 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val locale = LocalConfiguration.current.locales[0]
         val hideAmounts = LocalHideAmounts.current
         val accessibleValues = months.zip(values).joinToString("; ") { (month, value) ->
-            "${month.yearMonth.month.getDisplayName(TextStyle.SHORT, locale)} ${if (hideAmounts) "••••" else formatMoney(value)}"
+            "${month.yearMonth.month.getDisplayName(TextStyle.SHORT, locale)} ${if (hideAmounts) "••••" else formatMoneyWithCurrency(value, "UAH", locale)}"
         }
         val chartDescription = stringResource(
             R.string.finance_chart_accessibility,
             labels.getValue(vm.chartSeries),
-            maskedAmount(formatMoney(current)),
-            maskedAmount(formatMoney(forecast)),
+            maskedAmount(formatMoneyWithCurrency(current, "UAH", locale)),
+            maskedAmount(formatMoneyWithCurrency(forecast, "UAH", locale)),
         ) + ". " + accessibleValues
         Canvas(Modifier.fillMaxWidth().height(180.dp).semantics { contentDescription = chartDescription }) {
             val step = size.width / (chartValues.size - 1)
@@ -349,6 +349,6 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
             Text(stringResource(R.string.finance_chart_forecast), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
         }
         val average = values.average().takeUnless { it.isNaN() } ?: 0.0
-        Text(stringResource(R.string.finance_chart_average, formatMoney(average)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.finance_chart_average, formatMoneyWithCurrency(average, "UAH", locale)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 }

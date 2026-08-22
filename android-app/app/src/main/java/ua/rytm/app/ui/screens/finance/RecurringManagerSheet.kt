@@ -143,7 +143,14 @@ private fun RecurringRow(
     val expenseLabel = stringResource(R.string.tx_expense)
     val frequencyOptions = listOf("daily" to stringResource(R.string.frequency_daily), "weekly" to stringResource(R.string.frequency_weekly), "monthly" to stringResource(R.string.frequency_monthly))
     val freqLabel = frequencyOptions.firstOrNull { it.first == r.frequency }?.second ?: stringResource(R.string.frequency_monthly)
-    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category), r.amount.toInt(), freqLabel, r.nextDate)
+    val currency = wallets.firstOrNull { it.id == r.walletId }?.currency ?: "UAH"
+    val summary = stringResource(
+        if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive,
+        localizedDomainText(r.category),
+        formatMoneyWithCurrency(r.amount, currency),
+        freqLabel,
+        r.nextDate,
+    )
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

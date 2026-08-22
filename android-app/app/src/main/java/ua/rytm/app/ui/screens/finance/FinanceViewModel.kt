@@ -238,8 +238,8 @@ class FinanceViewModel(
             val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
             val amount = formAmountText.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
-            val sourceText = "${"%.2f".format(amount)} $srcCur"
-            val targetText = "${"%.2f".format(converted)} $targetCur"
+            val sourceText = formatMoneyWithCurrency(amount, srcCur)
+            val targetText = formatMoneyWithCurrency(converted, targetCur)
             return TransferHint(sourceText, targetText)
         }
 
@@ -306,7 +306,7 @@ class FinanceViewModel(
                     )
                 } else null
                 pendingMessage = budgetFeedback?.let {
-                    FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoney(it.spent), formatMoney(it.limit)))
+                    FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoneyWithCurrency(it.spent, "UAH"), formatMoneyWithCurrency(it.limit, "UAH")))
                 } ?: when {
                     existing != null -> FinanceMessage(R.string.transaction_updated)
                     isTransfer -> FinanceMessage(R.string.transaction_transfer_done)

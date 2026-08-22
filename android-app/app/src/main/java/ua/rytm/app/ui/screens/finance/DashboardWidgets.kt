@@ -83,7 +83,8 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name), fontWeight = FontWeight.SemiBold)
-                    Text(maskedAmount("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}"), style = MaterialTheme.typography.bodySmall)
+                    val currency = wallet?.currency ?: "UAH"
+                    Text(maskedAmount("${formatMoney(current)} / ${formatMoneyWithCurrency(goal.targetAmount, currency)}"), style = MaterialTheme.typography.bodySmall)
                 }
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
                     Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(Color(0xFF10B981), CircleShape))

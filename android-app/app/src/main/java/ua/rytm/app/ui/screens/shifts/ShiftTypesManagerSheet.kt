@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
+import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.ShiftsRepository
 
@@ -111,7 +112,7 @@ private fun ShiftTypeRow(
     onIsOffChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, type.amount.toInt(), type.hours)
+    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, formatMoneyWithCurrency(type.amount, "UAH"), type.hours)
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

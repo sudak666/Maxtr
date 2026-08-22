@@ -30,7 +30,7 @@ class ChartAccessibilityTest {
         compose.setContent { RytmTheme { DebtForecastCard(debt) } }
         val meaningfulChartDescription = SemanticsMatcher("meaningful chart description") { node ->
             node.config.contains(SemanticsProperties.ContentDescription) &&
-                node.config[SemanticsProperties.ContentDescription].any { description -> description.length > 20 && "UAH" in description }
+                node.config[SemanticsProperties.ContentDescription].any { description -> description.length > 20 && "₴" in description }
         }
         compose.onNode(meaningfulChartDescription).assertIsDisplayed()
     }

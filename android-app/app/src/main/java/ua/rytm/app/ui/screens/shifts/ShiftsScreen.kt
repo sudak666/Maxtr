@@ -93,7 +93,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
-import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
 import java.time.YearMonth
 import java.time.format.TextStyle
 
@@ -193,7 +193,7 @@ private fun HeroMetric(earned: Double) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount(formatMoneyWithCurrency(earned, "UAH")), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
             val pct = (earned / SALARY_GOAL).coerceIn(0.0, 1.0)
             Box(
                 Modifier
@@ -212,7 +212,7 @@ private fun HeroMetric(earned: Double) {
                 )
             }
             Text(
-                maskedAmount(stringResource(R.string.shifts_goal_progress, (pct * 100).toInt(), formatMoney(SALARY_GOAL))),
+                maskedAmount(stringResource(R.string.shifts_goal_progress, (pct * 100).toInt(), formatMoneyWithCurrency(SALARY_GOAL, "UAH"))),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),

@@ -86,7 +86,7 @@ fun BudgetsManagerSheet(
 
 @Composable
 private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
-    val summary = if (limit > 0) stringResource(R.string.budgets_summary, limit.toInt()) else stringResource(R.string.budgets_unlimited)
+    val summary = if (limit > 0) stringResource(R.string.budgets_summary, formatMoneyWithCurrency(limit, "UAH")) else stringResource(R.string.budgets_unlimited)
 
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),

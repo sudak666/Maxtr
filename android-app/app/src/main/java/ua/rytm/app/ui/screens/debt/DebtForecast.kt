@@ -31,7 +31,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
-import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.LocalHideAmounts
 import kotlin.math.ceil
@@ -86,16 +86,16 @@ fun DebtForecastCard(debt: Debt) {
             val hideAmounts = LocalHideAmounts.current
             val chartDescription = stringResource(
                 R.string.debt_chart_accessibility,
-                maskedAmount("${formatMoney(start)} ${debt.currency}"),
-                maskedAmount("${formatMoney(currentBalance)} ${debt.currency}"),
-            ) + ". " + series.joinToString("; ") { if (hideAmounts) "••••" else "${formatMoney(it)} ${debt.currency}" }
+                maskedAmount(formatMoneyWithCurrency(start, debt.currency)),
+                maskedAmount(formatMoneyWithCurrency(currentBalance, debt.currency)),
+            ) + ". " + series.joinToString("; ") { if (hideAmounts) "••••" else formatMoneyWithCurrency(it, debt.currency) }
             DebtBurndownCanvas(series, modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp).semantics { contentDescription = chartDescription })
             when {
                 currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())
-                    val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
+                    val avgStr = maskedAmount(formatMoneyWithCurrency(avgDown.roundToInt().toDouble(), debt.currency))
                     Text(pluralStringResource(R.plurals.debt_payments_left, paymentsLeft, paymentsLeft), style = MaterialTheme.typography.bodyMedium)
                     Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
