@@ -15,10 +15,12 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.RytmApplication
@@ -50,6 +52,11 @@ class AuthViewModel : ViewModel() {
     fun consumeError() { errorMessage = null }
 
     var isSigningIn by mutableStateOf(false)
+        private set
+
+    var authMode by mutableStateOf(AuthMode.LOGIN)
+        private set
+    var formMessage by mutableStateOf<String?>(null)
         private set
 
     private val authStateListener = FirebaseAuth.AuthStateListener { currentUser = it.currentUser }
@@ -90,21 +97,102 @@ class AuthViewModel : ViewModel() {
                 if (credential != null) {
                     auth.signInWithCredential(credential).await()
                 } else {
-                    errorMessage = "Не вдалося отримати обліковий запис Google"
+                    publishFormMessage("Помилка входу. Спробуйте ще раз.")
                 }
             } catch (e: GetCredentialException) {
-                errorMessage = "Вхід через Google скасовано або недоступно"
+                publishFormMessage("Вхід через Google скасовано або недоступний.")
             } catch (e: GoogleIdTokenParsingException) {
-                errorMessage = "Помилка обробки облікового запису Google"
+                publishFormMessage("Помилка обробки облікового запису Google.")
             } catch (e: Exception) {
-                errorMessage = "Помилка входу: ${e.message}"
+                publishFormMessage("Помилка входу. Спробуйте ще раз.")
             } finally {
                 isSigningIn = false
             }
         }
     }
 
+    fun onAuthModeChanged(mode: AuthMode) {
+        authMode = mode
+        formMessage = null
+    }
+
+    fun submitEmail(emailInput: String, password: String) {
+        if (isSigningIn) return
+        val email = emailInput.trim()
+        if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            publishFormMessage("Некоректний email.")
+            return
+        }
+        if (password.length < 6) {
+            publishFormMessage("Пароль надто простий (мінімум 6 символів).")
+            return
+        }
+        isSigningIn = true
+        formMessage = null
+        viewModelScope.launch {
+            try {
+                if (authMode == AuthMode.LOGIN) auth.signInWithEmailAndPassword(email, password).await()
+                else auth.createUserWithEmailAndPassword(email, password).await()
+            } catch (_: FirebaseNetworkException) {
+                publishFormMessage("Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз.")
+            } catch (e: FirebaseAuthException) {
+                publishFormMessage(authErrorMessage(e.errorCode))
+            } catch (_: Exception) {
+                publishFormMessage("Помилка входу. Спробуйте ще раз.")
+            } finally {
+                isSigningIn = false
+            }
+        }
+    }
+
+    fun resetPassword(emailInput: String) {
+        if (isSigningIn) return
+        val email = emailInput.trim()
+        if (email.isBlank()) {
+            publishFormMessage("Введіть email, щоб скинути пароль.")
+            return
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            publishFormMessage("Некоректний email.")
+            return
+        }
+        isSigningIn = true
+        formMessage = null
+        viewModelScope.launch {
+            try {
+                auth.sendPasswordResetEmail(email).await()
+                publishFormMessage("Лист для скидання пароля надіслано.")
+            } catch (_: FirebaseNetworkException) {
+                publishFormMessage("Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз.")
+            } catch (e: FirebaseAuthException) {
+                publishFormMessage(authErrorMessage(e.errorCode))
+            } catch (_: Exception) {
+                publishFormMessage("Помилка входу. Спробуйте ще раз.")
+            } finally {
+                isSigningIn = false
+            }
+        }
+    }
+
+    private fun publishFormMessage(message: String) {
+        formMessage = message
+    }
+
+    private fun authErrorMessage(code: String): String = when (code) {
+        "ERROR_INVALID_EMAIL" -> "Некоректний email."
+        "ERROR_USER_NOT_FOUND" -> "Користувача не знайдено."
+        "ERROR_WRONG_PASSWORD" -> "Невірний пароль."
+        "ERROR_INVALID_CREDENTIAL" -> "Невірний email або пароль."
+        "ERROR_EMAIL_ALREADY_IN_USE" -> "Цей email вже зареєстровано."
+        "ERROR_WEAK_PASSWORD" -> "Пароль надто простий (мінімум 6 символів)."
+        "ERROR_TOO_MANY_REQUESTS" -> "Забагато спроб. Спробуйте пізніше."
+        "ERROR_NETWORK_REQUEST_FAILED" -> "Немає з'єднання з мережею. Перевір інтернет і спробуй ще раз."
+        else -> "Помилка входу. Спробуйте ще раз."
+    }
+
     fun signOut() {
+        authMode = AuthMode.LOGIN
+        formMessage = null
         auth.signOut()
     }
 
@@ -191,3 +279,5 @@ class AuthViewModel : ViewModel() {
         }
     }
 }
+
+enum class AuthMode { LOGIN, REGISTER }
