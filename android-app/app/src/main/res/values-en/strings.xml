@@ -16,6 +16,16 @@
     <string name="tags_delete_title">Delete tag</string>
     <string name="tags_delete_body">Delete this tag? It will be removed from every transaction.</string>
     <string name="tags_save_failed">Could not save tags. Try again.</string>
+    <string name="wallets_title">Wallets</string>
+    <string name="wallets_empty">No wallets</string>
+    <string name="wallet_new_default">New wallet</string>
+    <string name="wallet_add">Add wallet</string>
+    <string name="wallet_delete_title">Delete wallet</string>
+    <string name="wallet_delete_body">Delete this wallet?</string>
+    <string name="wallet_last_required">At least one wallet must remain</string>
+    <string name="wallet_in_use">This wallet is used in transactions</string>
+    <string name="wallet_color">Wallet color</string>
+    <string name="common_save_retry">Could not save changes. Try again.</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

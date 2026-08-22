@@ -18,6 +18,16 @@
     <string name="tags_delete_title">Видалити тег</string>
     <string name="tags_delete_body">Видалити цей тег? Він буде знятий з усіх операцій.</string>
     <string name="tags_save_failed">Не вдалося зберегти теги. Спробуйте ще раз.</string>
+    <string name="wallets_title">Гаманці</string>
+    <string name="wallets_empty">Немає гаманців</string>
+    <string name="wallet_new_default">Новий гаманець</string>
+    <string name="wallet_add">Додати гаманець</string>
+    <string name="wallet_delete_title">Видалити гаманець</string>
+    <string name="wallet_delete_body">Видалити цей гаманець?</string>
+    <string name="wallet_last_required">Має лишитися хоча б один гаманець</string>
+    <string name="wallet_in_use">Гаманець використовується в операціях</string>
+    <string name="wallet_color">Колір гаманця</string>
+    <string name="common_save_retry">Не вдалося зберегти зміни. Спробуйте ще раз.</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
