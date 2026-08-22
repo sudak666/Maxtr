@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import ua.rytm.app.BuildConfig
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.RoomProfileScope
+import ua.rytm.app.data.local.ShoppingItemEntity
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.clearActiveProfileTables
 
@@ -69,8 +70,33 @@ class TransactionsOutboxFirebaseE2eTest {
         app.database.syncOutboxDao().clearScope(uid, deniedProfile)
     }
 
+    @Test fun shoppingSnapshotSurvivesProfileSwitchWithoutCrossProfileLeak() = runBlocking {
+        val shopping = ShoppingSyncRepository(app.database, firestore)
+        shopping.queueSnapshot(uid, profileId) {
+            app.database.shoppingDao().upsert(
+                ShoppingItemEntity("shop-a", "Milk", 2, false, 1L, uid, profileId),
+            )
+        }
+
+        val otherProfile = "other_profile"
+        RoomProfileScope.activate(uid, otherProfile)
+        app.database.shoppingDao().upsert(
+            ShoppingItemEntity("shop-secret", "Other profile", 1, false, 2L, uid, otherProfile),
+        )
+        assertTrue(shopping.drainOutbox())
+
+        val remote = financeRef(profileId).get(Source.SERVER).await().get("shoppingList") as List<*>
+        val ids = remote.map { (it as Map<*, *>)["id"] }
+        assertEquals(listOf("shop-a"), ids)
+        RoomProfileScope.activate(uid, profileId)
+        app.database.shoppingDao().clearAll(uid, otherProfile)
+    }
+
     private fun remoteCollection() = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("finance", profileId)).collection("transactions")
+
+    private fun financeRef(profile: String) = firestore.collection("users").document(uid)
+        .collection("max_tracker").document(profileDocName("finance", profile))
 
     private fun transaction(id: String) = TransactionEntity(
         id = id, type = "EXPENSE", amount = 42.5, currency = "UAH", date = "2026-08-22",

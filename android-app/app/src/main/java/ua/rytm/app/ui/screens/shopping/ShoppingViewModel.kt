@@ -16,6 +16,7 @@ import androidx.annotation.StringRes
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.ShoppingRepository
+import ua.rytm.app.data.TransactionSyncState
 
 // Mirrors js/shopping.js's addShoppingItem()/toggleShoppingItem()/
 // deleteShoppingItem()/clearBoughtShopping()/renderShoppingList() — see
@@ -51,12 +52,17 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         private set
     var quantityInvalid by mutableStateOf(false)
         private set
+    var syncState by mutableStateOf<TransactionSyncState?>(null)
+        private set
     fun consumeError() { errorMessageRes = null }
 
     init {
         repository.items
             .onEach { items = it; loading = false; loadFailed = false }
             .catch { loading = false; loadFailed = true }
+            .launchIn(viewModelScope)
+        app.shoppingSyncRepository.operationState
+            .onEach { syncState = it }
             .launchIn(viewModelScope)
     }
 
@@ -70,23 +76,23 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
         quantityInvalid = validation.quantityInvalid
         if (!validation.valid) return
         val qty = if (qtyInput.isBlank()) 1 else requireNotNull(qtyInput.toIntOrNull()?.takeIf { it >= 1 })
-        mutate { repository.addItem(name, qty) }
+        mutate { ownerUid, profileId -> repository.addItem(name, qty, ownerUid, profileId) }
         nameInput = ""
         qtyInput = ""
     }
 
     fun toggle(item: ShoppingItem, done: Boolean) {
-        mutate { repository.setDone(item, done) }
+        mutate { ownerUid, profileId -> repository.setDone(item, done, ownerUid, profileId) }
     }
 
     fun delete(id: String) {
-        mutate { repository.delete(id) }
+        mutate { ownerUid, profileId -> repository.delete(id, ownerUid, profileId) }
     }
 
     fun requestClearBought() { clearConfirmVisible = true }
     fun cancelClearBought() { clearConfirmVisible = false }
     fun confirmClearBought() {
-        mutate { repository.clearBought() }
+        mutate { ownerUid, profileId -> repository.clearBought(ownerUid, profileId) }
         clearConfirmVisible = false
     }
 
@@ -97,7 +103,7 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
     val sortedItems: List<ShoppingItem>
         get() = items.sortedBy { if (it.done) 1 else 0 }
 
-    private fun mutate(change: suspend () -> Unit) {
+    private fun mutate(change: suspend (String, String) -> Unit) {
         if (saving) return
         viewModelScope.launch {
             val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
@@ -108,13 +114,10 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
                 return@launch
             }
             val ownerUid = activeOwnerUid ?: accountUid
-            val before = repository.snapshot()
             saving = true
             try {
-                change()
-                app.shoppingSyncRepository.saveSnapshot(ownerUid, profileId)
+                app.shoppingSyncRepository.queueSnapshot(ownerUid, profileId) { change(ownerUid, profileId) }
             } catch (e: Exception) {
-                repository.restore(before)
                 errorMessageRes = R.string.shopping_save_changes_failed
             } finally {
                 saving = false

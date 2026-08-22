@@ -17,7 +17,11 @@ private const val UNIQUE_SYNC_OUTBOX = "sync-outbox"
 class SyncOutboxWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         val app = applicationContext as RytmApplication
-        return runCatching { app.transactionsSyncRepository.drainOutbox() }.fold(
+        return runCatching {
+            val transactionsDrained = app.transactionsSyncRepository.drainOutbox()
+            val shoppingDrained = app.shoppingSyncRepository.drainOutbox()
+            transactionsDrained && shoppingDrained
+        }.fold(
             onSuccess = { drained -> if (drained) Result.success() else Result.retry() },
             onFailure = { if (runAttemptCount < 8) Result.retry() else Result.failure() },
         )

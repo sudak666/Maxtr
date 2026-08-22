@@ -19,20 +19,20 @@ class ShoppingRepository(private val db: RytmDatabase) {
         // The PWA starts with an empty shopping list.
     }
 
-    suspend fun addItem(name: String, qty: Int) {
-        db.shoppingDao().upsert(ShoppingItemEntity(id = java.util.UUID.randomUUID().toString(), name = name, qty = qty, done = false, createdAt = System.currentTimeMillis()))
+    suspend fun addItem(name: String, qty: Int, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        db.shoppingDao().upsert(ShoppingItemEntity(id = java.util.UUID.randomUUID().toString(), name = name, qty = qty, done = false, createdAt = System.currentTimeMillis(), ownerUid = ownerUid, profileId = profileId))
     }
 
-    suspend fun setDone(item: ShoppingItem, done: Boolean) {
-        db.shoppingDao().upsert(item.copy(done = done).toEntity())
+    suspend fun setDone(item: ShoppingItem, done: Boolean, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        db.shoppingDao().upsert(item.copy(done = done).toEntity().copy(ownerUid = ownerUid, profileId = profileId))
     }
 
-    suspend fun delete(id: String) {
-        db.shoppingDao().deleteById(id)
+    suspend fun delete(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        db.shoppingDao().deleteById(id, ownerUid, profileId)
     }
 
-    suspend fun clearBought() {
-        db.shoppingDao().deleteBought()
+    suspend fun clearBought(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        db.shoppingDao().deleteBought(ownerUid, profileId)
     }
 
     suspend fun snapshot(): List<ShoppingItemEntity> = db.shoppingDao().getAllOnce()

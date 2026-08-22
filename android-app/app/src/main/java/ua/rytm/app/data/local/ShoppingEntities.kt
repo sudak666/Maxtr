@@ -41,8 +41,12 @@ interface ShoppingDao {
     // replaceAll() — a real @Transaction so a crash mid-sync can't leave the
     // table half-cleared.
     @Transaction
-    suspend fun replaceAll(items: List<ShoppingItemEntity>) {
-        clearAll()
+    suspend fun replaceAll(
+        items: List<ShoppingItemEntity>,
+        ownerUid: String = RoomProfileScope.ownerUid,
+        profileId: String = RoomProfileScope.profileId,
+    ) {
+        clearAll(ownerUid, profileId)
         insertAll(items)
     }
 
