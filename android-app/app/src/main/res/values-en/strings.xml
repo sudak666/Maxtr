@@ -9,6 +9,13 @@
     <string name="action_skip">Skip</string>
     <string name="action_done">Done</string>
     <string name="action_apply">Apply</string>
+    <string name="action_add">Add</string>
+    <string name="tags_title">Tags</string>
+    <string name="tags_empty">No tags</string>
+    <string name="tags_name">Tag name</string>
+    <string name="tags_delete_title">Delete tag</string>
+    <string name="tags_delete_body">Delete this tag? It will be removed from every transaction.</string>
+    <string name="tags_save_failed">Could not save tags. Try again.</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

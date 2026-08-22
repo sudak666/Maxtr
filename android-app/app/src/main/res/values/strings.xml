@@ -11,6 +11,13 @@
     <string name="action_skip">Пропустити</string>
     <string name="action_done">Готово</string>
     <string name="action_apply">Застосувати</string>
+    <string name="action_add">Додати</string>
+    <string name="tags_title">Теги</string>
+    <string name="tags_empty">Немає тегів</string>
+    <string name="tags_name">Назва тега</string>
+    <string name="tags_delete_title">Видалити тег</string>
+    <string name="tags_delete_body">Видалити цей тег? Він буде знятий з усіх операцій.</string>
+    <string name="tags_save_failed">Не вдалося зберегти теги. Спробуйте ще раз.</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

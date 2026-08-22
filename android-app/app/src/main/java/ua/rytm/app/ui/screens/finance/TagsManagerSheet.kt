@@ -32,6 +32,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.TagsSyncRepository
@@ -55,24 +57,24 @@ fun TagsManagerSheet(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Теги", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.tags_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
                 }
             }
 
             if (viewModel.tags.isEmpty()) {
-                Text("Немає тегів", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.tags_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.tags.forEach { tag ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.size(20.dp).clip(CircleShape).background(Color(tag.colorHex)))
                     Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { viewModel.requestDelete(tag.id) }) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+                    IconButton(onClick = { viewModel.requestDelete(tag.id) }) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
                 }
             }
 
@@ -80,13 +82,13 @@ fun TagsManagerSheet(
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Назва тега") },
+                    label = { Text(stringResource(R.string.tags_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
                 TextButton(onClick = { viewModel.addTag(newName); newName = "" }) {
                     Icon(Icons.Filled.Add, contentDescription = null)
-                    Text("Додати")
+                    Text(stringResource(R.string.action_add))
                 }
             }
         }
@@ -95,10 +97,10 @@ fun TagsManagerSheet(
     viewModel.pendingDeleteId?.let { id ->
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити тег") },
-            text = { Text("Видалити цей тег? Він буде знятий з усіх операцій.") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.tags_delete_title)) },
+            text = { Text(stringResource(R.string.tags_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
