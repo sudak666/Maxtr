@@ -59,6 +59,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import ua.rytm.app.ui.components.SwipeOpenThreshold
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -387,7 +389,9 @@ private fun EmptyEntriesState() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean) {
+    val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     val dismissState = rememberSwipeToDismissBoxState(
+        positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
                 viewModel.requestDeleteEntry(entry.id)

@@ -50,6 +50,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import ua.rytm.app.ui.components.SwipeOpenThreshold
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -179,8 +181,9 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
-    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { value ->
+internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+    val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
+    val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { swipeThresholdPx }, confirmValueChange = { value ->
         if (canEdit && value == SwipeToDismissBoxValue.EndToStart) { onDelete(); true } else false
     })
     SwipeToDismissBox(

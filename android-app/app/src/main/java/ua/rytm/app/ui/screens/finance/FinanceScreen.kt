@@ -62,6 +62,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import ua.rytm.app.ui.components.SwipeOpenThreshold
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -518,7 +520,9 @@ private fun TransactionRow(
     // confirmValueChange is deprecated (in favor of dynamic anchors) as of
     // this Compose BOM but still functional — not worth the bigger
     // AnchoredDraggable rewrite for this step; revisit if it's ever removed.
+    val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     val dismissState = rememberSwipeToDismissBoxState(
+        positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
                 onDelete()
