@@ -41,42 +41,34 @@ class DebtRepository(private val db: RytmDatabase) {
         }
     }
 
-    suspend fun addDebt(debt: Debt) {
+    suspend fun addDebt(debt: Debt, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
         requireValidStoredAmount(debt.startAmount, "debt start amount")
-        db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
+        db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, ownerUid, profileId))
     }
 
-    suspend fun updateDebt(debt: Debt) {
+    suspend fun updateDebt(debt: Debt, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
         requireValidStoredAmount(debt.startAmount, "debt start amount")
-        db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
+        db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, ownerUid, profileId))
     }
 
     // Mirrors js/debt.js's deleteCurrentDebt(): drop the debt and every payment under it.
-    suspend fun deleteDebt(id: Long) {
-        db.debtDao().deleteById(id)
-        db.debtEntryDao().deleteAllForDebt(id)
+    suspend fun deleteDebt(id: Long, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) = db.withTransaction {
+        db.debtDao().deleteById(id, ownerUid, profileId)
+        db.debtEntryDao().deleteAllForDebt(id, ownerUid, profileId)
     }
 
-    suspend fun addEntry(debtId: Long, entry: DebtEntry) {
+    suspend fun addEntry(debtId: Long, entry: DebtEntry, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
         requireValidStoredAmount(entry.balance, "debt balance")
-        db.debtEntryDao().insert(entry.toEntity(debtId))
+        db.debtEntryDao().insert(entry.toEntity(debtId).copy(ownerUid = ownerUid, profileId = profileId))
     }
 
-    suspend fun updateEntry(debtId: Long, entry: DebtEntry) {
+    suspend fun updateEntry(debtId: Long, entry: DebtEntry, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
         requireValidStoredAmount(entry.balance, "debt balance")
-        db.debtEntryDao().update(entry.toEntity(debtId))
+        db.debtEntryDao().update(entry.toEntity(debtId).copy(ownerUid = ownerUid, profileId = profileId))
     }
 
-    suspend fun deleteEntry(id: Long) {
-        db.debtEntryDao().deleteById(id)
+    suspend fun deleteEntry(id: Long, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        db.debtEntryDao().deleteById(id, ownerUid, profileId)
     }
 
-    data class Snapshot(val debts: List<DebtEntity>, val entries: List<DebtEntryEntity>)
-    suspend fun snapshot() = Snapshot(db.debtDao().getAllOnce(), db.debtEntryDao().getAllOnce())
-    suspend fun restore(snapshot: Snapshot) = db.withTransaction {
-        db.debtEntryDao().clearAll()
-        db.debtDao().clearAll()
-        db.debtDao().insertAll(snapshot.debts)
-        db.debtEntryDao().insertAll(snapshot.entries)
-    }
 }

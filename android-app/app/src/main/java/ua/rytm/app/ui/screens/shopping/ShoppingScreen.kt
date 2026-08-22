@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.SyncProblem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -75,7 +73,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
-import ua.rytm.app.data.TransactionSyncState
+import ua.rytm.app.ui.OperationSyncStateBanner
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -94,7 +92,7 @@ fun ShoppingScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { RealtimeStateBanner() }
-        viewModel.syncState?.let { state -> item { ShoppingSyncState(state) } }
+        item { OperationSyncStateBanner(viewModel.syncState) }
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { ChipStatsRow(remaining = viewModel.remainingCount, bought = viewModel.boughtCount) }
@@ -133,28 +131,6 @@ fun ShoppingScreen(
             title = { Text(stringResource(R.string.shopping_save_failed)) },
             text = { Text(stringResource(messageRes)) },
             confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
-        )
-    }
-}
-
-@Composable
-private fun ShoppingSyncState(state: TransactionSyncState) {
-    val error = state == TransactionSyncState.ERROR
-    Row(
-        Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            if (error) Icons.Filled.SyncProblem else Icons.Filled.CloudUpload,
-            contentDescription = null,
-            tint = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            stringResource(if (error) R.string.sync_operation_error else R.string.sync_operation_pending),
-            style = MaterialTheme.typography.labelMedium,
-            color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

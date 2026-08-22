@@ -102,7 +102,7 @@ class RytmApplication : Application() {
     val categoriesSyncRepository: CategoriesSyncRepository by lazy { CategoriesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance(), this) }
-    val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }

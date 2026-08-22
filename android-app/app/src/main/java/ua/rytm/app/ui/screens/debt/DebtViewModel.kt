@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.DebtRepository
+import ua.rytm.app.data.TransactionSyncState
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.annotation.StringRes
@@ -70,6 +71,8 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
         private set
     var saving by mutableStateOf(false)
         private set
+    var syncState by mutableStateOf<TransactionSyncState?>(null)
+        private set
     fun consumeError() { errorMessageRes = null }
 
     init {
@@ -82,6 +85,9 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
             }
             .catch { loading = false; loadFailed = true }
             .launchIn(viewModelScope)
+        app.debtSyncRepository.operationState
+            .onEach { syncState = it }
+            .launchIn(viewModelScope)
     }
 
     fun switchDebt(id: Long) { currentDebtId = id }
@@ -89,7 +95,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun addDebt(name: String, fallbackName: String) {
         val clean = name.trim().ifBlank { fallbackName }
         val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList())
-        mutate(debt.id) { repository.addDebt(debt) }
+        mutate(debt.id) { owner, profile -> repository.addDebt(debt, owner, profile) }
         currentDebtId = debt.id
     }
 
@@ -100,7 +106,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun confirmDeleteDebt() {
         val id = currentDebtId ?: return
-        mutate(null) { repository.deleteDebt(id) }
+        mutate(null) { owner, profile -> repository.deleteDebt(id, owner, profile) }
         pendingDeleteDebt = false
     }
 
@@ -108,8 +114,8 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun updateInfo(name: String, note: String, currency: String, startAmount: Double, dueDate: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) {
-            repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
+        mutate(cd.id) { owner, profile ->
+            repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate), owner, profile)
         }
     }
 
@@ -135,7 +141,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
             balance = if (plain != null) cd.currentBalance() - plain else { errorMessageRes = R.string.debt_balance_required; return }
         }
         val date = normalizeDebtEntryDate(dateText).ifBlank { todayLabel() }
-        mutate(cd.id) { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
+        mutate(cd.id) { owner, profile -> repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date), owner, profile) }
         newEntrySheetOpen = false
     }
 
@@ -143,29 +149,29 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun updateEntryAmount(entry: DebtEntry, amount: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(amount = amount)) }
+        mutate(cd.id) { owner, profile -> repository.updateEntry(cd.id, entry.copy(amount = amount), owner, profile) }
     }
 
     fun updateEntryBalance(entry: DebtEntry, balanceText: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(balance = balanceText.toDoubleOrNull() ?: 0.0)) }
+        mutate(cd.id) { owner, profile -> repository.updateEntry(cd.id, entry.copy(balance = balanceText.toDoubleOrNull() ?: 0.0), owner, profile) }
     }
 
     fun updateEntryDate(entry: DebtEntry, date: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(date = normalizeDebtEntryDate(date))) }
+        mutate(cd.id) { owner, profile -> repository.updateEntry(cd.id, entry.copy(date = normalizeDebtEntryDate(date)), owner, profile) }
     }
 
     fun requestDeleteEntry(id: Long) { pendingDeleteEntryId = id }
     fun confirmDeleteEntry() {
         val id = pendingDeleteEntryId ?: return
-        mutate(currentDebtId) { repository.deleteEntry(id) }
+        mutate(currentDebtId) { owner, profile -> repository.deleteEntry(id, owner, profile) }
         pendingDeleteEntryId = null
         if (entryEditId == id) entryEditId = null
     }
     fun cancelDeleteEntry() { pendingDeleteEntryId = null }
 
-    private fun mutate(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
+    private fun mutate(nextCurrentDebtId: Long?, change: suspend (String, String) -> Unit) {
         if (saving) return
         viewModelScope.launch {
             val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
@@ -176,13 +182,12 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
                 return@launch
             }
             val ownerUid = activeOwnerUid ?: accountUid
-            val before = repository.snapshot()
             saving = true
             try {
-                change()
-                app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
+                app.debtSyncRepository.queueSnapshot(ownerUid, profileId, nextCurrentDebtId) {
+                    change(ownerUid, profileId)
+                }
             } catch (e: Exception) {
-                repository.restore(before)
                 errorMessageRes = R.string.common_save_failed
             } finally {
                 saving = false

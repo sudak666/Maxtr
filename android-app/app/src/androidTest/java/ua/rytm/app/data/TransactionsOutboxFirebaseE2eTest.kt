@@ -19,6 +19,7 @@ import ua.rytm.app.BuildConfig
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.ShoppingItemEntity
+import ua.rytm.app.data.local.DebtEntity
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.clearActiveProfileTables
 
@@ -92,11 +93,33 @@ class TransactionsOutboxFirebaseE2eTest {
         app.database.shoppingDao().clearAll(uid, otherProfile)
     }
 
+    @Test fun debtSnapshotSurvivesProfileSwitchWithoutCrossProfileLeak() = runBlocking {
+        val debtSync = DebtSyncRepository(app.database, firestore)
+        debtSync.queueSnapshot(uid, profileId, 11L) {
+            app.database.debtDao().insert(DebtEntity(11L, "Primary debt", "", "UAH", 100.0, "", uid, profileId))
+        }
+
+        val otherProfile = "other_profile"
+        RoomProfileScope.activate(uid, otherProfile)
+        app.database.debtDao().insert(DebtEntity(22L, "Private debt", "", "UAH", 200.0, "", uid, otherProfile))
+        assertTrue(debtSync.drainOutbox())
+
+        val data = debtRef(profileId).get(Source.SERVER).await().get("data") as Map<*, *>
+        val remoteDebts = data["debts"] as List<*>
+        assertEquals(listOf(11L), remoteDebts.map { ((it as Map<*, *>)["id"] as Number).toLong() })
+        assertEquals(11L, (data["currentDebtId"] as Number).toLong())
+        RoomProfileScope.activate(uid, profileId)
+        app.database.debtDao().clearAll(uid, otherProfile)
+    }
+
     private fun remoteCollection() = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("finance", profileId)).collection("transactions")
 
     private fun financeRef(profile: String) = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("finance", profile))
+
+    private fun debtRef(profile: String) = firestore.collection("users").document(uid)
+        .collection("max_tracker").document(profileDocName("debt", profile))
 
     private fun transaction(id: String) = TransactionEntity(
         id = id, type = "EXPENSE", amount = 42.5, currency = "UAH", date = "2026-08-22",

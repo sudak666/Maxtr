@@ -75,6 +75,7 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.ReducedMotionVisibility
 import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.OperationSyncStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.maskedAmount
@@ -123,6 +124,7 @@ fun DebtScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { RealtimeStateBanner() }
+            item { OperationSyncStateBanner(viewModel.syncState) }
             if (viewModel.loading) item { ScreenLoadingState() }
             if (viewModel.loadFailed) item { ScreenLoadErrorState() }
             item { DebtChipsRow(viewModel, canEdit) }

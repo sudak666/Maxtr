@@ -20,7 +20,8 @@ class SyncOutboxWorker(appContext: Context, params: WorkerParameters) : Coroutin
         return runCatching {
             val transactionsDrained = app.transactionsSyncRepository.drainOutbox()
             val shoppingDrained = app.shoppingSyncRepository.drainOutbox()
-            transactionsDrained && shoppingDrained
+            val debtDrained = app.debtSyncRepository.drainOutbox()
+            transactionsDrained && shoppingDrained && debtDrained
         }.fold(
             onSuccess = { drained -> if (drained) Result.success() else Result.retry() },
             onFailure = { if (runAttemptCount < 8) Result.retry() else Result.failure() },
