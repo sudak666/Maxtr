@@ -401,4 +401,6 @@
     <string name="transaction_updated">Запис оновлено</string>
     <string name="transaction_transfer_done">Переказ виконано</string>
     <string name="transaction_added">Запис додано</string>
+    <string name="notifications_load_failed">Не вдалося завантажити налаштування сповіщень</string>
+    <string name="notifications_save_failed">Не вдалося зберегти налаштування сповіщень</string>
 </resources>

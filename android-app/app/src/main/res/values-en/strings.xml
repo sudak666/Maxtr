@@ -399,4 +399,6 @@
     <string name="transaction_updated">Entry updated</string>
     <string name="transaction_transfer_done">Transfer completed</string>
     <string name="transaction_added">Entry added</string>
+    <string name="notifications_load_failed">Could not load notification settings</string>
+    <string name="notifications_save_failed">Could not save notification settings</string>
 </resources>
