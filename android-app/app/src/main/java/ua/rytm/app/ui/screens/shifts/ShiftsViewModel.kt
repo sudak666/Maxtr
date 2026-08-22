@@ -3,6 +3,8 @@ package ua.rytm.app.ui.screens.shifts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.annotation.StringRes
+import ua.rytm.app.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -61,11 +63,12 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
         private set
     var autoFillDraftAnchorDate by mutableStateOf("")
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    @get:StringRes
+    var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    fun consumeError() { errorMessage = null }
+    fun consumeError() { errorMessageRes = null }
     private fun launchMutation(block: suspend () -> Unit) = viewModelScope.launch {
-        runCatching { block() }.onFailure { errorMessage = "Не вдалося зберегти зміни" }
+        runCatching { block() }.onFailure { errorMessageRes = R.string.common_save_failed }
     }
 
     init {

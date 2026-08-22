@@ -43,9 +43,3 @@ val SHIFT_PATTERN_CYCLES: Map<String, Pair<Int, Int>> = mapOf(
     "3_3" to (3 to 3),
 )
 
-val SHIFT_PATTERN_LABELS: Map<String, String> = mapOf(
-    "every" to "Щодня",
-    "alt" to "День через день",
-    "2_2" to "2 через 2",
-    "3_3" to "3 через 3",
-)
