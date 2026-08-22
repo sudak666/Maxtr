@@ -10,6 +10,7 @@ import ua.rytm.app.ui.screens.shifts.AutoFillSchedule
 import ua.rytm.app.ui.screens.shifts.SHIFT_PATTERN_CYCLES
 import ua.rytm.app.ui.screens.shifts.SeedShiftTypes
 import ua.rytm.app.ui.screens.shifts.ShiftType
+import ua.rytm.app.ui.screens.shifts.daysForShiftPattern
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -55,9 +56,7 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
     // wipe the given month, then write `typeId` on every day the pattern's
     // on/off cycle covers.
     suspend fun applyTemplate(uid: String, profileId: String, monthPrefix: String, daysInMonth: Int, typeId: String, pattern: String) {
-        val (on, off) = SHIFT_PATTERN_CYCLES[pattern] ?: SHIFT_PATTERN_CYCLES.getValue("every")
-        val period = on + off
-        val entities = (1..daysInMonth).filter { d -> period > 0 && ((d - 1) % period) < on }
+        val entities = daysForShiftPattern(daysInMonth, pattern)
             .map { d -> ShiftDayEntity("$monthPrefix-" + d.toString().padStart(2, '0'), typeId) }
         mutateDays(uid, profileId) { db.shiftDayDao().applyTemplate(monthPrefix, entities) }
     }

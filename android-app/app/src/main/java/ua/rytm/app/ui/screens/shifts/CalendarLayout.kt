@@ -14,3 +14,9 @@ fun monthCalendarCells(month: YearMonth): List<CalendarCell> {
             CalendarCell(date, date.dayOfWeek.value >= 6)
         }
 }
+
+fun daysForShiftPattern(daysInMonth: Int, pattern: String): List<Int> {
+    val (on, off) = SHIFT_PATTERN_CYCLES[pattern] ?: SHIFT_PATTERN_CYCLES.getValue("every")
+    val period = on + off
+    return (1..daysInMonth).filter { day -> period > 0 && ((day - 1) % period) < on }
+}
