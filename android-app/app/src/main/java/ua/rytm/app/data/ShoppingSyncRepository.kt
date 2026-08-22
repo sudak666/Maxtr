@@ -95,7 +95,9 @@ class ShoppingSyncRepository(
                 .onSuccess { db.syncOutboxDao().delete(operation.operationId) }
                 .onFailure { error ->
                     failed = true
-                    db.syncOutboxDao().markFailed(operation.operationId, SyncFailure.from(error).diagnosticCode)
+                    val failure = SyncFailure.from(error)
+                    SafeDiagnostics.reportSync(SafeDiagnostics.Domain.SHOPPING, failure)
+                    db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
                 }
         }
         return !failed && db.syncOutboxDao().countForDomain(OUTBOX_DOMAIN_SHOPPING) == 0

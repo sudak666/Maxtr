@@ -144,7 +144,9 @@ class TransactionsSyncRepository(
                 db.syncOutboxDao().delete(operation.operationId)
             }.onFailure { error ->
                 failed = true
-                db.syncOutboxDao().markFailed(operation.operationId, SyncFailure.from(error).diagnosticCode)
+                val failure = SyncFailure.from(error)
+                SafeDiagnostics.reportSync(SafeDiagnostics.Domain.TRANSACTIONS, failure)
+                db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
             }
         }
         return !failed && db.syncOutboxDao().countForDomain(OUTBOX_DOMAIN) == 0

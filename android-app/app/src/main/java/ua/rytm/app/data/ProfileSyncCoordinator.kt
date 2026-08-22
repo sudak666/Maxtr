@@ -1,6 +1,5 @@
 package ua.rytm.app.data
 
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +46,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
 
     private fun publishFailure(error: Throwable) {
         val failure = SyncFailure.from(error)
-        Log.w("RytmSync", failure.diagnosticCode)
+        SafeDiagnostics.reportSync(SafeDiagnostics.Domain.PROFILE, failure)
         _realtimeState.value = RealtimeState.Error(failure)
     }
 
