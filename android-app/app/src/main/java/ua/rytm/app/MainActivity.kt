@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
@@ -66,6 +67,9 @@ class MainActivity : FragmentActivity() {
                         // domain before syncing is a safe, correct fix.
                         LaunchedEffect(uid) {
                             app.profileSyncCoordinator.loadOnSignIn(uid)
+                        }
+                        DisposableEffect(uid) {
+                            onDispose { app.profileSyncCoordinator.stopRealtimeSync() }
                         }
 
                         // PIN re-lock gate, between Auth and the main nav — mirrors
