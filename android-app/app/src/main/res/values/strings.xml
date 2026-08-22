@@ -10,4 +10,13 @@
     <string name="placeholder_screen">Екран у розробці — %1$s</string>
 
     <string name="notification_channel_name">Нагадування Rytm</string>
+    <string name="action_skip">Пропустити</string>
+    <string name="action_done">Готово</string>
+    <string name="action_next">Далі</string>
+    <string name="onboarding_finance_title">Фінанси під контролем</string>
+    <string name="onboarding_finance_body">Гаманці, категорії, бюджети, цілі й аналітика в одному місці.</string>
+    <string name="onboarding_shifts_title">Робочий ритм</string>
+    <string name="onboarding_shifts_body">Плануйте зміни, рахуйте дохід і прогнозуйте робочий місяць.</string>
+    <string name="onboarding_security_title">Приватність і синхронізація</string>
+    <string name="onboarding_security_body">Дані синхронізуються через ваш Firebase-акаунт. PIN і біометрія захищають доступ на пристрої.</string>
 </resources>
