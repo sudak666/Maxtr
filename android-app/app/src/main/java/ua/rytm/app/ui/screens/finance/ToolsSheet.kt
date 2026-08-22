@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
 import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
@@ -127,7 +129,16 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 // deterministic per-category color used for transaction-list icon badges).
 @Composable
 private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
-    Box(Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+    val progress = motionProgress(byCategory, 600)
+    Box(
+        Modifier.size(100.dp).graphicsLayer {
+            alpha = progress
+            scaleX = 0.85f + 0.15f * progress
+            scaleY = 0.85f + 0.15f * progress
+            rotationZ = -8f * (1f - progress)
+        },
+        contentAlignment = Alignment.Center,
+    ) {
         Canvas(Modifier.size(100.dp)) {
             var startAngle = -90f
             val stroke = size.minDimension * 0.22f
@@ -231,13 +242,14 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val maxVal = max(1.0, months.maxOf { max(it.income, it.expense) })
         val incomeColor = MaterialTheme.colorScheme.primary
         val expenseColor = MaterialTheme.colorScheme.error
+        val progress = motionProgress(months, 500)
         Canvas(Modifier.fillMaxWidth().height(140.dp)) {
             val barGroupWidth = size.width / months.size
             val barWidth = barGroupWidth / 3.2f
             months.forEachIndexed { i, m ->
                 val groupLeft = i * barGroupWidth
-                val incomeHeight = (m.income / maxVal * size.height).toFloat()
-                val expenseHeight = (m.expense / maxVal * size.height).toFloat()
+                val incomeHeight = (m.income / maxVal * size.height).toFloat() * progress
+                val expenseHeight = (m.expense / maxVal * size.height).toFloat() * progress
                 drawRect(incomeColor, topLeft = Offset(groupLeft + barWidth * 0.4f, size.height - incomeHeight), size = Size(barWidth, incomeHeight))
                 drawRect(expenseColor, topLeft = Offset(groupLeft + barWidth * 1.8f, size.height - expenseHeight), size = Size(barWidth, expenseHeight))
             }

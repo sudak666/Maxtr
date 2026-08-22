@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ua.rytm.app.ui.motionProgress
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import ua.rytm.app.R
@@ -99,6 +100,7 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
     val lineColor = MaterialTheme.colorScheme.primary
     val fillColor = lineColor.copy(alpha = 0.34f)
     val transparent = lineColor.copy(alpha = 0f)
+    val progress = motionProgress(series, 500)
 
     Canvas(modifier) {
         val w = size.width
@@ -108,7 +110,10 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
         val span = (maxV - minV).let { if (it == 0.0) 1.0 else it }
 
         fun xAt(i: Int) = (w * i / (series.size - 1))
-        fun yAt(v: Double) = (h * (1 - (v - minV) / span)).toFloat()
+        fun yAt(v: Double): Float {
+            val target = (h * (1 - (v - minV) / span)).toFloat()
+            return h + (target - h) * progress
+        }
 
         val points = series.mapIndexed { i, v -> Offset(xAt(i), yAt(v)) }
 

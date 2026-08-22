@@ -1,6 +1,10 @@
 package ua.rytm.app.navigation
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.keyframes
@@ -52,6 +56,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.produceState
@@ -92,6 +97,8 @@ fun RytmNavHost() {
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsState()
     val scope = rememberCoroutineScope()
+    val reducedMotion = LocalReducedMotion.current
+    val contentOffsetPx = with(LocalDensity.current) { 4.dp.roundToPx() }
     var refreshing by remember { mutableStateOf(false) }
     fun refresh() {
         val uid = accountUid ?: return
@@ -136,6 +143,16 @@ fun RytmNavHost() {
             navController = navController,
             startDestination = RytmDestination.Finance.route,
             modifier = androidx.compose.ui.Modifier,
+            enterTransition = {
+                if (reducedMotion) EnterTransition.None
+                else fadeIn(tween(180)) + slideInVertically(tween(180)) { contentOffsetPx }
+            },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = {
+                if (reducedMotion) EnterTransition.None
+                else fadeIn(tween(180)) + slideInVertically(tween(180)) { contentOffsetPx }
+            },
+            popExitTransition = { ExitTransition.None },
         ) {
             composable(RytmDestination.Finance.route) { FinanceScreen() }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }

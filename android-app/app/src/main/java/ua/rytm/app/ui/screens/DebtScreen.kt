@@ -72,6 +72,7 @@ import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.ReducedMotionVisibility
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
@@ -127,13 +128,17 @@ fun DebtScreen(
                 item { DebtForecastCard(cd) }
                 item { InfoPanel(viewModel, cd, canEdit) }
                 item { HistoryHeader(viewModel, cd) }
-                if (viewModel.historyExpanded) {
-                    if (cd.entries.isEmpty()) {
-                        item { EmptyEntriesState() }
-                    } else {
-                        // Newest first, matching js/debt.js's lc.prepend() display order.
-                        items(cd.entries.reversed(), key = { it.id }) { entry ->
-                            DebtEntryRow(viewModel, entry, cd.currency, canEdit)
+                item {
+                    ReducedMotionVisibility(visible = viewModel.historyExpanded) {
+                        if (cd.entries.isEmpty()) {
+                            EmptyEntriesState()
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                // Newest first, matching js/debt.js's lc.prepend() display order.
+                                cd.entries.reversed().forEach { entry ->
+                                    DebtEntryRow(viewModel, entry, cd.currency, canEdit)
+                                }
+                            }
                         }
                     }
                 }
@@ -345,7 +350,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
         }
-        if (viewModel.infoExpanded) {
+        ReducedMotionVisibility(visible = viewModel.infoExpanded) {
             var name by remember(cd.id) { mutableStateOf(cd.name) }
             var note by remember(cd.id) { mutableStateOf(cd.note) }
             var currency by remember(cd.id) { mutableStateOf(cd.currency) }

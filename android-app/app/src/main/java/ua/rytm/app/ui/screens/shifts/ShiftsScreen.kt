@@ -78,6 +78,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.ReducedMotionVisibility
 import ua.rytm.app.ui.motionAwareSpec
+import ua.rytm.app.ui.motionProgress
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
@@ -273,6 +274,7 @@ private fun localizedPatternOptions(): List<Pair<String, String>> = listOf(
 @Composable
 private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     val locale = LocalConfiguration.current.locales[0]
+    val progress = motionProgress(months, 500)
     Card(shape = RoundedCornerShape(24.dp)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
@@ -291,7 +293,7 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             Row(Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
                 months.forEach { m ->
                     val isCur = m.yearMonth == curYm
-                    val heightFraction = (m.earned / maxVal).coerceIn(0.0, 1.0).toFloat().coerceAtLeast(0.02f)
+                    val heightFraction = ((m.earned / maxVal).coerceIn(0.0, 1.0).toFloat().coerceAtLeast(0.02f) * progress)
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
                         Box(
                             Modifier
