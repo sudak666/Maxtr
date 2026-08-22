@@ -403,18 +403,24 @@ private fun EmptyEntriesState() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean) {
+    DebtEntrySwipeContainer(canEdit = canEdit, onDelete = { viewModel.requestDeleteEntry(entry.id) }) {
+        DebtEntryContent(viewModel, entry, currency)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, content: @Composable () -> Unit) {
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     val dismissState = rememberSwipeToDismissBoxState(
         positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
-                viewModel.requestDeleteEntry(entry.id)
+                onDelete()
                 true
             } else false
         },
     )
-    val editing = viewModel.entryEditId == entry.id
-
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
@@ -427,6 +433,13 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
             }
         },
     ) {
+        content()
+    }
+}
+
+@Composable
+private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currency: String) {
+    val editing = viewModel.entryEditId == entry.id
         Card(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
                 if (editing) {
@@ -450,7 +463,6 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
                 }
             }
         }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

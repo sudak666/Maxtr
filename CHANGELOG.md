@@ -1191,3 +1191,5 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android audit: category icon accessibility (2026-08-22, same branch)**. Expanded category icon-change and picker targets from 32/44dp to the shared 48dp minimum, assigned an explicit button role, and added localized action labels that include the category name. Targeted compilation and resource parity pass.
 
 - **Android audit: interaction-state tokens (2026-08-22, same branch)**. Centralized the PWA's exact tab/button/card/icon pressed scales, disabled opacities, and focus outline/offset/glow values. Bottom tabs now consume the shared 0.88 token; Finance quick actions gained the missing 0.97 pressed scale with reduced-motion snap. Extended the design-token contract test; targeted compilation/test pass.
+
+- **Android audit: debt swipe interaction coverage (2026-08-22, same branch)**. Extracted the production debt swipe container without changing its 30dp threshold/60dp reveal geometry and added Compose tests proving an editable swipe deletes while a shared-profile viewer swipe cannot mutate. Main and androidTest compilation pass.
