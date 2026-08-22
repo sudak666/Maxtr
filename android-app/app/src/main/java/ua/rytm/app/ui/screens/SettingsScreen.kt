@@ -155,6 +155,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
+    val language by app.settingsStore.language.collectAsState(initial = "uk")
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
@@ -411,6 +412,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                         icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
                     ) { Text("Темна") }
+                }
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                    SegmentedButton(
+                        selected = language == "uk",
+                        onClick = { scope.launch { app.settingsStore.setLanguage("uk") } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    ) { Text("Українська") }
+                    SegmentedButton(
+                        selected = language == "en",
+                        onClick = { scope.launch { app.settingsStore.setLanguage("en") } },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    ) { Text("English") }
                 }
                 SettingsGroupCard {
                     SettingsToggleRow(

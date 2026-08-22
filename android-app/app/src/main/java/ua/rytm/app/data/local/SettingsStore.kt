@@ -22,6 +22,7 @@ class SettingsStore(private val context: Context) {
     private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
+    private val languageKey = stringPreferencesKey("language")
 
     val isDarkTheme: Flow<Boolean> = context.settingsDataStore.data.map { it[darkThemeKey] ?: true }
 
@@ -38,6 +39,8 @@ class SettingsStore(private val context: Context) {
 
     val onboardingComplete: Flow<Boolean> = context.settingsDataStore.data.map { it[onboardingCompleteKey] ?: false }
     suspend fun setOnboardingComplete(complete: Boolean) { context.settingsDataStore.edit { it[onboardingCompleteKey] = complete } }
+    val language: Flow<String> = context.settingsDataStore.data.map { if (it[languageKey] == "en") "en" else "uk" }
+    suspend fun setLanguage(language: String) { context.settingsDataStore.edit { it[languageKey] = if (language == "en") "en" else "uk" } }
 
     private fun biometricOnboardingDismissedKey(uid: String) = booleanPreferencesKey("biometric_onboarding_dismissed_$uid")
     fun biometricOnboardingDismissed(uid: String): Flow<Boolean> = context.settingsDataStore.data.map { it[biometricOnboardingDismissedKey(uid)] ?: false }

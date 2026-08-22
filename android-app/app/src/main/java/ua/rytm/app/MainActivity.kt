@@ -22,6 +22,7 @@ import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 import ua.rytm.app.ui.LocalHideAmounts
+import ua.rytm.app.ui.applyAppLanguage
 
 // FragmentActivity (not plain ComponentActivity) — androidx.biometric's
 // BiometricPrompt requires a FragmentActivity host for the PIN screen's
@@ -35,6 +36,8 @@ class MainActivity : FragmentActivity() {
         setContent {
             val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
             val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+            val language by app.settingsStore.language.collectAsState(initial = "uk")
+            LaunchedEffect(language) { if (applyAppLanguage(this@MainActivity, language)) recreate() }
             RytmTheme(darkTheme = darkTheme) {
                 CompositionLocalProvider(LocalHideAmounts provides hideAmounts) {
                 Surface(modifier = Modifier.fillMaxSize()) {
