@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Rytm</string>
     <string name="nav_finance">Finance</string>
-    <string name="nav_shifts">Shift schedule</string>
-    <string name="nav_debt">Settlements</string>
+    <string name="nav_shifts">Shifts</string>
+    <string name="nav_debt">Debts</string>
     <string name="nav_shopping">Shopping</string>
     <string name="nav_settings">Settings</string>
     <string name="notification_channel_name">Rytm reminders</string>

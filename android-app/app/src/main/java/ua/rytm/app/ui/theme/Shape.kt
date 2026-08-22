@@ -10,8 +10,8 @@ val RowRadius = RytmRadii.Row
 val CardRadius = RytmRadii.Card
 
 val Shapes = Shapes(
-    extraSmall = RoundedCornerShape(RytmRadii.Compact),
-    small = RoundedCornerShape(12.dp),
+    extraSmall = RoundedCornerShape(RytmRadii.Control),
+    small = RoundedCornerShape(RowRadius),
     medium = RoundedCornerShape(RowRadius),
     large = RoundedCornerShape(CardRadius),
     extraLarge = RoundedCornerShape(RytmRadii.Sheet),

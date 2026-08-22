@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -51,8 +53,10 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     }
     var page by remember { mutableIntStateOf(0) }
     val current = pages[page]
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("onboarding-screen")) {
+    val compactHeight = maxHeight < 500.dp
     Column(
-        Modifier.fillMaxSize().testTag("onboarding-screen").padding(24.dp),
+        Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 24.dp, vertical = if (compactHeight) 8.dp else 24.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -61,15 +65,15 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
-                Modifier.size(96.dp).background(
+                Modifier.size(if (compactHeight) 64.dp else 96.dp).background(
                     Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)),
                     CircleShape,
                 ),
                 contentAlignment = Alignment.Center,
-            ) { Icon(current.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(48.dp)) }
-            Spacer(Modifier.height(28.dp))
-            Text(stringResource(current.title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(12.dp))
+            ) { Icon(current.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(if (compactHeight) 32.dp else 48.dp)) }
+            Spacer(Modifier.height(if (compactHeight) 8.dp else 28.dp))
+            Text(stringResource(current.title), style = if (compactHeight) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(if (compactHeight) 4.dp else 12.dp))
             Text(stringResource(current.body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -83,11 +87,12 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(if (compactHeight) 8.dp else 20.dp))
             Button(
                 onClick = { if (page == pages.lastIndex) onComplete() else page++ },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) { Text(stringResource(if (page == pages.lastIndex) R.string.action_done else R.string.action_next)) }
         }
+    }
     }
 }

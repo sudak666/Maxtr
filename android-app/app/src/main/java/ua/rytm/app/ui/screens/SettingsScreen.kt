@@ -9,8 +9,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
@@ -130,7 +131,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 //     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
 //     which is its own multi-session effort, not a corner of this step.
 // See ANDROID_MIGRATION.md's "Chesno not done" convention.
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val canEdit = LocalCanEditProfile.current
@@ -290,9 +291,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 } else null,
                 placeholder = { Text(stringResource(R.string.settings_search_hint)) },
             )
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 listOf(
                     "all" to stringResource(R.string.settings_group_all),
