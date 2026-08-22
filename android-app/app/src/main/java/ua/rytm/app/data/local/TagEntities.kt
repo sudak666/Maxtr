@@ -51,8 +51,8 @@ interface TagDao {
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
-    suspend fun replaceAll(tags: List<TagEntity>) {
-        clearAll()
+    suspend fun replaceAll(tags: List<TagEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(tags)
     }
 }

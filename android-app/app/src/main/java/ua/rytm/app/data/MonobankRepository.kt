@@ -67,7 +67,7 @@ class MonobankRepository(
         val info = request("client-info", emptyMap(), token) as? JSONObject ?: error("Некоректна відповідь Monobank")
         val accounts = buildAccounts(info)
         require(accounts.isNotEmpty()) { "У Monobank не знайдено карток або банок" }
-        val existing = db.walletDao().getAllOnce()
+        val existing = db.walletDao().getAllOnce(uid, profileId)
         val palette = listOf(0xFF8B5CF6, 0xFF10B981, 0xFF3B82F6, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4)
         val wallets = accounts.mapIndexed { index, account ->
             WalletEntity(
@@ -76,6 +76,8 @@ class MonobankRepository(
                 colorHex = palette[(existing.size + index) % palette.size],
                 currency = account.currency,
                 icon = if (account.kind == "jar") "target" else "card",
+                ownerUid = uid,
+                profileId = profileId,
             )
         }
         db.walletDao().insertAll(wallets)
@@ -85,7 +87,7 @@ class MonobankRepository(
             save(uid, profileId, connection, existing + wallets)
         } catch (error: Throwable) {
             tokenStore.delete(uid, profileId)
-            wallets.forEach { db.walletDao().deleteById(it.id) }
+            wallets.forEach { db.walletDao().deleteById(it.id, uid, profileId) }
             throw error
         }
         return connection
@@ -109,9 +111,9 @@ class MonobankRepository(
         require(entries.isNotEmpty()) { "У Monobank не знайдено рахунків" }
         val nowSec = System.currentTimeMillis() / 1000L
         val fromSec = connection.lastSyncAt ?: nowSec - MAX_WINDOW_SEC
-        val knownIds = db.transactionDao().getAllMonobankIds().toMutableSet()
-        val rules = db.autoRuleDao().getAllOnce()
-        val currencies = db.walletDao().getAllOnce().associate { it.id to it.currency }
+        val knownIds = db.transactionDao().getAllMonobankIds(uid, profileId).toMutableSet()
+        val rules = db.autoRuleDao().getAllOnce(uid, profileId)
+        val currencies = db.walletDao().getAllOnce(uid, profileId).associate { it.id to it.currency }
         val imported = mutableListOf<TransactionEntity>()
 
         entries.forEachIndexed { index, entry ->
@@ -123,7 +125,8 @@ class MonobankRepository(
                 val rows = request("statement", mapOf("account" to entry.key, "from" to start.toString(), "to" to end.toString()), connection.token) as? JSONArray
                     ?: error("Некоректна відповідь Monobank")
                 for (rowIndex in 0 until rows.length()) {
-                    buildTransaction(rows.getJSONObject(rowIndex), entry.value, currencies[entry.value] ?: "UAH", rules, knownIds, imported.size)?.let(imported::add)
+                    buildTransaction(rows.getJSONObject(rowIndex), entry.value, currencies[entry.value] ?: "UAH", rules, knownIds, imported.size)
+                        ?.copy(ownerUid = uid, profileId = profileId)?.let(imported::add)
                 }
                 start = end
                 chunks++

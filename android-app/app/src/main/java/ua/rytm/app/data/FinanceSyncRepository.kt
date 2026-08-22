@@ -39,11 +39,12 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
             // Remote wins on cold sign-in — same bootstrap direction as the PWA's
             // fbLoadNow() (load-then-render), just without the continuous sync after.
             val entities = remoteWallets.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteWallet) }
-            db.walletDao().replaceAll(entities)
+                .map { it.copy(ownerUid = uid, profileId = profileId) }
+            db.walletDao().replaceAll(entities, uid, profileId)
         } else {
             // First-time account (no finance doc yet, or one predating wallets
             // syncing at all) — push this device's local wallets up as the seed.
-            val local = db.walletDao().getAllOnce()
+            val local = db.walletDao().getAllOnce(uid, profileId)
             docRef.set(
                 mapOf("wallets" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
@@ -54,7 +55,7 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
     /** Serializes Room snapshots so an older write can never overtake a newer wallet edit. */
     suspend fun saveWalletsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         walletSaveMutex.withLock {
-            val wallets = db.walletDao().getAllOnce()
+            val wallets = db.walletDao().getAllOnce(uid, profileId)
             financeDocRef(uid, profileId).set(
                 mapOf(
                     "wallets" to wallets.map { it.toRemoteMap() },

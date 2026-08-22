@@ -27,9 +27,10 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         val remoteTags = snapshot.get("tags") as? List<*>
         if (snapshot.exists() && remoteTags != null) {
             val entities = remoteTags.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteTag) }
-            db.tagDao().replaceAll(entities)
+                .map { it.copy(ownerUid = uid, profileId = profileId) }
+            db.tagDao().replaceAll(entities, uid, profileId)
         } else {
-            val local = db.tagDao().getAllOnce()
+            val local = db.tagDao().getAllOnce(uid, profileId)
             docRef.set(
                 mapOf("tags" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
@@ -38,7 +39,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
     }
 
     suspend fun saveTagsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val tags = db.tagDao().getAllOnce().map { it.toRemoteMap() }
+        val tags = db.tagDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
         financeDocRef(uid, profileId).set(
             mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
         ).await()
@@ -51,7 +52,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
     ) = saveMutex.withLock {
         val batch = firestore.batch()
         val financeRef = financeDocRef(uid, profileId)
-        val tags = db.tagDao().getAllOnce().map { it.toRemoteMap() }
+        val tags = db.tagDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
         batch.set(financeRef, mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge())
         val transactions = financeRef.collection("transactions")
         changedTransactions.forEach { tx -> batch.set(transactions.document(tx.id), tx.toRemoteMap()) }

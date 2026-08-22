@@ -17,11 +17,11 @@ class AutoRulesSyncRepository(private val db: RytmDatabase, private val firestor
         val remote = snapshot.get("autoRules") as? List<*>
         if (snapshot.exists() && remote != null) db.autoRuleDao().replaceAll(remote.mapIndexedNotNull { index, item ->
             val map = item as? Map<*, *> ?: return@mapIndexedNotNull null
-            AutoRuleEntity(map["id"] as? String ?: return@mapIndexedNotNull null, map["type"] as? String ?: "expense", map["keyword"] as? String ?: "", map["category"] as? String ?: "", index)
-        }) else save(uid, profileId)
+            AutoRuleEntity(map["id"] as? String ?: return@mapIndexedNotNull null, map["type"] as? String ?: "expense", map["keyword"] as? String ?: "", map["category"] as? String ?: "", index).copy(ownerUid = uid, profileId = profileId)
+        }, uid, profileId) else save(uid, profileId)
     }
     suspend fun save(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val rules = db.autoRuleDao().getAllOnce().map { mapOf("id" to it.id, "type" to it.type.lowercase(), "keyword" to it.keyword, "category" to it.category) }
+        val rules = db.autoRuleDao().getAllOnce(uid, profileId).map { mapOf("id" to it.id, "type" to it.type.lowercase(), "keyword" to it.keyword, "category" to it.category) }
         ref(uid, profileId).set(mapOf("autoRules" to rules, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 }

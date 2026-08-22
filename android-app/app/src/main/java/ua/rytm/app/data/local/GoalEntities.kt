@@ -51,8 +51,8 @@ interface GoalDao {
     suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     @Transaction
-    suspend fun replaceAll(goals: List<GoalEntity>) {
-        clearAll()
+    suspend fun replaceAll(goals: List<GoalEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(goals)
     }
 }

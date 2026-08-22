@@ -28,5 +28,5 @@ interface AutoRuleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(rules: List<AutoRuleEntity>)
     @Query("DELETE FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id") suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
     @Query("DELETE FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId") suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
-    @Transaction suspend fun replaceAll(rules: List<AutoRuleEntity>) { clearAll(); insertAll(rules) }
+    @Transaction suspend fun replaceAll(rules: List<AutoRuleEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) { clearAll(ownerUid, profileId); insertAll(rules) }
 }

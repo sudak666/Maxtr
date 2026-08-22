@@ -43,16 +43,16 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             // Remote wins on cold sign-in — same bootstrap direction as wallets/shift types.
             val entities = mutableListOf<CategoryEntity>()
             (remoteCategories["income"] as? List<*>)?.forEach { name ->
-                (name as? String)?.let { entities += CategoryEntity(id = UUID.randomUUID().toString(), type = "INCOME", name = it) }
+                (name as? String)?.let { entities += CategoryEntity(id = UUID.randomUUID().toString(), type = "INCOME", name = it, ownerUid = uid, profileId = profileId) }
             }
             (remoteCategories["expense"] as? List<*>)?.forEach { name ->
-                (name as? String)?.let { entities += CategoryEntity(id = UUID.randomUUID().toString(), type = "EXPENSE", name = it) }
+                (name as? String)?.let { entities += CategoryEntity(id = UUID.randomUUID().toString(), type = "EXPENSE", name = it, ownerUid = uid, profileId = profileId) }
             }
-            db.categoryDao().replaceAll(entities)
+            db.categoryDao().replaceAll(entities, uid, profileId)
         } else {
             // First-time account (no finance doc yet, or one predating categories
             // syncing) — push this device's local categories up as the seed.
-            val local = db.categoryDao().getAllOnce()
+            val local = db.categoryDao().getAllOnce(uid, profileId)
             val remoteMap = mapOf(
                 "income" to local.filter { it.type == "INCOME" }.map { it.name },
                 "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
@@ -82,12 +82,12 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
                 val type = parts[0].uppercase()
                 val categoryName = parts[1]
                 (names as? List<*>)?.forEach { name ->
-                    (name as? String)?.let { entities += SubcategoryEntity(categoryType = type, categoryName = categoryName, name = it) }
+                    (name as? String)?.let { entities += SubcategoryEntity(categoryType = type, categoryName = categoryName, name = it, ownerUid = uid, profileId = profileId) }
                 }
             }
-            db.subcategoryDao().replaceAll(entities)
+            db.subcategoryDao().replaceAll(entities, uid, profileId)
         } else {
-            val local = db.subcategoryDao().getAllOnce()
+            val local = db.subcategoryDao().getAllOnce(uid, profileId)
             val remoteMap = local.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
             docRef.set(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
@@ -108,18 +108,18 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             val entities = remoteIcons.mapNotNull { (name, icon) ->
                 val categoryName = name as? String ?: return@mapNotNull null
                 val iconName = icon as? String ?: return@mapNotNull null
-                CategoryIconEntity(categoryName, iconName)
+                CategoryIconEntity(categoryName, iconName, uid, profileId)
             }
-            db.categoryIconDao().replaceAll(entities)
+            db.categoryIconDao().replaceAll(entities, uid, profileId)
         } else {
-            val local = db.categoryIconDao().getAllOnce()
+            val local = db.categoryIconDao().getAllOnce(uid, profileId)
             val remoteMap = local.associate { it.categoryName to it.iconName }
             docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
     }
 
     suspend fun saveCategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val local = db.categoryDao().getAllOnce()
+        val local = db.categoryDao().getAllOnce(uid, profileId)
         val remote = mapOf(
             "income" to local.filter { it.type == "INCOME" }.map { it.name },
             "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
@@ -128,19 +128,19 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
     }
 
     suspend fun saveSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val remote = db.subcategoryDao().getAllOnce().groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
+        val remote = db.subcategoryDao().getAllOnce(uid, profileId).groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
         financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 
     suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val remote = db.categoryIconDao().getAllOnce().associate { it.categoryName to it.iconName }
+        val remote = db.categoryIconDao().getAllOnce(uid, profileId).associate { it.categoryName to it.iconName }
         financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 
     suspend fun saveAllCategorySnapshots(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val categories = db.categoryDao().getAllOnce()
-        val subcategories = db.subcategoryDao().getAllOnce()
-        val icons = db.categoryIconDao().getAllOnce()
+        val categories = db.categoryDao().getAllOnce(uid, profileId)
+        val subcategories = db.subcategoryDao().getAllOnce(uid, profileId)
+        val icons = db.categoryIconDao().getAllOnce(uid, profileId)
         financeDocRef(uid, profileId).set(
             mapOf(
                 "categories" to mapOf(
@@ -154,7 +154,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             SetOptions.merge(),
         ).await()
         val txCollection = financeDocRef(uid, profileId).collection("transactions")
-        db.transactionDao().getAllOnce().chunked(450).forEach { chunk ->
+        db.transactionDao().getAllOnce(uid, profileId).chunked(450).forEach { chunk ->
             val batch = firestore.batch()
             chunk.forEach { tx -> batch.set(txCollection.document(tx.id), tx.toRemoteMap()) }
             batch.commit().await()

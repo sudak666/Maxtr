@@ -52,16 +52,17 @@ class TransactionsSyncRepository(
         if (!snapshot.isEmpty) {
             // Remote wins on cold sign-in — same bootstrap direction as every other synced domain.
             val remote = snapshot.documents.mapNotNull { it.data?.let(::parseRemoteTransaction) }
+                .map { it.copy(ownerUid = uid, profileId = profileId) }
             val pending = db.syncOutboxDao().get(uid, profileId, OUTBOX_DOMAIN)
             val pendingIds = pending.mapTo(mutableSetOf()) { it.entityId }
             val localPending = db.transactionDao().getAllOnce(uid, profileId).filter { it.id in pendingIds }
-            db.transactionDao().replaceAll(remote.filterNot { it.id in pendingIds } + localPending)
+            db.transactionDao().replaceAll(remote.filterNot { it.id in pendingIds } + localPending, uid, profileId)
         } else {
             // First-time account (no transactions subcollection yet) — push this
             // device's local transactions up as the seed, chunked the same way
             // js/firebase-sync.js's batchWriteTransactions() is (Firestore batches
             // cap at 500 ops; well under that here).
-            val local = db.transactionDao().getAllOnce()
+            val local = db.transactionDao().getAllOnce(uid, profileId)
             local.chunked(450).forEach { chunk ->
                 val batch = firestore.batch()
                 chunk.forEach { tx -> batch.set(colRef.document(tx.id), tx.toRemoteMap()) }

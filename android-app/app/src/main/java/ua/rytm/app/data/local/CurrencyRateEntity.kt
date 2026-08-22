@@ -37,8 +37,8 @@ interface CurrencyRateDao {
     suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     @Transaction
-    suspend fun replaceAll(entities: List<CurrencyRateEntity>) {
-        clearAll()
+    suspend fun replaceAll(entities: List<CurrencyRateEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(entities)
     }
 }

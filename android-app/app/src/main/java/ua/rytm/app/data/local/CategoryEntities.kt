@@ -42,8 +42,8 @@ interface CategoryDao {
     // Same "remote wins" cold-sync bootstrap pattern as WalletDao.replaceAll() —
     // a real @Transaction so a crash mid-sync can't leave the table half-cleared.
     @Transaction
-    suspend fun replaceAll(categories: List<CategoryEntity>) {
-        clearAll()
+    suspend fun replaceAll(categories: List<CategoryEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(categories)
     }
 
@@ -94,8 +94,8 @@ interface SubcategoryDao {
 
     // Same "remote wins" cold-sync bootstrap pattern as CategoryDao.replaceAll().
     @Transaction
-    suspend fun replaceAll(subcategories: List<SubcategoryEntity>) {
-        clearAll()
+    suspend fun replaceAll(subcategories: List<SubcategoryEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(subcategories)
     }
 
@@ -158,8 +158,8 @@ interface CategoryIconDao {
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
-    suspend fun replaceAll(entities: List<CategoryIconEntity>) {
-        clearAll()
+    suspend fun replaceAll(entities: List<CategoryIconEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(entities)
     }
 

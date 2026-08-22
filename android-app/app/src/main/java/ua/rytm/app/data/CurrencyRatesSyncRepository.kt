@@ -33,21 +33,21 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
             val entities = remoteRates.mapNotNull { (code, rate) ->
                 val c = code as? String ?: return@mapNotNull null
                 val r = (rate as? Number)?.toDouble() ?: return@mapNotNull null
-                CurrencyRateEntity(code = c, rateToUah = r)
+                CurrencyRateEntity(code = c, rateToUah = r, ownerUid = uid, profileId = profileId)
             }
-            db.currencyRateDao().replaceAll(entities)
+            db.currencyRateDao().replaceAll(entities, uid, profileId)
         }
     }
 
     suspend fun saveRate(uid: String, profileId: String, code: String, value: Double) {
         require(code in SEED_RATES && value > 0.0)
-        val current = db.currencyRateDao().getAllOnce().associate { it.code to it.rateToUah }.toMutableMap()
+        val current = db.currencyRateDao().getAllOnce(uid, profileId).associate { it.code to it.rateToUah }.toMutableMap()
         current[code] = value
         persist(uid, profileId, current)
     }
 
     suspend fun refreshOnline(uid: String, profileId: String, usePrivatCashRates: Boolean): Long {
-        val current = db.currencyRateDao().getAllOnce().associate { it.code to it.rateToUah }.toMutableMap()
+        val current = db.currencyRateDao().getAllOnce(uid, profileId).associate { it.code to it.rateToUah }.toMutableMap()
         val nbu = fetchJsonArray("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json")
         var updated = 0
         SEED_RATES.keys.forEach { code ->
@@ -79,7 +79,7 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
     }
 
     private suspend fun persist(uid: String, profileId: String, rates: Map<String, Double>) {
-        db.currencyRateDao().replaceAll(rates.map { CurrencyRateEntity(it.key, it.value) })
+        db.currencyRateDao().replaceAll(rates.map { CurrencyRateEntity(it.key, it.value, uid, profileId) }, uid, profileId)
         financeDocRef(uid, profileId).set(mapOf("currencyRates" to rates, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 

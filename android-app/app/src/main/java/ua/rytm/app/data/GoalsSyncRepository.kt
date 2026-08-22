@@ -26,9 +26,10 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
         val remoteGoals = snapshot.get("goals") as? List<*>
         if (snapshot.exists() && remoteGoals != null) {
             val entities = remoteGoals.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteGoal) }
-            db.goalDao().replaceAll(entities)
+                .map { it.copy(ownerUid = uid, profileId = profileId) }
+            db.goalDao().replaceAll(entities, uid, profileId)
         } else {
-            val local = db.goalDao().getAllOnce()
+            val local = db.goalDao().getAllOnce(uid, profileId)
             docRef.set(
                 mapOf("goals" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
@@ -37,7 +38,7 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
     }
 
     suspend fun saveGoalsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val goals = db.goalDao().getAllOnce()
+        val goals = db.goalDao().getAllOnce(uid, profileId)
         financeDocRef(uid, profileId).set(
             mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),

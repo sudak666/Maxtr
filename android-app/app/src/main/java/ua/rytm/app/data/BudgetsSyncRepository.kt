@@ -31,20 +31,20 @@ class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore:
             val entities = remoteBudgets.mapNotNull { (category, amount) ->
                 val name = category as? String ?: return@mapNotNull null
                 val value = (amount as? Number)?.toDouble() ?: return@mapNotNull null
-                if (value > 0) BudgetEntity(category = name, amount = value) else null
+                if (value > 0) BudgetEntity(category = name, amount = value, ownerUid = uid, profileId = profileId) else null
             }
-            db.budgetDao().replaceAll(entities)
+            db.budgetDao().replaceAll(entities, uid, profileId)
         } else {
             // First-time account (no finance doc yet, or one predating budgets syncing) —
             // push this device's local budgets up as the seed.
-            val local = db.budgetDao().getAllOnce()
+            val local = db.budgetDao().getAllOnce(uid, profileId)
             val remoteMap = local.associate { it.category to it.amount }
             docRef.set(mapOf("budgets" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
         }
     }
 
     suspend fun saveBudgetsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val budgets = db.budgetDao().getAllOnce().associate { it.category to it.amount }
+        val budgets = db.budgetDao().getAllOnce(uid, profileId).associate { it.category to it.amount }
         financeDocRef(uid, profileId).set(
             mapOf("budgets" to budgets, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
         ).await()

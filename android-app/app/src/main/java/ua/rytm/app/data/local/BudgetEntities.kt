@@ -47,8 +47,8 @@ interface BudgetDao {
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
-    suspend fun replaceAll(budgets: List<BudgetEntity>) {
-        clearAll()
+    suspend fun replaceAll(budgets: List<BudgetEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(budgets)
     }
 

@@ -26,8 +26,8 @@ interface WalletDao {
     // replace the whole local table with the remote-wins copy — a real @Transaction
     // so a crash mid-sync can't leave the table half-cleared.
     @Transaction
-    suspend fun replaceAll(wallets: List<WalletEntity>) {
-        clearAll()
+    suspend fun replaceAll(wallets: List<WalletEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(wallets)
     }
 
@@ -78,8 +78,8 @@ interface TransactionDao {
     // table half-cleared. Row identity here is the tx id itself (not rowid),
     // so unlike Wallet/ShiftType this doesn't need REPLACE-vs-UPDATE care.
     @Transaction
-    suspend fun replaceAll(transactions: List<TransactionEntity>) {
-        clearAll()
+    suspend fun replaceAll(transactions: List<TransactionEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(transactions)
     }
 

@@ -70,8 +70,8 @@ interface RecurringDao {
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
-    suspend fun replaceAll(recurring: List<RecurringEntity>) {
-        clearAll()
+    suspend fun replaceAll(recurring: List<RecurringEntity>, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId) {
+        clearAll(ownerUid, profileId)
         insertAll(recurring)
     }
 
