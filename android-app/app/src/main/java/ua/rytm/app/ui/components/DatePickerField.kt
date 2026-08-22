@@ -37,6 +37,7 @@ fun DatePickerField(
     label: String,
     modifier: Modifier = Modifier,
     allowEmpty: Boolean = true,
+    outputIso: Boolean = true,
 ) {
     var open by remember { mutableStateOf(false) }
     val selected = value.takeIf { it.isNotBlank() }?.let {
@@ -61,7 +62,10 @@ fun DatePickerField(
             onDismissRequest = { open = false },
             confirmButton = {
                 TextButton(onClick = {
-                    state.selectedDateMillis?.let { millis -> onValueChange(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()) }
+                    state.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                        onValueChange(if (outputIso) date.toString() else date.format(displayDateFormatter))
+                    }
                     open = false
                 }) { Text(stringResource(R.string.action_done)) }
             },

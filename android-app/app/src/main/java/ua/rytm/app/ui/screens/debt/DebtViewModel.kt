@@ -111,9 +111,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     /** Mirrors addDebtEntry()'s auto-fill: a plain-number amount computes balance from the running total. */
     fun autoFillBalance(amountText: String): String {
         val cd = currentDebt ?: return ""
-        val raw = amountText.trim()
-        val plain = raw.toDoubleOrNull()
-        return if (raw.isNotEmpty() && plain != null) formatDebtNumber(cd.currentBalance() - plain) else ""
+        return autoDebtBalance(cd.currentBalance(), amountText)
     }
 
     fun addEntry(amountText: String, balanceText: String, dateText: String) {
@@ -122,10 +120,10 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
         if (amount.isEmpty()) { errorMessage = "Вкажіть суму"; return }
         var balance = balanceText.toDoubleOrNull()
         if (balance == null) {
-            val plain = amount.toDoubleOrNull()
+            val plain = parsePlainDebtAmount(amount)
             balance = if (plain != null) cd.currentBalance() - plain else { errorMessage = "Вкажіть залишок"; return }
         }
-        val date = dateText.trim().ifBlank { todayLabel() }
+        val date = normalizeDebtEntryDate(dateText).ifBlank { todayLabel() }
         mutate(cd.id) { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
         newEntrySheetOpen = false
     }
@@ -144,7 +142,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun updateEntryDate(entry: DebtEntry, date: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(date = date)) }
+        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(date = normalizeDebtEntryDate(date))) }
     }
 
     fun requestDeleteEntry(id: Long) { pendingDeleteEntryId = id }
