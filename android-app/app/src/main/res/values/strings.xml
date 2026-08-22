@@ -439,4 +439,10 @@
     <string name="category_change_icon">Змінити іконку категорії %1$s</string>
     <string name="common_loading">Завантаження…</string>
     <string name="common_data_load_failed">Не вдалося завантажити дані</string>
+    <string name="action_undo">Скасувати</string>
+    <string name="transaction_restore_failed">Не вдалося відновити операції</string>
+    <string name="transaction_bulk_category">Змінити категорію</string>
+    <string name="transaction_selected">Вибрано</string>
+    <plurals name="transaction_deleted_count"><item quantity="one">Видалено %d операцію</item><item quantity="few">Видалено %d операції</item><item quantity="many">Видалено %d операцій</item><item quantity="other">Видалено %d операції</item></plurals>
+    <plurals name="transaction_selected_count"><item quantity="one">Вибрано %d</item><item quantity="few">Вибрано %d</item><item quantity="many">Вибрано %d</item><item quantity="other">Вибрано %d</item></plurals>
 </resources>

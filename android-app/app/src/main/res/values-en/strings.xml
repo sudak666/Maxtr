@@ -437,4 +437,10 @@
     <string name="category_change_icon">Change icon for category %1$s</string>
     <string name="common_loading">Loading…</string>
     <string name="common_data_load_failed">Could not load data</string>
+    <string name="action_undo">Undo</string>
+    <string name="transaction_restore_failed">Could not restore transactions</string>
+    <string name="transaction_bulk_category">Change category</string>
+    <string name="transaction_selected">Selected</string>
+    <plurals name="transaction_deleted_count"><item quantity="one">Deleted %d transaction</item><item quantity="other">Deleted %d transactions</item></plurals>
+    <plurals name="transaction_selected_count"><item quantity="one">%d selected</item><item quantity="other">%d selected</item></plurals>
 </resources>

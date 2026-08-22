@@ -269,6 +269,14 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.transactionDao().deleteById(id)
     }
 
+    suspend fun deleteTransactions(ids: Collection<String>) = db.withTransaction {
+        ids.forEach { db.transactionDao().deleteById(it) }
+    }
+
+    suspend fun restoreTransactions(transactions: List<TransactionEntity>) = db.withTransaction {
+        db.transactionDao().insertAll(transactions)
+    }
+
     suspend fun addWallet(wallet: Wallet) {
         db.walletDao().insert(wallet.toEntity())
     }

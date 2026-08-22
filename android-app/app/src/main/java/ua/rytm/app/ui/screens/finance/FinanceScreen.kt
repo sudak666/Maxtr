@@ -2,11 +2,14 @@ package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,6 +35,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
@@ -49,6 +54,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -71,6 +79,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
@@ -122,6 +131,17 @@ fun FinanceScreen(
         }
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    var bulkCategoryOpen by remember { mutableStateOf(false) }
+    val undoRows = viewModel.pendingUndoTransactions
+    val deletedMessage = pluralStringResource(R.plurals.transaction_deleted_count, undoRows.size, undoRows.size)
+    val undoLabel = stringResource(R.string.action_undo)
+    LaunchedEffect(undoRows) {
+        if (undoRows.isNotEmpty()) {
+            val result = snackbarHostState.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Long)
+            if (result == SnackbarResult.ActionPerformed) viewModel.undoTransactionDelete()
+            else viewModel.consumeUndoTransactions()
+        }
+    }
     val pendingMessage = viewModel.pendingMessage?.let { message ->
         val arguments = if (message.resource == R.string.transaction_auto_category || message.resource == R.string.transaction_budget_exceeded) {
             message.arguments.mapIndexed { index, value -> if (index == 0) localizedDomainText(value.toString()) else value }
@@ -201,7 +221,7 @@ fun FinanceScreen(
             widgetConfig.order.filter { it in widgetConfig.enabled }.forEach { key ->
                 item(key = "dashboard-widget-$key") { FinanceDashboardWidget(key, app) }
             }
-            item { HistoryHeader(viewModel, resultCount = filtered.size) }
+            item { HistoryHeader(viewModel, resultCount = filtered.size, onBulkEdit = { bulkCategoryOpen = true }) }
             item { SearchField(viewModel) }
             item { TypeFilterRow(viewModel) }
             item { PeriodFilterRow(viewModel) }
@@ -219,8 +239,11 @@ fun FinanceScreen(
                         tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
                         iconOverride = viewModel.categoryIcons[tx.category],
                         canEdit = canEdit,
+                        selected = tx.id in viewModel.selectedTransactionIds,
+                        selectionMode = viewModel.selectedTransactionIds.isNotEmpty(),
                         onDelete = { viewModel.deleteTransaction(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
+                        onToggleSelection = { viewModel.toggleTransactionSelection(tx.id) },
                     )
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
@@ -239,6 +262,26 @@ fun FinanceScreen(
 
     if (viewModel.sheetVisible) {
         TransactionFormSheet(viewModel)
+    }
+    if (bulkCategoryOpen) {
+        val categories = viewModel.categoriesByType.values.flatten().distinct().sorted()
+        AlertDialog(
+            onDismissRequest = { bulkCategoryOpen = false },
+            title = { Text(stringResource(R.string.transaction_bulk_category)) },
+            text = {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = false,
+                            onClick = { viewModel.updateSelectedCategory(category); bulkCategoryOpen = false },
+                            label = { Text(localizedDomainText(category)) },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { bulkCategoryOpen = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
     if (toolsSheetOpen) {
         ToolsSheet(repository = app.financeRepository, onDismiss = { toolsSheetOpen = false })
@@ -451,10 +494,19 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
 }
 
 @Composable
-private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
+private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int, onBulkEdit: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (vm.selectedTransactionIds.isEmpty()) {
+            Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            Text(pluralStringResource(R.plurals.transaction_selected_count, vm.selectedTransactionIds.size, vm.selectedTransactionIds.size), fontWeight = FontWeight.Bold)
+            Row {
+                IconButton(onClick = onBulkEdit) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.transaction_bulk_category)) }
+                IconButton(onClick = vm::deleteSelectedTransactions) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.error) }
+                IconButton(onClick = vm::clearTransactionSelection) { Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.action_cancel)) }
+            }
+        }
     }
 }
 
@@ -553,16 +605,19 @@ private fun EmptyState(isSearching: Boolean) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun TransactionRow(
+internal fun TransactionRow(
     tx: Transaction,
     walletName: (String?) -> String?,
     tagLookup: (String) -> Tag?,
     iconOverride: String?,
     canEdit: Boolean,
+    selected: Boolean,
+    selectionMode: Boolean,
     onDelete: () -> Unit,
     onClick: () -> Unit,
+    onToggleSelection: () -> Unit,
 ) {
     // confirmValueChange is deprecated (in favor of dynamic anchors) as of
     // this Compose BOM but still functional — not worth the bigger
@@ -583,7 +638,7 @@ private fun TransactionRow(
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = canEdit,
+        enableDismissFromEndToStart = canEdit && !selectionMode,
         backgroundContent = {
             Box(
                 Modifier.fillMaxSize().clip(MaterialTheme.shapes.large),
@@ -601,13 +656,27 @@ private fun TransactionRow(
         },
     ) {
         Card(
-            onClick = onClick,
-            enabled = canEdit,
             shape = MaterialTheme.shapes.large,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("transaction-row-${tx.id}")
+                .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.large) else Modifier)
+                .combinedClickable(
+                    enabled = canEdit,
+                    onClick = { if (selectionMode) onToggleSelection() else onClick() },
+                    onLongClick = onToggleSelection,
+                ),
         ) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 CategoryIconBadge(tx.category, iconOverride = iconOverride)
+                if (selected) {
+                    Icon(
+                        Icons.Filled.CheckCircle,
+                        contentDescription = stringResource(R.string.transaction_selected),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                }
                 Spacer(Modifier.padding(6.dp))
                 Column(Modifier.weight(1f)) {
                     val categoryLabel = localizedDomainText(tx.category)

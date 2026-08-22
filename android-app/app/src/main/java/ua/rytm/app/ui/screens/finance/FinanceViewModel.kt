@@ -92,6 +92,10 @@ class FinanceViewModel(
         private set
     var listExpanded by mutableStateOf(false)
         private set
+    var selectedTransactionIds by mutableStateOf<Set<String>>(emptySet())
+        private set
+    var pendingUndoTransactions by mutableStateOf<List<Transaction>>(emptyList())
+        private set
 
     fun onSearchChange(value: String) { search = value }
     fun clearSearch() { search = "" }
@@ -99,14 +103,59 @@ class FinanceViewModel(
     fun onPeriodFilterChange(value: PeriodFilter) { periodFilter = value }
     fun clearCategoryFilter() { categoryFilter = null }
     fun toggleListExpanded() { listExpanded = !listExpanded }
+    fun toggleTransactionSelection(id: String) {
+        selectedTransactionIds = if (id in selectedTransactionIds) selectedTransactionIds - id else selectedTransactionIds + id
+    }
+    fun clearTransactionSelection() { selectedTransactionIds = emptySet() }
 
     fun deleteTransaction(id: String) {
+        deleteTransactions(setOf(id))
+    }
+
+    fun deleteSelectedTransactions() = deleteTransactions(selectedTransactionIds)
+
+    private fun deleteTransactions(ids: Set<String>) {
+        if (ids.isEmpty()) return
+        val removed = transactions.filter { it.id in ids }
         viewModelScope.launch {
             runCatching {
                 val (ownerUid, profileId) = activeProfilePath()
-                syncRepository.deleteTransaction(ownerUid, profileId, id)
-                repository.deleteTransaction(id)
+                syncRepository.deleteTransactions(ownerUid, profileId, ids)
+                repository.deleteTransactions(ids)
+            }.onSuccess {
+                selectedTransactionIds = emptySet()
+                pendingUndoTransactions = removed
             }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_delete_failed) }
+        }
+    }
+
+    fun consumeUndoTransactions() { pendingUndoTransactions = emptyList() }
+
+    fun undoTransactionDelete() {
+        val restored = pendingUndoTransactions
+        if (restored.isEmpty()) return
+        pendingUndoTransactions = emptyList()
+        viewModelScope.launch {
+            runCatching {
+                val entities = restored.map { it.toEntity() }
+                val (ownerUid, profileId) = activeProfilePath()
+                syncRepository.saveTransactions(ownerUid, profileId, entities)
+                repository.restoreTransactions(entities)
+            }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_restore_failed) }
+        }
+    }
+
+    fun updateSelectedCategory(category: String) {
+        val updated = transactions.filter { it.id in selectedTransactionIds }.map { it.copy(category = category, subcategory = null) }
+        if (updated.isEmpty()) return
+        viewModelScope.launch {
+            runCatching {
+                val entities = updated.map { it.toEntity() }
+                val (ownerUid, profileId) = activeProfilePath()
+                syncRepository.saveTransactions(ownerUid, profileId, entities)
+                repository.restoreTransactions(entities)
+            }.onSuccess { selectedTransactionIds = emptySet() }
+                .onFailure { pendingMessage = FinanceMessage(R.string.transaction_save_failed) }
         }
     }
 
