@@ -145,7 +145,7 @@ val verifyRoomSchemaAssets = tasks.register("verifyRoomSchemaAssets") {
     group = "verification"
     description = "Rejects stale Room schemas packaged for migration tests."
     doLast {
-        listOf(13, 15).forEach { version ->
+        listOf(13, 15, 16).forEach { version ->
             val exported = file("schemas/ua.rytm.app.data.local.RytmDatabase/$version.json")
             val packaged = file("src/androidTest/assets/ua.rytm.app.data.local.RytmDatabase/$version.json")
             check(exported.readBytes().contentEquals(packaged.readBytes())) {

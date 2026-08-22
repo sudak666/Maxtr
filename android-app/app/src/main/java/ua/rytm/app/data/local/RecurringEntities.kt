@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.Flow
 // CategoriesSyncRepository already does for categories/subcategories.
 // `type` is deliberately never TRANSFER — the PWA's own updateRecurring()
 // only offers income/expense in its type <select>.
-@Entity(tableName = "recurring")
+@Entity(tableName = "recurring", primaryKeys = ["ownerUid", "profileId", "id"])
 data class RecurringEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val type: String, // TxType.name, INCOME or EXPENSE only
     val amount: Double,
     val category: String,
@@ -31,15 +31,17 @@ data class RecurringEntity(
     val nextDate: String, // "yyyy-MM-dd"
     val active: Boolean,
     val comment: String,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface RecurringDao {
-    @Query("SELECT * FROM recurring ORDER BY nextDate ASC")
-    fun observeAll(): Flow<List<RecurringEntity>>
+    @Query("SELECT * FROM recurring WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY nextDate ASC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<RecurringEntity>>
 
-    @Query("SELECT * FROM recurring ORDER BY nextDate ASC")
-    suspend fun getAllOnce(): List<RecurringEntity>
+    @Query("SELECT * FROM recurring WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY nextDate ASC")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<RecurringEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(recurring: RecurringEntity)
@@ -55,16 +57,16 @@ interface RecurringDao {
     @Update
     suspend fun update(recurring: RecurringEntity)
 
-    @Query("DELETE FROM recurring WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM recurring WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id")
+    suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("DELETE FROM recurring")
-    suspend fun clearAll()
+    @Query("DELETE FROM recurring WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Mirrors js/settings-managers.js's walletInUse(): `AppState.transactions.some(...)
     // || AppState.recurring.some(r=>r.wallet===id)` — see FinanceRepository.isWalletInUse().
-    @Query("SELECT COUNT(*) FROM recurring WHERE walletId = :id")
-    suspend fun countUsingWallet(id: String): Int
+    @Query("SELECT COUNT(*) FROM recurring WHERE ownerUid=:ownerUid AND profileId=:profileId AND walletId = :id")
+    suspend fun countUsingWallet(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
@@ -79,6 +81,6 @@ interface RecurringDao {
     // — confirmed by reading it, not guessed. deleteCategory() deliberately does
     // NOT cascade into recurring (only budgets/subcategories/categoryIcons), so
     // there's no matching delete-cascade query here — see FinanceRepository.deleteCategory().
-    @Query("UPDATE recurring SET category = :newName WHERE type = :type AND category = :oldName")
-    suspend fun renameCategory(type: String, oldName: String, newName: String)
+    @Query("UPDATE recurring SET category = :newName WHERE ownerUid=:ownerUid AND profileId=:profileId AND type = :type AND category = :oldName")
+    suspend fun renameCategory(type: String, oldName: String, newName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 }

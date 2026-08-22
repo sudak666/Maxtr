@@ -14,20 +14,22 @@ import kotlinx.coroutines.flow.Flow
 // reading js/finance.js's addTag()/updateTag(). Transactions reference tags
 // by id (TransactionEntity.tags, a comma-joined string of these ids — see
 // that entity's own doc comment for why it's not a join table).
-@Entity(tableName = "tags")
+@Entity(tableName = "tags", primaryKeys = ["ownerUid", "profileId", "id"])
 data class TagEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val name: String,
     val colorHex: Long,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface TagDao {
-    @Query("SELECT * FROM tags ORDER BY name ASC")
-    fun observeAll(): Flow<List<TagEntity>>
+    @Query("SELECT * FROM tags WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<TagEntity>>
 
-    @Query("SELECT * FROM tags ORDER BY name ASC")
-    suspend fun getAllOnce(): List<TagEntity>
+    @Query("SELECT * FROM tags WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<TagEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(tag: TagEntity)
@@ -41,11 +43,11 @@ interface TagDao {
     @Update
     suspend fun update(tag: TagEntity)
 
-    @Query("DELETE FROM tags WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM tags WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id")
+    suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("DELETE FROM tags")
-    suspend fun clearAll()
+    @Query("DELETE FROM tags WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction

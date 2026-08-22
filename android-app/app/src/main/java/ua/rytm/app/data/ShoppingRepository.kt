@@ -2,6 +2,8 @@ package ua.rytm.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShoppingItemEntity
 import ua.rytm.app.ui.screens.shopping.ShoppingItem
@@ -11,7 +13,7 @@ fun ShoppingItem.toEntity() = ShoppingItemEntity(id = id, name = name, qty = qty
 
 class ShoppingRepository(private val db: RytmDatabase) {
 
-    val items: Flow<List<ShoppingItem>> = db.shoppingDao().observeAll().map { list -> list.map { it.toDomain() } }
+    val items: Flow<List<ShoppingItem>> = RoomProfileScope.changes.flatMapLatest { db.shoppingDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
 
     suspend fun seedIfEmpty() {
         // The PWA starts with an empty shopping list.

@@ -2,10 +2,12 @@ package ua.rytm.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
 import ua.rytm.app.data.local.AutoFillScheduleEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.ShiftDayEntity
 import ua.rytm.app.data.local.ShiftTypeEntity
+import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.ui.screens.shifts.AutoFillSchedule
 import ua.rytm.app.ui.screens.shifts.SHIFT_PATTERN_CYCLES
 import ua.rytm.app.ui.screens.shifts.ShiftType
@@ -28,14 +30,14 @@ internal fun defaultShiftTypeEntities() = listOf(
 
 class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyncRepository) {
 
-    val shiftTypes: Flow<List<ShiftType>> = db.shiftTypeDao().observeAll().map { list -> list.map { it.toDomain() } }
+    val shiftTypes: Flow<List<ShiftType>> = RoomProfileScope.changes.flatMapLatest { db.shiftTypeDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
 
     /** dateKey -> assigned shift type ids — mirrors AppState.shifts (js/state.js). */
-    val shiftsByDate: Flow<Map<String, List<String>>> = db.shiftDayDao().observeAll().map { list ->
+    val shiftsByDate: Flow<Map<String, List<String>>> = RoomProfileScope.changes.flatMapLatest { db.shiftDayDao().observeAll(it.ownerUid, it.profileId) }.map { list ->
         list.groupBy({ it.dateKey }, { it.shiftTypeId })
     }
 
-    val autoFillSchedule: Flow<AutoFillSchedule> = db.autoFillScheduleDao().observe().map { it?.toDomain() ?: AutoFillSchedule() }
+    val autoFillSchedule: Flow<AutoFillSchedule> = RoomProfileScope.changes.flatMapLatest { db.autoFillScheduleDao().observe(it.ownerUid, it.profileId) }.map { it?.toDomain() ?: AutoFillSchedule() }
 
     suspend fun seedIfEmpty() {
         if (db.shiftTypeDao().count() == 0) {

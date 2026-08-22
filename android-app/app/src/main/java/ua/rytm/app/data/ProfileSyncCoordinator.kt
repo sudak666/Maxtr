@@ -15,17 +15,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.RytmApplication
-import ua.rytm.app.data.local.clearAllProfileScopedTables
+import ua.rytm.app.data.local.RoomProfileScope
+import ua.rytm.app.data.local.adoptLegacyScope
+import ua.rytm.app.data.local.clearActiveProfileTables
 
 // Centralizes the "run every domain's cold sync against one profile" sequence
 // — previously inlined directly in MainActivity's LaunchedEffect (steps
 // 14-26), now shared between the normal sign-in load and an in-session
 // profile switch (step 30) so the two paths can't silently drift apart.
-// Room has no per-profile row-tagging (see RytmDatabase.clearAllProfileScopedTables's
-// own doc comment), so switching profiles means starting the local cache
-// over — mirrors the PWA's switchProfile() (fbSaveNow() the old profile,
-// reassign activeProfileId, fbLoadNow() the new one), minus the local
-// read-through cache the PWA has and this app doesn't.
+// Room v16 retains each owner/profile independently; switching the selector
+// immediately rebinds repository Flows and then refreshes that scope remotely.
 class ProfileSyncCoordinator(private val app: RytmApplication) {
     sealed interface RealtimeState {
         data object Stopped : RealtimeState
@@ -107,6 +106,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     suspend fun loadOnSignIn(uid: String): String {
         val profileId = app.activeProfileStore.getActiveProfileId(uid)
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
+        RoomProfileScope.activate(dataOwnerUid, profileId)
+        app.database.adoptLegacyScope(dataOwnerUid, profileId)
         app.financeRepository.seedIfEmpty()
         app.shiftsRepository.seedIfEmpty()
         syncAllDomains(dataOwnerUid, profileId)
@@ -133,9 +134,9 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // restart resolves the same owner without a second profiles_meta lookup.
     suspend fun switchProfile(uid: String, newProfileId: String, dataOwnerUid: String? = null) {
         stopRealtimeSync()
-        app.database.clearAllProfileScopedTables()
         app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
         val ownerUid = dataOwnerUid ?: uid
+        RoomProfileScope.activate(ownerUid, newProfileId)
         syncAllDomains(ownerUid, newProfileId)
         startRealtimeSync(ownerUid, newProfileId)
     }
@@ -159,7 +160,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             profileCollection.document(profileDocName(baseName, profileId)).delete().await()
         }
 
-        app.database.clearAllProfileScopedTables()
+        app.database.clearActiveProfileTables()
         app.financeRepository.seedFreshProfileDefaults()
         app.shiftsRepository.seedFreshProfileDefaults()
         syncAllDomains(uid, profileId)

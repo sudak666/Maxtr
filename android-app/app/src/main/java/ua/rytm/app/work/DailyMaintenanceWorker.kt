@@ -7,6 +7,9 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import ua.rytm.app.RytmApplication
+import com.google.firebase.auth.FirebaseAuth
+import ua.rytm.app.data.local.RoomProfileScope
+import ua.rytm.app.data.local.adoptLegacyScope
 import java.util.concurrent.TimeUnit
 import java.time.Instant
 import java.time.LocalDate
@@ -25,6 +28,11 @@ class DailyMaintenanceWorker(
 ) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         val app = applicationContext as RytmApplication
+        val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.success()
+        val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
+        val ownerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid) ?: accountUid
+        RoomProfileScope.activate(ownerUid, profileId)
+        app.database.adoptLegacyScope(ownerUid, profileId)
         val today = localMaintenanceDate()
         return runCatching {
             app.financeRepository.processRecurring(today)

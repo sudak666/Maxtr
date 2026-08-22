@@ -2,6 +2,7 @@ package ua.rytm.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
 import androidx.room.withTransaction
 import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.AutoRuleEntity
@@ -14,6 +15,7 @@ import ua.rytm.app.data.local.SubcategoryEntity
 import ua.rytm.app.data.local.TagEntity
 import ua.rytm.app.data.local.TransactionEntity
 import ua.rytm.app.data.local.WalletEntity
+import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.ui.screens.finance.Goal
 import ua.rytm.app.ui.screens.finance.Recurring
 import ua.rytm.app.ui.screens.finance.Tag
@@ -49,42 +51,42 @@ fun subKey(type: String, name: String) = "$type:$name"
 // MainActivity's LaunchedEffect) for any domain that has one.
 class FinanceRepository(private val db: RytmDatabase) {
 
-    val wallets: Flow<List<Wallet>> = db.walletDao().observeAll().map { list -> list.map { it.toDomain() } }
-    val transactions: Flow<List<Transaction>> = db.transactionDao().observeAll().map { list -> list.map { it.toDomain() } }
+    val wallets: Flow<List<Wallet>> = RoomProfileScope.changes.flatMapLatest { db.walletDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
+    val transactions: Flow<List<Transaction>> = RoomProfileScope.changes.flatMapLatest { db.transactionDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
 
     /** name -> TxType, per category — mirrors AppState.categories[type] (js/state.js). */
-    val categoriesByType: Flow<Map<TxType, List<String>>> = db.categoryDao().observeAll().map { list ->
+    val categoriesByType: Flow<Map<TxType, List<String>>> = RoomProfileScope.changes.flatMapLatest { db.categoryDao().observeAll(it.ownerUid, it.profileId) }.map { list ->
         list.groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.name } }
     }
 
     /** id+name pairs, for the manager screen (delete needs the id; the tx form only needs names). */
-    val categoryEntriesByType: Flow<Map<TxType, List<Pair<String, String>>>> = db.categoryDao().observeAll().map { list ->
+    val categoryEntriesByType: Flow<Map<TxType, List<Pair<String, String>>>> = RoomProfileScope.changes.flatMapLatest { db.categoryDao().observeAll(it.ownerUid, it.profileId) }.map { list ->
         list.groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.id to it.name } }
     }
 
     /** subKey(type,name) -> subcategory names — mirrors AppState.subcategories (js/core.js's subKey()). */
-    val subcategoriesByKey: Flow<Map<String, List<String>>> = db.subcategoryDao().observeAll().map { list ->
+    val subcategoriesByKey: Flow<Map<String, List<String>>> = RoomProfileScope.changes.flatMapLatest { db.subcategoryDao().observeAll(it.ownerUid, it.profileId) }.map { list ->
         list.groupBy { subKey(it.categoryType, it.categoryName) }.mapValues { (_, entities) -> entities.map { it.name } }
     }
 
     /** expense category name -> monthly limit — mirrors AppState.budgets (js/state.js). */
-    val budgets: Flow<Map<String, Double>> = db.budgetDao().observeAll().map { list -> list.associate { it.category to it.amount } }
+    val budgets: Flow<Map<String, Double>> = RoomProfileScope.changes.flatMapLatest { db.budgetDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.associate { it.category to it.amount } }
 
     /** mirrors AppState.tags (js/state.js). */
-    val tags: Flow<List<Tag>> = db.tagDao().observeAll().map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
-    val autoRules: Flow<List<AutoRuleEntity>> = db.autoRuleDao().observeAll()
+    val tags: Flow<List<Tag>> = RoomProfileScope.changes.flatMapLatest { db.tagDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { Tag(it.id, it.name, it.colorHex) } }
+    val autoRules: Flow<List<AutoRuleEntity>> = RoomProfileScope.changes.flatMapLatest { db.autoRuleDao().observeAll(it.ownerUid, it.profileId) }
 
     /** category name -> manual icon-name override — mirrors AppState.categoryIcons (js/state.js). */
-    val categoryIcons: Flow<Map<String, String>> = db.categoryIconDao().observeAll().map { list -> list.associate { it.categoryName to it.iconName } }
+    val categoryIcons: Flow<Map<String, String>> = RoomProfileScope.changes.flatMapLatest { db.categoryIconDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.associate { it.categoryName to it.iconName } }
 
     /** mirrors AppState.recurring (js/state.js). */
-    val recurring: Flow<List<Recurring>> = db.recurringDao().observeAll().map { list -> list.map { it.toDomain() } }
+    val recurring: Flow<List<Recurring>> = RoomProfileScope.changes.flatMapLatest { db.recurringDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
 
     /** mirrors AppState.goals (js/state.js). */
-    val goals: Flow<List<Goal>> = db.goalDao().observeAll().map { list -> list.map { Goal(it.id, it.walletId, it.targetAmount, it.targetDate) } }
+    val goals: Flow<List<Goal>> = RoomProfileScope.changes.flatMapLatest { db.goalDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { Goal(it.id, it.walletId, it.targetAmount, it.targetDate) } }
 
     /** currency code -> rate to UAH — mirrors AppState.currencyRates (js/core.js). */
-    val currencyRates: Flow<Map<String, Double>> = db.currencyRateDao().observeAll().map { list -> list.associate { it.code to it.rateToUah } }
+    val currencyRates: Flow<Map<String, Double>> = RoomProfileScope.changes.flatMapLatest { db.currencyRateDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.associate { it.code to it.rateToUah } }
 
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {

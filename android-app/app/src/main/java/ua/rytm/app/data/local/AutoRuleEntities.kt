@@ -9,16 +9,24 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
-@Entity(tableName = "auto_rules")
-data class AutoRuleEntity(@PrimaryKey val id: String, val type: String, val keyword: String, val category: String, val position: Int)
+@Entity(tableName = "auto_rules", primaryKeys = ["ownerUid", "profileId", "id"])
+data class AutoRuleEntity(
+    val id: String,
+    val type: String,
+    val keyword: String,
+    val category: String,
+    val position: Int,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
+)
 
 @Dao
 interface AutoRuleDao {
-    @Query("SELECT * FROM auto_rules ORDER BY position ASC") fun observeAll(): Flow<List<AutoRuleEntity>>
-    @Query("SELECT * FROM auto_rules ORDER BY position ASC") suspend fun getAllOnce(): List<AutoRuleEntity>
+    @Query("SELECT * FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY position ASC") fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<AutoRuleEntity>>
+    @Query("SELECT * FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY position ASC") suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<AutoRuleEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsert(rule: AutoRuleEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(rules: List<AutoRuleEntity>)
-    @Query("DELETE FROM auto_rules WHERE id = :id") suspend fun deleteById(id: String)
-    @Query("DELETE FROM auto_rules") suspend fun clearAll()
+    @Query("DELETE FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id") suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
+    @Query("DELETE FROM auto_rules WHERE ownerUid=:ownerUid AND profileId=:profileId") suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
     @Transaction suspend fun replaceAll(rules: List<AutoRuleEntity>) { clearAll(); insertAll(rules) }
 }

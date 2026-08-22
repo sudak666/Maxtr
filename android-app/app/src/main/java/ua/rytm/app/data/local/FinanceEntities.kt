@@ -1,7 +1,6 @@
 package ua.rytm.app.data.local
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import androidx.room.Index
 
 // Room-persisted shape of ua.rytm.app.ui.screens.finance's domain models
@@ -9,18 +8,20 @@ import androidx.room.Index
 // separate table — an honest simplification until a real Tag{id,name,color}
 // entity is ported (see FINANCE_SCREEN_SPEC.md §9's "not in Step 3" note).
 
-@Entity(tableName = "wallets")
+@Entity(tableName = "wallets", primaryKeys = ["ownerUid", "profileId", "id"])
 data class WalletEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val name: String,
     val colorHex: Long,
     val currency: String,
     val icon: String = "card",
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
-@Entity(tableName = "transactions", indices = [Index(value = ["monobankId"], unique = true)])
+@Entity(tableName = "transactions", primaryKeys = ["ownerUid", "profileId", "id"], indices = [Index(value = ["ownerUid", "profileId", "monobankId"], unique = true)])
 data class TransactionEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val type: String, // TxType.name
     val amount: Double,
     val currency: String,
@@ -35,4 +36,6 @@ data class TransactionEntity(
     val tags: String, // comma-joined; "" when empty
     val createdAt: Long,
     val monobankId: String? = null,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )

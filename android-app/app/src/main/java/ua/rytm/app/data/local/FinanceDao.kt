@@ -10,17 +10,17 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WalletDao {
-    @Query("SELECT * FROM wallets")
-    fun observeAll(): Flow<List<WalletEntity>>
+    @Query("SELECT * FROM wallets WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<WalletEntity>>
 
-    @Query("SELECT * FROM wallets")
-    suspend fun getAllOnce(): List<WalletEntity>
+    @Query("SELECT * FROM wallets WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<WalletEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(wallets: List<WalletEntity>)
 
-    @Query("DELETE FROM wallets")
-    suspend fun clearAll()
+    @Query("DELETE FROM wallets WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Used only by the Firestore cold-sync bootstrap (FinanceSyncRepository) to
     // replace the whole local table with the remote-wins copy — a real @Transaction
@@ -40,23 +40,23 @@ interface WalletDao {
     @Update
     suspend fun update(wallet: WalletEntity)
 
-    @Query("DELETE FROM wallets WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM wallets WHERE ownerUid = :ownerUid AND profileId = :profileId AND id = :id")
+    suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("SELECT COUNT(*) FROM wallets")
-    suspend fun count(): Int
+    @Query("SELECT COUNT(*) FROM wallets WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun count(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 }
 
 @Dao
 interface TransactionDao {
-    @Query("SELECT * FROM transactions ORDER BY date DESC, createdAt DESC")
-    fun observeAll(): Flow<List<TransactionEntity>>
+    @Query("SELECT * FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId ORDER BY date DESC, createdAt DESC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions")
-    suspend fun getAllOnce(): List<TransactionEntity>
+    @Query("SELECT * FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<TransactionEntity>
 
-    @Query("SELECT monobankId FROM transactions WHERE monobankId IS NOT NULL")
-    suspend fun getAllMonobankIds(): List<String>
+    @Query("SELECT monobankId FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId AND monobankId IS NOT NULL")
+    suspend fun getAllMonobankIds(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(transaction: TransactionEntity)
@@ -64,14 +64,14 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(transactions: List<TransactionEntity>)
 
-    @Query("DELETE FROM transactions WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId AND id = :id")
+    suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("DELETE FROM transactions")
-    suspend fun clearAll()
+    @Query("DELETE FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("UPDATE transactions SET category = :newName WHERE type = :type AND category = :oldName")
-    suspend fun renameCategory(type: String, oldName: String, newName: String)
+    @Query("UPDATE transactions SET category = :newName WHERE ownerUid = :ownerUid AND profileId = :profileId AND type = :type AND category = :oldName")
+    suspend fun renameCategory(type: String, oldName: String, newName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as WalletDao/CategoryDao's
     // replaceAll() — a real @Transaction so a crash mid-sync can't leave the
@@ -83,9 +83,9 @@ interface TransactionDao {
         insertAll(transactions)
     }
 
-    @Query("SELECT COUNT(*) FROM transactions")
-    suspend fun count(): Int
+    @Query("SELECT COUNT(*) FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun count(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 
-    @Query("SELECT COUNT(*) FROM transactions WHERE walletId = :walletId OR targetWalletId = :walletId")
-    suspend fun countUsingWallet(walletId: String): Int
+    @Query("SELECT COUNT(*) FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId AND (walletId = :walletId OR targetWalletId = :walletId)")
+    suspend fun countUsingWallet(walletId: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 }

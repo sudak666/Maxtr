@@ -3,6 +3,8 @@ package ua.rytm.app.data
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.DebtEntity
 import ua.rytm.app.data.local.DebtEntryEntity
 import ua.rytm.app.data.local.RytmDatabase
@@ -14,7 +16,9 @@ fun DebtEntry.toEntity(debtId: Long) = DebtEntryEntity(id, debtId, amount, balan
 
 class DebtRepository(private val db: RytmDatabase) {
 
-    val debts: Flow<List<Debt>> = combine(db.debtDao().observeAll(), db.debtEntryDao().observeAll()) { debts, entries ->
+    private val debtRows = RoomProfileScope.changes.flatMapLatest { db.debtDao().observeAll(it.ownerUid, it.profileId) }
+    private val entryRows = RoomProfileScope.changes.flatMapLatest { db.debtEntryDao().observeAll(it.ownerUid, it.profileId) }
+    val debts: Flow<List<Debt>> = combine(debtRows, entryRows) { debts, entries ->
         val byDebtId = entries.groupBy { it.debtId }
         debts.map { d ->
             Debt(

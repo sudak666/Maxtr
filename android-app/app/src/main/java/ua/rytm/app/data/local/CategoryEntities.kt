@@ -13,20 +13,22 @@ import kotlinx.coroutines.flow.Flow
 // TxType, no subcategories/icons/budgets ported yet (see
 // js/settings-managers.js's deleteCategory() cascade, intentionally not
 // mirrored here).
-@Entity(tableName = "categories")
+@Entity(tableName = "categories", primaryKeys = ["ownerUid", "profileId", "id"])
 data class CategoryEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val type: String, // TxType.name ("INCOME" or "EXPENSE")
     val name: String,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories ORDER BY name ASC")
-    fun observeAll(): Flow<List<CategoryEntity>>
+    @Query("SELECT * FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<CategoryEntity>>
 
-    @Query("SELECT * FROM categories ORDER BY name ASC")
-    suspend fun getAllOnce(): List<CategoryEntity>
+    @Query("SELECT * FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<CategoryEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(categories: List<CategoryEntity>)
@@ -34,8 +36,8 @@ interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(category: CategoryEntity)
 
-    @Query("DELETE FROM categories")
-    suspend fun clearAll()
+    @Query("DELETE FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as WalletDao.replaceAll() —
     // a real @Transaction so a crash mid-sync can't leave the table half-cleared.
@@ -45,17 +47,17 @@ interface CategoryDao {
         insertAll(categories)
     }
 
-    @Query("DELETE FROM categories WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id")
+    suspend fun deleteById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("SELECT * FROM categories WHERE id = :id")
-    suspend fun getById(id: String): CategoryEntity?
+    @Query("SELECT * FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId AND id = :id")
+    suspend fun getById(id: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): CategoryEntity?
 
-    @Query("SELECT COUNT(*) FROM categories")
-    suspend fun count(): Int
+    @Query("SELECT COUNT(*) FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun count(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 
-    @Query("SELECT COUNT(*) FROM categories WHERE type = :type AND name = :name")
-    suspend fun countByTypeAndName(type: String, name: String): Int
+    @Query("SELECT COUNT(*) FROM categories WHERE ownerUid=:ownerUid AND profileId=:profileId AND type = :type AND name = :name")
+    suspend fun countByTypeAndName(type: String, name: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 }
 
 // 1:1 with AppState.subcategories (js/state.js) — `Record<subKey(type,name), string[]>`
@@ -64,20 +66,22 @@ interface CategoryDao {
 // key here (no separate id) since the PWA itself has no id concept for these
 // either — same reasoning CategoriesSyncRepository's doc comment already gives
 // for CategoryEntity.id being a purely local Room artifact.
-@Entity(tableName = "subcategories", primaryKeys = ["categoryType", "categoryName", "name"])
+@Entity(tableName = "subcategories", primaryKeys = ["ownerUid", "profileId", "categoryType", "categoryName", "name"])
 data class SubcategoryEntity(
     val categoryType: String, // TxType.name
     val categoryName: String,
     val name: String,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface SubcategoryDao {
-    @Query("SELECT * FROM subcategories ORDER BY name ASC")
-    fun observeAll(): Flow<List<SubcategoryEntity>>
+    @Query("SELECT * FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<SubcategoryEntity>>
 
-    @Query("SELECT * FROM subcategories ORDER BY name ASC")
-    suspend fun getAllOnce(): List<SubcategoryEntity>
+    @Query("SELECT * FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY name ASC")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<SubcategoryEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(subcategory: SubcategoryEntity)
@@ -85,8 +89,8 @@ interface SubcategoryDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(subcategories: List<SubcategoryEntity>)
 
-    @Query("DELETE FROM subcategories")
-    suspend fun clearAll()
+    @Query("DELETE FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as CategoryDao.replaceAll().
     @Transaction
@@ -95,24 +99,24 @@ interface SubcategoryDao {
         insertAll(subcategories)
     }
 
-    @Query("DELETE FROM subcategories WHERE categoryType = :type AND categoryName = :categoryName AND name = :name")
-    suspend fun deleteOne(type: String, categoryName: String, name: String)
+    @Query("DELETE FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryType = :type AND categoryName = :categoryName AND name = :name")
+    suspend fun deleteOne(type: String, categoryName: String, name: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Mirrors js/settings-managers.js's renameCategory() also renaming the
     // subcategories key — used by FinanceRepository.renameCategory() so a
     // category rename doesn't silently orphan its subcategories.
-    @Query("UPDATE subcategories SET categoryName = :newName WHERE categoryType = :type AND categoryName = :oldName")
-    suspend fun renameCategoryName(type: String, oldName: String, newName: String)
+    @Query("UPDATE subcategories SET categoryName = :newName WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryType = :type AND categoryName = :oldName")
+    suspend fun renameCategoryName(type: String, oldName: String, newName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Mirrors js/settings-managers.js's deleteCategory() cascade.
-    @Query("DELETE FROM subcategories WHERE categoryType = :type AND categoryName = :categoryName")
-    suspend fun deleteAllForCategory(type: String, categoryName: String)
+    @Query("DELETE FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryType = :type AND categoryName = :categoryName")
+    suspend fun deleteAllForCategory(type: String, categoryName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("SELECT COUNT(*) FROM subcategories WHERE categoryType = :type AND categoryName = :categoryName AND name = :name")
-    suspend fun countOne(type: String, categoryName: String, name: String): Int
+    @Query("SELECT COUNT(*) FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryType = :type AND categoryName = :categoryName AND name = :name")
+    suspend fun countOne(type: String, categoryName: String, name: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 
-    @Query("SELECT COUNT(*) FROM subcategories")
-    suspend fun count(): Int
+    @Query("SELECT COUNT(*) FROM subcategories WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun count(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 }
 
 // 1:1 with AppState.categoryIcons (js/state.js) — `Record<categoryName,
@@ -127,19 +131,21 @@ interface SubcategoryDao {
 // the PWA's own icon-name string (one of window.ICON_NAMES, see
 // CategoryColor.kt's PICKER_ICONS) so a value written by either platform
 // round-trips meaningfully on the other, not an Android-only identifier.
-@Entity(tableName = "category_icons")
+@Entity(tableName = "category_icons", primaryKeys = ["ownerUid", "profileId", "categoryName"])
 data class CategoryIconEntity(
-    @PrimaryKey val categoryName: String,
+    val categoryName: String,
     val iconName: String,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface CategoryIconDao {
-    @Query("SELECT * FROM category_icons")
-    fun observeAll(): Flow<List<CategoryIconEntity>>
+    @Query("SELECT * FROM category_icons WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<CategoryIconEntity>>
 
-    @Query("SELECT * FROM category_icons")
-    suspend fun getAllOnce(): List<CategoryIconEntity>
+    @Query("SELECT * FROM category_icons WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<CategoryIconEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: CategoryIconEntity)
@@ -147,8 +153,8 @@ interface CategoryIconDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<CategoryIconEntity>)
 
-    @Query("DELETE FROM category_icons")
-    suspend fun clearAll()
+    @Query("DELETE FROM category_icons WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
@@ -160,9 +166,9 @@ interface CategoryIconDao {
     // Mirrors js/settings-managers.js's renameCategory()/deleteCategory()
     // moving/dropping AppState.categoryIcons[name] — see
     // FinanceRepository.renameCategory()/deleteCategory() for the callers.
-    @Query("UPDATE category_icons SET categoryName = :newName WHERE categoryName = :oldName")
-    suspend fun renameCategory(oldName: String, newName: String)
+    @Query("UPDATE category_icons SET categoryName = :newName WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryName = :oldName")
+    suspend fun renameCategory(oldName: String, newName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("DELETE FROM category_icons WHERE categoryName = :categoryName")
-    suspend fun deleteForCategory(categoryName: String)
+    @Query("DELETE FROM category_icons WHERE ownerUid=:ownerUid AND profileId=:profileId AND categoryName = :categoryName")
+    suspend fun deleteForCategory(categoryName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 }

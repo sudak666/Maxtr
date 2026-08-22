@@ -2,6 +2,7 @@ package ua.rytm.app.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.withTransaction
 
 @Database(
     entities = [
@@ -10,7 +11,7 @@ import androidx.room.RoomDatabase
         SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
         CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class, AutoRuleEntity::class,
     ],
-    version = 15,
+    version = 16,
     exportSchema = true,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -33,18 +34,25 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun autoRuleDao(): AutoRuleDao
 }
 
-// Every local table this app persists is scoped to whichever profile was
-// last cold-synced — Room has no per-profile row-tagging (unlike Firestore's
-// per-doc-name suffixing, see ProfileDocNames.kt), so switching the active
-// profile means starting the local cache over: wipe every table, then let
-// the normal cold-sync sequence (MainActivity's LaunchedEffect, or
-// ProfileSwitcher for an in-session switch) repopulate it from the new
-// profile's own Firestore docs. Not run on every app launch — only when the
-// active profile actually changes, mirroring the PWA's switchProfile()
-// (fbSaveNow() the old profile, reassign activeProfileId, fbLoadNow() the
-// new one) minus the local read-through cache the PWA has and Android
-// doesn't.
-suspend fun RytmDatabase.clearAllProfileScopedTables() {
+suspend fun RytmDatabase.adoptLegacyScope(ownerUid: String, profileId: String) = withTransaction {
+    val args = arrayOf<Any>(ownerUid, profileId)
+    PROFILE_TABLES.forEach { table ->
+        openHelper.writableDatabase.execSQL(
+            "UPDATE `$table` SET ownerUid = ?, profileId = ? WHERE ownerUid = ''",
+            args,
+        )
+    }
+}
+
+internal val PROFILE_TABLES = listOf(
+    "wallets", "transactions", "shopping_items", "categories", "shift_types", "shift_days",
+    "debts", "debt_entries", "subcategories", "budgets", "tags", "recurring",
+    "category_icons", "goals", "currency_rates", "autofill_schedule", "auto_rules",
+)
+
+// Active-profile reset keeps other offline profiles intact. Account removal
+// and privacy-cache opt-out use clearAllProfileScopedTables() below instead.
+suspend fun RytmDatabase.clearActiveProfileTables() {
     walletDao().clearAll()
     transactionDao().clearAll()
     shoppingDao().clearAll()
@@ -62,4 +70,9 @@ suspend fun RytmDatabase.clearAllProfileScopedTables() {
     currencyRateDao().clearAll()
     autoFillScheduleDao().clearAll()
     autoRuleDao().clearAll()
+}
+
+/** Privacy-cache/account removal path: erases every retained offline profile. */
+suspend fun RytmDatabase.clearAllProfileScopedTables() = withTransaction {
+    PROFILE_TABLES.forEach { table -> openHelper.writableDatabase.execSQL("DELETE FROM `$table`") }
 }

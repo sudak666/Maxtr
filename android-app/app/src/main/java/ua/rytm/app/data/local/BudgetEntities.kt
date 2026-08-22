@@ -17,19 +17,21 @@ import kotlinx.coroutines.flow.Flow
 // (js/settings-managers.js's openBudgetsManager() only lists
 // AppState.categories.expense), so there's no income/expense name-collision
 // risk the way subcategories' subKey() has to guard against.
-@Entity(tableName = "budgets")
+@Entity(tableName = "budgets", primaryKeys = ["ownerUid", "profileId", "category"])
 data class BudgetEntity(
-    @PrimaryKey val category: String,
+    val category: String,
     val amount: Double,
+    val ownerUid: String = RoomProfileScope.ownerUid,
+    val profileId: String = RoomProfileScope.profileId,
 )
 
 @Dao
 interface BudgetDao {
-    @Query("SELECT * FROM budgets ORDER BY category ASC")
-    fun observeAll(): Flow<List<BudgetEntity>>
+    @Query("SELECT * FROM budgets WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY category ASC")
+    fun observeAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Flow<List<BudgetEntity>>
 
-    @Query("SELECT * FROM budgets ORDER BY category ASC")
-    suspend fun getAllOnce(): List<BudgetEntity>
+    @Query("SELECT * FROM budgets WHERE ownerUid=:ownerUid AND profileId=:profileId ORDER BY category ASC")
+    suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<BudgetEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(budget: BudgetEntity)
@@ -37,11 +39,11 @@ interface BudgetDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(budgets: List<BudgetEntity>)
 
-    @Query("DELETE FROM budgets WHERE category = :category")
-    suspend fun deleteByCategory(category: String)
+    @Query("DELETE FROM budgets WHERE ownerUid=:ownerUid AND profileId=:profileId AND category = :category")
+    suspend fun deleteByCategory(category: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
-    @Query("DELETE FROM budgets")
-    suspend fun clearAll()
+    @Query("DELETE FROM budgets WHERE ownerUid=:ownerUid AND profileId=:profileId")
+    suspend fun clearAll(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
@@ -52,6 +54,6 @@ interface BudgetDao {
 
     // Mirrors js/settings-managers.js's renameCategory() moving
     // AppState.budgets[oldName] to the new key when a budget existed.
-    @Query("UPDATE budgets SET category = :newName WHERE category = :oldName")
-    suspend fun renameCategory(oldName: String, newName: String)
+    @Query("UPDATE budgets SET category = :newName WHERE ownerUid=:ownerUid AND profileId=:profileId AND category = :oldName")
+    suspend fun renameCategory(oldName: String, newName: String, ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId)
 }
