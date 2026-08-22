@@ -69,6 +69,9 @@ import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
@@ -125,7 +128,7 @@ fun FinanceScreen(
             if (canEdit) ExtendedFloatingActionButton(
                 onClick = viewModel::openNewTransactionSheet,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White) },
-                text = { Text("Нова операція", color = Color.White) },
+                text = { Text(stringResource(R.string.transaction_new_title), color = Color.White) },
                 shape = FinanceFabShape,
                 containerColor = Color.Transparent,
                 elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
@@ -194,7 +197,7 @@ fun FinanceScreen(
                             onClick = viewModel::toggleListExpanded,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(if (viewModel.listExpanded) "Згорнути" else "Переглянути всі")
+                            Text(stringResource(if (viewModel.listExpanded) R.string.action_collapse else R.string.action_view_all))
                         }
                     }
                 }
@@ -242,12 +245,12 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(
-                text = if (vm.isMultiCurrency) "Орієнтовний баланс (у грн)" else "Загальний баланс (у грн)",
+                text = stringResource(if (vm.isMultiCurrency) R.string.finance_estimated_balance else R.string.finance_total_balance),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = maskedAmount("${if (vm.isMultiCurrency) "≈ " else ""}${formatMoney(vm.totalBalanceUah)} грн"),
+                text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(vm.totalBalanceUah))),
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Black,
             )
@@ -268,7 +271,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                 Spacer(Modifier.padding(2.dp))
                 val sign = if (net > 0) "+" else if (net < 0) "−" else ""
                 Text(
-                    text = maskedAmount("$sign${formatMoney(kotlin.math.abs(net))} грн цього місяця"),
+                    text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
                     style = MaterialTheme.typography.bodySmall,
                     color = trendColor,
                     fontWeight = FontWeight.Bold,
@@ -277,7 +280,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
 
             if (vm.isMultiCurrency) {
                 Text(
-                    text = "Сума перерахована в гривню за поточними курсами гаманців.",
+                    text = stringResource(R.string.finance_conversion_note),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -285,8 +288,8 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             }
 
             Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatCard(label = "Дохід цього місяця", value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                MiniStatCard(label = "Витрата цього місяця", value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
+                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
             }
 
             LazyRow(
@@ -325,7 +328,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
         Column {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                text = maskedAmount("${if (positive) "+" else "−"}${formatMoney(value)} грн"),
+                text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = tint,
@@ -357,10 +360,10 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
     data class QuickAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
     val actions = listOf(
-        QuickAction("Операція", Icons.Filled.Add, primary = true, onClick = onNewTransaction),
-        QuickAction("Інструменти", Icons.Filled.Build, primary = false, onClick = onTools),
-        QuickAction("Бюджети", Icons.Filled.PieChart, primary = false, onClick = onBudgets),
-        QuickAction("Цілі", Icons.Filled.Flag, primary = false, onClick = onGoals),
+        QuickAction(stringResource(R.string.finance_action_transaction), Icons.Filled.Add, primary = true, onClick = onNewTransaction),
+        QuickAction(stringResource(R.string.tools_title), Icons.Filled.Build, primary = false, onClick = onTools),
+        QuickAction(stringResource(R.string.budgets_title), Icons.Filled.PieChart, primary = false, onClick = onBudgets),
+        QuickAction(stringResource(R.string.goals_title), Icons.Filled.Flag, primary = false, onClick = onGoals),
     ).filterIndexed { index, _ -> canEdit || index == 1 }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -409,8 +412,8 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
 @Composable
 private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text("Історія операцій", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text("$resultCount записів", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -420,11 +423,11 @@ private fun SearchField(vm: FinanceViewModel) {
         value = vm.search,
         onValueChange = vm::onSearchChange,
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Пошук за коментарем, категорією, гаманцем…") },
+        placeholder = { Text(stringResource(R.string.finance_search_hint)) },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = {
             if (vm.search.isNotEmpty()) {
-                IconButton(onClick = vm::clearSearch) { Icon(Icons.Filled.Clear, contentDescription = "Очистити пошук") }
+                IconButton(onClick = vm::clearSearch) { Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.finance_clear_search)) }
             }
         },
         singleLine = true,
@@ -434,10 +437,10 @@ private fun SearchField(vm: FinanceViewModel) {
 @Composable
 private fun TypeFilterRow(vm: FinanceViewModel) {
     val options = listOf(
-        TxTypeFilter.ALL to "Всі",
-        TxTypeFilter.INCOME to "+ Дохід",
-        TxTypeFilter.EXPENSE to "− Витрата",
-        TxTypeFilter.TRANSFER to "⇄ Переказ",
+        TxTypeFilter.ALL to stringResource(R.string.filter_all),
+        TxTypeFilter.INCOME to "+ " + stringResource(R.string.tx_income),
+        TxTypeFilter.EXPENSE to "− " + stringResource(R.string.tx_expense),
+        TxTypeFilter.TRANSFER to "⇄ " + stringResource(R.string.tx_transfer),
     )
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(options) { (value, label) ->
@@ -453,9 +456,9 @@ private fun TypeFilterRow(vm: FinanceViewModel) {
 @Composable
 private fun PeriodFilterRow(vm: FinanceViewModel) {
     val options = listOf(
-        PeriodFilter.DAY to "Сьогодні",
-        PeriodFilter.MONTH to "Цей місяць",
-        PeriodFilter.ALL to "Весь час",
+        PeriodFilter.DAY to stringResource(R.string.action_today),
+        PeriodFilter.MONTH to stringResource(R.string.period_month),
+        PeriodFilter.ALL to stringResource(R.string.period_all),
     )
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(options) { (value, label) ->
@@ -473,7 +476,7 @@ private fun CategoryFilterChip(category: String, onClear: () -> Unit) {
     FilterChip(
         selected = true,
         onClick = onClear,
-        label = { Text("$category · Скинути ✕") },
+        label = { Text(stringResource(R.string.finance_category_clear, category)) },
         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
     )
 }
@@ -492,15 +495,15 @@ private fun EmptyState(isSearching: Boolean) {
         )
         Spacer(Modifier.padding(6.dp))
         Text(
-            text = if (isSearching) "Нічого не знайдено" else "Операцій ще немає",
+            text = stringResource(if (isSearching) R.string.finance_empty_search_title else R.string.finance_empty_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
         )
         Text(
             text = if (isSearching) {
-                "Зміни фільтр або пошуковий запит, щоб побачити операції."
+                stringResource(R.string.finance_empty_search_body)
             } else {
-                "Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику."
+                stringResource(R.string.finance_empty_body)
             },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -548,7 +551,7 @@ private fun TransactionRow(
                 Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "Видалити",
+                    contentDescription = stringResource(R.string.action_delete),
                     tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier,
                 )
