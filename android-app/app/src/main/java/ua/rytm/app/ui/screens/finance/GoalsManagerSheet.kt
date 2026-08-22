@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
@@ -66,18 +68,18 @@ fun GoalsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Цілі", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.goals_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
-            viewModel.errorMessage?.let { message ->
+            viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = null) }
                 }
             }
 
             if (viewModel.goals.isEmpty()) {
-                Text("Немає цілей", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.goals_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             viewModel.goals.forEach { g ->
@@ -96,7 +98,7 @@ fun GoalsManagerSheet(
 
             TextButton(onClick = viewModel::addGoal, modifier = Modifier.fillMaxWidth(), enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving) {
                 Icon(Icons.Filled.Add, contentDescription = null)
-                Text("Додати ціль")
+                Text(stringResource(R.string.goals_add))
             }
         }
     }
@@ -104,10 +106,10 @@ fun GoalsManagerSheet(
     viewModel.pendingDeleteId?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
-            title = { Text("Видалити ціль") },
-            text = { Text("Видалити цю ціль?") },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text("Видалити", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text("Скасувати") } },
+            title = { Text(stringResource(R.string.goals_delete_title)) },
+            text = { Text(stringResource(R.string.goals_delete_body)) },
+            confirmButton = { TextButton(onClick = viewModel::confirmDelete, enabled = !viewModel.isSaving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -130,22 +132,22 @@ private fun GoalRow(
     val progress = if (target > 0) (savedClamped / target).coerceIn(0.0, 1.0) else 0.0
     val done = target > 0 && savedClamped >= target
     val summary = if (wallet != null) {
-        "${savedClamped.toInt()} / ${target.toInt()} ${wallet.currency}" + if (done) " · Досягнуто" else ""
+        stringResource(if (done) R.string.goals_summary_done else R.string.goals_summary, savedClamped.toInt(), target.toInt(), wallet.currency)
     } else {
-        "Оберіть гаманець"
+        stringResource(R.string.goals_choose_wallet)
     }
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f)) {
-                Text((wallet?.name ?: "Ціль") + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text((wallet?.name ?: stringResource(R.string.goals_default_name)) + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
             IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = "Редагувати")
+                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Видалити") }
+            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -162,7 +164,7 @@ private fun GoalRow(
                 onValueChange = { amountText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Цільова сума") },
+                label = { Text(stringResource(R.string.goals_target_amount)) },
             )
             LaunchedEffect(amountText) {
                 delay(400)
@@ -177,7 +179,7 @@ private fun GoalRow(
                 onValueChange = { dateText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Дата (напр. Грудень 2026)") },
+                label = { Text(stringResource(R.string.goals_target_date)) },
             )
             LaunchedEffect(dateText) {
                 delay(400)
@@ -197,7 +199,7 @@ private fun GoalWalletDropdown(wallets: List<Wallet>, selectedId: String, onSele
             value = selected?.let { "${it.name} (${it.currency})" } ?: "",
             onValueChange = {},
             readOnly = true,
-            label = { Text("Гаманець") },
+            label = { Text(stringResource(R.string.wallet_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )

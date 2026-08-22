@@ -72,6 +72,12 @@
     <string name="monobank_disconnect">Відключити</string><string name="monobank_disconnected">Monobank відключено</string>
     <string name="monobank_disconnect_title">Відключити Monobank</string>
     <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
+    <string name="goals_title">Цілі</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
+    <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
+    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Досягнуто</string>
+    <string name="goals_choose_wallet">Оберіть гаманець</string><string name="goals_default_name">Ціль</string>
+    <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
+    <string name="wallet_label">Гаманець</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
