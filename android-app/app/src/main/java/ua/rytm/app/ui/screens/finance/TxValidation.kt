@@ -1,10 +1,12 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.data.AMOUNT_MAX
+
 // 1:1 port of js/tx-validation.js's validateTransactionDraft() — same rules,
 // same order, same UK copy from js/classic-globals.js's I18N.uk (see
 // FINANCE_SCREEN_SPEC.md §9). Not a reinterpretation.
 
-const val TX_AMOUNT_MAX = 1_000_000_000.0
+const val TX_AMOUNT_MAX = AMOUNT_MAX
 const val TX_COMMENT_MAX = 500
 
 data class TransactionDraft(

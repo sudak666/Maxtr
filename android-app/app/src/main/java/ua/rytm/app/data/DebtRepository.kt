@@ -38,10 +38,12 @@ class DebtRepository(private val db: RytmDatabase) {
     }
 
     suspend fun addDebt(debt: Debt) {
+        requireValidStoredAmount(debt.startAmount, "debt start amount")
         db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
     }
 
     suspend fun updateDebt(debt: Debt) {
+        requireValidStoredAmount(debt.startAmount, "debt start amount")
         db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate))
     }
 
@@ -52,10 +54,12 @@ class DebtRepository(private val db: RytmDatabase) {
     }
 
     suspend fun addEntry(debtId: Long, entry: DebtEntry) {
+        requireValidStoredAmount(entry.balance, "debt balance")
         db.debtEntryDao().insert(entry.toEntity(debtId))
     }
 
     suspend fun updateEntry(debtId: Long, entry: DebtEntry) {
+        requireValidStoredAmount(entry.balance, "debt balance")
         db.debtEntryDao().update(entry.toEntity(debtId))
     }
 

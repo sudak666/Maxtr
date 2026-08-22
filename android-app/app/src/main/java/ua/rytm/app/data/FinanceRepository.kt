@@ -120,6 +120,7 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** Mirrors addCategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists for that type. */
     suspend fun addCategory(type: TxType, name: String): Boolean {
+        require(name.isNotBlank() && name.length <= 120) { "Category name must contain 1..120 characters" }
         if (db.categoryDao().countByTypeAndName(type.name, name) > 0) return false
         db.categoryDao().insert(CategoryEntity(id = java.util.UUID.randomUUID().toString(), type = type.name, name = name))
         return true
@@ -131,6 +132,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // AppState.budgets[oldName]/every AppState.recurring entry of this
     // type+name/AppState.categoryIcons[oldName] to the new key.
     suspend fun renameCategory(id: String, type: TxType, newName: String) {
+        require(newName.isNotBlank() && newName.length <= 120) { "Category name must contain 1..120 characters" }
         val old = db.categoryDao().getById(id)
         db.categoryDao().insert(CategoryEntity(id = id, type = type.name, name = newName))
         if (old != null && old.name != newName) {
@@ -162,6 +164,7 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** Mirrors addSubcategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists under that category. */
     suspend fun addSubcategory(type: TxType, categoryName: String, name: String): Boolean {
+        require(name.isNotBlank() && name.length <= 120) { "Subcategory name must contain 1..120 characters" }
         if (db.subcategoryDao().countOne(type.name, categoryName, name) > 0) return false
         db.subcategoryDao().insert(SubcategoryEntity(categoryType = type.name, categoryName = categoryName, name = name))
         return true
@@ -203,6 +206,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // Mirrors js/settings-managers.js's updateBudget(): a limit <=0 removes the
     // row entirely rather than being stored as a zero-or-negative value.
     suspend fun setBudget(category: String, amount: Double) {
+        requireValidStoredAmount(amount, "budget")
         if (amount <= 0) db.budgetDao().deleteByCategory(category) else db.budgetDao().upsert(BudgetEntity(category, amount))
     }
 
@@ -251,6 +255,8 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun deleteAutoRule(id: String) = db.autoRuleDao().deleteById(id)
 
     suspend fun upsertTransaction(transaction: Transaction) {
+        requireValidStoredAmount(transaction.amount)
+        transaction.targetAmount?.let { requireValidStoredAmount(it, "targetAmount") }
         db.transactionDao().upsert(transaction.toEntity())
     }
 
@@ -309,6 +315,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateRecurringAmount(recurring: Recurring, amount: Double) {
+        requireValidStoredAmount(amount, "recurring amount")
         db.recurringDao().update(recurring.copy(amount = amount).toEntity())
     }
 
@@ -359,6 +366,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateGoalTargetAmount(goal: Goal, targetAmount: Double) {
+        requireValidStoredAmount(targetAmount, "goal target")
         db.goalDao().update(GoalEntity(goal.id, goal.walletId, targetAmount, goal.targetDate))
     }
 

@@ -97,7 +97,11 @@ class CategoriesManagerViewModel(
 
     fun addSubcategory(categoryName: String, name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessage = "Назва підкатегорії не може перевищувати $CATEGORY_NAME_MAX символів"; return }
+            CategoryNameValidation.VALID -> Unit
+        }
         mutateAndSync(syncRepository::saveSubcategoriesSnapshot) {
             val added = repository.addSubcategory(activeType, categoryName, clean)
             if (!added) {
@@ -116,7 +120,11 @@ class CategoriesManagerViewModel(
 
     fun addCategory(name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessage = "Назва категорії не може перевищувати $CATEGORY_NAME_MAX символів"; return }
+            CategoryNameValidation.VALID -> Unit
+        }
         mutateAndSync(syncRepository::saveCategoriesSnapshot) {
             val added = repository.addCategory(activeType, clean)
             if (!added) {
@@ -129,7 +137,12 @@ class CategoriesManagerViewModel(
     fun renameCategory(id: String, newName: String) {
         val clean = newName.trim()
         val current = categories.firstOrNull { it.first == id }?.second ?: return
-        if (clean.isEmpty() || clean == current) return
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { errorMessage = "Назва категорії не може перевищувати $CATEGORY_NAME_MAX символів"; return }
+            CategoryNameValidation.VALID -> Unit
+        }
+        if (clean == current) return
         if (categories.any { it.second == clean }) {
             errorMessage = "Така категорія вже є"
             return
