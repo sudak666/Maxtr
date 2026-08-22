@@ -30,6 +30,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         data object Stopped : RealtimeState
         data object Listening : RealtimeState
         data object Syncing : RealtimeState
+        data object Offline : RealtimeState
         data class Error(val message: String) : RealtimeState
     }
 
@@ -155,16 +156,24 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             profileCollection.document(profileDocName("debt", profileId)),
         )
         var initialSnapshotsRemaining = watched.size + 1
+        var initialSnapshotWasOffline = false
 
-        fun remoteChanged(error: Exception?) {
+        fun remoteChanged(error: Exception?, fromCache: Boolean) {
             if (generation != listenerGeneration) return
             if (error != null) {
                 _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
                 return
             }
             if (initialSnapshotsRemaining > 0) {
+                initialSnapshotWasOffline = initialSnapshotWasOffline || fromCache
                 initialSnapshotsRemaining--
-                if (initialSnapshotsRemaining == 0) _realtimeState.value = RealtimeState.Listening
+                if (initialSnapshotsRemaining == 0) {
+                    _realtimeState.value = if (initialSnapshotWasOffline) RealtimeState.Offline else RealtimeState.Listening
+                }
+                return
+            }
+            if (fromCache) {
+                _realtimeState.value = RealtimeState.Offline
                 return
             }
             pendingRealtimeSync?.cancel()
@@ -183,11 +192,11 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         listeners = watched.map { ref ->
             ref.addSnapshotListener { snapshot, error ->
                 if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-                remoteChanged(error)
+                remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
             }
         } + finance.collection("transactions").addSnapshotListener { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(error)
+            remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
         }
     }
 

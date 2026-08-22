@@ -54,7 +54,9 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.produceState
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.R
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +86,7 @@ fun RytmNavHost() {
         value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
     }
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+    val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsState()
     val scope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
     fun refresh() {
@@ -99,7 +102,18 @@ fun RytmNavHost() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rytm", fontWeight = FontWeight.Black) },
+                title = {
+                    Column {
+                        Text("Rytm", fontWeight = FontWeight.Black)
+                        val status = when (realtimeState) {
+                            ProfileSyncCoordinator.RealtimeState.Syncing -> R.string.sync_status_syncing
+                            ProfileSyncCoordinator.RealtimeState.Offline -> R.string.sync_status_offline
+                            is ProfileSyncCoordinator.RealtimeState.Error -> R.string.sync_status_error
+                            else -> null
+                        }
+                        status?.let { Text(stringResource(it), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
+                },
                 actions = {
                     IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
                         Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (hideAmounts) "Показати суми" else "Приховати суми")

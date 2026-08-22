@@ -20,4 +20,7 @@
     <string name="action_clear">Clear</string>
     <string name="action_choose_date">Choose date</string>
     <string name="field_currency">Currency</string>
+    <string name="sync_status_syncing">Synchronizing…</string>
+    <string name="sync_status_offline">Offline · showing cache</string>
+    <string name="sync_status_error">Synchronization error</string>
 </resources>

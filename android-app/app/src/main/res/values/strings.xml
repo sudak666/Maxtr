@@ -23,4 +23,7 @@
     <string name="action_clear">Очистити</string>
     <string name="action_choose_date">Обрати дату</string>
     <string name="field_currency">Валюта</string>
+    <string name="sync_status_syncing">Синхронізація…</string>
+    <string name="sync_status_offline">Офлайн · показано кеш</string>
+    <string name="sync_status_error">Помилка синхронізації</string>
 </resources>
