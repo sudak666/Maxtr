@@ -443,4 +443,8 @@
     <string name="transaction_selected">Selected</string>
     <plurals name="transaction_deleted_count"><item quantity="one">Deleted %d transaction</item><item quantity="other">Deleted %d transactions</item></plurals>
     <plurals name="transaction_selected_count"><item quantity="one">%d selected</item><item quantity="other">%d selected</item></plurals>
+    <string name="accessibility_expanded">Expanded</string>
+    <string name="accessibility_collapsed">Collapsed</string>
+    <string name="shifts_day_empty_accessibility">%1$s, no shifts</string>
+    <string name="shifts_day_assigned_accessibility">%1$s, shifts: %2$s</string>
 </resources>

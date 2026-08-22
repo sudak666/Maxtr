@@ -74,7 +74,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.ReducedMotionVisibility
@@ -95,6 +97,7 @@ import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.screens.finance.formatMoneyWithCurrency
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
@@ -336,8 +339,13 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     Column(Modifier.fillMaxWidth()) {
+        val quickFillState = stringResource(if (vm.quickFillExpanded) R.string.accessibility_expanded else R.string.accessibility_collapsed)
         Row(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = vm::toggleQuickFillExpanded),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = RytmDimens.TouchTarget)
+                .semantics { stateDescription = quickFillState }
+                .clickable(role = Role.Button, onClick = vm::toggleQuickFillExpanded),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Filled.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
@@ -567,13 +575,20 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
             val dateKey = date.toString()
             val assigned = viewModel.shiftsFor(dateKey)
             val isToday = dateKey == todayKey
-            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = cell.isWeekend, enabled = canEdit, onClick = { viewModel.openDayModal(dateKey) })
+            val locale = if (LocalConfiguration.current.locales[0].language == "uk") java.util.Locale("uk") else java.util.Locale.ENGLISH
+            val spokenDate = date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", locale))
+            val accessibilityLabel = if (assigned.isEmpty()) {
+                stringResource(R.string.shifts_day_empty_accessibility, spokenDate)
+            } else {
+                stringResource(R.string.shifts_day_assigned_accessibility, spokenDate, assigned.joinToString { it.name })
+            }
+            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = cell.isWeekend, enabled = canEdit, accessibilityLabel = accessibilityLabel, onClick = { viewModel.openDayModal(dateKey) })
         }
     }
 }
 
 @Composable
-private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, enabled: Boolean, accessibilityLabel: String, onClick: () -> Unit) {
     val bg = when {
         isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
@@ -587,6 +602,7 @@ private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWee
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
             .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+            .semantics(mergeDescendants = true) { contentDescription = accessibilityLabel }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),

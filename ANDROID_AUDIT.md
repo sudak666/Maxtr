@@ -31,7 +31,7 @@ Status: active remediation, started 2026-08-22. Target: production-grade 10/10, 
 
 ## P3 — UX, accessibility and maintainability
 
-- [ ] Complete TalkBack audit: icon-only action descriptions, focus order, 48dp targets, dynamic text, contrast and non-color cues.
+- [ ] Complete TalkBack audit: icon-only action descriptions, focus order, 48dp targets, dynamic text, contrast and non-color cues. (Static icon-action/touch-target scan completed; theme body/muted contrast is WCAG-AA tested. Shift quick-fill now exposes button state and a 48dp target; calendar days announce the full localized date and assigned shift names. Full manual TalkBack traversal and remaining dynamic-state audit pending.)
 - [x] Give every Canvas chart a semantic summary and accessible data alternative (all finance/debt values exposed to TalkBack; redundant crypto sparkline is decorative beside textual price/change).
 - [ ] Standardize spacing, sheet headers/actions, empty/loading/error states, typography, icon mapping and motion.
 - [ ] Split oversized coordinators/ViewModels/sheets; move migration-history comments out of production code.

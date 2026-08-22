@@ -445,4 +445,8 @@
     <string name="transaction_selected">Вибрано</string>
     <plurals name="transaction_deleted_count"><item quantity="one">Видалено %d операцію</item><item quantity="few">Видалено %d операції</item><item quantity="many">Видалено %d операцій</item><item quantity="other">Видалено %d операції</item></plurals>
     <plurals name="transaction_selected_count"><item quantity="one">Вибрано %d</item><item quantity="few">Вибрано %d</item><item quantity="many">Вибрано %d</item><item quantity="other">Вибрано %d</item></plurals>
+    <string name="accessibility_expanded">Розгорнуто</string>
+    <string name="accessibility_collapsed">Згорнуто</string>
+    <string name="shifts_day_empty_accessibility">%1$s, змін немає</string>
+    <string name="shifts_day_assigned_accessibility">%1$s, зміни: %2$s</string>
 </resources>
