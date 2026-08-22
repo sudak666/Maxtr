@@ -515,31 +515,32 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
 @Composable
 private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
     val month = viewModel.visibleMonth
-    val firstDayOffset = (month.atDay(1).dayOfWeek.value - 1) // Monday=1 -> 0
-    val daysInMonth = month.lengthOfMonth()
+    val cells = monthCalendarCells(month)
     val todayKey = viewModel.today.toString()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
-        modifier = Modifier.fillMaxWidth().height(((daysInMonth + firstDayOffset + 6) / 7 * 80).dp),
+        modifier = Modifier.fillMaxWidth().height(((cells.size + 6) / 7 * 80).dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        items(firstDayOffset) { Box(Modifier) }
-        items(daysInMonth) { index ->
-            val day = index + 1
-            val dateKey = "%04d-%02d-%02d".format(month.year, month.monthValue, day)
+        items(cells) { cell ->
+            val date = cell.date
+            if (date == null) {
+                Box(Modifier)
+                return@items
+            }
+            val day = date.dayOfMonth
+            val dateKey = date.toString()
             val assigned = viewModel.shiftsFor(dateKey)
             val isToday = dateKey == todayKey
-            val dow = (firstDayOffset + index) % 7
-            val isWeekend = dow >= 5
-            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = isWeekend, onClick = { if (canEdit) viewModel.openDayModal(dateKey) })
+            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = cell.isWeekend, enabled = canEdit, onClick = { viewModel.openDayModal(dateKey) })
         }
     }
 }
 
 @Composable
-private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, onClick: () -> Unit) {
+private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, enabled: Boolean, onClick: () -> Unit) {
     val bg = when {
         isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
@@ -553,7 +554,7 @@ private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWee
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
             .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
