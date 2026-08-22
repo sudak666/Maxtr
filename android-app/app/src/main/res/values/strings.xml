@@ -85,6 +85,10 @@
     <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
     <string name="recurring_summary">%1$s · %2$d грн · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$d грн · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
+    <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
+    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string>
+    <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
+    <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>

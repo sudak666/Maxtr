@@ -83,6 +83,10 @@
     <string name="frequency_daily">Daily</string><string name="frequency_weekly">Weekly</string><string name="frequency_monthly">Monthly</string><string name="frequency_label">Frequency</string>
     <string name="recurring_summary">%1$s · UAH %2$d · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · UAH %2$d · %3$s · %4$s · paused</string>
     <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
+    <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
+    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string>
+    <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
+    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>

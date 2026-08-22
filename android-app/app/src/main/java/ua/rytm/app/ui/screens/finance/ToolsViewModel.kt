@@ -13,12 +13,10 @@ import kotlinx.coroutines.flow.onEach
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
 import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
 
 enum class AnalyticsPeriod { MONTH, PREV, M3, ALL }
 
-data class MonthTotal(val label: String, val income: Double, val expense: Double)
+data class MonthTotal(val yearMonth: YearMonth, val income: Double, val expense: Double)
 
 // Mirrors js/finance.js/analytics-csv.js's Tools bottom sheet
 // (analyticsPredicates()/renderCatList()/computeWalletBalances()) — the
@@ -95,7 +93,7 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
                 val prefix = ym.toString()
                 val monthTxs = transactions.filter { it.date.startsWith(prefix) }
                 MonthTotal(
-                    label = ym.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage("uk").build()),
+                    yearMonth = ym,
                     income = monthTxs.filter { it.type == TxType.INCOME }.sumOf { it.amount },
                     expense = monthTxs.filter { it.type == TxType.EXPENSE }.sumOf { it.amount },
                 )
