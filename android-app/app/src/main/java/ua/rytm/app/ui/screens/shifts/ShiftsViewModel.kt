@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
 import java.time.LocalDate
@@ -31,6 +32,15 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     var shiftTypes by mutableStateOf<List<ShiftType>>(emptyList())
         private set
     private var shiftsByDate by mutableStateOf<Map<String, List<String>>>(emptyMap())
+    private var typesLoaded = false
+    private var shiftsLoaded = false
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
+        private set
+
+    private fun markLoaded() { loading = !(typesLoaded && shiftsLoaded); loadFailed = false }
+    private fun markLoadFailed() { loading = false; loadFailed = true }
 
     var visibleMonth by mutableStateOf(YearMonth.now())
         private set
@@ -73,11 +83,13 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
         viewModelScope.launch { repository.seedIfEmpty() }
         repository.shiftTypes.onEach { types ->
             shiftTypes = types
+            typesLoaded = true
+            markLoaded()
             val firstNonOff = types.firstOrNull { !it.isOff }?.id
             if (templateTypeId == null || types.none { it.id == templateTypeId }) templateTypeId = firstNonOff
             if (autoFillDraftTypeId == null || types.none { it.id == autoFillDraftTypeId }) autoFillDraftTypeId = firstNonOff
-        }.launchIn(viewModelScope)
-        repository.shiftsByDate.onEach { shiftsByDate = it }.launchIn(viewModelScope)
+        }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.shiftsByDate.onEach { shiftsByDate = it; shiftsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.autoFillSchedule.onEach { schedule ->
             autoFillSchedule = schedule
             autoFillDraftPattern = schedule.pattern

@@ -70,6 +70,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -87,6 +90,9 @@ fun ShoppingScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { RealtimeStateBanner() }
+        if (viewModel.loading) item { ScreenLoadingState() }
+        if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { ChipStatsRow(remaining = viewModel.remainingCount, bought = viewModel.boughtCount) }
         if (canEdit) item { AddItemForm(viewModel) }
         item {
@@ -99,7 +105,7 @@ fun ShoppingScreen(
         }
 
         val sorted = viewModel.sortedItems
-        if (sorted.isEmpty()) {
+        if (!viewModel.loading && !viewModel.loadFailed && sorted.isEmpty()) {
             item { ShoppingEmptyState() }
         } else {
             items(sorted, key = { it.id }) { item ->

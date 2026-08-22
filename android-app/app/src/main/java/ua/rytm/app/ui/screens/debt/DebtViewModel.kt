@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.RytmApplication
@@ -34,6 +35,10 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     }
 
     var debts by mutableStateOf<List<Debt>>(emptyList())
+        private set
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
         private set
 
     var currentDebtId by mutableStateOf<Long?>(null)
@@ -68,12 +73,15 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     fun consumeError() { errorMessageRes = null }
 
     init {
-        repository.debts.onEach { list ->
-            debts = list
-            if (currentDebtId == null || list.none { it.id == currentDebtId }) {
-                currentDebtId = list.firstOrNull()?.id
+        repository.debts
+            .onEach { list ->
+                debts = list
+                loading = false
+                loadFailed = false
+                if (currentDebtId == null || list.none { it.id == currentDebtId }) currentDebtId = list.firstOrNull()?.id
             }
-        }.launchIn(viewModelScope)
+            .catch { loading = false; loadFailed = true }
+            .launchIn(viewModelScope)
     }
 
     fun switchDebt(id: Long) { currentDebtId = id }

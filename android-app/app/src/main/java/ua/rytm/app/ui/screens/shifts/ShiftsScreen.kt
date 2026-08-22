@@ -90,6 +90,9 @@ import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -125,13 +128,16 @@ fun ShiftsScreen() {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { RealtimeStateBanner() }
+        if (viewModel.loading) item { ScreenLoadingState() }
+        if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { HeroMetric(stats.earned) }
         item { ChipStats(stats) }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
         if (canEdit) item { QuickFillPanel(viewModel, onOpenShiftTypes = { shiftTypesSheetOpen = true }) }
         item { MonthNav(viewModel) }
         item { LegendRow(viewModel.shiftTypes) }
-        if (canEdit && stats.shiftsCount + stats.offCount == 0) {
+        if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
         item { WeekdayHeaderRow() }

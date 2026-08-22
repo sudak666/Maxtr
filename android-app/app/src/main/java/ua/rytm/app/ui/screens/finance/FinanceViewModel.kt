@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
@@ -58,11 +59,20 @@ class FinanceViewModel(
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
     private var currencyRates by mutableStateOf<Map<String, Double>>(emptyMap())
     private var budgets by mutableStateOf<Map<String, Double>>(emptyMap())
+    private var walletsLoaded = false
+    private var transactionsLoaded = false
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
+        private set
+
+    private fun markLoaded() { loading = !(walletsLoaded && transactionsLoaded); loadFailed = false }
+    private fun markLoadFailed() { loading = false; loadFailed = true }
 
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
-        repository.wallets.onEach { wallets = it }.launchIn(viewModelScope)
-        repository.transactions.onEach { transactions = it }.launchIn(viewModelScope)
+        repository.wallets.onEach { wallets = it; walletsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.transactions.onEach { transactions = it; transactionsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.categoriesByType.onEach { categoriesByType = it }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)

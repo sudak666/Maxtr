@@ -90,6 +90,9 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmInteraction
 import ua.rytm.app.ui.motionAwareSpec
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -173,6 +176,9 @@ fun FinanceScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item { RealtimeStateBanner() }
+            if (viewModel.loading) item { ScreenLoadingState() }
+            if (viewModel.loadFailed) item { ScreenLoadErrorState() }
             item { HeroBalanceCard(viewModel) }
             item {
                 QuickActionsRow(
@@ -194,7 +200,7 @@ fun FinanceScreen(
                 item { CategoryFilterChip(cat, onClear = viewModel::clearCategoryFilter) }
             }
 
-            if (filtered.isEmpty()) {
+            if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
                 item { EmptyState(isSearching = viewModel.isSearchOrFilterActive) }
             } else {
                 items(visible, key = { it.id }) { tx ->

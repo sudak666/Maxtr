@@ -66,6 +66,7 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
+import ua.rytm.app.ui.LocalRealtimeState
 import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -110,7 +111,7 @@ fun RytmNavHost() {
         }
     }
 
-    CompositionLocalProvider(LocalCanEditProfile provides canEdit) {
+    CompositionLocalProvider(LocalCanEditProfile provides canEdit, LocalRealtimeState provides realtimeState) {
     Scaffold(
         topBar = {
             TopAppBar(

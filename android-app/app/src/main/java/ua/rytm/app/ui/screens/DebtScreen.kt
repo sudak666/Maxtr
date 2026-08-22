@@ -73,6 +73,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.ReducedMotionVisibility
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
@@ -117,11 +120,14 @@ fun DebtScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + 96.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item { RealtimeStateBanner() }
+            if (viewModel.loading) item { ScreenLoadingState() }
+            if (viewModel.loadFailed) item { ScreenLoadErrorState() }
             item { DebtChipsRow(viewModel, canEdit) }
 
-            if (cd == null) {
+            if (!viewModel.loading && !viewModel.loadFailed && cd == null) {
                 item { EmptyDebtState() }
-            } else {
+            } else if (cd != null) {
                 item { HeroBalance(cd) }
                 item { ProgressBarSection(cd) }
                 item { ChipStatsRow(cd) }

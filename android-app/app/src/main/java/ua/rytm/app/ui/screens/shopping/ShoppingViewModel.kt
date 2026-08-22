@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import androidx.annotation.StringRes
@@ -30,6 +31,10 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
     }
 
     private var items by mutableStateOf<List<ShoppingItem>>(emptyList())
+    var loading by mutableStateOf(true)
+        private set
+    var loadFailed by mutableStateOf(false)
+        private set
 
     var nameInput by mutableStateOf("")
         private set
@@ -49,7 +54,10 @@ class ShoppingViewModel(private val app: RytmApplication) : ViewModel() {
     fun consumeError() { errorMessageRes = null }
 
     init {
-        repository.items.onEach { items = it }.launchIn(viewModelScope)
+        repository.items
+            .onEach { items = it; loading = false; loadFailed = false }
+            .catch { loading = false; loadFailed = true }
+            .launchIn(viewModelScope)
     }
 
     fun onNameChange(value: String) { nameInput = value; nameInvalid = false }
