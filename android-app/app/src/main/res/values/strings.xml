@@ -449,4 +449,12 @@
     <string name="accessibility_collapsed">Згорнуто</string>
     <string name="shifts_day_empty_accessibility">%1$s, змін немає</string>
     <string name="shifts_day_assigned_accessibility">%1$s, зміни: %2$s</string>
+    <string name="settings_backup_export">Зашифрована резервна копія</string>
+    <string name="settings_backup_export_subtitle">Усі дані активного профілю у захищеному файлі</string>
+    <string name="settings_backup_password_title">Пароль резервної копії</string>
+    <string name="settings_backup_password_body">Мінімум 8 символів. Без цього пароля відновити дані неможливо.</string>
+    <string name="settings_backup_password_label">Пароль</string>
+    <string name="settings_backup_create">Створити</string>
+    <string name="settings_backup_exported">Резервну копію збережено</string>
+    <string name="settings_backup_export_failed">Не вдалося створити резервну копію</string>
 </resources>

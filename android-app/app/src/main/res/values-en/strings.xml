@@ -447,4 +447,12 @@
     <string name="accessibility_collapsed">Collapsed</string>
     <string name="shifts_day_empty_accessibility">%1$s, no shifts</string>
     <string name="shifts_day_assigned_accessibility">%1$s, shifts: %2$s</string>
+    <string name="settings_backup_export">Encrypted backup</string>
+    <string name="settings_backup_export_subtitle">All active-profile data in a protected file</string>
+    <string name="settings_backup_password_title">Backup password</string>
+    <string name="settings_backup_password_body">Use at least 8 characters. The data cannot be restored without this password.</string>
+    <string name="settings_backup_password_label">Password</string>
+    <string name="settings_backup_create">Create</string>
+    <string name="settings_backup_exported">Backup saved</string>
+    <string name="settings_backup_export_failed">Could not create backup</string>
 </resources>

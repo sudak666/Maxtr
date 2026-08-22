@@ -87,6 +87,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -100,6 +101,7 @@ import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.CsvImportError
 import ua.rytm.app.data.CsvImportErrorReason
 import ua.rytm.app.data.TransactionsCsvRepository
+import ua.rytm.app.data.ProfileBackupRepository
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
@@ -161,8 +163,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var settingsSearch by remember { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
     val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
+    val backupRepository = remember { ProfileBackupRepository(app.database) }
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
     var csvBusy by remember { mutableStateOf(false) }
+    var backupPasswordDialog by remember { mutableStateOf(false) }
+    var backupPassword by remember { mutableStateOf("") }
+    var pendingBackupPassword by remember { mutableStateOf<String?>(null) }
+    var backupBusy by remember { mutableStateOf(false) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
@@ -179,6 +186,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvExportFailedMessage = stringResource(R.string.settings_csv_export_failed)
     val csvReadFailedMessage = stringResource(R.string.settings_csv_read_failed)
     val csvImportFailedMessage = stringResource(R.string.settings_csv_import_failed)
+    val backupExportedMessage = stringResource(R.string.settings_backup_exported)
+    val backupExportFailedMessage = stringResource(R.string.settings_backup_export_failed)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingMessage by remember { mutableStateOf<String?>(null) }
@@ -264,6 +273,26 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             finally { csvBusy = false }
         }
     }
+    val backupExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        val password = pendingBackupPassword
+        pendingBackupPassword = null
+        if (uri != null && password != null) scope.launch {
+            backupBusy = true
+            var payload: ByteArray? = null
+            try {
+                val generated = backupRepository.export(password.toCharArray())
+                payload = generated
+                context.contentResolver.openOutputStream(uri)?.use { it.write(generated) }
+                    ?: error(backupExportFailedMessage)
+                pendingMessage = backupExportedMessage
+            } catch (_: Exception) {
+                pendingMessage = backupExportFailedMessage
+            } finally {
+                payload?.fill(0)
+                backupBusy = false
+            }
+        }
+    }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         // Real bug found during step 39's visual-parity pass: this Column had
@@ -329,6 +358,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
                 R.string.widgets_title, R.string.settings_widgets_subtitle, R.string.recurring_title,
                 R.string.settings_recurring_subtitle, R.string.shift_types_title, R.string.settings_shift_types_subtitle,
+                R.string.settings_backup_export, R.string.settings_backup_export_subtitle,
             ))
 
             if (accountVisible) {
@@ -611,6 +641,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     subtitle = stringResource(R.string.settings_csv_import_subtitle),
                     onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
                 )
+                SettingsRow(
+                    icon = Icons.Filled.Lock,
+                    badgeColor = Color(0xFF8B5CF6),
+                    title = stringResource(R.string.settings_backup_export),
+                    subtitle = stringResource(R.string.settings_backup_export_subtitle),
+                    onClick = { if (!backupBusy) { backupPassword = ""; backupPasswordDialog = true } },
+                )
                 }
             }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
@@ -764,6 +801,36 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }) { Text(stringResource(R.string.settings_csv_import_action)) }
             },
             dismissButton = { TextButton(enabled = !csvBusy, onClick = { csvImportPreview = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+
+    if (backupPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!backupBusy) { backupPasswordDialog = false; backupPassword = "" } },
+            title = { Text(stringResource(R.string.settings_backup_password_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.settings_backup_password_body))
+                    OutlinedTextField(
+                        value = backupPassword,
+                        onValueChange = { backupPassword = it.take(128) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        label = { Text(stringResource(R.string.settings_backup_password_label)) },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = backupPassword.length >= 8, onClick = {
+                    pendingBackupPassword = backupPassword
+                    backupPassword = ""
+                    backupPasswordDialog = false
+                    backupExportLauncher.launch("rytm-profile-${java.time.LocalDate.now()}.rytmbackup")
+                }) { Text(stringResource(R.string.settings_backup_create)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { backupPasswordDialog = false; backupPassword = "" }) { Text(stringResource(R.string.action_cancel)) }
+            },
         )
     }
 
