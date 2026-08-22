@@ -14,11 +14,15 @@ class MonobankTokenStore(context: Context) {
     }
 
     fun write(ownerUid: String, profileId: String, token: String) {
-        preferences.edit().putString(storageKey(ownerUid, profileId), cipher.encrypt(token)).apply()
+        check(preferences.edit().putString(storageKey(ownerUid, profileId), cipher.encrypt(token)).commit()) {
+            "Could not persist Monobank credentials"
+        }
     }
 
     fun delete(ownerUid: String, profileId: String) {
-        preferences.edit().remove(storageKey(ownerUid, profileId)).apply()
+        check(preferences.edit().remove(storageKey(ownerUid, profileId)).commit()) {
+            "Could not delete Monobank credentials"
+        }
     }
 
     private fun storageKey(ownerUid: String, profileId: String): String {
