@@ -61,24 +61,8 @@ class MainActivity : FragmentActivity() {
                     if (uid == null) {
                         LoginScreen(authViewModel)
                     } else {
-                        // One-time cold sync on sign-in, against whichever profile this
-                        // device was last active on (defaults to the account's own
-                        // default profile — see ActiveProfileStore) — see
-                        // ProfileSyncCoordinator for exactly what runs and in what order
-                        // (step 30 pulled this out of being inlined here directly, so an
-                        // in-session profile switch, see ProfilesManagerSheet, can reuse
-                        // the identical sequence instead of risking the two paths
-                        // drifting apart).
-                        //
-                        // Real bug found verifying this against the Firestore emulator
-                        // (still true after the step-30 extraction): each domain's
-                        // seedIfEmpty() only ever ran from its own ViewModel.init, i.e.
-                        // only once the user actually visited that tab — a first-time
-                        // sign-in landing on Finance (the start destination) pushed real
-                        // seed wallets but pushed an EMPTY shiftTypes array, since
-                        // ShiftsViewModel never got created. seedIfEmpty() is idempotent
-                        // (checks count()==0 first), so calling it for every synced
-                        // domain before syncing is a safe, correct fix.
+                        // Seed every domain before the initial sync and reuse the same
+                        // ordered path for sign-in and profile switching.
                         LaunchedEffect(uid) {
                             app.profileSyncCoordinator.loadOnSignIn(uid)
                         }

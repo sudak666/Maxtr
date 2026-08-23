@@ -20,12 +20,6 @@ import java.util.Locale
 import androidx.annotation.StringRes
 import ua.rytm.app.R
 
-// Mirrors js/debt.js's getCurrentDebt()/renderDebt()/addDebtEntry()/etc.
-// Deliberately scoped like SHIFTS_SCREEN_SPEC.md's precedent: the SVG/Preact
-// payoff-forecast burndown chart is NOT ported in this step (see
-// ANDROID_MIGRATION.md's "chesno not done" for this step) — everything else
-// (chips, hero balance, progress bar, due chip, collapsible info/history,
-// payment CRUD with swipe-to-delete) is real.
 class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     private val repository = app.debtRepository
 

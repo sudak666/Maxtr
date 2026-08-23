@@ -6,9 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Ported from index.html's --text-* / --weight-* scale (ANDROID_MIGRATION.md
-// §4). Font family stays system default until brand fonts (if any) are
-// vendored — the PWA itself uses the platform default stack too.
+// Mirrors the product text and weight scale. The system font matches the PWA.
 
 private val WeightBody = FontWeight.Medium // --weight-body: 500
 private val WeightStrong = FontWeight.Bold // --weight-strong: 700

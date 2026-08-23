@@ -29,19 +29,8 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 
-// Google Sign-In is the primary path here too (matches the PWA's
-// `.auth-google.btn-primary` convention — see CLAUDE.md's Auth section),
-// but the native flow is fundamentally different from js/auth.js's
-// signInWithPopup()/signInWithRedirect() dance: no popup-vs-redirect
-// fallback, no WebAPK redirect-loses-state gotcha (all real bugs specific
-// to the browser round-trip) — Credential Manager hands back a Google ID
-// token directly, in-process, which is exchanged for a Firebase credential.
-// Email+password fallback (the PWA's #auth-email-section) is NOT ported in
-// this step — chesno not done, see ANDROID_MIGRATION.md's step-13 section.
-//
-// serverClientId is the project's auto-generated "Default Web Client ID"
-// (client_type:3 entry in google-services.json) — required so Firebase can
-// verify the ID token's audience; it is NOT the Android OAuth client.
+// Credential Manager returns a Google ID token that Firebase exchanges for
+// an auth credential. This is the web OAuth client id, not the Android id.
 private const val WEB_CLIENT_ID = "311094677098-bqfj1f4nkd5ntnbd4267kb26t9rnvi28.apps.googleusercontent.com"
 
 class AuthViewModel : ViewModel() {

@@ -10,15 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import ua.rytm.app.R
 
-// One entry per PWA bottom-nav tab (see ANDROID_MIGRATION.md §1.1) — Settings
-// is included here even though the PWA hides it from its own tab bar,
-// because Android's NavigationBar has room for a 5th destination and this
-// keeps navigation flat/predictable instead of hiding it behind a gear icon.
-// activeGradient mirrors index.html's per-tab .tab-btn.tab-c-*.active
-// .tab-icon-wrap overrides (Settings falls back to no override there, i.e.
-// the base purple gradient — but since this app's Settings destination has
-// no PWA counterpart, a distinct gray is used instead of reusing purple,
-// which Shifts already owns).
+// Keep all primary destinations flat and directly reachable from the native
+// navigation bar. Gradients mirror each product area's established accent.
 enum class RytmDestination(
     val route: String,
     val labelRes: Int,

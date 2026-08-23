@@ -4,8 +4,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-// --radius-row (16px, compact list rows) and --radius-card (22px, hero
-// surfaces/modals/tx rows) from index.html — ANDROID_MIGRATION.md §4.
+// Shared radii for compact rows, cards, modals and transaction surfaces.
 val RowRadius = RytmRadii.Row
 val CardRadius = RytmRadii.Card
 

@@ -2,9 +2,7 @@ package ua.rytm.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Ported 1:1 from index.html's `:root` / `[data-theme="light"]` CSS custom
-// properties — see ANDROID_MIGRATION.md §4. Keep in sync if the PWA palette
-// changes; don't invent new brand colors here.
+// Mirrors the PWA palette. Keep both clients synchronized.
 
 // --- Brand (purple), same across themes ---
 val PurpleDark = Color(0xFF8B5CF6) // --purple (dark theme accent)

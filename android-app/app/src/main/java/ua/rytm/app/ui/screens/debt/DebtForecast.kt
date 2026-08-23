@@ -46,8 +46,7 @@ import kotlin.math.roundToInt
 // as the PWA). The PWA draws this as inline SVG via Preact (a proof-of-concept
 // the PWA itself calls out, see CLAUDE.md's "Preact adoption" note) — here it's
 // a native Compose Canvas, matching this port's convention of using the
-// platform's own primitive rather than porting a browser-specific workaround
-// (see ANDROID_MIGRATION.md §3's improvement list).
+// platform's own primitive rather than porting a browser-specific workaround.
 @Composable
 fun DebtForecastCard(debt: Debt) {
     val start = debt.startAmount
@@ -69,8 +68,7 @@ fun DebtForecastCard(debt: Debt) {
     }
     val avgDown = if (downCount > 0) totalDown / downCount else 0.0
 
-    // Matches the PWA's .debt-forecast: an uppercase icon+label header, same
-    // shape/label treatment as Shifts' IncomeChartSection (step 39).
+    // Matches the PWA forecast card's uppercase icon-and-label treatment.
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

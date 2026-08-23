@@ -6,9 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-// Fixed brand palette — dynamicColor (Material You wallpaper theming) is
-// deliberately NOT used, same as the PWA never adapts to OS accent color.
-// See ANDROID_MIGRATION.md §4.
+// Fixed brand palette; wallpaper-derived dynamic color would break parity.
 
 private val DarkColors = darkColorScheme(
     primary = PurpleDark,

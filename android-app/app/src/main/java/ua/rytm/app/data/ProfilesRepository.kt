@@ -97,17 +97,8 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
         docRef.set(mapOf("list" to rawList, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 
-    // A profile id becomes part of a Firestore DOCUMENT NAME suffix
-    // (`finance@<id>`, see ProfileDocNames.kt), not just a field value —
-    // unlike every other UUID.randomUUID() usage elsewhere in this app
-    // (tag/recurring ids etc, which are only ever field values), a hyphen
-    // here breaks real production access: firestore.rules' own profile-doc
-    // regex is `@[A-Za-z0-9_]+` (no hyphen), so a raw UUID string id would
-    // make every write to that profile's docs silently PERMISSION_DENIED.
-    // A real bug hit and fixed during step 30's own verification, not a
-    // guess — see ANDROID_MIGRATION.md's step 30 for the full account.
-    // Stripping the hyphens keeps the same uniqueness with none of the
-    // disallowed characters.
+    // Profile ids become Firestore document suffixes and must satisfy the
+    // rules allowlist `@[A-Za-z0-9_]+`.
     private fun newProfileId(): String = UUID.randomUUID().toString().replace("-", "")
 
     suspend fun renameProfile(uid: String, id: String, name: String) {
@@ -137,7 +128,7 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
     private fun defaultSeedList(): MutableList<Map<String, Any?>> =
         mutableListOf(mapOf("id" to DEFAULT_PROFILE_ID, "name" to "Я", "createdAt" to System.currentTimeMillis()))
 
-    // ── SHARED PROFILES (step 32) ───────────────────────────────────
+    // ── Shared profiles ─────────────────────────────────────────────
     // Mirrors js/firebase-sync.js's shareCurrentProfile()/redeemSharedInvite()/
     // leaveSharedProfile() exactly — see that file's own doc comments and
     // firestore.rules' "SHARED PROFILES helpers" section for the full design
@@ -247,7 +238,7 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
         docRef.set(mapOf("list" to rawList, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
     }
 
-    // ── GRANULAR PERMISSIONS (step 33) ──────────────────────────────
+    // ── Granular permissions ────────────────────────────────────────
     // Mirrors js/firebase-sync.js's listSharedMembers()/setMemberRole() —
     // owner-only (enforced by firestore.rules, not just by this function
     // only ever being called for a profile the caller owns). Returns null
