@@ -8,7 +8,6 @@ import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountBalance
@@ -51,11 +49,9 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
@@ -66,7 +62,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -118,7 +113,6 @@ import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 import ua.rytm.app.ui.theme.RytmDimens
-import ua.rytm.app.ui.theme.RytmRadii
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -993,102 +987,3 @@ private fun csvImportErrorText(error: CsvImportError): String {
 
 @Composable
 private fun localizedSettingsStrings(vararg @StringRes ids: Int): List<String> = ids.map { stringResource(it) }
-
-@Composable
-private fun SettingsSectionLabel(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 20.dp, bottom = 6.dp),
-    )
-}
-
-// Matches the PWA's .chart-section.settings-section — a rounded card
-// grouping related rows, with a dashed divider between rows inside it
-// (.settings-row+.settings-row{border-top:1px dashed}), not a flat list.
-// Each row is collected into `rows` via SettingsRowScope.row {} instead of
-// being placed directly, so this composable can insert a divider between
-// every pair of rows without relying on any stateful/order-sensitive trick.
-@Composable
-private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
-    val scope = SettingsRowScope()
-    scope.content()
-    Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            scope.rows.forEachIndexed { index, row ->
-                if (index > 0) {
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                }
-                row()
-            }
-        }
-    }
-}
-
-private class SettingsRowScope {
-    val rows = mutableListOf<@Composable () -> Unit>()
-}
-
-// Matches the PWA's .icon-badge: a circular badge tinted at ~16% of its own
-// color, with the icon drawn in that full color — not a generic outline icon.
-@Composable
-private fun SettingsIconBadge(icon: ImageVector, color: Color) {
-    Box(
-        Modifier
-            .size(RytmDimens.IconBadge)
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.16f)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
-    }
-}
-
-private fun SettingsRowScope.SettingsRow(
-    icon: ImageVector,
-    badgeColor: Color,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    titleColor: Color = Color.Unspecified,
-) {
-    rows += {
-        Row(
-            Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SettingsIconBadge(icon, badgeColor)
-            Column(Modifier.padding(start = 12.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-private fun SettingsRowScope.SettingsToggleRow(
-    icon: ImageVector,
-    badgeColor: Color,
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    enabled: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    rows += {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            SettingsIconBadge(icon, badgeColor)
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
-        }
-    }
-}
