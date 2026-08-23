@@ -316,9 +316,9 @@ private fun dueChipInfo(cd: Debt): String? {
         java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), due)
     } catch (e: Exception) { return null }
     return when {
-        diffDays < 0 -> stringResource(R.string.debt_days_overdue, -diffDays)
+        diffDays < 0 -> pluralStringResource(R.plurals.debt_days_overdue, (-diffDays).toInt(), -diffDays)
         diffDays == 0L -> stringResource(R.string.action_today)
-        else -> stringResource(R.string.debt_days_future, diffDays)
+        else -> pluralStringResource(R.plurals.debt_days_future, diffDays.toInt(), diffDays)
     }
 }
 

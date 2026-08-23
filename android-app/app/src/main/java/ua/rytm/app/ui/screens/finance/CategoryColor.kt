@@ -223,7 +223,7 @@ fun categoryIcon(category: String, iconOverride: String? = null): ImageVector {
 }
 
 @Composable
-fun CategoryIconBadge(category: String, iconOverride: String? = null, size: Dp = 40.dp, modifier: Modifier = Modifier) {
+fun CategoryIconBadge(category: String, modifier: Modifier = Modifier, iconOverride: String? = null, size: Dp = 40.dp) {
     val color = categoryColor(category)
     Box(
         modifier.size(size).clip(CircleShape).background(color.copy(alpha = 0.18f)),

@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.pin
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -44,7 +45,7 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
     @get:StringRes
     var errorMessageRes by mutableStateOf<Int?>(null)
         private set
-    var lockoutSeconds by mutableStateOf(0L)
+    var lockoutSeconds by mutableLongStateOf(0L)
         private set
     fun consumeError() { errorMessageRes = null; lockoutSeconds = 0 }
 
