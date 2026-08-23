@@ -44,6 +44,9 @@ interface SyncOutboxDao {
     @Query("SELECT * FROM sync_outbox WHERE ownerUid = :ownerUid AND profileId = :profileId AND domain = :domain")
     suspend fun get(ownerUid: String, profileId: String, domain: String): List<SyncOutboxEntity>
 
+    @Query("SELECT * FROM sync_outbox WHERE ownerUid = :ownerUid AND profileId = :profileId AND domain = :domain AND entityId = :entityId LIMIT 1")
+    suspend fun getForEntity(ownerUid: String, profileId: String, domain: String, entityId: String): SyncOutboxEntity?
+
     @Query("DELETE FROM sync_outbox WHERE operationId = :operationId")
     suspend fun delete(operationId: String)
 

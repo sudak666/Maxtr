@@ -17,21 +17,23 @@ class RytmMigrationTest {
     )
 
     @Test
-    fun migrate13To17PreservesDataAndCreatesNewSchema() {
+    fun migrate13To18PreservesDataAndCreatesNewSchema() {
         helper.createDatabase(DB_NAME, 13).apply {
             execSQL("INSERT INTO wallets (id, name, colorHex, currency, icon) VALUES ('wallet', 'Card', 1, 'UAH', 'card')")
             execSQL("INSERT INTO transactions (id, type, amount, currency, date, walletId, targetWalletId, targetAmount, targetCurrency, category, subcategory, comment, tags, createdAt) VALUES ('tx', 'EXPENSE', 42.5, 'UAH', '2026-08-22', 'wallet', NULL, NULL, NULL, 'Food', NULL, 'kept', '', 1)")
             close()
         }
 
-        helper.runMigrationsAndValidate(DB_NAME, 17, true, *RytmMigrations.ALL).use { db ->
-            db.query("SELECT amount, comment, monobankId, ownerUid, profileId FROM transactions WHERE id = 'tx'").use { cursor ->
+        helper.runMigrationsAndValidate(DB_NAME, 18, true, *RytmMigrations.ALL).use { db ->
+            db.query("SELECT amount, comment, monobankId, ownerUid, profileId, revision, updatedAt FROM transactions WHERE id = 'tx'").use { cursor ->
                 assertEquals(true, cursor.moveToFirst())
                 assertEquals(42.5, cursor.getDouble(0), 0.0)
                 assertEquals("kept", cursor.getString(1))
                 assertEquals(true, cursor.isNull(2))
                 assertEquals("", cursor.getString(3))
                 assertEquals("default", cursor.getString(4))
+                assertEquals(0L, cursor.getLong(5))
+                assertEquals(0L, cursor.getLong(6))
             }
             db.query("SELECT COUNT(*) FROM auto_rules").use { cursor ->
                 assertEquals(true, cursor.moveToFirst())

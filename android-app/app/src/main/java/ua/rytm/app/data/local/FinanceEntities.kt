@@ -38,4 +38,6 @@ data class TransactionEntity(
     val monobankId: String? = null,
     val ownerUid: String = RoomProfileScope.ownerUid,
     val profileId: String = RoomProfileScope.profileId,
+    val revision: Long = 0,
+    val updatedAt: Long = createdAt,
 )

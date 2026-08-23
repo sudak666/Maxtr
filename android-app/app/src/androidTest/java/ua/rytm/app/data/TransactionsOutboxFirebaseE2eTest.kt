@@ -74,6 +74,35 @@ class TransactionsOutboxFirebaseE2eTest {
         app.database.syncOutboxDao().clearScope(uid, deniedProfile)
     }
 
+    @Test fun concurrentEditKeepsBothVersionsAndConcurrentDeletePreservesRemote() = runBlocking {
+        val original = transaction("tx-conflict")
+        repository.queueSave(uid, profileId, original)
+        assertTrue(repository.drainOutbox())
+
+        val ref = remoteCollection().document(original.id)
+        val remoteV1 = ref.get(Source.SERVER).await().data!!
+        ref.set(remoteV1 + mapOf("amount" to 99.0, "revision" to 2L, "updatedAt" to 2L)).await()
+
+        val localV1 = app.database.transactionDao().getById(original.id, uid, profileId)!!
+        repository.queueSave(uid, profileId, localV1.copy(amount = 55.0))
+        assertFalse(repository.drainOutbox())
+        assertTrue(repository.drainOutbox())
+
+        val localRows = app.database.transactionDao().getAllOnce(uid, profileId)
+        assertEquals(2, localRows.size)
+        assertEquals(99.0, localRows.single { it.id == original.id }.amount, 0.0)
+        val conflictCopy = localRows.single { it.id != original.id }
+        assertEquals(55.0, conflictCopy.amount, 0.0)
+        assertEquals(2, remoteCollection().get(Source.SERVER).await().size())
+
+        repository.queueDeletes(uid, profileId, listOf(original.id))
+        val remoteV2 = ref.get(Source.SERVER).await().data!!
+        ref.set(remoteV2 + mapOf("amount" to 100.0, "revision" to 3L, "updatedAt" to 3L)).await()
+        assertTrue(repository.drainOutbox())
+        assertEquals(100.0, app.database.transactionDao().getById(original.id, uid, profileId)!!.amount, 0.0)
+        assertTrue(ref.get(Source.SERVER).await().exists())
+    }
+
     @Test fun shoppingSnapshotSurvivesProfileSwitchWithoutCrossProfileLeak() = runBlocking {
         val shopping = ShoppingSyncRepository(app.database, firestore)
         shopping.queueSnapshot(uid, profileId) {

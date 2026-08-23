@@ -55,6 +55,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId")
     suspend fun getAllOnce(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<TransactionEntity>
 
+    @Query("SELECT * FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId AND id = :id LIMIT 1")
+    suspend fun getById(id: String, ownerUid: String, profileId: String): TransactionEntity?
+
     @Query("SELECT monobankId FROM transactions WHERE ownerUid = :ownerUid AND profileId = :profileId AND monobankId IS NOT NULL")
     suspend fun getAllMonobankIds(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): List<String>
 

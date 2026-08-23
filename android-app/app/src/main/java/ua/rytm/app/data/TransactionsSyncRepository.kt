@@ -3,6 +3,7 @@ package ua.rytm.app.data
 import android.content.Context
 import androidx.room.withTransaction
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flatMapLatest
@@ -101,10 +102,17 @@ class TransactionsSyncRepository(
         }
 
     suspend fun queueSave(uid: String, profileId: String, transaction: TransactionEntity) {
-        val scoped = transaction.copy(ownerUid = uid, profileId = profileId)
         db.withTransaction {
+            val existing = db.transactionDao().getById(transaction.id, uid, profileId)
+            val prior = db.syncOutboxDao().getForEntity(uid, profileId, OUTBOX_DOMAIN, transaction.id)
+            val baseRevision = prior?.baseRevision() ?: existing?.revision ?: REVISION_MISSING
+            val scoped = transaction.copy(
+                ownerUid = uid, profileId = profileId,
+                revision = maxOf(existing?.revision ?: 0, transaction.revision) + 1,
+                updatedAt = System.currentTimeMillis(),
+            )
             db.transactionDao().upsert(scoped)
-            db.syncOutboxDao().upsert(scoped.toOutbox(OUTBOX_UPSERT))
+            db.syncOutboxDao().upsert(scoped.toOutbox(OUTBOX_UPSERT, baseRevision))
         }
         context?.let(::scheduleSyncOutbox)
     }
@@ -112,9 +120,16 @@ class TransactionsSyncRepository(
     suspend fun queueSaves(uid: String, profileId: String, transactions: List<TransactionEntity>) {
         db.withTransaction {
             transactions.forEach { transaction ->
-                val scoped = transaction.copy(ownerUid = uid, profileId = profileId)
+                val existing = db.transactionDao().getById(transaction.id, uid, profileId)
+                val prior = db.syncOutboxDao().getForEntity(uid, profileId, OUTBOX_DOMAIN, transaction.id)
+                val baseRevision = prior?.baseRevision() ?: existing?.revision ?: REVISION_MISSING
+                val scoped = transaction.copy(
+                    ownerUid = uid, profileId = profileId,
+                    revision = maxOf(existing?.revision ?: 0, transaction.revision) + 1,
+                    updatedAt = System.currentTimeMillis(),
+                )
                 db.transactionDao().upsert(scoped)
-                db.syncOutboxDao().upsert(scoped.toOutbox(OUTBOX_UPSERT))
+                db.syncOutboxDao().upsert(scoped.toOutbox(OUTBOX_UPSERT, baseRevision))
             }
         }
         context?.let(::scheduleSyncOutbox)
@@ -123,9 +138,15 @@ class TransactionsSyncRepository(
     suspend fun queueDeletes(uid: String, profileId: String, ids: Collection<String>) {
         db.withTransaction {
             ids.forEach { id ->
+                val existing = db.transactionDao().getById(id, uid, profileId)
+                val prior = db.syncOutboxDao().getForEntity(uid, profileId, OUTBOX_DOMAIN, id)
+                val baseRevision = prior?.baseRevision() ?: existing?.revision ?: REVISION_MISSING
                 db.transactionDao().deleteById(id, uid, profileId)
                 db.syncOutboxDao().upsert(
-                    SyncOutboxEntity(UUID.randomUUID().toString(), uid, profileId, OUTBOX_DOMAIN, id, OUTBOX_DELETE, null, System.currentTimeMillis()),
+                    SyncOutboxEntity(
+                        UUID.randomUUID().toString(), uid, profileId, OUTBOX_DOMAIN, id, OUTBOX_DELETE,
+                        JSONObject().put("baseRevision", baseRevision).toString(), System.currentTimeMillis(),
+                    ),
                 )
             }
         }
@@ -137,37 +158,111 @@ class TransactionsSyncRepository(
         db.syncOutboxDao().oldestForDomain(OUTBOX_DOMAIN, limit).forEach { operation ->
             runCatching {
                 when (operation.operation) {
-                    OUTBOX_UPSERT -> saveTransaction(operation.ownerUid, operation.profileId, transactionFromOutbox(checkNotNull(operation.payload)))
-                    OUTBOX_DELETE -> deleteTransaction(operation.ownerUid, operation.profileId, operation.entityId)
+                    OUTBOX_UPSERT -> saveRevisioned(operation, transactionFromOutbox(checkNotNull(operation.payload)))
+                    OUTBOX_DELETE -> deleteRevisioned(operation)
                     else -> error("Unknown outbox operation")
                 }
             }.onSuccess {
                 db.syncOutboxDao().delete(operation.operationId)
             }.onFailure { error ->
-                failed = true
-                val failure = SyncFailure.from(error)
-                SafeDiagnostics.reportSync(SafeDiagnostics.Domain.TRANSACTIONS, failure)
-                db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
+                if (error.causes().any { it is TransactionRevisionConflict }) {
+                    resolveConflict(operation)
+                } else {
+                    failed = true
+                    val failure = SyncFailure.from(error)
+                    SafeDiagnostics.reportSync(SafeDiagnostics.Domain.TRANSACTIONS, failure)
+                    db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
+                }
             }
         }
         return !failed && db.syncOutboxDao().countForDomain(OUTBOX_DOMAIN) == 0
+    }
+
+    private suspend fun saveRevisioned(operation: SyncOutboxEntity, transaction: TransactionEntity) {
+        val ref = txCollectionRef(operation.ownerUid, operation.profileId).document(operation.entityId)
+        firestore.runTransaction { remoteTransaction ->
+            val snapshot = remoteTransaction.get(ref)
+            requireRevision(snapshot.exists(), snapshot.getLong("revision"), operation.baseRevision())
+            remoteTransaction.set(ref, transaction.toRemoteMap())
+        }.await()
+    }
+
+    private suspend fun deleteRevisioned(operation: SyncOutboxEntity) {
+        val ref = txCollectionRef(operation.ownerUid, operation.profileId).document(operation.entityId)
+        firestore.runTransaction { remoteTransaction ->
+            val snapshot = remoteTransaction.get(ref)
+            requireRevision(snapshot.exists(), snapshot.getLong("revision"), operation.baseRevision())
+            if (snapshot.exists()) remoteTransaction.delete(ref)
+        }.await()
+    }
+
+    private suspend fun resolveConflict(operation: SyncOutboxEntity) {
+        val snapshot = txCollectionRef(operation.ownerUid, operation.profileId)
+            .document(operation.entityId).get(Source.SERVER).await()
+        db.withTransaction {
+            if (operation.operation == OUTBOX_UPSERT) {
+                val local = transactionFromOutbox(checkNotNull(operation.payload))
+                if (snapshot.exists()) {
+                    snapshot.data?.let { data ->
+                        parseRemoteTransaction(data + ("id" to operation.entityId))
+                            ?.copy(ownerUid = operation.ownerUid, profileId = operation.profileId)
+                            ?.let { db.transactionDao().upsert(it) }
+                    }
+                    val conflictCopy = local.copy(
+                        id = "conflict_${UUID.randomUUID().toString().replace("-", "").take(24)}",
+                        revision = 1,
+                        updatedAt = System.currentTimeMillis(),
+                    )
+                    db.transactionDao().upsert(conflictCopy)
+                    db.syncOutboxDao().upsert(conflictCopy.toOutbox(OUTBOX_UPSERT, REVISION_MISSING))
+                } else {
+                    db.transactionDao().upsert(local)
+                    db.syncOutboxDao().upsert(local.toOutbox(OUTBOX_UPSERT, REVISION_MISSING))
+                }
+            } else if (snapshot.exists()) {
+                snapshot.data?.let { data ->
+                    parseRemoteTransaction(data + ("id" to operation.entityId))
+                        ?.copy(ownerUid = operation.ownerUid, profileId = operation.profileId)
+                        ?.let { db.transactionDao().upsert(it) }
+                }
+            }
+            db.syncOutboxDao().delete(operation.operationId)
+        }
+        SafeDiagnostics.reportSync(
+            SafeDiagnostics.Domain.TRANSACTIONS,
+            SyncFailure(SyncFailure.Kind.CONFLICT, false, "SYNC_CONFLICT"),
+        )
     }
 }
 
 private const val OUTBOX_DOMAIN = "transactions"
 private const val OUTBOX_UPSERT = "upsert"
 private const val OUTBOX_DELETE = "delete"
+private const val REVISION_MISSING = -1L
 
-private fun TransactionEntity.toOutbox(operation: String) = SyncOutboxEntity(
+private fun TransactionEntity.toOutbox(operation: String, baseRevision: Long) = SyncOutboxEntity(
     operationId = UUID.randomUUID().toString(), ownerUid = ownerUid, profileId = profileId,
-    domain = OUTBOX_DOMAIN, entityId = id, operation = operation, payload = toOutboxJson().toString(), createdAt = System.currentTimeMillis(),
+    domain = OUTBOX_DOMAIN, entityId = id, operation = operation,
+    payload = toOutboxJson().put("baseRevision", baseRevision).toString(), createdAt = System.currentTimeMillis(),
 )
+
+private fun SyncOutboxEntity.baseRevision(): Long = payload?.let { JSONObject(it).optLong("baseRevision", REVISION_MISSING) } ?: REVISION_MISSING
+
+private fun Throwable.causes(): List<Throwable> = generateSequence(this as Throwable?) { it.cause }.take(8).filterNotNull().toList()
+
+private fun requireRevision(exists: Boolean, remoteRevision: Long?, expected: Long) {
+    val actual = if (exists) remoteRevision ?: 0L else REVISION_MISSING
+    if (actual != expected) throw TransactionRevisionConflict()
+}
+
+private class TransactionRevisionConflict : RuntimeException()
 
 private fun TransactionEntity.toOutboxJson() = JSONObject().apply {
     put("id", id); put("type", type); put("amount", amount); put("currency", currency); put("date", date); put("walletId", walletId)
     put("targetWalletId", targetWalletId); put("targetAmount", targetAmount); put("targetCurrency", targetCurrency); put("category", category)
     put("subcategory", subcategory); put("comment", comment); put("tags", tags); put("createdAt", createdAt); put("monobankId", monobankId)
     put("ownerUid", ownerUid); put("profileId", profileId)
+    put("revision", revision); put("updatedAt", updatedAt)
 }
 
 private fun transactionFromOutbox(payload: String): TransactionEntity = JSONObject(payload).run {
@@ -179,6 +274,7 @@ private fun transactionFromOutbox(payload: String): TransactionEntity = JSONObje
         targetCurrency = nullableString("targetCurrency"), category = getString("category"), subcategory = nullableString("subcategory"),
         comment = nullableString("comment"), tags = getString("tags"), createdAt = getLong("createdAt"), monobankId = nullableString("monobankId"),
         ownerUid = getString("ownerUid"), profileId = getString("profileId"),
+        revision = optLong("revision", 0), updatedAt = optLong("updatedAt", getLong("createdAt")),
     )
 }
 
@@ -198,6 +294,8 @@ internal fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "date" to date,
     "comment" to comment,
     "monobankId" to monobankId,
+    "revision" to revision,
+    "updatedAt" to updatedAt,
 )
 
 private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
@@ -223,5 +321,7 @@ private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
         tags = tags,
         createdAt = (m["createdAt"] as? Number)?.toLong() ?: 0L,
         monobankId = m["monobankId"] as? String,
+        revision = (m["revision"] as? Number)?.toLong() ?: 0L,
+        updatedAt = (m["updatedAt"] as? Number)?.toLong() ?: ((m["createdAt"] as? Number)?.toLong() ?: 0L),
     )
 }

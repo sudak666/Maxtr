@@ -12,7 +12,7 @@ import androidx.room.withTransaction
         CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class, AutoRuleEntity::class,
         SyncOutboxEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
 )
 abstract class RytmDatabase : RoomDatabase() {
