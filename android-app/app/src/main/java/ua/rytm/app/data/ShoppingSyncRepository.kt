@@ -8,12 +8,12 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import org.json.JSONObject
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.ShoppingItemEntity
 import ua.rytm.app.data.local.SyncOutboxEntity
+import ua.rytm.app.data.local.SyncRevisionEntity
 import ua.rytm.app.work.scheduleSyncOutbox
 import java.util.UUID
 
@@ -31,7 +31,6 @@ class ShoppingSyncRepository(
     private val firestore: FirebaseFirestore,
     private val context: Context? = null,
 ) {
-    private val saveMutex = Mutex()
     val operationState: Flow<TransactionSyncState?> = RoomProfileScope.changes.flatMapLatest { scope ->
         db.syncOutboxDao().observe(scope.ownerUid, scope.profileId, OUTBOX_DOMAIN_SHOPPING)
     }.map { operations ->
@@ -50,6 +49,9 @@ class ShoppingSyncRepository(
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteList = snapshot.get("shoppingList") as? List<*>
+        db.syncRevisionDao().upsert(
+            SyncRevisionEntity(uid, profileId, OUTBOX_DOMAIN_SHOPPING, OUTBOX_SNAPSHOT, snapshot.getLong("fieldRevisions.shoppingList") ?: 0L),
+        )
         if (snapshot.exists() && remoteList != null) {
             // Remote wins on cold sign-in — same bootstrap direction as every other synced domain.
             val entities = remoteList.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteItem) }
@@ -66,22 +68,18 @@ class ShoppingSyncRepository(
         }
     }
 
-    suspend fun saveSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val local = db.shoppingDao().getAllOnce(uid, profileId)
-        financeDocRef(uid, profileId).set(
-            mapOf("shoppingList" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
-    }
-
     suspend fun queueSnapshot(uid: String, profileId: String, mutation: suspend () -> Unit) {
         db.withTransaction {
             mutation()
+            val prior = db.syncOutboxDao().getForEntity(uid, profileId, OUTBOX_DOMAIN_SHOPPING, OUTBOX_SNAPSHOT)
+            val baseRevision = prior?.payload?.let { runCatching { JSONObject(it).getLong("baseRevision") }.getOrNull() }
+                ?: db.syncRevisionDao().get(uid, profileId, OUTBOX_DOMAIN_SHOPPING, OUTBOX_SNAPSHOT)
+                ?: 0L
             db.syncOutboxDao().upsert(
                 SyncOutboxEntity(
                     operationId = UUID.randomUUID().toString(), ownerUid = uid, profileId = profileId,
                     domain = OUTBOX_DOMAIN_SHOPPING, entityId = OUTBOX_SNAPSHOT, operation = OUTBOX_SNAPSHOT,
-                    payload = null, createdAt = System.currentTimeMillis(),
+                    payload = JSONObject().put("baseRevision", baseRevision).toString(), createdAt = System.currentTimeMillis(),
                 ),
             )
         }
@@ -91,16 +89,37 @@ class ShoppingSyncRepository(
     suspend fun drainOutbox(limit: Int = 100): Boolean {
         var failed = false
         db.syncOutboxDao().oldestForDomain(OUTBOX_DOMAIN_SHOPPING, limit).forEach { operation ->
-            runCatching { saveSnapshot(operation.ownerUid, operation.profileId) }
-                .onSuccess { db.syncOutboxDao().delete(operation.operationId) }
+            runCatching { uploadSnapshot(operation) }
+                .onSuccess { revision ->
+                    db.syncRevisionDao().upsert(SyncRevisionEntity(operation.ownerUid, operation.profileId, OUTBOX_DOMAIN_SHOPPING, OUTBOX_SNAPSHOT, revision))
+                    db.syncOutboxDao().delete(operation.operationId)
+                }
                 .onFailure { error ->
                     failed = true
-                    val failure = SyncFailure.from(error)
+                    val failure = if (error.snapshotConflict()) SyncFailure(SyncFailure.Kind.CONFLICT, false, "SYNC_CONFLICT") else SyncFailure.from(error)
                     SafeDiagnostics.reportSync(SafeDiagnostics.Domain.SHOPPING, failure)
                     db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
                 }
         }
         return !failed && db.syncOutboxDao().countForDomain(OUTBOX_DOMAIN_SHOPPING) == 0
+    }
+
+    private suspend fun uploadSnapshot(operation: SyncOutboxEntity): Long {
+        val expected = operation.payload?.let { runCatching { JSONObject(it).getLong("baseRevision") }.getOrNull() }
+            ?: db.syncRevisionDao().get(operation.ownerUid, operation.profileId, OUTBOX_DOMAIN_SHOPPING, OUTBOX_SNAPSHOT)
+            ?: 0L
+        val local = db.shoppingDao().getAllOnce(operation.ownerUid, operation.profileId).map { it.toRemoteMap() }
+        val ref = financeDocRef(operation.ownerUid, operation.profileId)
+        return firestore.runTransaction { transaction ->
+            val actual = transaction.get(ref).getLong("fieldRevisions.shoppingList") ?: 0L
+            if (actual != expected) throw SnapshotConflictException()
+            transaction.set(
+                ref,
+                mapOf("shoppingList" to local, "fieldRevisions" to mapOf("shoppingList" to expected + 1), "updatedAt" to System.currentTimeMillis()),
+                SetOptions.merge(),
+            )
+            expected + 1
+        }.await()
     }
 }
 

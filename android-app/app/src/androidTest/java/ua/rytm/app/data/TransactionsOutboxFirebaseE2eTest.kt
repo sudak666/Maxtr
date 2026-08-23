@@ -162,6 +162,22 @@ class TransactionsOutboxFirebaseE2eTest {
         val remote = financeRef(profileId).get(Source.SERVER).await().get("shoppingList") as List<*>
         val ids = remote.map { (it as Map<*, *>)["id"] }
         assertEquals(listOf("shop-a"), ids)
+
+        RoomProfileScope.activate(uid, profileId)
+        shopping.queueSnapshot(uid, profileId) {
+            app.database.shoppingDao().upsert(ShoppingItemEntity("shop-a", "Local newer", 2, false, 1L, uid, profileId))
+        }
+        financeRef(profileId).set(
+            mapOf(
+                "shoppingList" to listOf(mapOf("id" to "shop-a", "name" to "Remote newer", "qty" to 2, "done" to false, "createdAt" to 1L)),
+                "fieldRevisions" to mapOf("shoppingList" to 2L),
+            ),
+            com.google.firebase.firestore.SetOptions.merge(),
+        ).await()
+        assertFalse(shopping.drainOutbox())
+        assertEquals(TransactionSyncState.ERROR, shopping.operationState.first())
+        assertEquals("Local newer", app.database.shoppingDao().getAllOnce(uid, profileId).single().name)
+        assertEquals("Remote newer", (((financeRef(profileId).get(Source.SERVER).await().get("shoppingList") as List<*>).single() as Map<*, *>)["name"]))
         RoomProfileScope.activate(uid, profileId)
         app.database.shoppingDao().clearAll(uid, otherProfile)
     }
@@ -181,6 +197,23 @@ class TransactionsOutboxFirebaseE2eTest {
         val remoteDebts = data["debts"] as List<*>
         assertEquals(listOf(11L), remoteDebts.map { ((it as Map<*, *>)["id"] as Number).toLong() })
         assertEquals(11L, (data["currentDebtId"] as Number).toLong())
+
+        RoomProfileScope.activate(uid, profileId)
+        debtSync.queueSnapshot(uid, profileId, 11L) {
+            app.database.debtDao().update(DebtEntity(11L, "Local newer", "", "UAH", 100.0, "", uid, profileId))
+        }
+        debtRef(profileId).set(
+            mapOf(
+                "data" to mapOf("debts" to listOf(mapOf("id" to 11L, "name" to "Remote newer", "note" to "", "currency" to "UAH", "startAmount" to 100.0, "dueDate" to "", "entries" to emptyList<Any>())), "currentDebtId" to 11L),
+                "revision" to 2L,
+            ),
+            com.google.firebase.firestore.SetOptions.merge(),
+        ).await()
+        assertFalse(debtSync.drainOutbox())
+        assertEquals(TransactionSyncState.ERROR, debtSync.operationState.first())
+        assertEquals("Local newer", app.database.debtDao().getAllOnce(uid, profileId).single().name)
+        val conflictDebtData = debtRef(profileId).get(Source.SERVER).await().get("data") as Map<*, *>
+        assertEquals("Remote newer", ((conflictDebtData["debts"] as List<*>).single() as Map<*, *>)["name"])
         RoomProfileScope.activate(uid, profileId)
         app.database.debtDao().clearAll(uid, otherProfile)
     }
@@ -203,6 +236,22 @@ class TransactionsOutboxFirebaseE2eTest {
         assertEquals(listOf("work"), typeIds)
         val days = remote.get("data") as Map<*, *>
         assertEquals(listOf("work"), days["2026-08-22"])
+
+        RoomProfileScope.activate(uid, profileId)
+        shiftsSync.queueSnapshot(uid, profileId) {
+            app.database.shiftTypeDao().update(ShiftTypeEntity("work", "Local newer", "W", "W", 0xff0000, 100.0, 8.0, false, uid, profileId))
+        }
+        shiftsRef(profileId).set(
+            mapOf(
+                "shiftTypes" to listOf(mapOf("id" to "work", "name" to "Remote newer", "short" to "W", "code" to "W", "color" to "#ff0000", "amount" to 100.0, "hours" to 8.0, "isOff" to false)),
+                "revision" to 2L,
+            ),
+            com.google.firebase.firestore.SetOptions.merge(),
+        ).await()
+        assertFalse(shiftsSync.drainOutbox())
+        assertEquals(TransactionSyncState.ERROR, shiftsSync.operationState.first())
+        assertEquals("Local newer", app.database.shiftTypeDao().getAllOnce(uid, profileId).single().name)
+        assertEquals("Remote newer", (((shiftsRef(profileId).get(Source.SERVER).await().get("shiftTypes") as List<*>).single() as Map<*, *>)["name"]))
         RoomProfileScope.activate(uid, profileId)
         app.database.shiftTypeDao().clearAll(uid, otherProfile)
     }

@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import org.json.JSONObject
 import ua.rytm.app.data.local.AutoFillScheduleEntity
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.ShiftDayEntity
 import ua.rytm.app.data.local.ShiftTypeEntity
 import ua.rytm.app.data.local.SyncOutboxEntity
+import ua.rytm.app.data.local.SyncRevisionEntity
 import ua.rytm.app.work.scheduleSyncOutbox
 import java.util.UUID
 
@@ -32,7 +32,6 @@ class ShiftsSyncRepository(
     private val firestore: FirebaseFirestore,
     private val context: Context? = null,
 ) {
-    private val saveMutex = Mutex()
     val operationState: Flow<TransactionSyncState?> = RoomProfileScope.changes.flatMapLatest { scope ->
         db.syncOutboxDao().observe(scope.ownerUid, scope.profileId, OUTBOX_DOMAIN_SHIFTS)
     }.map { operations ->
@@ -50,6 +49,7 @@ class ShiftsSyncRepository(
         if (hasPending(uid, profileId)) return
         val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
+        rememberRevision(uid, profileId, snapshot.getLong("revision") ?: 0L)
         val remoteTypes = snapshot.get("shiftTypes") as? List<*>
         if (snapshot.exists() && remoteTypes != null) {
             val entities = remoteTypes.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteShiftType) }
@@ -73,6 +73,7 @@ class ShiftsSyncRepository(
         if (hasPending(uid, profileId)) return
         val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
+        rememberRevision(uid, profileId, snapshot.getLong("revision") ?: 0L)
         val remoteData = snapshot.get("data") as? Map<*, *>
         if (snapshot.exists() && remoteData != null) {
             val entities = mutableListOf<ShiftDayEntity>()
@@ -103,6 +104,7 @@ class ShiftsSyncRepository(
         if (hasPending(uid, profileId)) return
         val docRef = shiftsDocRef(uid, profileId)
         val snapshot = docRef.get().await()
+        rememberRevision(uid, profileId, snapshot.getLong("revision") ?: 0L)
         val remote = snapshot.get("autoFillSchedule") as? Map<*, *>
         if (snapshot.exists() && remote != null) {
             db.autoFillScheduleDao().upsert(
@@ -133,55 +135,28 @@ class ShiftsSyncRepository(
         }
     }
 
-    suspend fun saveShiftTypes(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val types = db.shiftTypeDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
-        shiftsDocRef(uid, profileId).set(
-            mapOf("shiftTypes" to types, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
-    }
+    suspend fun saveShiftTypes(uid: String, profileId: String = DEFAULT_PROFILE_ID) = queueSnapshot(uid, profileId) {}
 
-    suspend fun saveShiftDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        saveShiftDaysLocked(uid, profileId)
-    }
+    suspend fun saveShiftDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = queueSnapshot(uid, profileId) {}
 
-    suspend fun saveAutoFillSchedule(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val schedule = db.autoFillScheduleDao().getOnce(uid, profileId) ?: AutoFillScheduleEntity(0, false, "", "every", "", uid, profileId)
-        shiftsDocRef(uid, profileId).set(
-            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
-    }
+    suspend fun saveAutoFillSchedule(uid: String, profileId: String = DEFAULT_PROFILE_ID) = queueSnapshot(uid, profileId) {}
 
-    suspend fun saveShiftTypesAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val types = db.shiftTypeDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
-        val days = db.shiftDayDao().getAllOnce(uid, profileId).groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("shiftTypes" to types, "data" to days, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
-    }
+    suspend fun saveShiftTypesAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = queueSnapshot(uid, profileId) {}
 
-    suspend fun saveAutoFillAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
-        val schedule = db.autoFillScheduleDao().getOnce(uid, profileId) ?: AutoFillScheduleEntity(0, false, "", "every", "", uid, profileId)
-        val days = db.shiftDayDao().getAllOnce(uid, profileId).groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "data" to days, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
-    }
-
-    private suspend fun saveShiftDaysLocked(uid: String, profileId: String) {
-        val days = db.shiftDayDao().getAllOnce(uid, profileId).groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("data" to days, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
-    }
+    suspend fun saveAutoFillAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = queueSnapshot(uid, profileId) {}
 
     suspend fun queueSnapshot(uid: String, profileId: String, mutation: suspend () -> Unit) {
         db.withTransaction {
             mutation()
+            val prior = db.syncOutboxDao().getForEntity(uid, profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT)
+            val baseRevision = prior?.payload?.let { runCatching { JSONObject(it).getLong("baseRevision") }.getOrNull() }
+                ?: db.syncRevisionDao().get(uid, profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT)
+                ?: 0L
             db.syncOutboxDao().upsert(
-                SyncOutboxEntity(UUID.randomUUID().toString(), uid, profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT, OUTBOX_SNAPSHOT, null, System.currentTimeMillis()),
+                SyncOutboxEntity(
+                    UUID.randomUUID().toString(), uid, profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT,
+                    OUTBOX_SNAPSHOT, JSONObject().put("baseRevision", baseRevision).toString(), System.currentTimeMillis(),
+                ),
             )
         }
         context?.let(::scheduleSyncOutbox)
@@ -190,11 +165,14 @@ class ShiftsSyncRepository(
     suspend fun drainOutbox(limit: Int = 100): Boolean {
         var failed = false
         db.syncOutboxDao().oldestForDomain(OUTBOX_DOMAIN_SHIFTS, limit).forEach { operation ->
-            runCatching { saveFullSnapshot(operation.ownerUid, operation.profileId) }
-                .onSuccess { db.syncOutboxDao().delete(operation.operationId) }
+            runCatching { uploadFullSnapshot(operation) }
+                .onSuccess { revision ->
+                    db.syncRevisionDao().upsert(SyncRevisionEntity(operation.ownerUid, operation.profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT, revision))
+                    db.syncOutboxDao().delete(operation.operationId)
+                }
                 .onFailure { error ->
                     failed = true
-                    val failure = SyncFailure.from(error)
+                    val failure = if (error.snapshotConflict()) SyncFailure(SyncFailure.Kind.CONFLICT, false, "SYNC_CONFLICT") else SyncFailure.from(error)
                     SafeDiagnostics.reportSync(SafeDiagnostics.Domain.SHIFTS, failure)
                     db.syncOutboxDao().markFailed(operation.operationId, failure.diagnosticCode)
                 }
@@ -202,19 +180,36 @@ class ShiftsSyncRepository(
         return !failed && db.syncOutboxDao().countForDomain(OUTBOX_DOMAIN_SHIFTS) == 0
     }
 
-    private suspend fun saveFullSnapshot(uid: String, profileId: String) = saveMutex.withLock {
-        val types = db.shiftTypeDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
-        val days = db.shiftDayDao().getAllOnce(uid, profileId).groupBy({ it.dateKey }, { it.shiftTypeId })
-        val schedule = db.autoFillScheduleDao().getOnce(uid, profileId)
-            ?: AutoFillScheduleEntity(0, false, "", "every", "", uid, profileId)
-        shiftsDocRef(uid, profileId).set(
-            mapOf("shiftTypes" to types, "data" to days, "autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
+    private suspend fun uploadFullSnapshot(operation: SyncOutboxEntity): Long {
+        val expected = operation.payload?.let { runCatching { JSONObject(it).getLong("baseRevision") }.getOrNull() }
+            ?: db.syncRevisionDao().get(operation.ownerUid, operation.profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT)
+            ?: 0L
+        val types = db.shiftTypeDao().getAllOnce(operation.ownerUid, operation.profileId).map { it.toRemoteMap() }
+        val days = db.shiftDayDao().getAllOnce(operation.ownerUid, operation.profileId).groupBy({ it.dateKey }, { it.shiftTypeId })
+        val schedule = db.autoFillScheduleDao().getOnce(operation.ownerUid, operation.profileId)
+            ?: AutoFillScheduleEntity(0, false, "", "every", "", operation.ownerUid, operation.profileId)
+        val ref = shiftsDocRef(operation.ownerUid, operation.profileId)
+        return firestore.runTransaction { transaction ->
+            val actual = transaction.get(ref).getLong("revision") ?: 0L
+            if (actual != expected) throw SnapshotConflictException()
+            transaction.set(
+                ref,
+                mapOf(
+                    "shiftTypes" to types, "data" to days, "autoFillSchedule" to schedule.toRemoteMap(),
+                    "revision" to expected + 1, "updatedAt" to System.currentTimeMillis(),
+                ),
+                SetOptions.merge(),
+            )
+            expected + 1
+        }.await()
     }
 
     private suspend fun hasPending(uid: String, profileId: String) =
         db.syncOutboxDao().get(uid, profileId, OUTBOX_DOMAIN_SHIFTS).isNotEmpty()
+
+    private suspend fun rememberRevision(uid: String, profileId: String, revision: Long) {
+        db.syncRevisionDao().upsert(SyncRevisionEntity(uid, profileId, OUTBOX_DOMAIN_SHIFTS, OUTBOX_SNAPSHOT, revision))
+    }
 }
 
 internal const val OUTBOX_DOMAIN_SHIFTS = "shifts"
