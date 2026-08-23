@@ -350,7 +350,7 @@ class FinanceViewModel(
                         category = toSave.category,
                         limit = budgets[toSave.category],
                         existingMonthAmountsUah = transactions.asSequence()
-                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.date.startsWith(currentMonthPrefix) }
+                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.date.startsWith(YearMonth.now().toString()) }
                             .map { toUah(it.amount, it.currency) }
                             .toList(),
                         savedAmountUah = toUah(toSave.amount, toSave.currency),
@@ -388,54 +388,15 @@ class FinanceViewModel(
     val isMultiCurrency: Boolean
         get() = wallets.map { it.currency }.distinct().size > 1
 
-    private val currentMonthPrefix: String
-        get() = YearMonth.now().toString() // "2026-08"
-
     val monthIncomeUah: Double
-        get() = transactions
-            .filter { it.type == TxType.INCOME && it.date.startsWith(currentMonthPrefix) }
-            .sumOf { toUah(it.amount, it.currency) }
+        get() = FinanceCalculations.monthlyTotal(transactions, TxType.INCOME, YearMonth.now(), ::toUah)
 
     val monthExpenseUah: Double
-        get() = transactions
-            .filter { it.type == TxType.EXPENSE && it.date.startsWith(currentMonthPrefix) }
-            .sumOf { toUah(it.amount, it.currency) }
+        get() = FinanceCalculations.monthlyTotal(transactions, TxType.EXPENSE, YearMonth.now(), ::toUah)
 
     val isSearchOrFilterActive: Boolean
         get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null
 
-    /** Mirrors renderFinance()'s filter chain: type -> period -> category -> search -> sort newest-first. */
     val filteredTransactions: List<Transaction>
-        get() {
-            var result: List<Transaction> = transactions
-
-            result = when (typeFilter) {
-                TxTypeFilter.ALL -> result
-                TxTypeFilter.INCOME -> result.filter { it.type == TxType.INCOME }
-                TxTypeFilter.EXPENSE -> result.filter { it.type == TxType.EXPENSE }
-                TxTypeFilter.TRANSFER -> result.filter { it.type == TxType.TRANSFER }
-            }
-
-            result = when (periodFilter) {
-                PeriodFilter.DAY -> {
-                    val today = LocalDate.now().toString()
-                    result.filter { it.date == today }
-                }
-                PeriodFilter.MONTH -> result.filter { it.date.startsWith(currentMonthPrefix) }
-                PeriodFilter.ALL -> result
-            }
-
-            categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
-
-            if (search.isNotBlank()) {
-                val q = search.trim().lowercase()
-                fun walletName(id: String?) = wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: ""
-                result = result.filter { t ->
-                    listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
-                        .any { it.lowercase().contains(q) }
-                }
-            }
-
-            return result.sortedByDescending { it.date }
-        }
+        get() = FinanceCalculations.filterTransactions(transactions, wallets, typeFilter, periodFilter, categoryFilter, search)
 }

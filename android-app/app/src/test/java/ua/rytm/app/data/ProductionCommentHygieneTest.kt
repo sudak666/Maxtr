@@ -24,6 +24,11 @@ class ProductionCommentHygieneTest {
         assertTrue("SettingsScreen must remain an orchestrator", screen.readLines().size <= 850)
     }
 
+    @Test fun financeViewModelKeepsPureCalculationsExtracted() {
+        val viewModel = File(findSourceRoot(), "ua/rytm/app/ui/screens/finance/FinanceViewModel.kt")
+        assertTrue("FinanceViewModel must remain orchestration-focused", viewModel.readLines().size <= 420)
+    }
+
     private fun findSourceRoot(): File {
         var current: File? = File(System.getProperty("user.dir")).absoluteFile
         while (current != null) {
