@@ -463,4 +463,14 @@
     <string name="sync_operations_pending">Очікують: %1$d</string>
     <string name="sync_operations_error">Помилки: %1$d</string>
     <string name="sync_operations_synced">Усе синхронізовано</string>
+    <string name="settings_backup_restore">Відновити резервну копію</string>
+    <string name="settings_backup_restore_subtitle">Замінити активний профіль даними з .rytmbackup</string>
+    <string name="settings_backup_restore_password_title">Пароль резервної копії</string>
+    <string name="settings_backup_restore_password_body">Введіть пароль для перевірки файла. Дані ще не змінюватимуться.</string>
+    <string name="settings_backup_restore_preview_title">Підтвердьте заміну профілю</string>
+    <string name="settings_backup_restore_preview_body">Перевірено %1$d записів у %2$d таблицях. Поточні локальні та хмарні дані активного профілю буде замінено.</string>
+    <string name="settings_backup_restore_action">Замінити дані</string>
+    <string name="action_continue">Продовжити</string>
+    <string name="settings_backup_restored">Резервну копію відновлено</string>
+    <string name="settings_backup_restore_failed">Не вдалося відновити копію. Перевірте файл і пароль.</string>
 </resources>

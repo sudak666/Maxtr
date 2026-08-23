@@ -461,4 +461,14 @@
     <string name="sync_operations_pending">Pending: %1$d</string>
     <string name="sync_operations_error">Errors: %1$d</string>
     <string name="sync_operations_synced">All synced</string>
+    <string name="settings_backup_restore">Restore backup</string>
+    <string name="settings_backup_restore_subtitle">Replace the active profile from a .rytmbackup file</string>
+    <string name="settings_backup_restore_password_title">Backup password</string>
+    <string name="settings_backup_restore_password_body">Enter the password to validate the file. No data will be changed yet.</string>
+    <string name="settings_backup_restore_preview_title">Confirm profile replacement</string>
+    <string name="settings_backup_restore_preview_body">Validated %1$d records in %2$d tables. Current local and cloud data for the active profile will be replaced.</string>
+    <string name="settings_backup_restore_action">Replace data</string>
+    <string name="action_continue">Continue</string>
+    <string name="settings_backup_restored">Backup restored</string>
+    <string name="settings_backup_restore_failed">Could not restore backup. Check the file and password.</string>
 </resources>

@@ -133,6 +133,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var backupPassword by remember { mutableStateOf("") }
     var pendingBackupPassword by remember { mutableStateOf<String?>(null) }
     var backupBusy by remember { mutableStateOf(false) }
+    var backupRestorePasswordDialog by remember { mutableStateOf(false) }
+    var pendingRestorePayload by remember { mutableStateOf<ByteArray?>(null) }
+    var pendingRestorePassword by remember { mutableStateOf<CharArray?>(null) }
+    var backupRestorePreview by remember { mutableStateOf<ua.rytm.app.data.BackupPreview?>(null) }
     val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
@@ -151,6 +155,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvImportFailedMessage = stringResource(R.string.settings_csv_import_failed)
     val backupExportedMessage = stringResource(R.string.settings_backup_exported)
     val backupExportFailedMessage = stringResource(R.string.settings_backup_export_failed)
+    val backupRestoredMessage = stringResource(R.string.settings_backup_restored)
+    val backupRestoreFailedMessage = stringResource(R.string.settings_backup_restore_failed)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingMessage by remember { mutableStateOf<String?>(null) }
@@ -234,6 +240,25 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 else csvImportPreview = preview
             } catch (_: Exception) { pendingMessage = csvImportFailedMessage }
             finally { csvBusy = false }
+        }
+    }
+    val backupRestoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        pendingRestorePayload?.fill(0)
+        pendingRestorePayload = null
+        if (uri != null) scope.launch {
+            backupBusy = true
+            try {
+                pendingRestorePayload = context.contentResolver.openInputStream(uri)?.use { it.readBoundedBackup() }
+                    ?: error(backupRestoreFailedMessage)
+                backupPassword = ""
+                backupRestorePasswordDialog = true
+            } catch (_: Exception) {
+                pendingRestorePayload?.fill(0)
+                pendingRestorePayload = null
+                pendingMessage = backupRestoreFailedMessage
+            } finally {
+                backupBusy = false
+            }
         }
     }
     val backupExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -453,6 +478,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     csvExport = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
                     csvImport = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
                     backupExport = { if (!backupBusy) { backupPassword = ""; backupPasswordDialog = true } },
+                    backupRestore = { if (!backupBusy) backupRestoreLauncher.launch(arrayOf("application/octet-stream", "application/zip", "*/*")) },
+                    backupRestoreAvailable = activeProfileOwnerUid == null,
                 ),
             )
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
@@ -610,35 +637,95 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     if (backupPasswordDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!backupBusy) { backupPasswordDialog = false; backupPassword = "" } },
-            title = { Text(stringResource(R.string.settings_backup_password_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.settings_backup_password_body))
-                    OutlinedTextField(
-                        value = backupPassword,
-                        onValueChange = { backupPassword = it.take(128) },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        label = { Text(stringResource(R.string.settings_backup_password_label)) },
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(enabled = backupPassword.length >= 8, onClick = {
-                    pendingBackupPassword = backupPassword
-                    backupPassword = ""
-                    backupPasswordDialog = false
-                    backupExportLauncher.launch("rytm-profile-${java.time.LocalDate.now()}.rytmbackup")
-                }) { Text(stringResource(R.string.settings_backup_create)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { backupPasswordDialog = false; backupPassword = "" }) { Text(stringResource(R.string.action_cancel)) }
+        BackupPasswordDialog(
+            restore = false,
+            password = backupPassword,
+            busy = backupBusy,
+            onPasswordChange = { backupPassword = it },
+            onDismiss = { backupPasswordDialog = false; backupPassword = "" },
+            onConfirm = {
+                pendingBackupPassword = backupPassword
+                backupPassword = ""
+                backupPasswordDialog = false
+                backupExportLauncher.launch("rytm-profile-${java.time.LocalDate.now()}.rytmbackup")
             },
         )
     }
 
+    if (backupRestorePasswordDialog) {
+        BackupPasswordDialog(
+            restore = true,
+            password = backupPassword,
+            busy = backupBusy,
+            onPasswordChange = { backupPassword = it },
+            onDismiss = {
+                backupRestorePasswordDialog = false
+                backupPassword = ""
+                pendingRestorePayload?.fill(0)
+                pendingRestorePayload = null
+            },
+            onConfirm = {
+                val payload = pendingRestorePayload ?: return@BackupPasswordDialog
+                val previewPassword = backupPassword.toCharArray()
+                val restorePassword = backupPassword.toCharArray()
+                backupPassword = ""
+                scope.launch {
+                    backupBusy = true
+                    try {
+                        backupRestorePreview = backupRepository.inspect(payload, previewPassword)
+                        pendingRestorePassword?.fill('\u0000')
+                        pendingRestorePassword = restorePassword
+                        backupRestorePasswordDialog = false
+                    } catch (_: Exception) {
+                        restorePassword.fill('\u0000')
+                        pendingRestorePayload?.fill(0)
+                        pendingRestorePayload = null
+                        pendingMessage = backupRestoreFailedMessage
+                    } finally {
+                        previewPassword.fill('\u0000')
+                        backupBusy = false
+                    }
+                }
+            },
+        )
+    }
+
+    backupRestorePreview?.let { preview ->
+        BackupRestorePreviewDialog(
+            preview = preview,
+            busy = backupBusy,
+            onDismiss = {
+                backupRestorePreview = null
+                pendingRestorePassword?.fill('\u0000')
+                pendingRestorePassword = null
+                pendingRestorePayload?.fill(0)
+                pendingRestorePayload = null
+            },
+            onConfirm = {
+                val accountUid = uid ?: return@BackupRestorePreviewDialog
+                val payload = pendingRestorePayload ?: return@BackupRestorePreviewDialog
+                val password = pendingRestorePassword ?: return@BackupRestorePreviewDialog
+                scope.launch {
+                    backupBusy = true
+                    try {
+                        app.profileSyncCoordinator.restoreOwnProfile(
+                            accountUid, activeProfileId, activeProfileOwnerUid, payload, password,
+                        )
+                        pendingMessage = backupRestoredMessage
+                        backupRestorePreview = null
+                    } catch (_: Exception) {
+                        pendingMessage = backupRestoreFailedMessage
+                    } finally {
+                        password.fill('\u0000')
+                        pendingRestorePassword = null
+                        payload.fill(0)
+                        pendingRestorePayload = null
+                        backupBusy = false
+                    }
+                }
+            },
+        )
+    }
     if (pendingDeleteAccount) {
         AlertDialog(
             onDismissRequest = { if (!authViewModel.isDeletingAccount) pendingDeleteAccount = false },

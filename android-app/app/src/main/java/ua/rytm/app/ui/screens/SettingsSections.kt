@@ -146,6 +146,8 @@ internal data class SettingsFinanceActions(
     val csvExport: () -> Unit,
     val csvImport: () -> Unit,
     val backupExport: () -> Unit,
+    val backupRestore: () -> Unit,
+    val backupRestoreAvailable: Boolean,
 )
 
 private data class FinanceSettingsRow(
@@ -175,6 +177,8 @@ internal fun SettingsFinanceSection(visible: Boolean, actions: SettingsFinanceAc
         FinanceSettingsRow(Icons.Filled.Download, Color(0xFF10B981), R.string.settings_csv_export, R.string.settings_csv_export_subtitle, actions.csvExport),
         FinanceSettingsRow(Icons.Filled.Upload, Color(0xFF3B82F6), R.string.settings_csv_import, R.string.settings_csv_import_subtitle, actions.csvImport),
         FinanceSettingsRow(Icons.Filled.Lock, Color(0xFF8B5CF6), R.string.settings_backup_export, R.string.settings_backup_export_subtitle, actions.backupExport),
+    ) + listOfNotNull(
+        if (actions.backupRestoreAvailable) FinanceSettingsRow(Icons.Filled.Upload, Color(0xFFEF4444), R.string.settings_backup_restore, R.string.settings_backup_restore_subtitle, actions.backupRestore) else null,
     )
     SettingsGroupCard {
         rows.forEach { row ->
