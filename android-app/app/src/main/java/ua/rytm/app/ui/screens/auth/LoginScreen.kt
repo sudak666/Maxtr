@@ -1,7 +1,7 @@
 package ua.rytm.app.ui.screens.auth
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -182,8 +182,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     }
 
                     TermsFooter(
-                        onTerms = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://maxtr-c238f.web.app/terms.html"))) },
-                        onPrivacy = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://maxtr-c238f.web.app/privacy.html"))) },
+                        onTerms = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://maxtr-c238f.web.app/terms.html".toUri())) },
+                        onPrivacy = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://maxtr-c238f.web.app/privacy.html".toUri())) },
                     )
 
                     if (BuildConfig.USE_FIREBASE_EMULATOR) {

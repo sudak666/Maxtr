@@ -29,6 +29,13 @@ class ProductionCommentHygieneTest {
         assertTrue("FinanceViewModel must remain orchestration-focused", viewModel.readLines().size <= 420)
     }
 
+    @Test fun financeScreenKeepsTransactionRowsExtracted() {
+        val finance = File(findSourceRoot(), "ua/rytm/app/ui/screens/finance")
+        assertTrue("FinanceScreen must remain screen-level composition", File(finance, "FinanceScreen.kt").readLines().size <= 350)
+        assertTrue("Finance components must remain presentation-only", File(finance, "FinanceScreenComponents.kt").readLines().size <= 450)
+        assertTrue("TransactionRow must remain a focused component", File(finance, "TransactionRow.kt").readLines().size <= 200)
+    }
+
     private fun findSourceRoot(): File {
         var current: File? = File(System.getProperty("user.dir")).absoluteFile
         while (current != null) {

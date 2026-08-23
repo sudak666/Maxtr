@@ -1,6 +1,7 @@
 package ua.rytm.app.data.local
 
 import android.content.Context
+import android.annotation.SuppressLint
 import java.security.MessageDigest
 
 /** Device-local Monobank credentials encrypted by a non-exportable Android Keystore key. */
@@ -13,12 +14,14 @@ class MonobankTokenStore(context: Context) {
         return cipher.decrypt(encoded)
     }
 
+    @SuppressLint("UseKtx")
     fun write(ownerUid: String, profileId: String, token: String) {
         check(preferences.edit().putString(storageKey(ownerUid, profileId), cipher.encrypt(token)).commit()) {
             "Could not persist Monobank credentials"
         }
     }
 
+    @SuppressLint("UseKtx")
     fun delete(ownerUid: String, profileId: String) {
         check(preferences.edit().remove(storageKey(ownerUid, profileId)).commit()) {
             "Could not delete Monobank credentials"

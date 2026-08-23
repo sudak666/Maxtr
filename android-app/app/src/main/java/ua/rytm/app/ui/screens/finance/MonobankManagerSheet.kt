@@ -1,7 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -99,7 +99,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                 connection == null -> {
                     Text(stringResource(R.string.monobank_intro))
                     TextButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://api.monobank.ua/"))) },
+                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://api.monobank.ua/".toUri())) },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.monobank_get_token)) }
                     OutlinedTextField(

@@ -5,7 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.widget.RemoteViews
 import ua.rytm.app.MainActivity
 import ua.rytm.app.R
@@ -35,4 +35,4 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
 }
 
 internal fun quickActionIntent(context: Context, route: String): Intent =
-    Intent(Intent.ACTION_VIEW, Uri.parse("rytm://$route"), context, MainActivity::class.java)
+    Intent(Intent.ACTION_VIEW, "rytm://$route".toUri(), context, MainActivity::class.java)

@@ -2,7 +2,7 @@ package ua.rytm.app.ui.screens
 
 import android.Manifest
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Build
 import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -203,7 +203,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     fun openExternalUrl(url: String) {
-        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
             .onFailure { pendingMessage = linkOpenFailedMessage }
     }
 
