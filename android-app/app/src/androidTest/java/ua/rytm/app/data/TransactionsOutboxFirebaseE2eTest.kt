@@ -24,6 +24,7 @@ import ua.rytm.app.data.local.AutoFillScheduleEntity
 import ua.rytm.app.data.local.ShiftDayEntity
 import ua.rytm.app.data.local.ShiftTypeEntity
 import ua.rytm.app.data.local.TransactionEntity
+import ua.rytm.app.data.local.WalletEntity
 import ua.rytm.app.data.local.clearActiveProfileTables
 
 @RunWith(AndroidJUnit4::class)
@@ -101,6 +102,46 @@ class TransactionsOutboxFirebaseE2eTest {
         assertTrue(repository.drainOutbox())
         assertEquals(100.0, app.database.transactionDao().getById(original.id, uid, profileId)!!.amount, 0.0)
         assertTrue(ref.get(Source.SERVER).await().exists())
+    }
+
+    @Test fun coldSyncDoesNotBypassPendingTransactionRevision() = runBlocking {
+        val pending = transaction("tx-cold-pending")
+        repository.queueSave(uid, profileId, pending)
+        repository.syncTransactionsOnSignIn(uid, profileId)
+        assertTrue(repository.drainOutbox())
+        assertEquals(1, remoteCollection().get(Source.SERVER).await().size())
+        assertTrue(repository.observeOperationStates(uid, profileId).first().isEmpty())
+    }
+
+    @Test fun financeSnapshotOutboxSurvivesOfflineAndRejectsStaleOverwrite() = runBlocking {
+        val snapshots = FinanceSnapshotOutboxRepository(app.database, firestore)
+        val finance = FinanceSyncRepository(app.database, firestore, snapshots)
+        app.database.walletDao().insert(WalletEntity("wallet-a", "Local", 1L, "UAH", "card", uid, profileId))
+
+        finance.saveWalletsSnapshot(uid, profileId)
+        snapshots.queue(uid, profileId, "budgets", mapOf("Food" to 100.0))
+        assertEquals(TransactionSyncState.PENDING, snapshots.observeState(uid, profileId).first())
+        assertTrue(snapshots.drainOutbox())
+        val firstRemote = financeRef(profileId).get(Source.SERVER).await()
+        assertEquals(1L, firstRemote.getLong("fieldRevisions.wallets"))
+        assertEquals(1L, firstRemote.getLong("fieldRevisions.budgets"))
+        assertEquals(100.0, ((firstRemote.get("budgets") as Map<*, *>)["Food"] as Number).toDouble(), 0.0)
+
+        app.database.walletDao().update(WalletEntity("wallet-a", "Offline edit", 1L, "UAH", "card", uid, profileId))
+        finance.saveWalletsSnapshot(uid, profileId)
+        financeRef(profileId).set(
+            mapOf(
+                "wallets" to listOf(mapOf("id" to "wallet-a", "name" to "Remote edit", "color" to "#000001", "currency" to "UAH", "icon" to "card")),
+                "fieldRevisions" to mapOf("wallets" to 2L),
+            ),
+            com.google.firebase.firestore.SetOptions.merge(),
+        ).await()
+
+        finance.syncWalletsOnSignIn(uid, profileId)
+        assertEquals("Offline edit", app.database.walletDao().getAllOnce(uid, profileId).single().name)
+        assertFalse(snapshots.drainOutbox())
+        assertEquals(TransactionSyncState.ERROR, snapshots.observeState(uid, profileId).first())
+        assertEquals("Remote edit", ((financeRef(profileId).get(Source.SERVER).await().get("wallets") as List<*>).single() as Map<*, *>)["name"])
     }
 
     @Test fun shoppingSnapshotSurvivesProfileSwitchWithoutCrossProfileLeak() = runBlocking {

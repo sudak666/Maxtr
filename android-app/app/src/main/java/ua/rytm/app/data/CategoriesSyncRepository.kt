@@ -28,7 +28,12 @@ import java.util.UUID
 // out subcategories/categoryIcons/budgets/tags/etc., none of which Android has
 // Room models for yet (chesno not done, same disclosed scope as wallets/shift
 // types before it).
-class CategoriesSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+class CategoriesSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+    private val transactionsOutbox: TransactionsSyncRepository = TransactionsSyncRepository(db, firestore),
+) {
 
     private val saveMutex = Mutex()
 
@@ -39,7 +44,9 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteCategories = snapshot.get("categories") as? Map<*, *>
-        if (snapshot.exists() && remoteCategories != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "categories", snapshot.getLong("fieldRevisions.categories") ?: 0L)
+        if (snapshot.exists() && remoteCategories != null && outbox.hasPending(uid, profileId, "categories")) return
+        if (snapshot.exists() && remoteCategories != null && !outbox.hasPending(uid, profileId, "categories")) {
             // Remote wins on cold sign-in — same bootstrap direction as wallets/shift types.
             val entities = mutableListOf<CategoryEntity>()
             (remoteCategories["income"] as? List<*>)?.forEach { name ->
@@ -74,7 +81,9 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteSubs = snapshot.get("subcategories") as? Map<*, *>
-        if (snapshot.exists() && remoteSubs != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "subcategories", snapshot.getLong("fieldRevisions.subcategories") ?: 0L)
+        if (snapshot.exists() && remoteSubs != null && outbox.hasPending(uid, profileId, "subcategories")) return
+        if (snapshot.exists() && remoteSubs != null && !outbox.hasPending(uid, profileId, "subcategories")) {
             val entities = mutableListOf<SubcategoryEntity>()
             remoteSubs.forEach { (key, names) ->
                 val parts = (key as? String)?.split(":", limit = 2) ?: return@forEach
@@ -104,7 +113,9 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteIcons = snapshot.get("categoryIcons") as? Map<*, *>
-        if (snapshot.exists() && remoteIcons != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "categoryIcons", snapshot.getLong("fieldRevisions.categoryIcons") ?: 0L)
+        if (snapshot.exists() && remoteIcons != null && outbox.hasPending(uid, profileId, "categoryIcons")) return
+        if (snapshot.exists() && remoteIcons != null && !outbox.hasPending(uid, profileId, "categoryIcons")) {
             val entities = remoteIcons.mapNotNull { (name, icon) ->
                 val categoryName = name as? String ?: return@mapNotNull null
                 val iconName = icon as? String ?: return@mapNotNull null
@@ -124,40 +135,29 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             "income" to local.filter { it.type == "INCOME" }.map { it.name },
             "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
         )
-        financeDocRef(uid, profileId).set(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        outbox.queue(uid, profileId, "categories", remote)
     }
 
     suspend fun saveSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.subcategoryDao().getAllOnce(uid, profileId).groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
-        financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        outbox.queue(uid, profileId, "subcategories", remote)
     }
 
     suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.categoryIconDao().getAllOnce(uid, profileId).associate { it.categoryName to it.iconName }
-        financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        outbox.queue(uid, profileId, "categoryIcons", remote)
     }
 
     suspend fun saveAllCategorySnapshots(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val categories = db.categoryDao().getAllOnce(uid, profileId)
         val subcategories = db.subcategoryDao().getAllOnce(uid, profileId)
         val icons = db.categoryIconDao().getAllOnce(uid, profileId)
-        financeDocRef(uid, profileId).set(
-            mapOf(
-                "categories" to mapOf(
-                    "income" to categories.filter { it.type == "INCOME" }.map { it.name },
-                    "expense" to categories.filter { it.type == "EXPENSE" }.map { it.name },
-                ),
-                "subcategories" to subcategories.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name }),
-                "categoryIcons" to icons.associate { it.categoryName to it.iconName },
-                "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).await()
-        val txCollection = financeDocRef(uid, profileId).collection("transactions")
-        db.transactionDao().getAllOnce(uid, profileId).chunked(450).forEach { chunk ->
-            val batch = firestore.batch()
-            chunk.forEach { tx -> batch.set(txCollection.document(tx.id), tx.toRemoteMap()) }
-            batch.commit().await()
-        }
+        outbox.queue(uid, profileId, "categories", mapOf(
+            "income" to categories.filter { it.type == "INCOME" }.map { it.name },
+            "expense" to categories.filter { it.type == "EXPENSE" }.map { it.name },
+        ))
+        outbox.queue(uid, profileId, "subcategories", subcategories.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name }))
+        outbox.queue(uid, profileId, "categoryIcons", icons.associate { it.categoryName to it.iconName })
+        transactionsOutbox.queueSaves(uid, profileId, db.transactionDao().getAllOnce(uid, profileId))
     }
 }

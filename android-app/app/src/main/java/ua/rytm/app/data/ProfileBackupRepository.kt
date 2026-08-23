@@ -15,7 +15,7 @@ class ProfileBackupRepository(private val db: RytmDatabase) {
     suspend fun export(password: CharArray): ByteArray {
         val ownerUid = RoomProfileScope.ownerUid
         val profileId = RoomProfileScope.profileId
-        val root = JSONObject().put("format", BACKUP_FORMAT).put("schema", 18).put("tables", JSONObject())
+        val root = JSONObject().put("format", BACKUP_FORMAT).put("schema", 19).put("tables", JSONObject())
         val tables = root.getJSONObject("tables")
         db.withTransaction {
             PROFILE_TABLES.forEach { table ->
@@ -42,7 +42,7 @@ class ProfileBackupRepository(private val db: RytmDatabase) {
     private suspend fun restorePlaintext(plaintext: ByteArray): Int {
         val root = try { JSONObject(plaintext.toString(Charsets.UTF_8)) }
         catch (error: Exception) { throw InvalidBackupException("Invalid backup JSON", error) }
-        if (root.optInt("format") != BACKUP_FORMAT || root.optInt("schema") !in 16..18) {
+        if (root.optInt("format") != BACKUP_FORMAT || root.optInt("schema") !in 16..19) {
             throw InvalidBackupException("Unsupported backup format")
         }
         val tables = root.optJSONObject("tables") ?: throw InvalidBackupException("Missing backup tables")

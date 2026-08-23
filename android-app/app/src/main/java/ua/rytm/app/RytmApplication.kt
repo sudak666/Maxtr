@@ -17,6 +17,7 @@ import ua.rytm.app.data.WidgetSettingsSyncRepository
 import ua.rytm.app.data.DebtRepository
 import ua.rytm.app.data.DebtSyncRepository
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.FinanceSnapshotOutboxRepository
 import ua.rytm.app.data.FinanceSyncRepository
 import ua.rytm.app.data.GoalsSyncRepository
 import ua.rytm.app.data.RecurringSyncRepository
@@ -84,33 +85,49 @@ class RytmApplication : Application() {
     }
 
     val database: RytmDatabase by lazy {
-        // Pre-launch, no real users yet (CLAUDE.md convention) — a destructive
-        // fallback across local schema bumps is fine; there's no user data to
-        // protect through a real migration path.
         Room.databaseBuilder(this, RytmDatabase::class.java, "rytm.db")
             .addMigrations(*RytmMigrations.ALL)
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
+    val financeSnapshotOutboxRepository: FinanceSnapshotOutboxRepository by lazy {
+        FinanceSnapshotOutboxRepository(database, FirebaseFirestore.getInstance(), this)
+    }
     val shoppingRepository: ShoppingRepository by lazy { ShoppingRepository(database) }
     val shiftsRepository: ShiftsRepository by lazy { ShiftsRepository(database, shiftsSyncRepository) }
     val debtRepository: DebtRepository by lazy { DebtRepository(database) }
     val settingsStore: SettingsStore by lazy { SettingsStore(this) }
     val pinStore: PinStore by lazy { PinStore(this) }
-    val financeSyncRepository: FinanceSyncRepository by lazy { FinanceSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val financeSyncRepository: FinanceSyncRepository by lazy {
+        FinanceSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
     val shiftsSyncRepository: ShiftsSyncRepository by lazy { ShiftsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
-    val categoriesSyncRepository: CategoriesSyncRepository by lazy { CategoriesSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val categoriesSyncRepository: CategoriesSyncRepository by lazy {
+        CategoriesSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository, transactionsSyncRepository)
+    }
     val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance(), this) }
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance(), this) }
-    val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val budgetsSyncRepository: BudgetsSyncRepository by lazy {
+        BudgetsSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
+    val tagsSyncRepository: TagsSyncRepository by lazy {
+        TagsSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository, transactionsSyncRepository)
+    }
+    val recurringSyncRepository: RecurringSyncRepository by lazy {
+        RecurringSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
+    val goalsSyncRepository: GoalsSyncRepository by lazy {
+        GoalsSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
+    val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy {
+        CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
     val monobankRepository: MonobankRepository by lazy { MonobankRepository(database, FirebaseFirestore.getInstance(), FirebaseAuth.getInstance(), MonobankTokenStore(this)) }
     val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
-    val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val autoRulesSyncRepository: AutoRulesSyncRepository by lazy {
+        AutoRulesSyncRepository(database, FirebaseFirestore.getInstance(), financeSnapshotOutboxRepository)
+    }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }

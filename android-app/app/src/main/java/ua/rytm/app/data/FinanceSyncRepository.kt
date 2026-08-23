@@ -3,8 +3,6 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.WalletEntity
 
@@ -24,9 +22,11 @@ import ua.rytm.app.data.local.WalletEntity
 // completely alone on the remote doc. `color` is written/read as the PWA's own
 // "#rrggbb" hex string, not Android's internal ARGB Long, so a wallet created
 // on either platform renders correctly on the other.
-class FinanceSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
-
-    private val walletSaveMutex = Mutex()
+class FinanceSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+) {
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -35,7 +35,9 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteWallets = snapshot.get("wallets") as? List<*>
-        if (snapshot.exists() && remoteWallets != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "wallets", snapshot.getLong("fieldRevisions.wallets") ?: 0L)
+        if (snapshot.exists() && remoteWallets != null && outbox.hasPending(uid, profileId, "wallets")) return
+        if (snapshot.exists() && remoteWallets != null && !outbox.hasPending(uid, profileId, "wallets")) {
             // Remote wins on cold sign-in — same bootstrap direction as the PWA's
             // fbLoadNow() (load-then-render), just without the continuous sync after.
             val entities = remoteWallets.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteWallet) }
@@ -54,16 +56,8 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
 
     /** Serializes Room snapshots so an older write can never overtake a newer wallet edit. */
     suspend fun saveWalletsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
-        walletSaveMutex.withLock {
-            val wallets = db.walletDao().getAllOnce(uid, profileId)
-            financeDocRef(uid, profileId).set(
-                mapOf(
-                    "wallets" to wallets.map { it.toRemoteMap() },
-                    "updatedAt" to System.currentTimeMillis(),
-                ),
-                SetOptions.merge(),
-            ).await()
-        }
+        val wallets = db.walletDao().getAllOnce(uid, profileId)
+        outbox.queue(uid, profileId, "wallets", wallets.map { it.toRemoteMap() })
     }
 }
 

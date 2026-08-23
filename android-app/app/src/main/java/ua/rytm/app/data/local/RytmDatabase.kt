@@ -11,8 +11,9 @@ import androidx.room.withTransaction
         SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
         CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class, AutoRuleEntity::class,
         SyncOutboxEntity::class,
+        SyncRevisionEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = true,
 )
 abstract class RytmDatabase : RoomDatabase() {
@@ -34,6 +35,7 @@ abstract class RytmDatabase : RoomDatabase() {
     abstract fun currencyRateDao(): CurrencyRateDao
     abstract fun autoRuleDao(): AutoRuleDao
     abstract fun syncOutboxDao(): SyncOutboxDao
+    abstract fun syncRevisionDao(): SyncRevisionDao
 }
 
 suspend fun RytmDatabase.adoptLegacyScope(ownerUid: String, profileId: String) = withTransaction {
@@ -73,10 +75,12 @@ suspend fun RytmDatabase.clearActiveProfileTables() {
     autoFillScheduleDao().clearAll()
     autoRuleDao().clearAll()
     syncOutboxDao().clearScope(RoomProfileScope.ownerUid, RoomProfileScope.profileId)
+    syncRevisionDao().clearScope(RoomProfileScope.ownerUid, RoomProfileScope.profileId)
 }
 
 /** Privacy-cache/account removal path: erases every retained offline profile. */
 suspend fun RytmDatabase.clearAllProfileScopedTables() = withTransaction {
     PROFILE_TABLES.forEach { table -> openHelper.writableDatabase.execSQL("DELETE FROM `$table`") }
     openHelper.writableDatabase.execSQL("DELETE FROM `sync_outbox`")
+    openHelper.writableDatabase.execSQL("DELETE FROM `sync_revisions`")
 }

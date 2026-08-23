@@ -506,12 +506,14 @@ private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int, onBulkEdit: ()
             Column(horizontalAlignment = Alignment.End) {
                 Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val errors = vm.transactionSyncStates.values.count { it == TransactionSyncState.ERROR }
+                val operationErrors = errors + if (vm.financeSnapshotSyncState == TransactionSyncState.ERROR) 1 else 0
+                val pending = vm.transactionSyncStates.size + if (vm.financeSnapshotSyncState == TransactionSyncState.PENDING) 1 else 0
                 val status = when {
-                    errors > 0 -> stringResource(R.string.sync_operations_error, errors)
-                    vm.transactionSyncStates.isNotEmpty() -> stringResource(R.string.sync_operations_pending, vm.transactionSyncStates.size)
+                    operationErrors > 0 -> stringResource(R.string.sync_operations_error, operationErrors)
+                    pending > 0 -> stringResource(R.string.sync_operations_pending, pending)
                     else -> stringResource(R.string.sync_operations_synced)
                 }
-                Text(status, style = MaterialTheme.typography.labelSmall, color = if (errors > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(status, style = MaterialTheme.typography.labelSmall, color = if (operationErrors > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             Text(pluralStringResource(R.plurals.transaction_selected_count, vm.selectedTransactionIds.size, vm.selectedTransactionIds.size), fontWeight = FontWeight.Bold)

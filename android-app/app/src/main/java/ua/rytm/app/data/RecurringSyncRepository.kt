@@ -3,8 +3,6 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.RecurringEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -18,9 +16,11 @@ import ua.rytm.app.data.local.RytmDatabase
 // established for `categories`/`subcategories` — RecurringEntity itself stores
 // TxType.name (uppercase), see that entity's own doc comment. Uses
 // SetOptions.merge() touching only `recurring`/`updatedAt`.
-class RecurringSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
-
-    private val saveMutex = Mutex()
+class RecurringSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+) {
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -29,7 +29,9 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteRecurring = snapshot.get("recurring") as? List<*>
-        if (snapshot.exists() && remoteRecurring != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "recurring", snapshot.getLong("fieldRevisions.recurring") ?: 0L)
+        if (snapshot.exists() && remoteRecurring != null && outbox.hasPending(uid, profileId, "recurring")) return
+        if (snapshot.exists() && remoteRecurring != null && !outbox.hasPending(uid, profileId, "recurring")) {
             val entities = remoteRecurring.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteRecurring) }
                 .map { it.copy(ownerUid = uid, profileId = profileId) }
             db.recurringDao().replaceAll(entities, uid, profileId)
@@ -42,12 +44,9 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
         }
     }
 
-    suspend fun saveRecurringSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+    suspend fun saveRecurringSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         val recurring = db.recurringDao().getAllOnce(uid, profileId)
-        financeDocRef(uid, profileId).set(
-            mapOf("recurring" to recurring.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
+        outbox.queue(uid, profileId, "recurring", recurring.map { it.toRemoteMap() })
     }
 }
 

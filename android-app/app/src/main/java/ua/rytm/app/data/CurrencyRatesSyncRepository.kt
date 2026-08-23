@@ -1,7 +1,6 @@
 package ua.rytm.app.data
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,7 +19,11 @@ import ua.rytm.app.data.local.RytmDatabase
 // from a bare "no remote doc yet" bootstrap branch — so an empty/missing
 // remote value here just means the app falls back to SEED_RATES client-side
 // (see FinanceRepository.convertCurrency()), not something to seed back.
-class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+class CurrencyRatesSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+) {
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -29,7 +32,9 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteRates = snapshot.get("currencyRates") as? Map<*, *>
-        if (remoteRates != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "currencyRates", snapshot.getLong("fieldRevisions.currencyRates") ?: 0L)
+        if (remoteRates != null && outbox.hasPending(uid, profileId, "currencyRates")) return
+        if (remoteRates != null && !outbox.hasPending(uid, profileId, "currencyRates")) {
             val entities = remoteRates.mapNotNull { (code, rate) ->
                 val c = code as? String ?: return@mapNotNull null
                 val r = (rate as? Number)?.toDouble() ?: return@mapNotNull null
@@ -80,7 +85,7 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
 
     private suspend fun persist(uid: String, profileId: String, rates: Map<String, Double>) {
         db.currencyRateDao().replaceAll(rates.map { CurrencyRateEntity(it.key, it.value, uid, profileId) }, uid, profileId)
-        financeDocRef(uid, profileId).set(mapOf("currencyRates" to rates, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        outbox.queue(uid, profileId, "currencyRates", rates)
     }
 
     private suspend fun fetchJsonArray(url: String): JSONArray = withContext(Dispatchers.IO) {

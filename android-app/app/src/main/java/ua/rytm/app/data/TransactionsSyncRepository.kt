@@ -63,36 +63,8 @@ class TransactionsSyncRepository(
             // device's local transactions up as the seed, chunked the same way
             // js/firebase-sync.js's batchWriteTransactions() is (Firestore batches
             // cap at 500 ops; well under that here).
-            val local = db.transactionDao().getAllOnce(uid, profileId)
-            local.chunked(450).forEach { chunk ->
-                val batch = firestore.batch()
-                chunk.forEach { tx -> batch.set(colRef.document(tx.id), tx.toRemoteMap()) }
-                batch.commit().await()
-            }
-        }
-    }
-
-    suspend fun saveTransaction(uid: String, profileId: String, transaction: TransactionEntity) {
-        txCollectionRef(uid, profileId).document(transaction.id).set(transaction.toRemoteMap()).await()
-    }
-
-    suspend fun deleteTransaction(uid: String, profileId: String, id: String) {
-        txCollectionRef(uid, profileId).document(id).delete().await()
-    }
-
-    suspend fun deleteTransactions(uid: String, profileId: String, ids: Collection<String>) {
-        ids.chunked(450).forEach { chunk ->
-            val batch = firestore.batch()
-            chunk.forEach { id -> batch.delete(txCollectionRef(uid, profileId).document(id)) }
-            batch.commit().await()
-        }
-    }
-
-    suspend fun saveTransactions(uid: String, profileId: String, transactions: List<TransactionEntity>) {
-        transactions.chunked(450).forEach { chunk ->
-            val batch = firestore.batch()
-            chunk.forEach { tx -> batch.set(txCollectionRef(uid, profileId).document(tx.id), tx.toRemoteMap()) }
-            batch.commit().await()
+            val pendingIds = db.syncOutboxDao().get(uid, profileId, OUTBOX_DOMAIN).mapTo(mutableSetOf()) { it.entityId }
+            queueSaves(uid, profileId, db.transactionDao().getAllOnce(uid, profileId).filterNot { it.id in pendingIds })
         }
     }
 

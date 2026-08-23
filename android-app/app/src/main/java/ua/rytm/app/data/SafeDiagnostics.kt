@@ -4,7 +4,7 @@ import android.util.Log
 
 /** Privacy boundary: diagnostics accept enums/codes only, never Throwable or user data. */
 object SafeDiagnostics {
-    enum class Domain { PROFILE, TRANSACTIONS, SHOPPING, DEBT, SHIFTS }
+    enum class Domain { PROFILE, FINANCE, TRANSACTIONS, SHOPPING, DEBT, SHIFTS }
 
     fun reportSync(domain: Domain, failure: SyncFailure) {
         Log.w(TAG, syncLine(domain, failure))

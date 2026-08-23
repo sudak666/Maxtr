@@ -15,7 +15,12 @@ import ua.rytm.app.data.local.TransactionEntity
 // `color` round-trips as the PWA's own "#rrggbb" hex string, same convention
 // as FinanceSyncRepository's wallets. Uses SetOptions.merge() touching only
 // `tags`/`updatedAt`.
-class TagsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
+class TagsSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+    private val transactionsOutbox: TransactionsSyncRepository = TransactionsSyncRepository(db, firestore),
+) {
     private val saveMutex = Mutex()
 
     private fun financeDocRef(uid: String, profileId: String) =
@@ -25,7 +30,9 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteTags = snapshot.get("tags") as? List<*>
-        if (snapshot.exists() && remoteTags != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "tags", snapshot.getLong("fieldRevisions.tags") ?: 0L)
+        if (snapshot.exists() && remoteTags != null && outbox.hasPending(uid, profileId, "tags")) return
+        if (snapshot.exists() && remoteTags != null && !outbox.hasPending(uid, profileId, "tags")) {
             val entities = remoteTags.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteTag) }
                 .map { it.copy(ownerUid = uid, profileId = profileId) }
             db.tagDao().replaceAll(entities, uid, profileId)
@@ -40,9 +47,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
 
     suspend fun saveTagsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val tags = db.tagDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
-        financeDocRef(uid, profileId).set(
-            mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
+        outbox.queue(uid, profileId, "tags", tags)
     }
 
     suspend fun saveTagsAndChangedTransactions(
@@ -50,14 +55,9 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         profileId: String = DEFAULT_PROFILE_ID,
         changedTransactions: List<TransactionEntity>,
     ) = saveMutex.withLock {
-        val batch = firestore.batch()
-        val financeRef = financeDocRef(uid, profileId)
         val tags = db.tagDao().getAllOnce(uid, profileId).map { it.toRemoteMap() }
-        batch.set(financeRef, mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge())
-        val transactions = financeRef.collection("transactions")
-        changedTransactions.forEach { tx -> batch.set(transactions.document(tx.id), tx.toRemoteMap()) }
-        require(changedTransactions.size <= 499) { "Too many tagged transactions for one atomic update" }
-        batch.commit().await()
+        outbox.queue(uid, profileId, "tags", tags)
+        transactionsOutbox.queueSaves(uid, profileId, changedTransactions)
     }
 }
 

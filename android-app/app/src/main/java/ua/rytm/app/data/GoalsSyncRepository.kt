@@ -3,8 +3,6 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.GoalEntity
 import ua.rytm.app.data.local.RytmDatabase
 
@@ -13,9 +11,11 @@ import ua.rytm.app.data.local.RytmDatabase
 // targetDate}]` — confirmed by reading js/goals-profile.js's
 // confirmAddGoal()). Field names round-trip as-is, no upper/lowercase
 // translation needed (unlike recurring's type field).
-class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: FirebaseFirestore) {
-
-    private val saveMutex = Mutex()
+class GoalsSyncRepository(
+    private val db: RytmDatabase,
+    private val firestore: FirebaseFirestore,
+    private val outbox: FinanceSnapshotOutboxRepository = FinanceSnapshotOutboxRepository(db, firestore),
+) {
 
     private fun financeDocRef(uid: String, profileId: String) =
         firestore.collection("users").document(uid).collection("max_tracker").document(profileDocName("finance", profileId))
@@ -24,7 +24,9 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteGoals = snapshot.get("goals") as? List<*>
-        if (snapshot.exists() && remoteGoals != null) {
+        outbox.rememberRemoteRevision(uid, profileId, "goals", snapshot.getLong("fieldRevisions.goals") ?: 0L)
+        if (snapshot.exists() && remoteGoals != null && outbox.hasPending(uid, profileId, "goals")) return
+        if (snapshot.exists() && remoteGoals != null && !outbox.hasPending(uid, profileId, "goals")) {
             val entities = remoteGoals.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteGoal) }
                 .map { it.copy(ownerUid = uid, profileId = profileId) }
             db.goalDao().replaceAll(entities, uid, profileId)
@@ -37,12 +39,9 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
         }
     }
 
-    suspend fun saveGoalsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+    suspend fun saveGoalsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         val goals = db.goalDao().getAllOnce(uid, profileId)
-        financeDocRef(uid, profileId).set(
-            mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).await()
+        outbox.queue(uid, profileId, "goals", goals.map { it.toRemoteMap() })
     }
 }
 

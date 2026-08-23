@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.FinanceSnapshotOutboxRepository
 import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.TransactionSyncState
 import ua.rytm.app.data.local.ActiveProfileStore
@@ -37,13 +38,14 @@ data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any>
 class FinanceViewModel(
     private val repository: FinanceRepository,
     private val syncRepository: TransactionsSyncRepository,
+    private val snapshotOutbox: FinanceSnapshotOutboxRepository,
     private val auth: FirebaseAuth,
     private val activeProfileStore: ActiveProfileStore,
 ) : ViewModel() {
 
     companion object {
         fun factory(app: RytmApplication) = viewModelFactory {
-            initializer { FinanceViewModel(app.financeRepository, app.transactionsSyncRepository, FirebaseAuth.getInstance(), app.activeProfileStore) }
+            initializer { FinanceViewModel(app.financeRepository, app.transactionsSyncRepository, app.financeSnapshotOutboxRepository, FirebaseAuth.getInstance(), app.activeProfileStore) }
         }
     }
 
@@ -68,6 +70,8 @@ class FinanceViewModel(
         private set
     var transactionSyncStates by mutableStateOf<Map<String, TransactionSyncState>>(emptyMap())
         private set
+    var financeSnapshotSyncState by mutableStateOf<TransactionSyncState?>(null)
+        private set
 
     private fun markLoaded() { loading = !(walletsLoaded && transactionsLoaded); loadFailed = false }
     private fun markLoadFailed() { loading = false; loadFailed = true }
@@ -84,6 +88,7 @@ class FinanceViewModel(
         repository.currencyRates.onEach { currencyRates = it }.launchIn(viewModelScope)
         repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
         syncRepository.operationStates.onEach { transactionSyncStates = it }.launchIn(viewModelScope)
+        snapshotOutbox.operationState.onEach { financeSnapshotSyncState = it }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
