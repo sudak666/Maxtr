@@ -240,9 +240,7 @@ private fun EmptyDebtState() {
     }
 }
 
-// Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
-// soft brand-purple glow shadow, not a flat Card — same treatment
-// FinanceScreen's HeroBalanceCard (step 38) and Shifts' HeroMetric (step 39) got.
+// Matches the shared gradient hero treatment used by primary metrics.
 @Composable
 private fun HeroBalance(cd: Debt) {
     val shape = MaterialTheme.shapes.large
@@ -490,11 +488,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->
-                    // Real bug found while testing: comparing against autoFillBalance(amount)
-                    // AFTER reassigning amount==new made the "did the user manually edit
-                    // balance away from auto-fill" check compare the new value to itself,
-                    // so auto-fill silently froze after the very first keystroke. Capture
-                    // whether balance was still following auto-fill BEFORE updating amount.
+                    // Preserve auto-fill only while the balance still follows the prior amount.
                     val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount)
                     amount = new
                     if (stillAutoFilled) balance = viewModel.autoFillBalance(new)

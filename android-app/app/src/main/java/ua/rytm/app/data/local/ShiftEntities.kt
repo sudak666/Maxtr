@@ -74,11 +74,7 @@ interface ShiftTypeDao {
     suspend fun count(ownerUid: String = RoomProfileScope.ownerUid, profileId: String = RoomProfileScope.profileId): Int
 }
 
-// Single-row config table (fixed id=0) mirroring js/state.js's
-// AppState.autoFillSchedule — {enabled, typeId, pattern, anchorDate}, the
-// one field of the `shifts` Firestore doc that step 8 deliberately left
-// unimplemented ("chesno not done"). anchorDate is stored as "yyyy-MM-dd"
-// text, same string format the rest of this table's dateKey columns use.
+// Single-row auto-fill configuration. `anchorDate` uses ISO local-date text.
 @Entity(tableName = "autofill_schedule", primaryKeys = ["ownerUid", "profileId", "id"])
 data class AutoFillScheduleEntity(
     val id: Int = 0,

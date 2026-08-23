@@ -19,10 +19,7 @@ import ua.rytm.app.data.TransactionSyncState
 import java.time.LocalDate
 import java.time.YearMonth
 
-// Mirrors js/calendar.js's renderCalendar()/openModal()/saveModalSelection()/
-// applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
-// step 39 (quick-fill/autofill/6-month chart, previously deferred by
-// SHIFTS_SCREEN_SPEC.md's step 8 scoping).
+// Owns calendar editing, quick fill, auto-fill and six-month chart state.
 class ShiftsViewModel(
     private val repository: ShiftsRepository,
     syncRepository: ShiftsSyncRepository,

@@ -18,12 +18,6 @@ import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.data.RedeemInviteResult
 import ua.rytm.app.data.SharedMemberInfo
 
-// Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()):
-// addProfile()/renameProfile()/deleteProfile()/switchProfile() for this
-// account's own profiles, plus (step 32) shareCurrentProfile()/
-// redeemSharedInvite()/leaveSharedProfile() for joining/hosting a shared
-// profile — see ProfilesRepository's own doc comment for why granular
-// editor/viewer roles aren't ported yet.
 class ProfilesManagerViewModel(private val app: RytmApplication, private val uid: String) : ViewModel() {
 
     companion object {
@@ -48,18 +42,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         private set
     var pendingDeleteId by mutableStateOf<String?>(null)
         private set
-    // The full ProfileMeta, not just its id — a bare id is ambiguous
-    // between a joined shared profile and this account's own profile when
-    // both happen to have the same id (the common "default"-vs-"default"
-    // case). A real bug caught during this step's own verification: an
-    // earlier version stored only the id and re-resolved it via
-    // `profiles.find { it.id == id }` in confirmSwitch(), which silently
-    // matched the wrong (own, not shared) profile and made a "switch to
-    // shared profile" look like it succeeded while actually never leaving
-    // the account's own data — see ANDROID_MIGRATION.md's step 32 for the
-    // full account of how this was caught (identical-looking demo data
-    // masked it at first, since a fresh account also seeds the same demo
-    // numbers locally).
+    // The full metadata disambiguates equal ids owned by different accounts.
     var pendingSwitch by mutableStateOf<ProfileMeta?>(null)
         private set
     var pendingLeave by mutableStateOf<ProfileMeta?>(null)
@@ -100,16 +83,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
     fun isRowActive(profile: ProfileMeta): Boolean =
         profile.id == activeProfileId && (if (profile.isShared) profile.ownerUid == activeProfileOwnerUid else activeProfileOwnerUid == null)
 
-    // A real crash caught during this step's own verification, not a guess:
-    // Firestore's DocumentReference.get() can throw
-    // FirebaseFirestoreException("client is offline") straight through
-    // .await() on a transient network blip (e.g. right as this sheet opens),
-    // and with no try/catch that crashed the whole app instead of just
-    // failing this one reload. This wraps the pre-existing (step 30)
-    // unguarded call, not something step 32 introduced — see
-    // ANDROID_MIGRATION.md's step 32 for the fuller account and why a
-    // codebase-wide sweep of every other unguarded getDoc().await() call is
-    // out of scope for this step.
+    // Firestore reads may fail while offline; keep the sheet mounted and retryable.
     private fun reload() {
         viewModelScope.launch {
             loading = true
@@ -174,17 +148,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
 
     fun cancelSwitch() { pendingSwitch = null }
 
-    // Returns only after the new profile's full cold-sync has actually
-    // finished — the caller (ProfilesManagerSheet) awaits this before
-    // dismissing itself, so the sheet's own loading spinner covers the
-    // whole switch instead of closing early over a still-loading screen.
-    // Returns true only on real success — the caller must NOT treat this as
-    // "done, dismiss and show a success toast" without checking the return
-    // value first. A real bug caught during step 30's own verification: the
-    // first version of this function swallowed its own exception into
-    // errorMessage but the sheet still dismissed itself right after calling
-    // it regardless, so a failed switch showed a false success toast with
-    // the error banner never actually seen.
+    // The caller dismisses only after the full switch and sync succeeds.
     suspend fun confirmSwitch(): Boolean {
         val target = pendingSwitch ?: return false
         pendingSwitch = null

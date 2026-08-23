@@ -6,23 +6,8 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-// Mirrors js/state.js's AppState.profilesMeta / js/color-picker.js's
-// addProfile()/renameProfile()/deleteProfile() — `profiles_meta` (account-
-// wide, never `@profileId`-suffixed, confirmed by reading
-// js/firebase-sync.js's userDoc()/saveProfilesMeta()) holds
-// `{list:[{id,name,avatar,createdAt}], updatedAt}`.
-//
-// Step 32 (shared profiles, v1) added `kind`/`ownerUid`: a `kind:"shared"`
-// entry is a *reference* this account joined via invite code — its real
-// data doc lives under `ownerUid`'s tree, not this account's own. `list()`
-// now returns both kinds unfiltered (step 30 had filtered shared entries
-// out since joining wasn't implemented yet). Deliberately no granular
-// editor/viewer roles in this step — see js/firebase-sync.js's own
-// "GRANULAR PERMISSIONS (a later session)" section: the PWA shipped
-// invite/join/leave first, roles as a separate follow-up, and
-// firestore.rules already defaults an absent role to 'editor' — so joining
-// without a roles UI is not a security gap, just a smaller v1 scope, same
-// precedent as the PWA's own phased rollout.
+// `profiles_meta` contains own profiles and references to shared profiles.
+// Shared data remains under the owner's user tree and is permission-checked.
 data class ProfileMeta(
     val id: String,
     val name: String,

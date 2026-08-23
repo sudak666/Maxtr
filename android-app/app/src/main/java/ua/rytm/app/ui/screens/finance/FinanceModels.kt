@@ -1,9 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
-// Field shapes mirror the PWA's TransactionDraft (js/tx-validation.js) and
-// Wallet typedef (js/state.js) — see ANDROID_MIGRATION.md §2.2/§2.3. This is
-// the UI-layer model for this step only; the real Room entity comes with
-// the Repository layer (a later step, see FINANCE_SCREEN_SPEC.md §7).
+// Domain shapes mirror the PWA transaction draft and wallet contracts.
 
 enum class TxType { INCOME, EXPENSE, TRANSFER }
 

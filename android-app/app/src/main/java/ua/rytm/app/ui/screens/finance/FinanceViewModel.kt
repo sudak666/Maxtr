@@ -29,12 +29,7 @@ import ua.rytm.app.R
 data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
 data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any> = emptyList())
 
-// Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
-// FINANCE_SCREEN_SPEC.md §8) — data is real and persisted, though still
-// bootstrapped from the PWA's exact empty-profile defaults.
-// Filtering logic mirrors renderFinance() in js/analytics-csv.js
-// line-for-line (see FINANCE_SCREEN_SPEC.md §5) so behavior parity is
-// checkable against the real PWA, not guessed.
+// Room-backed finance state with filtering aligned to the PWA contract.
 class FinanceViewModel(
     private val repository: FinanceRepository,
     private val syncRepository: TransactionsSyncRepository,

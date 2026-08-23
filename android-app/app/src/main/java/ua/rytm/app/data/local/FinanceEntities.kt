@@ -3,10 +3,8 @@ package ua.rytm.app.data.local
 import androidx.room.Entity
 import androidx.room.Index
 
-// Room-persisted shape of ua.rytm.app.ui.screens.finance's domain models
-// (ANDROID_MIGRATION.md §2.1). `tags` is a comma-joined string, not a
-// separate table — an honest simplification until a real Tag{id,name,color}
-// entity is ported (see FINANCE_SCREEN_SPEC.md §9's "not in Step 3" note).
+// Room-persisted finance models. Transaction tag ids use a comma-separated
+// field while tag metadata lives in its dedicated table.
 
 @Entity(tableName = "wallets", primaryKeys = ["ownerUid", "profileId", "id"])
 data class WalletEntity(

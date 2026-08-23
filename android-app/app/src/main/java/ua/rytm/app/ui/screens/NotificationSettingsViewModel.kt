@@ -13,18 +13,8 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.PushRepository
 import ua.rytm.app.R
 
-// Mirrors js/notifications.js's 4 independent toggles (toggleReminders()/
-// toggleBudgetAlerts()/toggleRecurringAlerts()/toggleDebtAlerts()) plus the
-// reminder-time <select> pair (populateNotifTimeSelects()/
-// updateNotifTimeFromSelects()) — the granular settings step 27's own doc
-// comment disclosed as a separate follow-up (see PushRepository/
-// NotificationSettingsSheet). No Room table backs this domain (unlike every
-// other manager sheet in this app) — notifSettings only has meaning as a
-// per-profile Firestore field the server sweep reads directly (it lives
-// inside the same `finance` doc every other profile-scoped domain does, see
-// step 30's ProfileDocNames.kt), so a one-shot load + optimistic-local-
-// write-through pattern is used instead of the Room+Flow pipeline every
-// synced domain otherwise gets.
+// Notification settings are server-consumed profile fields, so this model
+// uses optimistic write-through rather than a redundant Room table.
 class NotificationSettingsViewModel(
     private val uid: String,
     private val repository: PushRepository,

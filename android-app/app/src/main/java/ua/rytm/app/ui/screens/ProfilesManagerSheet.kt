@@ -49,8 +49,7 @@ import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.ui.localizedDomainText
 
-// Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
-// (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
+// Mirrors the PWA profile manager, including share and invite actions.
 // from the same modal. A switched-to profile takes effect live: every
 // screen already observes its data through Room Flows, so once
 // ProfileSyncCoordinator.switchProfile() finishes clearing+resyncing the

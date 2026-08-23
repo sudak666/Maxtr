@@ -43,12 +43,7 @@ fun convertCurrencyAmount(amount: Double, from: String, to: String, rates: Map<S
 // unique across income/expense.
 fun subKey(type: String, name: String) = "$type:$name"
 
-// Real persistence backing FinanceViewModel — see ANDROID_MIGRATION.md §2/§7
-// and FINANCE_SCREEN_SPEC.md §8 for what this replaces (the old in-memory
-// SampleFinanceData-only state). seedIfEmpty() uses SampleFinanceData as
-// bootstrap content for a genuinely-empty local Room table, harmlessly
-// overwritten by the real Firestore cold-sync that runs right after (see
-// MainActivity's LaunchedEffect) for any domain that has one.
+// Room-backed finance source. Seed data is inserted only into an empty scope.
 class FinanceRepository(private val db: RytmDatabase) {
 
     val wallets: Flow<List<Wallet>> = RoomProfileScope.changes.flatMapLatest { db.walletDao().observeAll(it.ownerUid, it.profileId) }.map { list -> list.map { it.toDomain() } }
@@ -285,10 +280,7 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.walletDao().update(wallet.toEntity())
     }
 
-    // Mirrors walletInUse() in js/settings-managers.js: `AppState.transactions.some(t=>
-    // t.wallet===id||t.targetWallet===id) || AppState.recurring.some(r=>r.wallet===id)`.
-    // Was transactions-only before recurring was ported (step 24's predecessor left this
-    // disclosed) — now checks both, same as the PWA.
+    // A wallet referenced by a transaction or recurring operation is immutable.
     suspend fun isWalletInUse(id: String): Boolean = db.transactionDao().countUsingWallet(id) > 0 || db.recurringDao().countUsingWallet(id) > 0
 
     suspend fun walletCount(): Int = db.walletDao().count()
@@ -430,16 +422,8 @@ class FinanceRepository(private val db: RytmDatabase) {
         }.toString()
     }
 
-    // Mirrors js/color-picker.js's processRecurring(): materializes every active
-    // recurring entry whose nextDate has fallen due (today or earlier) into a real
-    // Transaction, advancing nextDate each time (guarded at 24 iterations/entry —
-    // same guard as the PWA, protecting against a long-untouched nextDate spinning
-    // through hundreds of daily occurrences in one go). Called once per cold-sync
-    // sign-in (see MainActivity), same "runs on load, not continuously" scope as
-    // the PWA's own call site inside fbLoadNow(). Local-only, same as every other
-    // write in this app — Android has no continuous Firestore push yet (step 19's
-    // disclosed scope), so newly materialized transactions stay local until the
-    // remote catches up some other way.
+    // Materializes due recurring entries with deterministic occurrence ids. The
+    // cap prevents an abandoned daily schedule from monopolizing startup work.
     suspend fun processRecurring(today: java.time.LocalDate = java.time.LocalDate.now()): Int = db.withTransaction {
         val recurringList = db.recurringDao().getAllOnce()
         if (recurringList.isEmpty()) return@withTransaction 0

@@ -17,12 +17,8 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 // SettingsStore's push-enabled flag, so a second account on the same
 // device keeps its own independent active profile.
 //
-// Step 32 (shared profiles): the stored value mirrors
-// js/firebase-sync.js's own loadActiveProfileId()/saveActiveProfileId()
-// encoding exactly — either a bare profileId (one of this account's own
-// profiles) or "ownerUid|profileId" (a shared profile someone else owns) —
-// so the correct data-owner uid survives an app restart without a second
-// lookup against profiles_meta.
+// Own profiles store a bare id; shared profiles store `ownerUid|profileId`
+// so their data owner survives process restart.
 private val Context.activeProfileDataStore by preferencesDataStore(name = "rytm_active_profile")
 
 class ActiveProfileStore(private val context: Context) {

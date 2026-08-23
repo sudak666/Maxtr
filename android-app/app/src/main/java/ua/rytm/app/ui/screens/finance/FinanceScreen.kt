@@ -177,7 +177,7 @@ fun FinanceScreen(
         floatingActionButton = {
             // Matches the PWA's .fin-fab.finance-fab green gradient
             // (linear-gradient(135deg,--green,#059669)), not the theme's
-            // brand purple — see ANDROID_MIGRATION.md visual-parity note.
+            // Keep the selected state on the established brand purple.
             if (canEdit) ExtendedFloatingActionButton(
                 onClick = viewModel::openNewTransactionSheet,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White) },
@@ -309,7 +309,7 @@ fun FinanceScreen(
 private fun HeroBalanceCard(vm: FinanceViewModel) {
     // Matches the PWA's .hero-balance: a subtle bg1→bg2 diagonal gradient
     // plus a soft brand-purple glow shadow (--surface-hero/--shadow-raised),
-    // not a flat Card — see ANDROID_MIGRATION.md visual-parity note.
+    // Use the shared gradient hero surface rather than a flat card.
     val shape = MaterialTheme.shapes.large
     Box(
         modifier = Modifier
@@ -395,7 +395,7 @@ private val RedLike @Composable get() = ua.rytm.app.ui.theme.RedDark2
 private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
     // Matches the PWA's .fin-mini-stat.income/.expense: a tinted
     // green/red gradient wash + matching border, not a neutral surface —
-    // see ANDROID_MIGRATION.md visual-parity note.
+    // Preserve the compact PWA summary-card treatment.
     val tint = if (positive) GreenDarkLike else RedLike
     val shape = RoundedCornerShape(RytmRadii.Input)
     Box(
@@ -457,7 +457,7 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
             )
             // Matches the PWA's .quick-action: a plain neutral card with a
             // circular tinted icon badge inside (.quick-action-icon), not a
-            // whole-card color fill — see ANDROID_MIGRATION.md visual-parity note.
+            // Tint the full card surface consistently with its metric.
             Card(
                 onClick = action.onClick,
                 modifier = Modifier.weight(1f).heightIn(min = RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },

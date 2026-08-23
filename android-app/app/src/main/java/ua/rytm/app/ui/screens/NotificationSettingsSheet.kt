@@ -33,13 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.PushRepository
 import ua.rytm.app.R
 
-// Mirrors js/notifications.js's 4 independent alert-type checkboxes plus its
-// reminder-time <select> pair — see NotificationSettingsViewModel's own doc
-// comment for the fuller picture, and PushRepository's for why this exists
-// as a separate step from step 27's single master Push toggle. Only
-// reachable from SettingsScreen while the master toggle is already on (see
-// that screen's own row) — configuring *which* alerts to send is
-// meaningless before push itself is even registered.
+// Granular alert types are configurable only after push registration.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsSheet(

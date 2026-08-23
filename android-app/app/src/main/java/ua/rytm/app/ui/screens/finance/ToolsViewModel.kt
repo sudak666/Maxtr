@@ -19,12 +19,8 @@ enum class FinanceChartSeries { NET, INCOME, EXPENSE }
 
 data class MonthTotal(val yearMonth: YearMonth, val income: Double, val expense: Double)
 
-// Mirrors js/finance.js/analytics-csv.js's Tools bottom sheet
-// (analyticsPredicates()/renderCatList()/computeWalletBalances()) — the
-// donut/6-month chart/FX-widget/converter all read off the same
-// already-synced FinanceRepository flows already used by the Finance tab,
-// plus the currencyRates flow (step 36 supplement) for real FX math instead
-// of a hardcoded sample rate.
+// Analytics, charts and conversion derive from the same synchronized finance
+// flows and currency rates as the primary Finance screen.
 class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
 
     companion object {

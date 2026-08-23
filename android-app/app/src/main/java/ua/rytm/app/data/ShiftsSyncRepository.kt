@@ -92,14 +92,7 @@ class ShiftsSyncRepository(
         }
     }
 
-    // Fourth and final slice of the `shifts` doc — autoFillSchedule (step 39
-    // gave it a real Room row, see AutoFillScheduleEntity). Same
-    // SetOptions.merge() safety rule, touching only `autoFillSchedule`/
-    // `updatedAt` — never `data`/`shiftTypes`. Unlike the other two slices,
-    // "remote has no autoFillSchedule at all" (a pre-step-39 doc) is treated
-    // the same as "remote disabled" — push the local default (disabled)
-    // rather than leaving Room empty, mirroring js/state.js's own
-    // always-present default object.
+    // A missing remote schedule is equivalent to the disabled local default.
     suspend fun syncAutoFillScheduleOnSignIn(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         if (hasPending(uid, profileId)) return
         val docRef = shiftsDocRef(uid, profileId)

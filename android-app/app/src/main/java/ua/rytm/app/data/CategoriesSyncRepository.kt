@@ -11,23 +11,8 @@ import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.SubcategoryEntity
 import java.util.UUID
 
-// Same one-time cold-sync bootstrap pattern as FinanceSyncRepository (wallets)/
-// ShiftsSyncRepository (shift types), applied to the `finance` doc's `categories`
-// field — see ANDROID_MIGRATION.md's step for exactly what's in/out of scope.
-//
-// Unlike wallets/shift types, the PWA's `categories` field has NO id concept at
-// all — it's just `{income: string[], expense: string[]}` (js/state.js's
-// AppState.categories). CategoryEntity's own `id` field is purely a local Room
-// bookkeeping detail (a random UUID, used only so the manager screen can target
-// a row for rename/delete — see FinanceRepository.addCategory()); it has no
-// remote counterpart and is never written to Firestore. Identity for sync
-// purposes is (type, name) — the same pair the PWA itself uses to dedupe.
-//
-// Uses SetOptions.merge(true) and only ever touches the `categories`/`updatedAt`
-// keys — never a full-doc setDoc(..., {merge:false}) — so this can never wipe
-// out subcategories/categoryIcons/budgets/tags/etc., none of which Android has
-// Room models for yet (chesno not done, same disclosed scope as wallets/shift
-// types before it).
+// Remote categories have no id; sync identity is the stable (type, name) pair.
+// Local UUIDs exist only for Room row targeting and never leave the device.
 class CategoriesSyncRepository(
     private val db: RytmDatabase,
     private val firestore: FirebaseFirestore,

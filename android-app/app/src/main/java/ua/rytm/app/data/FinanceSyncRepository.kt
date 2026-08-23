@@ -6,22 +6,8 @@ import kotlinx.coroutines.tasks.await
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.WalletEntity
 
-// Mirrors js/color-picker.js's fbSaveNow()/js/firebase-sync.js's fbLoadNow() for
-// the `finance` doc's `wallets` field ONLY — see ANDROID_MIGRATION.md's step-14
-// section for exactly what's in/out of scope (categories are synced separately,
-// see CategoriesSyncRepository; subcategories/categoryIcons/budgets/tags/etc.
-// are NOT synced yet — chesno not done). This is a one-time COLD sync triggered on
-// sign-in, not continuous two-way sync (no debounced writes on every local
-// edit, no snapshot listener) — that's a bigger future step.
-//
-// Uses SetOptions.merge(true) and only ever touches the `wallets`/`updatedAt`
-// keys — never a full-doc setDoc(..., {merge:false}) — so this can NEVER wipe
-// out the many other fields the PWA's finance doc already carries (categories,
-// budgets, tags, recurring, goals, ...), even though Android doesn't have Room
-// models for any of those yet. A field this doesn't know about is left
-// completely alone on the remote doc. `color` is written/read as the PWA's own
-// "#rrggbb" hex string, not Android's internal ARGB Long, so a wallet created
-// on either platform renders correctly on the other.
+// Wallet snapshots share the finance document with independently synchronized
+// fields. Colors cross the wire as PWA-compatible `#rrggbb` strings.
 class FinanceSyncRepository(
     private val db: RytmDatabase,
     private val firestore: FirebaseFirestore,

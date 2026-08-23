@@ -101,10 +101,6 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
-// Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
-// chip stats, 6-month earnings chart, collapsible quick-fill (template +
-// autofill), legend, month grid, day-assignment sheet — full parity with
-// js/calendar.js, closing step 8's disclosed gap.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftsScreen() {
@@ -177,10 +173,7 @@ fun ShiftsScreen() {
     }
 }
 
-// Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
-// soft brand-purple glow shadow, and a green-gradient progress fill
-// (.salary-bar-fill) rather than the theme's purple — same treatment
-// FinanceScreen's HeroBalanceCard got in step 38.
+// Uses the shared gradient hero treatment with an income-green progress fill.
 @Composable
 private fun HeroMetric(earned: Double) {
     val shape = MaterialTheme.shapes.large

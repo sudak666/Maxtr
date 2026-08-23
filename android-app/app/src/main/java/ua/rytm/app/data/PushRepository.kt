@@ -16,15 +16,7 @@ data class NotifSettings(
     val debtAlerts: Boolean = false,
 )
 
-// Mirrors js/notifications.js's enablePushNotifications()/disablePushNotifications()
-// (the FCM token half) plus toggleReminders()/toggleBudgetAlerts()/
-// toggleRecurringAlerts()/toggleDebtAlerts() (the granular notifSettings half,
-// added in step 28 — see the NotificationSettingsSheet doc comment for the
-// UI half of this). Registers/unregisters this device's FCM token on the
-// single shared `push_tokens/{uid}` doc (`{token, updatedAt}` — confirmed by
-// reading js/notifications.js's own `setDoc()` call). One token per account,
-// not per device — a pre-existing limitation (whichever device last
-// registered "wins"), not something introduced here.
+// Persists notification preferences and the account's current FCM token.
 class PushRepository(private val firestore: FirebaseFirestore) {
 
     private fun financeDocRef(uid: String, profileId: String) =

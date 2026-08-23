@@ -18,10 +18,7 @@ import ua.rytm.app.data.local.RoomProfileScope
 import ua.rytm.app.data.local.adoptLegacyScope
 import ua.rytm.app.data.local.clearActiveProfileTables
 
-// Centralizes the "run every domain's cold sync against one profile" sequence
-// — previously inlined directly in MainActivity's LaunchedEffect (steps
-// 14-26), now shared between the normal sign-in load and an in-session
-// profile switch (step 30) so the two paths can't silently drift apart.
+// Centralizes every domain's sync sequence for sign-in and profile switching.
 // Room v16 retains each owner/profile independently; switching the selector
 // immediately rebinds repository Flows and then refreshes that scope remotely.
 class ProfileSyncCoordinator(private val app: RytmApplication) {
@@ -71,11 +68,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
     }
 
-    // Every domain's cold sync against the given profile, plus recurring
-    // materialization — same order MainActivity always ran these in.
-    // Deliberately does NOT seed sample data — see switchProfile()'s own
-    // comment for why a fresh non-default profile must never get demo
-    // content pushed to it.
+    // Syncs one scope without seeding demo content into secondary profiles.
     private suspend fun syncAllDomains(uid: String, profileId: String) {
         syncFinanceDocumentDomains(uid, profileId)
         syncShiftsDocumentDomains(uid, profileId)
@@ -92,16 +85,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         }
     }
 
-    // Called once from MainActivity's sign-in LaunchedEffect — resolves
-    // whichever profile this device was last on (defaults to the account's
-    // own default profile) and loads it. Sample-data seeding stays here,
-    // unconditional/idempotent exactly as it always was (each seedIfEmpty()
-    // only acts on a genuinely empty table) — this is the one real "first
-    // launch ever" path, unlike switchProfile() below. `dataOwnerUid`
-    // (step 32) resolves to the sharer's uid when the last-active profile is
-    // a joined shared one, else the signed-in account's own uid — every
-    // Firestore path built downstream (users/{dataOwnerUid}/max_tracker/...)
-    // needs this, not the signed-in uid, to actually reach the shared data.
+    // Resolves the last active scope. Shared profiles sync against their owner;
+    // first-launch seed functions remain idempotent.
     suspend fun loadOnSignIn(uid: String): String {
         val profileId = app.activeProfileStore.getActiveProfileId(uid)
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
@@ -120,17 +105,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             .fold(onSuccess = { true }, onFailure = { publishFailure(it); false })
     }
 
-    // Mirrors js/color-picker.js's switchProfile(): flush-then-reload,
-    // reassign the active profile, done. Never seeds sample data — a
-    // genuinely fresh second profile (no remote docs of its own yet) must
-    // start truly empty like it would on the PWA, not receive this device's
-    // demo wallets/transactions pushed to Firestore as if they were real
-    // content for that profile (a mistake unique to profile-switching: the
-    // very first sync call's "no remote doc yet -> push local as seed"
-    // branch would otherwise fire against genuinely fake data). `dataOwnerUid`
-    // (step 32) is non-null when switching into a shared profile someone
-    // else owns — persisted via ActiveProfileStore.setActiveProfile() so a
-    // restart resolves the same owner without a second profiles_meta lookup.
+    // Secondary profiles start empty; shared scopes persist their data owner
+    // so restart does not require another metadata lookup.
     suspend fun switchProfile(uid: String, newProfileId: String, dataOwnerUid: String? = null) {
         stopRealtimeSync()
         app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
