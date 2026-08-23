@@ -51,6 +51,11 @@ class CurrencyRatesSyncRepository(
         persist(uid, profileId, current)
     }
 
+    suspend fun queueCurrentSnapshot(uid: String, profileId: String) {
+        val current = db.currencyRateDao().getAllOnce(uid, profileId).associate { it.code to it.rateToUah }
+        outbox.queue(uid, profileId, "currencyRates", current)
+    }
+
     suspend fun refreshOnline(uid: String, profileId: String, usePrivatCashRates: Boolean): Long {
         val current = db.currencyRateDao().getAllOnce(uid, profileId).associate { it.code to it.rateToUah }.toMutableMap()
         val nbu = fetchJsonArray("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json")

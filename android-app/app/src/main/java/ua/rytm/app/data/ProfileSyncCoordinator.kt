@@ -122,11 +122,47 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // Shared ownership is rejected again here, not only by the UI.
     suspend fun resetOwnProfile(uid: String, profileId: String, activeProfileOwnerUid: String?) {
         require(activeProfileOwnerUid == null) { "Shared profiles cannot be reset" }
+        deleteRemoteProfileData(uid, profileId)
+
+        app.database.clearActiveProfileTables()
+        app.financeRepository.seedFreshProfileDefaults()
+        app.shiftsRepository.seedFreshProfileDefaults()
+        syncAllDomains(uid, profileId)
+    }
+
+    suspend fun restoreOwnProfile(
+        uid: String,
+        profileId: String,
+        activeProfileOwnerUid: String?,
+        payload: ByteArray,
+        password: CharArray,
+    ): BackupPreview {
+        require(activeProfileOwnerUid == null) { "Shared profiles cannot be restored" }
+        val backup = ProfileBackupRepository(app.database)
+        val preview = backup.inspect(payload, password)
+        stopRealtimeSync()
+        return try {
+            deleteRemoteProfileData(uid, profileId)
+            app.database.syncOutboxDao().clearScope(uid, profileId)
+            app.database.syncRevisionDao().clearScope(uid, profileId)
+            backup.restore(payload, password)
+            queueCurrentProfile(uid, profileId)
+            preview
+        } catch (error: Exception) {
+            // If remote deletion succeeded but local restore failed, durable
+            // snapshots of the still-transactional local state repopulate it.
+            runCatching { queueCurrentProfile(uid, profileId) }
+            throw error
+        } finally {
+            startRealtimeSync(uid, profileId)
+        }
+    }
+
+    private suspend fun deleteRemoteProfileData(uid: String, profileId: String) {
         val profileCollection = FirebaseFirestore.getInstance()
             .collection("users").document(uid).collection("max_tracker")
         val financeRef = profileCollection.document(profileDocName("finance", profileId))
-        val transactions = financeRef.collection("transactions").get().await().documents
-        transactions.chunked(450).forEach { chunk ->
+        financeRef.collection("transactions").get().await().documents.chunked(450).forEach { chunk ->
             val batch = FirebaseFirestore.getInstance().batch()
             chunk.forEach { batch.delete(it.reference) }
             batch.commit().await()
@@ -134,11 +170,21 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         listOf("shifts", "finance", "debt").forEach { baseName ->
             profileCollection.document(profileDocName(baseName, profileId)).delete().await()
         }
+    }
 
-        app.database.clearActiveProfileTables()
-        app.financeRepository.seedFreshProfileDefaults()
-        app.shiftsRepository.seedFreshProfileDefaults()
-        syncAllDomains(uid, profileId)
+    private suspend fun queueCurrentProfile(uid: String, profileId: String) {
+        app.financeSyncRepository.saveWalletsSnapshot(uid, profileId)
+        app.categoriesSyncRepository.saveAllCategorySnapshots(uid, profileId)
+        app.budgetsSyncRepository.saveBudgetsSnapshot(uid, profileId)
+        app.tagsSyncRepository.saveTagsSnapshot(uid, profileId)
+        app.recurringSyncRepository.saveRecurringSnapshot(uid, profileId)
+        app.goalsSyncRepository.saveGoalsSnapshot(uid, profileId)
+        app.currencyRatesSyncRepository.queueCurrentSnapshot(uid, profileId)
+        app.autoRulesSyncRepository.save(uid, profileId)
+        app.shoppingSyncRepository.queueSnapshot(uid, profileId) {}
+        app.debtSyncRepository.queueSnapshot(uid, profileId, currentDebtId = null) {}
+        app.shiftsSyncRepository.queueSnapshot(uid, profileId) {}
+        app.transactionsSyncRepository.queueSaves(uid, profileId, app.database.transactionDao().getAllOnce(uid, profileId))
     }
 
     /** Keeps Room current when another signed-in client changes the active profile. */
