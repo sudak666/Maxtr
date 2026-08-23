@@ -38,6 +38,9 @@ interface SyncOutboxDao {
     @Query("SELECT COUNT(*) FROM sync_outbox WHERE domain = :domain")
     suspend fun countForDomain(domain: String): Int
 
+    @Query("SELECT COUNT(*) FROM sync_outbox WHERE ownerUid = :ownerUid AND profileId = :profileId")
+    suspend fun countForScope(ownerUid: String, profileId: String): Int
+
     @Query("SELECT * FROM sync_outbox WHERE ownerUid = :ownerUid AND profileId = :profileId AND domain = :domain")
     fun observe(ownerUid: String, profileId: String, domain: String): Flow<List<SyncOutboxEntity>>
 

@@ -139,13 +139,18 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     ): BackupPreview {
         require(activeProfileOwnerUid == null) { "Shared profiles cannot be restored" }
         val backup = ProfileBackupRepository(app.database)
-        val preview = backup.inspect(payload, password)
-        stopRealtimeSync()
+        val previewPassword = password.copyOf()
+        val restorePassword = password.copyOf()
+        password.fill('\u0000')
+        var realtimeStopped = false
         return try {
+            val preview = backup.inspect(payload, previewPassword)
+            stopRealtimeSync()
+            realtimeStopped = true
             deleteRemoteProfileData(uid, profileId)
             app.database.syncOutboxDao().clearScope(uid, profileId)
             app.database.syncRevisionDao().clearScope(uid, profileId)
-            backup.restore(payload, password)
+            backup.restore(payload, restorePassword)
             queueCurrentProfile(uid, profileId)
             preview
         } catch (error: Exception) {
@@ -154,7 +159,9 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             runCatching { queueCurrentProfile(uid, profileId) }
             throw error
         } finally {
-            startRealtimeSync(uid, profileId)
+            previewPassword.fill('\u0000')
+            restorePassword.fill('\u0000')
+            if (realtimeStopped) startRealtimeSync(uid, profileId)
         }
     }
 
