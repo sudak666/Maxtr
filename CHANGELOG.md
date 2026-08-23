@@ -6,6 +6,7 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 
 ## Known gaps / pending work
 
+- **CSV import made offline-safe (2026-08-23, `codex/restore-tools-analytics-layout`).** Removed its direct Firestore batch/write-then-Room path; imports now enter the same atomic revision-aware transaction outbox as manual and bulk edits, so offline imports persist and stale server data cannot overwrite them. Debug compilation and unit suite pass.
 - **Transaction conflicts now preserve user data (2026-08-23, `codex/restore-tools-analytics-layout`).** Room v18 adds transaction `revision`/`updatedAt`; the durable outbox carries its original base revision through repeated offline edits, and Firestore transactions reject stale updates/deletes. A concurrent edit restores the server version and queues the local version under a new ID; a stale delete restores the newer server row. Auth+Firestore-emulator E2E covers both policies, and connected 13→18 migration validation passes.
 
 - **Android 10/10 remediation audit started (2026-08-22, `codex/restore-tools-analytics-layout`).** Recorded the agreed complete production-hardening backlog in `ANDROID_AUDIT.md`: security/release blockers, sync/offline architecture, PWA parity, accessibility, maintainability, competitive gaps and the required verification matrix. Work proceeds in priority order without treating compilation alone as completion.

@@ -1,7 +1,5 @@
 package ua.rytm.app.data
 
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.TransactionEntity
 import java.time.LocalDate
@@ -24,7 +22,7 @@ internal fun csvDialect(language: String) = if (language == "en") CsvDialect(
 /** The Android counterpart of analytics-csv.js's deliberately small CSV dialect. */
 class TransactionsCsvRepository(
     private val db: RytmDatabase,
-    private val firestore: FirebaseFirestore,
+    private val transactionsSync: TransactionsSyncRepository,
 ) {
     suspend fun export(language: String): String {
         val wallets = db.walletDao().getAllOnce().associateBy { it.id }
@@ -92,14 +90,7 @@ class TransactionsCsvRepository(
     }
 
     suspend fun import(uid: String, profileId: String, transactions: List<TransactionEntity>) {
-        val collection = firestore.collection("users").document(uid).collection("max_tracker")
-            .document(profileDocName("finance", profileId)).collection("transactions")
-        transactions.chunked(450).forEach { chunk ->
-            val batch = firestore.batch()
-            chunk.forEach { batch.set(collection.document(it.id), it.toRemoteMap()) }
-            batch.commit().await()
-        }
-        db.transactionDao().insertAll(transactions)
+        transactionsSync.queueSaves(uid, profileId, transactions)
     }
 }
 

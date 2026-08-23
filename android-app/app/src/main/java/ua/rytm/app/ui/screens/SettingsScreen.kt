@@ -162,7 +162,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var resetProfileBusy by remember { mutableStateOf(false) }
     var settingsSearch by remember { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
-    val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
+    val csvRepository = remember { TransactionsCsvRepository(app.database, app.transactionsSyncRepository) }
     val backupRepository = remember { ProfileBackupRepository(app.database) }
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
     var csvBusy by remember { mutableStateOf(false) }
