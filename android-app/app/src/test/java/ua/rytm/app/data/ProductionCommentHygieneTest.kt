@@ -19,6 +19,11 @@ class ProductionCommentHygieneTest {
         assertTrue("Migration history belongs in project docs: $violations", violations.isEmpty())
     }
 
+    @Test fun settingsScreenDoesNotRegrowIntoSectionImplementations() {
+        val screen = File(findSourceRoot(), "ua/rytm/app/ui/screens/SettingsScreen.kt")
+        assertTrue("SettingsScreen must remain an orchestrator", screen.readLines().size <= 850)
+    }
+
     private fun findSourceRoot(): File {
         var current: File? = File(System.getProperty("user.dir")).absoluteFile
         while (current != null) {

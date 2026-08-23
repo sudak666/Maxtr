@@ -23,31 +23,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,9 +42,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -441,192 +423,38 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             }
 
-            if (appearanceVisible) {
-                SettingsSectionLabel(stringResource(R.string.settings_appearance))
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    SegmentedButton(
-                        selected = !darkTheme,
-                        onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
-                    ) { Text(stringResource(R.string.settings_theme_light)) }
-                    SegmentedButton(
-                        selected = darkTheme,
-                        onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
-                    ) { Text(stringResource(R.string.settings_theme_dark)) }
-                }
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                    SegmentedButton(
-                        selected = language == "uk",
-                        onClick = { scope.launch { app.settingsStore.setLanguage("uk") } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    ) { Text(stringResource(R.string.settings_language_uk)) }
-                    SegmentedButton(
-                        selected = language == "en",
-                        onClick = { scope.launch { app.settingsStore.setLanguage("en") } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                    ) { Text(stringResource(R.string.settings_language_en)) }
-                }
-                SettingsGroupCard {
-                    SettingsToggleRow(
-                        icon = Icons.Filled.VisibilityOff,
-                        badgeColor = Color(0xFF64748B),
-                        title = stringResource(R.string.settings_hide_amounts),
-                        subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
-                        checked = hideAmounts,
-                        enabled = true,
-                        onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
-                    )
-                    SettingsToggleRow(
-                        icon = Icons.Filled.PrivacyTip,
-                        badgeColor = Color(0xFF10B981),
-                        title = stringResource(R.string.settings_offline_cache),
-                        subtitle = stringResource(if (privacyCacheEnabled) R.string.settings_offline_cache_on else R.string.settings_offline_cache_off),
-                        checked = privacyCacheEnabled,
-                        enabled = true,
-                        onCheckedChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
-                    )
-                }
-            }
+            SettingsAppearanceSection(
+                visible = appearanceVisible,
+                darkTheme = darkTheme,
+                language = language,
+                hideAmounts = hideAmounts,
+                privacyCacheEnabled = privacyCacheEnabled,
+                onDarkThemeChange = { scope.launch { app.settingsStore.setDarkTheme(it) } },
+                onLanguageChange = { scope.launch { app.settingsStore.setLanguage(it) } },
+                onHideAmountsChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
+                onPrivacyCacheChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
+            )
+            SettingsAboutSection(visible = aboutVisible, openExternalUrl = ::openExternalUrl)
 
-            if (aboutVisible) {
-                SettingsSectionLabel(stringResource(R.string.settings_about))
-                SettingsGroupCard {
-                    SettingsRow(
-                        icon = Icons.Filled.Language,
-                        badgeColor = Color(0xFF3B82F6),
-                        title = stringResource(R.string.settings_web),
-                        subtitle = stringResource(R.string.settings_web_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
-                    )
-                    SettingsRow(
-                        icon = Icons.Filled.Description,
-                        badgeColor = Color(0xFF8B5CF6),
-                        title = stringResource(R.string.terms_title),
-                        subtitle = stringResource(R.string.settings_terms_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/terms.html") },
-                    )
-                    SettingsRow(
-                        icon = Icons.Filled.PrivacyTip,
-                        badgeColor = Color(0xFF10B981),
-                        title = stringResource(R.string.privacy_title),
-                        subtitle = stringResource(R.string.settings_privacy_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/privacy.html") },
-                    )
-                }
-                Text(
-                    stringResource(R.string.settings_about_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                )
-            }
-
-            if (canEdit && financeVisible) {
-                SettingsSectionLabel(stringResource(R.string.settings_finance))
-                SettingsGroupCard {
-                SettingsRow(
-                    icon = Icons.Filled.AccountBalanceWallet,
-                    badgeColor = Color(0xFF8B5CF6),
-                    title = stringResource(R.string.wallets_title),
-                    subtitle = stringResource(R.string.settings_wallets_subtitle),
-                    onClick = { walletsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.AccountBalance,
-                    badgeColor = Color(0xFF111111),
-                    title = stringResource(R.string.settings_monobank),
-                    subtitle = stringResource(R.string.settings_monobank_subtitle),
-                    onClick = { monobankSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Category,
-                    badgeColor = Color(0xFFEC4899),
-                    title = stringResource(R.string.categories_title),
-                    subtitle = stringResource(R.string.settings_categories_subtitle),
-                    onClick = { categoriesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.CurrencyExchange,
-                    badgeColor = Color(0xFF3B82F6),
-                    title = stringResource(R.string.rates_title),
-                    subtitle = stringResource(R.string.settings_rates_subtitle),
-                    onClick = { ratesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.PieChart,
-                    badgeColor = Color(0xFFF59E0B),
-                    title = stringResource(R.string.budgets_title),
-                    subtitle = stringResource(R.string.settings_budgets_subtitle),
-                    onClick = { budgetsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Sell,
-                    badgeColor = Color(0xFF06B6D4),
-                    title = stringResource(R.string.tags_title),
-                    subtitle = stringResource(R.string.settings_tags_subtitle),
-                    onClick = { tagsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Flag,
-                    badgeColor = Color(0xFF10B981),
-                    title = stringResource(R.string.goals_title),
-                    subtitle = stringResource(R.string.settings_goals_subtitle),
-                    onClick = { goalsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.GridView,
-                    badgeColor = Color(0xFF14B8A6),
-                    title = stringResource(R.string.widgets_title),
-                    subtitle = stringResource(R.string.settings_widgets_subtitle),
-                    onClick = { widgetsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Repeat,
-                    badgeColor = Color(0xFF10B981),
-                    title = stringResource(R.string.recurring_title),
-                    subtitle = stringResource(R.string.settings_recurring_subtitle),
-                    onClick = { recurringSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Tune,
-                    badgeColor = Color(0xFFA78BFA),
-                    title = stringResource(R.string.auto_rules_title),
-                    subtitle = stringResource(R.string.settings_auto_rules_subtitle),
-                    onClick = { autoRulesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Style,
-                    badgeColor = Color(0xFF3B82F6),
-                    title = stringResource(R.string.shift_types_title),
-                    subtitle = stringResource(R.string.settings_shift_types_subtitle),
-                    onClick = { shiftTypesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Download,
-                    badgeColor = Color(0xFF10B981),
-                    title = stringResource(R.string.settings_csv_export),
-                    subtitle = stringResource(R.string.settings_csv_export_subtitle),
-                    onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Upload,
-                    badgeColor = Color(0xFF3B82F6),
-                    title = stringResource(R.string.settings_csv_import),
-                    subtitle = stringResource(R.string.settings_csv_import_subtitle),
-                    onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
-                )
-                SettingsRow(
-                    icon = Icons.Filled.Lock,
-                    badgeColor = Color(0xFF8B5CF6),
-                    title = stringResource(R.string.settings_backup_export),
-                    subtitle = stringResource(R.string.settings_backup_export_subtitle),
-                    onClick = { if (!backupBusy) { backupPassword = ""; backupPasswordDialog = true } },
-                )
-                }
-            }
+            SettingsFinanceSection(
+                visible = canEdit && financeVisible,
+                actions = SettingsFinanceActions(
+                    wallets = { walletsSheetOpen = true },
+                    monobank = { monobankSheetOpen = true },
+                    categories = { categoriesSheetOpen = true },
+                    rates = { ratesSheetOpen = true },
+                    budgets = { budgetsSheetOpen = true },
+                    tags = { tagsSheetOpen = true },
+                    goals = { goalsSheetOpen = true },
+                    widgets = { widgetsSheetOpen = true },
+                    recurring = { recurringSheetOpen = true },
+                    autoRules = { autoRulesSheetOpen = true },
+                    shiftTypes = { shiftTypesSheetOpen = true },
+                    csvExport = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
+                    csvImport = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
+                    backupExport = { if (!backupBusy) { backupPassword = ""; backupPasswordDialog = true } },
+                ),
+            )
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
