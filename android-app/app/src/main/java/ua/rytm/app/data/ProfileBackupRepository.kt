@@ -11,6 +11,13 @@ import ua.rytm.app.data.local.RytmDatabase
 
 private const val BACKUP_FORMAT = 1
 
+data class BackupPreview(val rowCount: Int, val nonEmptyTableCount: Int)
+
+private data class PreparedBackup(
+    val rowsByTable: Map<String, List<ContentValues>>,
+    val rowCount: Int,
+)
+
 class ProfileBackupRepository(private val db: RytmDatabase) {
     suspend fun export(password: CharArray): ByteArray {
         val ownerUid = RoomProfileScope.ownerUid
@@ -33,13 +40,23 @@ class ProfileBackupRepository(private val db: RytmDatabase) {
     suspend fun restore(payload: ByteArray, password: CharArray): Int {
         val plaintext = BackupCrypto.decrypt(payload, password)
         return try {
-            restorePlaintext(plaintext)
+            restorePrepared(preparePlaintext(plaintext))
         } finally {
             plaintext.fill(0)
         }
     }
 
-    private suspend fun restorePlaintext(plaintext: ByteArray): Int {
+    suspend fun inspect(payload: ByteArray, password: CharArray): BackupPreview {
+        val plaintext = BackupCrypto.decrypt(payload, password)
+        return try {
+            val prepared = preparePlaintext(plaintext)
+            BackupPreview(prepared.rowCount, prepared.rowsByTable.count { it.value.isNotEmpty() })
+        } finally {
+            plaintext.fill(0)
+        }
+    }
+
+    private fun preparePlaintext(plaintext: ByteArray): PreparedBackup {
         val root = try { JSONObject(plaintext.toString(Charsets.UTF_8)) }
         catch (error: Exception) { throw InvalidBackupException("Invalid backup JSON", error) }
         if (root.optInt("format") != BACKUP_FORMAT || root.optInt("schema") !in 16..19) {
@@ -47,37 +64,41 @@ class ProfileBackupRepository(private val db: RytmDatabase) {
         }
         val tables = root.optJSONObject("tables") ?: throw InvalidBackupException("Missing backup tables")
         if (tables.keys().asSequence().toSet() != PROFILE_TABLES.toSet()) throw InvalidBackupException("Incomplete backup")
+        val rowsByTable = PROFILE_TABLES.associateWith { table ->
+            val allowed = db.openHelper.readableDatabase.query("PRAGMA table_info(`$table`)").use { cursor ->
+                buildSet { while (cursor.moveToNext()) add(cursor.getString(cursor.getColumnIndexOrThrow("name"))) }
+            }
+            val rows = tables.optJSONArray(table) ?: throw InvalidBackupException("Missing table: $table")
+            (0 until rows.length()).map { index ->
+                val row = rows.optJSONObject(index) ?: throw InvalidBackupException("Invalid row in $table")
+                if (!allowed.containsAll(row.keys().asSequence().toSet())) throw InvalidBackupException("Unknown column in $table")
+                ContentValues().apply { row.keys().forEach { key -> putJsonValue(key, row.get(key)) } }
+            }
+        }
+        return PreparedBackup(rowsByTable, rowsByTable.values.sumOf { it.size })
+    }
+
+    private suspend fun restorePrepared(backup: PreparedBackup): Int {
         val scopeOwner = RoomProfileScope.ownerUid
         val scopeProfile = RoomProfileScope.profileId
-        var restored = 0
         db.withTransaction {
-            PROFILE_TABLES.forEach { table ->
-                val allowed = db.openHelper.readableDatabase.query("PRAGMA table_info(`$table`)").use { cursor ->
-                    buildSet { while (cursor.moveToNext()) add(cursor.getString(cursor.getColumnIndexOrThrow("name"))) }
-                }
-                val rows = tables.optJSONArray(table) ?: throw InvalidBackupException("Missing table: $table")
-                val prepared = (0 until rows.length()).map { index ->
-                    val row = rows.optJSONObject(index) ?: throw InvalidBackupException("Invalid row in $table")
-                    if (!allowed.containsAll(row.keys().asSequence().toSet())) throw InvalidBackupException("Unknown column in $table")
-                    ContentValues().apply {
-                        row.keys().forEach { key -> putJsonValue(key, row.get(key)) }
-                        put("ownerUid", scopeOwner)
-                        put("profileId", scopeProfile)
-                    }
-                }
+            backup.rowsByTable.forEach { (table, rows) ->
                 db.openHelper.writableDatabase.execSQL(
                     "DELETE FROM `$table` WHERE ownerUid = ? AND profileId = ?",
                     arrayOf<Any>(scopeOwner, scopeProfile),
                 )
-                prepared.forEach { values ->
+                rows.forEach { source ->
+                    val values = ContentValues(source).apply {
+                        put("ownerUid", scopeOwner)
+                        put("profileId", scopeProfile)
+                    }
                     if (db.openHelper.writableDatabase.insert(table, 0, values) == -1L) {
                         throw InvalidBackupException("Could not restore $table")
                     }
-                    restored++
                 }
             }
         }
-        return restored
+        return backup.rowCount
     }
 }
 

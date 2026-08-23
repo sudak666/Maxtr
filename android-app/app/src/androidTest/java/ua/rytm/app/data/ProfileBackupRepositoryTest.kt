@@ -49,4 +49,16 @@ class ProfileBackupRepositoryTest {
         }
         assertEquals("Original", db.walletDao().getAllOnce().single().name)
     }
+
+    @Test fun previewValidatesWithoutMutatingCurrentData() = runBlocking {
+        db.walletDao().insert(WalletEntity("wallet", "Source", 1, "UAH"))
+        val backup = repository.export("correct horse".toCharArray())
+        db.walletDao().insert(WalletEntity("current", "Current", 2, "EUR"))
+
+        val preview = repository.inspect(backup, "correct horse".toCharArray())
+
+        assertEquals(1, preview.rowCount)
+        assertEquals(1, preview.nonEmptyTableCount)
+        assertEquals(setOf("Source", "Current"), db.walletDao().getAllOnce().map { it.name }.toSet())
+    }
 }
