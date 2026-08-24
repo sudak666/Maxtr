@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +61,7 @@ fun ShiftTypesManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
             Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 

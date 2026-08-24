@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -68,7 +69,7 @@ fun WalletsManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.wallets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             viewModel.errorMessageRes?.let { messageRes ->

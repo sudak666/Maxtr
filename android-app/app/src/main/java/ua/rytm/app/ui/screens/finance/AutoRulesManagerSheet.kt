@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -59,7 +60,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
     fun persist(block: suspend () -> Unit) { if (!saving) scope.launch { saving = true; runCatching { block(); sync.save(uid, profileId) }.onFailure { errorVisible = true }; saving = false } }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.auto_rules_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.auto_rules_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (errorVisible) Text(stringResource(R.string.auto_rules_save_failed), color = MaterialTheme.colorScheme.error)

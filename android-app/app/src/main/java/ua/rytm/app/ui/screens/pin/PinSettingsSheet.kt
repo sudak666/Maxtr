@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.pin
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +46,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.pin_settings_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (hasPin == true) {

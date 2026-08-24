@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import androidx.core.graphics.scale
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -124,7 +125,7 @@ fun ProfileAppearanceCard(
                     val source = context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream) ?: error("decode")
                     val side = minOf(source.width, source.height)
                     val cropped = Bitmap.createBitmap(source, (source.width - side) / 2, (source.height - side) / 2, side, side)
-                    val scaled = Bitmap.createScaledBitmap(cropped, 160, 160, true)
+                    val scaled = cropped.scale(160, 160)
                     ByteArrayOutputStream().use { out ->
                         scaled.compress(Bitmap.CompressFormat.JPEG, 82, out)
                         "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)

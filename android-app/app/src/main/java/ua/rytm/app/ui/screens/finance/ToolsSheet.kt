@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +15,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -105,19 +110,19 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 
         val expenseByCategory = vm.expenseByCategory
         if (expenseByCategory.isNotEmpty()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 ExpenseDonut(expenseByCategory, vm.totalExpense)
             }
         }
 
         if (expenseByCategory.isNotEmpty()) {
             Text(stringResource(R.string.analytics_expense_categories), style = MaterialTheme.typography.labelLarge)
-            expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) }
+            Column { expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) } }
         }
         val incomeByCategory = vm.incomeByCategory
         if (incomeByCategory.isNotEmpty()) {
             Text(stringResource(R.string.analytics_income_categories), style = MaterialTheme.typography.labelLarge)
-            incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) }
+            Column { incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) } }
         }
         if (expenseByCategory.isEmpty() && incomeByCategory.isEmpty()) {
             Text(stringResource(R.string.analytics_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -132,7 +137,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
     val progress = motionProgress(byCategory, 600)
     Box(
-        Modifier.size(100.dp).graphicsLayer {
+        Modifier.size(108.dp).graphicsLayer {
             alpha = progress
             scaleX = 0.85f + 0.15f * progress
             scaleY = 0.85f + 0.15f * progress
@@ -140,15 +145,15 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
         },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.size(100.dp)) {
+        Canvas(Modifier.size(108.dp)) {
             var startAngle = -90f
-            val stroke = size.minDimension * 0.22f
+            val stroke = size.minDimension * 0.14f
             byCategory.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
                 drawArc(
                     color = categoryColor(cat),
                     startAngle = startAngle,
-                    sweepAngle = sweep,
+                    sweepAngle = (sweep - 1.2f).coerceAtLeast(0.6f),
                     useCenter = false,
                     style = Stroke(width = stroke),
                     topLeft = Offset(stroke / 2, stroke / 2),
@@ -164,34 +169,68 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
 @Composable
 private fun CategoryBar(category: String, amount: Double, total: Double) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
-    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(localizedDomainText(category), style = MaterialTheme.typography.bodySmall)
-        Text(maskedAmount(formatMoney(amount)) + " · $pct%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
+    val color = categoryColor(category)
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            CategoryIconBadge(category = category, size = 30.dp)
+            Text(
+                localizedDomainText(category),
+                modifier = Modifier.padding(start = 8.dp).weight(1f),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                maskedAmount(formatMoney(amount)) + " · $pct%",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Box(Modifier.fillMaxWidth().padding(top = 5.dp).height(3.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
+            Box(Modifier.fillMaxWidth(progress).height(3.dp).background(color, CircleShape))
+        }
+        HorizontalDivider(Modifier.padding(top = 6.dp))
     }
 }
 
 @Composable
 private fun FxRatesSection(vm: ToolsViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.rates_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val rates = vm.currencyRates.ifEmpty { SEED_RATES }
         if (rates.isEmpty()) {
             Text(stringResource(R.string.rates_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            rates.forEach { (code, rate) ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("1 $code", style = MaterialTheme.typography.bodyMedium)
-                    Text(maskedAmount("${formatMoney(rate)} UAH"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            rates.toList().sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val badge = when (code) {
+                        "USD" -> "$" to androidx.compose.ui.graphics.Color(0xFF0F766E)
+                        "EUR" -> "€" to androidx.compose.ui.graphics.Color(0xFF2563EB)
+                        "GBP" -> "£" to androidx.compose.ui.graphics.Color(0xFF7C3AED)
+                        "PLN" -> "zł" to androidx.compose.ui.graphics.Color(0xFFD97706)
+                        else -> currencySymbol(code) to MaterialTheme.colorScheme.primary
+                    }
+                    Box(Modifier.size(34.dp).background(badge.second.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+                        Text(badge.first, color = badge.second, fontWeight = FontWeight.Black)
+                    }
+                    Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                        Text(code, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(runCatching { java.util.Currency.getInstance(code).getDisplayName(LocalConfiguration.current.locales[0]) }.getOrDefault(code), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(maskedAmount("${formatMoney(rate)} грн"), fontWeight = FontWeight.Bold)
                 }
             }
         }
+    }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ConverterSection(vm: ToolsViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.converter_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
@@ -202,11 +241,9 @@ private fun ConverterSection(vm: ToolsViewModel) {
                 label = { Text(stringResource(R.string.amount_label)) },
             )
             CurrencyDropdown(vm.availableCurrencies, vm.converterFrom, vm::onConverterFromChange, Modifier.weight(1f))
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = vm::swapConverter) { Icon(Icons.Filled.SwapHoriz, contentDescription = stringResource(R.string.converter_swap)) }
-            CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(1f))
         }
+        CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.fillMaxWidth())
         Text(
             maskedAmount("${formatMoney(vm.converterResult)} ${vm.converterTo}"),
             style = MaterialTheme.typography.headlineSmall,
@@ -214,6 +251,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
+    }
     }
 }
 
@@ -239,27 +277,46 @@ private fun CurrencyDropdown(options: List<String>, selected: String, onSelect: 
 
 @Composable
 private fun SixMonthChartSection(vm: ToolsViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    var metric by remember { mutableStateOf("balance") }
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.analytics_six_months), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val months = vm.sixMonthTotals
-        val maxVal = max(1.0, months.maxOf { max(it.income, it.expense) })
-        val incomeColor = MaterialTheme.colorScheme.primary
-        val expenseColor = MaterialTheme.colorScheme.error
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("balance" to "Баланс", "income" to "Дохід", "expense" to "Витрата").forEach { (key, label) ->
+                FilterChip(selected = metric == key, onClick = { metric = key }, label = { Text(label) }, modifier = Modifier.weight(1f))
+            }
+        }
+        val values = months.map { when (metric) { "income" -> it.income; "expense" -> it.expense; else -> it.income - it.expense } }
+        val minVal = values.minOrNull() ?: 0.0
+        val maxVal = values.maxOrNull() ?: 1.0
+        val span = (maxVal - minVal).takeIf { it > 0 } ?: 1.0
+        val lineColor = MaterialTheme.colorScheme.primary
         val progress = motionProgress(months, 500)
         Canvas(Modifier.fillMaxWidth().height(140.dp)) {
-            val barGroupWidth = size.width / months.size
-            val barWidth = barGroupWidth / 3.2f
-            months.forEachIndexed { i, m ->
-                val groupLeft = i * barGroupWidth
-                val incomeHeight = (m.income / maxVal * size.height).toFloat() * progress
-                val expenseHeight = (m.expense / maxVal * size.height).toFloat() * progress
-                drawRect(incomeColor, topLeft = Offset(groupLeft + barWidth * 0.4f, size.height - incomeHeight), size = Size(barWidth, incomeHeight))
-                drawRect(expenseColor, topLeft = Offset(groupLeft + barWidth * 1.8f, size.height - expenseHeight), size = Size(barWidth, expenseHeight))
+            val path = Path()
+            values.forEachIndexed { i, value ->
+                val x = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
+                val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
+                val y = size.height - (size.height - targetY) * progress
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx()))
+            values.forEachIndexed { i, value ->
+                val x = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
+                val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
+                val y = size.height - (size.height - targetY) * progress
+                drawCircle(lineColor, radius = 4.dp.toPx(), center = Offset(x, y))
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val locale = LocalConfiguration.current.locales[0]
             months.forEach { m -> Text(m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) }
         }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(maskedAmount("${formatMoney(values.average())} грн середнє"), style = MaterialTheme.typography.labelSmall)
+            Text(maskedAmount("${formatMoney(maxVal)} грн максимум"), style = MaterialTheme.typography.labelSmall)
+        }
+    }
     }
 }

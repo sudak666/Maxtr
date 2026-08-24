@@ -31,7 +31,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
@@ -134,15 +133,16 @@ fun RytmNavHost() {
                         Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = stringResource(if (hideAmounts) R.string.action_show_amounts else R.string.action_hide_amounts))
                     }
                     IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh)) }
-                    IconButton(onClick = { navController.navigate(RytmDestination.Settings.route) { launchSingleTop = true } }) {
-                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.nav_settings))
-                    }
                 },
             )
         },
         bottomBar = { RytmBottomBar(navController) },
     ) { innerPadding ->
-        PullToRefreshBox(isRefreshing = refreshing, onRefresh = ::refresh, modifier = Modifier.padding(innerPadding)) {
+        PullToRefreshBox(
+            isRefreshing = refreshing,
+            onRefresh = ::refresh,
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
+        ) {
         NavHost(
             navController = navController,
             startDestination = RytmDestination.Finance.route,

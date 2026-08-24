@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.core.net.toUri
 
 import android.content.Intent
 import android.net.Uri
@@ -90,7 +92,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
 
     ModalBottomSheet(onDismissRequest = { if (!busy) onDismiss() }, sheetState = sheet) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Monobank", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -99,7 +101,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                 connection == null -> {
                     Text(stringResource(R.string.monobank_intro))
                     TextButton(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://api.monobank.ua/"))) },
+                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://api.monobank.ua/".toUri())) },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.monobank_get_token)) }
                     OutlinedTextField(

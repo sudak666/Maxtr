@@ -1,4 +1,7 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +78,7 @@ fun CategoriesManagerSheet(
     var pendingRename by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.categories_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -218,7 +221,7 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
     val icons = PICKER_ICONS
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.category_icon_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             LazyVerticalGrid(
                 columns = GridCells.Fixed(6),
