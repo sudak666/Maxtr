@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -90,6 +90,8 @@ import ua.rytm.app.ui.theme.RytmInteraction
 @Composable
 fun RytmNavHost() {
     val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
     val app = LocalContext.current.applicationContext as RytmApplication
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
     val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
@@ -129,8 +131,10 @@ fun RytmNavHost() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
-                        Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = stringResource(if (hideAmounts) R.string.action_show_amounts else R.string.action_hide_amounts))
+                    if (currentRoute != RytmDestination.Settings.route) {
+                        IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
+                            Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = stringResource(if (hideAmounts) R.string.action_show_amounts else R.string.action_hide_amounts))
+                        }
                     }
                     IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh)) }
                 },

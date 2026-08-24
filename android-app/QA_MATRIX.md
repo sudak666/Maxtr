@@ -7,6 +7,7 @@ Verified target: `Pixel_10_Pro_XL`, Android API 37.1, Compose BOM 2026.08.00.
 | Light/dark + uk/en | SHA-256 screenshot goldens at fixed 360x640 viewport (`OnboardingGoldenTest`) |
 | Compact/large font | 320x568 at font scale 1.3 (`ResponsiveLayoutTest`) |
 | Landscape | 640x360 (`ResponsiveLayoutTest`) |
+| Tablet width | 768x1024 at font scale 1.0 (`ResponsiveLayoutTest`) |
 | Accessibility | merged checkbox roles, disabled viewer semantics, ≥48dp targets, WCAG AA palette contrast |
 | Reduced motion | animated progress vs immediate snap under `LocalReducedMotion` |
 | Swipe | exact 30dp threshold/60dp reveal contracts; editable/viewer Shopping and Debt interaction tests |

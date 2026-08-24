@@ -24,6 +24,8 @@ class ResponsiveLayoutTest {
 
     @Test fun landscapeKeepsPrimaryContentVisible() = verify(640, 360, 1f)
 
+    @Test fun tabletPortraitKeepsPrimaryContentVisible() = verify(768, 1024, 1f)
+
     private fun verify(width: Int, height: Int, fontScale: Float) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         compose.setContent {
