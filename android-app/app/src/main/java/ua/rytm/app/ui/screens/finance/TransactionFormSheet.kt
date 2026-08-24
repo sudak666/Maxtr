@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -99,6 +100,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {

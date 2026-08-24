@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -73,6 +74,7 @@ import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.ReducedMotionVisibility
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
@@ -112,13 +114,14 @@ fun DebtScreen(
                     onClick = viewModel::openNewEntrySheet,
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                     text = { Text(stringResource(R.string.debt_payment)) },
+                    modifier = Modifier.padding(bottom = RytmDimens.BottomContentClearance),
                 )
             }
         },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + 96.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { RealtimeStateBanner() }
@@ -482,7 +485,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     var date by remember { mutableStateOf(todayLabel()) }
 
     ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.debt_new_payment), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = amount,

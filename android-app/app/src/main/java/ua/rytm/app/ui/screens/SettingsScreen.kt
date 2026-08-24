@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import androidx.core.net.toUri
 
 import android.Manifest
 import android.content.Intent
@@ -92,6 +93,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
@@ -201,8 +203,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             pushBusy = true
             try {
                 val dataOwnerUid = activeProfileOwnerUid ?: accountUid
-                if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
-                else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
+                withTimeout(10_000) {
+                    if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
+                    else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
+                }
                 app.settingsStore.setPushEnabled(accountUid, target)
                 pendingMessage = if (target) pushEnabledMessage else pushDisabledMessage
             } catch (e: Exception) {
@@ -231,7 +235,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     fun openExternalUrl(url: String) {
-        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
             .onFailure { pendingMessage = linkOpenFailedMessage }
     }
 
@@ -271,7 +275,12 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
         // permanently unreachable — not a styling gap, a genuine dead end.
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding).padding(RytmDimens.ContentHorizontal),
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(horizontal = RytmDimens.ContentHorizontal)
+                .padding(bottom = RytmDimens.BottomContentClearance + 48.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))

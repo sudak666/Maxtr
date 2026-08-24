@@ -1,8 +1,10 @@
 package ua.rytm.app.ui.screens.shifts
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -125,7 +127,12 @@ fun ShiftsScreen() {
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 16.dp,
+            bottom = RytmDimens.BottomContentClearance,
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { RealtimeStateBanner() }
@@ -149,7 +156,7 @@ fun ShiftsScreen() {
     if (canEdit && dateKey != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
-            Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.shifts_choose), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(dateKey, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 viewModel.shiftTypes.forEach { type ->
@@ -335,9 +342,18 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
 // toggleQuickFill()), a labeled toggle button with a rotating chevron.
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
-    Column(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+    Column(Modifier.fillMaxWidth().padding(18.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = vm::toggleQuickFillExpanded),
+            modifier = Modifier.fillMaxWidth().clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = vm::toggleQuickFillExpanded,
+            ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Filled.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
@@ -432,6 +448,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 }
             }
         }
+    }
     }
 }
 

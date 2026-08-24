@@ -153,6 +153,7 @@ fun FinanceScreen(
                 containerColor = Color.Transparent,
                 elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
                 modifier = Modifier
+                    .padding(bottom = RytmDimens.BottomContentClearance)
                     .shadow(10.dp, FinanceFabShape, spotColor = GreenDarkLike.copy(alpha = 0.5f))
                     .clip(FinanceFabShape)
                     .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2))),
@@ -172,7 +173,7 @@ fun FinanceScreen(
                 start = 16.dp,
                 end = 16.dp,
                 top = 16.dp,
-                bottom = innerPadding.calculateBottomPadding() + 96.dp,
+                bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance + 88.dp,
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -188,9 +189,6 @@ fun FinanceScreen(
                     onBudgets = { budgetsSheetOpen = true },
                     onGoals = { goalsSheetOpen = true },
                 )
-            }
-            widgetConfig.order.filter { it in widgetConfig.enabled }.forEach { key ->
-                item(key = "dashboard-widget-$key") { FinanceDashboardWidget(key, app) }
             }
             item { HistoryHeader(viewModel, resultCount = filtered.size) }
             item { SearchField(viewModel) }
@@ -224,6 +222,9 @@ fun FinanceScreen(
                         }
                     }
                 }
+            }
+            widgetConfig.order.filter { it in widgetConfig.enabled }.forEach { key ->
+                item(key = "dashboard-widget-$key") { FinanceDashboardWidget(key, app) }
             }
         }
     }

@@ -2,6 +2,7 @@ package ua.rytm.app.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.MetadataChanges
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -188,11 +189,11 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         }
 
         listeners = watched.map { ref ->
-            ref.addSnapshotListener { snapshot, error ->
+            ref.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
                 remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
             }
-        } + finance.collection("transactions").addSnapshotListener { snapshot, error ->
+        } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
             remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
         }
