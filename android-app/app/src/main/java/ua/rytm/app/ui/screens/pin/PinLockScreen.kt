@@ -1,7 +1,10 @@
 package ua.rytm.app.ui.screens.pin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,10 +34,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
@@ -167,19 +173,30 @@ internal fun PinKeypad(
             Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { trailingSlot() }
             KeypadButton("0") { onDigit("0") }
             Box(
-                Modifier.size(64.dp).clickable(onClick = onBackspace),
+                Modifier.size(64.dp).clip(CircleShape).clickable(onClick = onBackspace),
                 contentAlignment = Alignment.Center,
-            ) { Text("⌫", style = MaterialTheme.typography.headlineSmall) }
+            ) { Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = stringResource(R.string.action_backspace), modifier = Modifier.size(26.dp)) }
         }
     }
 }
 
 @Composable
 private fun KeypadButton(digit: String, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val outlineColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (pressed) MaterialTheme.colorScheme.primary else Color.Transparent,
+        animationSpec = androidx.compose.animation.core.tween(90),
+        label = "pin-key-outline",
+    )
     Box(
-        Modifier.size(64.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape).clickable(onClick = onClick),
+        Modifier.size(64.dp).border(2.dp, outlineColor, CircleShape).clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick,
+        ),
         contentAlignment = Alignment.Center,
     ) {
-        Text(digit, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+        Text(digit, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Medium)
     }
 }

@@ -2,6 +2,7 @@ package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -22,6 +21,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,16 +32,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +48,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -57,9 +58,12 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,16 +75,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import ua.rytm.app.ui.components.SwipeOpenThreshold
-import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.Role
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
@@ -103,8 +110,6 @@ import ua.rytm.app.ui.ScreenLoadingState
 
 private const val TX_LIST_COLLAPSED_COUNT = 5 // mirrors js/analytics-csv.js's TX_LIST_COLLAPSED_COUNT
 
-private val FinanceFabShape = RoundedCornerShape(16.dp)
-
 @Composable
 fun FinanceScreen(
     viewModel: FinanceViewModel = viewModel(
@@ -113,6 +118,11 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    var swipeResetGeneration by remember { mutableIntStateOf(0) }
+    val transactionDeleted = stringResource(R.string.transaction_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
     val pendingMessage = viewModel.pendingMessage?.let { message ->
         val arguments = if (message.resource == R.string.transaction_auto_category || message.resource == R.string.transaction_budget_exceeded) {
             message.arguments.mapIndexed { index, value -> if (index == 0) localizedDomainText(value.toString()) else value }
@@ -138,29 +148,75 @@ fun FinanceScreen(
     var toolsSheetOpen by remember { mutableStateOf(false) }
     var budgetsSheetOpen by remember { mutableStateOf(false) }
     var goalsSheetOpen by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex <= 8 } }
+    val largeText = LocalDensity.current.fontScale >= 1.2f
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 480
+    val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
+
+    fun collapseTransactions() {
+        if (!viewModel.listExpanded) return
+        viewModel.toggleListExpanded()
+        scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
+    }
+
+    fun requestDelete(id: String) {
+        if (pendingDeleteId != null) return
+        pendingDeleteId = id
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = transactionDeleted,
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long,
+            )
+            if (result != SnackbarResult.ActionPerformed) {
+                viewModel.deleteTransaction(id) { pendingDeleteId = null }
+            } else {
+                swipeResetGeneration++
+                pendingDeleteId = null
+            }
+        }
+    }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
         floatingActionButton = {
-            // Matches the PWA's .fin-fab.finance-fab green gradient
-            // (linear-gradient(135deg,--green,#059669)), not the theme's
-            // brand purple — see ANDROID_MIGRATION.md visual-parity note.
-            if (canEdit) ExtendedFloatingActionButton(
-                onClick = viewModel::openNewTransactionSheet,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White) },
-                text = { Text(stringResource(R.string.transaction_new_title), color = Color.White) },
-                shape = FinanceFabShape,
-                containerColor = Color.Transparent,
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
-                modifier = Modifier
-                    .padding(bottom = RytmDimens.BottomContentClearance)
-                    .shadow(10.dp, FinanceFabShape, spotColor = GreenDarkLike.copy(alpha = 0.5f))
-                    .clip(FinanceFabShape)
-                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2))),
-            )
+            if (viewModel.listExpanded) {
+                val shape = RoundedCornerShape(RytmRadii.Pill)
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = RytmDimens.BottomContentClearance)
+                        .shadow(8.dp, shape)
+                        .clip(shape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(role = Role.Button, onClick = ::collapseTransactions)
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                    Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                }
+            } else if (canEdit && showFab && !largeText && !compactHeight) {
+                val shape = RoundedCornerShape(RytmRadii.Pill)
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = RytmDimens.BottomContentClearance)
+                        .shadow(10.dp, shape, spotColor = GreenDarkLike.copy(alpha = 0.5f))
+                        .clip(shape)
+                        .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2)))
+                        .clickable(role = Role.Button, onClick = viewModel::openNewTransactionSheet)
+                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
+                    Text(stringResource(R.string.transaction_new_title), color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
         },
     ) { innerPadding ->
-        val filtered = viewModel.filteredTransactions
+        val filtered = viewModel.filteredTransactions.filterNot { it.id == pendingDeleteId }
         val visible = if (viewModel.listExpanded || filtered.size <= TX_LIST_COLLAPSED_COUNT) {
             filtered
         } else {
@@ -169,11 +225,12 @@ fun FinanceScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = 16.dp,
-                bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance + 88.dp,
+                bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance,
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -208,17 +265,19 @@ fun FinanceScreen(
                         tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
                         iconOverride = viewModel.categoryIcons[tx.category],
                         canEdit = canEdit,
-                        onDelete = { viewModel.deleteTransaction(tx.id) },
+                        resetGeneration = swipeResetGeneration,
+                        onDelete = { requestDelete(tx.id) },
                         onClick = { viewModel.openEditTransactionSheet(tx) },
                     )
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
                     item {
-                        TextButton(
-                            onClick = viewModel::toggleListExpanded,
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(999.dp),
                         ) {
-                            Text(stringResource(if (viewModel.listExpanded) R.string.action_collapse else R.string.action_view_all))
+                            Text(stringResource(if (viewModel.listExpanded) R.string.action_collapse_list else R.string.action_view_all))
                         }
                     }
                 }
@@ -255,6 +314,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
     // plus a soft brand-purple glow shadow (--surface-hero/--shadow-raised),
     // not a flat Card — see ANDROID_MIGRATION.md visual-parity note.
     val shape = MaterialTheme.shapes.large
+    val largeText = LocalDensity.current.fontScale >= 1.2f
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -275,7 +335,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             )
             Text(
                 text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(vm.totalBalanceUah))),
-                style = MaterialTheme.typography.displayMedium,
+                style = MaterialTheme.typography.displayMedium.copy(fontSize = 36.sp, lineHeight = 42.sp),
                 fontWeight = FontWeight.Black,
             )
 
@@ -311,9 +371,16 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                 )
             }
 
-            Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+            if (largeText) {
+                Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.fillMaxWidth())
+                    MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
+                    MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+                }
             }
 
             LazyRow(
@@ -353,7 +420,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall.copy(fontSize = 17.sp, lineHeight = 22.sp),
                 fontWeight = FontWeight.Bold,
                 color = tint,
             )
@@ -553,9 +620,11 @@ private fun TransactionRow(
     tagLookup: (String) -> Tag?,
     iconOverride: String?,
     canEdit: Boolean,
+    resetGeneration: Int,
     onDelete: () -> Unit,
     onClick: () -> Unit,
 ) {
+    var deleteRequested by remember(tx.id) { mutableStateOf(false) }
     // confirmValueChange is deprecated (in favor of dynamic anchors) as of
     // this Compose BOM but still functional — not worth the bigger
     // AnchoredDraggable rewrite for this step; revisit if it's ever removed.
@@ -564,30 +633,41 @@ private fun TransactionRow(
         positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
+                if (!deleteRequested) {
+                    deleteRequested = true
+                    onDelete()
+                }
                 true
             } else {
                 false
             }
         },
     )
+    LaunchedEffect(resetGeneration) {
+        dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+        deleteRequested = false
+    }
 
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = canEdit,
         backgroundContent = {
-            Box(
-                Modifier.fillMaxSize().clip(MaterialTheme.shapes.large),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.action_delete),
-                    tint = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier,
-                )
+            if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.error)
+                        .padding(end = 24.dp),
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.action_delete),
+                        tint = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier.size(26.dp),
+                    )
                 }
             }
         },
@@ -596,6 +676,7 @@ private fun TransactionRow(
             onClick = onClick,
             enabled = canEdit,
             shape = MaterialTheme.shapes.large,
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,7 +64,7 @@ fun ShiftTypesManagerSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-            Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
 
             if (viewModel.shiftTypes.isEmpty()) {
                 Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -83,7 +84,7 @@ fun ShiftTypesManagerSheet(
             }
 
             val newShiftName = stringResource(R.string.shift_type_new_default)
-            TextButton(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth()) {
+            androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.shift_type_add))
             }
@@ -114,7 +115,12 @@ private fun ShiftTypeRow(
 ) {
     val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, type.amount.toInt(), type.hours)
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(28.dp).clip(CircleShape).background(Color(type.colorHex)))
             Column(Modifier.weight(1f)) {
@@ -124,7 +130,7 @@ private fun ShiftTypeRow(
             IconButton(onClick = onToggleEdit) {
                 Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -177,5 +183,6 @@ private fun ShiftTypeRow(
                 Text(stringResource(R.string.shift_day_off_unpaid), style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
     }
 }

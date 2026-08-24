@@ -53,7 +53,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     var infoExpanded by mutableStateOf(false)
         private set
 
-    var historyExpanded by mutableStateOf(true)
+    var historyExpanded by mutableStateOf(false)
         private set
 
     var newEntrySheetOpen by mutableStateOf(false)

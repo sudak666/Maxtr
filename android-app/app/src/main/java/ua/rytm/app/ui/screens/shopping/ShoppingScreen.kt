@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.shopping
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,18 +22,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.SwipeToDismissBox
@@ -104,7 +108,14 @@ fun ShoppingScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.shopping_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (canEdit && viewModel.boughtCount > 0) {
-                    TextButton(onClick = viewModel::requestClearBought) { Text(stringResource(R.string.shopping_clear_bought), color = MaterialTheme.colorScheme.error) }
+                    TextButton(
+                        onClick = viewModel::requestClearBought,
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                    ) { Text(stringResource(R.string.shopping_clear_bought), fontWeight = FontWeight.Bold) }
                 }
             }
         }
@@ -124,8 +135,8 @@ fun ShoppingScreen(
             onDismissRequest = viewModel::cancelClearBought,
             title = { Text(stringResource(R.string.shopping_clear_bought)) },
             text = { Text(stringResource(R.string.shopping_clear_confirmation)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmClearBought) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = { Button(onClick = viewModel::confirmClearBought, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
+            dismissButton = { OutlinedButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     viewModel.errorMessageRes?.let { messageRes ->
@@ -232,13 +243,31 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
         Row(
             Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
                 .toggleable(value = item.done, enabled = canEdit, role = Role.Checkbox, onValueChange = onToggle)
                 .semantics(mergeDescendants = true) {}
                 .heightIn(min = RytmDimens.TouchTarget)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Checkbox(checked = item.done, onCheckedChange = null, enabled = canEdit)
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (item.done) Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))
+                        else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                    )
+                    .border(
+                        width = 2.dp,
+                        color = if (item.done) Color.Transparent else MaterialTheme.colorScheme.outline,
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (item.done) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            }
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.bodyLarge,
@@ -255,7 +284,10 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                     modifier = Modifier.padding(end = 4.dp),
                 )
             }
-            if (canEdit) IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            if (canEdit) IconButton(
+                onClick = onDelete,
+                colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+            ) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
     }

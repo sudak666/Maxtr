@@ -16,23 +16,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +48,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -57,13 +58,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.produceState
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
-import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.LocalRealtimeState
@@ -90,8 +91,6 @@ import ua.rytm.app.ui.theme.RytmInteraction
 @Composable
 fun RytmNavHost() {
     val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
     val app = LocalContext.current.applicationContext as RytmApplication
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
     val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
@@ -99,7 +98,6 @@ fun RytmNavHost() {
     val canEdit by produceState(initialValue = ownerUid == null, accountUid, ownerUid, profileId) {
         value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
     }
-    val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsState()
     val scope = rememberCoroutineScope()
     val reducedMotion = LocalReducedMotion.current
@@ -115,37 +113,13 @@ fun RytmNavHost() {
     }
 
     CompositionLocalProvider(LocalCanEditProfile provides canEdit, LocalRealtimeState provides realtimeState) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Rytm", fontWeight = FontWeight.Black)
-                        val status = when (realtimeState) {
-                            ProfileSyncCoordinator.RealtimeState.Syncing -> R.string.sync_status_syncing
-                            ProfileSyncCoordinator.RealtimeState.Offline -> R.string.sync_status_offline
-                            is ProfileSyncCoordinator.RealtimeState.Error -> R.string.sync_status_error
-                            else -> null
-                        }
-                        status?.let { Text(stringResource(it), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    }
-                },
-                actions = {
-                    if (currentRoute != RytmDestination.Settings.route) {
-                        IconButton(onClick = { scope.launch { app.settingsStore.setHideAmounts(!hideAmounts) } }) {
-                            Icon(if (hideAmounts) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = stringResource(if (hideAmounts) R.string.action_show_amounts else R.string.action_hide_amounts))
-                        }
-                    }
-                    IconButton(onClick = ::refresh, enabled = !refreshing) { Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh)) }
-                },
-            )
-        },
-        bottomBar = { RytmBottomBar(navController) },
-    ) { innerPadding ->
+    Box(Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = refreshing,
             onRefresh = ::refresh,
-            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+                .clipToBounds(),
         ) {
         NavHost(
             navController = navController,
@@ -169,6 +143,10 @@ fun RytmNavHost() {
             composable(RytmDestination.Settings.route) { SettingsScreen() }
         }
         }
+    RytmBottomBar(
+        navController = navController,
+        modifier = Modifier.align(Alignment.BottomCenter),
+    )
     }
     }
 }
@@ -180,16 +158,21 @@ fun RytmNavHost() {
 // gradient (RytmDestination.activeGradient) while selected — mirrors the
 // PWA's .tab-btn.tab-c-*.active .tab-icon-wrap overrides.
 @Composable
-private fun RytmBottomBar(navController: androidx.navigation.NavHostController) {
+private fun RytmBottomBar(navController: androidx.navigation.NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val shape = RoundedCornerShape(RytmDimens.BottomNavRadius)
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 480
 
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
+            .wrapContentHeight()
             .navigationBarsPadding()
-            .padding(horizontal = RytmDimens.BottomNavHorizontal, vertical = RytmDimens.BottomNavBottom),
+            .padding(
+                horizontal = RytmDimens.BottomNavHorizontal,
+                vertical = if (compactHeight) 6.dp else RytmDimens.BottomNavBottom,
+            ),
     ) {
         Row(
             modifier = Modifier
@@ -197,14 +180,14 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController) 
                 .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, MaterialTheme.colorScheme.outline, shape)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = 10.dp, vertical = if (compactHeight) 4.dp else 8.dp),
         ) {
             RytmDestination.entries.forEach { destination ->
                 val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
                 RytmTabButton(
                     destination = destination,
                     selected = selected,
+                    compact = compactHeight,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         navController.navigate(destination.route) {
@@ -228,7 +211,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController) 
 // (tabLabelIn, 300ms) instead only plays when a tab actually becomes
 // selected, mirroring `.tab-btn.active span:last-child`'s animation trigger.
 @Composable
-private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compact: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val reducedMotion = LocalReducedMotion.current
     val scope = rememberCoroutineScope()
     val popScale = remember { Animatable(1f) }
@@ -304,7 +287,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
     ) {
         Box(
             Modifier
-                .size(RytmDimens.TabIcon)
+                .size(if (compact) 40.dp else RytmDimens.TabIcon)
                 .drawBehind {
                     if (rippleProgress.value in 0f..1f && rippleProgress.value > 0f) {
                         val extraRadiusPx = rippleProgress.value * 15.dp.toPx()
@@ -325,7 +308,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, modif
                 destination.icon,
                 contentDescription = stringResource(destination.labelRes),
                 tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(RytmDimens.TabGlyph),
+                modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
             )
         }
         Text(

@@ -2,14 +2,21 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,9 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -51,12 +55,27 @@ import java.io.File
 import ua.rytm.app.data.ReceiptOcrRepository
 import ua.rytm.app.ui.components.DatePickerField
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
+import ua.rytm.app.ui.theme.BlueDark2
+import ua.rytm.app.ui.theme.BlueLight2
+import ua.rytm.app.ui.theme.GreenDark2
+import ua.rytm.app.ui.theme.GreenLight2
+import ua.rytm.app.ui.theme.RedDark2
+import ua.rytm.app.ui.theme.RedLight2
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -232,24 +251,55 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
 @Composable
 private fun TypeSegmentedRow(vm: FinanceViewModel) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val options = listOf(
-        Triple(TxType.INCOME, "+ " + stringResource(R.string.tx_income), Icons.Filled.ArrowUpward),
-        Triple(TxType.EXPENSE, "− " + stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward),
-        Triple(TxType.TRANSFER, "⇄ " + stringResource(R.string.tx_transfer), Icons.Filled.SwapHoriz),
+        TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), Icons.Filled.ArrowUpward, if (isDark) GreenDark2 else GreenLight2),
+        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward, if (isDark) RedDark2 else RedLight2),
+        TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), Icons.Filled.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
     )
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        options.forEachIndexed { index, (type, label, icon) ->
-            SegmentedButton(
-                selected = vm.formType == type,
-                onClick = { vm.onFormTypeChange(type) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                icon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { option ->
+            val isSelected = vm.formType == option.type
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 52.dp)
+                    .clip(RoundedCornerShape(RytmRadii.Input))
+                    .background(option.color.copy(alpha = if (isSelected) 0.20f else 0.08f))
+                    .border(
+                        width = if (isSelected) 2.dp else 1.dp,
+                        color = option.color.copy(alpha = if (isSelected) 0.75f else 0.28f),
+                        shape = RoundedCornerShape(RytmRadii.Input),
+                    )
+                    .semantics { selected = isSelected }
+                    .clickable(role = Role.RadioButton) { vm.onFormTypeChange(option.type) }
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(label)
+                Icon(option.icon, contentDescription = null, tint = option.color, modifier = Modifier.size(19.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = option.label,
+                    color = option.color,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                )
             }
         }
     }
 }
+
+private data class TransactionTypeOption(
+    val type: TxType,
+    val label: String,
+    val icon: ImageVector,
+    val color: Color,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

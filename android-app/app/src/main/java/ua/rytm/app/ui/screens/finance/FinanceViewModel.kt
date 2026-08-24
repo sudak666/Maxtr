@@ -100,13 +100,18 @@ class FinanceViewModel(
     fun clearCategoryFilter() { categoryFilter = null }
     fun toggleListExpanded() { listExpanded = !listExpanded }
 
-    fun deleteTransaction(id: String) {
+    fun deleteTransaction(id: String, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             runCatching {
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.deleteTransaction(ownerUid, profileId, id)
                 repository.deleteTransaction(id)
-            }.onFailure { pendingMessage = FinanceMessage(R.string.transaction_delete_failed) }
+            }.onSuccess {
+                onComplete(true)
+            }.onFailure {
+                pendingMessage = FinanceMessage(R.string.transaction_delete_failed)
+                onComplete(false)
+            }
         }
     }
 
@@ -200,7 +205,10 @@ class FinanceViewModel(
 
     fun onFormWalletChange(id: String) { formWalletId = id }
     fun onFormTargetWalletChange(id: String) { formTargetWalletId = id }
-    fun onFormAmountChange(text: String) { formAmountText = text }
+    fun onFormAmountChange(text: String) {
+        formAmountText = text
+        formErrorRes = null
+    }
     fun onFormCategoryChange(category: String) {
         formCategory = category
         formSubcategory = null
@@ -221,7 +229,10 @@ class FinanceViewModel(
         }
     }
     fun setFormDateToday() { formDate = LocalDate.now().toString() }
-    fun setFormAmount(value: Double) { formAmountText = if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString() }
+    fun setFormAmount(value: Double) {
+        formAmountText = if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
+        formErrorRes = null
+    }
 
     val formWalletCurrency: String
         get() = wallets.firstOrNull { it.id == formWalletId }?.currency ?: "UAH"
@@ -236,7 +247,7 @@ class FinanceViewModel(
             if (formWalletId == formTargetWalletId) return TransferHint(isWarning = true)
             val srcCur = formWalletCurrency
             val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
-            val amount = formAmountText.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0
+            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
@@ -245,7 +256,7 @@ class FinanceViewModel(
 
     fun submitForm() {
         if (isSaving) return
-        val amount = formAmountText.toDoubleOrNull() ?: Double.NaN
+        val amount = parseMoneyInput(formAmountText) ?: Double.NaN
         val isTransfer = formType == TxType.TRANSFER
         val draft = TransactionDraft(
             amount = amount,

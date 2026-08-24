@@ -6,6 +6,8 @@ import androidx.compose.ui.unit.dp
 object RytmDimens {
     val ContentHorizontal = 16.dp
     val CompactContentHorizontal = 10.dp
+    // Shared scroll tail: clears the complete floating navigation and leaves
+    // a visible 16dp breathing gap below the final card on every main screen.
     val BottomContentClearance = 112.dp
     val BottomNavHorizontal = 14.dp
     val BottomNavBottom = 14.dp

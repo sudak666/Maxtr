@@ -48,7 +48,7 @@
     <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
     <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
     <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string>
-    <string name="rates_per_unit">грн за 1 %1$s</string><string name="rates_save_failed">Не вдалося зберегти курс</string>
+    <string name="rates_per_unit">грн за 1 %1$s</string><string name="rates_dashboard_subtitle">Актуальні значення відносно гривні</string><string name="rates_usd_hero">1 долар США</string><string name="rates_current">Поточні курси</string>
     <string name="profile_load_failed">Не вдалося завантажити профіль</string>
     <string name="profile_save_failed">Не вдалося зберегти профіль</string>
     <string name="profile_invalid_image">Оберіть коректне зображення</string>
@@ -86,7 +86,10 @@
     <string name="recurring_summary">%1$s · %2$d грн · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$d грн · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
     <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
-    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string>
+    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s грн середнє</string><string name="analytics_maximum_uah">%1$s грн максимум</string>
+    <string name="analytics_difference">Різниця</string><string name="analytics_savings_rate">Норма заощаджень</string>
+    <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
+    <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$d%%</string>
     <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
     <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
@@ -105,14 +108,14 @@
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_move_up">Вище</string><string name="action_move_down">Нижче</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
     <string name="crypto_loading">Оновлюємо курси…</string><string name="crypto_error">Не вдалося завантажити курси криптовалют</string>
-    <string name="action_collapse">Згорнути</string><string name="action_view_all">Переглянути всі</string>
-    <string name="finance_estimated_balance">Орієнтовний баланс (у грн)</string><string name="finance_total_balance">Загальний баланс (у грн)</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
+    <string name="action_collapse">Згорнути</string><string name="action_collapse_list">Згорнути список</string><string name="action_view_all">Переглянути всі</string>
+    <string name="finance_estimated_balance">Орієнтовний баланс</string><string name="finance_total_balance">Загальний баланс</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
     <string name="finance_month_income">Дохід цього місяця</string><string name="finance_month_expense">Витрата цього місяця</string><string name="finance_action_transaction">Операція</string><string name="finance_history">Історія операцій</string>
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
     <string name="finance_search_hint">Пошук за коментарем, категорією, гаманцем…</string><string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
     <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
-    <string name="categories_title">Категорії</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
+    <string name="categories_title">Категорії</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
     <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
     <string name="subcategory_too_long">Назва підкатегорії не може перевищувати 120 символів</string><string name="subcategory_exists">Така підкатегорія вже є</string><string name="category_too_long">Назва категорії не може перевищувати 120 символів</string><string name="category_exists">Така категорія вже є</string><string name="categories_sync_failed">Не вдалося синхронізувати зміни</string>
@@ -135,6 +138,7 @@
     <string name="shifts_days_off">Вихідних</string>
     <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
     <string name="shifts_quick_fill">Швидке заповнення</string>
+    <string name="shifts_quick_fill_hint">Заповніть місяць за вашим шаблоном</string>
     <string name="shift_type">Тип зміни</string>
     <string name="shift_pattern">Періодичність</string>
     <string name="shift_pattern_daily">Щодня</string>
@@ -232,6 +236,13 @@
     <string name="pin_error_invalid">Невірний PIN-код</string>
     <string name="pin_error_length">PIN має містити 4–6 цифр</string>
     <string name="pin_error_mismatch">PIN-коди не збігаються</string>
+    <string name="pin_setup_step">Крок %1$d із 2</string>
+    <string name="pin_protection_active">Захист активний</string>
+    <string name="pin_remove_title">Видалити PIN-код?</string>
+    <string name="pin_remove_body">Застосунок більше не блокуватиметься PIN-кодом або біометрією.</string>
+    <string name="action_continue">Продовжити</string>
+    <string name="action_back">Назад</string>
+    <string name="action_backspace">Видалити останню цифру</string>
     <string name="action_enable">Увімкнути</string>
     <string name="action_not_now">Не зараз</string>
     <string name="auth_error_generic">Помилка входу. Спробуйте ще раз.</string>
@@ -395,7 +406,7 @@
     <string name="notifications_debt_subtitle">За день до терміну сплати</string>
     <string name="biometric_unlock_title">Розблокування Rytm</string>
     <string name="biometric_unlock_subtitle">Підтвердіть відбитком пальця або обличчям</string>
-    <string name="transaction_delete_failed">Не вдалося видалити операцію</string>
+    <string name="transaction_delete_failed">Не вдалося видалити операцію</string><string name="transaction_deleted">Видалено</string><string name="action_undo">Скасувати</string>
     <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
     <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s грн</string>
     <string name="transaction_updated">Запис оновлено</string>

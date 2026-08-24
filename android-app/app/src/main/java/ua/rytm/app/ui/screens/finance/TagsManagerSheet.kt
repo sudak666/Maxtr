@@ -75,7 +75,7 @@ fun TagsManagerSheet(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.size(20.dp).clip(CircleShape).background(Color(tag.colorHex)))
                     Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { viewModel.requestDelete(tag.id) }) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+                    IconButton(onClick = { viewModel.requestDelete(tag.id) }, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
                 }
             }
 
@@ -87,7 +87,7 @@ fun TagsManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(onClick = { viewModel.addTag(newName); newName = "" }) {
+                androidx.compose.material3.Button(onClick = { viewModel.addTag(newName); newName = "" }, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
                     Icon(Icons.Filled.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }
