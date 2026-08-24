@@ -2,13 +2,13 @@
 
 ## Session checkpoint — 2026-08-22 (resume here)
 
-Active branch: `Codex-android-audit-data-integrity`. PR #410 is merged; this branch is closing the remaining data-integrity and shared-viewer portion of the full PWA parity audit.
+Current state: the native Android parity/data-integrity audit was delivered in PR #411; real-phone layout follow-ups were delivered in PRs #414 and #415. The checklist below is historical implementation scope, not an open-task list.
 
 Completed in this batch: Settings search/group filters, exact reset defaults, explicit sign-out, Premium/About, email/password auth, profile nickname/avatar picker, Goals and full rates manager, CSV import/export, widget manager/dashboard with PWA Firestore `widgets`/`widgetOrder` sync, auto-rules, full Monobank connect/sync/disconnect (explicitly authorized token flow), notification-path/parity corrections, and Room schema migrations 13→14 (`auto_rules`) and 14→15 (`transactions.monobankId`). Firestore write-through with owner/profile paths, isolated merge-only writes, serialized mutations, rollback/error states now covers transactions, wallets, shifts/autofill, categories/subcategories/icons, budgets, tags (including affected transaction docs), recurring operations, and goals.
 
-Verification: final `:app:clean :app:compileDebugKotlin --quiet` passed after stopping a stale Gradle daemon that had corrupted the shared KSP symbol cache. No live emulator/pixel pass and no final `assembleDebug` have been run for this accumulated batch yet.
+Verification: the delivered audit passed the full JVM suite, Android lint, 13 emulator Compose tests, responsive/source-parity contracts, real `assembleDebug`, signed APK verification and signed `bundleRelease`; see `android-app/QA_MATRIX.md` and `CHANGELOG.md`.
 
-Current audit work: Shopping and Debts/settlement entries now write through to the correct owner/profile Firestore documents with serialized saves, local snapshots, rollback, and visible failures. Category rename now cascades through Room transactions and reserializes affected cross-platform state. A central active-profile permission resolver disables primary mutation surfaces for shared-profile viewers and repository-level guards prevent Shopping/Debt local mutations. Remaining in this block: focused permission/cascade tests and live emulator verification before PR.
+Current audit work: complete. Firestore listeners keep the active profile current across clients; local mutations write through via the domain repositories. Remaining release action is uploading the signed `.aab` to Play Console closed testing.
 
 Ціль: нативний Android-клієнт (Kotlin, Jetpack Compose + Material 3, MVVM/Clean, Room + DataStore) зі 100% функціоналом PWA `Rytm`, з покращеннями під нативні Android-патерни там, де PWA-рішення були браузерним компромісом.
 
@@ -59,51 +59,51 @@ Current audit work: Shopping and Debts/settlement entries now write through to t
 ## 1. Екрани та компоненти (чекліст)
 
 ### 1.1 Bottom navigation (4 таби) — `NavigationBar` (Material 3)
-- [ ] **Фінанси** (за замовчуванням активна)
-- [ ] **Графік змін**
-- [ ] **Розрахунки** (борги/взаєморозрахунки)
-- [ ] **Список покупок**
-- [ ] **Налаштування** — окремий екран, доступний через шестерню (не в нижній навігації, як і в PWA)
+- [x] **Фінанси** (за замовчуванням активна)
+- [x] **Графік змін**
+- [x] **Розрахунки** (борги/взаєморозрахунки)
+- [x] **Список покупок**
+- [x] **Налаштування** — окремий екран, доступний через шестерню (не в нижній навігації, як і в PWA)
 
 ### 1.2 Finance screen
-- [ ] Hero balance card (баланси по гаманцях)
-- [ ] Quick-actions row: Операція (FAB), Інструменти, Бюджети, Цілі
-- [ ] Історія транзакцій: пошук, фільтр-чіпи (тип/період/категорія), список з swipe-to-delete
-- [ ] FAB → форма нової/редагування транзакції (bottom sheet)
-- [ ] Секції-віджети (порядок керується Widgets manager): Цілі, Порада дня, Топ криптовалюти, Бюджети місяця
-- [ ] **Tools bottom sheet**: Аналітика (донат-чарт + список категорій, фільтр періоду), FX-курси, конвертер валют, 6-місячний лінійний графік
+- [x] Hero balance card (баланси по гаманцях)
+- [x] Quick-actions row: Операція (FAB), Інструменти, Бюджети, Цілі
+- [x] Історія транзакцій: пошук, фільтр-чіпи (тип/період/категорія), список з swipe-to-delete
+- [x] FAB → форма нової/редагування транзакції (bottom sheet)
+- [x] Секції-віджети (порядок керується Widgets manager): Цілі, Порада дня, Топ криптовалюти, Бюджети місяця
+- [x] **Tools bottom sheet**: Аналітика (донат-чарт + список категорій, фільтр періоду), FX-курси, конвертер валют, 6-місячний лінійний графік
 
 ### 1.3 Shifts screen
-- [ ] Hero metric: зароблено цього місяця + прогрес-бар до цілі
-- [ ] Chip stats: години, кількість змін, вихідні
-- [ ] 6-місячний бар-чарт доходу
-- [ ] Collapsible "Швидке заповнення": тип зміни + патерн (кожен день/через день/2-2/3-3), автозаповнення з конфігом (тип/патерн/дата-якір)
-- [ ] Календар: місяць/рік селектор, легенда, grid днів (тап на день → модалка призначення зміни/змін)
+- [x] Hero metric: зароблено цього місяця + прогрес-бар до цілі
+- [x] Chip stats: години, кількість змін, вихідні
+- [x] 6-місячний бар-чарт доходу
+- [x] Collapsible "Швидке заповнення": тип зміни + патерн (кожен день/через день/2-2/3-3), автозаповнення з конфігом (тип/патерн/дата-якір)
+- [x] Календар: місяць/рік селектор, легенда, grid днів (тап на день → модалка призначення зміни/змін)
 
 ### 1.4 Debt (Розрахунки) screen
-- [ ] Chips вибору активного боргу/розрахунку (підтримка кількох одночасно)
-- [ ] Hero metric: залишок
-- [ ] Прогрес-бар % сплачено
-- [ ] Chip stats: стартова сума, сплачено, к-сть платежів, дедлайн
-- [ ] Payoff-forecast burndown chart (при ≥2 платежах + встановленій стартовій сумі)
-- [ ] Collapsible "Дані розрахунку": назва, нотатка, валюта, стартова сума, дедлайн, видалення
-- [ ] Collapsible історія платежів (swipe-to-delete)
-- [ ] FAB → форма нового платежу
+- [x] Chips вибору активного боргу/розрахунку (підтримка кількох одночасно)
+- [x] Hero metric: залишок
+- [x] Прогрес-бар % сплачено
+- [x] Chip stats: стартова сума, сплачено, к-сть платежів, дедлайн
+- [x] Payoff-forecast burndown chart (при ≥2 платежах + встановленій стартовій сумі)
+- [x] Collapsible "Дані розрахунку": назва, нотатка, валюта, стартова сума, дедлайн, видалення
+- [x] Collapsible історія платежів (swipe-to-delete)
+- [x] FAB → форма нового платежу
 
 ### 1.5 Shopping screen
-- [ ] Chip stats: залишилось, куплено
-- [ ] Форма додавання (назва + кількість)
-- [ ] Список з чекбоксом done + swipe-to-delete
+- [x] Chip stats: залишилось, куплено
+- [x] Форма додавання (назва + кількість)
+- [x] Список з чекбоксом done + swipe-to-delete
 
 ### 1.6 Settings screen
-- [ ] Пошук + групові фільтр-чіпи (все/фінанси/безпека/додаток)
-- [ ] Профіль (аватар + нікнейм), Профілі (мульти-профіль + спільні профілі + учасники/ролі)
-- [ ] Premium (інформаційний, наразі все безкоштовно)
-- [ ] Фінанси: Гаманці, Monobank, Курси, Віджети, Категорії (+підкатегорії, іконки, кольори), Теги, Бюджети, Цілі, Регулярні операції, Авто-правила, CSV експорт/імпорт
-- [ ] Безпека: PIN, Push (тумблер + час нагадування + тумблери бюджет/регулярні/борг)
-- [ ] Вигляд: тема, мова, кеш офлайн
-- [ ] Акаунт: вихід, скидання даних, видалення акаунту
-- [ ] Про додаток: посилання, умови, приватність
+- [x] Пошук + групові фільтр-чіпи (все/фінанси/безпека/додаток)
+- [x] Профіль (аватар + нікнейм), Профілі (мульти-профіль + спільні профілі + учасники/ролі)
+- [x] Premium (інформаційний, наразі все безкоштовно)
+- [x] Фінанси: Гаманці, Monobank, Курси, Віджети, Категорії (+підкатегорії, іконки, кольори), Теги, Бюджети, Цілі, Регулярні операції, Авто-правила, CSV експорт/імпорт
+- [x] Безпека: PIN, Push (тумблер + час нагадування + тумблери бюджет/регулярні/борг)
+- [x] Вигляд: тема, мова, кеш офлайн
+- [x] Акаунт: вихід, скидання даних, видалення акаунту
+- [x] Про додаток: посилання, умови, приватність
 
 ### 1.7 Модалки/менеджери (усі — окремі Compose bottom sheets/dialogs)
 biometric-onboard, pin-settings, shift, shift-types, wallets, monobank, tx-form, debt-form, categories (+category-icon, cat-action), color-pick (спільний), rates, widgets, tools, premium, tags, profiles, shared-members, profile-avatar-pick, rules, budgets, goals, recurring.
