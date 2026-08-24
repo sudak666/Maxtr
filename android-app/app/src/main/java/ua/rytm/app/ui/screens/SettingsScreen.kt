@@ -5,11 +5,14 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -28,6 +31,8 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
@@ -50,24 +55,26 @@ import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,6 +90,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalResources
@@ -193,24 +201,37 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
     var pushBusy by remember { mutableStateOf(false) }
     val pushEnabled by (if (uid != null) app.settingsStore.isPushEnabled(uid) else flowOf(false)).collectAsState(initial = false)
+    var pendingPushEnabled by remember { mutableStateOf<Boolean?>(null) }
+    val displayedPushEnabled = pendingPushEnabled ?: pushEnabled
+    LaunchedEffect(pushEnabled, pendingPushEnabled) {
+        if (pendingPushEnabled != null && pushEnabled == pendingPushEnabled) pendingPushEnabled = null
+    }
 
     // Mirrors js/notifications.js's enablePushNotifications()'s own
     // permission-then-register sequence. Only relevant on API 33+ — earlier
     // versions never require a runtime notification permission at all.
     fun applyPushEnabled(target: Boolean) {
         val accountUid = uid ?: return
+        if (pushBusy) return
+        pendingPushEnabled = target
+        pushBusy = true
         scope.launch {
-            pushBusy = true
+            var preferenceSaved = false
             try {
+                // Persist the user's intent first. FCM token registration can fail
+                // transiently; that must not make the switch look unresponsive.
+                app.settingsStore.setPushEnabled(accountUid, target)
+                preferenceSaved = true
                 val dataOwnerUid = activeProfileOwnerUid ?: accountUid
                 withTimeout(10_000) {
                     if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
                     else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
                 }
-                app.settingsStore.setPushEnabled(accountUid, target)
                 pendingMessage = if (target) pushEnabledMessage else pushDisabledMessage
             } catch (e: Exception) {
+                Log.e("RytmPush", "Push registration failed; keeping user preference=$target", e)
                 pendingMessage = pushChangeFailedMessage
+                if (!preferenceSaved) pendingPushEnabled = null
             } finally {
                 pushBusy = false
             }
@@ -280,7 +301,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = RytmDimens.ContentHorizontal)
-                .padding(bottom = RytmDimens.BottomContentClearance + 48.dp),
+                .padding(bottom = RytmDimens.BottomContentClearance),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
@@ -423,15 +444,15 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         badgeColor = MaterialTheme.colorScheme.primary,
                         title = stringResource(R.string.settings_push),
                         subtitle = stringResource(R.string.settings_push_subtitle),
-                        checked = pushEnabled,
-                        enabled = !pushBusy,
+                        checked = displayedPushEnabled,
+                        enabled = true,
                         onCheckedChange = ::onTogglePush,
                     )
                     // Only reachable once push is actually on — configuring
                     // *which* alerts to send is meaningless before the device
                     // has even registered to receive any (see
                     // NotificationSettingsSheet's own doc comment).
-                    if (pushEnabled) {
+                    if (displayedPushEnabled) {
                         SettingsRow(
                             icon = Icons.Filled.Tune,
                             badgeColor = Color(0xFFF59E0B),
@@ -445,32 +466,19 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
             if (appearanceVisible) {
                 SettingsSectionLabel(stringResource(R.string.settings_appearance))
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    SegmentedButton(
-                        selected = !darkTheme,
-                        onClick = { scope.launch { app.settingsStore.setDarkTheme(false) } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        icon = { Icon(Icons.Filled.LightMode, contentDescription = null) },
-                    ) { Text(stringResource(R.string.settings_theme_light)) }
-                    SegmentedButton(
-                        selected = darkTheme,
-                        onClick = { scope.launch { app.settingsStore.setDarkTheme(true) } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        icon = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
-                    ) { Text(stringResource(R.string.settings_theme_dark)) }
-                }
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                    SegmentedButton(
-                        selected = language == "uk",
-                        onClick = { scope.launch { app.settingsStore.setLanguage("uk") } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    ) { Text(stringResource(R.string.settings_language_uk)) }
-                    SegmentedButton(
-                        selected = language == "en",
-                        onClick = { scope.launch { app.settingsStore.setLanguage("en") } },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                    ) { Text(stringResource(R.string.settings_language_en)) }
-                }
+                RoundedChoiceSelector(
+                    labels = listOf(stringResource(R.string.settings_theme_light), stringResource(R.string.settings_theme_dark)),
+                    icons = listOf(Icons.Filled.LightMode, Icons.Filled.DarkMode),
+                    selectedIndex = if (darkTheme) 1 else 0,
+                    onSelect = { scope.launch { app.settingsStore.setDarkTheme(it == 1) } },
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                RoundedChoiceSelector(
+                    labels = listOf(stringResource(R.string.settings_language_uk), stringResource(R.string.settings_language_en)),
+                    selectedIndex = if (language == "en") 1 else 0,
+                    onSelect = { scope.launch { app.settingsStore.setLanguage(if (it == 0) "uk" else "en") } },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
                 SettingsGroupCard {
                     SettingsToggleRow(
                         icon = Icons.Filled.VisibilityOff,
@@ -748,7 +756,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val importSaveFailed = stringResource(R.string.settings_csv_import_save_failed)
         AlertDialog(
             onDismissRequest = { if (!csvBusy) csvImportPreview = null },
-            title = { Text(stringResource(R.string.settings_csv_import)) },
+            shape = RoundedCornerShape(28.dp),
+            icon = {
+                Box(Modifier.size(52.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
+            },
+            title = { Text(stringResource(R.string.settings_csv_import), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
@@ -759,8 +773,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             },
             confirmButton = {
-                TextButton(enabled = !csvBusy && uid != null, onClick = {
-                    val accountUid = activeProfileOwnerUid ?: uid ?: return@TextButton
+                androidx.compose.material3.Button(enabled = !csvBusy && uid != null, onClick = {
+                    val accountUid = activeProfileOwnerUid ?: uid ?: return@Button
                     scope.launch {
                         csvBusy = true
                         try {
@@ -770,9 +784,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         } catch (_: Exception) { pendingMessage = importSaveFailed }
                         finally { csvBusy = false }
                     }
-                }) { Text(stringResource(R.string.settings_csv_import_action)) }
+                }, shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.settings_csv_import_action)) }
             },
-            dismissButton = { TextButton(enabled = !csvBusy, onClick = { csvImportPreview = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = {
+                androidx.compose.material3.OutlinedButton(enabled = !csvBusy, onClick = { csvImportPreview = null }, shape = RoundedCornerShape(14.dp)) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
         )
     }
 
@@ -807,7 +825,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             title = { Text(stringResource(R.string.settings_sign_out_title)) },
             text = { Text(stringResource(R.string.settings_sign_out_body)) },
             confirmButton = {
-                TextButton(onClick = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+                    onClick = {
                     pendingSignOut = false
                     scope.launch {
                         if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
@@ -816,7 +836,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }) { Text(stringResource(R.string.settings_sign_out_action)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingSignOut = false }) { Text(stringResource(R.string.action_cancel)) }
+                OutlinedButton(onClick = { pendingSignOut = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -853,7 +873,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = { premiumDialogOpen = false }) { Text(stringResource(R.string.action_done)) }
+                Button(
+                    onClick = { premiumDialogOpen = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                ) { Text(stringResource(R.string.action_done)) }
             },
         )
     }
@@ -903,18 +927,36 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
 @Composable
 private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subtitle: String, badge: String? = null) {
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.09f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.22f)),
     ) {
-        SettingsIconBadge(icon, color)
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        badge?.let {
-            Text(it, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = color)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp)) }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    badge?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = color,
+                            modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(color.copy(alpha = 0.14f)).padding(horizontal = 8.dp, vertical = 3.dp),
+                        )
+                    }
+                }
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
@@ -955,23 +997,14 @@ private fun SettingsSectionLabel(text: String) {
 // every pair of rows without relying on any stateful/order-sensitive trick.
 @Composable
 private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
-    val scope = SettingsRowScope()
-    scope.content()
     Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            scope.rows.forEachIndexed { index, row ->
-                if (index > 0) {
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                }
-                row()
-            }
+            SettingsRowScope.content()
         }
     }
 }
 
-private class SettingsRowScope {
-    val rows = mutableListOf<@Composable () -> Unit>()
-}
+private object SettingsRowScope
 
 // Matches the PWA's .icon-badge: a circular badge tinted at ~16% of its own
 // color, with the icon drawn in that full color — not a generic outline icon.
@@ -988,6 +1021,39 @@ private fun SettingsIconBadge(icon: ImageVector, color: Color) {
     }
 }
 
+@Composable
+private fun RoundedChoiceSelector(
+    labels: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    icons: List<ImageVector>? = null,
+) {
+    val shape = RoundedCornerShape(999.dp)
+    Row(
+        modifier.fillMaxWidth().clip(shape).background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape).padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        labels.forEachIndexed { index, label ->
+            val selected = index == selectedIndex
+            Row(
+                Modifier.weight(1f).clip(shape)
+                    .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                    .clickable { onSelect(index) }.padding(horizontal = 12.dp, vertical = 11.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val icon = icons?.getOrNull(index)
+                if (icon != null) Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                else if (selected) Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(label, modifier = Modifier.padding(start = if (icon != null || selected) 7.dp else 0.dp), fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
 private fun SettingsRowScope.SettingsRow(
     icon: ImageVector,
     badgeColor: Color,
@@ -996,20 +1062,20 @@ private fun SettingsRowScope.SettingsRow(
     onClick: () -> Unit,
     titleColor: Color = Color.Unspecified,
 ) {
-    rows += {
-        Row(
-            Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SettingsIconBadge(icon, badgeColor)
-            Column(Modifier.padding(start = 12.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SettingsIconBadge(icon, badgeColor)
+        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
     }
 }
 
+@Composable
 private fun SettingsRowScope.SettingsToggleRow(
     icon: ImageVector,
     badgeColor: Color,
@@ -1019,18 +1085,37 @@ private fun SettingsRowScope.SettingsToggleRow(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    rows += {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            SettingsIconBadge(icon, badgeColor)
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).toggleable(
+            value = checked,
+            enabled = enabled,
+            role = Role.Switch,
+            onValueChange = onCheckedChange,
+        ).padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        SettingsIconBadge(icon, badgeColor)
+        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            enabled = enabled,
+            colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    checkedBorderColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    disabledCheckedThumbColor = Color.White.copy(alpha = 0.72f),
+                    disabledCheckedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
+                    disabledUncheckedThumbColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.58f),
+                    disabledUncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.58f),
+            ),
+        )
     }
 }

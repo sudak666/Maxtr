@@ -98,7 +98,7 @@ fun WalletsManagerSheet(
             }
 
             val newWalletName = stringResource(R.string.wallet_new_default)
-            TextButton(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth()) {
+            androidx.compose.material3.Button(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.wallet_add))
             }
@@ -180,6 +180,6 @@ private fun WalletRow(
             }
         }
 
-        IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+        IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
     }
 }

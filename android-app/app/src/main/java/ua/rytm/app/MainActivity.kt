@@ -9,11 +9,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
 import ua.rytm.app.navigation.RytmNavHost
 import ua.rytm.app.ui.screens.auth.AuthViewModel
@@ -39,9 +44,18 @@ class MainActivity : FragmentActivity() {
         setContent {
             val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
             val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
-            val language by app.settingsStore.language.collectAsState(initial = "uk")
+            var language by remember { mutableStateOf<String?>(null) }
             val reducedMotion = rememberReducedMotion()
-            LaunchedEffect(language) { if (applyAppLanguage(this@MainActivity, language)) recreate() }
+            SideEffect {
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !darkTheme
+                    isAppearanceLightNavigationBars = !darkTheme
+                }
+            }
+            LaunchedEffect(Unit) { app.settingsStore.language.collect { language = it } }
+            LaunchedEffect(language) {
+                language?.let { if (applyAppLanguage(this@MainActivity, it)) recreate() }
+            }
             RytmTheme(darkTheme = darkTheme) {
                 CompositionLocalProvider(LocalHideAmounts provides hideAmounts, LocalReducedMotion provides reducedMotion) {
                 Surface(modifier = Modifier.fillMaxSize()) {

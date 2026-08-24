@@ -2,6 +2,7 @@ package ua.rytm.app.ui.screens
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,31 +19,34 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -54,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,12 +69,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import kotlinx.coroutines.launch
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
@@ -106,21 +113,44 @@ fun DebtScreen(
 ) {
     val cd = viewModel.currentDebt
     val canEdit = LocalCanEditProfile.current
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val historyHeaderIndex = 7 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
+
+    fun collapseHistory() {
+        if (!viewModel.historyExpanded) return
+        viewModel.toggleHistoryPanel()
+        scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
+    }
 
     Scaffold(
         floatingActionButton = {
             if (cd != null && canEdit) {
-                ExtendedFloatingActionButton(
-                    onClick = viewModel::openNewEntrySheet,
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.debt_payment)) },
-                    modifier = Modifier.padding(bottom = RytmDimens.BottomContentClearance),
-                )
+                val shape = RoundedCornerShape(999.dp)
+                val collapse = viewModel.historyExpanded
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = RytmDimens.BottomContentClearance)
+                        .shadow(10.dp, shape)
+                        .clip(shape)
+                        .background(
+                            if (collapse) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
+                            else Brush.linearGradient(listOf(ua.rytm.app.ui.theme.OrangeDark, ua.rytm.app.ui.theme.OrangeLight2)),
+                        )
+                        .clickable(role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
+                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(if (collapse) Icons.Filled.ExpandLess else Icons.Filled.Add, contentDescription = null, tint = Color.White)
+                    Text(stringResource(if (collapse) R.string.action_collapse_list else R.string.debt_payment), color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
         },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -137,18 +167,23 @@ fun DebtScreen(
                 item { ChipStatsRow(cd) }
                 item { DebtForecastCard(cd) }
                 item { InfoPanel(viewModel, cd, canEdit) }
-                item { HistoryHeader(viewModel, cd) }
-                item {
-                    ReducedMotionVisibility(visible = viewModel.historyExpanded) {
-                        if (cd.entries.isEmpty()) {
-                            EmptyEntriesState()
-                        } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                // Newest first, matching js/debt.js's lc.prepend() display order.
-                                cd.entries.reversed().forEach { entry ->
-                                    DebtEntryRow(viewModel, entry, cd.currency, canEdit)
-                                }
-                            }
+                val newestEntries = cd.entries.reversed()
+                val visibleEntries = if (viewModel.historyExpanded) newestEntries else newestEntries.take(3)
+                if (visibleEntries.isEmpty()) {
+                    item { EmptyEntriesState() }
+                } else {
+                    items(visibleEntries, key = { it.id }) { entry ->
+                        DebtEntryRow(viewModel, entry, cd.currency, canEdit)
+                    }
+                }
+                if (newestEntries.size > 3) {
+                    item {
+                        OutlinedButton(
+                            onClick = { if (viewModel.historyExpanded) collapseHistory() else viewModel.toggleHistoryPanel() },
+                            modifier = Modifier.padding(end = 178.dp),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Text(stringResource(if (viewModel.historyExpanded) R.string.action_collapse_list else R.string.action_view_all))
                         }
                     }
                 }
@@ -165,8 +200,8 @@ fun DebtScreen(
             onDismissRequest = viewModel::cancelDeleteDebt,
             title = { Text(stringResource(R.string.debt_delete_title)) },
             text = { Text(stringResource(R.string.debt_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDeleteDebt, enabled = !viewModel.saving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDeleteDebt) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = { Button(onClick = viewModel::confirmDeleteDebt, enabled = !viewModel.saving, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
+            dismissButton = { OutlinedButton(onClick = viewModel::cancelDeleteDebt) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
@@ -175,8 +210,8 @@ fun DebtScreen(
             onDismissRequest = viewModel::cancelDeleteEntry,
             title = { Text(stringResource(R.string.debt_payment_delete_title)) },
             text = { Text(stringResource(R.string.debt_payment_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDeleteEntry, enabled = !viewModel.saving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDeleteEntry) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = { Button(onClick = viewModel::confirmDeleteEntry, enabled = !viewModel.saving, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
+            dismissButton = { OutlinedButton(onClick = viewModel::cancelDeleteEntry) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
@@ -223,9 +258,9 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                     text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
-                        TextButton(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }) { Text(stringResource(R.string.action_add)) }
+                        Button(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }) { Text(stringResource(R.string.action_add)) }
                     },
-                    dismissButton = { TextButton(onClick = { addOpen = false }) { Text(stringResource(R.string.action_cancel)) } },
+                    dismissButton = { OutlinedButton(onClick = { addOpen = false }) { Text(stringResource(R.string.action_cancel)) } },
                 )
             }
         }
@@ -328,19 +363,23 @@ private fun dueChipInfo(cd: Debt): String? {
 // purple-gradient icon badge, not a plain Card.
 @Composable
 private fun StatChip(icon: ImageVector, value: String, label: String) {
-    Card(Modifier.widthIn(min = 150.dp), shape = RoundedCornerShape(999.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+    Card(
+        Modifier.widthIn(min = 164.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f)),
+    ) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
-                    .size(24.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
             }
             Column(Modifier.padding(start = 9.dp)) {
-                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, maxLines = 1)
+                Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, maxLines = 1)
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
@@ -350,14 +389,16 @@ private fun StatChip(icon: ImageVector, value: String, label: String) {
 @Composable
 private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            if (canEdit) IconButton(onClick = viewModel::toggleInfoPanel) {
-                Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
+        Card(shape = RoundedCornerShape(18.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).clickable(enabled = canEdit, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                if (canEdit) Box(Modifier.size(38.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                }
             }
         }
         ReducedMotionVisibility(visible = viewModel.infoExpanded) {
@@ -382,23 +423,6 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun HistoryHeader(viewModel: DebtViewModel, cd: Debt) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column {
-            Text(stringResource(R.string.debt_history), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            Text(pluralStringResource(R.plurals.finance_records, cd.entries.size, cd.entries.size), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        IconButton(onClick = viewModel::toggleHistoryPanel) {
-            Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.action_toggle_section), modifier = Modifier)
         }
     }
 }
@@ -506,8 +530,8 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
             OutlinedTextField(value = balance, onValueChange = { balance = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.debt_new_balance)) })
             DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = viewModel::closeNewEntrySheet) { Text(stringResource(R.string.action_cancel)) }
-                TextButton(onClick = { viewModel.addEntry(amount, balance, date) }, enabled = !viewModel.saving) { Text(stringResource(R.string.action_add)) }
+                OutlinedButton(onClick = viewModel::closeNewEntrySheet) { Text(stringResource(R.string.action_cancel)) }
+                Button(onClick = { viewModel.addEntry(amount, balance, date) }, enabled = !viewModel.saving) { Text(stringResource(R.string.action_add)) }
             }
         }
     }

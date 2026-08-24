@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,7 +73,7 @@ fun RecurringManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.recurring_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.recurring_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->
@@ -105,7 +106,7 @@ fun RecurringManagerSheet(
                 )
             }
 
-            TextButton(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving) {
+            androidx.compose.material3.Button(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.recurring_add))
             }
@@ -146,7 +147,12 @@ private fun RecurringRow(
     val freqLabel = frequencyOptions.firstOrNull { it.first == r.frequency }?.second ?: stringResource(R.string.frequency_monthly)
     val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category), r.amount.toInt(), freqLabel, r.nextDate)
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CategoryIconBadge(r.category, iconOverride = iconOverride, size = 32.dp)
             Column(Modifier.weight(1f)) {
@@ -156,7 +162,7 @@ private fun RecurringRow(
             IconButton(onClick = onToggleEdit) {
                 Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -216,6 +222,7 @@ private fun RecurringRow(
                 Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.core.net.toUri
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -49,6 +51,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -120,7 +127,11 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         shape = RoundedCornerShape(999.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PurpleDark, contentColor = Color.White),
                     ) {
-                        Text("G", fontSize = 16.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 8.dp))
+                        Image(
+                            painter = painterResource(R.drawable.ic_google_g),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 10.dp).size(18.dp),
+                        )
                         Text(stringResource(R.string.auth_continue_google), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
 
@@ -251,12 +262,22 @@ private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
 
 @Composable
 private fun TermsFooter(onTerms: () -> Unit, onPrivacy: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(stringResource(R.string.auth_terms_prefix), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TextButton(onClick = onTerms, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text(stringResource(R.string.terms_title), color = PurpleDark, fontSize = 13.sp) }
-            Text(stringResource(R.string.common_and), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = onPrivacy, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text(stringResource(R.string.privacy_title), color = PurpleDark, fontSize = 13.sp) }
-        }
-    }
+    val prefix = stringResource(R.string.auth_terms_prefix)
+    val terms = stringResource(R.string.terms_title)
+    val and = stringResource(R.string.common_and)
+    val privacy = stringResource(R.string.privacy_title)
+    val linkStyle = SpanStyle(color = PurpleDark, fontWeight = FontWeight.SemiBold)
+    Text(
+        text = buildAnnotatedString {
+            append("$prefix ")
+            withLink(LinkAnnotation.Clickable("terms") { onTerms() }) { withStyle(linkStyle) { append(terms) } }
+            append(" $and ")
+            withLink(LinkAnnotation.Clickable("privacy") { onPrivacy() }) { withStyle(linkStyle) { append(privacy) } }
+        },
+        modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
 }

@@ -14,6 +14,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -21,12 +25,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
@@ -98,8 +104,15 @@ fun GoalsManagerSheet(
                 )
             }
 
-            TextButton(onClick = viewModel::addGoal, modifier = Modifier.fillMaxWidth(), enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving) {
+            Button(
+                onClick = viewModel::addGoal,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving,
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = ButtonDefaults.ContentPadding,
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
+                androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp))
                 Text(stringResource(R.string.goals_add))
             }
         }
@@ -110,8 +123,14 @@ fun GoalsManagerSheet(
             onDismissRequest = viewModel::cancelDelete,
             title = { Text(stringResource(R.string.goals_delete_title)) },
             text = { Text(stringResource(R.string.goals_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete, enabled = !viewModel.isSaving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = {
+                Button(
+                    onClick = viewModel::confirmDelete,
+                    enabled = !viewModel.isSaving,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+                ) { Text(stringResource(R.string.action_delete)) }
+            },
+            dismissButton = { OutlinedButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -139,17 +158,34 @@ private fun GoalRow(
         stringResource(R.string.goals_choose_wallet)
     }
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f)) {
                 Text((wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name)) + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
-            IconButton(onClick = onToggleEdit) {
+            IconButton(
+                onClick = onToggleEdit,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+            ) {
                 Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(
+                onClick = onDelete,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
+            ) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -188,6 +224,7 @@ private fun GoalRow(
                 if (dateText != goal.targetDate) onTargetDateChange(dateText)
             }
         }
+    }
     }
 }
 

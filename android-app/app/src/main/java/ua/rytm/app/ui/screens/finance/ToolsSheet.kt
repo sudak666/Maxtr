@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.CompareArrows
+import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,7 +31,6 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +49,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -81,11 +90,8 @@ fun ToolsSheet(
             Text(stringResource(R.string.tools_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             AnalyticsSection(viewModel)
-            HorizontalDivider()
             FxRatesSection(viewModel)
-            HorizontalDivider()
             ConverterSection(viewModel)
-            HorizontalDivider()
             SixMonthChartSection(viewModel)
         }
     }
@@ -104,8 +110,47 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(maskedAmount(stringResource(R.string.analytics_income, formatMoney(vm.totalIncome))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            Text(maskedAmount(stringResource(R.string.analytics_expense, formatMoney(vm.totalExpense))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            AnalyticsTotalCard(
+                label = stringResource(R.string.analytics_income_label),
+                amount = vm.totalIncome,
+                color = ua.rytm.app.ui.theme.GreenDark2,
+                icon = Icons.Filled.TrendingUp,
+                modifier = Modifier.weight(1f),
+            )
+            AnalyticsTotalCard(
+                label = stringResource(R.string.analytics_expense_label),
+                amount = vm.totalExpense,
+                color = ua.rytm.app.ui.theme.RedDark2,
+                icon = Icons.Filled.TrendingDown,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            AnalyticsTotalCard(
+                label = stringResource(R.string.analytics_difference), amount = vm.difference,
+                color = if (vm.difference >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
+                icon = Icons.Filled.CompareArrows, modifier = Modifier.weight(1f),
+            )
+            AnalyticsRateCard(
+                label = stringResource(R.string.analytics_savings_rate), value = vm.savingsRate,
+                color = if (vm.savingsRate >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        val expenseChange = vm.expenseChangePercent
+        val categoryGrowth = vm.topExpenseGrowth
+        if (expenseChange != null || categoryGrowth != null) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+                Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    expenseChange?.let {
+                        Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.SemiBold)
+                    }
+                    categoryGrowth?.let { (category, percent) ->
+                        Text(stringResource(R.string.analytics_top_growth, localizedDomainText(category), percent), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
         }
 
         val expenseByCategory = vm.expenseByCategory
@@ -130,7 +175,48 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
     }
 }
 
-// Mirrors the PWA's conic-gradient donut (analytics-donut) — a Compose
+@Composable
+private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon: ImageVector, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.28f)),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f)),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+                }
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
+            Text(
+                maskedAmount(stringResource(R.string.finance_amount_uah, formatMoney(amount))),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = color,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp), border = BorderStroke(1.dp, color.copy(alpha = 0.28f)), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+                }
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+            }
+            Text("$value%", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
+        }
+    }
+}
+
+// Mirrors the PWA's conic-gradient donut (analytics-donut) - a Compose
 // Canvas arc-sweep per category, colored via categoryColor() (the same
 // deterministic per-category color used for transaction-list icon badges).
 @Composable
@@ -171,7 +257,7 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
     val color = categoryColor(category)
-    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             CategoryIconBadge(category = category, size = 30.dp)
             Text(
@@ -189,7 +275,6 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
         Box(Modifier.fillMaxWidth().padding(top = 5.dp).height(3.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
             Box(Modifier.fillMaxWidth(progress).height(3.dp).background(color, CircleShape))
         }
-        HorizontalDivider(Modifier.padding(top = 6.dp))
     }
 }
 
@@ -218,7 +303,7 @@ private fun FxRatesSection(vm: ToolsViewModel) {
                         Text(code, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         Text(runCatching { java.util.Currency.getInstance(code).getDisplayName(LocalConfiguration.current.locales[0]) }.getOrDefault(code), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(maskedAmount("${formatMoney(rate)} грн"), fontWeight = FontWeight.Bold)
+                    Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(rate))), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -283,8 +368,8 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         Text(stringResource(R.string.analytics_six_months), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val months = vm.sixMonthTotals
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("balance" to "Баланс", "income" to "Дохід", "expense" to "Витрата").forEach { (key, label) ->
-                FilterChip(selected = metric == key, onClick = { metric = key }, label = { Text(label) }, modifier = Modifier.weight(1f))
+            listOf("balance" to R.string.analytics_balance_label, "income" to R.string.analytics_income_label, "expense" to R.string.analytics_expense_label).forEach { (key, labelRes) ->
+                FilterChip(selected = metric == key, onClick = { metric = key }, label = { Text(stringResource(labelRes)) }, modifier = Modifier.weight(1f))
             }
         }
         val values = months.map { when (metric) { "income" -> it.income; "expense" -> it.expense; else -> it.income - it.expense } }
@@ -292,21 +377,34 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val maxVal = values.maxOrNull() ?: 1.0
         val span = (maxVal - minVal).takeIf { it > 0 } ?: 1.0
         val lineColor = MaterialTheme.colorScheme.primary
+        val pointFill = MaterialTheme.colorScheme.surface
         val progress = motionProgress(months, 500)
         Canvas(Modifier.fillMaxWidth().height(140.dp)) {
-            val path = Path()
-            values.forEachIndexed { i, value ->
+            val points = values.mapIndexed { i, value ->
                 val x = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
                 val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
                 val y = size.height - (size.height - targetY) * progress
-                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                Offset(x, y)
             }
-            drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx()))
-            values.forEachIndexed { i, value ->
-                val x = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
-                val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
-                val y = size.height - (size.height - targetY) * progress
-                drawCircle(lineColor, radius = 4.dp.toPx(), center = Offset(x, y))
+            if (points.isNotEmpty()) {
+                val line = Path().apply { moveTo(points.first().x, points.first().y) }
+                val area = Path().apply { moveTo(points.first().x, points.first().y) }
+                points.drop(1).forEachIndexed { index, point ->
+                    val previous = points[index]
+                    val controlX = (previous.x + point.x) / 2f
+                    line.cubicTo(controlX, previous.y, controlX, point.y, point.x, point.y)
+                    area.cubicTo(controlX, previous.y, controlX, point.y, point.x, point.y)
+                }
+                area.lineTo(points.last().x, size.height)
+                area.lineTo(points.first().x, size.height)
+                area.close()
+                drawPath(area, Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.24f), lineColor.copy(alpha = 0.02f))))
+                drawPath(line, lineColor.copy(alpha = 0.14f), style = Stroke(width = 9.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                drawPath(line, lineColor, style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                points.forEach { point ->
+                    drawCircle(pointFill, radius = 6.dp.toPx(), center = point)
+                    drawCircle(lineColor, radius = 4.dp.toPx(), center = point)
+                }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -314,8 +412,8 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
             months.forEach { m -> Text(m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(maskedAmount("${formatMoney(values.average())} грн середнє"), style = MaterialTheme.typography.labelSmall)
-            Text(maskedAmount("${formatMoney(maxVal)} грн максимум"), style = MaterialTheme.typography.labelSmall)
+            Text(maskedAmount(stringResource(R.string.analytics_average_uah, formatMoney(values.average()))), style = MaterialTheme.typography.labelSmall)
+            Text(maskedAmount(stringResource(R.string.analytics_maximum_uah, formatMoney(maxVal))), style = MaterialTheme.typography.labelSmall)
         }
     }
     }

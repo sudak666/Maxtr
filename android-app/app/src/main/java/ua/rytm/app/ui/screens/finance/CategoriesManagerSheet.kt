@@ -19,13 +19,21 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +41,8 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -76,9 +84,10 @@ fun CategoriesManagerSheet(
     var newSubName by remember { mutableStateOf("") }
     var pendingDeleteSub by remember { mutableStateOf<Pair<String, String>?>(null) } // (categoryName, subName)
     var pendingRename by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var openMenuId by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.categories_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -95,58 +104,106 @@ fun CategoriesManagerSheet(
 
             viewModel.categories.forEach { (id, name) ->
                 val expanded = viewModel.expandedCategoryId == id
-                Column(Modifier.fillMaxWidth()) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                val subs = viewModel.subcategoriesFor(name)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (expanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (expanded) MaterialTheme.colorScheme.primary.copy(alpha = 0.28f) else MaterialTheme.colorScheme.outlineVariant,
+                    ),
+                ) {
+                Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
                         val iconAction = stringResource(R.string.category_change_icon, localizedDomainText(name))
                         Box(
                             Modifier
                                 .size(RytmDimens.TouchTarget)
+                                .clip(CircleShape)
                                 .clickable(role = Role.Button) { viewModel.openIconPicker(name) }
                                 .semantics { contentDescription = iconAction },
                             contentAlignment = Alignment.Center,
                         ) {
                             CategoryIconBadge(name, iconOverride = viewModel.categoryIcons[name], size = 32.dp)
                         }
-                        Spacer(Modifier.padding(4.dp))
-                        Text(localizedDomainText(name), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { viewModel.toggleExpanded(id) }) {
+                        Spacer(Modifier.size(8.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(localizedDomainText(name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                            if (subs.isNotEmpty()) {
+                                Text(
+                                    text = "${stringResource(R.string.subcategories_title)} · ${subs.size}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        IconButton(onClick = { newSubName = ""; viewModel.toggleExpanded(id) }) {
                             Icon(if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = stringResource(R.string.subcategories_title))
                         }
-                        IconButton(onClick = { pendingDeleteId = id }) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+                        Box {
+                            IconButton(onClick = { openMenuId = id }) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+                            }
+                            DropdownMenu(expanded = openMenuId == id, onDismissRequest = { openMenuId = null }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.action_rename)) },
+                                    leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                                    onClick = { openMenuId = null; pendingRename = id to name },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                                    leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                                    onClick = { openMenuId = null; pendingDeleteId = id },
+                                )
+                            }
+                        }
                     }
                     if (expanded) {
-                        TextButton(onClick = { pendingRename = id to name }) {
-                            Icon(Icons.Filled.Edit, contentDescription = null)
-                            Text(stringResource(R.string.action_rename), modifier = Modifier.padding(start = 6.dp))
-                        }
-                        val subs = viewModel.subcategoriesFor(name)
-                        if (subs.isNotEmpty()) {
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)) {
-                                items(subs) { sub ->
-                                    InputChip(
-                                        selected = false,
-                                        onClick = { pendingDeleteSub = name to sub },
-                                        label = { Text(sub) },
-                                        trailingIcon = { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.subcategory_delete_title)) },
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    text = "${stringResource(R.string.subcategories_title)} · ${subs.size}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                if (subs.isNotEmpty()) {
+                                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        items(subs) { sub ->
+                                            InputChip(
+                                                selected = false,
+                                                onClick = { pendingDeleteSub = name to sub },
+                                                label = { Text(sub) },
+                                                trailingIcon = { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.subcategory_delete_title)) },
+                                            )
+                                        }
+                                    }
+                                }
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    OutlinedTextField(
+                                        value = newSubName,
+                                        onValueChange = { newSubName = it },
+                                        label = { Text(stringResource(R.string.subcategory_label)) },
+                                        modifier = Modifier.weight(1f),
+                                        singleLine = true,
                                     )
+                                    Button(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = "" }, enabled = newSubName.isNotBlank(), shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.action_add)) }
                                 }
                             }
                         }
-                        Row(
-                            Modifier.fillMaxWidth().padding(start = 8.dp, bottom = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            OutlinedTextField(
-                                value = newSubName,
-                                onValueChange = { newSubName = it },
-                                label = { Text(stringResource(R.string.subcategory_label)) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                            )
-                            TextButton(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = "" }) { Text(stringResource(R.string.action_add)) }
-                        }
                     }
+                }
                 }
             }
 
@@ -158,7 +215,7 @@ fun CategoriesManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(onClick = { viewModel.addCategory(newName); newName = "" }) { Text(stringResource(R.string.action_add)) }
+                Button(onClick = { viewModel.addCategory(newName); newName = "" }, enabled = newName.isNotBlank(), shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.action_add)) }
             }
         }
     }
@@ -170,9 +227,9 @@ fun CategoriesManagerSheet(
             title = { Text(stringResource(R.string.category_rename_title)) },
             text = { OutlinedTextField(value = editedName, onValueChange = { editedName = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
             confirmButton = {
-                TextButton(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty()) { Text(stringResource(R.string.action_save)) }
+                Button(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty()) { Text(stringResource(R.string.action_save)) }
             },
-            dismissButton = { TextButton(onClick = { pendingRename = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { OutlinedButton(onClick = { pendingRename = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
@@ -182,11 +239,9 @@ fun CategoriesManagerSheet(
             title = { Text(stringResource(R.string.category_delete_title)) },
             text = { Text(stringResource(R.string.category_delete_body)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.deleteCategory(id); pendingDeleteId = null }) {
-                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                }
+                Button(onClick = { viewModel.deleteCategory(id); pendingDeleteId = null }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) }
             },
-            dismissButton = { TextButton(onClick = { pendingDeleteId = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { OutlinedButton(onClick = { pendingDeleteId = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
@@ -196,11 +251,9 @@ fun CategoriesManagerSheet(
             title = { Text(stringResource(R.string.subcategory_delete_title)) },
             text = { Text(stringResource(R.string.subcategory_delete_body, subName)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.deleteSubcategory(categoryName, subName); pendingDeleteSub = null }) {
-                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                }
+                Button(onClick = { viewModel.deleteSubcategory(categoryName, subName); pendingDeleteSub = null }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) }
             },
-            dismissButton = { TextButton(onClick = { pendingDeleteSub = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { OutlinedButton(onClick = { pendingDeleteSub = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 

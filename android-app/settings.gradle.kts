@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Rytm"
 include(":app")
+include(":baselineprofile")

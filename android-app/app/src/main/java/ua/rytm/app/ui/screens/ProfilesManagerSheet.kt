@@ -21,12 +21,12 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -78,7 +78,7 @@ fun ProfilesManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -120,8 +120,6 @@ fun ProfilesManagerSheet(
                     Text(stringResource(R.string.action_add))
                 }
             }
-
-            HorizontalDivider()
 
             Text(stringResource(R.string.profile_join_by_code), style = MaterialTheme.typography.labelLarge)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -262,7 +260,13 @@ private fun ProfileRow(
         return
     }
 
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = if (isActive) 2.dp else 0.dp,
+    ) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(localizedDomainText(profile.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -281,5 +285,6 @@ private fun ProfileRow(
             IconButton(onClick = onStartRename) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.profile_rename)) }
             IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
+    }
     }
 }

@@ -1,0 +1,7 @@
+# Startup, navigation, and the Finance critical user journey. AndroidX Compose,
+# Navigation, Room, and ProfileInstaller contribute their own library profiles.
+HSPLua/rytm/app/RytmApplication;->**(**)**
+HSPLua/rytm/app/MainActivity;->**(**)**
+HSPLua/rytm/app/navigation/**->**(**)**
+HSPLua/rytm/app/ui/screens/finance/**->**(**)**
+HSPLua/rytm/app/data/**->**(**)**

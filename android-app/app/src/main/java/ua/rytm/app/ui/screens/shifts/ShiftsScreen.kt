@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -141,7 +143,7 @@ fun ShiftsScreen() {
         item { HeroMetric(stats.earned) }
         item { ChipStats(stats) }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
-        if (canEdit) item { QuickFillPanel(viewModel, onOpenShiftTypes = { shiftTypesSheetOpen = true }) }
+        if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
         item { MonthNav(viewModel) }
         item { LegendRow(viewModel.shiftTypes) }
         if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
@@ -150,6 +152,32 @@ fun ShiftsScreen() {
         item { WeekdayHeaderRow() }
         item { CalendarGrid(viewModel, canEdit) }
     }
+    }
+
+    if (canEdit && viewModel.quickFillExpanded) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = viewModel::toggleQuickFillExpanded,
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+            ) {
+                QuickFillPanel(
+                    viewModel,
+                    onOpenShiftTypes = {
+                        viewModel.toggleQuickFillExpanded()
+                        shiftTypesSheetOpen = true
+                    },
+                )
+            }
+        }
     }
 
     val dateKey = viewModel.dayModalDateKey
@@ -266,6 +294,7 @@ internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -
     Row(
         Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .semantics(mergeDescendants = true) {}
             .heightIn(min = RytmDimens.TouchTarget),
@@ -338,46 +367,100 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     }
 }
 
-// Matches the PWA's #tools-panel-body: collapsed by default (js/calendar.js's
-// toggleQuickFill()), a labeled toggle button with a rotating chevron.
 @Composable
-private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
+private fun QuickFillLauncher(onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-    Column(Modifier.fillMaxWidth().padding(18.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().clickable(
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier.size(44.dp).clip(CircleShape).background(
+                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
+                ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+            }
+            Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
+                Text(
+                    stringResource(R.string.shifts_quick_fill_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Box(Modifier.size(36.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+// Full editor opens in a modal sheet so expanding it never pushes the calendar
+// far down the screen or causes a large in-place layout jump.
+@Composable
+private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
+    val containerColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (vm.quickFillExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surface,
+        animationSpec = motionAwareSpec(androidx.compose.animation.core.tween(220)),
+        label = "quick-fill-container",
+    )
+    val headerColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (vm.quickFillExpanded) MaterialTheme.colorScheme.surface.copy(alpha = 0.78f) else Color.Transparent,
+        animationSpec = motionAwareSpec(androidx.compose.animation.core.tween(220)),
+        label = "quick-fill-header",
+    )
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (vm.quickFillExpanded) 6.dp else 1.dp),
+    ) {
+    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(16.dp)).background(headerColor).clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = vm::toggleQuickFillExpanded,
-            ),
+            ).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Filled.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
-            Text(
-                stringResource(R.string.shifts_quick_fill),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 6.dp).weight(1f),
-            )
+            Box(
+                Modifier.size(40.dp).clip(CircleShape).background(
+                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
+                ),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Filled.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp)) }
+            Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
+                Text(
+                    stringResource(R.string.shifts_quick_fill_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             val rotation by androidx.compose.animation.core.animateFloatAsState(
                 if (vm.quickFillExpanded) 180f else 0f,
                 animationSpec = motionAwareSpec(androidx.compose.animation.core.spring()),
                 label = "chevron",
             )
-            Icon(
-                Icons.Filled.ExpandMore,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp).rotate(rotation),
-            )
+            Box(Modifier.size(34.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp).rotate(rotation))
+            }
         }
         ReducedMotionVisibility(visible = vm.quickFillExpanded) {
-            Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)).padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 LabeledDropdown(
                     label = stringResource(R.string.shift_type),
                     options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
@@ -390,7 +473,13 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     selected = vm.templatePattern,
                     onSelect = vm::onTemplatePatternChanged,
                 )
-                androidx.compose.material3.Button(onClick = vm::applyTemplate, modifier = Modifier.fillMaxWidth()) {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        vm.applyTemplate()
+                        vm.toggleQuickFillExpanded()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Text(stringResource(R.string.action_apply))
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -407,9 +496,11 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     }
                 }
 
-                androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 4.dp))
-
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh).padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(R.string.shifts_autofill_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                         Text(
@@ -512,17 +603,30 @@ private fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
 
 @Composable
 private fun LegendRow(types: List<ShiftType>) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(types) { type ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            val accent = Color(type.colorHex)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(accent.copy(alpha = 0.12f))
+                    .border(1.dp, accent.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Box(
                     Modifier
                         .size(10.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Color(type.colorHex).copy(alpha = 0.25f))
-                        .border(1.dp, Color(type.colorHex).copy(alpha = 0.6f), RoundedCornerShape(4.dp)),
+                        .background(accent.copy(alpha = 0.25f))
+                        .border(1.dp, accent.copy(alpha = 0.6f), RoundedCornerShape(4.dp)),
                 )
-                Text(localizedDomainText(type.name), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 6.dp))
+                Text(
+                    localizedDomainText(type.name),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(start = 6.dp),
+                )
             }
         }
     }
@@ -552,9 +656,24 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
             IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month)) }
             val locale = LocalConfiguration.current.locales[0]
             val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, locale) + " " + viewModel.visibleMonth.year
-            Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = viewModel::goToToday) { Text(stringResource(R.string.action_today)) }
+                TextButton(
+                    onClick = viewModel::goToToday,
+                    shape = RoundedCornerShape(999.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) { Text(stringResource(R.string.action_today), fontWeight = FontWeight.Bold) }
                 IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.action_next_month)) }
             }
         }

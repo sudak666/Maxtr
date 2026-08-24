@@ -94,10 +94,10 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         isUnlocked = false
     }
 
-    fun setNewPinDigit(digit: String) { if (newPin.length < 6) newPin += digit }
-    fun newPinBackspace() { newPin = newPin.dropLast(1) }
-    fun setConfirmPinDigit(digit: String) { if (confirmPin.length < 6) confirmPin += digit }
-    fun confirmPinBackspace() { confirmPin = confirmPin.dropLast(1) }
+    fun setNewPinDigit(digit: String) { if (newPin.length < 6) newPin += digit; errorMessageRes = null }
+    fun newPinBackspace() { newPin = newPin.dropLast(1); errorMessageRes = null }
+    fun setConfirmPinDigit(digit: String) { if (confirmPin.length < 6) confirmPin += digit; errorMessageRes = null }
+    fun confirmPinBackspace() { confirmPin = confirmPin.dropLast(1); errorMessageRes = null }
     fun resetPinEntryFields() { newPin = ""; confirmPin = "" }
 
     fun savePin() {

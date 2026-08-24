@@ -10,6 +10,7 @@ android-app/.gradle/
 android-app/.idea/
 android-app/build/
 android-app/app/build/
+android-app/baselineprofile/build/
 android-app/*.iml
 android-app/app/*.iml
 android-app/captures/

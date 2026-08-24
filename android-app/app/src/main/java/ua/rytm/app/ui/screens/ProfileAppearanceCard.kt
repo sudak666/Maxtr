@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -148,19 +149,39 @@ fun ProfileAppearanceCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clickable(enabled = !busy) { avatarDialog = true })
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy) { avatarDialog = true })
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (editing) {
                     OutlinedTextField(
                         value = draft,
                         onValueChange = { draft = it },
-                        modifier = Modifier.weight(1f),
-                        enabled = editing && !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !busy,
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.profile_nickname)) },
                     )
-                    if (!editing) IconButton(onClick = { editing = true }, enabled = !busy) { Icon(Icons.Filled.Edit, stringResource(R.string.profile_edit_nickname)) }
-                    else Button(onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) }, enabled = !busy && draft.trim() != appearance.nickname) { Text(stringResource(R.string.action_save)) }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                        OutlinedButton(
+                            onClick = { draft = appearance.nickname; editing = false },
+                            enabled = !busy,
+                        ) { Text(stringResource(R.string.action_cancel)) }
+                        Button(
+                            onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) },
+                            enabled = !busy && draft.trim() != appearance.nickname,
+                        ) { Text(stringResource(R.string.action_save)) }
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = appearance.nickname.ifBlank { stringResource(R.string.profile_nickname) },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = { editing = true }, enabled = !busy) {
+                            Icon(Icons.Filled.Edit, stringResource(R.string.profile_edit_nickname))
+                        }
+                    }
                 }
                 Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

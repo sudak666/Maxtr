@@ -70,8 +70,43 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
         }
     }
 
+    private fun previousPeriodTransactions(): List<Transaction>? {
+        val now = YearMonth.now()
+        return when (period) {
+            AnalyticsPeriod.MONTH -> transactions.filter { it.date.startsWith(now.minusMonths(1).toString()) }
+            AnalyticsPeriod.PREV -> transactions.filter { it.date.startsWith(now.minusMonths(2).toString()) }
+            AnalyticsPeriod.M3 -> {
+                val from = now.minusMonths(5).atDay(1).toString()
+                val until = now.minusMonths(2).atDay(1).toString()
+                transactions.filter { it.date >= from && it.date < until }
+            }
+            AnalyticsPeriod.ALL -> null
+        }
+    }
+
     val totalIncome: Double get() = periodTransactions().filter { it.type == TxType.INCOME }.sumOf { it.amount }
     val totalExpense: Double get() = periodTransactions().filter { it.type == TxType.EXPENSE }.sumOf { it.amount }
+    val difference: Double get() = totalIncome - totalExpense
+    val savingsRate: Int get() = if (totalIncome > 0) ((difference / totalIncome) * 100).toInt() else 0
+
+    val expenseChangePercent: Int?
+        get() {
+            val previous = previousPeriodTransactions()?.filter { it.type == TxType.EXPENSE }?.sumOf { it.amount } ?: return null
+            if (previous <= 0) return null
+            return (((totalExpense - previous) / previous) * 100).toInt()
+        }
+
+    val topExpenseGrowth: Pair<String, Int>?
+        get() {
+            val previous = previousPeriodTransactions() ?: return null
+            val currentByCategory = periodTransactions().filter { it.type == TxType.EXPENSE }.groupBy { it.category }.mapValues { it.value.sumOf(Transaction::amount) }
+            val previousByCategory = previous.filter { it.type == TxType.EXPENSE }.groupBy { it.category }.mapValues { it.value.sumOf(Transaction::amount) }
+            return currentByCategory.mapNotNull { (category, amount) ->
+                val previousAmount = previousByCategory[category] ?: return@mapNotNull null
+                if (previousAmount <= 0 || amount <= previousAmount) return@mapNotNull null
+                category to (((amount - previousAmount) / previousAmount) * 100).toInt()
+            }.maxByOrNull { it.second }
+        }
 
     // category -> amount, sorted descending — mirrors byCatAmount()/renderCatList().
     val expenseByCategory: List<Pair<String, Double>>
@@ -103,9 +138,9 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     // ---- Currency converter ----
     var converterAmount by mutableStateOf("1")
         private set
-    var converterFrom by mutableStateOf("UAH")
+    var converterFrom by mutableStateOf("USD")
         private set
-    var converterTo by mutableStateOf("USD")
+    var converterTo by mutableStateOf("UAH")
         private set
 
     fun onConverterAmountChange(value: String) { converterAmount = value }
