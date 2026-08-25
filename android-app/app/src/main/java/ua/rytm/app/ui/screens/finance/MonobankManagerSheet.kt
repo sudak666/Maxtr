@@ -57,6 +57,7 @@ import ua.rytm.app.data.FinanceRepository
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.layout.imePadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +93,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
 
     ModalBottomSheet(onDismissRequest = { if (!busy) onDismiss() }, sheetState = sheet) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(20.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Monobank", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

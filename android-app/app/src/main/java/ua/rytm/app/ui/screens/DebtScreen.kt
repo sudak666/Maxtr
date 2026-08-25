@@ -99,6 +99,9 @@ import ua.rytm.app.ui.screens.debt.currentBalance
 import ua.rytm.app.ui.screens.debt.paid
 import ua.rytm.app.ui.screens.debt.todayLabel
 import ua.rytm.app.ui.screens.finance.formatMoney
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 
 // Implements the in-scope subset of CLAUDE.md §1.4: debt chips, hero balance,
 // progress bar, chip stats, due chip, payoff-forecast burndown chart,
@@ -509,7 +512,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     var date by remember { mutableStateOf(todayLabel()) }
 
     ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.debt_new_payment), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = amount,

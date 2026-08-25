@@ -94,6 +94,7 @@ import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmInteraction
 import ua.rytm.app.ui.motionAwareSpec
@@ -202,9 +203,9 @@ fun FinanceScreen(
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
-                        .shadow(10.dp, shape, spotColor = GreenDarkLike.copy(alpha = 0.5f))
+                        .shadow(10.dp, shape, spotColor = ua.rytm.app.ui.theme.GreenLight2.copy(alpha = 0.5f))
                         .clip(shape)
-                        .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2)))
+                        .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
                         .clickable(role = Role.Button, onClick = viewModel::openNewTransactionSheet)
                         .padding(horizontal = 22.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -340,11 +341,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             )
 
             val net = vm.monthIncomeUah - vm.monthExpenseUah
-            val trendColor = when {
-                net > 0 -> GreenDarkLike
-                net < 0 -> RedLike
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            }
+            val trendColor = RytmSemantic.signed(net)
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
                 Icon(
                     imageVector = if (net < 0) Icons.AutoMirrored.Filled.TrendingDown else Icons.AutoMirrored.Filled.TrendingUp,
@@ -395,19 +392,16 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
     }
 }
 
-// MaterialTheme's own tertiary is the brand purple, not a semantic
-// green/red — the PWA's trend chip needs real semantic income/expense
-// colors (--green2/--red2), so these pull directly from ui/theme/Color.kt
-// rather than borrowing a mismatched theme role.
-private val GreenDarkLike @Composable get() = ua.rytm.app.ui.theme.GreenDark2
-private val RedLike @Composable get() = ua.rytm.app.ui.theme.RedDark2
-
 @Composable
 private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
     // Matches the PWA's .fin-mini-stat.income/.expense: a tinted
     // green/red gradient wash + matching border, not a neutral surface —
     // see ANDROID_MIGRATION.md visual-parity note.
-    val tint = if (positive) GreenDarkLike else RedLike
+    // Wash tint and text tone are separate: the light-theme wash needs the
+    // brighter green/red to read as a tint at all, while the value on top of
+    // it needs the deeper tone to clear 4.5:1 against that wash.
+    val tint = if (positive) RytmSemantic.incomeWash else RytmSemantic.expenseWash
+    val valueColor = if (positive) RytmSemantic.income else RytmSemantic.expense
     val shape = RoundedCornerShape(RytmRadii.Input)
     Box(
         modifier = modifier
@@ -420,9 +414,9 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
-                style = MaterialTheme.typography.titleSmall.copy(fontSize = 17.sp, lineHeight = 22.sp),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = tint,
+                color = valueColor,
             )
         }
     }
@@ -487,7 +481,7 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                             .clip(CircleShape)
                             .background(
                                 if (action.primary) {
-                                    Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenLight2))
+                                    Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep))
                                 } else {
                                     Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)))
                                 },
@@ -720,8 +714,8 @@ private fun TransactionRow(
                 }
                 Spacer(Modifier.padding(4.dp))
                 val (amountText, amountColor) = when (tx.type) {
-                    TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to GreenDarkLike
-                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RedLike
+                    TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.income
+                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.expense
                     TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Text(amountText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = amountColor)

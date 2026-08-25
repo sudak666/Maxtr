@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.RecurringSyncRepository
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/settings-managers.js's recurring-modal — see
 // RecurringManagerViewModel's doc comment for scope. The most field-heavy
@@ -70,7 +71,7 @@ fun RecurringManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(R.string.recurring_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)

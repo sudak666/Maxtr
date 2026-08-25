@@ -3,9 +3,50 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Placeholder mark, replaced with the real icon set (docs/ vendored
-         glyphs / ICON_PATHS parity) once icon assets are ported. -->
+    <!-- Real Rytm mark, traced 1:1 from the PWA's own icon-512.png (calendar
+         card with a pink header and a rising trend line) and rescaled by 0.88
+         around the 54,54 center so the card's rounded corners stay inside the
+         adaptive-icon 66dp safe circle. Colors are the PWA icon's exact
+         values: white card, #EC4899 header/end dot, #7C3AED trend line
+         (identical to the background layer's purple). -->
+
+    <!-- Calendar hangers (behind the card) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30 C64,30 72,38 72,48 C72,55 68,60.5 62,63.5 L72,78 L60.5,78 L52,65 L46,65 L46,78 L36,78 L36,30 Z M46,39 L46,56 L53,56 C58,56 61.5,52.7 61.5,47.5 C61.5,42.3 58,39 53,39 Z" />
+        android:pathData="M41.47,28.57 A2.32,2.32 0 0 1 43.79,30.89 V34.7 H39.15 V30.89 A2.32,2.32 0 0 1 41.47,28.57 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66.34,28.57 A2.32,2.32 0 0 1 68.66,30.89 V34.7 H64.02 V30.89 A2.32,2.32 0 0 1 66.34,28.57 Z" />
+
+    <!-- Card body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36.17,34.32 H71.64 A7.42,7.42 0 0 1 79.06,41.74 V69.78 A7.42,7.42 0 0 1 71.64,77.2 H36.17 A7.42,7.42 0 0 1 28.75,69.78 V41.74 A7.42,7.42 0 0 1 36.17,34.32 Z" />
+
+    <!-- Pink header strip -->
+    <path
+        android:fillColor="#EC4899"
+        android:pathData="M36.17,34.32 H71.64 A7.42,7.42 0 0 1 79.06,41.74 V45.74 H28.75 V41.74 A7.42,7.42 0 0 1 36.17,34.32 Z" />
+
+    <!-- Trend line -->
+    <path
+        android:strokeColor="#7C3AED"
+        android:strokeWidth="2.41"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M35.07,69.5 L45.09,62.72 L52.89,66.99 L61.61,56.97 L72.47,50.57" />
+
+    <!-- Vertex dots -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M33.03,69.5 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M43.05,62.72 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M59.57,56.97 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
+    <path
+        android:fillColor="#EC4899"
+        android:pathData="M70.06,50.57 a2.41,2.41 0 1 0 4.82,0 a2.41,2.41 0 1 0 -4.82,0 Z" />
 </vector>

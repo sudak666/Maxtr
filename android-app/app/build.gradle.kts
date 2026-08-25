@@ -59,7 +59,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 on: material-icons-extended alone ships ~2000 vectors of
+            // which the app uses ~10%, and nothing was being stripped.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Only wired up once keystore.properties exists locally (see its
             // own doc comment above) — an unsigned/local-only release build

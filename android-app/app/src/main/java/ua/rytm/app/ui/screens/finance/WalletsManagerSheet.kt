@@ -48,6 +48,9 @@ import ua.rytm.app.ui.theme.RytmDimens
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.FinanceSyncRepository
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
@@ -69,7 +72,7 @@ fun WalletsManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.wallets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             viewModel.errorMessageRes?.let { messageRes ->

@@ -67,6 +67,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,6 +91,7 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
@@ -100,6 +102,7 @@ import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
+import androidx.compose.foundation.layout.imePadding
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
 // chip stats, 6-month earnings chart, collapsible quick-fill (template +
@@ -184,7 +187,7 @@ fun ShiftsScreen() {
     if (canEdit && dateKey != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
-            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.shifts_choose), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(dateKey, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 viewModel.shiftTypes.forEach { type ->
@@ -407,6 +410,7 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
 // far down the screen or causes a large in-place layout jump.
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
+    var clearMonthConfirmVisible by rememberSaveable { mutableStateOf(false) }
     val containerColor by androidx.compose.animation.animateColorAsState(
         targetValue = if (vm.quickFillExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surface,
         animationSpec = motionAwareSpec(androidx.compose.animation.core.tween(220)),
@@ -488,12 +492,26 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }
                     androidx.compose.material3.OutlinedButton(
-                        onClick = vm::clearCurrentMonth,
+                        onClick = { clearMonthConfirmVisible = true },
                         modifier = Modifier.weight(1f),
                         colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) {
                         Text(stringResource(R.string.shifts_clear_month))
                     }
+                }
+                // This button sits right next to "Shift types" in an equal-weight
+                // Row: a mis-tap used to wipe the whole month instantly, with no
+                // confirmation and no undo.
+                if (clearMonthConfirmVisible) {
+                    RytmDestructiveConfirm(
+                        title = stringResource(R.string.shifts_clear_month),
+                        body = stringResource(R.string.shifts_clear_month_confirm),
+                        onConfirm = {
+                            clearMonthConfirmVisible = false
+                            vm.clearCurrentMonth()
+                        },
+                        onDismiss = { clearMonthConfirmVisible = false },
+                    )
                 }
 
                 Row(

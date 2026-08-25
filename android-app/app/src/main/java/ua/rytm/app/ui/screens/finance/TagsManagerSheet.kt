@@ -38,6 +38,9 @@ import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.TagsSyncRepository
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/finance.js's tags-modal — see TagsManagerViewModel's doc comment for scope.
 @androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,7 +58,7 @@ fun TagsManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         androidx.compose.foundation.layout.Column(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(R.string.tags_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

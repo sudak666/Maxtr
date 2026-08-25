@@ -76,6 +76,7 @@ import ua.rytm.app.ui.theme.GreenLight2
 import ua.rytm.app.ui.theme.RedDark2
 import ua.rytm.app.ui.theme.RedLight2
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.foundation.layout.imePadding
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -120,6 +121,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
+                .imePadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {

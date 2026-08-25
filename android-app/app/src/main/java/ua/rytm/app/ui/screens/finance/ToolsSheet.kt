@@ -69,6 +69,7 @@ import ua.rytm.app.data.SEED_RATES
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
@@ -84,7 +85,7 @@ fun ToolsSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(stringResource(R.string.tools_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

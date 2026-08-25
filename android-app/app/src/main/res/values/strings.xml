@@ -146,6 +146,7 @@
     <string name="shift_pattern_2_2">2 через 2</string>
     <string name="shift_pattern_3_3">3 через 3</string>
     <string name="shifts_clear_month">Очистити місяць</string>
+    <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
     <string name="shifts_autofill_title">Автозаповнення кожного дня</string>
     <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
     <string name="shifts_anchor_date">Перший робочий день циклу</string>
@@ -323,6 +324,7 @@
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_light">Світла</string>
     <string name="settings_theme_dark">Темна</string>
+    <string name="settings_theme_system">Системна</string>
     <string name="settings_language_uk">Українська</string>
     <string name="settings_language_en">English</string>
     <string name="settings_hide_amounts">Приховувати суми</string>
@@ -407,6 +409,7 @@
     <string name="biometric_unlock_title">Розблокування Rytm</string>
     <string name="biometric_unlock_subtitle">Підтвердіть відбитком пальця або обличчям</string>
     <string name="transaction_delete_failed">Не вдалося видалити операцію</string><string name="transaction_deleted">Видалено</string><string name="action_undo">Скасувати</string>
+    <string name="common_deleted">Видалено</string>
     <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
     <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s грн</string>
     <string name="transaction_updated">Запис оновлено</string>

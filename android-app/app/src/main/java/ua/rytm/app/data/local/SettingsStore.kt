@@ -11,14 +11,28 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 
 // Mirrors js/theme-preinit.js/js/classic-globals.js's mxTheme localStorage key:
-// a device-global (not per-account) light/dark toggle, no "system" option
-// (the PWA only ever has the two, defaulting dark — see applyTheme()'s
-// `if(!THEME_ICON[theme]) theme='dark'` fallback). DataStore Preferences is
-// this app's equivalent of the PWA's device-global localStorage keys.
+// a device-global (not per-account) theme choice. The PWA only ever has
+// light/dark; Android adds SYSTEM as a third option because "follow the
+// system theme" is a baseline platform expectation here (auto dark mode by
+// schedule/battery). DataStore Preferences is this app's equivalent of the
+// PWA's device-global localStorage keys.
 private val Context.settingsDataStore by preferencesDataStore(name = "rytm_settings")
+
+enum class ThemePreference { LIGHT, DARK, SYSTEM;
+    companion object {
+        fun fromStored(value: String?): ThemePreference = when (value) {
+            "light" -> LIGHT
+            "system" -> SYSTEM
+            else -> DARK
+        }
+    }
+
+    val stored: String get() = name.lowercase()
+}
 
 class SettingsStore(private val context: Context) {
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
+    private val themePreferenceKey = stringPreferencesKey("theme_preference")
     private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
@@ -28,6 +42,21 @@ class SettingsStore(private val context: Context) {
 
     suspend fun setDarkTheme(dark: Boolean) {
         context.settingsDataStore.edit { it[darkThemeKey] = dark }
+    }
+
+    // Falls back to the legacy boolean key so a device that already picked a
+    // theme before the SYSTEM option existed keeps its choice.
+    val themePreference: Flow<ThemePreference> = context.settingsDataStore.data.map { prefs ->
+        prefs[themePreferenceKey]?.let { ThemePreference.fromStored(it) }
+            ?: if (prefs[darkThemeKey] == false) ThemePreference.LIGHT else ThemePreference.DARK
+    }
+
+    suspend fun setThemePreference(preference: ThemePreference) {
+        context.settingsDataStore.edit {
+            it[themePreferenceKey] = preference.stored
+            // Keep the legacy key coherent for anything still reading it.
+            if (preference != ThemePreference.SYSTEM) it[darkThemeKey] = preference == ThemePreference.DARK
+        }
     }
 
     val hideAmounts: Flow<Boolean> = context.settingsDataStore.data.map { it[hideAmountsKey] ?: false }

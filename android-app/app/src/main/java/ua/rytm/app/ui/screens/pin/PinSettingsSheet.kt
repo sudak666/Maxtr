@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockClock
 import ua.rytm.app.R
 import androidx.fragment.app.FragmentActivity
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/auth.js's openPinSettings()/setPin()/removePin()/renderBioSettingsUI() —
 // set/change/remove PIN, biometric toggle (only offered when the device
@@ -77,7 +78,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
         tonalElevation = 8.dp,
     ) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

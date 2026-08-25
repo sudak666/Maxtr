@@ -38,6 +38,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.launch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -89,8 +98,40 @@ fun ShoppingScreen(
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    // One destructive-action pattern app-wide (see FinanceScreen): a single
+    // item deletion is optimistic + undoable, never an instant hard delete.
+    // The row used to carry BOTH a swipe-to-delete and a visible trash button
+    // that deleted straight through with no confirmation and no undo.
+    var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    val deletedLabel = stringResource(R.string.common_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
+    fun requestDelete(id: String) {
+        if (pendingDeleteId != null) return
+        pendingDeleteId = id
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = deletedLabel,
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long,
+            )
+            if (result != SnackbarResult.ActionPerformed) viewModel.delete(id)
+            pendingDeleteId = null
+        }
+    }
+    viewModel.errorMessageRes?.let { messageRes ->
+        val message = stringResource(messageRes)
+        LaunchedEffect(messageRes) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.consumeError()
+        }
+    }
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
+    ) { innerPadding ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(innerPadding),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
@@ -120,14 +161,15 @@ fun ShoppingScreen(
             }
         }
 
-        val sorted = viewModel.sortedItems
+        val sorted = viewModel.sortedItems.filterNot { it.id == pendingDeleteId }
         if (!viewModel.loading && !viewModel.loadFailed && sorted.isEmpty()) {
             item { ShoppingEmptyState() }
         } else {
             items(sorted, key = { it.id }) { item ->
-                ShoppingRow(item = item, canEdit = canEdit, onToggle = { viewModel.toggle(item, it) }, onDelete = { viewModel.delete(item.id) })
+                ShoppingRow(item = item, canEdit = canEdit, onToggle = { viewModel.toggle(item, it) }, onDelete = { requestDelete(item.id) })
             }
         }
+    }
     }
 
     if (viewModel.clearConfirmVisible) {
@@ -137,14 +179,6 @@ fun ShoppingScreen(
             text = { Text(stringResource(R.string.shopping_clear_confirmation)) },
             confirmButton = { Button(onClick = viewModel::confirmClearBought, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
             dismissButton = { OutlinedButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
-        )
-    }
-    viewModel.errorMessageRes?.let { messageRes ->
-        AlertDialog(
-            onDismissRequest = viewModel::consumeError,
-            title = { Text(stringResource(R.string.shopping_save_failed)) },
-            text = { Text(stringResource(messageRes)) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
@@ -207,8 +241,13 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { viewModel.addItem() }),
         )
-        FilledTonalButton(onClick = viewModel::addItem, enabled = !viewModel.saving && viewModel.nameInput.isNotBlank()) {
-            Icon(Icons.Filled.Add, contentDescription = null)
+        FilledTonalButton(
+            onClick = viewModel::addItem,
+            enabled = !viewModel.saving && viewModel.nameInput.isNotBlank(),
+            modifier = Modifier.heightIn(min = RytmDimens.TouchTarget),
+        ) {
+            // Icon-only button: without this it announced as a bare "button".
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add))
         }
     }
 }
@@ -284,10 +323,6 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                     modifier = Modifier.padding(end = 4.dp),
                 )
             }
-            if (canEdit) IconButton(
-                onClick = onDelete,
-                colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
-            ) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
     }
