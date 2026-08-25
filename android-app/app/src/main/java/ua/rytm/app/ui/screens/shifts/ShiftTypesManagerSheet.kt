@@ -46,6 +46,8 @@ import ua.rytm.app.data.ShiftsRepository
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/settings-managers.js's shift-types-modal (openShiftTypesManager()/
 // renderShiftTypesList()) — same collapsed-summary-row-with-pencil-toggle-to-expand
@@ -67,7 +69,7 @@ fun ShiftTypesManagerSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-            Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.shift_types_title))
 
             if (viewModel.shiftTypes.isEmpty()) {
                 Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -87,7 +89,7 @@ fun ShiftTypesManagerSheet(
             }
 
             val newShiftName = stringResource(R.string.shift_type_new_default)
-            androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+            androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.shift_type_add))
             }
@@ -120,7 +122,7 @@ private fun ShiftTypeRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

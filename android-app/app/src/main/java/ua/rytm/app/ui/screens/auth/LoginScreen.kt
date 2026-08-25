@@ -78,11 +78,16 @@ import ua.rytm.app.BuildConfig
 import ua.rytm.app.R
 import ua.rytm.app.ui.theme.Purple3
 import ua.rytm.app.ui.theme.PurpleDark
+import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
     val submit = { viewModel.submitEmail(email, password) }
@@ -106,8 +111,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(
                     modifier = Modifier.size(68.dp)
-                        .shadow(18.dp, RoundedCornerShape(20.dp), ambientColor = PurpleDark.copy(.35f), spotColor = PurpleDark.copy(.35f))
-                        .clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(PurpleDark, Purple3))),
+                        .shadow(18.dp, RoundedCornerShape(RytmRadii.Chart), ambientColor = PurpleDark.copy(.35f), spotColor = PurpleDark.copy(.35f))
+                        .clip(RoundedCornerShape(RytmRadii.Chart)).background(Brush.linearGradient(listOf(PurpleDark, Purple3))),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("R", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
@@ -125,8 +130,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
             }
 
             Card(
-                modifier = Modifier.fillMaxWidth().widthIn(max = 340.dp).padding(top = 22.dp).shadow(24.dp, RoundedCornerShape(24.dp)),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().widthIn(max = 340.dp).padding(top = 22.dp).shadow(24.dp, RoundedCornerShape(RytmRadii.AuthCard)),
+                shape = RoundedCornerShape(RytmRadii.AuthCard),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
@@ -135,7 +140,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         onClick = { viewModel.signInWithGoogle(context) },
                         enabled = !viewModel.isSigningIn,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(999.dp),
+                        shape = RoundedCornerShape(RytmRadii.Pill),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                     ) {
                         Image(
@@ -164,7 +169,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
                         placeholder = { Text("you@example.com") },
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(RytmRadii.Control),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         colors = authFieldColors(),
                     )
@@ -192,7 +197,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { submit() }),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(RytmRadii.Control),
                         colors = authFieldColors(),
                     )
 
@@ -209,7 +214,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         onClick = submit,
                         enabled = !viewModel.isSigningIn,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(999.dp),
+                        shape = RoundedCornerShape(RytmRadii.Pill),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                     ) {
                         // Pressing sign-in used to look like nothing happened:
@@ -244,21 +249,25 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
         }
     }
 
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        SnackbarHost(snackbarHostState, Modifier.safeDrawingPadding())
+    }
+
+    // Sign-in failures are a notification, not a decision.
     viewModel.errorMessageRes?.let { messageRes ->
-        AlertDialog(
-            onDismissRequest = viewModel::consumeError,
-            title = { Text(stringResource(R.string.auth_sign_in_failed)) },
-            text = { Text(stringResource(messageRes)) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
-        )
+        val message = stringResource(messageRes)
+        LaunchedEffect(messageRes) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.consumeError()
+        }
     }
 }
 
 @Composable
 private fun AuthModeTabs(mode: AuthMode, enabled: Boolean, onModeChanged: (AuthMode) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(999.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(999.dp)).padding(3.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Pill)).background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(RytmRadii.Pill)).padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         AuthModeTab(stringResource(R.string.auth_login_tab), mode == AuthMode.LOGIN, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.LOGIN) }
@@ -272,7 +281,7 @@ private fun AuthModeTab(label: String, selected: Boolean, enabled: Boolean, modi
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.heightIn(min = 38.dp),
-        shape = RoundedCornerShape(999.dp),
+        shape = RoundedCornerShape(RytmRadii.Pill),
         contentPadding = ButtonDefaults.ContentPadding,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,

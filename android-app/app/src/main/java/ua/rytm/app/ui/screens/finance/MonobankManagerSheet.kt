@@ -58,6 +58,7 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +97,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Monobank", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            RytmSheetTitle("Monobank")
             when {
                 loading -> CircularProgressIndicator()
                 connection == null -> {

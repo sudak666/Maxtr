@@ -64,16 +64,29 @@ import kotlinx.coroutines.withContext
 import ua.rytm.app.data.ProfileAppearance
 import ua.rytm.app.data.ProfileAppearanceRepository
 import java.io.ByteArrayOutputStream
+import ua.rytm.app.ui.theme.AvatarTintBlue
+import ua.rytm.app.ui.theme.AvatarTintGray
+import ua.rytm.app.ui.theme.AvatarTintGreen
+import ua.rytm.app.ui.theme.AvatarTintPurple
+import ua.rytm.app.ui.theme.AvatarTintSky
+import ua.rytm.app.ui.theme.AvatarTintPink
+import ua.rytm.app.ui.theme.PurpleLight2
+import ua.rytm.app.ui.theme.Slate
+import ua.rytm.app.ui.theme.GreenLight2
+import ua.rytm.app.ui.theme.PurpleDark
+import ua.rytm.app.ui.theme.BlueLight2
+import ua.rytm.app.ui.theme.PinkDeep
+import ua.rytm.app.ui.theme.RytmRadii
 
 private data class BuiltinAvatar(val id: String, val icon: ImageVector, val colors: List<Color>)
 
 private val builtinAvatars = listOf(
-    BuiltinAvatar("fox", Icons.Filled.LightMode, listOf(Color(0xFFA8C7FA), Color(0xFF0B57D0))),
-    BuiltinAvatar("panda", Icons.Filled.DarkMode, listOf(Color(0xFFC4C7C5), Color(0xFF5F6368))),
-    BuiltinAvatar("robot", Icons.Filled.Bolt, listOf(Color(0xFFA8DAB5), Color(0xFF137333))),
-    BuiltinAvatar("rocket", Icons.Filled.Person, listOf(Color(0xFFD7AEFB), Color(0xFF7E3FF2))),
-    BuiltinAvatar("gem", Icons.Filled.Diamond, listOf(Color(0xFFAECBFA), Color(0xFF1A73E8))),
-    BuiltinAvatar("lion", Icons.Filled.Favorite, listOf(Color(0xFFF8BBD0), Color(0xFFC2185B))),
+    BuiltinAvatar("fox", Icons.Filled.LightMode, listOf(AvatarTintBlue, PurpleLight2)),
+    BuiltinAvatar("panda", Icons.Filled.DarkMode, listOf(AvatarTintGray, Slate)),
+    BuiltinAvatar("robot", Icons.Filled.Bolt, listOf(AvatarTintGreen, GreenLight2)),
+    BuiltinAvatar("rocket", Icons.Filled.Person, listOf(AvatarTintPurple, PurpleDark)),
+    BuiltinAvatar("gem", Icons.Filled.Diamond, listOf(AvatarTintSky, BlueLight2)),
+    BuiltinAvatar("lion", Icons.Filled.Favorite, listOf(AvatarTintPink, PinkDeep)),
 )
 
 @Composable
@@ -145,7 +158,7 @@ fun ProfileAppearanceCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -232,7 +245,7 @@ private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, descr
 @Composable
 private fun AvatarOption(avatar: BuiltinAvatar, description: String, onClick: () -> Unit) {
     Box(
-        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(avatar.colors)).clickable(onClick = onClick),
+        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(RytmRadii.Input)).background(Brush.linearGradient(avatar.colors)).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { Icon(avatar.icon, contentDescription = description, tint = Color.White) }
 }

@@ -64,3 +64,38 @@ val LightText = Color(0xFF1C1C1E)
 val LightTextStrong = Color(0xFF0B0B0D)
 val LightMuted = Color(0xFF6B6B70)
 val LightMuted2 = Color(0xFF626269)
+
+// --- Extended palette ---
+// Colors the UI layer was already using as raw hex literals. Kept as named
+// tokens instead of being force-fitted onto the PWA-ported set above, but
+// declared here so nothing outside ui/theme/ names a hex value any more.
+val Teal = Color(0xFF14B8A6)
+val TealDeep = Color(0xFF0F766E)
+val Slate = Color(0xFF64748B)
+val SlateDeep = Color(0xFF334155)
+val Gray = Color(0xFF6B7280)
+val AmberDeep = Color(0xFFB45309)
+val Amber600 = Color(0xFFD97706)
+val PinkDeep = Color(0xFFDB2777)
+
+// External brand marks (BTC/ETH), used only as badge fills with a computed
+// on-color — never as text on a plain surface, where #F7931A measures
+// 2.30:1 against a light background.
+val BitcoinOrange = Color(0xFFF7931A)
+val EthereumBlue = Color(0xFF627EEA)
+
+// Monobank's own brand black. Drawn on a badge, so it needs a light-theme
+// counterpart: on a dark surfaceContainer the pure #111111 badge was
+// invisible (~1.5:1) and only the white glyph floated in the void.
+val MonobankBrand = Color(0xFF111111)
+val MonobankBrandDark = Color(0xFF3A3A3D)
+
+// Light halves of the built-in avatar gradients. Their previous values were
+// literally Google's Material palette (#A8C7FA/#C4C7C5/#0B57D0/#1A73E8/
+// #137333/#5F6368) — another product's brand, not Rytm's.
+val AvatarTintBlue = Color(0xFFC7B9F5)
+val AvatarTintGray = Color(0xFFC7C6CC)
+val AvatarTintGreen = Color(0xFF9FE0C4)
+val AvatarTintPurple = Color(0xFFD7C2FB)
+val AvatarTintSky = Color(0xFFAECBFA)
+val AvatarTintPink = Color(0xFFF8BBD0)

@@ -103,6 +103,7 @@ import ua.rytm.app.ui.motionAwareSpec
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
+import ua.rytm.app.ui.LocalSnackbarHost
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -120,7 +121,9 @@ fun FinanceScreen(
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
-    val snackbarHostState = remember { SnackbarHostState() }
+    // Falls back to a local host only outside the nav graph (previews/tests).
+    val ownHost = remember { SnackbarHostState() }
+    val snackbarHostState = LocalSnackbarHost.current ?: ownHost
     val scope = rememberCoroutineScope()
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
     var swipeResetGeneration by remember { mutableIntStateOf(0) }
@@ -182,7 +185,8 @@ fun FinanceScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
+        // The host itself lives in RytmNavHost now — one per app.
+        snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
         floatingActionButton = {
             if (viewModel.listExpanded) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
@@ -288,7 +292,7 @@ fun FinanceScreen(
                         androidx.compose.material3.OutlinedButton(
                             onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(999.dp),
+                            shape = RoundedCornerShape(RytmRadii.Pill),
                         ) {
                             Text(stringResource(if (viewModel.listExpanded) R.string.action_collapse_list else R.string.action_view_all))
                         }

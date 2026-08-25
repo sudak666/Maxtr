@@ -49,6 +49,8 @@ import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.ui.localizedDomainText
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
 // (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
@@ -79,7 +81,7 @@ fun ProfilesManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.profiles_title))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -263,7 +265,7 @@ private fun ProfileRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
         color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = if (isActive) 2.dp else 0.dp,
     ) {

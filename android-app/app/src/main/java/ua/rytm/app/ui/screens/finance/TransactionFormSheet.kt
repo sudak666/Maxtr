@@ -78,6 +78,7 @@ import ua.rytm.app.ui.theme.RedLight2
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -127,10 +128,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    text = stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                RytmSheetTitle(
+                    stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
+                    modifier = Modifier.weight(1f),
                 )
                 if (vm.editingTxId != null) {
                     TextButton(onClick = vm::closeSheet) { Text(stringResource(R.string.action_cancel)) }

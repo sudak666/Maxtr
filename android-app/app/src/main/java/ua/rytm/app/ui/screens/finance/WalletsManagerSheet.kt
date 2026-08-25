@@ -53,6 +53,9 @@ import ua.rytm.app.data.FinanceSyncRepository
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
@@ -75,7 +78,7 @@ fun WalletsManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.wallets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.wallets_title))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(
@@ -103,7 +106,7 @@ fun WalletsManagerSheet(
             }
 
             val newWalletName = stringResource(R.string.wallet_new_default)
-            androidx.compose.material3.Button(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+            androidx.compose.material3.Button(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.wallet_add))
             }
@@ -111,12 +114,11 @@ fun WalletsManagerSheet(
     }
 
     viewModel.pendingDeleteId?.let {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.wallet_delete_title)) },
-            text = { Text(stringResource(R.string.wallet_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.wallet_delete_title),
+            body = stringResource(R.string.wallet_delete_body),
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::cancelDelete,
         )
     }
 }

@@ -34,6 +34,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import ua.rytm.app.R
+import ua.rytm.app.ui.theme.RytmRadii
 
 private val displayDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
@@ -87,7 +88,7 @@ fun DatePickerField(
                     }
                     open = false
                     },
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RoundedCornerShape(RytmRadii.Pill),
                 ) { Text(stringResource(R.string.action_done), fontWeight = FontWeight.Bold) }
             },
             // M3's dismissButton slot takes ONE composable; stuffing Clear +
@@ -95,7 +96,7 @@ fun DatePickerField(
             // which overflows at 320dp or fontScale >= 1.3 with Ukrainian
             // labels. Clear now lives under the calendar instead.
             dismissButton = {
-                OutlinedButton(onClick = { open = false }, shape = RoundedCornerShape(999.dp)) {
+                OutlinedButton(onClick = { open = false }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                     Text(stringResource(R.string.action_cancel), fontWeight = FontWeight.Bold)
                 }
             },
@@ -109,7 +110,7 @@ fun DatePickerField(
             if (allowEmpty) {
                 TextButton(
                     onClick = { onValueChange(""); open = false },
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RoundedCornerShape(RytmRadii.Pill),
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,

@@ -39,6 +39,7 @@ import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.BudgetsSyncRepository
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
 
 // Mirrors js/settings-managers.js's budgets-modal — see BudgetsManagerViewModel's
 // doc comment for scope (expense categories only).
@@ -59,7 +60,7 @@ fun BudgetsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.budgets_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.budgets_title))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
