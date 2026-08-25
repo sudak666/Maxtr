@@ -190,9 +190,15 @@ fun RytmNavHost() {
         // own doc comment), but a Snackbar has no such padding of its own,
         // so the same value left it sitting flush against the nav with zero
         // visible breathing room (reported live, screenshot: looked like the
-        // toast was half swallowed by the nav bar). Add the same 16dp gap
-        // scrollable content gets for free.
-        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance + 16.dp),
+        // toast was half swallowed by the nav bar). +16dp measured as no
+        // real change on the reporting device (confirmed by a pixel-level
+        // scan of a live screenshot, not eyeballing) — likely lost to
+        // Snackbar's own internal shape/shadow padding — so this was
+        // re-verified empirically: +100dp produced an unmistakable ~70dp
+        // gap (proving the modifier chain itself works), then dialed back
+        // to +32dp and re-confirmed via the same pixel scan and a live
+        // screenshot before landing on this value.
+        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance + 32.dp),
     )
     if (!mediumWidth) {
         RytmBottomBar(
