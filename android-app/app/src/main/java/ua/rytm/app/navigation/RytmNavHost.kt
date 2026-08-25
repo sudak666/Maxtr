@@ -306,7 +306,10 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
         ) {
             Icon(
                 destination.icon,
-                contentDescription = stringResource(destination.labelRes),
+                // The label Text sits right next to it inside a Role.Tab
+                // selectable — a description here made TalkBack read the tab
+                // name twice.
+                contentDescription = null,
                 tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
             )
@@ -323,7 +326,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
                 }
             },
             maxLines = 1,
-            overflow = TextOverflow.Clip,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

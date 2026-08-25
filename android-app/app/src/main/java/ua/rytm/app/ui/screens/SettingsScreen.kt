@@ -35,6 +35,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
@@ -379,7 +383,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_account))
                 SettingsGroupCard {
                     SettingsRow(
-                        icon = Icons.Filled.Groups,
+                        icon = Icons.AutoMirrored.Filled.Logout,
                         badgeColor = Color(0xFF525158),
                         title = stringResource(R.string.settings_sign_out),
                         subtitle = stringResource(R.string.settings_sign_out_subtitle),
@@ -401,7 +405,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             onClick = { premiumDialogOpen = true },
                         )
                         SettingsRow(
-                            icon = Icons.Filled.DeleteForever,
+                            icon = Icons.Filled.RestartAlt,
                             badgeColor = MaterialTheme.colorScheme.error,
                             title = stringResource(R.string.settings_reset_profile),
                             subtitle = stringResource(R.string.settings_reset_profile_subtitle),
@@ -458,7 +462,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // NotificationSettingsSheet's own doc comment).
                     if (displayedPushEnabled) {
                         SettingsRow(
-                            icon = Icons.Filled.Tune,
+                            icon = Icons.Filled.NotificationsActive,
                             badgeColor = Color(0xFFF59E0B),
                             title = stringResource(R.string.settings_notification_types),
                             subtitle = stringResource(R.string.settings_notification_types_subtitle),
@@ -512,7 +516,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
                     )
                     SettingsToggleRow(
-                        icon = Icons.Filled.PrivacyTip,
+                        icon = Icons.Filled.CloudDone,
                         badgeColor = Color(0xFF10B981),
                         title = stringResource(R.string.settings_offline_cache),
                         subtitle = stringResource(if (privacyCacheEnabled) R.string.settings_offline_cache_on else R.string.settings_offline_cache_off),

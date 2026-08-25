@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -73,6 +83,7 @@ import ua.rytm.app.ui.theme.PurpleDark
 fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
     val submit = { viewModel.submitEmail(email, password) }
 
@@ -101,7 +112,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                 ) {
                     Text("R", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
                 }
-                Text("Rytm", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
+                Text("Rytm", style = MaterialTheme.typography.displaySmall, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
                 Text(
                     stringResource(R.string.auth_tagline),
                     fontSize = 13.5.sp,
@@ -123,30 +134,33 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     Button(
                         onClick = { viewModel.signInWithGoogle(context) },
                         enabled = !viewModel.isSigningIn,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         shape = RoundedCornerShape(999.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PurpleDark, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_google_g),
                             contentDescription = null,
                             modifier = Modifier.padding(end = 10.dp).size(18.dp),
                         )
-                        Text(stringResource(R.string.auth_continue_google), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.auth_continue_google), style = MaterialTheme.typography.labelLarge)
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
-                        Text(stringResource(R.string.auth_or), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.auth_or), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                     }
 
                     AuthModeTabs(viewModel.authMode, !viewModel.isSigningIn, viewModel::onAuthModeChanged)
-                    AuthFieldLabel("EMAIL")
+                    AuthFieldLabel(stringResource(R.string.auth_email))
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        // heightIn, not height: a fixed 48dp box clipped the
+                        // field's own text at fontScale >= 1.3 (M3's own
+                        // minimum is 56dp).
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
                         placeholder = { Text("you@example.com") },
@@ -159,11 +173,23 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.auth_password_hint)) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            // Autocorrect on a mobile keyboard is the single
+                            // biggest cause of failed sign-ins without this.
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    contentDescription = stringResource(
+                                        if (passwordVisible) R.string.auth_hide_password else R.string.auth_show_password,
+                                    ),
+                                )
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { submit() }),
                         shape = RoundedCornerShape(14.dp),
@@ -174,7 +200,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         text = viewModel.formMessageRes?.let { stringResource(it) }.orEmpty(),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 18.dp),
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                     )
@@ -182,15 +208,25 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     Button(
                         onClick = submit,
                         enabled = !viewModel.isSigningIn,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         shape = RoundedCornerShape(999.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PurpleDark, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                     ) {
-                        Text(stringResource(if (viewModel.authMode == AuthMode.LOGIN) R.string.auth_sign_in else R.string.auth_register), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        // Pressing sign-in used to look like nothing happened:
+                        // the button only went `enabled = false`.
+                        if (viewModel.isSigningIn) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White,
+                            )
+                            Spacer(Modifier.width(10.dp))
+                        }
+                        Text(stringResource(if (viewModel.authMode == AuthMode.LOGIN) R.string.auth_sign_in else R.string.auth_register), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
                     }
 
                     TextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text(stringResource(R.string.auth_forgot_password), color = PurpleDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                     }
 
                     TermsFooter(
@@ -235,20 +271,20 @@ private fun AuthModeTab(label: String, selected: Boolean, enabled: Boolean, modi
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(38.dp),
+        modifier = modifier.heightIn(min = 38.dp),
         shape = RoundedCornerShape(999.dp),
         contentPadding = ButtonDefaults.ContentPadding,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) PurpleDark else Color.Transparent,
+            containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
             contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp),
-    ) { Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+    ) { Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1) }
 }
 
 @Composable
 private fun AuthFieldLabel(label: String) {
-    Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = .78.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(label, style = MaterialTheme.typography.labelLarge, letterSpacing = .78.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -256,7 +292,7 @@ private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-    focusedBorderColor = PurpleDark,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
 )
 
@@ -266,7 +302,7 @@ private fun TermsFooter(onTerms: () -> Unit, onPrivacy: () -> Unit) {
     val terms = stringResource(R.string.terms_title)
     val and = stringResource(R.string.common_and)
     val privacy = stringResource(R.string.privacy_title)
-    val linkStyle = SpanStyle(color = PurpleDark, fontWeight = FontWeight.SemiBold)
+    val linkStyle = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
     Text(
         text = buildAnnotatedString {
             append("$prefix ")

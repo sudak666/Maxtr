@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.motionProgress
 import androidx.compose.ui.res.stringResource
@@ -80,7 +82,13 @@ fun DebtForecastCard(debt: Debt) {
                     modifier = Modifier.padding(start = 7.dp),
                 )
             }
-            DebtBurndownCanvas(series, modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp))
+            val seriesLabels = series.map { maskedAmount(formatMoney(it)) }
+            val burndownSummary = stringResource(R.string.debt_forecast_title) + ": " + seriesLabels.joinToString(", ")
+            DebtBurndownCanvas(
+                series,
+                modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp)
+                    .semantics { contentDescription = burndownSummary },
+            )
             when {
                 currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -128,8 +136,11 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
         val linePath = Path().apply {
             points.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
         }
-        drawPath(linePath, color = lineColor, style = Stroke(width = 6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        // Raw pixels, not dp: this line was 6px, i.e. 2dp on xxhdpi and 6dp
+        // on mdpi — a 3x thickness swing between devices. The neighbouring
+        // ToolsSheet chart already used dp.toPx() correctly.
+        drawPath(linePath, color = lineColor, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
 
-        drawCircle(color = lineColor, radius = 8f, center = points.last())
+        drawCircle(color = lineColor, radius = 4.dp.toPx(), center = points.last())
     }
 }

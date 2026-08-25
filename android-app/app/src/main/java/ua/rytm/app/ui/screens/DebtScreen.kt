@@ -80,6 +80,9 @@ import kotlinx.coroutines.launch
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
+import ua.rytm.app.ui.theme.onColorFor
+import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.ReducedMotionVisibility
@@ -183,7 +186,11 @@ fun DebtScreen(
                     item {
                         OutlinedButton(
                             onClick = { if (viewModel.historyExpanded) collapseHistory() else viewModel.toggleHistoryPanel() },
-                            modifier = Modifier.padding(end = 178.dp),
+                            // Was `padding(end = 178.dp)` — an eyeballed offset
+                            // to dodge the FAB, leaving ~110dp for the label on
+                            // a 320dp screen. The list's own contentPadding
+                            // already reserves BottomContentClearance.
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                         ) {
                             Text(stringResource(if (viewModel.historyExpanded) R.string.action_collapse_list else R.string.action_view_all))
@@ -238,16 +245,19 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 onClick = { viewModel.switchDebt(debt.id) },
                 colors = androidx.compose.material3.CardDefaults.cardColors(
                     containerColor = if (active) Color(DEBT_COLORS[index % DEBT_COLORS.size]) else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = if (active) Color.White else MaterialTheme.colorScheme.onSurface,
+                    // Fixed white on these mid-tone accents measured as low as
+                    // 2.15:1; the on-color is computed from the chip's own
+                    // luminance instead.
+                    contentColor = if (active) onColorFor(Color(DEBT_COLORS[index % DEBT_COLORS.size])) else MaterialTheme.colorScheme.onSurface,
                 ),
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(RytmRadii.Pill),
             ) {
                 Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
             }
         }
         if (canEdit) item {
             var addOpen by remember { mutableStateOf(false) }
-            Card(onClick = { addOpen = true }, shape = RoundedCornerShape(50)) {
+            Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier)
                     Text(stringResource(R.string.debt_new_default), fontWeight = FontWeight.SemiBold)
@@ -272,10 +282,12 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
 
 @Composable
 private fun EmptyDebtState() {
-    Column(Modifier.fillMaxWidth().padding(vertical = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(stringResource(R.string.debt_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(stringResource(R.string.debt_empty_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    // Was the only empty state in the app with no icon at all.
+    RytmEmptyState(
+        icon = Icons.Filled.AccountBalanceWallet,
+        title = stringResource(R.string.debt_empty_title),
+        body = stringResource(R.string.debt_empty_body),
+    )
 }
 
 // Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
@@ -320,9 +332,12 @@ private fun ProgressBarSection(cd: Debt) {
             Modifier
                 .fillMaxWidth()
                 .padding(top = 5.dp)
-                .height(4.dp)
+                .height(6.dp)
                 .clip(RoundedCornerShape(99.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+                // 6% onSurface put the empty part of the bar at ~1.1:1
+                // against the surface; WCAG 1.4.11 wants 3:1 for meaningful
+                // non-text content.
+                .background(MaterialTheme.colorScheme.outlineVariant),
         ) {
             Box(
                 Modifier

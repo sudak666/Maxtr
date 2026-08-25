@@ -82,6 +82,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
@@ -330,17 +331,9 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
 
 @Composable
 private fun ShoppingEmptyState() {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(Icons.Filled.ShoppingCart, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(stringResource(R.string.shopping_empty_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-        Text(
-            stringResource(R.string.shopping_empty_body),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, start = 24.dp, end = 24.dp),
-        )
-    }
+    RytmEmptyState(
+        icon = Icons.Filled.ShoppingCart,
+        title = stringResource(R.string.shopping_empty_title),
+        body = stringResource(R.string.shopping_empty_body),
+    )
 }

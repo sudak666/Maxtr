@@ -114,6 +114,7 @@
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
     <string name="finance_search_hint">Пошук за коментарем, категорією, гаманцем…</string><string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
+    <string name="finance_empty_cta">Додати першу операцію</string>
     <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
     <string name="categories_title">Категорії</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
@@ -146,6 +147,8 @@
     <string name="shift_pattern_2_2">2 через 2</string>
     <string name="shift_pattern_3_3">3 через 3</string>
     <string name="shifts_clear_month">Очистити місяць</string>
+    <string name="shifts_weekend_a11y">вихідний</string>
+    <string name="shifts_edit_day_a11y">змінити зміни</string>
     <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
     <string name="shifts_autofill_title">Автозаповнення кожного дня</string>
     <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
@@ -155,6 +158,7 @@
     <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
     <string name="shifts_edit_hint">Натисни на день, щоб редагувати зміни</string>
     <string name="action_next">Далі</string>
+    <string name="onboarding_page_status">Сторінка %1$d з %2$d</string>
     <string name="onboarding_finance_title">Фінанси під контролем</string>
     <string name="onboarding_finance_body">Гаманці, категорії, бюджети, цілі й аналітика в одному місці.</string>
     <string name="onboarding_shifts_title">Робочий ритм</string>
@@ -206,6 +210,9 @@
     <string name="auth_continue_google">Продовжити через Google</string>
     <string name="auth_or">АБО</string>
     <string name="auth_password">ПАРОЛЬ</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_show_password">Показати пароль</string>
+    <string name="auth_hide_password">Сховати пароль</string>
     <string name="auth_password_hint">Мінімум 6 символів</string>
     <string name="auth_sign_in">Увійти</string>
     <string name="auth_register">Зареєструватися</string>
