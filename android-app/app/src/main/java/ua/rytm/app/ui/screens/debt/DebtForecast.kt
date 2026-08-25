@@ -37,6 +37,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Payoff forecast: mirrors js/debt.js's renderDebtForecast()/DebtBurndownChart —
 // a balance-burndown mini chart + "≈ N payments left at this pace" estimate,
@@ -70,7 +71,7 @@ fun DebtForecastCard(debt: Debt) {
 
     // Matches the PWA's .debt-forecast: an uppercase icon+label header, same
     // shape/label treatment as Shifts' IncomeChartSection (step 39).
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))

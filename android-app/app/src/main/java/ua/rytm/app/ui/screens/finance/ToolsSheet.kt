@@ -72,6 +72,12 @@ import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.TealDeep
+import ua.rytm.app.ui.theme.BlueLight2
+import ua.rytm.app.ui.theme.PurpleLight2
+import ua.rytm.app.ui.theme.Amber600
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
@@ -90,7 +96,7 @@ fun ToolsSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(R.string.tools_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.tools_title))
 
             AnalyticsSection(viewModel)
             FxRatesSection(viewModel)
@@ -144,7 +150,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         val expenseChange = vm.expenseChangePercent
         val categoryGrowth = vm.topExpenseGrowth
         if (expenseChange != null || categoryGrowth != null) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     expenseChange?.let {
                         Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.SemiBold)
@@ -182,7 +188,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon: ImageVector, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input),
         border = BorderStroke(1.dp, color.copy(alpha = 0.28f)),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f)),
     ) {
@@ -206,7 +212,7 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
 
 @Composable
 private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp), border = BorderStroke(1.dp, color.copy(alpha = 0.28f)), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))) {
+    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input), border = BorderStroke(1.dp, color.copy(alpha = 0.28f)), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
@@ -298,10 +304,10 @@ private fun FxRatesSection(vm: ToolsViewModel) {
             rates.toList().sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     val badge = when (code) {
-                        "USD" -> "$" to androidx.compose.ui.graphics.Color(0xFF0F766E)
-                        "EUR" -> "€" to androidx.compose.ui.graphics.Color(0xFF2563EB)
-                        "GBP" -> "£" to androidx.compose.ui.graphics.Color(0xFF7C3AED)
-                        "PLN" -> "zł" to androidx.compose.ui.graphics.Color(0xFFD97706)
+                        "USD" -> "$" to TealDeep
+                        "EUR" -> "€" to BlueLight2
+                        "GBP" -> "£" to PurpleLight2
+                        "PLN" -> "zł" to Amber600
                         else -> currencySymbol(code) to MaterialTheme.colorScheme.primary
                     }
                     Box(Modifier.size(34.dp).background(badge.second.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {

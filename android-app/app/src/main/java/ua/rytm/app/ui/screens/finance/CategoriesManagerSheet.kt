@@ -66,6 +66,8 @@ import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.ui.theme.RytmDimens
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/settings-managers.js's categories-modal, including the
 // toggleSubcatPanel()/addSubcategory()/deleteSubcategory() subcategory panel
@@ -90,7 +92,7 @@ fun CategoriesManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.categories_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.categories_title))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = viewModel.activeType == TxType.EXPENSE, onClick = { viewModel.setType(TxType.EXPENSE) }, label = { Text(stringResource(R.string.tx_expense)) })
@@ -109,7 +111,7 @@ fun CategoriesManagerSheet(
                 val subs = viewModel.subcategoriesFor(name)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(RytmRadii.Input),
                     colors = CardDefaults.cardColors(
                         containerColor = if (expanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surfaceContainerLow,
                     ),
@@ -166,7 +168,7 @@ fun CategoriesManagerSheet(
                     if (expanded) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(RytmRadii.Control),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
                         ) {
                             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,7 +202,7 @@ fun CategoriesManagerSheet(
                                         modifier = Modifier.weight(1f),
                                         singleLine = true,
                                     )
-                                    Button(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = "" }, enabled = newSubName.isNotBlank(), shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.action_add)) }
+                                    Button(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = "" }, enabled = newSubName.isNotBlank(), shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.action_add)) }
                                 }
                             }
                         }
@@ -217,7 +219,7 @@ fun CategoriesManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                Button(onClick = { viewModel.addCategory(newName); newName = "" }, enabled = newName.isNotBlank(), shape = RoundedCornerShape(14.dp)) { Text(stringResource(R.string.action_add)) }
+                Button(onClick = { viewModel.addCategory(newName); newName = "" }, enabled = newName.isNotBlank(), shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.action_add)) }
             }
         }
     }
@@ -277,7 +279,7 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.category_icon_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.category_icon_title))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(6),
                 modifier = Modifier.fillMaxWidth().height(320.dp),

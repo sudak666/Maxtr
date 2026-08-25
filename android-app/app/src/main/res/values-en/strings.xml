@@ -441,5 +441,6 @@
     <string name="action_next_month">Next month</string>
     <string name="category_change_icon">Change icon for category %1$s</string>
     <string name="common_loading">Loading…</string>
+    <string name="action_retry">Retry</string>
     <string name="common_data_load_failed">Could not load data</string>
 </resources>

@@ -41,6 +41,9 @@ import ua.rytm.app.data.TagsSyncRepository
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
 
 // Mirrors js/finance.js's tags-modal — see TagsManagerViewModel's doc comment for scope.
 @androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,7 +64,7 @@ fun TagsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.tags_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.tags_title))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -90,7 +93,7 @@ fun TagsManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                androidx.compose.material3.Button(onClick = { viewModel.addTag(newName); newName = "" }, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+                androidx.compose.material3.Button(onClick = { viewModel.addTag(newName); newName = "" }, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                     Icon(Icons.Filled.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }
@@ -99,12 +102,11 @@ fun TagsManagerSheet(
     }
 
     viewModel.pendingDeleteId?.let { id ->
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.tags_delete_title)) },
-            text = { Text(stringResource(R.string.tags_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.tags_delete_title),
+            body = stringResource(R.string.tags_delete_body),
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::cancelDelete,
         )
     }
 }

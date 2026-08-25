@@ -68,6 +68,7 @@ import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.LocalRealtimeState
+import ua.rytm.app.ui.LocalRetryLoad
 import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,6 +87,9 @@ import ua.rytm.app.ui.screens.shifts.ShiftsScreen
 import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmInteraction
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import ua.rytm.app.ui.LocalSnackbarHost
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +116,17 @@ fun RytmNavHost() {
         }
     }
 
-    CompositionLocalProvider(LocalCanEditProfile provides canEdit, LocalRealtimeState provides realtimeState) {
+    // One retry entry point for every screen's load-error state — the same
+    // reload pull-to-refresh triggers, so a failed load stops being a dead end.
+    // One snackbar host for the whole nav graph, so every screen reports
+    // transient events the same way (see ui/SnackbarHost.kt).
+    val snackbarHostState = remember { SnackbarHostState() }
+    CompositionLocalProvider(
+        LocalCanEditProfile provides canEdit,
+        LocalRealtimeState provides realtimeState,
+        LocalRetryLoad provides ::refresh,
+        LocalSnackbarHost provides snackbarHostState,
+    ) {
     Box(Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = refreshing,
@@ -143,6 +157,10 @@ fun RytmNavHost() {
             composable(RytmDestination.Settings.route) { SettingsScreen() }
         }
         }
+    SnackbarHost(
+        snackbarHostState,
+        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance),
+    )
     RytmBottomBar(
         navController = navController,
         modifier = Modifier.align(Alignment.BottomCenter),

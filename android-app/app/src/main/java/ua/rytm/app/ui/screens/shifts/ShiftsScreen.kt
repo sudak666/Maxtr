@@ -96,7 +96,10 @@ import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.onColorFor
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.LocalSnackbarHost
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import ua.rytm.app.ui.components.RytmStatChip
+import ua.rytm.app.ui.components.RytmStatChipRow
 import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
@@ -109,6 +112,7 @@ import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
 // chip stats, 6-month earnings chart, collapsible quick-fill (template +
@@ -129,13 +133,15 @@ fun ShiftsScreen() {
     )
     val stats = viewModel.monthStats
     var shiftTypesSheetOpen by remember { mutableStateOf(false) }
-    val snackbar = remember { SnackbarHostState() }
+    // Falls back to a local host only outside the nav graph (previews/tests).
+    val ownHost = remember { SnackbarHostState() }
+    val snackbar = LocalSnackbarHost.current ?: ownHost
     val errorMessage = viewModel.errorMessageRes?.let { stringResource(it) }
     LaunchedEffect(errorMessage) {
         errorMessage?.let { snackbar.showSnackbar(it); viewModel.consumeError() }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
+    Scaffold(snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost) }) { padding ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(
@@ -173,7 +179,7 @@ fun ShiftsScreen() {
                     .fillMaxWidth()
                     .fillMaxHeight(0.92f)
                     .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(28.dp))
+                    .clip(RoundedCornerShape(RytmRadii.Sheet))
                     .background(MaterialTheme.colorScheme.surfaceContainer)
                     .verticalScroll(rememberScrollState())
                     .padding(12.dp),
@@ -194,7 +200,7 @@ fun ShiftsScreen() {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.shifts_choose), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                RytmSheetTitle(stringResource(R.string.shifts_choose))
                 Text(dateKey, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 viewModel.shiftTypes.forEach { type ->
                     ShiftSelectionRow(
@@ -253,7 +259,7 @@ private fun HeroMetric(earned: Double) {
                     Modifier
                         .fillMaxWidth(pct.toFloat())
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(99.dp))
+                        .clip(RoundedCornerShape(RytmRadii.Pill))
                         .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
                 )
             }
@@ -272,31 +278,10 @@ private fun HeroMetric(earned: Double) {
 // chip-stat-icon gets in index.html regardless of what it's showing.
 @Composable
 private fun ChipStats(stats: ShiftsViewModel.MonthStats) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.Schedule, stats.hours.toInt().toString(), stringResource(R.string.shifts_hours_short), Modifier.weight(1f))
-        StatChip(Icons.Filled.EventAvailable, stats.shiftsCount.toString(), stringResource(R.string.shifts_count), Modifier.weight(1f))
-        StatChip(Icons.Filled.BeachAccess, stats.offCount.toString(), stringResource(R.string.shifts_days_off), Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun StatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, value: String, label: String, modifier: Modifier) {
-    Card(modifier, shape = RoundedCornerShape(999.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
-            }
-            Column(Modifier.padding(start = 9.dp)) {
-                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+    RytmStatChipRow {
+        item { RytmStatChip(Icons.Filled.Schedule, stats.hours.toInt().toString(), stringResource(R.string.shifts_hours_short)) }
+        item { RytmStatChip(Icons.Filled.EventAvailable, stats.shiftsCount.toString(), stringResource(R.string.shifts_count)) }
+        item { RytmStatChip(Icons.Filled.BeachAccess, stats.offCount.toString(), stringResource(R.string.shifts_days_off)) }
     }
 }
 
@@ -305,7 +290,7 @@ internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(RytmRadii.Control))
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .semantics(mergeDescendants = true) {}
             .heightIn(min = RytmDimens.TouchTarget),
@@ -331,7 +316,7 @@ private fun localizedPatternOptions(): List<Pair<String, String>> = listOf(
 private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     val locale = LocalConfiguration.current.locales[0]
     val progress = motionProgress(months, 500)
-    Card(shape = RoundedCornerShape(24.dp)) {
+    Card(shape = RoundedCornerShape(RytmRadii.AuthCard)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
                 Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
@@ -399,7 +384,7 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
@@ -447,13 +432,13 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     )
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (vm.quickFillExpanded) 6.dp else 1.dp),
     ) {
     Column(Modifier.fillMaxWidth().padding(12.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(16.dp)).background(headerColor).clickable(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(RytmRadii.Row)).background(headerColor).clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = vm::toggleQuickFillExpanded,
@@ -485,7 +470,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
         }
         ReducedMotionVisibility(visible = vm.quickFillExpanded) {
             Column(
-                Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(18.dp))
+                Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(RytmRadii.Input))
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)).padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -539,7 +524,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control))
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh).padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -627,9 +612,9 @@ private fun LegendRow(types: List<ShiftType>) {
             val accent = Color(type.colorHex)
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(RoundedCornerShape(RytmRadii.Pill))
                     .background(accent.copy(alpha = 0.12f))
-                    .border(1.dp, accent.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
+                    .border(1.dp, accent.copy(alpha = 0.28f), RoundedCornerShape(RytmRadii.Pill))
                     .padding(horizontal = 10.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -680,14 +665,14 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(RoundedCornerShape(RytmRadii.Pill))
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(
                     onClick = viewModel::goToToday,
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RoundedCornerShape(RytmRadii.Pill),
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.primary,

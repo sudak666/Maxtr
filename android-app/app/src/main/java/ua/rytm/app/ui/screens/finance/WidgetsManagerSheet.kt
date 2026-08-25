@@ -46,12 +46,16 @@ import ua.rytm.app.R
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.GreenDark
+import ua.rytm.app.ui.theme.BlueDark
+import ua.rytm.app.ui.theme.BitcoinOrange
 
 private data class WidgetDef(val key: String, @StringRes val title: Int, @StringRes val subtitle: Int, val icon: ImageVector, val color: Color)
 private val widgetDefs = listOf(
-    WidgetDef("goals", R.string.widget_goals, R.string.widget_goals_subtitle, Icons.Filled.Flag, Color(0xFF10B981)),
-    WidgetDef("dailyTip", R.string.widget_tip, R.string.widget_tip_subtitle, Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)),
-    WidgetDef("cryptoTop", R.string.widget_crypto, R.string.widget_crypto_subtitle, Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)),
+    WidgetDef("goals", R.string.widget_goals, R.string.widget_goals_subtitle, Icons.Filled.Flag, GreenDark),
+    WidgetDef("dailyTip", R.string.widget_tip, R.string.widget_tip_subtitle, Icons.Filled.TipsAndUpdates, BlueDark),
+    WidgetDef("cryptoTop", R.string.widget_crypto, R.string.widget_crypto_subtitle, Icons.Filled.LocalFireDepartment, BitcoinOrange),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +75,7 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
     }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.widgets_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, modifier = Modifier.align(Alignment.CenterHorizontally))
+            RytmSheetTitle(stringResource(R.string.widgets_title), subtitle = stringResource(R.string.widgets_body))
             Text(stringResource(R.string.widgets_body), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp).align(Alignment.CenterHorizontally))
             config.order.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEachIndexed { index, item ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {

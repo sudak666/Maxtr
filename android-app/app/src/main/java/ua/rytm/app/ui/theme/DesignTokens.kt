@@ -27,6 +27,22 @@ object RytmDimens {
     val SwipeThreshold = 30.dp
 }
 
+/**
+ * The spacing scale. `DesignTokens.kt` declared geometry but no spacing
+ * ladder, so every `padding()` in the app was written as a raw number: 701
+ * `.dp` literals against 41 token references. Use these for new code; the
+ * pre-existing literals are being migrated opportunistically, not in one
+ * risky sweep.
+ */
+object RytmSpacing {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 20.dp
+    val xxl = 24.dp
+}
+
 object RytmRadii {
     val Compact = 8.dp
     val Control = 14.dp
@@ -37,6 +53,10 @@ object RytmRadii {
     val AuthCard = 24.dp
     val Sheet = 32.dp
     val Pill = 999.dp
+
+    // Pills were being written four different ways across the app
+    // (RytmRadii.Pill, RoundedCornerShape(999.dp), (99.dp) and (50) —
+    // percent!). Always use [Pill].
 }
 
 object RytmElevation {

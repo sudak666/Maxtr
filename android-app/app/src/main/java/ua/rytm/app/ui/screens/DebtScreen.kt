@@ -82,6 +82,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.theme.onColorFor
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.components.RytmStatChip
+import ua.rytm.app.ui.components.RytmStatChipRow
 import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.theme.RytmDimens
@@ -105,6 +107,10 @@ import ua.rytm.app.ui.screens.finance.formatMoney
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import androidx.compose.runtime.LaunchedEffect
+import ua.rytm.app.ui.LocalSnackbarHost
 
 // Implements the in-scope subset of CLAUDE.md §1.4: debt chips, hero balance,
 // progress bar, chip stats, due chip, payoff-forecast burndown chart,
@@ -132,7 +138,7 @@ fun DebtScreen(
     Scaffold(
         floatingActionButton = {
             if (cd != null && canEdit) {
-                val shape = RoundedCornerShape(999.dp)
+                val shape = RoundedCornerShape(RytmRadii.Pill)
                 val collapse = viewModel.historyExpanded
                 Row(
                     modifier = Modifier
@@ -191,7 +197,7 @@ fun DebtScreen(
                             // a 320dp screen. The list's own contentPadding
                             // already reserves BottomContentClearance.
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(RytmRadii.Row),
                         ) {
                             Text(stringResource(if (viewModel.historyExpanded) R.string.action_collapse_list else R.string.action_view_all))
                         }
@@ -206,32 +212,32 @@ fun DebtScreen(
     }
 
     if (viewModel.pendingDeleteDebt) {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDeleteDebt,
-            title = { Text(stringResource(R.string.debt_delete_title)) },
-            text = { Text(stringResource(R.string.debt_delete_body)) },
-            confirmButton = { Button(onClick = viewModel::confirmDeleteDebt, enabled = !viewModel.saving, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
-            dismissButton = { OutlinedButton(onClick = viewModel::cancelDeleteDebt) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.debt_delete_title),
+            body = stringResource(R.string.debt_delete_body),
+            onConfirm = viewModel::confirmDeleteDebt,
+            onDismiss = viewModel::cancelDeleteDebt,
         )
     }
 
     if (viewModel.pendingDeleteEntryId != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDeleteEntry,
-            title = { Text(stringResource(R.string.debt_payment_delete_title)) },
-            text = { Text(stringResource(R.string.debt_payment_delete_body)) },
-            confirmButton = { Button(onClick = viewModel::confirmDeleteEntry, enabled = !viewModel.saving, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
-            dismissButton = { OutlinedButton(onClick = viewModel::cancelDeleteEntry) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.debt_payment_delete_title),
+            body = stringResource(R.string.debt_payment_delete_body),
+            onConfirm = viewModel::confirmDeleteEntry,
+            onDismiss = viewModel::cancelDeleteEntry,
         )
     }
 
+    // Transient save failures are a notification, not a decision — snackbar,
+    // like Finance/Shifts/Settings, not a modal AlertDialog.
     viewModel.errorMessageRes?.let { messageRes ->
-        AlertDialog(
-            onDismissRequest = viewModel::consumeError,
-            title = { Text(stringResource(R.string.attention_title)) },
-            text = { Text(stringResource(messageRes)) },
-            confirmButton = { TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
-        )
+        val message = stringResource(messageRes)
+        val host = LocalSnackbarHost.current
+        LaunchedEffect(messageRes) {
+            host?.showSnackbar(message)
+            viewModel.consumeError()
+        }
     }
 }
 
@@ -333,7 +339,7 @@ private fun ProgressBarSection(cd: Debt) {
                 .fillMaxWidth()
                 .padding(top = 5.dp)
                 .height(6.dp)
-                .clip(RoundedCornerShape(99.dp))
+                .clip(RoundedCornerShape(RytmRadii.Pill))
                 // 6% onSurface put the empty part of the bar at ~1.1:1
                 // against the surface; WCAG 1.4.11 wants 3:1 for meaningful
                 // non-text content.
@@ -343,7 +349,7 @@ private fun ProgressBarSection(cd: Debt) {
                 Modifier
                     .fillMaxWidth(pct.toFloat())
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(99.dp))
+                    .clip(RoundedCornerShape(RytmRadii.Pill))
                     .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
             )
         }
@@ -355,11 +361,11 @@ private fun ProgressBarSection(cd: Debt) {
 @Composable
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { StatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
-        item { StatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
-        item { StatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
-        if (due != null) item { StatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date)) }
+    RytmStatChipRow {
+        item { RytmStatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
+        item { RytmStatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
+        item { RytmStatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
+        if (due != null) item { RytmStatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date)) }
     }
 }
 
@@ -377,39 +383,12 @@ private fun dueChipInfo(cd: Debt): String? {
     }
 }
 
-// Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
-// purple-gradient icon badge, not a plain Card.
-@Composable
-private fun StatChip(icon: ImageVector, value: String, label: String) {
-    Card(
-        Modifier.widthIn(min = 164.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f)),
-    ) {
-        Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-            }
-            Column(Modifier.padding(start = 9.dp)) {
-                Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, maxLines = 1)
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-            }
-        }
-    }
-}
-
 @Composable
 private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
-        Card(shape = RoundedCornerShape(18.dp), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+        Card(shape = RoundedCornerShape(RytmRadii.Input), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).clickable(enabled = canEdit, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -528,7 +507,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
 
     ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.debt_new_payment), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.debt_new_payment))
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->

@@ -83,10 +83,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.components.RytmEmptyState
+import ua.rytm.app.ui.components.RytmStatChip
+import ua.rytm.app.ui.components.RytmStatChipRow
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
+import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import ua.rytm.app.ui.LocalSnackbarHost
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -99,7 +104,9 @@ fun ShoppingScreen(
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
-    val snackbarHostState = remember { SnackbarHostState() }
+    // Falls back to a local host only outside the nav graph (previews/tests).
+    val ownHost = remember { SnackbarHostState() }
+    val snackbarHostState = LocalSnackbarHost.current ?: ownHost
     val scope = rememberCoroutineScope()
     // One destructive-action pattern app-wide (see FinanceScreen): a single
     // item deletion is optimistic + undoable, never an instant hard delete.
@@ -129,7 +136,8 @@ fun ShoppingScreen(
         }
     }
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
+        // The host itself lives in RytmNavHost now — one per app.
+        snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
     ) { innerPadding ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -152,7 +160,7 @@ fun ShoppingScreen(
                 if (canEdit && viewModel.boughtCount > 0) {
                     TextButton(
                         onClick = viewModel::requestClearBought,
-                        shape = RoundedCornerShape(999.dp),
+                        shape = RoundedCornerShape(RytmRadii.Pill),
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -174,45 +182,22 @@ fun ShoppingScreen(
     }
 
     if (viewModel.clearConfirmVisible) {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelClearBought,
-            title = { Text(stringResource(R.string.shopping_clear_bought)) },
-            text = { Text(stringResource(R.string.shopping_clear_confirmation)) },
-            confirmButton = { Button(onClick = viewModel::confirmClearBought, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) } },
-            dismissButton = { OutlinedButton(onClick = viewModel::cancelClearBought) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.shopping_clear_bought),
+            body = stringResource(R.string.shopping_clear_confirmation),
+            onConfirm = viewModel::confirmClearBought,
+            onDismiss = viewModel::cancelClearBought,
         )
     }
 }
 
 @Composable
 private fun ChipStatsRow(remaining: Int, bought: Int) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatChip(Icons.Filled.Checklist, remaining.toString(), R.string.shopping_remaining, Modifier.weight(1f))
-        StatChip(Icons.Filled.CheckCircle, bought.toString(), R.string.shopping_bought, Modifier.weight(1f))
-    }
-}
-
-// Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
-// purple-gradient icon badge, not a plain Card — same treatment Finance/
-// Shifts/Debt's chip stats got (steps 38-39 and the Debt visual-parity pass).
-@Composable
-private fun StatChip(icon: ImageVector, value: String, @StringRes labelRes: Int, modifier: Modifier = Modifier) {
-    Card(modifier, shape = RoundedCornerShape(999.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.PurpleDark, ua.rytm.app.ui.theme.Purple3))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
-            }
-            Column(Modifier.padding(start = 9.dp)) {
-                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Text(stringResource(labelRes), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+    // Shared component + LazyRow: the fixed weight(1f) grid squeezed the
+    // Ukrainian labels at 360dp / fontScale 1.3.
+    RytmStatChipRow {
+        item { RytmStatChip(Icons.Filled.Checklist, remaining.toString(), stringResource(R.string.shopping_remaining)) }
+        item { RytmStatChip(Icons.Filled.CheckCircle, bought.toString(), stringResource(R.string.shopping_bought)) }
     }
 }
 
@@ -283,7 +268,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(RytmRadii.Control))
                 .toggleable(value = item.done, enabled = canEdit, role = Role.Checkbox, onValueChange = onToggle)
                 .semantics(mergeDescendants = true) {}
                 .heightIn(min = RytmDimens.TouchTarget)

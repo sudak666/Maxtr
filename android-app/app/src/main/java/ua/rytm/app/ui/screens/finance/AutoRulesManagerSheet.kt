@@ -48,6 +48,8 @@ import ua.rytm.app.data.AutoRulesSyncRepository
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.local.AutoRuleEntity
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,14 +65,14 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.auto_rules_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.auto_rules_title))
             Text(stringResource(R.string.auto_rules_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (errorVisible) Text(stringResource(R.string.auto_rules_save_failed), color = MaterialTheme.colorScheme.error)
             if (rules.isEmpty()) Text(stringResource(R.string.auto_rules_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             rules.forEach { rule ->
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                 ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

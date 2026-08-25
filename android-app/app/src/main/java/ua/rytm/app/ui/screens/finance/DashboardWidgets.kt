@@ -30,6 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import ua.rytm.app.ui.theme.BlueDark
+import ua.rytm.app.ui.theme.GreenDark
+import ua.rytm.app.ui.theme.BitcoinOrange
+import ua.rytm.app.ui.theme.EthereumBlue
+import ua.rytm.app.ui.theme.RytmSemantic
+import ua.rytm.app.ui.theme.onColorFor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,6 +58,7 @@ import java.net.URL
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.Currency
+import ua.rytm.app.ui.theme.RytmRadii
 
 data class CryptoQuote(val symbol: String, val price: Double, val change: Double, val spark: List<Double>)
 
@@ -59,7 +66,7 @@ data class CryptoQuote(val symbol: String, val price: Double, val change: Double
 fun FinanceDashboardWidget(key: String, app: RytmApplication) {
     when (key) {
         "goals" -> GoalsDashboardWidget(app)
-        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), Icons.Filled.TipsAndUpdates, Color(0xFF3B82F6)) {
+        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), Icons.Filled.TipsAndUpdates, BlueDark) {
             val tips = stringArrayResource(R.array.finance_tips)
             val day = System.currentTimeMillis() / 86_400_000L
             Text(tips[(day % tips.size).toInt()], color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -74,7 +81,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
     val wallets by app.financeRepository.wallets.collectAsState(initial = emptyList())
     val transactions by app.financeRepository.transactions.collectAsState(initial = emptyList())
     if (goals.isEmpty()) return
-    WidgetCard(stringResource(R.string.widget_goals), Icons.Filled.Flag, Color(0xFF10B981)) {
+    WidgetCard(stringResource(R.string.widget_goals), Icons.Filled.Flag, GreenDark) {
         goals.forEach { goal ->
             val wallet = wallets.firstOrNull { it.id == goal.walletId }
             val current = FinanceRepository.walletBalance(transactions, goal.walletId)
@@ -85,7 +92,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
                     Text(maskedAmount("${formatMoney(current)} / ${formatMoney(goal.targetAmount)} ${currencySymbol(wallet?.currency ?: "UAH")}"), style = MaterialTheme.typography.bodySmall)
                 }
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
-                    Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(Color(0xFF10B981), CircleShape))
+                    Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(GreenDark, CircleShape))
                 }
             }
         }
@@ -112,7 +119,7 @@ private fun CryptoDashboardWidget(app: RytmApplication) {
         }
         loading = false
     }
-    WidgetCard(stringResource(R.string.widget_crypto), Icons.Filled.LocalFireDepartment, Color(0xFFF7931A)) {
+    WidgetCard(stringResource(R.string.widget_crypto), Icons.Filled.LocalFireDepartment, BitcoinOrange) {
         if (loading && quotes.isEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             Text(stringResource(R.string.crypto_loading), Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -125,13 +132,16 @@ private fun CryptoDashboardWidget(app: RytmApplication) {
 @Composable
 private fun CryptoRow(quote: CryptoQuote) {
     val positive = quote.change >= 0
-    val trend = if (positive) Color(0xFF10B981) else Color(0xFFEF4444)
+    val trend = if (positive) RytmSemantic.income else RytmSemantic.expense
     val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
     val changeText = NumberFormat.getNumberInstance(locale).apply { minimumFractionDigits = 1; maximumFractionDigits = 1 }.format(quote.change)
     val priceText = NumberFormat.getCurrencyInstance(locale).apply { currency = Currency.getInstance("USD"); maximumFractionDigits = if (quote.price < 10) 4 else 0 }.format(quote.price)
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(34.dp).background(if (quote.symbol == "BTC") Color(0x29F7931A) else Color(0x29627EEA), CircleShape), contentAlignment = Alignment.Center) {
-            Text(quote.symbol.first().toString(), color = if (quote.symbol == "BTC") Color(0xFFF7931A) else Color(0xFF627EEA), fontWeight = FontWeight.Bold)
+        // Solid brand fill with a computed on-color: the coin letter used to
+        // be #F7931A on a 16%-alpha wash, i.e. 2.30:1 on a light surface.
+        val coinColor = if (quote.symbol == "BTC") BitcoinOrange else EthereumBlue
+        Box(Modifier.size(34.dp).background(coinColor, CircleShape), contentAlignment = Alignment.Center) {
+            Text(quote.symbol.first().toString(), color = onColorFor(coinColor), fontWeight = FontWeight.Bold)
         }
         Column(Modifier.padding(start = 10.dp).weight(1f)) {
             Text(quote.symbol, fontWeight = FontWeight.SemiBold)
@@ -160,7 +170,7 @@ private fun Sparkline(values: List<Double>, color: Color, modifier: Modifier) {
 
 @Composable
 private fun WidgetCard(title: String, icon: ImageVector, color: Color, content: @Composable () -> Unit) {
-    Card(shape = RoundedCornerShape(20.dp)) {
+    Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))

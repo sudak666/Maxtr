@@ -443,5 +443,6 @@
     <string name="action_next_month">Наступний місяць</string>
     <string name="category_change_icon">Змінити іконку категорії %1$s</string>
     <string name="common_loading">Завантаження…</string>
+    <string name="action_retry">Повторити</string>
     <string name="common_data_load_failed">Не вдалося завантажити дані</string>
 </resources>

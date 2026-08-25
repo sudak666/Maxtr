@@ -49,6 +49,8 @@ import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.RecurringSyncRepository
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/settings-managers.js's recurring-modal — see
 // RecurringManagerViewModel's doc comment for scope. The most field-heavy
@@ -74,7 +76,7 @@ fun RecurringManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.recurring_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.recurring_title))
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->
@@ -107,7 +109,7 @@ fun RecurringManagerSheet(
                 )
             }
 
-            androidx.compose.material3.Button(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
+            androidx.compose.material3.Button(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.recurring_add))
             }
@@ -150,7 +152,7 @@ private fun RecurringRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

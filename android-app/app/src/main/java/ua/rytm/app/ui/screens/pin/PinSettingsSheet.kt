@@ -53,6 +53,8 @@ import androidx.compose.material.icons.filled.LockClock
 import ua.rytm.app.R
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/auth.js's openPinSettings()/setPin()/removePin()/renderBioSettingsUI() —
 // set/change/remove PIN, biometric toggle (only offered when the device
@@ -74,7 +76,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
-        shape = RoundedCornerShape(30.dp),
+        shape = RoundedCornerShape(RytmRadii.Sheet),
         tonalElevation = 8.dp,
     ) {
         Column(
@@ -86,12 +88,12 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                 Modifier.size(56.dp).clip(CircleShape).background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3))),
                 contentAlignment = Alignment.Center,
             ) { Icon(Icons.Filled.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp)) }
-            Text(stringResource(R.string.pin_settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            RytmSheetTitle(stringResource(R.string.pin_settings_title))
 
             if (hasPin == true) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(RytmRadii.Chart),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -105,8 +107,8 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
 
                 if (activity != null && biometricAvailable(activity)) {
                     Card(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).clickable { viewModel.setBiometricEnabled(!biometricEnabled) },
-                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Chart)).clickable { viewModel.setBiometricEnabled(!biometricEnabled) },
+                        shape = RoundedCornerShape(RytmRadii.Chart),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     ) {
                         Row(
@@ -124,14 +126,14 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     }
                 }
 
-                Button(onClick = { viewModel.lockNow(); onDismiss() }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                Button(onClick = { viewModel.lockNow(); onDismiss() }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                     Icon(Icons.Filled.LockClock, contentDescription = null)
                     Text(stringResource(R.string.pin_lock_now))
                 }
                 OutlinedButton(
                     onClick = { removeConfirmationVisible = true },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) {
                     Icon(Icons.Filled.DeleteOutline, contentDescription = null)
@@ -160,7 +162,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     onClick = { if (setupStep == 0) setupStep = 1 else viewModel.savePin() },
                     enabled = activeLength >= 4,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                 ) {
                     Text(stringResource(if (setupStep == 0) R.string.action_continue else R.string.pin_save))
                 }

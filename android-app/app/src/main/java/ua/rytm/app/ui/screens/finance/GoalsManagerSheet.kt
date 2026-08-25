@@ -53,6 +53,8 @@ import kotlinx.coroutines.delay
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.GoalsSyncRepository
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmRadii
 
 // Mirrors js/goals-profile.js's goals-modal — see GoalsManagerViewModel's
 // doc comment. Same collapsed-summary-row-with-pencil-toggle shape as
@@ -78,7 +80,7 @@ fun GoalsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.goals_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            RytmSheetTitle(stringResource(R.string.goals_title))
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->
@@ -110,7 +112,7 @@ fun GoalsManagerSheet(
                 onClick = viewModel::addGoal,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(RytmRadii.Row),
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
@@ -162,7 +164,7 @@ private fun GoalRow(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(RytmRadii.Input),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

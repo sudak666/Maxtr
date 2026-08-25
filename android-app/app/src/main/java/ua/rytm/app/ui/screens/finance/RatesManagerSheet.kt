@@ -52,6 +52,13 @@ import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.GreenLight2
+import ua.rytm.app.ui.theme.BlueLight2
+import ua.rytm.app.ui.theme.PurpleLight2
+import ua.rytm.app.ui.theme.RedLight2
+import ua.rytm.app.ui.theme.Gray
+import ua.rytm.app.ui.theme.RytmRadii
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,20 +104,19 @@ fun RatesManagerSheet(
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.rates_title), style = androidx.compose.material3.MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                    Text(stringResource(R.string.rates_dashboard_subtitle), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+                    RytmSheetTitle(stringResource(R.string.rates_title), subtitle = stringResource(R.string.rates_dashboard_subtitle))
                 }
             }
 
             Card(
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedCornerShape(RytmRadii.Card),
                 colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
             ) {
                 Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        Modifier.size(48.dp).background(Color(0xFF059669).copy(alpha = 0.16f), CircleShape),
+                        Modifier.size(48.dp).background(GreenLight2.copy(alpha = 0.16f), CircleShape),
                         contentAlignment = Alignment.Center,
-                    ) { Text("$", color = Color(0xFF059669), fontWeight = FontWeight.Black) }
+                    ) { Text("$", color = GreenLight2, fontWeight = FontWeight.Black) }
                     Column(Modifier.padding(start = 12.dp).weight(1f)) {
                         Text(stringResource(R.string.rates_usd_hero), style = androidx.compose.material3.MaterialTheme.typography.labelMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("${numberFormat.format(usdRate)} ₴", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
@@ -138,7 +144,7 @@ fun RatesManagerSheet(
 
             if (source == "privat") {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                     colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
@@ -148,7 +154,7 @@ fun RatesManagerSheet(
                 }
             }
 
-            Button(onClick = { refresh() }, enabled = !busy, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Button(onClick = { refresh() }, enabled = !busy, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Icon(Icons.Filled.Refresh, contentDescription = null)
                 Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh), modifier = Modifier.padding(start = 8.dp))
             }
@@ -156,7 +162,7 @@ fun RatesManagerSheet(
                 val isError = it == R.string.rates_update_failed
                 Text(
                     stringResource(it),
-                    color = if (isError) androidx.compose.material3.MaterialTheme.colorScheme.error else Color(0xFF059669),
+                    color = if (isError) androidx.compose.material3.MaterialTheme.colorScheme.error else GreenLight2,
                     style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -172,7 +178,7 @@ fun RatesManagerSheet(
                 val value = rates[code] ?: fallback
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(RytmRadii.Input),
                     colors = CardDefaults.cardColors(containerColor = tint.copy(alpha = 0.09f)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, tint.copy(alpha = 0.24f)),
                 ) {
@@ -202,11 +208,11 @@ fun RatesManagerSheet(
 }
 
 private fun currencyTint(code: String): Color = when (code) {
-    "USD" -> Color(0xFF059669)
-    "EUR" -> Color(0xFF2563EB)
-    "GBP" -> Color(0xFF7C3AED)
-    "PLN" -> Color(0xFFDC2626)
-    else -> Color(0xFF6B7280)
+    "USD" -> GreenLight2
+    "EUR" -> BlueLight2
+    "GBP" -> PurpleLight2
+    "PLN" -> RedLight2
+    else -> Gray
 }
 
 private fun currencyMark(code: String): String = when (code) {
