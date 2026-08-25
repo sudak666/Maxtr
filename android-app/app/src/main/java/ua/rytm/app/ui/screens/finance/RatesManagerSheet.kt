@@ -13,9 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +57,9 @@ import ua.rytm.app.ui.theme.RedLight2
 import ua.rytm.app.ui.theme.Gray
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Info
+import ua.rytm.app.ui.icons.Refresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,14 +149,14 @@ fun RatesManagerSheet(
                     colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                        Icon(Icons.Filled.Info, contentDescription = null, tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                        Icon(RytmIcons.Info, contentDescription = null, tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
                         Text(stringResource(R.string.rates_privat_note), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                     }
                 }
             }
 
             Button(onClick = { refresh() }, enabled = !busy, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                Icon(Icons.Filled.Refresh, contentDescription = null)
+                Icon(RytmIcons.Refresh, contentDescription = null)
                 Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh), modifier = Modifier.padding(start = 8.dp))
             }
             messageRes?.let {

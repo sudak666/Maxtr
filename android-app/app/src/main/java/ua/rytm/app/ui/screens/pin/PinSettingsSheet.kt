@@ -44,17 +44,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockClock
 import ua.rytm.app.R
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.ArrowBack
+import ua.rytm.app.ui.icons.DeleteOutline
+import ua.rytm.app.ui.icons.Fingerprint
+import ua.rytm.app.ui.icons.Lock
+import ua.rytm.app.ui.icons.LockClock
 
 // Mirrors js/auth.js's openPinSettings()/setPin()/removePin()/renderBioSettingsUI() —
 // set/change/remove PIN, biometric toggle (only offered when the device
@@ -87,7 +87,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
             Box(
                 Modifier.size(56.dp).clip(CircleShape).background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3))),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Filled.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp)) }
+            ) { Icon(RytmIcons.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp)) }
             RytmSheetTitle(stringResource(R.string.pin_settings_title))
 
             if (hasPin == true) {
@@ -97,7 +97,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(RytmIcons.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Column(Modifier.padding(start = 12.dp)) {
                             Text(stringResource(R.string.pin_protection_active), fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.pin_is_set), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -116,7 +116,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Filled.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                            Icon(RytmIcons.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
                             Column(Modifier.padding(horizontal = 12.dp).weight(1f)) {
                                 Text(stringResource(R.string.pin_biometric_title), fontWeight = FontWeight.Bold)
                                 Text(stringResource(R.string.pin_biometric_toggle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -127,7 +127,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                 }
 
                 Button(onClick = { viewModel.lockNow(); onDismiss() }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                    Icon(Icons.Filled.LockClock, contentDescription = null)
+                    Icon(RytmIcons.LockClock, contentDescription = null)
                     Text(stringResource(R.string.pin_lock_now))
                 }
                 OutlinedButton(
@@ -136,7 +136,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(RytmRadii.Row),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) {
-                    Icon(Icons.Filled.DeleteOutline, contentDescription = null)
+                    Icon(RytmIcons.DeleteOutline, contentDescription = null)
                     Text(stringResource(R.string.pin_remove))
                 }
             } else {
@@ -149,7 +149,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     onBackspace = if (setupStep == 0) viewModel::newPinBackspace else viewModel::confirmPinBackspace,
                     trailingSlot = {
                         if (setupStep == 1) TextButton(onClick = { viewModel.resetPinEntryFields(); setupStep = 0 }) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                            Icon(RytmIcons.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     },
                 )

@@ -27,42 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.BrightnessAuto
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.CloudDone
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.CurrencyExchange
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material.icons.filled.Style
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -149,6 +113,42 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalance
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.BrightnessAuto
+import ua.rytm.app.ui.icons.Category
+import ua.rytm.app.ui.icons.Check
+import ua.rytm.app.ui.icons.CheckCircle
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.CloudDone
+import ua.rytm.app.ui.icons.CurrencyExchange
+import ua.rytm.app.ui.icons.DarkMode
+import ua.rytm.app.ui.icons.DeleteForever
+import ua.rytm.app.ui.icons.Description
+import ua.rytm.app.ui.icons.Download
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.GridView
+import ua.rytm.app.ui.icons.Groups
+import ua.rytm.app.ui.icons.Language
+import ua.rytm.app.ui.icons.LightMode
+import ua.rytm.app.ui.icons.Lock
+import ua.rytm.app.ui.icons.Logout
+import ua.rytm.app.ui.icons.Notifications
+import ua.rytm.app.ui.icons.NotificationsActive
+import ua.rytm.app.ui.icons.PieChart
+import ua.rytm.app.ui.icons.PrivacyTip
+import ua.rytm.app.ui.icons.Repeat
+import ua.rytm.app.ui.icons.RestartAlt
+import ua.rytm.app.ui.icons.Search
+import ua.rytm.app.ui.icons.Sell
+import ua.rytm.app.ui.icons.Star
+import ua.rytm.app.ui.icons.Style
+import ua.rytm.app.ui.icons.Tune
+import ua.rytm.app.ui.icons.Upload
+import ua.rytm.app.ui.icons.UploadFile
+import ua.rytm.app.ui.icons.VisibilityOff
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -336,11 +336,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 onValueChange = { settingsSearch = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
                 trailingIcon = if (settingsSearch.isNotEmpty()) {
                     {
                         androidx.compose.material3.IconButton(onClick = { settingsSearch = "" }) {
-                            Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_clear_search))
+                            Icon(RytmIcons.Clear, contentDescription = stringResource(R.string.settings_clear_search))
                         }
                     }
                 } else null,
@@ -421,7 +421,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_account))
                 SettingsGroupCard {
                     SettingsRow(
-                        icon = Icons.AutoMirrored.Filled.Logout,
+                        icon = RytmIcons.Logout,
                         badgeColor = SettingsGroupColors.Account,
                         title = stringResource(R.string.settings_sign_out),
                         subtitle = stringResource(R.string.settings_sign_out_subtitle),
@@ -429,21 +429,21 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                     if (uid != null) {
                         SettingsRow(
-                            icon = Icons.Filled.Groups,
+                            icon = RytmIcons.Groups,
                             badgeColor = SettingsGroupColors.Account,
                             title = stringResource(R.string.profiles_title),
                             subtitle = stringResource(R.string.settings_profiles_subtitle),
                             onClick = { profilesSheetOpen = true },
                         )
                         SettingsRow(
-                            icon = Icons.Filled.Star,
+                            icon = RytmIcons.Star,
                             badgeColor = SettingsGroupColors.Account,
                             title = stringResource(R.string.settings_premium),
                             subtitle = stringResource(R.string.settings_free_plan),
                             onClick = { premiumDialogOpen = true },
                         )
                         SettingsRow(
-                            icon = Icons.Filled.RestartAlt,
+                            icon = RytmIcons.RestartAlt,
                             badgeColor = MaterialTheme.colorScheme.error,
                             title = stringResource(R.string.settings_reset_profile),
                             subtitle = stringResource(R.string.settings_reset_profile_subtitle),
@@ -457,7 +457,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             titleColor = MaterialTheme.colorScheme.error,
                         )
                         SettingsRow(
-                            icon = Icons.Filled.DeleteForever,
+                            icon = RytmIcons.DeleteForever,
                             badgeColor = MaterialTheme.colorScheme.error,
                             title = stringResource(R.string.settings_delete_account),
                             subtitle = stringResource(R.string.settings_delete_account_subtitle),
@@ -472,7 +472,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_security))
                 SettingsGroupCard {
                     SettingsRow(
-                        icon = Icons.Filled.Lock,
+                        icon = RytmIcons.Lock,
                         badgeColor = SettingsGroupColors.Security,
                         title = stringResource(R.string.pin_settings_title),
                         subtitle = stringResource(R.string.settings_pin_subtitle),
@@ -486,7 +486,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_notifications))
                 SettingsGroupCard {
                     SettingsToggleRow(
-                        icon = Icons.Filled.Notifications,
+                        icon = RytmIcons.Notifications,
                         badgeColor = MaterialTheme.colorScheme.primary,
                         title = stringResource(R.string.settings_push),
                         subtitle = stringResource(R.string.settings_push_subtitle),
@@ -500,7 +500,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // NotificationSettingsSheet's own doc comment).
                     if (displayedPushEnabled) {
                         SettingsRow(
-                            icon = Icons.Filled.NotificationsActive,
+                            icon = RytmIcons.NotificationsActive,
                             badgeColor = SettingsGroupColors.Notifications,
                             title = stringResource(R.string.settings_notification_types),
                             subtitle = stringResource(R.string.settings_notification_types_subtitle),
@@ -518,7 +518,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         stringResource(R.string.settings_theme_dark),
                         stringResource(R.string.settings_theme_system),
                     ),
-                    icons = listOf(Icons.Filled.LightMode, Icons.Filled.DarkMode, Icons.Filled.BrightnessAuto),
+                    icons = listOf(RytmIcons.LightMode, RytmIcons.DarkMode, RytmIcons.BrightnessAuto),
                     selectedIndex = when (themePreference) {
                         ThemePreference.LIGHT -> 0
                         ThemePreference.DARK -> 1
@@ -545,7 +545,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 )
                 SettingsGroupCard {
                     SettingsToggleRow(
-                        icon = Icons.Filled.VisibilityOff,
+                        icon = RytmIcons.VisibilityOff,
                         badgeColor = SettingsGroupColors.Appearance,
                         title = stringResource(R.string.settings_hide_amounts),
                         subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
@@ -554,7 +554,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
                     )
                     SettingsToggleRow(
-                        icon = Icons.Filled.CloudDone,
+                        icon = RytmIcons.CloudDone,
                         badgeColor = SettingsGroupColors.Appearance,
                         title = stringResource(R.string.settings_offline_cache),
                         subtitle = stringResource(if (privacyCacheEnabled) R.string.settings_offline_cache_on else R.string.settings_offline_cache_off),
@@ -569,21 +569,21 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_about))
                 SettingsGroupCard {
                     SettingsRow(
-                        icon = Icons.Filled.Language,
+                        icon = RytmIcons.Language,
                         badgeColor = SettingsGroupColors.About,
                         title = stringResource(R.string.settings_web),
                         subtitle = stringResource(R.string.settings_web_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
                     )
                     SettingsRow(
-                        icon = Icons.Filled.Description,
+                        icon = RytmIcons.Description,
                         badgeColor = SettingsGroupColors.About,
                         title = stringResource(R.string.terms_title),
                         subtitle = stringResource(R.string.settings_terms_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app/terms.html") },
                     )
                     SettingsRow(
-                        icon = Icons.Filled.PrivacyTip,
+                        icon = RytmIcons.PrivacyTip,
                         badgeColor = SettingsGroupColors.About,
                         title = stringResource(R.string.privacy_title),
                         subtitle = stringResource(R.string.settings_privacy_subtitle),
@@ -602,91 +602,91 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsSectionLabel(stringResource(R.string.settings_finance))
                 SettingsGroupCard {
                 SettingsRow(
-                    icon = Icons.Filled.AccountBalanceWallet,
+                    icon = RytmIcons.AccountBalanceWallet,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.wallets_title),
                     subtitle = stringResource(R.string.settings_wallets_subtitle),
                     onClick = { walletsSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.AccountBalance,
+                    icon = RytmIcons.AccountBalance,
                     badgeColor = monobankBadge(),
                     title = stringResource(R.string.settings_monobank),
                     subtitle = stringResource(R.string.settings_monobank_subtitle),
                     onClick = { monobankSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Category,
+                    icon = RytmIcons.Category,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.categories_title),
                     subtitle = stringResource(R.string.settings_categories_subtitle),
                     onClick = { categoriesSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.CurrencyExchange,
+                    icon = RytmIcons.CurrencyExchange,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.rates_title),
                     subtitle = stringResource(R.string.settings_rates_subtitle),
                     onClick = { ratesSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.PieChart,
+                    icon = RytmIcons.PieChart,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.budgets_title),
                     subtitle = stringResource(R.string.settings_budgets_subtitle),
                     onClick = { budgetsSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Sell,
+                    icon = RytmIcons.Sell,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.tags_title),
                     subtitle = stringResource(R.string.settings_tags_subtitle),
                     onClick = { tagsSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Flag,
+                    icon = RytmIcons.Flag,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.goals_title),
                     subtitle = stringResource(R.string.settings_goals_subtitle),
                     onClick = { goalsSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.GridView,
+                    icon = RytmIcons.GridView,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.widgets_title),
                     subtitle = stringResource(R.string.settings_widgets_subtitle),
                     onClick = { widgetsSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Repeat,
+                    icon = RytmIcons.Repeat,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.recurring_title),
                     subtitle = stringResource(R.string.settings_recurring_subtitle),
                     onClick = { recurringSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Tune,
+                    icon = RytmIcons.Tune,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.auto_rules_title),
                     subtitle = stringResource(R.string.settings_auto_rules_subtitle),
                     onClick = { autoRulesSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Style,
+                    icon = RytmIcons.Style,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.shift_types_title),
                     subtitle = stringResource(R.string.settings_shift_types_subtitle),
                     onClick = { shiftTypesSheetOpen = true },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Download,
+                    icon = RytmIcons.Download,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.settings_csv_export),
                     subtitle = stringResource(R.string.settings_csv_export_subtitle),
                     onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
                 )
                 SettingsRow(
-                    icon = Icons.Filled.Upload,
+                    icon = RytmIcons.Upload,
                     badgeColor = SettingsGroupColors.Finance,
                     title = stringResource(R.string.settings_csv_import),
                     subtitle = stringResource(R.string.settings_csv_import_subtitle),
@@ -700,7 +700,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
+                    Icon(RytmIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                     Text(stringResource(R.string.settings_search_empty), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(stringResource(R.string.settings_search_empty_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -823,7 +823,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             shape = RoundedCornerShape(RytmRadii.Sheet),
             icon = {
                 Box(Modifier.size(52.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(RytmIcons.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 }
             },
             title = { Text(stringResource(R.string.settings_csv_import), fontWeight = FontWeight.Bold) },
@@ -914,7 +914,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    Icon(RytmIcons.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
                 }
             },
             title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
@@ -922,13 +922,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.settings_premium_body))
                     PremiumPerkRow(
-                        icon = Icons.Filled.CheckCircle,
+                        icon = RytmIcons.CheckCircle,
                         color = GreenDark,
                         title = stringResource(R.string.settings_premium_free_title),
                         subtitle = stringResource(R.string.settings_premium_free_body),
                     )
                     PremiumPerkRow(
-                        icon = Icons.Filled.AccountBalanceWallet,
+                        icon = RytmIcons.AccountBalanceWallet,
                         color = OrangeDark,
                         title = stringResource(R.string.settings_premium_banks_title),
                         subtitle = stringResource(R.string.settings_premium_banks_body),
@@ -1145,7 +1145,7 @@ private fun RoundedChoiceSelector(
             ) {
                 val icon = icons?.getOrNull(index)
                 if (icon != null) Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                else if (selected) Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                else if (selected) Icon(RytmIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(
                     label,
                     modifier = Modifier.padding(start = if (icon != null || selected) 7.dp else 0.dp),
@@ -1176,7 +1176,7 @@ private fun SettingsRowScope.SettingsRow(
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
     }
 }
 

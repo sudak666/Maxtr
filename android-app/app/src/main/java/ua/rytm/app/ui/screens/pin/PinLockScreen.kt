@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +42,9 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import kotlinx.coroutines.launch
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Backspace
+import ua.rytm.app.ui.icons.Fingerprint
 
 // Mirrors the PWA's #pin-screen: touch keypad (0-9 + back), dot indicators
 // (never the raw digits, per the account owner's original design reference —
@@ -102,7 +102,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
                             showBiometricPrompt(activity, onSuccess = viewModel::unlockWithBiometric)
                         }
                     }) {
-                        Icon(Icons.Filled.Fingerprint, contentDescription = stringResource(R.string.pin_unlock_biometric), modifier = Modifier.size(28.dp))
+                        Icon(RytmIcons.Fingerprint, contentDescription = stringResource(R.string.pin_unlock_biometric), modifier = Modifier.size(28.dp))
                     }
                 }
             },
@@ -175,7 +175,7 @@ internal fun PinKeypad(
             Box(
                 Modifier.size(64.dp).clip(CircleShape).clickable(onClick = onBackspace),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = stringResource(R.string.action_backspace), modifier = Modifier.size(26.dp)) }
+            ) { Icon(RytmIcons.Backspace, contentDescription = stringResource(R.string.action_backspace), modifier = Modifier.size(26.dp)) }
         }
     }
 }

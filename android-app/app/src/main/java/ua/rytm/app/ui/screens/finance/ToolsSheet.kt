@@ -17,12 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.CompareArrows
-import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,6 +73,12 @@ import ua.rytm.app.ui.theme.PurpleLight2
 import ua.rytm.app.ui.theme.Amber600
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.CompareArrows
+import ua.rytm.app.ui.icons.SwapHoriz
+import ua.rytm.app.ui.icons.TrackChanges
+import ua.rytm.app.ui.icons.TrendingDown
+import ua.rytm.app.ui.icons.TrendingUp
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
@@ -124,14 +124,14 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
                 label = stringResource(R.string.analytics_income_label),
                 amount = vm.totalIncome,
                 color = ua.rytm.app.ui.theme.GreenDark2,
-                icon = Icons.Filled.TrendingUp,
+                icon = RytmIcons.TrendingUp,
                 modifier = Modifier.weight(1f),
             )
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_expense_label),
                 amount = vm.totalExpense,
                 color = ua.rytm.app.ui.theme.RedDark2,
-                icon = Icons.Filled.TrendingDown,
+                icon = RytmIcons.TrendingDown,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -139,7 +139,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_difference), amount = vm.difference,
                 color = if (vm.difference >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
-                icon = Icons.Filled.CompareArrows, modifier = Modifier.weight(1f),
+                icon = RytmIcons.CompareArrows, modifier = Modifier.weight(1f),
             )
             AnalyticsRateCard(
                 label = stringResource(R.string.analytics_savings_rate), value = vm.savingsRate,
@@ -217,7 +217,7 @@ private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier:
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+                    Icon(RytmIcons.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
                 }
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
             }
@@ -341,7 +341,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
                 label = { Text(stringResource(R.string.amount_label)) },
             )
             CurrencyDropdown(vm.availableCurrencies, vm.converterFrom, vm::onConverterFromChange, Modifier.weight(1f))
-            IconButton(onClick = vm::swapConverter) { Icon(Icons.Filled.SwapHoriz, contentDescription = stringResource(R.string.converter_swap)) }
+            IconButton(onClick = vm::swapConverter) { Icon(RytmIcons.SwapHoriz, contentDescription = stringResource(R.string.converter_swap)) }
         }
         CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.fillMaxWidth())
         Text(

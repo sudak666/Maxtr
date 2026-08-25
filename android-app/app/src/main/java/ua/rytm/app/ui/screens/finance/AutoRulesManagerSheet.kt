@@ -8,10 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -51,6 +47,10 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,15 +82,15 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                             Text(if (rule.keyword.isEmpty()) stringResource(R.string.auto_rules_example) else stringResource(R.string.auto_rules_summary, rule.keyword, localizedDomainText(rule.category)), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
-                        IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(Icons.Filled.Edit, stringResource(R.string.action_edit)) }
-                        IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving) { Icon(Icons.Filled.Delete, stringResource(R.string.action_delete)) }
+                        IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(RytmIcons.Edit, stringResource(R.string.action_edit)) }
+                        IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving) { Icon(RytmIcons.Delete, stringResource(R.string.action_delete)) }
                     }
                     if (expandedId == rule.id) RuleEditor(rule, categories, onUpdate = { persist { repository.updateAutoRule(it) } })
                 }
                 }
             }
             Button(onClick = { persist { expandedId = repository.addAutoRule().id } }, enabled = !saving, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Filled.Add, null); Text(stringResource(R.string.auto_rules_add))
+                Icon(RytmIcons.Add, null); Text(stringResource(R.string.auto_rules_add))
             }
             TextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
         }

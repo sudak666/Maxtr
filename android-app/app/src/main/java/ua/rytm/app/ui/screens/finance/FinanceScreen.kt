@@ -25,18 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -105,6 +93,19 @@ import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Build
+import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.PieChart
+import ua.rytm.app.ui.icons.Search
+import ua.rytm.app.ui.icons.TrendingDown
+import ua.rytm.app.ui.icons.TrendingUp
+import ua.rytm.app.ui.theme.tabularNums
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -202,7 +203,7 @@ fun FinanceScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Filled.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                     Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
             } else if (canEdit && showFab) {
@@ -225,7 +226,7 @@ fun FinanceScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        Icons.Filled.Add,
+                        RytmIcons.Add,
                         contentDescription = if (collapsed) label else null,
                         tint = Color.White,
                     )
@@ -358,7 +359,9 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             )
             Text(
                 text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(vm.totalBalanceUah))),
-                style = MaterialTheme.typography.displayMedium.copy(fontSize = 36.sp, lineHeight = 42.sp),
+                // Tabular figures: proportional digits make the balance jitter
+                // horizontally as it changes.
+                style = MaterialTheme.typography.displayMedium.tabularNums(),
                 fontWeight = FontWeight.Black,
             )
 
@@ -366,7 +369,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
             val trendColor = RytmSemantic.signed(net)
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
                 Icon(
-                    imageVector = if (net < 0) Icons.AutoMirrored.Filled.TrendingDown else Icons.AutoMirrored.Filled.TrendingUp,
+                    imageVector = if (net < 0) RytmIcons.TrendingDown else RytmIcons.TrendingUp,
                     contentDescription = null,
                     tint = trendColor,
                     modifier = Modifier.size(18.dp),
@@ -436,7 +439,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.tabularNums(),
                 fontWeight = FontWeight.Bold,
                 color = valueColor,
             )
@@ -467,10 +470,10 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
     data class QuickAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
     val actions = listOf(
-        QuickAction(stringResource(R.string.finance_action_transaction), Icons.Filled.Add, primary = true, onClick = onNewTransaction),
-        QuickAction(stringResource(R.string.tools_title), Icons.Filled.Build, primary = false, onClick = onTools),
-        QuickAction(stringResource(R.string.budgets_title), Icons.Filled.PieChart, primary = false, onClick = onBudgets),
-        QuickAction(stringResource(R.string.goals_title), Icons.Filled.Flag, primary = false, onClick = onGoals),
+        QuickAction(stringResource(R.string.finance_action_transaction), RytmIcons.Add, primary = true, onClick = onNewTransaction),
+        QuickAction(stringResource(R.string.tools_title), RytmIcons.Build, primary = false, onClick = onTools),
+        QuickAction(stringResource(R.string.budgets_title), RytmIcons.PieChart, primary = false, onClick = onBudgets),
+        QuickAction(stringResource(R.string.goals_title), RytmIcons.Flag, primary = false, onClick = onGoals),
     ).filterIndexed { index, _ -> canEdit || index == 1 }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -540,10 +543,10 @@ private fun SearchField(vm: FinanceViewModel) {
         onValueChange = vm::onSearchChange,
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(stringResource(R.string.finance_search_hint)) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
         trailingIcon = {
             if (vm.search.isNotEmpty()) {
-                IconButton(onClick = vm::clearSearch) { Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.finance_clear_search)) }
+                IconButton(onClick = vm::clearSearch) { Icon(RytmIcons.Clear, contentDescription = stringResource(R.string.finance_clear_search)) }
             }
         },
         singleLine = true,
@@ -603,7 +606,7 @@ private fun EmptyState(isSearching: Boolean, canEdit: Boolean, onAddFirst: () ->
     // that would have been the obvious next tap can itself be hidden (large
     // font / compact height / scrolled far down the list).
     RytmEmptyState(
-        icon = if (isSearching) Icons.Filled.Search else Icons.Filled.AccountBalanceWallet,
+        icon = if (isSearching) RytmIcons.Search else RytmIcons.AccountBalanceWallet,
         title = stringResource(if (isSearching) R.string.finance_empty_search_title else R.string.finance_empty_title),
         body = stringResource(if (isSearching) R.string.finance_empty_search_body else R.string.finance_empty_body),
         actionLabel = if (!isSearching && canEdit) stringResource(R.string.finance_empty_cta) else null,
@@ -662,7 +665,7 @@ private fun TransactionRow(
                     contentAlignment = Alignment.CenterEnd,
                 ) {
                     Icon(
-                        Icons.Filled.Delete,
+                        RytmIcons.Delete,
                         contentDescription = stringResource(R.string.action_delete),
                         tint = MaterialTheme.colorScheme.onError,
                         modifier = Modifier.size(26.dp),

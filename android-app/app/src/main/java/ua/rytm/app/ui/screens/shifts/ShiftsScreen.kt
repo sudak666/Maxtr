@@ -29,17 +29,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.BeachAccess
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.EventAvailable
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Style
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -98,6 +87,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.LocalSnackbarHost
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import ua.rytm.app.ui.components.formatLongDate
 import ua.rytm.app.ui.components.RytmStatChip
 import ua.rytm.app.ui.components.RytmStatChipRow
 import ua.rytm.app.ui.components.RytmEmptyState
@@ -113,6 +103,17 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.BeachAccess
+import ua.rytm.app.ui.icons.Bolt
+import ua.rytm.app.ui.icons.ChevronLeft
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.EventAvailable
+import ua.rytm.app.ui.icons.ExpandMore
+import ua.rytm.app.ui.icons.Schedule
+import ua.rytm.app.ui.icons.Style
+import ua.rytm.app.ui.icons.TrendingUp
+import ua.rytm.app.ui.theme.tabularNums
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
 // chip stats, 6-month earnings chart, collapsible quick-fill (template +
@@ -201,7 +202,14 @@ fun ShiftsScreen() {
         ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 RytmSheetTitle(stringResource(R.string.shifts_choose))
-                Text(dateKey, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Was the raw `dateKey` (a "2026-08-25" ISO string) shown
+                // straight to the user.
+                val modalDate = runCatching { java.time.LocalDate.parse(dateKey) }.getOrNull()
+                Text(
+                    modalDate?.let { formatLongDate(it) } ?: dateKey,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 viewModel.shiftTypes.forEach { type ->
                     ShiftSelectionRow(
                         type = type,
@@ -243,7 +251,7 @@ private fun HeroMetric(earned: Double) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             val pct = (earned / SALARY_GOAL).coerceIn(0.0, 1.0)
             Box(
                 Modifier
@@ -279,9 +287,9 @@ private fun HeroMetric(earned: Double) {
 @Composable
 private fun ChipStats(stats: ShiftsViewModel.MonthStats) {
     RytmStatChipRow {
-        item { RytmStatChip(Icons.Filled.Schedule, stats.hours.toInt().toString(), stringResource(R.string.shifts_hours_short)) }
-        item { RytmStatChip(Icons.Filled.EventAvailable, stats.shiftsCount.toString(), stringResource(R.string.shifts_count)) }
-        item { RytmStatChip(Icons.Filled.BeachAccess, stats.offCount.toString(), stringResource(R.string.shifts_days_off)) }
+        item { RytmStatChip(RytmIcons.Schedule, stats.hours.toInt().toString(), stringResource(R.string.shifts_hours_short)) }
+        item { RytmStatChip(RytmIcons.EventAvailable, stats.shiftsCount.toString(), stringResource(R.string.shifts_count)) }
+        item { RytmStatChip(RytmIcons.BeachAccess, stats.offCount.toString(), stringResource(R.string.shifts_days_off)) }
     }
 }
 
@@ -319,7 +327,7 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     Card(shape = RoundedCornerShape(RytmRadii.AuthCard)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                Icon(RytmIcons.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                 Text(
                     stringResource(R.string.shifts_income_chart),
                     style = MaterialTheme.typography.labelMedium,
@@ -398,7 +406,7 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
                 ),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Filled.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(RytmIcons.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
             }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
@@ -409,7 +417,7 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
                 )
             }
             Box(Modifier.size(36.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             }
         }
     }
@@ -450,7 +458,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
                 ),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Filled.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp)) }
+            ) { Icon(RytmIcons.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp)) }
             Column(Modifier.padding(start = 10.dp).weight(1f)) {
                 Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
                 Text(
@@ -465,7 +473,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 label = "chevron",
             )
             Box(Modifier.size(34.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp).rotate(rotation))
+                Icon(RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp).rotate(rotation))
             }
         }
         ReducedMotionVisibility(visible = vm.quickFillExpanded) {
@@ -497,7 +505,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Filled.Style, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }
                     androidx.compose.material3.OutlinedButton(
@@ -597,7 +605,7 @@ private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, 
 @Composable
 private fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
     RytmEmptyState(
-        icon = Icons.Filled.Bolt,
+        icon = RytmIcons.Bolt,
         title = stringResource(R.string.shifts_empty_title),
         body = stringResource(R.string.shifts_empty_body),
         actionLabel = stringResource(R.string.shifts_quick_fill),
@@ -657,7 +665,7 @@ private fun WeekdayHeaderRow() {
 private fun MonthNav(viewModel: ShiftsViewModel) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month)) }
+            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month)) }
             val locale = LocalConfiguration.current.locales[0]
             val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, locale) + " " + viewModel.visibleMonth.year
             Text(
@@ -678,7 +686,7 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
                         contentColor = MaterialTheme.colorScheme.primary,
                     ),
                 ) { Text(stringResource(R.string.action_today), fontWeight = FontWeight.Bold) }
-                IconButton(onClick = viewModel::goToNextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.action_next_month)) }
+                IconButton(onClick = viewModel::goToNextMonth) { Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month)) }
             }
         }
         Text(stringResource(R.string.shifts_edit_hint), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

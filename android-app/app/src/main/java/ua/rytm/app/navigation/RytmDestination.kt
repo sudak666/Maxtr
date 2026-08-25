@@ -1,11 +1,5 @@
 package ua.rytm.app.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.RequestQuote
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import ua.rytm.app.ui.theme.GreenLight2
 import ua.rytm.app.ui.theme.Purple3
 import ua.rytm.app.ui.theme.AmberDeep
@@ -19,6 +13,12 @@ import ua.rytm.app.ui.theme.Slate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import ua.rytm.app.R
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.CalendarMonth
+import ua.rytm.app.ui.icons.RequestQuote
+import ua.rytm.app.ui.icons.Settings
+import ua.rytm.app.ui.icons.ShoppingCart
 
 // One entry per PWA bottom-nav tab (see ANDROID_MIGRATION.md §1.1) — Settings
 // is included here even though the PWA hides it from its own tab bar,
@@ -35,9 +35,9 @@ enum class RytmDestination(
     val icon: ImageVector,
     val activeGradient: List<Color>,
 ) {
-    Finance(route = "finance", labelRes = R.string.nav_finance, icon = Icons.Filled.AccountBalanceWallet, activeGradient = listOf(GreenDark, GreenLight2)),
-    Shifts(route = "shifts", labelRes = R.string.nav_shifts, icon = Icons.Filled.CalendarMonth, activeGradient = listOf(PurpleDark, Purple3)),
-    Debt(route = "debt", labelRes = R.string.nav_debt, icon = Icons.Filled.RequestQuote, activeGradient = listOf(OrangeDark, AmberDeep)),
-    Shopping(route = "shopping", labelRes = R.string.nav_shopping, icon = Icons.Filled.ShoppingCart, activeGradient = listOf(Pink, PinkDeep)),
-    Settings(route = "settings", labelRes = R.string.nav_settings, icon = Icons.Filled.Settings, activeGradient = listOf(Slate, SlateDeep)),
+    Finance(route = "finance", labelRes = R.string.nav_finance, icon = RytmIcons.AccountBalanceWallet, activeGradient = listOf(GreenDark, GreenLight2)),
+    Shifts(route = "shifts", labelRes = R.string.nav_shifts, icon = RytmIcons.CalendarMonth, activeGradient = listOf(PurpleDark, Purple3)),
+    Debt(route = "debt", labelRes = R.string.nav_debt, icon = RytmIcons.RequestQuote, activeGradient = listOf(OrangeDark, AmberDeep)),
+    Shopping(route = "shopping", labelRes = R.string.nav_shopping, icon = RytmIcons.ShoppingCart, activeGradient = listOf(Pink, PinkDeep)),
+    Settings(route = "settings", labelRes = R.string.nav_settings, icon = RytmIcons.Settings, activeGradient = listOf(Slate, SlateDeep)),
 }

@@ -9,12 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,12 +45,18 @@ import ua.rytm.app.ui.theme.GreenDark
 import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.BitcoinOrange
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.ArrowDownward
+import ua.rytm.app.ui.icons.ArrowUpward
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.LocalFireDepartment
+import ua.rytm.app.ui.icons.TipsAndUpdates
 
 private data class WidgetDef(val key: String, @StringRes val title: Int, @StringRes val subtitle: Int, val icon: ImageVector, val color: Color)
 private val widgetDefs = listOf(
-    WidgetDef("goals", R.string.widget_goals, R.string.widget_goals_subtitle, Icons.Filled.Flag, GreenDark),
-    WidgetDef("dailyTip", R.string.widget_tip, R.string.widget_tip_subtitle, Icons.Filled.TipsAndUpdates, BlueDark),
-    WidgetDef("cryptoTop", R.string.widget_crypto, R.string.widget_crypto_subtitle, Icons.Filled.LocalFireDepartment, BitcoinOrange),
+    WidgetDef("goals", R.string.widget_goals, R.string.widget_goals_subtitle, RytmIcons.Flag, GreenDark),
+    WidgetDef("dailyTip", R.string.widget_tip, R.string.widget_tip_subtitle, RytmIcons.TipsAndUpdates, BlueDark),
+    WidgetDef("cryptoTop", R.string.widget_crypto, R.string.widget_crypto_subtitle, RytmIcons.LocalFireDepartment, BitcoinOrange),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,8 +88,8 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Column {
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(Icons.Filled.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(Icons.Filled.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(RytmIcons.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
+                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(RytmIcons.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
                     }
                     Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                 }

@@ -4,8 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Button
@@ -32,12 +30,14 @@ import androidx.compose.ui.text.font.FontWeight
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import ua.rytm.app.R
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.CalendarMonth
 
-private val displayDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+// Shared with the rest of the app — see components/DateFormat.kt.
+private val displayDateFormatter = NumericDateFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +69,7 @@ fun DatePickerField(
         label = { Text(label) },
         trailingIcon = {
             IconButton(onClick = { open = true }) {
-                Icon(Icons.Filled.CalendarMonth, contentDescription = chooseDate)
+                Icon(RytmIcons.CalendarMonth, contentDescription = chooseDate)
             }
         },
         modifier = modifier

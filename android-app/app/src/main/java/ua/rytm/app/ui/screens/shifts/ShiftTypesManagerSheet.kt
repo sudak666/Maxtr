@@ -10,11 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +45,11 @@ import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
 
 // Mirrors js/settings-managers.js's shift-types-modal (openShiftTypesManager()/
 // renderShiftTypesList()) — same collapsed-summary-row-with-pencil-toggle-to-expand
@@ -92,7 +92,7 @@ fun ShiftTypesManagerSheet(
 
             val newShiftName = stringResource(R.string.shift_type_new_default)
             androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
-                Icon(Icons.Filled.Add, contentDescription = null)
+                Icon(RytmIcons.Add, contentDescription = null)
                 Text(stringResource(R.string.shift_type_add))
             }
         }
@@ -135,9 +135,9 @@ private fun ShiftTypeRow(
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
+                Icon(if (expanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
