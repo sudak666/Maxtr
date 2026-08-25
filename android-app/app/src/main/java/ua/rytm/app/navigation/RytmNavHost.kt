@@ -184,7 +184,15 @@ fun RytmNavHost() {
         }
     SnackbarHost(
         snackbarHostState,
-        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance),
+        // BottomContentClearance (112dp) is calibrated to exactly match the
+        // floating nav's own rendered height — right for scrollable content,
+        // where the content's padding IS the visible gap (see that token's
+        // own doc comment), but a Snackbar has no such padding of its own,
+        // so the same value left it sitting flush against the nav with zero
+        // visible breathing room (reported live, screenshot: looked like the
+        // toast was half swallowed by the nav bar). Add the same 16dp gap
+        // scrollable content gets for free.
+        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance + 16.dp),
     )
     if (!mediumWidth) {
         RytmBottomBar(
