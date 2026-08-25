@@ -315,7 +315,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+    Scaffold(
+        snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
+    ) { innerPadding ->
         // Real bug found during step 39's visual-parity pass: this Column had
         // no scroll modifier at all, so on a real device everything past
         // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
@@ -1213,12 +1215,20 @@ private fun SettingsRowScope.SettingsToggleRow(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = MaterialTheme.colorScheme.primary,
                     checkedBorderColor = MaterialTheme.colorScheme.primary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    // Was colorScheme.outline (#E4E4E9 in light) on
+                    // surfaceContainerHigh (#E2E0DD) — two near-identical pale
+                    // grays with ~1:1 contrast, so the thumb visually
+                    // vanished into the track (reported live, screenshot:
+                    // toggling push notifications off left the switch reading
+                    // as blank). onSurfaceVariant is the same muted-gray
+                    // family but dark enough to actually separate from the
+                    // track in both themes.
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                     disabledCheckedThumbColor = Color.White.copy(alpha = 0.72f),
                     disabledCheckedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
-                    disabledUncheckedThumbColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.58f),
+                    disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.58f),
                     disabledUncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.58f),
             ),
         )
