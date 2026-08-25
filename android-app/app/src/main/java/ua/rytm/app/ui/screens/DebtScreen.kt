@@ -22,16 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Button
@@ -116,6 +106,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import ua.rytm.app.ui.screens.debt.parsePlainDebtAmount
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.CheckCircle
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.Event
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.Receipt
+import ua.rytm.app.ui.theme.tabularNums
 
 // Implements the in-scope subset of CLAUDE.md §1.4: debt chips, hero balance,
 // progress bar, chip stats, due chip, payoff-forecast burndown chart,
@@ -159,7 +160,7 @@ fun DebtScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(if (collapse) Icons.Filled.ExpandLess else Icons.Filled.Add, contentDescription = null, tint = Color.White)
+                    Icon(if (collapse) RytmIcons.ExpandLess else RytmIcons.Add, contentDescription = null, tint = Color.White)
                     Text(stringResource(if (collapse) R.string.action_collapse_list else R.string.debt_payment), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
@@ -270,7 +271,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             var addOpen by rememberSaveable { mutableStateOf(false) }
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier)
+                    Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier)
                     Text(stringResource(R.string.debt_new_default), fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -295,7 +296,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
 private fun EmptyDebtState() {
     // Was the only empty state in the app with no icon at all.
     RytmEmptyState(
-        icon = Icons.Filled.AccountBalanceWallet,
+        icon = RytmIcons.AccountBalanceWallet,
         title = stringResource(R.string.debt_empty_title),
         body = stringResource(R.string.debt_empty_body),
     )
@@ -321,7 +322,7 @@ private fun HeroBalance(cd: Debt) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black)
+            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
         }
     }
 }
@@ -367,10 +368,10 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     RytmStatChipRow {
-        item { RytmStatChip(Icons.Filled.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
-        item { RytmStatChip(Icons.Filled.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
-        item { RytmStatChip(Icons.Filled.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
-        if (due != null) item { RytmStatChip(Icons.Filled.Event, due, stringResource(R.string.debt_due_date)) }
+        item { RytmStatChip(RytmIcons.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
+        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
+        item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
+        if (due != null) item { RytmStatChip(RytmIcons.Event, due, stringResource(R.string.debt_due_date)) }
     }
 }
 
@@ -399,7 +400,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
             ) {
                 Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 if (canEdit) Box(Modifier.size(38.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(if (viewModel.infoExpanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Icon(if (viewModel.infoExpanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -421,7 +422,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 }
                 DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
                 TextButton(onClick = viewModel::requestDeleteCurrentDebt) {
-                    Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                    Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                     Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
             }
@@ -465,7 +466,7 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, con
         backgroundContent = {
             Box(Modifier.fillMaxSize().clip(MaterialTheme.shapes.large), contentAlignment = Alignment.CenterEnd) {
                 Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
+                    Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
                 }
             }
         },
@@ -495,7 +496,7 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                             Text("${entry.amount} $currency", fontWeight = FontWeight.SemiBold)
                             Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit)) }
+                        IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit)) }
                     }
                 }
             }

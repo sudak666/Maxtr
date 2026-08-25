@@ -15,10 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +43,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.launch
 import ua.rytm.app.R
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.CalendarMonth
+import ua.rytm.app.ui.icons.Security
 
 private data class OnboardingPage(val icon: ImageVector, @StringRes val title: Int, @StringRes val body: Int)
 
@@ -54,9 +54,9 @@ private data class OnboardingPage(val icon: ImageVector, @StringRes val title: I
 fun OnboardingScreen(onComplete: () -> Unit) {
     val pages = remember {
         listOf(
-            OnboardingPage(Icons.Filled.AccountBalanceWallet, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
-            OnboardingPage(Icons.Filled.CalendarMonth, R.string.onboarding_shifts_title, R.string.onboarding_shifts_body),
-            OnboardingPage(Icons.Filled.Security, R.string.onboarding_security_title, R.string.onboarding_security_body),
+            OnboardingPage(RytmIcons.AccountBalanceWallet, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
+            OnboardingPage(RytmIcons.CalendarMonth, R.string.onboarding_shifts_title, R.string.onboarding_shifts_body),
+            OnboardingPage(RytmIcons.Security, R.string.onboarding_security_title, R.string.onboarding_security_body),
         )
     }
     // rememberSaveable, not remember: a rotation used to bounce the user

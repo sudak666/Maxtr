@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -60,6 +56,10 @@ import java.util.Locale
 import java.util.Currency
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.Immutable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.LocalFireDepartment
+import ua.rytm.app.ui.icons.TipsAndUpdates
 
 @Immutable
 data class CryptoQuote(val symbol: String, val price: Double, val change: Double, val spark: List<Double>)
@@ -68,7 +68,7 @@ data class CryptoQuote(val symbol: String, val price: Double, val change: Double
 fun FinanceDashboardWidget(key: String, app: RytmApplication) {
     when (key) {
         "goals" -> GoalsDashboardWidget(app)
-        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), Icons.Filled.TipsAndUpdates, BlueDark) {
+        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), RytmIcons.TipsAndUpdates, BlueDark) {
             val tips = stringArrayResource(R.array.finance_tips)
             val day = System.currentTimeMillis() / 86_400_000L
             Text(tips[(day % tips.size).toInt()], color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -83,7 +83,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
     val wallets by app.financeRepository.wallets.collectAsState(initial = emptyList())
     val transactions by app.financeRepository.transactions.collectAsState(initial = emptyList())
     if (goals.isEmpty()) return
-    WidgetCard(stringResource(R.string.widget_goals), Icons.Filled.Flag, GreenDark) {
+    WidgetCard(stringResource(R.string.widget_goals), RytmIcons.Flag, GreenDark) {
         goals.forEach { goal ->
             val wallet = wallets.firstOrNull { it.id == goal.walletId }
             val current = FinanceRepository.walletBalance(transactions, goal.walletId)
@@ -121,7 +121,7 @@ private fun CryptoDashboardWidget(app: RytmApplication) {
         }
         loading = false
     }
-    WidgetCard(stringResource(R.string.widget_crypto), Icons.Filled.LocalFireDepartment, BitcoinOrange) {
+    WidgetCard(stringResource(R.string.widget_crypto), RytmIcons.LocalFireDepartment, BitcoinOrange) {
         if (loading && quotes.isEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             Text(stringResource(R.string.crypto_loading), Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)

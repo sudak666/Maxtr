@@ -21,13 +21,6 @@ import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,6 +62,13 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
+import ua.rytm.app.ui.icons.MoreVert
 
 // Mirrors js/settings-managers.js's categories-modal, including the
 // toggleSubcatPanel()/addSubcategory()/deleteSubcategory() subcategory panel
@@ -103,7 +103,7 @@ fun CategoriesManagerSheet(
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
+                    IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
@@ -146,21 +146,21 @@ fun CategoriesManagerSheet(
                             }
                         }
                         IconButton(onClick = { newSubName = ""; viewModel.toggleExpanded(id) }) {
-                            Icon(if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = stringResource(R.string.subcategories_title))
+                            Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = stringResource(R.string.subcategories_title))
                         }
                         Box {
                             IconButton(onClick = { openMenuId = id }) {
-                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+                                Icon(RytmIcons.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
                             DropdownMenu(expanded = openMenuId == id, onDismissRequest = { openMenuId = null }) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.action_rename)) },
-                                    leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                                    leadingIcon = { Icon(RytmIcons.Edit, contentDescription = null) },
                                     onClick = { openMenuId = null; pendingRename = id to name },
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
-                                    leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                                    leadingIcon = { Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
                                     onClick = { openMenuId = null; pendingDeleteId = id },
                                 )
                             }
@@ -186,7 +186,7 @@ fun CategoriesManagerSheet(
                                                 selected = false,
                                                 onClick = { pendingDeleteSub = name to sub },
                                                 label = { Text(sub) },
-                                                trailingIcon = { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.subcategory_delete_title)) },
+                                                trailingIcon = { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.subcategory_delete_title)) },
                                             )
                                         }
                                     }

@@ -19,13 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -92,6 +85,13 @@ import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import ua.rytm.app.ui.LocalSnackbarHost
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Check
+import ua.rytm.app.ui.icons.CheckCircle
+import ua.rytm.app.ui.icons.Checklist
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.ShoppingCart
 
 // Implements SHOPPING_SCREEN_SPEC.md end to end: chip stats, add form,
 // sorted checklist (unbought first), clear-bought with confirm, empty
@@ -196,8 +196,8 @@ private fun ChipStatsRow(remaining: Int, bought: Int) {
     // Shared component + LazyRow: the fixed weight(1f) grid squeezed the
     // Ukrainian labels at 360dp / fontScale 1.3.
     RytmStatChipRow {
-        item { RytmStatChip(Icons.Filled.Checklist, remaining.toString(), stringResource(R.string.shopping_remaining)) }
-        item { RytmStatChip(Icons.Filled.CheckCircle, bought.toString(), stringResource(R.string.shopping_bought)) }
+        item { RytmStatChip(RytmIcons.Checklist, remaining.toString(), stringResource(R.string.shopping_remaining)) }
+        item { RytmStatChip(RytmIcons.CheckCircle, bought.toString(), stringResource(R.string.shopping_bought)) }
     }
 }
 
@@ -233,7 +233,7 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
             modifier = Modifier.heightIn(min = RytmDimens.TouchTarget),
         ) {
             // Icon-only button: without this it announced as a bare "button".
-            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add))
+            Icon(RytmIcons.Add, contentDescription = stringResource(R.string.action_add))
         }
     }
 }
@@ -259,7 +259,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
+                    Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
                 }
             }
         },
@@ -291,7 +291,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                if (item.done) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                if (item.done) Icon(RytmIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
             }
             Text(
                 text = item.name,
@@ -317,7 +317,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
 @Composable
 private fun ShoppingEmptyState() {
     RytmEmptyState(
-        icon = Icons.Filled.ShoppingCart,
+        icon = RytmIcons.ShoppingCart,
         title = stringResource(R.string.shopping_empty_title),
         body = stringResource(R.string.shopping_empty_body),
     )

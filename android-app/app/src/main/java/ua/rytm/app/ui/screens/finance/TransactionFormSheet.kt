@@ -19,12 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -81,13 +75,19 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.ArrowDownward
+import ua.rytm.app.ui.icons.ArrowUpward
+import ua.rytm.app.ui.icons.CameraAlt
+import ua.rytm.app.ui.icons.DocumentScanner
+import ua.rytm.app.ui.icons.PhotoLibrary
+import ua.rytm.app.ui.icons.SwapHoriz
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -159,7 +159,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     enabled = !ocrBusy,
                     modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
                 ) {
-                    Icon(Icons.Filled.DocumentScanner, contentDescription = null)
+                    Icon(RytmIcons.DocumentScanner, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.receipt_scan))
                 }
@@ -178,7 +178,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    Icon(Icons.Filled.CameraAlt, contentDescription = null)
+                                    Icon(RytmIcons.CameraAlt, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
                                     Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
                                 }
@@ -186,7 +186,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     onClick = { scanSourceOpen = false; galleryLauncher.launch("image/*") },
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
+                                    Icon(RytmIcons.PhotoLibrary, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
                                     Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
                                 }
@@ -321,9 +321,9 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
     // segment's own tinted wash (#059669 on it was 3.43:1).
     val isDark = RytmSemantic.isDark
     val options = listOf(
-        TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), Icons.Filled.ArrowUpward, RytmSemantic.income),
-        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward, RytmSemantic.expense),
-        TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), Icons.Filled.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
+        TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), RytmIcons.ArrowUpward, RytmSemantic.income),
+        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, RytmSemantic.expense),
+        TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), RytmIcons.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
     )
     Row(
         modifier = Modifier.fillMaxWidth(),

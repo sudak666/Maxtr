@@ -4,50 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Bento
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.GpsFixed
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Inbox
-import androidx.compose.material.icons.filled.LocalCafe
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.LocalPharmacy
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.SmokingRooms
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -65,6 +21,50 @@ import ua.rytm.app.ui.theme.OrangeDark
 import ua.rytm.app.ui.theme.Pink
 import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RedDark
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalance
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.AttachMoney
+import ua.rytm.app.ui.icons.AutoAwesome
+import ua.rytm.app.ui.icons.Badge
+import ua.rytm.app.ui.icons.BarChart
+import ua.rytm.app.ui.icons.Bento
+import ua.rytm.app.ui.icons.Bolt
+import ua.rytm.app.ui.icons.Calculate
+import ua.rytm.app.ui.icons.CalendarMonth
+import ua.rytm.app.ui.icons.CardGiftcard
+import ua.rytm.app.ui.icons.CreditCard
+import ua.rytm.app.ui.icons.Description
+import ua.rytm.app.ui.icons.DirectionsCar
+import ua.rytm.app.ui.icons.Fastfood
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.GpsFixed
+import ua.rytm.app.ui.icons.Groups
+import ua.rytm.app.ui.icons.Home
+import ua.rytm.app.ui.icons.Inbox
+import ua.rytm.app.ui.icons.LocalCafe
+import ua.rytm.app.ui.icons.LocalFireDepartment
+import ua.rytm.app.ui.icons.LocalPharmacy
+import ua.rytm.app.ui.icons.MonetizationOn
+import ua.rytm.app.ui.icons.MonitorHeart
+import ua.rytm.app.ui.icons.Notifications
+import ua.rytm.app.ui.icons.Payments
+import ua.rytm.app.ui.icons.Person
+import ua.rytm.app.ui.icons.Phone
+import ua.rytm.app.ui.icons.PhotoCamera
+import ua.rytm.app.ui.icons.PieChart
+import ua.rytm.app.ui.icons.Public
+import ua.rytm.app.ui.icons.Repeat
+import ua.rytm.app.ui.icons.Schedule
+import ua.rytm.app.ui.icons.Sell
+import ua.rytm.app.ui.icons.ShoppingBag
+import ua.rytm.app.ui.icons.ShoppingCart
+import ua.rytm.app.ui.icons.SmokingRooms
+import ua.rytm.app.ui.icons.Star
+import ua.rytm.app.ui.icons.SwapHoriz
+import ua.rytm.app.ui.icons.TrendingDown
+import ua.rytm.app.ui.icons.TrendingUp
+import ua.rytm.app.ui.icons.Work
 
 // PWA has a real per-category color/icon map (js/state.js's categoryIcons +
 // a color picker per category) — categoryColor() below is an honest
@@ -101,48 +101,48 @@ fun categoryColor(category: String): Color =
 // re-allocating a ~50-entry map and recompiling 25 Regex objects per row per
 // recomposition. As plain top-level vals they are built once.
 val PICKER_ICONS: Map<String, ImageVector> = mapOf(
-        "calendar" to Icons.Filled.CalendarMonth,
-        "wallet" to Icons.Filled.AccountBalanceWallet,
-        "clock" to Icons.Filled.Schedule,
-        "trendUp" to Icons.Filled.TrendingUp,
-        "trendDown" to Icons.Filled.TrendingDown,
-        "barChart" to Icons.Filled.BarChart,
-        "bolt" to Icons.Filled.Bolt,
-        "coin" to Icons.Filled.MonetizationOn,
-        "card" to Icons.Filled.CreditCard,
-        "banknote" to Icons.Filled.AttachMoney,
-        "inbox" to Icons.Filled.Inbox,
-        "sparkle" to Icons.Filled.AutoAwesome,
-        "swap" to Icons.Filled.SwapHoriz,
-        "bank" to Icons.Filled.AccountBalance,
-        "cart" to Icons.Filled.ShoppingCart,
-        "car" to Icons.Filled.DirectionsCar,
-        "house" to Icons.Filled.Home,
-        "bag" to Icons.Filled.ShoppingBag,
-        "coffee" to Icons.Filled.LocalCafe,
-        "burger" to Icons.Filled.Fastfood,
-        "cigarette" to Icons.Filled.SmokingRooms,
-        "gift" to Icons.Filled.CardGiftcard,
-        "briefcase" to Icons.Filled.Work,
-        "person" to Icons.Filled.Person,
-        "box" to Icons.Filled.Bento,
-        "tag" to Icons.Filled.Sell,
-        "target" to Icons.Filled.GpsFixed,
-        "repeat" to Icons.Filled.Repeat,
-        "star" to Icons.Filled.Star,
-        "bell" to Icons.Filled.Notifications,
-        "camera" to Icons.Filled.PhotoCamera,
-        "globe" to Icons.Filled.Public,
-        "pie" to Icons.Filled.PieChart,
-        "doc" to Icons.Filled.Description,
-        "flag" to Icons.Filled.Flag,
-        "phone" to Icons.Filled.Phone,
-        "calculator" to Icons.Filled.Calculate,
-        "idCard" to Icons.Filled.Badge,
-        "people" to Icons.Filled.Groups,
-        "flame" to Icons.Filled.LocalFireDepartment,
-        "handCoin" to Icons.Filled.Payments,
-        "pharmacy" to Icons.Filled.LocalPharmacy,
+        "calendar" to RytmIcons.CalendarMonth,
+        "wallet" to RytmIcons.AccountBalanceWallet,
+        "clock" to RytmIcons.Schedule,
+        "trendUp" to RytmIcons.TrendingUp,
+        "trendDown" to RytmIcons.TrendingDown,
+        "barChart" to RytmIcons.BarChart,
+        "bolt" to RytmIcons.Bolt,
+        "coin" to RytmIcons.MonetizationOn,
+        "card" to RytmIcons.CreditCard,
+        "banknote" to RytmIcons.AttachMoney,
+        "inbox" to RytmIcons.Inbox,
+        "sparkle" to RytmIcons.AutoAwesome,
+        "swap" to RytmIcons.SwapHoriz,
+        "bank" to RytmIcons.AccountBalance,
+        "cart" to RytmIcons.ShoppingCart,
+        "car" to RytmIcons.DirectionsCar,
+        "house" to RytmIcons.Home,
+        "bag" to RytmIcons.ShoppingBag,
+        "coffee" to RytmIcons.LocalCafe,
+        "burger" to RytmIcons.Fastfood,
+        "cigarette" to RytmIcons.SmokingRooms,
+        "gift" to RytmIcons.CardGiftcard,
+        "briefcase" to RytmIcons.Work,
+        "person" to RytmIcons.Person,
+        "box" to RytmIcons.Bento,
+        "tag" to RytmIcons.Sell,
+        "target" to RytmIcons.GpsFixed,
+        "repeat" to RytmIcons.Repeat,
+        "star" to RytmIcons.Star,
+        "bell" to RytmIcons.Notifications,
+        "camera" to RytmIcons.PhotoCamera,
+        "globe" to RytmIcons.Public,
+        "pie" to RytmIcons.PieChart,
+        "doc" to RytmIcons.Description,
+        "flag" to RytmIcons.Flag,
+        "phone" to RytmIcons.Phone,
+        "calculator" to RytmIcons.Calculate,
+        "idCard" to RytmIcons.Badge,
+        "people" to RytmIcons.Groups,
+        "flame" to RytmIcons.LocalFireDepartment,
+        "handCoin" to RytmIcons.Payments,
+        "pharmacy" to RytmIcons.LocalPharmacy,
     )
 
 // Exact-name map — confirmed by reading js/core.js's own CAT_ICON, translated
@@ -156,25 +156,25 @@ val PICKER_ICONS: Map<String, ImageVector> = mapOf(
 // here), so it's kept as its own literal reference rather than routed
 // through PICKER_ICONS.
 private val CAT_ICON: Map<String, ImageVector> = mapOf(
-        "Зарплата" to Icons.Filled.Work,
-        "Аванс" to Icons.Filled.CreditCard,
-        "Підробіток" to Icons.Filled.CardGiftcard,
-        "Повернення боргу" to Icons.Filled.Payments,
-        "Інше" to Icons.Filled.Bento,
-        "Кава" to Icons.Filled.LocalCafe,
-        "Кафе" to Icons.Filled.LocalCafe,
-        "Фастфуд" to Icons.Filled.Fastfood,
-        "Розваги" to Icons.Filled.CardGiftcard,
-        "Кредит" to Icons.Filled.AccountBalance,
-        "Борг" to Icons.Filled.Payments,
-        "Продукти" to Icons.Filled.ShoppingCart,
-        "Транспорт" to Icons.Filled.DirectionsCar,
-        "Комуналка" to Icons.Filled.Home,
-        "Покупки" to Icons.Filled.ShoppingBag,
-        "Здоров'я" to Icons.Filled.MonitorHeart,
-        "Аптека" to Icons.Filled.LocalPharmacy,
-        "Цигарки" to Icons.Filled.SmokingRooms,
-        "Внутрішній переказ" to Icons.Filled.SwapHoriz,
+        "Зарплата" to RytmIcons.Work,
+        "Аванс" to RytmIcons.CreditCard,
+        "Підробіток" to RytmIcons.CardGiftcard,
+        "Повернення боргу" to RytmIcons.Payments,
+        "Інше" to RytmIcons.Bento,
+        "Кава" to RytmIcons.LocalCafe,
+        "Кафе" to RytmIcons.LocalCafe,
+        "Фастфуд" to RytmIcons.Fastfood,
+        "Розваги" to RytmIcons.CardGiftcard,
+        "Кредит" to RytmIcons.AccountBalance,
+        "Борг" to RytmIcons.Payments,
+        "Продукти" to RytmIcons.ShoppingCart,
+        "Транспорт" to RytmIcons.DirectionsCar,
+        "Комуналка" to RytmIcons.Home,
+        "Покупки" to RytmIcons.ShoppingBag,
+        "Здоров'я" to RytmIcons.MonitorHeart,
+        "Аптека" to RytmIcons.LocalPharmacy,
+        "Цигарки" to RytmIcons.SmokingRooms,
+        "Внутрішній переказ" to RytmIcons.SwapHoriz,
     )
 
 // Keyword/substring match, tried after CAT_ICON's exact-name lookup and
@@ -184,25 +184,25 @@ private val CAT_ICON: Map<String, ImageVector> = mapOf(
 // sensible icon instead of falling all the way to the random-looking
 // fallback pool.
 private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>> = listOf(
-        Regex("телефон|мобільн|зв'язок", RegexOption.IGNORE_CASE) to Icons.Filled.Phone,
-        Regex("оренда|квартир|житло", RegexOption.IGNORE_CASE) to Icons.Filled.Home,
-        Regex("кредит", RegexOption.IGNORE_CASE) to Icons.Filled.AccountBalance,
-        Regex("борг", RegexOption.IGNORE_CASE) to Icons.Filled.Payments,
-        Regex("продукт|харч", RegexOption.IGNORE_CASE) to Icons.Filled.ShoppingCart,
-        Regex("транспорт|таксі|бензин|паливо", RegexOption.IGNORE_CASE) to Icons.Filled.DirectionsCar,
-        Regex("розваг|кіно|хобі", RegexOption.IGNORE_CASE) to Icons.Filled.CardGiftcard,
-        Regex("кава", RegexOption.IGNORE_CASE) to Icons.Filled.LocalCafe,
-        Regex("кафе|ресторан|фастфуд", RegexOption.IGNORE_CASE) to Icons.Filled.Fastfood,
-        Regex("подар", RegexOption.IGNORE_CASE) to Icons.Filled.CardGiftcard,
-        Regex("зарплат|аванс|дохід", RegexOption.IGNORE_CASE) to Icons.Filled.Work,
-        Regex("переказ", RegexOption.IGNORE_CASE) to Icons.Filled.SwapHoriz,
-        Regex("цигарк|сигарет", RegexOption.IGNORE_CASE) to Icons.Filled.SmokingRooms,
+        Regex("телефон|мобільн|зв'язок", RegexOption.IGNORE_CASE) to RytmIcons.Phone,
+        Regex("оренда|квартир|житло", RegexOption.IGNORE_CASE) to RytmIcons.Home,
+        Regex("кредит", RegexOption.IGNORE_CASE) to RytmIcons.AccountBalance,
+        Regex("борг", RegexOption.IGNORE_CASE) to RytmIcons.Payments,
+        Regex("продукт|харч", RegexOption.IGNORE_CASE) to RytmIcons.ShoppingCart,
+        Regex("транспорт|таксі|бензин|паливо", RegexOption.IGNORE_CASE) to RytmIcons.DirectionsCar,
+        Regex("розваг|кіно|хобі", RegexOption.IGNORE_CASE) to RytmIcons.CardGiftcard,
+        Regex("кава", RegexOption.IGNORE_CASE) to RytmIcons.LocalCafe,
+        Regex("кафе|ресторан|фастфуд", RegexOption.IGNORE_CASE) to RytmIcons.Fastfood,
+        Regex("подар", RegexOption.IGNORE_CASE) to RytmIcons.CardGiftcard,
+        Regex("зарплат|аванс|дохід", RegexOption.IGNORE_CASE) to RytmIcons.Work,
+        Regex("переказ", RegexOption.IGNORE_CASE) to RytmIcons.SwapHoriz,
+        Regex("цигарк|сигарет", RegexOption.IGNORE_CASE) to RytmIcons.SmokingRooms,
     )
 
 // Mirrors js/core.js's CAT_ICON_FALLBACK_POOL — 'umbrella' excluded there
 // for the same reason (no thematic connection as a blind guess); this app
 // has no umbrella-equivalent glyph in play anyway, so nothing to exclude.
-private val CAT_ICON_FALLBACK_POOL: List<ImageVector> = listOf(Icons.Filled.Sell, Icons.Filled.Person, Icons.Filled.Star, Icons.Filled.Flag, Icons.Filled.Notifications, Icons.Filled.Public, Icons.Filled.PhotoCamera, Icons.Filled.Bento, Icons.Filled.CardGiftcard)
+private val CAT_ICON_FALLBACK_POOL: List<ImageVector> = listOf(RytmIcons.Sell, RytmIcons.Person, RytmIcons.Star, RytmIcons.Flag, RytmIcons.Notifications, RytmIcons.Public, RytmIcons.PhotoCamera, RytmIcons.Bento, RytmIcons.CardGiftcard)
 
 // `iconOverride`, when non-null, is AppState.categoryIcons[name] (this
 // step's own manual per-category override, set via CategoryIconPickerSheet)

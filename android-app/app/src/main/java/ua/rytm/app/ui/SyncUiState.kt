@@ -16,10 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,6 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.R
 import ua.rytm.app.data.ProfileSyncCoordinator
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.CloudOff
+import ua.rytm.app.ui.icons.Refresh
+import ua.rytm.app.ui.icons.WarningAmber
 
 val LocalRealtimeState = staticCompositionLocalOf<ProfileSyncCoordinator.RealtimeState> { ProfileSyncCoordinator.RealtimeState.Stopped }
 
@@ -61,11 +61,11 @@ fun RealtimeStateBanner() {
     val icon = when (state) {
         ProfileSyncCoordinator.RealtimeState.Offline -> {
             message = R.string.sync_status_offline
-            Icons.Filled.CloudOff
+            RytmIcons.CloudOff
         }
         is ProfileSyncCoordinator.RealtimeState.Error -> {
             message = R.string.sync_status_error
-            Icons.Filled.WarningAmber
+            RytmIcons.WarningAmber
         }
         else -> return
     }
@@ -158,7 +158,7 @@ fun ScreenLoadErrorState() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Icon(Icons.Filled.WarningAmber, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(RytmIcons.WarningAmber, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(
                 stringResource(R.string.common_data_load_failed),
                 style = MaterialTheme.typography.bodySmall,
@@ -166,7 +166,7 @@ fun ScreenLoadErrorState() {
                 modifier = Modifier.weight(1f),
             )
             TextButton(onClick = retry) {
-                Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(RytmIcons.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(
                     stringResource(R.string.action_retry),
                     modifier = Modifier.padding(start = 6.dp),

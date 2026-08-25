@@ -19,14 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -78,16 +70,24 @@ import ua.rytm.app.ui.theme.BlueLight2
 import ua.rytm.app.ui.theme.PinkDeep
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Bolt
+import ua.rytm.app.ui.icons.DarkMode
+import ua.rytm.app.ui.icons.Diamond
+import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.Favorite
+import ua.rytm.app.ui.icons.LightMode
+import ua.rytm.app.ui.icons.Person
 
 private data class BuiltinAvatar(val id: String, val icon: ImageVector, val colors: List<Color>)
 
 private val builtinAvatars = listOf(
-    BuiltinAvatar("fox", Icons.Filled.LightMode, listOf(AvatarTintBlue, PurpleLight2)),
-    BuiltinAvatar("panda", Icons.Filled.DarkMode, listOf(AvatarTintGray, Slate)),
-    BuiltinAvatar("robot", Icons.Filled.Bolt, listOf(AvatarTintGreen, GreenLight2)),
-    BuiltinAvatar("rocket", Icons.Filled.Person, listOf(AvatarTintPurple, PurpleDark)),
-    BuiltinAvatar("gem", Icons.Filled.Diamond, listOf(AvatarTintSky, BlueLight2)),
-    BuiltinAvatar("lion", Icons.Filled.Favorite, listOf(AvatarTintPink, PinkDeep)),
+    BuiltinAvatar("fox", RytmIcons.LightMode, listOf(AvatarTintBlue, PurpleLight2)),
+    BuiltinAvatar("panda", RytmIcons.DarkMode, listOf(AvatarTintGray, Slate)),
+    BuiltinAvatar("robot", RytmIcons.Bolt, listOf(AvatarTintGreen, GreenLight2)),
+    BuiltinAvatar("rocket", RytmIcons.Person, listOf(AvatarTintPurple, PurpleDark)),
+    BuiltinAvatar("gem", RytmIcons.Diamond, listOf(AvatarTintSky, BlueLight2)),
+    BuiltinAvatar("lion", RytmIcons.Favorite, listOf(AvatarTintPink, PinkDeep)),
 )
 
 @Composable
@@ -193,7 +193,7 @@ fun ProfileAppearanceCard(
                             modifier = Modifier.weight(1f),
                         )
                         IconButton(onClick = { editing = true }, enabled = !busy) {
-                            Icon(Icons.Filled.Edit, stringResource(R.string.profile_edit_nickname))
+                            Icon(RytmIcons.Edit, stringResource(R.string.profile_edit_nickname))
                         }
                     }
                 }

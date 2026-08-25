@@ -9,11 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,6 +53,11 @@ import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
 
 // Mirrors js/goals-profile.js's goals-modal — see GoalsManagerViewModel's
 // doc comment. Same collapsed-summary-row-with-pencil-toggle shape as
@@ -89,7 +89,7 @@ fun GoalsManagerSheet(
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
+                    IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
@@ -118,7 +118,7 @@ fun GoalsManagerSheet(
                 shape = RoundedCornerShape(RytmRadii.Row),
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = null)
+                Icon(RytmIcons.Add, contentDescription = null)
                 androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.goals_add))
             }
@@ -184,7 +184,7 @@ private fun GoalRow(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
             ) {
-                Icon(if (expanded) Icons.Filled.Close else Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
+                Icon(if (expanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit))
             }
             IconButton(
                 onClick = onDelete,
@@ -192,7 +192,7 @@ private fun GoalRow(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 ),
-            ) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            ) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {

@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +36,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.TrendingUp
 
 // Payoff forecast: mirrors js/debt.js's renderDebtForecast()/DebtBurndownChart —
 // a balance-burndown mini chart + "≈ N payments left at this pace" estimate,
@@ -74,7 +74,7 @@ fun DebtForecastCard(debt: Debt) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Chart)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))
+                Icon(RytmIcons.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.height(15.dp))
                 Text(
                     stringResource(R.string.debt_forecast_title),
                     style = MaterialTheme.typography.labelMedium,

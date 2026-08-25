@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
@@ -57,6 +53,10 @@ import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
@@ -88,7 +88,7 @@ fun WalletsManagerSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
+                    IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
@@ -108,7 +108,7 @@ fun WalletsManagerSheet(
 
             val newWalletName = stringResource(R.string.wallet_new_default)
             androidx.compose.material3.Button(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
-                Icon(Icons.Filled.Add, contentDescription = null)
+                Icon(RytmIcons.Add, contentDescription = null)
                 Text(stringResource(R.string.wallet_add))
             }
         }
@@ -163,7 +163,6 @@ private fun WalletRow(
             singleLine = true,
             label = { Text(stringResource(R.string.field_name)) },
             // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
-            trailingIcon = null,
         )
         // Commit on unfocus-equivalent: since Compose has no cheap onBlur here, save as the user types
         // (debounce-free, matches the field's small size/low write cost).
@@ -188,6 +187,6 @@ private fun WalletRow(
             }
         }
 
-        IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+        IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
     }
 }

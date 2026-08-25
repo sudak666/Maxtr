@@ -10,15 +10,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +43,15 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Check
+import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.ExitToApp
+import ua.rytm.app.ui.icons.Group
+import ua.rytm.app.ui.icons.Share
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
 // (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
@@ -87,7 +87,7 @@ fun ProfilesManagerSheet(
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss)) }
+                    IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
             }
 
@@ -120,7 +120,7 @@ fun ProfilesManagerSheet(
                     singleLine = true,
                 )
                 TextButton(enabled = newName.isNotBlank() && !viewModel.loading, onClick = { viewModel.addProfile(newName); newName = "" }) {
-                    Icon(Icons.Filled.Add, contentDescription = null)
+                    Icon(RytmIcons.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }
             }
@@ -258,8 +258,8 @@ private fun ProfileRow(
         var text by remember(profile.id) { mutableStateOf(profile.name) }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.weight(1f), singleLine = true)
-            IconButton(onClick = { onRename(text) }) { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.action_save)) }
-            IconButton(onClick = onCancelRename) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_cancel)) }
+            IconButton(onClick = { onRename(text) }) { Icon(RytmIcons.Check, contentDescription = stringResource(R.string.action_save)) }
+            IconButton(onClick = onCancelRename) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_cancel)) }
         }
         return
     }
@@ -282,12 +282,12 @@ private fun ProfileRow(
             TextButton(onClick = onSwitch) { Text(stringResource(R.string.profile_switch)) }
         }
         if (profile.isShared) {
-            IconButton(onClick = onLeave) { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.profile_leave)) }
+            IconButton(onClick = onLeave) { Icon(RytmIcons.ExitToApp, contentDescription = stringResource(R.string.profile_leave)) }
         } else {
-            IconButton(onClick = onShare) { Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.profile_share)) }
-            IconButton(onClick = onManageMembers) { Icon(Icons.Filled.Group, contentDescription = stringResource(R.string.profile_members)) }
-            IconButton(onClick = onStartRename) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.profile_rename)) }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(onClick = onShare) { Icon(RytmIcons.Share, contentDescription = stringResource(R.string.profile_share)) }
+            IconButton(onClick = onManageMembers) { Icon(RytmIcons.Group, contentDescription = stringResource(R.string.profile_members)) }
+            IconButton(onClick = onStartRename) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.profile_rename)) }
+            IconButton(onClick = onDelete) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
     }

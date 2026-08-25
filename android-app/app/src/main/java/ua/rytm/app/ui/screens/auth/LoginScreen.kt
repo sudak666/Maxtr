@@ -46,12 +46,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -82,6 +79,9 @@ import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Visibility
+import ua.rytm.app.ui.icons.VisibilityOff
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
@@ -188,7 +188,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                             // biggest cause of failed sign-ins without this.
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
-                                    if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    if (passwordVisible) RytmIcons.VisibilityOff else RytmIcons.Visibility,
                                     contentDescription = stringResource(
                                         if (passwordVisible) R.string.auth_hide_password else R.string.auth_show_password,
                                     ),
