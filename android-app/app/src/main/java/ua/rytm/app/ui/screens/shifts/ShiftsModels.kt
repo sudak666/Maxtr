@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.shifts
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class ShiftType(
     val id: String,
     val name: String,
@@ -15,6 +17,7 @@ data class ShiftType(
 const val SALARY_GOAL = 20000.0
 
 // Mirrors js/state.js's AppState.autoFillSchedule.
+@Immutable
 data class AutoFillSchedule(
     val enabled: Boolean = false,
     val typeId: String = "",

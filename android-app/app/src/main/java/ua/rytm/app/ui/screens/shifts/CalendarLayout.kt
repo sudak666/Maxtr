@@ -2,7 +2,9 @@ package ua.rytm.app.ui.screens.shifts
 
 import java.time.LocalDate
 import java.time.YearMonth
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class CalendarCell(val date: LocalDate?, val isWeekend: Boolean = false)
 
 /** Monday-first calendar cells shared by UI and deterministic tests. */

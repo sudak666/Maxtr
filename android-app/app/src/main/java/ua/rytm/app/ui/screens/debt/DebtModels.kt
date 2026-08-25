@@ -1,6 +1,8 @@
 package ua.rytm.app.ui.screens.debt
+import androidx.compose.runtime.Immutable
 
 // 1:1 with js/debt.js's Debt/DebtEntry typedefs.
+@Immutable
 data class DebtEntry(
     val id: Long,
     val amount: String,

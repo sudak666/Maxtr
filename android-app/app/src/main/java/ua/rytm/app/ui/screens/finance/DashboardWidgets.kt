@@ -59,7 +59,9 @@ import java.text.NumberFormat
 import java.util.Locale
 import java.util.Currency
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class CryptoQuote(val symbol: String, val price: Double, val change: Double, val spark: List<Double>)
 
 @Composable
