@@ -112,6 +112,7 @@
     <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
     <string name="finance_search_hint">Search by comment, category, or wallet…</string><string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>
+    <string name="finance_empty_cta">Add your first transaction</string>
     <string name="finance_amount_uah">UAH %1$s</string><string name="finance_amount_uah_estimated">≈ UAH %1$s</string><string name="finance_month_net">%1$sUAH %2$s this month</string><string name="finance_signed_uah">%1$sUAH %2$s</string>
     <string name="categories_title">Categories</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
@@ -144,6 +145,8 @@
     <string name="shift_pattern_2_2">2 on / 2 off</string>
     <string name="shift_pattern_3_3">3 on / 3 off</string>
     <string name="shifts_clear_month">Clear month</string>
+    <string name="shifts_weekend_a11y">weekend</string>
+    <string name="shifts_edit_day_a11y">edit shifts</string>
     <string name="shifts_clear_month_confirm">Every shift assigned in this month will be deleted. This cannot be undone.</string>
     <string name="shifts_autofill_title">Daily auto-fill</string>
     <string name="shifts_autofill_body">When a new day starts, the required shift is added automatically without manually filling the month.</string>
@@ -153,6 +156,7 @@
     <string name="weekday_mon">MON</string><string name="weekday_tue">TUE</string><string name="weekday_wed">WED</string><string name="weekday_thu">THU</string><string name="weekday_fri">FRI</string><string name="weekday_sat">SAT</string><string name="weekday_sun">SUN</string>
     <string name="shifts_edit_hint">Tap a day to edit shifts</string>
     <string name="action_next">Next</string>
+    <string name="onboarding_page_status">Page %1$d of %2$d</string>
     <string name="onboarding_finance_title">Finances under control</string>
     <string name="onboarding_finance_body">Wallets, categories, budgets, goals, and analytics in one place.</string>
     <string name="onboarding_shifts_title">Your work rhythm</string>
@@ -204,6 +208,9 @@
     <string name="auth_continue_google">Continue with Google</string>
     <string name="auth_or">OR</string>
     <string name="auth_password">PASSWORD</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
     <string name="auth_password_hint">At least 6 characters</string>
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_register">Create account</string>

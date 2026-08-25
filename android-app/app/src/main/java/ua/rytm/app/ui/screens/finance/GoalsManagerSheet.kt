@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -113,7 +114,7 @@ fun GoalsManagerSheet(
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
-                androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp))
+                androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.goals_add))
             }
         }

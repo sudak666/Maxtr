@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -93,6 +94,7 @@ import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
+import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.RytmRadii
@@ -198,8 +200,14 @@ fun FinanceScreen(
                     Icon(Icons.Filled.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                     Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
-            } else if (canEdit && showFab && !largeText && !compactHeight) {
+            } else if (canEdit && showFab) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
+                // At a large font scale or a short screen the extended FAB used
+                // to be hidden outright — removing the screen's primary action
+                // from exactly the users who need it most. M3's answer is to
+                // collapse it to a round icon FAB instead.
+                val collapsed = largeText || compactHeight
+                val label = stringResource(R.string.transaction_new_title)
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
@@ -207,12 +215,16 @@ fun FinanceScreen(
                         .clip(shape)
                         .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
                         .clickable(role = Role.Button, onClick = viewModel::openNewTransactionSheet)
-                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                        .padding(horizontal = if (collapsed) 16.dp else 22.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
-                    Text(stringResource(R.string.transaction_new_title), color = Color.White, fontWeight = FontWeight.Bold)
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = if (collapsed) label else null,
+                        tint = Color.White,
+                    )
+                    if (!collapsed) Text(label, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -257,7 +269,7 @@ fun FinanceScreen(
             }
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
-                item { EmptyState(isSearching = viewModel.isSearchOrFilterActive) }
+                item { EmptyState(isSearching = viewModel.isSearchOrFilterActive, canEdit = canEdit, onAddFirst = viewModel::openNewTransactionSheet) }
             } else {
                 items(visible, key = { it.id }) { tx ->
                     TransactionRow(
@@ -349,7 +361,7 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                     tint = trendColor,
                     modifier = Modifier.size(18.dp),
                 )
-                Spacer(Modifier.padding(2.dp))
+                Spacer(Modifier.width(4.dp))
                 val sign = if (net > 0) "+" else if (net < 0) "−" else ""
                 Text(
                     text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
@@ -428,9 +440,9 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).clip(CircleShape).background(Color(wallet.colorHex)))
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.width(8.dp))
             Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.width(8.dp))
             Text(
                 maskedAmount("${formatMoney(balance)} ${currencySymbol(wallet.currency)}"),
                 style = MaterialTheme.typography.labelMedium,
@@ -495,7 +507,7 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                             modifier = Modifier.size(21.dp),
                         )
                     }
-                    Spacer(Modifier.padding(2.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text(action.label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
             }
@@ -576,34 +588,17 @@ private fun CategoryFilterChip(category: String, onClear: () -> Unit) {
 }
 
 @Composable
-private fun EmptyState(isSearching: Boolean) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            imageVector = if (isSearching) Icons.Filled.Search else Icons.Filled.AccountBalanceWallet,
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.padding(6.dp))
-        Text(
-            text = stringResource(if (isSearching) R.string.finance_empty_search_title else R.string.finance_empty_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = if (isSearching) {
-                stringResource(R.string.finance_empty_search_body)
-            } else {
-                stringResource(R.string.finance_empty_body)
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, start = 24.dp, end = 24.dp),
-        )
-    }
+private fun EmptyState(isSearching: Boolean, canEdit: Boolean, onAddFirst: () -> Unit) {
+    // The no-transactions state had no call to action at all, while the FAB
+    // that would have been the obvious next tap can itself be hidden (large
+    // font / compact height / scrolled far down the list).
+    RytmEmptyState(
+        icon = if (isSearching) Icons.Filled.Search else Icons.Filled.AccountBalanceWallet,
+        title = stringResource(if (isSearching) R.string.finance_empty_search_title else R.string.finance_empty_title),
+        body = stringResource(if (isSearching) R.string.finance_empty_search_body else R.string.finance_empty_body),
+        actionLabel = if (!isSearching && canEdit) stringResource(R.string.finance_empty_cta) else null,
+        onAction = if (!isSearching && canEdit) onAddFirst else null,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -675,7 +670,7 @@ private fun TransactionRow(
         ) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 CategoryIconBadge(tx.category, iconOverride = iconOverride)
-                Spacer(Modifier.padding(6.dp))
+                Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     val categoryLabel = localizedDomainText(tx.category)
                     val walletLabel = walletName(tx.walletId)?.let { localizedDomainText(it) }
@@ -712,7 +707,7 @@ private fun TransactionRow(
                         }
                     }
                 }
-                Spacer(Modifier.padding(4.dp))
+                Spacer(Modifier.width(8.dp))
                 val (amountText, amountColor) = when (tx.type) {
                     TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.income
                     TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.expense

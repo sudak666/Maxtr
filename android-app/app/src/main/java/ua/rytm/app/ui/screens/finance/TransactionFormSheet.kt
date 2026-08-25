@@ -76,6 +76,7 @@ import ua.rytm.app.ui.theme.GreenLight2
 import ua.rytm.app.ui.theme.RedDark2
 import ua.rytm.app.ui.theme.RedLight2
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.foundation.layout.imePadding
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
@@ -253,10 +254,13 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
 @Composable
 private fun TypeSegmentedRow(vm: FinanceViewModel) {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    // Was a local isDark check with its own color pairs; now the shared
+    // semantic layer, whose light tones also clear 4.5:1 against this
+    // segment's own tinted wash (#059669 on it was 3.43:1).
+    val isDark = RytmSemantic.isDark
     val options = listOf(
-        TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), Icons.Filled.ArrowUpward, if (isDark) GreenDark2 else GreenLight2),
-        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward, if (isDark) RedDark2 else RedLight2),
+        TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), Icons.Filled.ArrowUpward, RytmSemantic.income),
+        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), Icons.Filled.ArrowDownward, RytmSemantic.expense),
         TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), Icons.Filled.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
     )
     Row(

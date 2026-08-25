@@ -79,6 +79,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,8 +91,13 @@ import com.google.firebase.auth.FirebaseAuth
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
+import androidx.compose.ui.semantics.contentDescription
+import ua.rytm.app.ui.theme.RytmSemantic
+import ua.rytm.app.ui.theme.onColorFor
+import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
@@ -237,9 +243,11 @@ private fun HeroMetric(earned: Double) {
                 Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(99.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+                    // 6% onSurface left the unfilled part of the bar at ~1.1:1
+                    // (WCAG 1.4.11 wants 3:1 for meaningful non-text content).
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(RytmRadii.Pill))
+                    .background(MaterialTheme.colorScheme.outlineVariant),
             ) {
                 Box(
                     Modifier
@@ -338,7 +346,20 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             val maxVal = (months.maxOfOrNull { it.earned } ?: 0.0).coerceAtLeast(1.0)
             val curYm = YearMonth.now()
             val purple = MaterialTheme.colorScheme.primary
-            Row(Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
+            // The chart was invisible to TalkBack: a bare Row of colored
+            // Boxes with no semantics at all. One spoken summary carries the
+            // same information the sighted reading does.
+            val monthAmounts = months.map { m ->
+                m.yearMonth.month.getDisplayName(TextStyle.FULL, locale) + " " +
+                    stringResource(R.string.money_uah, formatMoney(m.earned))
+            }
+            val chartSummary = stringResource(R.string.shifts_income_chart) + ": " + monthAmounts.joinToString(", ")
+            Row(
+                Modifier.fillMaxWidth().height(80.dp)
+                    .semantics(mergeDescendants = true) { contentDescription = chartSummary },
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
                 months.forEach { m ->
                     val isCur = m.yearMonth == curYm
                     val heightFraction = ((m.earned / maxVal).coerceIn(0.0, 1.0).toFloat().coerceAtLeast(0.02f) * progress)
@@ -353,7 +374,10 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 3.dp).clearAndSetSemantics {},
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 months.forEach { m ->
                     val isCur = m.yearMonth == curYm
                     Text(
@@ -587,36 +611,13 @@ private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, 
 
 @Composable
 private fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                Modifier
-                    .size(52.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            }
-            Text(
-                stringResource(R.string.shifts_empty_title),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 12.dp),
-            )
-            Text(
-                stringResource(R.string.shifts_empty_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            androidx.compose.material3.Button(onClick = onQuickFill, modifier = Modifier.padding(top = 14.dp)) {
-                Icon(Icons.Filled.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(stringResource(R.string.shifts_quick_fill), modifier = Modifier.padding(start = 6.dp))
-            }
-        }
-    }
+    RytmEmptyState(
+        icon = Icons.Filled.Bolt,
+        title = stringResource(R.string.shifts_empty_title),
+        body = stringResource(R.string.shifts_empty_body),
+        actionLabel = stringResource(R.string.shifts_quick_fill),
+        onAction = onQuickFill,
+    )
 }
 
 @Composable
@@ -661,7 +662,7 @@ private fun WeekdayHeaderRow() {
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = if (i >= 5) MaterialTheme.colorScheme.error.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (i >= 5) RytmSemantic.expense else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -705,29 +706,48 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
     val cells = monthCalendarCells(month)
     val todayKey = viewModel.today.toString()
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(7),
-        modifier = Modifier.fillMaxWidth().height(((cells.size + 6) / 7 * 80).dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        items(cells) { cell ->
-            val date = cell.date
-            if (date == null) {
-                Box(Modifier)
-                return@items
+    // Plain Rows, not a LazyVerticalGrid nested inside the screen's own
+    // LazyColumn: same-axis nested lazy containers can't measure themselves,
+    // which is why the grid used to carry a hardcoded `height(rows * 80.dp)`.
+    // At 360dp that wasted ~27dp per row; at >=600dp it clipped the cells.
+    // Height now follows the cell's own aspect ratio at any width.
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        cells.chunked(7).forEach { week ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                week.forEach { cell ->
+                    val date = cell.date
+                    if (date == null) {
+                        Box(Modifier.weight(1f))
+                    } else {
+                        val dateKey = date.toString()
+                        DayCell(
+                            date = date,
+                            assigned = viewModel.shiftsFor(dateKey),
+                            isToday = dateKey == todayKey,
+                            isWeekend = cell.isWeekend,
+                            enabled = canEdit,
+                            onClick = { viewModel.openDayModal(dateKey) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                // A short final week still has to keep the 7-column rhythm.
+                repeat(7 - week.size) { Box(Modifier.weight(1f)) }
             }
-            val day = date.dayOfMonth
-            val dateKey = date.toString()
-            val assigned = viewModel.shiftsFor(dateKey)
-            val isToday = dateKey == todayKey
-            DayCell(day = day, assigned = assigned, isToday = isToday, isWeekend = cell.isWeekend, enabled = canEdit, onClick = { viewModel.openDayModal(dateKey) })
         }
     }
 }
 
 @Composable
-private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWeekend: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun DayCell(
+    date: java.time.LocalDate,
+    assigned: List<ShiftType>,
+    isToday: Boolean,
+    isWeekend: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val bg = when {
         isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
@@ -735,33 +755,70 @@ private fun DayCell(day: Int, assigned: List<ShiftType>, isToday: Boolean, isWee
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
     val borderColor = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val weekendAccent = RytmSemantic.expense
+    val shown = assigned.take(2)
+    val overflow = assigned.size - shown.size
+
+    // TalkBack used to read "25", "Д", "Н" as three unrelated fragments. One
+    // merged, labelled, Role.Button node instead.
+    val locale = LocalConfiguration.current.locales[0]
+    val dayLabel = date.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM", locale))
+    val parts = buildList {
+        add(dayLabel)
+        if (isToday) add(stringResource(R.string.action_today))
+        if (isWeekend) add(stringResource(R.string.shifts_weekend_a11y))
+        assigned.forEach { add(localizedDomainText(it.name)) }
+    }
+    val cellDescription = parts.joinToString(", ")
+    val editLabel = stringResource(R.string.shifts_edit_day_a11y)
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(0.82f)
-            .clip(RoundedCornerShape(14.dp))
+            .heightIn(min = RytmDimens.TouchTarget)
+            .clip(RoundedCornerShape(RytmRadii.Control))
             .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-            .clickable(enabled = enabled, onClick = onClick)
+            .border(1.dp, borderColor, RoundedCornerShape(RytmRadii.Control))
+            .clickable(enabled = enabled, onClickLabel = editLabel, role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = cellDescription }
             .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Text(
-            day.toString(),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (isToday) FontWeight.Black else FontWeight.SemiBold,
-            color = if (isWeekend) MaterialTheme.colorScheme.error.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                date.dayOfMonth.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isToday) FontWeight.Black else FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            // Weekends were signalled by a reddish tint alone (2.13:1 dark /
+            // 2.53:1 light) — WCAG 1.4.1. A real marker carries the meaning
+            // now; the number itself keeps full-contrast body color.
+            if (isWeekend) Box(Modifier.size(5.dp).clip(CircleShape).background(weekendAccent))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            assigned.take(2).forEach { type ->
+            shown.forEach { type ->
+                val accent = Color(type.colorHex)
                 Box(
                     Modifier
                         .clip(RoundedCornerShape(7.dp))
-                        .background(Color(type.colorHex).copy(alpha = 0.22f))
-                        .border(1.dp, Color(type.colorHex).copy(alpha = 0.55f), RoundedCornerShape(7.dp))
+                        // Solid fill + computed on-color: the old 22%-alpha
+                        // wash put the token letter at 2.26-2.49:1.
+                        .background(accent)
                         .padding(horizontal = 4.dp, vertical = 1.dp),
                 ) {
-                    Text(type.code, style = MaterialTheme.typography.labelSmall, color = Color(type.colorHex), fontWeight = FontWeight.Black)
+                    Text(type.code, style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
                 }
+            }
+            // The model allows any number of shifts per day; the cell silently
+            // showed the first two, so a third one read as "didn't save".
+            if (overflow > 0) {
+                Text(
+                    "+$overflow",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

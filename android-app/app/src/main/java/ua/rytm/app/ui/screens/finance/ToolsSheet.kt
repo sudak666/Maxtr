@@ -57,6 +57,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
@@ -232,7 +234,12 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
         },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.size(108.dp)) {
+        // Canvas charts carry no semantics of their own — spoken summary added.
+        val donutSummary = stringResource(R.string.analytics_title) + ": " +
+            byCategory.joinToString(", ") { (cat, amt) ->
+                cat + " " + formatMoney(amt) + " (" + (amt / total * 100).toInt() + "%)"
+            }
+        Canvas(Modifier.size(108.dp).semantics { contentDescription = donutSummary }) {
             var startAngle = -90f
             val stroke = size.minDimension * 0.14f
             byCategory.forEach { (cat, amt) ->
@@ -380,7 +387,14 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val lineColor = MaterialTheme.colorScheme.primary
         val pointFill = MaterialTheme.colorScheme.surface
         val progress = motionProgress(months, 500)
-        Canvas(Modifier.fillMaxWidth().height(140.dp)) {
+        val chartLocale = LocalConfiguration.current.locales[0]
+        val lineSummary = stringResource(R.string.analytics_six_months) + ": " + months.mapIndexed { i, m ->
+            m.yearMonth.month.getDisplayName(TextStyle.FULL, chartLocale) + " " + formatMoney(values[i])
+        }.joinToString(", ")
+        Canvas(
+            Modifier.fillMaxWidth().height(140.dp)
+                .semantics { contentDescription = lineSummary },
+        ) {
             val points = values.mapIndexed { i, value ->
                 val x = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
                 val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()

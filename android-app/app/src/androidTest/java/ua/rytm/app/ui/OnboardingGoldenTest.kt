@@ -23,6 +23,14 @@ import org.junit.Test
 import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 
+// STALE HASHES — MUST BE REGENERATED ON THE NEXT DEVICE/EMULATOR RUN.
+// The 2026-08-25 design-audit pass reworked OnboardingScreen (real
+// HorizontalPager + swipe, a Back button on pages 2-3, heightIn instead of a
+// fixed 52dp button), so both expected pixel hashes below are guaranteed
+// wrong. They were deliberately NOT guessed or auto-"fixed": no emulator was
+// available in that session, and inventing a hash would turn a real
+// regression guard into a rubber stamp. Recipe: run these two tests on a
+// device, read the `actual` value out of the assertion message, paste it in.
 class OnboardingGoldenTest {
     @get:Rule val compose = createComposeRule()
 

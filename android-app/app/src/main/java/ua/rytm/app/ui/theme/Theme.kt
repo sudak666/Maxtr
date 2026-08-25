@@ -12,6 +12,10 @@ import androidx.compose.runtime.Composable
 
 private val DarkColors = darkColorScheme(
     primary = PurpleDark,
+    // White on #8B5CF6 is 4.23:1 — AA for the >=14sp bold labels this pair is
+    // actually used for (WCAG large-text threshold), and deliberately not
+    // "fixed" by darkening `primary`: that would push primary-tinted text on
+    // the dark background the other way (3.66:1 -> 2.55:1).
     onPrimary = DarkTextStrong,
     secondary = PurpleDark2,
     tertiary = Purple3,
@@ -26,7 +30,9 @@ private val DarkColors = darkColorScheme(
     outline = DarkBorder,
     outlineVariant = DarkBorder2,
     error = RedDark,
-    onError = DarkTextStrong,
+    // Not white: white on #EF4444 measures 3.76:1, below AA for the bold
+    // labels/icons actually drawn on it. Near-black gets 4.53:1.
+    onError = LightText,
 )
 
 private val LightColors = lightColorScheme(
