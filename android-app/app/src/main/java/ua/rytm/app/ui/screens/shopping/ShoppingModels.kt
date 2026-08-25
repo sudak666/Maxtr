@@ -1,8 +1,10 @@
 package ua.rytm.app.ui.screens.shopping
+import androidx.compose.runtime.Immutable
 
 // 1:1 with the ShoppingItem typedef in js/state.js. createdAt is carried
 // through (not just a Room-only column) so toggling `done` doesn't
 // accidentally reset insertion order — see ShoppingRepository.setDone().
+@Immutable
 data class ShoppingItem(
     val id: String,
     val name: String,

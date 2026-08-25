@@ -90,6 +90,10 @@ import ua.rytm.app.ui.theme.RytmInteraction
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import ua.rytm.app.ui.LocalSnackbarHost
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.safeDrawingPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,6 +131,22 @@ fun RytmNavHost() {
         LocalRetryLoad provides ::refresh,
         LocalSnackbarHost provides snackbarHostState,
     ) {
+    // Width adaptivity. The app previously reacted to screen HEIGHT
+    // (`screenHeightDp < 480`) and font scale, but never to width: on a
+    // tablet the hero card stretched to ~768dp with its number in the far
+    // left corner, transaction rows put the icon and the amount 700dp apart,
+    // and the floating nav capsule spread five tabs across the whole screen.
+    // Two changes cover it without a per-screen rewrite: the content column
+    // is capped and centred, and the bottom capsule becomes a NavigationRail
+    // on the side once there is room for one.
+    val widthDp = LocalConfiguration.current.screenWidthDp
+    val expandedWidth = widthDp >= 840
+    val mediumWidth = widthDp >= 600
+
+    Row(Modifier.fillMaxSize()) {
+    if (mediumWidth) {
+        RytmNavigationRail(navController)
+    }
     Box(Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = refreshing,
@@ -138,7 +158,12 @@ fun RytmNavHost() {
         NavHost(
             navController = navController,
             startDestination = RytmDestination.Finance.route,
-            modifier = androidx.compose.ui.Modifier,
+            // Long measures of text are unreadable; cap and centre.
+            modifier = if (mediumWidth) {
+                Modifier.widthIn(max = if (expandedWidth) 720.dp else 600.dp).align(Alignment.TopCenter)
+            } else {
+                Modifier
+            },
             enterTransition = {
                 if (reducedMotion) EnterTransition.None
                 else fadeIn(tween(180)) + slideInVertically(tween(180)) { contentOffsetPx }
@@ -161,11 +186,63 @@ fun RytmNavHost() {
         snackbarHostState,
         Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance),
     )
-    RytmBottomBar(
-        navController = navController,
-        modifier = Modifier.align(Alignment.BottomCenter),
-    )
+    if (!mediumWidth) {
+        RytmBottomBar(
+            navController = navController,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
+    }
+    }
+    }
+}
+
+/**
+ * Side navigation for medium/expanded widths (tablets, unfolded foldables,
+ * landscape phones over 600dp). Keeps the per-tab gradient badge treatment of
+ * the floating capsule so the two read as the same product.
+ */
+@Composable
+private fun RytmNavigationRail(navController: androidx.navigation.NavHostController) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = backStackEntry?.destination
+    NavigationRail(
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.safeDrawingPadding(),
+    ) {
+        RytmDestination.entries.forEach { destination ->
+            val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
+            NavigationRailItem(
+                selected = selected,
+                onClick = {
+                    navController.navigate(destination.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                icon = {
+                    Box(
+                        Modifier
+                            .size(RytmDimens.TabIcon)
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) Brush.linearGradient(destination.activeGradient)
+                                else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            destination.icon,
+                            contentDescription = null,
+                            tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(RytmDimens.TabGlyph),
+                        )
+                    }
+                },
+                label = { Text(stringResource(destination.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            )
+        }
     }
 }
 

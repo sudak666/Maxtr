@@ -148,6 +148,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.derivedStateOf
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -272,10 +273,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         if (needsRuntimePermission) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else applyPushEnabled(target)
     }
 
-    fun sectionVisible(group: String, visibleTexts: List<String>): Boolean {
+    /** [keywords] are already lowercased — see rememberSettingsKeywords. */
+    fun sectionVisible(group: String, keywords: List<String>): Boolean {
         if (settingsGroup != "all" && settingsGroup != group) return false
         val query = settingsSearch.trim().lowercase()
-        return query.isEmpty() || visibleTexts.any { it.lowercase().contains(query) }
+        return query.isEmpty() || keywords.any { it.contains(query) }
     }
 
     fun openExternalUrl(url: String) {
@@ -364,17 +366,25 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             }
 
-            val accountVisible = sectionVisible("account", localizedSettingsStrings(
+            // Search index, built once per locale instead of on every
+            // keystroke.
+            //
+            // This used to re-run six localizedSettingsStrings() calls on
+            // every recomposition — ~80 stringResource lookups — and then
+            // lowercase all of them again inside sectionVisible(), i.e. every
+            // single character typed into the search box paid for the whole
+            // set. The strings only change when the locale does.
+            val accountKeywords = rememberSettingsKeywords(
                 R.string.settings_account, R.string.settings_sign_out, R.string.settings_sign_out_subtitle,
                 R.string.profiles_title, R.string.settings_profiles_subtitle, R.string.settings_premium,
                 R.string.settings_free_plan, R.string.settings_reset_profile, R.string.settings_reset_profile_subtitle,
                 R.string.settings_delete_account, R.string.settings_delete_account_subtitle,
-            ) + authViewModel.currentUser?.email.orEmpty())
-            val securityVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle))
-            val notificationsVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle))
-            val appearanceVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system))
-            val aboutVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary))
-            val financeVisible = sectionVisible("finance", localizedSettingsStrings(
+            )
+            val securityKeywords = rememberSettingsKeywords(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle)
+            val notificationsKeywords = rememberSettingsKeywords(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle)
+            val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
+            val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
+            val financeKeywords = rememberSettingsKeywords(
                 R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
                 R.string.settings_monobank, R.string.settings_monobank_subtitle, R.string.rates_title,
                 R.string.settings_rates_subtitle, R.string.categories_title, R.string.settings_categories_subtitle,
@@ -382,7 +392,20 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
                 R.string.widgets_title, R.string.settings_widgets_subtitle, R.string.recurring_title,
                 R.string.settings_recurring_subtitle, R.string.shift_types_title, R.string.settings_shift_types_subtitle,
-            ))
+            )
+            val accountEmail = authViewModel.currentUser?.email.orEmpty().lowercase()
+
+            // derivedStateOf: only re-evaluates when the query or the group
+            // actually changes, not on every unrelated recomposition of this
+            // screen (of which there are many — 14+ sheet-open flags live here).
+            val accountVisible by remember(accountKeywords, accountEmail) {
+                derivedStateOf { sectionVisible("account", accountKeywords + accountEmail) }
+            }
+            val securityVisible by remember(securityKeywords) { derivedStateOf { sectionVisible("security", securityKeywords) } }
+            val notificationsVisible by remember(notificationsKeywords) { derivedStateOf { sectionVisible("security", notificationsKeywords) } }
+            val appearanceVisible by remember(appearanceKeywords) { derivedStateOf { sectionVisible("app", appearanceKeywords) } }
+            val aboutVisible by remember(aboutKeywords) { derivedStateOf { sectionVisible("app", aboutKeywords) } }
+            val financeVisible by remember(financeKeywords) { derivedStateOf { sectionVisible("finance", financeKeywords) } }
 
             if (accountVisible) {
                 if (uid != null) {
@@ -445,7 +468,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             }
 
-            if (securityVisible) {
+            if (uid != null && securityVisible) {
                 SettingsSectionLabel(stringResource(R.string.settings_security))
                 SettingsGroupCard {
                     SettingsRow(
@@ -459,7 +482,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
             }
 
-            if (notificationsVisible) {
+            if (uid != null && notificationsVisible) {
                 SettingsSectionLabel(stringResource(R.string.settings_notifications))
                 SettingsGroupCard {
                     SettingsToggleRow(
@@ -1016,8 +1039,17 @@ private fun csvImportErrorText(error: CsvImportError): String {
     return stringResource(R.string.settings_csv_error_row, error.row, reason)
 }
 
+/**
+ * Lowercased search keywords for one settings section, resolved once per
+ * locale. Keyed on the resolved strings themselves, so a locale change (which
+ * re-runs stringResource) produces a new list and a config change is handled
+ * without an explicit configuration key.
+ */
 @Composable
-private fun localizedSettingsStrings(vararg @StringRes ids: Int): List<String> = ids.map { stringResource(it) }
+private fun rememberSettingsKeywords(vararg @StringRes ids: Int): List<String> {
+    val resolved = ids.map { stringResource(it) }
+    return remember(resolved) { resolved.map { it.lowercase() } }
+}
 
 @Composable
 private fun SettingsSectionLabel(text: String) {

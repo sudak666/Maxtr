@@ -94,8 +94,13 @@ fun categoryColor(category: String): Color =
 // platform is meaningful read back on the other, even though the *rendered*
 // glyph itself only matches approximately (Material's own shapes, not the
 // PWA's hand-drawn stroke icons).
-val PICKER_ICONS: Map<String, ImageVector>
-    @Composable get() = mapOf(
+// NOT @Composable, on purpose. These four tables read nothing from the
+// composition — Icons.Filled.* are static ImageVectors — but declaring them
+// as `@Composable get()` rebuilt all four on EVERY call, and categoryIcon()
+// is called from CategoryIconBadge in every transaction row. That meant
+// re-allocating a ~50-entry map and recompiling 25 Regex objects per row per
+// recomposition. As plain top-level vals they are built once.
+val PICKER_ICONS: Map<String, ImageVector> = mapOf(
         "calendar" to Icons.Filled.CalendarMonth,
         "wallet" to Icons.Filled.AccountBalanceWallet,
         "clock" to Icons.Filled.Schedule,
@@ -150,8 +155,7 @@ val PICKER_ICONS: Map<String, ImageVector>
 // CAT_ICON referencing it — confirmed by reading both, not an oversight
 // here), so it's kept as its own literal reference rather than routed
 // through PICKER_ICONS.
-private val CAT_ICON: Map<String, ImageVector>
-    @Composable get() = mapOf(
+private val CAT_ICON: Map<String, ImageVector> = mapOf(
         "Зарплата" to Icons.Filled.Work,
         "Аванс" to Icons.Filled.CreditCard,
         "Підробіток" to Icons.Filled.CardGiftcard,
@@ -179,8 +183,7 @@ private val CAT_ICON: Map<String, ImageVector>
 // user typed themselves (e.g. "Оренда квартири") still gets a thematically
 // sensible icon instead of falling all the way to the random-looking
 // fallback pool.
-private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>>
-    @Composable get() = listOf(
+private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>> = listOf(
         Regex("телефон|мобільн|зв'язок", RegexOption.IGNORE_CASE) to Icons.Filled.Phone,
         Regex("оренда|квартир|житло", RegexOption.IGNORE_CASE) to Icons.Filled.Home,
         Regex("кредит", RegexOption.IGNORE_CASE) to Icons.Filled.AccountBalance,
@@ -199,8 +202,7 @@ private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>>
 // Mirrors js/core.js's CAT_ICON_FALLBACK_POOL — 'umbrella' excluded there
 // for the same reason (no thematic connection as a blind guess); this app
 // has no umbrella-equivalent glyph in play anyway, so nothing to exclude.
-private val CAT_ICON_FALLBACK_POOL: List<ImageVector>
-    @Composable get() = listOf(Icons.Filled.Sell, Icons.Filled.Person, Icons.Filled.Star, Icons.Filled.Flag, Icons.Filled.Notifications, Icons.Filled.Public, Icons.Filled.PhotoCamera, Icons.Filled.Bento, Icons.Filled.CardGiftcard)
+private val CAT_ICON_FALLBACK_POOL: List<ImageVector> = listOf(Icons.Filled.Sell, Icons.Filled.Person, Icons.Filled.Star, Icons.Filled.Flag, Icons.Filled.Notifications, Icons.Filled.Public, Icons.Filled.PhotoCamera, Icons.Filled.Bento, Icons.Filled.CardGiftcard)
 
 // `iconOverride`, when non-null, is AppState.categoryIcons[name] (this
 // step's own manual per-category override, set via CategoryIconPickerSheet)
@@ -211,7 +213,7 @@ private val CAT_ICON_FALLBACK_POOL: List<ImageVector>
 // PICKER_ICONS) falls through to automatic resolution rather than crashing
 // — a graceful degrade, not full fidelity, since Android's own picker can
 // only ever write a name it also knows how to render.
-@Composable
+// No longer @Composable either: nothing here touches the composition.
 fun categoryIcon(category: String, iconOverride: String? = null): ImageVector {
     iconOverride?.let { PICKER_ICONS[it] }?.let { return it }
     CAT_ICON[category]?.let { return it }

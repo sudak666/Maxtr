@@ -235,6 +235,8 @@ fun FinanceScreen(
         },
     ) { innerPadding ->
         val filtered = viewModel.filteredTransactions.filterNot { it.id == pendingDeleteId }
+        val walletsById = remember(viewModel.wallets) { viewModel.wallets.associateBy { it.id } }
+        val tagsById = remember(viewModel.tags) { viewModel.tags.associateBy { it.id } }
         val visible = if (viewModel.listExpanded || filtered.size <= TX_LIST_COLLAPSED_COUNT) {
             filtered
         } else {
@@ -276,11 +278,14 @@ fun FinanceScreen(
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
                 item { EmptyState(isSearching = viewModel.isSearchOrFilterActive, canEdit = canEdit, onAddFirst = viewModel::openNewTransactionSheet) }
             } else {
+                // Was a lambda per row doing firstOrNull over every wallet and
+                // every tag — O(rows x wallets) on each recomposition, and four
+                // freshly-allocated lambdas per row capturing the ViewModel.
                 items(visible, key = { it.id }) { tx ->
                     TransactionRow(
                         tx = tx,
-                        walletName = { id -> viewModel.wallets.firstOrNull { it.id == id }?.name },
-                        tagLookup = { id -> viewModel.tags.firstOrNull { it.id == id } },
+                        walletName = { id -> id?.let(walletsById::get)?.name },
+                        tagLookup = tagsById::get,
                         iconOverride = viewModel.categoryIcons[tx.category],
                         canEdit = canEdit,
                         resetGeneration = swipeResetGeneration,

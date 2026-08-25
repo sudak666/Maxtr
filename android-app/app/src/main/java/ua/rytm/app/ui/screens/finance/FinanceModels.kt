@@ -4,9 +4,20 @@ package ua.rytm.app.ui.screens.finance
 // Wallet typedef (js/state.js) — see ANDROID_MIGRATION.md §2.2/§2.3. This is
 // the UI-layer model for this step only; the real Room entity comes with
 // the Repository layer (a later step, see FINANCE_SCREEN_SPEC.md §7).
+//
+// @Immutable on every model below. Compose infers stability automatically for
+// data classes of stable types, but `List<T>` is an interface whose backing
+// implementation could be mutable, so a model carrying one (Transaction.tags)
+// infers as UNSTABLE — and one unstable parameter disables recomposition
+// skipping for the whole row that takes it. These are only ever built from
+// immutable snapshots read out of Room, so the annotation states a fact
+// rather than papering over one.
+import androidx.compose.runtime.Immutable
 
+@Immutable
 enum class TxType { INCOME, EXPENSE, TRANSFER }
 
+@Immutable
 data class Wallet(
     val id: String,
     val name: String,
@@ -20,6 +31,7 @@ data class Wallet(
     val icon: String = "card",
 )
 
+@Immutable
 data class Transaction(
     val id: String,
     val type: TxType,
@@ -38,6 +50,7 @@ data class Transaction(
     val monobankId: String? = null,
 )
 
+@Immutable
 data class Tag(
     val id: String,
     val name: String,
@@ -49,6 +62,7 @@ data class Tag(
 // processRecurring()) each time nextDate falls due. `type` is never
 // TRANSFER — the PWA's own recurring-modal type <select> only offers
 // income/expense.
+@Immutable
 data class Recurring(
     val id: String,
     val type: TxType,
@@ -64,6 +78,7 @@ data class Recurring(
 // Mirrors AppState.goals (js/state.js) — progress is computed live against
 // the linked wallet's current balance (js/goals-profile.js's
 // renderGoals()/renderGoalsManagerList()), not stored as a separate field.
+@Immutable
 data class Goal(
     val id: String,
     val walletId: String,
@@ -71,7 +86,9 @@ data class Goal(
     val targetDate: String,
 )
 
+@Immutable
 enum class TxTypeFilter { ALL, INCOME, EXPENSE, TRANSFER }
+@Immutable
 enum class PeriodFilter { DAY, MONTH, ALL }
 
 // 1:1 with js/core.js's PALETTE/CURRENCY_LIST constants.

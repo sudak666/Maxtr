@@ -13,9 +13,11 @@ import kotlinx.coroutines.flow.onEach
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
 import java.time.YearMonth
+import androidx.compose.runtime.Immutable
 
 enum class AnalyticsPeriod { MONTH, PREV, M3, ALL }
 
+@Immutable
 data class MonthTotal(val yearMonth: YearMonth, val income: Double, val expense: Double)
 
 // Mirrors js/finance.js/analytics-csv.js's Tools bottom sheet
