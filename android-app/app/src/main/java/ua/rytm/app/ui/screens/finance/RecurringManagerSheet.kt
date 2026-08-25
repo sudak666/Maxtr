@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import ua.rytm.app.ui.theme.RytmDimens
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -226,8 +230,15 @@ private fun RecurringRow(
                 )
             }
 
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = r.active, onCheckedChange = onActiveChange)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .toggleable(value = r.active, role = Role.Checkbox, onValueChange = onActiveChange)
+                    .semantics(mergeDescendants = true) {}
+                    .heightIn(min = RytmDimens.TouchTarget),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ua.rytm.app.ui.components.RoundCheckbox(checked = r.active, modifier = Modifier.padding(end = 12.dp))
                 Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodySmall)
             }
         }

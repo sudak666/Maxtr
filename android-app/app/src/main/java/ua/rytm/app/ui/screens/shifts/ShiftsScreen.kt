@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -301,10 +300,12 @@ internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -
             .clip(RoundedCornerShape(RytmRadii.Control))
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .semantics(mergeDescendants = true) {}
-            .heightIn(min = RytmDimens.TouchTarget),
+            .heightIn(min = RytmDimens.TouchTarget)
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(checked = checked, onCheckedChange = null)
+        val accent = Color(type.colorHex)
+        ua.rytm.app.ui.components.RoundCheckbox(checked = checked, accent = accent, modifier = Modifier.padding(end = 12.dp))
         Text(localizedDomainText(type.name), modifier = Modifier.weight(1f))
     }
 }
@@ -629,9 +630,9 @@ private fun LegendRow(types: List<ShiftType>) {
                 Box(
                     Modifier
                         .size(10.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(CircleShape)
                         .background(accent.copy(alpha = 0.25f))
-                        .border(1.dp, accent.copy(alpha = 0.6f), RoundedCornerShape(4.dp)),
+                        .border(1.dp, accent.copy(alpha = 0.6f), CircleShape),
                 )
                 Text(
                     localizedDomainText(type.name),
