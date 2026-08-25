@@ -59,19 +59,20 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRepository, financeRepository: FinanceRepository, onDismiss: () -> Unit) {
     var connection by remember(uid, profileId) { mutableStateOf<MonobankConnection?>(null) }
-    var token by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(true) }
-    var busy by remember { mutableStateOf(false) }
+    var token by rememberSaveable { mutableStateOf("") }
+    var loading by rememberSaveable { mutableStateOf(true) }
+    var busy by rememberSaveable { mutableStateOf(false) }
     var errorRes by remember { mutableStateOf<Int?>(null) }
     var messageRes by remember { mutableStateOf<Int?>(null) }
     var importedCount by remember { mutableStateOf<Int?>(null) }
     var progress by remember { mutableStateOf<MonobankSyncProgress?>(null) }
-    var confirmDisconnect by remember { mutableStateOf(false) }
+    var confirmDisconnect by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val wallets by financeRepository.wallets.collectAsState(initial = emptyList())

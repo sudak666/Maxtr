@@ -55,6 +55,9 @@ import ua.rytm.app.data.GoalsSyncRepository
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 // Mirrors js/goals-profile.js's goals-modal — see GoalsManagerViewModel's
 // doc comment. Same collapsed-summary-row-with-pencil-toggle shape as
@@ -206,6 +209,9 @@ private fun GoalRow(
                 onValueChange = { amountText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
+                supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 label = { Text(stringResource(R.string.goals_target_amount)) },
             )
             LaunchedEffect(amountText) {
@@ -235,7 +241,7 @@ private fun GoalRow(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoalWalletDropdown(wallets: List<Wallet>, selectedId: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(

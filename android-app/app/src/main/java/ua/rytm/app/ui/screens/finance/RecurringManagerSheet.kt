@@ -51,6 +51,9 @@ import ua.rytm.app.data.RecurringSyncRepository
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 // Mirrors js/settings-managers.js's recurring-modal — see
 // RecurringManagerViewModel's doc comment for scope. The most field-heavy
@@ -182,6 +185,9 @@ private fun RecurringRow(
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
+                    isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
+                    supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     label = { Text(stringResource(R.string.amount_label)) },
@@ -232,7 +238,7 @@ private fun RecurringRow(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DropdownField(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = selected,
@@ -253,7 +259,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(

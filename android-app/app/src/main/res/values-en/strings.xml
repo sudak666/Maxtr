@@ -92,12 +92,14 @@
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
+    <string name="receipt_scan">Scan receipt</string>
     <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
     <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
     <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
     <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
     <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
     <string name="validation_invalid_amount">Enter a valid amount</string><string name="validation_amount_too_large">Amount is too large</string>
+    <string name="validation_name_required">Enter a name</string>
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>

@@ -35,6 +35,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import ua.rytm.app.R
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 private val displayDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
@@ -48,7 +49,7 @@ fun DatePickerField(
     allowEmpty: Boolean = true,
     outputIso: Boolean = true,
 ) {
-    var open by remember { mutableStateOf(false) }
+    var open by rememberSaveable { mutableStateOf(false) }
     val selected = value.takeIf { it.isNotBlank() }?.let {
         runCatching { LocalDate.parse(it) }.getOrNull()
             ?: runCatching { LocalDate.parse(it, displayDateFormatter) }.getOrNull()

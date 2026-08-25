@@ -104,6 +104,7 @@ import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.LocalSnackbarHost
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -125,8 +126,8 @@ fun FinanceScreen(
     val ownHost = remember { SnackbarHostState() }
     val snackbarHostState = LocalSnackbarHost.current ?: ownHost
     val scope = rememberCoroutineScope()
-    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
-    var swipeResetGeneration by remember { mutableIntStateOf(0) }
+    var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var swipeResetGeneration by rememberSaveable { mutableIntStateOf(0) }
     val transactionDeleted = stringResource(R.string.transaction_deleted)
     val undoLabel = stringResource(R.string.action_undo)
     val pendingMessage = viewModel.pendingMessage?.let { message ->
@@ -151,9 +152,9 @@ fun FinanceScreen(
     val widgetConfig by app.settingsStore.financeWidgets.collectAsState(
         initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
     )
-    var toolsSheetOpen by remember { mutableStateOf(false) }
-    var budgetsSheetOpen by remember { mutableStateOf(false) }
-    var goalsSheetOpen by remember { mutableStateOf(false) }
+    var toolsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex <= 8 } }
     val largeText = LocalDensity.current.fontScale >= 1.2f

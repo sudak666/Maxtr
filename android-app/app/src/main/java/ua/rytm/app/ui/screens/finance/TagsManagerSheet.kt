@@ -44,6 +44,10 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.text.input.ImeAction
 
 // Mirrors js/finance.js's tags-modal — see TagsManagerViewModel's doc comment for scope.
 @androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,7 +61,8 @@ fun TagsManagerSheet(
     viewModel: TagsManagerViewModel = viewModel(key = "tags-$uid-$profileId", factory = TagsManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var newName by remember { mutableStateOf("") }
+    var newName by rememberSaveable { mutableStateOf("") }
+    var addAttempted by rememberSaveable { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         androidx.compose.foundation.layout.Column(
@@ -86,14 +91,19 @@ fun TagsManagerSheet(
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                val nameInvalid = addAttempted && newName.isBlank()
                 OutlinedTextField(
                     value = newName,
-                    onValueChange = { newName = it },
+                    onValueChange = { newName = it; addAttempted = false },
                     label = { Text(stringResource(R.string.tags_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
+                    isError = nameInvalid,
+                    supportingText = if (nameInvalid) ({ Text(stringResource(R.string.validation_name_required)) }) else null,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { if (newName.isNotBlank()) { viewModel.addTag(newName); newName = "" } else addAttempted = true }),
                 )
-                androidx.compose.material3.Button(onClick = { viewModel.addTag(newName); newName = "" }, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+                androidx.compose.material3.Button(onClick = { if (newName.isBlank()) addAttempted = true else { viewModel.addTag(newName); newName = "" } }, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                     Icon(Icons.Filled.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }

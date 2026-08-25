@@ -78,6 +78,7 @@ import ua.rytm.app.ui.theme.BlueLight2
 import ua.rytm.app.ui.theme.PurpleLight2
 import ua.rytm.app.ui.theme.Amber600
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Mirrors js/index.html's #tools-modal — Analytics (donut + category
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
@@ -357,7 +358,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CurrencyDropdown(options: List<String>, selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = selected,

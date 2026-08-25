@@ -56,6 +56,7 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
@@ -133,8 +134,8 @@ private fun WalletRow(
     onDelete: () -> Unit,
 ) {
     var nameText by remember(wallet.id) { mutableStateOf(wallet.name) }
-    var currencyExpanded by remember { mutableStateOf(false) }
-    var colorExpanded by remember { mutableStateOf(false) }
+    var currencyExpanded by rememberSaveable { mutableStateOf(false) }
+    var colorExpanded by rememberSaveable { mutableStateOf(false) }
     val colorDescription = stringResource(R.string.wallet_color)
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

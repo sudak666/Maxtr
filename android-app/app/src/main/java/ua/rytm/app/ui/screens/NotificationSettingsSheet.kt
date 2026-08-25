@@ -37,6 +37,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Mirrors js/notifications.js's 4 independent alert-type checkboxes plus its
 // reminder-time <select> pair — see NotificationSettingsViewModel's own doc
@@ -141,7 +142,7 @@ private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, en
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TimeDropdown(label: String, options: List<String>, selected: String, enabled: Boolean, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { if (enabled) expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = selected,

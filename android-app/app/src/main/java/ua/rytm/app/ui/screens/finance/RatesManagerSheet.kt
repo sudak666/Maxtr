@@ -59,6 +59,7 @@ import ua.rytm.app.ui.theme.PurpleLight2
 import ua.rytm.app.ui.theme.RedLight2
 import ua.rytm.app.ui.theme.Gray
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +74,7 @@ fun RatesManagerSheet(
     val rates by financeRepository.currencyRates.collectAsState(initial = emptyMap())
     val source by settingsStore.ratesSource.collectAsState(initial = "nbu")
     val updatedAt by settingsStore.ratesUpdatedAt.collectAsState(initial = null)
-    var busy by remember { mutableStateOf(false) }
+    var busy by rememberSaveable { mutableStateOf(false) }
     @StringRes var messageRes by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

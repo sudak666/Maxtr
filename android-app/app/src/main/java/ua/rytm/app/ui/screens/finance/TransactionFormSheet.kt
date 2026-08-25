@@ -79,6 +79,15 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.theme.RytmDimens
 
 // Implements FINANCE_SCREEN_SPEC.md §9 — fields, labels, and validation
 // mirror js/finance.js's setFinanceType()/readTransactionForm() and
@@ -91,8 +100,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val ocr = remember { ReceiptOcrRepository() }
-    var ocrBusy by remember { mutableStateOf(false) }
-    var ocrMessage by remember { mutableStateOf<String?>(null) }
+    var ocrBusy by rememberSaveable { mutableStateOf(false) }
+    var ocrMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val ocrFound = stringResource(R.string.receipt_found)
     val ocrNotFound = stringResource(R.string.receipt_not_found)
@@ -114,6 +123,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
         }
     }
+    var scanSourceOpen by rememberSaveable { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
@@ -132,27 +143,59 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
                     modifier = Modifier.weight(1f),
                 )
-                if (vm.editingTxId != null) {
-                    TextButton(onClick = vm::closeSheet) { Text(stringResource(R.string.action_cancel)) }
-                }
+                // Always offered: it used to appear only while editing, so a
+                // half-filled new transaction had no visible way back.
+                TextButton(onClick = vm::closeSheet) { Text(stringResource(R.string.action_cancel)) }
             }
 
             TypeSegmentedRow(vm)
 
             if (vm.formType != TxType.TRANSFER) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = {
-                            val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
-                            cameraUri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
-                            cameraLauncher.launch(cameraUri!!)
+                // One secondary action, not two filled Buttons competing with
+                // (and sitting above) the form's real primary action. Source
+                // choice moved into a small sheet, the platform-canonical shape.
+                OutlinedButton(
+                    onClick = { scanSourceOpen = true },
+                    enabled = !ocrBusy,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
+                ) {
+                    Icon(Icons.Filled.DocumentScanner, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.receipt_scan))
+                }
+                if (scanSourceOpen) {
+                    AlertDialog(
+                        onDismissRequest = { scanSourceOpen = false },
+                        title = { Text(stringResource(R.string.receipt_scan)) },
+                        text = {
+                            Column {
+                                TextButton(
+                                    onClick = {
+                                        scanSourceOpen = false
+                                        val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
+                                        cameraUri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
+                                        cameraLauncher.launch(cameraUri!!)
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Icon(Icons.Filled.CameraAlt, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
+                                }
+                                TextButton(
+                                    onClick = { scanSourceOpen = false; galleryLauncher.launch("image/*") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
+                                }
+                            }
                         },
-                        enabled = !ocrBusy,
-                        modifier = Modifier.weight(1f),
-                    ) { Icon(Icons.Filled.CameraAlt, contentDescription = null); Text(stringResource(R.string.receipt_camera)) }
-                    Button(onClick = { galleryLauncher.launch("image/*") }, enabled = !ocrBusy, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null); Text(stringResource(R.string.receipt_gallery))
-                    }
+                        confirmButton = {
+                            TextButton(onClick = { scanSourceOpen = false }) { Text(stringResource(R.string.action_cancel)) }
+                        },
+                    )
                 }
                 if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
                 ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -177,12 +220,18 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val amountInvalid = vm.formErrorField == TxFormField.AMOUNT
                 OutlinedTextField(
                     value = vm.formAmountText,
                     onValueChange = vm::onFormAmountChange,
                     label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
                     placeholder = { Text("0.00") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    // The error used to be one generic line at the bottom of
+                    // the form, with no field highlighted at all.
+                    isError = amountInvalid,
+                    supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
@@ -214,20 +263,26 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
 
             DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
-            Column {
-                OutlinedTextField(
-                    value = vm.formComment,
-                    onValueChange = vm::onFormCommentChange,
-                    label = { Text(stringResource(R.string.comment_label)) },
-                    placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    text = "${vm.formComment.length}/$TX_COMMENT_MAX",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (vm.formComment.length > TX_COMMENT_MAX * 0.9) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            val commentInvalid = vm.formErrorField == TxFormField.COMMENT
+            OutlinedTextField(
+                value = vm.formComment,
+                onValueChange = vm::onFormCommentChange,
+                label = { Text(stringResource(R.string.comment_label)) },
+                placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
+                isError = commentInvalid,
+                // The counter used to be a loose Text under the field: not
+                // aligned to M3's own supporting-text metrics, and not read by
+                // TalkBack as part of the field.
+                supportingText = {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(vm.formErrorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
+                        Text("${vm.formComment.length}/$TX_COMMENT_MAX")
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); vm.submitForm() }),
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             if (vm.tags.isNotEmpty()) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -241,8 +296,15 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            vm.formErrorRes?.let { errorRes ->
-                Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            // Only the errors that do not belong to a visible field land here
+            // now; everything else is marked on the field itself.
+            if (vm.formErrorField == null || vm.formErrorField == TxFormField.WALLET ||
+                vm.formErrorField == TxFormField.TARGET_WALLET || vm.formErrorField == TxFormField.CATEGORY ||
+                vm.formErrorField == TxFormField.DATE
+            ) {
+                vm.formErrorRes?.let { errorRes ->
+                    Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
             }
 
             Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth()) {
@@ -310,7 +372,7 @@ private data class TransactionTypeOption(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
@@ -335,7 +397,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DropdownField(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
             value = localizedDomainText(selected),

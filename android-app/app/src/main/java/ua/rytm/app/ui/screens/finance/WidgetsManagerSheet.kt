@@ -50,6 +50,7 @@ import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.GreenDark
 import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.BitcoinOrange
+import androidx.compose.runtime.saveable.rememberSaveable
 
 private data class WidgetDef(val key: String, @StringRes val title: Int, @StringRes val subtitle: Int, val icon: ImageVector, val color: Color)
 private val widgetDefs = listOf(
@@ -63,8 +64,8 @@ private val widgetDefs = listOf(
 fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSettingsSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
     val config by settingsStore.financeWidgets.collectAsState(initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()))
     val scope = rememberCoroutineScope()
-    var syncError by remember { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
+    var syncError by rememberSaveable { mutableStateOf(false) }
+    var busy by rememberSaveable { mutableStateOf(false) }
     fun update(block: suspend () -> Unit) = scope.launch {
         if (busy) return@launch
         busy = true
