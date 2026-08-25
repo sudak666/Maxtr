@@ -1060,3 +1060,63 @@ private val _work by lazy { icon("Work",
 
 /** Lucide `briefcase`. */
 val RytmIcons.Work: ImageVector get() = _work
+
+// Added on request (account owner, 2026-08-25) for expense categories the
+// curated PICKER_ICONS list didn't cover — games, PC, Google/cloud services,
+// mobile, internet, pets. Same js/classic-globals.js ICON_PATHS additions
+// mirror these under the same string keys (gamepad/monitor/cloud/mobile/
+// wifi/pets) so a category icon chosen on either platform round-trips.
+private val _gamepad by lazy { icon("Gamepad",
+        "M6,11L10,11",
+        "M8,9L8,13",
+        "M15,12L15.01,12",
+        "M18,10L18.01,10",
+        "M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z",
+) }
+
+/** Lucide `gamepad-2`. */
+val RytmIcons.Gamepad: ImageVector get() = _gamepad
+
+private val _monitor by lazy { icon("Monitor",
+        "M4,3 H20 A2,2 0 0 1 22,5 V15 A2,2 0 0 1 20,17 H4 A2,2 0 0 1 2,15 V5 A2,2 0 0 1 4,3 Z",
+        "M8,21L16,21",
+        "M12,17L12,21",
+) }
+
+/** Lucide `monitor`. */
+val RytmIcons.Monitor: ImageVector get() = _monitor
+
+private val _cloud by lazy { icon("Cloud",
+        "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z",
+) }
+
+/** Lucide `cloud`. */
+val RytmIcons.Cloud: ImageVector get() = _cloud
+
+private val _mobile by lazy { icon("Mobile",
+        "M7,2 H17 A2,2 0 0 1 19,4 V20 A2,2 0 0 1 17,22 H7 A2,2 0 0 1 5,20 V4 A2,2 0 0 1 7,2 Z",
+        "M12 18h.01",
+) }
+
+/** Lucide `smartphone`. */
+val RytmIcons.Mobile: ImageVector get() = _mobile
+
+private val _wifi by lazy { icon("Wifi",
+        "M12 20h.01",
+        "M2 8.82a15 15 0 0 1 20 0",
+        "M5 12.859a10 10 0 0 1 14 0",
+        "M8.5 16.429a5 5 0 0 1 7 0",
+) }
+
+/** Lucide `wifi`. */
+val RytmIcons.Wifi: ImageVector get() = _wifi
+
+private val _pets by lazy { icon("Pets",
+        "M9,4 a2,2 0 1 0 4,0 a2,2 0 1 0 -4,0",
+        "M16,8 a2,2 0 1 0 4,0 a2,2 0 1 0 -4,0",
+        "M18,16 a2,2 0 1 0 4,0 a2,2 0 1 0 -4,0",
+        "M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z",
+) }
+
+/** Lucide `paw-print`. */
+val RytmIcons.Pets: ImageVector get() = _pets

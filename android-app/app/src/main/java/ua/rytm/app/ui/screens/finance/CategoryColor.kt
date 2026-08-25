@@ -33,11 +33,13 @@ import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.Calculate
 import ua.rytm.app.ui.icons.CalendarMonth
 import ua.rytm.app.ui.icons.CardGiftcard
+import ua.rytm.app.ui.icons.Cloud
 import ua.rytm.app.ui.icons.CreditCard
 import ua.rytm.app.ui.icons.Description
 import ua.rytm.app.ui.icons.DirectionsCar
 import ua.rytm.app.ui.icons.Fastfood
 import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.Gamepad
 import ua.rytm.app.ui.icons.GpsFixed
 import ua.rytm.app.ui.icons.Groups
 import ua.rytm.app.ui.icons.Home
@@ -45,11 +47,14 @@ import ua.rytm.app.ui.icons.Inbox
 import ua.rytm.app.ui.icons.LocalCafe
 import ua.rytm.app.ui.icons.LocalFireDepartment
 import ua.rytm.app.ui.icons.LocalPharmacy
+import ua.rytm.app.ui.icons.Mobile
 import ua.rytm.app.ui.icons.MonetizationOn
+import ua.rytm.app.ui.icons.Monitor
 import ua.rytm.app.ui.icons.MonitorHeart
 import ua.rytm.app.ui.icons.Notifications
 import ua.rytm.app.ui.icons.Payments
 import ua.rytm.app.ui.icons.Person
+import ua.rytm.app.ui.icons.Pets
 import ua.rytm.app.ui.icons.Phone
 import ua.rytm.app.ui.icons.PhotoCamera
 import ua.rytm.app.ui.icons.PieChart
@@ -64,6 +69,7 @@ import ua.rytm.app.ui.icons.Star
 import ua.rytm.app.ui.icons.SwapHoriz
 import ua.rytm.app.ui.icons.TrendingDown
 import ua.rytm.app.ui.icons.TrendingUp
+import ua.rytm.app.ui.icons.Wifi
 import ua.rytm.app.ui.icons.Work
 
 // PWA has a real per-category color/icon map (js/state.js's categoryIcons +
@@ -143,6 +149,16 @@ val PICKER_ICONS: Map<String, ImageVector> = mapOf(
         "flame" to RytmIcons.LocalFireDepartment,
         "handCoin" to RytmIcons.Payments,
         "pharmacy" to RytmIcons.LocalPharmacy,
+        // Added on request (account owner, 2026-08-25) — games/PC/Google
+        // (cloud)/mobile/internet/pets categories the curated PWA list
+        // didn't cover. Mirrored into js/classic-globals.js's ICON_NAMES
+        // under the same keys so the stored value round-trips.
+        "gamepad" to RytmIcons.Gamepad,
+        "monitor" to RytmIcons.Monitor,
+        "cloud" to RytmIcons.Cloud,
+        "mobile" to RytmIcons.Mobile,
+        "wifi" to RytmIcons.Wifi,
+        "pets" to RytmIcons.Pets,
     )
 
 // Exact-name map — confirmed by reading js/core.js's own CAT_ICON, translated
