@@ -48,6 +48,7 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.ui.localizedDomainText
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
 // (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
@@ -75,7 +76,7 @@ fun ProfilesManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)

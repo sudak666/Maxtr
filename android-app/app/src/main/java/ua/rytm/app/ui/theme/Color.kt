@@ -16,10 +16,19 @@ val PurpleLight2 = Color(0xFF7C3AED) // --purple2 (light theme)
 val GreenDark = Color(0xFF10B981)
 val GreenDark2 = Color(0xFF34D399)
 val GreenLight2 = Color(0xFF059669)
+// Accessible light-theme money tones. #059669/#DC2626 measure 3.77:1/4.83:1
+// on white and far less on the tinted mini-stat wash, so semantic money text
+// in the light theme uses these deeper tones instead (7.8:1 / 8.3:1 on white,
+// >5:1 on the wash). See ui/theme/SemanticColors.kt.
+val GreenText = Color(0xFF065F46)
+// Gradient end for the green FAB: white-on-#10B981 was 2.54:1 even as large
+// bold text, #059669→#047857 keeps it at 3.77:1 minimum.
+val GreenDeep = Color(0xFF047857)
 
 val RedDark = Color(0xFFEF4444)
 val RedDark2 = Color(0xFFF87171)
 val RedLight2 = Color(0xFFDC2626)
+val RedText = Color(0xFF991B1B)
 
 val BlueDark = Color(0xFF3B82F6)
 val BlueDark2 = Color(0xFF60A5FA)

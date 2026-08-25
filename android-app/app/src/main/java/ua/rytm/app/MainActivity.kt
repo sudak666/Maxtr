@@ -3,6 +3,7 @@ package ua.rytm.app
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
+import ua.rytm.app.data.local.ThemePreference
 import ua.rytm.app.navigation.RytmNavHost
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.auth.LoginScreen
@@ -42,7 +44,17 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         val app = application as RytmApplication
         setContent {
-            val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+            // Nullable initial on purpose (same reasoning as `hasPin` below):
+            // committing to a theme before DataStore is read guaranteed a
+            // dark first frame for every light-theme user.
+            val themePreference by app.settingsStore.themePreference.collectAsState(initial = null)
+            val systemDark = isSystemInDarkTheme()
+            val darkTheme = when (themePreference) {
+                ThemePreference.LIGHT -> false
+                ThemePreference.DARK -> true
+                ThemePreference.SYSTEM -> systemDark
+                null -> systemDark
+            }
             val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
             var language by remember { mutableStateOf<String?>(null) }
             val reducedMotion = rememberReducedMotion()
@@ -59,6 +71,7 @@ class MainActivity : FragmentActivity() {
             RytmTheme(darkTheme = darkTheme) {
                 CompositionLocalProvider(LocalHideAmounts provides hideAmounts, LocalReducedMotion provides reducedMotion) {
                 Surface(modifier = Modifier.fillMaxSize()) {
+                    if (themePreference == null) return@Surface
                     val authViewModel: AuthViewModel = viewModel()
                     val uid = authViewModel.currentUser?.uid
                     if (uid == null) {

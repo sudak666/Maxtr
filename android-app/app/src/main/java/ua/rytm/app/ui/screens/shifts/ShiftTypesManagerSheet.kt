@@ -43,6 +43,9 @@ import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.ShiftsRepository
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 
 // Mirrors js/settings-managers.js's shift-types-modal (openShiftTypesManager()/
 // renderShiftTypesList()) — same collapsed-summary-row-with-pencil-toggle-to-expand
@@ -62,7 +65,7 @@ fun ShiftTypesManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
             Text(stringResource(R.string.shift_types_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
 

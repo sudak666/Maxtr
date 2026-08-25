@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Groups
@@ -91,6 +93,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalResources
@@ -110,6 +113,7 @@ import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.CsvImportError
 import ua.rytm.app.data.CsvImportErrorReason
 import ua.rytm.app.data.TransactionsCsvRepository
+import ua.rytm.app.data.local.ThemePreference
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
 import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
@@ -173,7 +177,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
     var csvBusy by remember { mutableStateOf(false) }
-    val darkTheme by app.settingsStore.isDarkTheme.collectAsState(initial = true)
+    val themePreference by app.settingsStore.themePreference.collectAsState(initial = ThemePreference.DARK)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
     val language by app.settingsStore.language.collectAsState(initial = "uk")
@@ -349,7 +353,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             ) + authViewModel.currentUser?.email.orEmpty())
             val securityVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle))
             val notificationsVisible = uid != null && sectionVisible("security", localizedSettingsStrings(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle))
-            val appearanceVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark))
+            val appearanceVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system))
             val aboutVisible = sectionVisible("app", localizedSettingsStrings(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary))
             val financeVisible = sectionVisible("finance", localizedSettingsStrings(
                 R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
@@ -467,10 +471,28 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             if (appearanceVisible) {
                 SettingsSectionLabel(stringResource(R.string.settings_appearance))
                 RoundedChoiceSelector(
-                    labels = listOf(stringResource(R.string.settings_theme_light), stringResource(R.string.settings_theme_dark)),
-                    icons = listOf(Icons.Filled.LightMode, Icons.Filled.DarkMode),
-                    selectedIndex = if (darkTheme) 1 else 0,
-                    onSelect = { scope.launch { app.settingsStore.setDarkTheme(it == 1) } },
+                    labels = listOf(
+                        stringResource(R.string.settings_theme_light),
+                        stringResource(R.string.settings_theme_dark),
+                        stringResource(R.string.settings_theme_system),
+                    ),
+                    icons = listOf(Icons.Filled.LightMode, Icons.Filled.DarkMode, Icons.Filled.BrightnessAuto),
+                    selectedIndex = when (themePreference) {
+                        ThemePreference.LIGHT -> 0
+                        ThemePreference.DARK -> 1
+                        ThemePreference.SYSTEM -> 2
+                    },
+                    onSelect = { index ->
+                        scope.launch {
+                            app.settingsStore.setThemePreference(
+                                when (index) {
+                                    0 -> ThemePreference.LIGHT
+                                    1 -> ThemePreference.DARK
+                                    else -> ThemePreference.SYSTEM
+                                }
+                            )
+                        }
+                    },
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 RoundedChoiceSelector(
@@ -1040,14 +1062,21 @@ private fun RoundedChoiceSelector(
             Row(
                 Modifier.weight(1f).clip(shape)
                     .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                    .clickable { onSelect(index) }.padding(horizontal = 12.dp, vertical = 11.dp),
+                    .selectable(selected = selected, role = Role.RadioButton) { onSelect(index) }
+                    .padding(horizontal = 10.dp, vertical = 11.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 val icon = icons?.getOrNull(index)
                 if (icon != null) Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
                 else if (selected) Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(label, modifier = Modifier.padding(start = if (icon != null || selected) 7.dp else 0.dp), fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
+                Text(
+                    label,
+                    modifier = Modifier.padding(start = if (icon != null || selected) 7.dp else 0.dp),
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }

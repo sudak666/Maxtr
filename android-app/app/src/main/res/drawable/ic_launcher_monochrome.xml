@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Themed-icon (<monochrome>) layer for Android 13+. Same Rytm mark as
+         ic_launcher_foreground, redrawn as a single-color stroke glyph — a
+         themed layer is masked by its alpha only, so the filled two-tone
+         version would flatten into one solid blob. Stroke language matches
+         the app's own icon set. -->
+
+    <!-- Calendar hangers -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M41.47,29.6 V34.7" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M66.34,29.6 V34.7" />
+
+    <!-- Card outline -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineJoin="round"
+        android:pathData="M36.17,34.32 H71.64 A7.42,7.42 0 0 1 79.06,41.74 V69.78 A7.42,7.42 0 0 1 71.64,77.2 H36.17 A7.42,7.42 0 0 1 28.75,69.78 V41.74 A7.42,7.42 0 0 1 36.17,34.32 Z" />
+
+    <!-- Header divider -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M28.75,45.74 H79.06" />
+
+    <!-- Trend line -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M35.07,69.5 L45.09,62.72 L52.89,66.99 L61.61,56.97 L72.47,50.57" />
+</vector>

@@ -1,8 +1,10 @@
 <resources>
     <!-- Compose owns all real theming (see ui/theme/Theme.kt); this is only the
-         pre-Compose window theme Android needs before the first frame draws. -->
+         pre-Compose window theme Android needs before the first frame draws.
+         Light here, dark in values-night/ — a single hardcoded dark value used
+         to flash dark on every cold start under the light theme. -->
     <style name="Theme.Rytm" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowBackground">#1c1c1f</item>
+        <item name="android:windowBackground">#f4f3f1</item>
     </style>
 </resources>

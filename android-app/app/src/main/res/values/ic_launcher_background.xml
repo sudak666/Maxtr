@@ -1,3 +1,6 @@
 <resources>
-    <color name="ic_launcher_background">#8b5cf6</color>
+    <!-- Exact background purple of the PWA's own icon-512.png (#7C3AED =
+         PurpleLight2 in ui/theme/Color.kt), so the launcher icon, the TWA
+         listing artwork and the web app all read as one brand. -->
+    <color name="ic_launcher_background">#7C3AED</color>
 </resources>
