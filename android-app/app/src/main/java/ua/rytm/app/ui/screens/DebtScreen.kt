@@ -111,6 +111,11 @@ import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import androidx.compose.runtime.LaunchedEffect
 import ua.rytm.app.ui.LocalSnackbarHost
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import ua.rytm.app.ui.screens.debt.parsePlainDebtAmount
 
 // Implements the in-scope subset of CLAUDE.md §1.4: debt chips, hero balance,
 // progress bar, chip stats, due chip, payoff-forecast burndown chart,
@@ -262,7 +267,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             }
         }
         if (canEdit) item {
-            var addOpen by remember { mutableStateOf(false) }
+            var addOpen by rememberSaveable { mutableStateOf(false) }
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier)
@@ -270,7 +275,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 }
             }
             if (addOpen) {
-                var name by remember { mutableStateOf("") }
+                var name by rememberSaveable { mutableStateOf("") }
                 AlertDialog(
                     onDismissRequest = { addOpen = false },
                     title = { Text(stringResource(R.string.debt_new_default)) },
@@ -443,7 +448,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
 @Composable
 internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, content: @Composable () -> Unit) {
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
-    var deleteCommitted by remember { mutableStateOf(false) }
+    var deleteCommitted by rememberSaveable { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
@@ -501,9 +506,14 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
 @Composable
 private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var amount by remember { mutableStateOf("") }
-    var balance by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(todayLabel()) }
+    var amount by rememberSaveable { mutableStateOf("") }
+    var balance by rememberSaveable { mutableStateOf("") }
+    var date by rememberSaveable { mutableStateOf(todayLabel()) }
+    var submitted by rememberSaveable { mutableStateOf(false) }
+    // Per-field validation, marked on the field itself: the sheet used to
+    // accept anything and only report a problem after the save round-trip.
+    val amountInvalid = submitted && parsePlainDebtAmount(amount) == null
+    val balanceInvalid = submitted && balance.isNotBlank() && parsePlainDebtAmount(balance) == null
 
     ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -522,13 +532,31 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = amountInvalid,
+                supportingText = if (amountInvalid) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                 label = { Text(stringResource(R.string.debt_payment_amount)) },
             )
-            OutlinedTextField(value = balance, onValueChange = { balance = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.debt_new_balance)) })
+            OutlinedTextField(
+                value = balance,
+                onValueChange = { balance = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = balanceInvalid,
+                supportingText = if (balanceInvalid) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                label = { Text(stringResource(R.string.debt_new_balance)) },
+            )
             DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 OutlinedButton(onClick = viewModel::closeNewEntrySheet) { Text(stringResource(R.string.action_cancel)) }
-                Button(onClick = { viewModel.addEntry(amount, balance, date) }, enabled = !viewModel.saving) { Text(stringResource(R.string.action_add)) }
+                Button(
+                    onClick = {
+                        submitted = true
+                        if (parsePlainDebtAmount(amount) != null) viewModel.addEntry(amount, balance, date)
+                    },
+                    enabled = !viewModel.saving,
+                ) { Text(stringResource(R.string.action_add)) }
             }
         }
     }

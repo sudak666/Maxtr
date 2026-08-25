@@ -48,6 +48,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 // Mirrors js/settings-managers.js's shift-types-modal (openShiftTypesManager()/
 // renderShiftTypesList()) — same collapsed-summary-row-with-pencil-toggle-to-expand
@@ -148,6 +150,8 @@ private fun ShiftTypeRow(
                 onValueChange = { nameText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = nameText.isBlank(),
+                supportingText = if (nameText.isBlank()) ({ Text(stringResource(R.string.validation_name_required)) }) else null,
                 label = { Text(stringResource(R.string.field_name)) },
             )
             androidx.compose.runtime.LaunchedEffect(nameText) {
@@ -161,6 +165,9 @@ private fun ShiftTypeRow(
                     onValueChange = { amountText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
+                    isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
+                    supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     label = { Text(stringResource(R.string.shift_pay)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(amountText) {
@@ -174,6 +181,9 @@ private fun ShiftTypeRow(
                     onValueChange = { hoursText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
+                    isError = hoursText.isNotBlank() && hoursText.toDoubleOrNull() == null,
+                    supportingText = if (hoursText.isNotBlank() && hoursText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     label = { Text(stringResource(R.string.shift_hours)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(hoursText) {

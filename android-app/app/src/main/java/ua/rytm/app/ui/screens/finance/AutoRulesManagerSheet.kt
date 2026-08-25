@@ -50,6 +50,7 @@ import ua.rytm.app.data.local.AutoRuleEntity
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,10 +58,10 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
     val rules by repository.autoRules.collectAsState(initial = emptyList())
     val categories by repository.categoriesByType.collectAsState(initial = emptyMap())
     val scope = rememberCoroutineScope()
-    var expandedId by remember { mutableStateOf<String?>(null) }
-    var pendingDelete by remember { mutableStateOf<String?>(null) }
-    var saving by remember { mutableStateOf(false) }
-    var errorVisible by remember { mutableStateOf(false) }
+    var expandedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
+    var saving by rememberSaveable { mutableStateOf(false) }
+    var errorVisible by rememberSaveable { mutableStateOf(false) }
     fun persist(block: suspend () -> Unit) { if (!saving) scope.launch { saving = true; runCatching { block(); sync.save(uid, profileId) }.onFailure { errorVisible = true }; saving = false } }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -112,7 +113,7 @@ private fun RuleEditor(rule: AutoRuleEntity, categories: Map<TxType, List<String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RuleDropdown(@StringRes labelRes: Int, options: List<String>, selected: String, typeValues: Boolean, onSelect: (String) -> Unit) {
-    var open by remember { mutableStateOf(false) }
+    var open by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(open, { open = it }) {
         val selectedText = if (typeValues) stringResource(if (selected == "income") R.string.tx_income else R.string.tx_expense) else localizedDomainText(selected)
         OutlinedTextField(selectedText, {}, readOnly = true, label = { Text(stringResource(labelRes)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) }, modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable))

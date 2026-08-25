@@ -68,6 +68,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Mirrors js/settings-managers.js's categories-modal, including the
 // toggleSubcatPanel()/addSubcategory()/deleteSubcategory() subcategory panel
@@ -83,12 +84,12 @@ fun CategoriesManagerSheet(
     viewModel: CategoriesManagerViewModel = viewModel(factory = CategoriesManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var newName by remember { mutableStateOf("") }
-    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
-    var newSubName by remember { mutableStateOf("") }
+    var newName by rememberSaveable { mutableStateOf("") }
+    var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var newSubName by rememberSaveable { mutableStateOf("") }
     var pendingDeleteSub by remember { mutableStateOf<Pair<String, String>?>(null) } // (categoryName, subName)
     var pendingRename by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var openMenuId by remember { mutableStateOf<String?>(null) }
+    var openMenuId by rememberSaveable { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -196,6 +197,7 @@ fun CategoriesManagerSheet(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     OutlinedTextField(
+                                        isError = newSubName.isBlank(),
                                         value = newSubName,
                                         onValueChange = { newSubName = it },
                                         label = { Text(stringResource(R.string.subcategory_label)) },
@@ -215,6 +217,7 @@ fun CategoriesManagerSheet(
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
+                    isError = newName.isBlank(),
                     label = { Text(stringResource(R.string.category_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,

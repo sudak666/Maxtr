@@ -132,7 +132,7 @@ fun ShiftsScreen() {
         factory = ShiftsViewModel.factory(app.shiftsRepository, dataUid, profileId),
     )
     val stats = viewModel.monthStats
-    var shiftTypesSheetOpen by remember { mutableStateOf(false) }
+    var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbar = LocalSnackbarHost.current ?: ownHost
@@ -573,7 +573,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LabeledDropdown(label: String, options: List<Pair<String, String>>, selected: String?, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val selectedLabel = localizedDomainText(options.firstOrNull { it.first == selected }?.second.orEmpty())
     Column {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

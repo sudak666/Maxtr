@@ -147,6 +147,7 @@ import ua.rytm.app.ui.theme.Pink
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalSnackbarHost
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
@@ -169,30 +170,30 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val resources = LocalResources.current
     val app = context.applicationContext as RytmApplication
     val scope = rememberCoroutineScope()
-    var walletsSheetOpen by remember { mutableStateOf(false) }
-    var categoriesSheetOpen by remember { mutableStateOf(false) }
-    var budgetsSheetOpen by remember { mutableStateOf(false) }
-    var tagsSheetOpen by remember { mutableStateOf(false) }
-    var recurringSheetOpen by remember { mutableStateOf(false) }
-    var autoRulesSheetOpen by remember { mutableStateOf(false) }
-    var goalsSheetOpen by remember { mutableStateOf(false) }
-    var ratesSheetOpen by remember { mutableStateOf(false) }
-    var monobankSheetOpen by remember { mutableStateOf(false) }
-    var widgetsSheetOpen by remember { mutableStateOf(false) }
-    var shiftTypesSheetOpen by remember { mutableStateOf(false) }
-    var pinSheetOpen by remember { mutableStateOf(false) }
-    var notifTypesSheetOpen by remember { mutableStateOf(false) }
-    var profilesSheetOpen by remember { mutableStateOf(false) }
-    var pendingSignOut by remember { mutableStateOf(false) }
-    var premiumDialogOpen by remember { mutableStateOf(false) }
-    var pendingDeleteAccount by remember { mutableStateOf(false) }
-    var pendingResetProfile by remember { mutableStateOf(false) }
-    var resetProfileBusy by remember { mutableStateOf(false) }
-    var settingsSearch by remember { mutableStateOf("") }
+    var walletsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var categoriesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var tagsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var recurringSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var autoRulesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var ratesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var widgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var pinSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var notifTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var profilesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var pendingSignOut by rememberSaveable { mutableStateOf(false) }
+    var premiumDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
+    var pendingResetProfile by rememberSaveable { mutableStateOf(false) }
+    var resetProfileBusy by rememberSaveable { mutableStateOf(false) }
+    var settingsSearch by rememberSaveable { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
     val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
     var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
-    var csvBusy by remember { mutableStateOf(false) }
+    var csvBusy by rememberSaveable { mutableStateOf(false) }
     val themePreference by app.settingsStore.themePreference.collectAsState(initial = ThemePreference.DARK)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
@@ -213,7 +214,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbarHostState = LocalSnackbarHost.current ?: ownHost
-    var pendingMessage by remember { mutableStateOf<String?>(null) }
+    var pendingMessage by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
     }
@@ -221,7 +222,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(resources.getString(it)); authViewModel.consumeError() }
     }
 
-    var pushBusy by remember { mutableStateOf(false) }
+    var pushBusy by rememberSaveable { mutableStateOf(false) }
     val pushEnabled by (if (uid != null) app.settingsStore.isPushEnabled(uid) else flowOf(false)).collectAsState(initial = false)
     var pendingPushEnabled by remember { mutableStateOf<Boolean?>(null) }
     val displayedPushEnabled = pendingPushEnabled ?: pushEnabled

@@ -51,6 +51,7 @@ import ua.rytm.app.ui.localizedDomainText
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
 // (step 32) the "Поділитись поточним профілем"/"Приєднатися за кодом" rows
@@ -72,9 +73,9 @@ fun ProfilesManagerSheet(
     val viewModel: ProfilesManagerViewModel = viewModel(factory = ProfilesManagerViewModel.factory(app, uid))
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    var newName by remember { mutableStateOf("") }
-    var renamingId by remember { mutableStateOf<String?>(null) }
-    var joinCode by remember { mutableStateOf("") }
+    var newName by rememberSaveable { mutableStateOf("") }
+    var renamingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var joinCode by rememberSaveable { mutableStateOf("") }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(

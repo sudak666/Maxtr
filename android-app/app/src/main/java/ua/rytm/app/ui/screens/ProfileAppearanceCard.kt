@@ -77,6 +77,7 @@ import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.BlueLight2
 import ua.rytm.app.ui.theme.PinkDeep
 import ua.rytm.app.ui.theme.RytmRadii
+import androidx.compose.runtime.saveable.rememberSaveable
 
 private data class BuiltinAvatar(val id: String, val icon: ImageVector, val colors: List<Color>)
 
@@ -102,9 +103,9 @@ fun ProfileAppearanceCard(
     val scope = rememberCoroutineScope()
     var appearance by remember(uid, dataOwnerUid, profileId) { mutableStateOf(ProfileAppearance()) }
     var draft by remember(uid, dataOwnerUid, profileId) { mutableStateOf("") }
-    var editing by remember { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
-    var avatarDialog by remember { mutableStateOf(false) }
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var busy by rememberSaveable { mutableStateOf(false) }
+    var avatarDialog by rememberSaveable { mutableStateOf(false) }
     val loadFailed = stringResource(R.string.profile_load_failed)
     val saveFailed = stringResource(R.string.profile_save_failed)
     val invalidImage = stringResource(R.string.profile_invalid_image)

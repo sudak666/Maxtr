@@ -24,6 +24,26 @@ private val dateRegex = Regex("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 /** Returns a locale-independent error code, or null if the draft is valid. */
 enum class TxValidationError { INVALID_AMOUNT, AMOUNT_TOO_LARGE, DATE_REQUIRED, INVALID_DATE, WALLET_REQUIRED, COMMENT_TOO_LONG, CATEGORY_TOO_LONG, SAME_WALLETS }
 
+/**
+ * Which field an error belongs to.
+ *
+ * Validation used to produce one generic message rendered at the very bottom
+ * of the form, leaving the user to work out that "invalid amount" referred to
+ * a field that may already be scrolled off screen. The rules themselves are
+ * unchanged — this only says where each one lands.
+ */
+enum class TxFormField { AMOUNT, DATE, WALLET, TARGET_WALLET, COMMENT, CATEGORY }
+
+val TxValidationError.field: TxFormField
+    get() = when (this) {
+        TxValidationError.INVALID_AMOUNT, TxValidationError.AMOUNT_TOO_LARGE -> TxFormField.AMOUNT
+        TxValidationError.DATE_REQUIRED, TxValidationError.INVALID_DATE -> TxFormField.DATE
+        TxValidationError.WALLET_REQUIRED -> TxFormField.WALLET
+        TxValidationError.SAME_WALLETS -> TxFormField.TARGET_WALLET
+        TxValidationError.COMMENT_TOO_LONG -> TxFormField.COMMENT
+        TxValidationError.CATEGORY_TOO_LONG -> TxFormField.CATEGORY
+    }
+
 fun validateTransactionDraft(draft: TransactionDraft, isTransfer: Boolean): TxValidationError? {
     if (!draft.amount.isFinite() || draft.amount <= 0) return TxValidationError.INVALID_AMOUNT
     if (draft.amount >= TX_AMOUNT_MAX) return TxValidationError.AMOUNT_TOO_LARGE

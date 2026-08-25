@@ -3,6 +3,9 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -38,12 +41,64 @@ class FinanceViewModel(
     private val syncRepository: TransactionsSyncRepository,
     private val auth: FirebaseAuth,
     private val activeProfileStore: ActiveProfileStore,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     companion object {
         fun factory(app: RytmApplication) = viewModelFactory {
-            initializer { FinanceViewModel(app.financeRepository, app.transactionsSyncRepository, FirebaseAuth.getInstance(), app.activeProfileStore) }
+            initializer {
+                FinanceViewModel(
+                    app.financeRepository,
+                    app.transactionsSyncRepository,
+                    FirebaseAuth.getInstance(),
+                    app.activeProfileStore,
+                    createSavedStateHandle(),
+                )
+            }
         }
+
+        private const val DRAFT_KEY = "tx_draft"
+    }
+
+    /**
+     * The half-typed transaction survives process death, not just rotation.
+     *
+     * A ViewModel without a SavedStateHandle dies with its process, and
+     * Android OEMs kill backgrounded processes aggressively — losing a
+     * half-entered expense is exactly the kind of thing Play Console tracks
+     * as a quality signal. Only the draft is persisted (all Strings), never
+     * the loaded data, which is re-read from Room anyway.
+     */
+    private fun persistDraft() {
+        savedState[DRAFT_KEY] = arrayListOf(
+            if (sheetVisible) "1" else "0",
+            editingTxId.orEmpty(),
+            formType.name,
+            formWalletId,
+            formTargetWalletId,
+            formAmountText,
+            formCategory.orEmpty(),
+            formSubcategory.orEmpty(),
+            formDate,
+            formComment,
+            formSelectedTagIds.joinToString("\u001f"),
+        )
+    }
+
+    private fun restoreDraft() {
+        val saved: ArrayList<String> = savedState[DRAFT_KEY] ?: return
+        if (saved.size < 11) return
+        sheetVisible = saved[0] == "1"
+        editingTxId = saved[1].takeIf { it.isNotEmpty() }
+        formType = runCatching { TxType.valueOf(saved[2]) }.getOrDefault(TxType.EXPENSE)
+        formWalletId = saved[3]
+        formTargetWalletId = saved[4]
+        formAmountText = saved[5]
+        formCategory = saved[6].takeIf { it.isNotEmpty() }
+        formSubcategory = saved[7].takeIf { it.isNotEmpty() }
+        formDate = saved[8]
+        formComment = saved[9]
+        formSelectedTagIds = saved[10].split("\u001f").filter { it.isNotEmpty() }
     }
 
     var wallets by mutableStateOf<List<Wallet>>(emptyList())
@@ -70,6 +125,7 @@ class FinanceViewModel(
     private fun markLoadFailed() { loading = false; loadFailed = true }
 
     init {
+        restoreDraft()
         viewModelScope.launch { repository.seedIfEmpty() }
         repository.wallets.onEach { wallets = it; walletsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.transactions.onEach { transactions = it; transactionsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
@@ -153,12 +209,15 @@ class FinanceViewModel(
         private set
     @get:StringRes
     var formErrorRes by mutableStateOf<Int?>(null)
+    /** Which field [formErrorRes] belongs to, so the form can mark it. */
+    var formErrorField by mutableStateOf<TxFormField?>(null)
         private set
     var isSaving by mutableStateOf(false)
         private set
 
     fun toggleFormTag(id: String) {
         formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
+        persistDraft()
     }
 
     var pendingMessage by mutableStateOf<FinanceMessage?>(null)
@@ -177,7 +236,9 @@ class FinanceViewModel(
         formComment = ""
         formSelectedTagIds = emptyList()
         formErrorRes = null
+        formErrorField = null
         sheetVisible = true
+        persistDraft()
     }
 
     fun openEditTransactionSheet(tx: Transaction) {
@@ -192,29 +253,35 @@ class FinanceViewModel(
         formComment = tx.comment.orEmpty()
         formSelectedTagIds = tx.tags
         formErrorRes = null
+        formErrorField = null
         sheetVisible = true
+        persistDraft()
     }
 
-    fun closeSheet() { sheetVisible = false }
+    fun closeSheet() { sheetVisible = false; persistDraft() }
 
     fun onFormTypeChange(type: TxType) {
         formType = type
         formCategory = categoriesByType[type]?.firstOrNull()
         formSubcategory = null
+        persistDraft()
     }
 
-    fun onFormWalletChange(id: String) { formWalletId = id }
-    fun onFormTargetWalletChange(id: String) { formTargetWalletId = id }
+    fun onFormWalletChange(id: String) { formWalletId = id; persistDraft() }
+    fun onFormTargetWalletChange(id: String) { formTargetWalletId = id; persistDraft() }
     fun onFormAmountChange(text: String) {
         formAmountText = text
         formErrorRes = null
+        formErrorField = null
+        persistDraft()
     }
     fun onFormCategoryChange(category: String) {
         formCategory = category
         formSubcategory = null
+        persistDraft()
     }
-    fun onFormSubcategoryChange(sub: String?) { formSubcategory = sub }
-    fun onFormDateChange(date: String) { formDate = date }
+    fun onFormSubcategoryChange(sub: String?) { formSubcategory = sub; persistDraft() }
+    fun onFormDateChange(date: String) { formDate = date; persistDraft() }
     fun onFormCommentChange(text: String) {
         if (text.length <= TX_COMMENT_MAX) {
             formComment = text
@@ -227,11 +294,14 @@ class FinanceViewModel(
                 }
             }
         }
+        persistDraft()
     }
-    fun setFormDateToday() { formDate = LocalDate.now().toString() }
+    fun setFormDateToday() { formDate = LocalDate.now().toString(); persistDraft() }
     fun setFormAmount(value: Double) {
         formAmountText = if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
         formErrorRes = null
+        formErrorField = null
+        persistDraft()
     }
 
     val formWalletCurrency: String
@@ -268,7 +338,7 @@ class FinanceViewModel(
             comment = formComment.trim(),
         )
         val error = validateTransactionDraft(draft, isTransfer)
-        if (error != null) { formErrorRes = when (error) {
+        if (error != null) { formErrorField = error.field; formErrorRes = when (error) {
             TxValidationError.INVALID_AMOUNT -> R.string.validation_invalid_amount
             TxValidationError.AMOUNT_TOO_LARGE -> R.string.validation_amount_too_large
             TxValidationError.DATE_REQUIRED -> R.string.validation_date_required
@@ -325,6 +395,7 @@ class FinanceViewModel(
                 }
                 sheetVisible = false
             }.onFailure {
+                formErrorField = null
                 formErrorRes = R.string.transaction_save_failed
             }
             isSaving = false

@@ -86,7 +86,7 @@ import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
     val context = LocalContext.current
-    var email by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
