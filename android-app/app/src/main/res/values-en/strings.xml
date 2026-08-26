@@ -70,7 +70,7 @@
     <string name="monobank_disconnect">Disconnect</string><string name="monobank_disconnected">Monobank disconnected</string>
     <string name="monobank_disconnect_title">Disconnect Monobank</string>
     <string name="monobank_disconnect_body">Wallets and imported transactions will remain, but automatic import of new transactions will stop.</string>
-    <string name="goals_title">Goals</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
+    <string name="goals_title">Goals</string><string name="goals_description">Track savings for the things that matter</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
     <string name="goals_delete_title">Delete goal</string><string name="goals_delete_body">Delete this goal?</string>
     <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Reached</string>
     <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
@@ -89,7 +89,7 @@
     <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
     <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$d%%</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
-    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_six_months">6-month trend</string>
+    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="converter_from">From</string><string name="converter_to">To</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
     <string name="receipt_scan">Scan receipt</string>
@@ -142,6 +142,8 @@
     <string name="shifts_income_chart">Income trend — 6 months</string>
     <string name="shifts_quick_fill">Quick fill</string>
     <string name="shifts_quick_fill_hint">Fill the month using your pattern</string>
+    <string name="shifts_fill_current_month">Fill current month</string>
+    <string name="shifts_autofill_future">Automatic from now on</string>
     <string name="shift_type">Shift type</string>
     <string name="shift_pattern">Pattern</string>
     <string name="shift_pattern_daily">Daily</string>
@@ -149,7 +151,7 @@
     <string name="shift_pattern_2_2">2 on / 2 off</string>
     <string name="shift_pattern_3_3">3 on / 3 off</string>
     <string name="shifts_clear_month">Clear month</string>
-    <string name="shifts_weekend_a11y">weekend</string>
+    <string name="shifts_weekend_a11y">weekend</string><string name="shifts_other_month_a11y">day in an adjacent month</string>
     <string name="shifts_edit_day_a11y">edit shifts</string>
     <string name="shifts_clear_month_confirm">Every shift assigned in this month will be deleted. This cannot be undone.</string>
     <string name="shifts_autofill_title">Daily auto-fill</string>

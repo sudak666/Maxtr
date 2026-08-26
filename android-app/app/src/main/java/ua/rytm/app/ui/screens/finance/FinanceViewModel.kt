@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.TransactionsSyncRepository
@@ -156,9 +157,10 @@ class FinanceViewModel(
     fun clearCategoryFilter() { categoryFilter = null }
     fun toggleListExpanded() { listExpanded = !listExpanded }
 
-    fun deleteTransaction(id: String, onComplete: (Boolean) -> Unit = {}) {
+    fun deleteTransaction(id: String, animationDelayMs: Long = 0L, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             runCatching {
+                if (animationDelayMs > 0) delay(animationDelayMs)
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.deleteTransaction(ownerUid, profileId, id)
                 repository.deleteTransaction(id)
@@ -166,6 +168,22 @@ class FinanceViewModel(
                 onComplete(true)
             }.onFailure {
                 pendingMessage = FinanceMessage(R.string.transaction_delete_failed)
+                onComplete(false)
+            }
+        }
+    }
+
+    fun restoreTransaction(transaction: Transaction, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            runCatching {
+                val (ownerUid, profileId) = activeProfilePath()
+                val entity = transaction.toEntity()
+                syncRepository.saveTransaction(ownerUid, profileId, entity)
+                repository.upsertTransaction(transaction)
+            }.onSuccess {
+                onComplete(true)
+            }.onFailure {
+                pendingMessage = FinanceMessage(R.string.transaction_save_failed)
                 onComplete(false)
             }
         }

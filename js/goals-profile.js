@@ -49,22 +49,26 @@ function renderGoalsManagerList(){
       const saved=w?Math.max(0, wb[g.walletId]||0):0;
       const target=g.targetAmount||0;
       const done=target>0 && saved>=target;
+      const pct=target>0?Math.min(100,Math.round(saved/target*100)):0;
       const summary=w
         ? `${saved.toLocaleString('uk-UA')} / ${target.toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}${done?' · '+tr('goals_reached'):''}`
         : tr('goals_need_wallet');
       const row=document.createElement('div');
-      row.className='mgr-row';
+      row.className='mgr-row goal-manager-card';
       row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
       row.innerHTML=`
-        <div class="cat-row">
+        <div class="cat-row goal-manager-head">
           <span class="icon-badge icon-badge-sm" style="--badge-color:${w?w.color:'var(--muted)'}">${w?window.Icon(w.icon||'card'):''}</span>
           <div class="cat-row-body" style="cursor:default">
             <span class="cat-row-name">${w?escapeHtml(w.name):''}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span>
-            <span class="cat-row-sub">${summary}</span>
           </div>
-          <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${g.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-          <button class="mgr-del" data-action="delete-goal" data-id="${g.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+          <div class="goal-manager-actions">
+            <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${g.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+            <button class="mgr-del" data-action="delete-goal" data-id="${g.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+          </div>
         </div>
+        <div class="goal-manager-progress-meta"><span>${summary}</span><strong>${pct}%</strong></div>
+        <div class="goal-manager-progress"><div style="width:${pct}%"></div></div>
         ${open?`
         <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
           <div class="fg">

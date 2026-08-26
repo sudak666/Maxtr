@@ -72,7 +72,7 @@
     <string name="monobank_disconnect">Відключити</string><string name="monobank_disconnected">Monobank відключено</string>
     <string name="monobank_disconnect_title">Відключити Monobank</string>
     <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
-    <string name="goals_title">Цілі</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
+    <string name="goals_title">Цілі</string><string name="goals_description">Відстежуйте накопичення на важливі покупки</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
     <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
     <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Досягнуто</string>
     <string name="goals_choose_wallet">Оберіть гаманець</string><string name="goals_default_name">Ціль</string>
@@ -91,7 +91,7 @@
     <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
     <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$d%%</string>
     <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
-    <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
+    <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="converter_from">З</string><string name="converter_to">В</string><string name="analytics_other">Інше</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
     <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
     <string name="receipt_scan">Сканувати чек</string>
@@ -144,6 +144,8 @@
     <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
     <string name="shifts_quick_fill">Швидке заповнення</string>
     <string name="shifts_quick_fill_hint">Заповніть місяць за вашим шаблоном</string>
+    <string name="shifts_fill_current_month">Заповнити поточний місяць</string>
+    <string name="shifts_autofill_future">Автоматично надалі</string>
     <string name="shift_type">Тип зміни</string>
     <string name="shift_pattern">Періодичність</string>
     <string name="shift_pattern_daily">Щодня</string>
@@ -151,7 +153,7 @@
     <string name="shift_pattern_2_2">2 через 2</string>
     <string name="shift_pattern_3_3">3 через 3</string>
     <string name="shifts_clear_month">Очистити місяць</string>
-    <string name="shifts_weekend_a11y">вихідний</string>
+    <string name="shifts_weekend_a11y">вихідний</string><string name="shifts_other_month_a11y">день сусіднього місяця</string>
     <string name="shifts_edit_day_a11y">змінити зміни</string>
     <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
     <string name="shifts_autofill_title">Автозаповнення кожного дня</string>
