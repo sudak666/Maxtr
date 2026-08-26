@@ -93,6 +93,22 @@ android {
     bundle.language.enableSplit = false
 }
 
+// Compose compiler stability/metrics reports — design-audit stage 4 flagged
+// this as deferred because the repo had no Android CI job to run it in
+// (see .github/workflows/smoke-test.yml's "android" job, added alongside
+// this). Off by default (adds real time to every build) — pass
+// -PcomposeCompilerReports=true to generate app/build/compose_compiler/
+// *-composables.txt / *-classes.txt, which list every composable's
+// skippability and every class's stability, the same report the design
+// audit would have used to verify CategoryColor.kt's stage-4 recomposition
+// fix instead of reasoning about it from the source alone.
+if (project.hasProperty("composeCompilerReports")) {
+    composeCompiler {
+        reportsDestination = layout.buildDirectory.dir("compose_compiler")
+        metricsDestination = layout.buildDirectory.dir("compose_compiler")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

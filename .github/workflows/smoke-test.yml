@@ -327,3 +327,45 @@ jobs:
         run: |
           npx --yes firebase-tools emulators:exec --only firestore --project rytm-rules-test \
             "cd '$GITHUB_WORKSPACE' && node tests/firestore-rules.mjs"
+
+  android:
+    runs-on: ubuntu-latest
+    # Compile + lint validation for android-app/ — this repo had no Android
+    # CI job at all before this (see ANDROID_MIGRATION.md step 51 / the
+    # design-audit stage-4 entry that flagged Compose compiler metrics as
+    # deferred specifically because of this gap). No device/emulator here,
+    # so this doesn't run instrumented (connectedAndroidTest) or unit tests
+    # — CLAUDE.md's Android section still requires a real local
+    # ./gradlew assembleDebug + at least one real device/emulator run before
+    # any native-Android PR merges; this job only catches a Kotlin compile
+    # break or a real Android Lint finding on every push, which previously
+    # only surfaced the next time someone happened to build locally.
+    # keystore.properties (release signing) is real, gitignored, and not
+    # needed here — compileDebugKotlin/lintDebug never touch the release
+    # signing config.
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Compile (debug), with Compose compiler metrics
+        run: ./gradlew compileDebugKotlin -PcomposeCompilerReports=true --no-daemon
+
+      - name: Lint (debug)
+        run: ./gradlew lintDebug --no-daemon
+
+      - name: Upload Compose compiler stability/metrics reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-compiler-reports
+          path: android-app/app/build/compose_compiler/
+          if-no-files-found: warn

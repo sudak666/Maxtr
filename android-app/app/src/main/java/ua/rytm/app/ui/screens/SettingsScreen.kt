@@ -17,8 +17,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -322,17 +321,74 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         // no scroll modifier at all, so on a real device everything past
         // "Категорії" (Бюджети/Теги/Регулярні платежі/Типи змін) was
         // permanently unreachable — not a styling gap, a genuine dead end.
-        Column(
-            Modifier
+        //
+        // LazyColumn since the design-audit stage-4 follow-up: this screen
+        // is ~40 rows across 6 groups, previously all composed eagerly via
+        // Column+verticalScroll regardless of scroll position or the
+        // search/group filter above. Wrapping each section in its own
+        // item{} lets Compose skip composing/measuring whatever's off-screen
+        // or filtered out, instead of paying for the whole screen on every
+        // recomposition (see CategoryColor.kt's stage-4 fix for the same
+        // class of problem on the Finance list). Purely mechanical — same
+        // content, same order, same conditionals, just wrapped.
+        // Search index, built once per locale instead of on every keystroke.
+        //
+        // This used to re-run six localizedSettingsStrings() calls on every
+        // recomposition — ~80 stringResource lookups — and then lowercase
+        // all of them again inside sectionVisible(), i.e. every single
+        // character typed into the search box paid for the whole set. The
+        // strings only change when the locale does. Hoisted above the
+        // LazyColumn (rather than left inline, as when this was a plain
+        // Column) because LazyListScope's item{}-building lambda isn't
+        // itself a @Composable context — only the bodies of item{} blocks
+        // are, so remember()/derivedStateOf()/stringResource() calls that
+        // sit directly between item{} calls don't compile.
+        val accountKeywords = rememberSettingsKeywords(
+            R.string.settings_account, R.string.settings_sign_out, R.string.settings_sign_out_subtitle,
+            R.string.profiles_title, R.string.settings_profiles_subtitle, R.string.settings_premium,
+            R.string.settings_free_plan, R.string.settings_reset_profile, R.string.settings_reset_profile_subtitle,
+            R.string.settings_delete_account, R.string.settings_delete_account_subtitle,
+        )
+        val securityKeywords = rememberSettingsKeywords(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle)
+        val notificationsKeywords = rememberSettingsKeywords(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle)
+        val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
+        val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
+        val financeKeywords = rememberSettingsKeywords(
+            R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
+            R.string.settings_monobank, R.string.settings_monobank_subtitle, R.string.rates_title,
+            R.string.settings_rates_subtitle, R.string.categories_title, R.string.settings_categories_subtitle,
+            R.string.budgets_title, R.string.settings_budgets_subtitle, R.string.tags_title,
+            R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
+            R.string.widgets_title, R.string.settings_widgets_subtitle, R.string.recurring_title,
+            R.string.settings_recurring_subtitle, R.string.shift_types_title, R.string.settings_shift_types_subtitle,
+        )
+        val accountEmail = authViewModel.currentUser?.email.orEmpty().lowercase()
+
+        // derivedStateOf: only re-evaluates when the query or the group
+        // actually changes, not on every unrelated recomposition of this
+        // screen (of which there are many — 14+ sheet-open flags live here).
+        val accountVisible by remember(accountKeywords, accountEmail) {
+            derivedStateOf { sectionVisible("account", accountKeywords + accountEmail) }
+        }
+        val securityVisible by remember(securityKeywords) { derivedStateOf { sectionVisible("security", securityKeywords) } }
+        val notificationsVisible by remember(notificationsKeywords) { derivedStateOf { sectionVisible("security", notificationsKeywords) } }
+        val appearanceVisible by remember(appearanceKeywords) { derivedStateOf { sectionVisible("app", appearanceKeywords) } }
+        val aboutVisible by remember(aboutKeywords) { derivedStateOf { sectionVisible("app", aboutKeywords) } }
+        val financeVisible by remember(financeKeywords) { derivedStateOf { sectionVisible("finance", financeKeywords) } }
+
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = RytmDimens.ContentHorizontal)
                 .padding(bottom = RytmDimens.BottomContentClearance),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+            item(key = "settings-title") {
+                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+            }
 
+            item(key = "settings-search") {
             OutlinedTextField(
                 value = settingsSearch,
                 onValueChange = { settingsSearch = it },
@@ -348,6 +404,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 } else null,
                 placeholder = { Text(stringResource(R.string.settings_search_hint)) },
             )
+            }
+            item(key = "settings-group-filter") {
             FlowRow(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -367,49 +425,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                 }
             }
-
-            // Search index, built once per locale instead of on every
-            // keystroke.
-            //
-            // This used to re-run six localizedSettingsStrings() calls on
-            // every recomposition — ~80 stringResource lookups — and then
-            // lowercase all of them again inside sectionVisible(), i.e. every
-            // single character typed into the search box paid for the whole
-            // set. The strings only change when the locale does.
-            val accountKeywords = rememberSettingsKeywords(
-                R.string.settings_account, R.string.settings_sign_out, R.string.settings_sign_out_subtitle,
-                R.string.profiles_title, R.string.settings_profiles_subtitle, R.string.settings_premium,
-                R.string.settings_free_plan, R.string.settings_reset_profile, R.string.settings_reset_profile_subtitle,
-                R.string.settings_delete_account, R.string.settings_delete_account_subtitle,
-            )
-            val securityKeywords = rememberSettingsKeywords(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle)
-            val notificationsKeywords = rememberSettingsKeywords(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle)
-            val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
-            val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
-            val financeKeywords = rememberSettingsKeywords(
-                R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
-                R.string.settings_monobank, R.string.settings_monobank_subtitle, R.string.rates_title,
-                R.string.settings_rates_subtitle, R.string.categories_title, R.string.settings_categories_subtitle,
-                R.string.budgets_title, R.string.settings_budgets_subtitle, R.string.tags_title,
-                R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
-                R.string.widgets_title, R.string.settings_widgets_subtitle, R.string.recurring_title,
-                R.string.settings_recurring_subtitle, R.string.shift_types_title, R.string.settings_shift_types_subtitle,
-            )
-            val accountEmail = authViewModel.currentUser?.email.orEmpty().lowercase()
-
-            // derivedStateOf: only re-evaluates when the query or the group
-            // actually changes, not on every unrelated recomposition of this
-            // screen (of which there are many — 14+ sheet-open flags live here).
-            val accountVisible by remember(accountKeywords, accountEmail) {
-                derivedStateOf { sectionVisible("account", accountKeywords + accountEmail) }
             }
-            val securityVisible by remember(securityKeywords) { derivedStateOf { sectionVisible("security", securityKeywords) } }
-            val notificationsVisible by remember(notificationsKeywords) { derivedStateOf { sectionVisible("security", notificationsKeywords) } }
-            val appearanceVisible by remember(appearanceKeywords) { derivedStateOf { sectionVisible("app", appearanceKeywords) } }
-            val aboutVisible by remember(aboutKeywords) { derivedStateOf { sectionVisible("app", aboutKeywords) } }
-            val financeVisible by remember(financeKeywords) { derivedStateOf { sectionVisible("finance", financeKeywords) } }
 
-            if (accountVisible) {
+            if (accountVisible) { item(key = "settings-account") {
                 if (uid != null) {
                     ProfileAppearanceCard(
                         uid = uid,
@@ -468,9 +486,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         )
                     }
                 }
-            }
+            } }
 
-            if (uid != null && securityVisible) {
+            if (uid != null && securityVisible) { item(key = "settings-security") {
                 SettingsSectionLabel(stringResource(R.string.settings_security))
                 SettingsGroupCard {
                     SettingsRow(
@@ -482,9 +500,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                 }
 
-            }
+            } }
 
-            if (uid != null && notificationsVisible) {
+            if (uid != null && notificationsVisible) { item(key = "settings-notifications") {
                 SettingsSectionLabel(stringResource(R.string.settings_notifications))
                 SettingsGroupCard {
                     SettingsToggleRow(
@@ -510,9 +528,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         )
                     }
                 }
-            }
+            } }
 
-            if (appearanceVisible) {
+            if (appearanceVisible) { item(key = "settings-appearance") {
                 SettingsSectionLabel(stringResource(R.string.settings_appearance))
                 RoundedChoiceSelector(
                     labels = listOf(
@@ -565,9 +583,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         onCheckedChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
                     )
                 }
-            }
+            } }
 
-            if (aboutVisible) {
+            if (aboutVisible) { item(key = "settings-about") {
                 SettingsSectionLabel(stringResource(R.string.settings_about))
                 SettingsGroupCard {
                     SettingsRow(
@@ -598,9 +616,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 )
-            }
+            } }
 
-            if (canEdit && financeVisible) {
+            if (canEdit && financeVisible) { item(key = "settings-finance") {
                 SettingsSectionLabel(stringResource(R.string.settings_finance))
                 SettingsGroupCard {
                 SettingsRow(
@@ -695,8 +713,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
                 )
                 }
-            }
+            } }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
+                item(key = "settings-search-empty") {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -705,6 +724,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     Icon(RytmIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                     Text(stringResource(R.string.settings_search_empty), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(stringResource(R.string.settings_search_empty_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 }
             }
         }
