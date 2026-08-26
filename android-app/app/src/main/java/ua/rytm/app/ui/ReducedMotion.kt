@@ -15,6 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -43,12 +48,25 @@ fun rememberReducedMotion(): Boolean {
     return reduced
 }
 
+// Compose's own AnimatedVisibility default (expandIn()/shrinkOut(), which
+// grow/shrink from the CENTER in both axes) reads as the panel "popping"
+// oddly out of its own middle instead of unfolding — reported live, and a
+// real UX regression: every accordion-style reveal in the app (Debt's edit
+// panel, Shifts' quick-fill panel, Shifts' autofill-schedule fields) shares
+// this one composable, so all three had the same jarring reveal. Real
+// accordion motion (Material's own guidance, and what system Settings
+// panels use) expands vertically FROM THE TOP down, with a plain cross-fade
+// — never resizes horizontally and never appears to grow from the middle.
 @Composable
 fun ReducedMotionVisibility(visible: Boolean, content: @Composable () -> Unit) {
     if (LocalReducedMotion.current) {
         if (visible) content()
     } else {
-        AnimatedVisibility(visible = visible) { content() }
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(220)) + expandVertically(animationSpec = tween(220), expandFrom = Alignment.Top),
+            exit = fadeOut(tween(180)) + shrinkVertically(animationSpec = tween(180), shrinkTowards = Alignment.Top),
+        ) { content() }
     }
 }
 
