@@ -34,7 +34,7 @@ const DIST = join(ROOT, 'dist');
 
 const EXCLUDE_TOP = new Set([
   'firebase.json', 'firestore.rules', 'node_modules', 'functions',
-  'docs', 'scripts', 'tests', '_config.yml', 'dist',
+  'docs', 'scripts', 'tests', 'android-app', '_config.yml', 'dist',
   'package.json', 'package-lock.json', 'vite.config.js',
   '.git', '.github', '.gitignore', '.claude',
 ]);

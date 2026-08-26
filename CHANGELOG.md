@@ -1,5 +1,13 @@
 # Changelog
 
+- **Release-build hygiene follow-up (2026-08-26, PR #431)**. Updated the shared design-token regression test for the intentional 84dp→76dp Finance quick-action height. Excluded the native `android-app/` project from the PWA artifact copier: it was never a Hosting asset and on Windows could lock Gradle checksum files or silently bloat `dist/` while Android and PWA builds overlapped. Final `testDebugUnitTest`, `lintDebug`, signed `assembleRelease`, PWA lint/typecheck/build, and APK signature verification passed before merge.
+
+- **Full Ukrainian Settings navigation label (2026-08-26)**. Replaced the ambiguous Android bottom-navigation abbreviation “Налашт.” with “Налаштування”. Tabs now receive content-aware widths—more space for Settings and Shopping, less for the short Shifts and Debt labels—so the complete localized label fits without uniquely shrinking its typography or reducing touch targets.
+
+- **Compact Finance quick actions across Android/PWA (2026-08-26)**. Replaced the oversized vertical icon-badge cards with 76dp horizontal actions: standalone 26dp semantic icons, single-line labels, and no circular purple or green backgrounds, including the first Operation action. Phones retain a balanced 2×2 grid, tablets use four columns, and Android large-text mode switches to one column. PWA source cache bumped v156→v157.
+
+- **Subtle today marker across Android/PWA calendars (2026-08-26)**. Replaced the filled purple date circle and full-cell purple treatment with a compact accent bar beside the normal high-contrast day number. Today remains available in TalkBack/accessible text without visually overpowering assigned shifts. PWA source cache bumped v155→v156.
+
 - **Cross-platform design-polish release verification (2026-08-26)**. Completed the coordinated Android/PWA polish pass covering auth segmentation, responsive Finance actions, analytics/converter visuals, goals, Finance swipe deletion, calendar accessibility, and Quick Fill hierarchy. Android `testDebugUnitTest`, `lintDebug`, and a locally signed `assembleRelease` all passed; the release APK was produced successfully before merge.
 
 - **Neutral Quick Fill hierarchy across Android/PWA (2026-08-26)**. Removed the expanded panel's purple outer wash, glow, and nested dark capsule in favor of one neutral outlined surface. Split the duplicated controls into clearly titled current-month and future-automation sections, retained purple only for primary actions and active controls, and demoted Clear month to a compact destructive text action with confirmation. PWA source cache bumped v154→v155.
