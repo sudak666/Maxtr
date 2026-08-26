@@ -199,10 +199,19 @@ fun DebtScreen(
                         OutlinedButton(
                             onClick = { if (viewModel.historyExpanded) collapseHistory() else viewModel.toggleHistoryPanel() },
                             // Was `padding(end = 178.dp)` — an eyeballed offset
-                            // to dodge the FAB, leaving ~110dp for the label on
-                            // a 320dp screen. The list's own contentPadding
-                            // already reserves BottomContentClearance.
-                            modifier = Modifier.fillMaxWidth(),
+                            // to dodge the FAB horizontally, leaving ~110dp for
+                            // the label on a 320dp screen; fragile against any
+                            // FAB-width/translation change. The follow-up that
+                            // dropped it to a bare fillMaxWidth() assumed the
+                            // list's own bottom contentPadding already cleared
+                            // the FAB too — it doesn't, that padding only clears
+                            // the bottom NAV bar (see RytmDimens.FabRowClearance's
+                            // own comment) — so this button ended up sitting
+                            // directly behind "+ Платіж" (reported live via
+                            // screenshot). Real fix: extra bottom margin so this
+                            // button stacks fully above the FAB instead of
+                            // narrowing to dodge it sideways.
+                            modifier = Modifier.fillMaxWidth().padding(bottom = RytmDimens.FabRowClearance),
                             shape = RoundedCornerShape(RytmRadii.Row),
                         ) {
                             Text(stringResource(if (viewModel.historyExpanded) R.string.action_collapse_list else R.string.action_view_all))

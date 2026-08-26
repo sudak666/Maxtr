@@ -293,20 +293,11 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         ) {
             RytmDestination.entries.forEach { destination ->
                 val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
-                // Ukrainian navigation labels vary greatly in width. Reserving
-                // equal fifths forced "Налаштування" into the unclear "Налашт.".
-                // Keep one shared type style and distribute width by content.
-                val itemWeight = when (destination) {
-                    RytmDestination.Settings -> 1.45f
-                    RytmDestination.Shopping -> 1.05f
-                    RytmDestination.Shifts, RytmDestination.Debt -> 0.8f
-                    else -> 1f
-                }
                 RytmTabButton(
                     destination = destination,
                     selected = selected,
                     compact = compactHeight,
-                    modifier = Modifier.weight(itemWeight),
+                    modifier = Modifier.weight(1f),
                     onClick = {
                         navController.navigate(destination.route) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -432,19 +423,24 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
                 modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
             )
         }
-        Text(
-            stringResource(destination.labelRes),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.graphicsLayer {
-                if (selected) {
+        // Label only renders for the selected tab (Instagram/X/TikTok
+        // pattern) — at most one label competes for width at any time,
+        // so a long Ukrainian word like "Налаштування" always gets the
+        // full row width instead of a fixed per-item share and can never
+        // truncate, no matter how translations or font scale change later.
+        if (selected) {
+            Text(
+                stringResource(destination.labelRes),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.graphicsLayer {
                     alpha = labelAlpha.value
                     translationY = labelOffsetDp.value * density
-                }
-            },
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+                },
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
     }
 }

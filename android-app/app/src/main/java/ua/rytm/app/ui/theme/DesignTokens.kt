@@ -9,6 +9,19 @@ object RytmDimens {
     // Shared scroll tail: clears the complete floating navigation and leaves
     // a visible 16dp breathing gap below the final card on every main screen.
     val BottomContentClearance = 112.dp
+    // Extra clearance for a full-width element that would otherwise sit in
+    // the same screen band as a floating pill FAB (icon+label Row, ~56dp
+    // tall) positioned `BottomContentClearance` above the screen bottom.
+    // BottomContentClearance alone only clears the bottom NAVIGATION bar —
+    // it says nothing about a FAB floating above that bar, so a full-width
+    // row landing right at that boundary visually collides with the FAB
+    // instead of stacking above it (real incident: Debt tab's "Переглянути
+    // всі" button, reported live via screenshot, hidden behind "+ Платіж").
+    // Add this on top of BottomContentClearance for the last item preceding
+    // such a FAB, rather than dodging horizontally (narrower button/eyeballed
+    // end-padding) — narrowing was tried before here and already flagged as
+    // fragile once translations/font scale change the FAB's own width.
+    val FabRowClearance = 72.dp
     val BottomNavHorizontal = 14.dp
     val BottomNavBottom = 14.dp
     val SheetHorizontal = 22.dp

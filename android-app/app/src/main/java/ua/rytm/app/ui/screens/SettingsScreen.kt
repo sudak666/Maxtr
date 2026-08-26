@@ -21,7 +21,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +41,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -101,6 +105,7 @@ import ua.rytm.app.ui.theme.Slate
 import ua.rytm.app.ui.theme.Teal
 import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.GreenDark
+import ua.rytm.app.ui.theme.Gray
 import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.MonobankBrand
 import ua.rytm.app.ui.theme.MonobankBrandDark
@@ -532,29 +537,19 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
 
             if (appearanceVisible) { item(key = "settings-appearance") {
                 SettingsSectionLabel(stringResource(R.string.settings_appearance))
-                RoundedChoiceSelector(
-                    labels = listOf(
-                        stringResource(R.string.settings_theme_light),
-                        stringResource(R.string.settings_theme_dark),
-                        stringResource(R.string.settings_theme_system),
-                    ),
-                    icons = listOf(RytmIcons.LightMode, RytmIcons.DarkMode, RytmIcons.BrightnessAuto),
-                    selectedIndex = when (themePreference) {
-                        ThemePreference.LIGHT -> 0
-                        ThemePreference.DARK -> 1
-                        ThemePreference.SYSTEM -> 2
-                    },
-                    onSelect = { index ->
-                        scope.launch {
-                            app.settingsStore.setThemePreference(
-                                when (index) {
-                                    0 -> ThemePreference.LIGHT
-                                    1 -> ThemePreference.DARK
-                                    else -> ThemePreference.SYSTEM
-                                }
-                            )
-                        }
-                    },
+                // A 3-way horizontal segmented control with icon+text (the
+                // previous RoundedChoiceSelector here) squeezes "Системна"
+                // into an equal third of the row width, which truncates to
+                // "Систе..." at normal font scale on real devices — reported
+                // live. Google's own Settings app (and most Android system
+                // pickers) solves exactly this by giving each choice a full-
+                // width row instead of splitting the row three ways: a radio
+                // list. Every label always gets the whole card width, so it
+                // can never truncate regardless of translation length or the
+                // user's font-scale setting.
+                ThemePreferenceSelector(
+                    selected = themePreference,
+                    onSelect = { pref -> scope.launch { app.settingsStore.setThemePreference(pref) } },
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 RoundedChoiceSelector(
@@ -623,7 +618,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 SettingsGroupCard {
                 SettingsRow(
                     icon = RytmIcons.AccountBalanceWallet,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.wallets_title),
                     subtitle = stringResource(R.string.settings_wallets_subtitle),
                     onClick = { walletsSheetOpen = true },
@@ -637,77 +632,77 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 )
                 SettingsRow(
                     icon = RytmIcons.Category,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.categories_title),
                     subtitle = stringResource(R.string.settings_categories_subtitle),
                     onClick = { categoriesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.CurrencyExchange,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.rates_title),
                     subtitle = stringResource(R.string.settings_rates_subtitle),
                     onClick = { ratesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.PieChart,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.budgets_title),
                     subtitle = stringResource(R.string.settings_budgets_subtitle),
                     onClick = { budgetsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Sell,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.tags_title),
                     subtitle = stringResource(R.string.settings_tags_subtitle),
                     onClick = { tagsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Flag,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.goals_title),
                     subtitle = stringResource(R.string.settings_goals_subtitle),
                     onClick = { goalsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.GridView,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.widgets_title),
                     subtitle = stringResource(R.string.settings_widgets_subtitle),
                     onClick = { widgetsSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Repeat,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.recurring_title),
                     subtitle = stringResource(R.string.settings_recurring_subtitle),
                     onClick = { recurringSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Tune,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.auto_rules_title),
                     subtitle = stringResource(R.string.settings_auto_rules_subtitle),
                     onClick = { autoRulesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Style,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.shift_types_title),
                     subtitle = stringResource(R.string.settings_shift_types_subtitle),
                     onClick = { shiftTypesSheetOpen = true },
                 )
                 SettingsRow(
                     icon = RytmIcons.Download,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.settings_csv_export),
                     subtitle = stringResource(R.string.settings_csv_export_subtitle),
                     onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
                 )
                 SettingsRow(
                     icon = RytmIcons.Upload,
-                    badgeColor = SettingsGroupColors.Finance,
+                    badgeColor = SettingsGroupColors.Neutral,
                     title = stringResource(R.string.settings_csv_import),
                     subtitle = stringResource(R.string.settings_csv_import_subtitle),
                     onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
@@ -1117,14 +1112,25 @@ private fun SettingsIconBadge(icon: ImageVector, color: Color) {
 }
 
 /**
- * Badge colors are per GROUP, not per row.
+ * Badge colors are per GROUP, not per row — but only where that's still a
+ * useful signal.
  *
  * They used to be assigned per row from a grab-bag of hex literals, which
  * made them read as decoration rather than encoding: the same green marked
  * "Goals", "Recurring", "CSV export" and "Offline cache", and the same blue
- * marked "Rates", "Website", "CSV import" and "Shift types". Now the color
- * tells you which group a row belongs to, which is information the reader can
- * actually use while scanning.
+ * marked "Rates", "Website", "CSV import" and "Shift types". Per-GROUP color
+ * fixed that for small groups (2-3 rows: Account, Security, Notifications,
+ * Appearance, About) — a glance at the color tells you which section you're
+ * in. It stopped being a useful signal for "Фінанси" specifically: reported
+ * live (screenshot) as "майже всі іконки однакового кольору" — that group
+ * alone has 11 rows, so its one shared green just repeats 11 times with zero
+ * differentiation, unlike every other (small) group here. Real fintech apps
+ * (Monobank, Revolut, N26) don't color-code dense settings lists at all —
+ * every row gets one neutral badge, and color is reserved for the few
+ * genuinely distinct things on screen (an active toggle, a brand mark like
+ * Monobank's own badge below). `Neutral` is that same real-competitor
+ * pattern applied to this one oversized group, not a removal of the whole
+ * per-group-color idea — the small groups keep their own colors.
  */
 private object SettingsGroupColors {
     val Account = Cyan
@@ -1132,7 +1138,7 @@ private object SettingsGroupColors {
     val Notifications = PurpleDark
     val Appearance = Teal
     val About = BlueDark
-    val Finance = GreenDark
+    val Neutral = Gray
 }
 
 /** Monobank's own brand black needs a lighter counterpart on dark surfaces:
@@ -1140,6 +1146,54 @@ private object SettingsGroupColors {
 @Composable
 private fun monobankBadge(): Color =
     if (RytmSemantic.isDark) MonobankBrandDark else MonobankBrand
+
+// Google Settings-style radio list: one full-width row per choice, an
+// icon badge for quick scanning, and a trailing RadioButton — the row
+// itself is also clickable (larger touch target than the radio glyph
+// alone). Selected row gets a tinted background, same convention as
+// SettingsToggleRow's own selected state elsewhere in this file.
+@Composable
+private fun ThemePreferenceSelector(
+    selected: ThemePreference,
+    onSelect: (ThemePreference) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val options = listOf(
+        Triple(ThemePreference.LIGHT, RytmIcons.LightMode, stringResource(R.string.settings_theme_light)),
+        Triple(ThemePreference.DARK, RytmIcons.DarkMode, stringResource(R.string.settings_theme_dark)),
+        Triple(ThemePreference.SYSTEM, RytmIcons.BrightnessAuto, stringResource(R.string.settings_theme_system)),
+    )
+    Card(modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Chart)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
+            options.forEachIndexed { index, (pref, icon, label) ->
+                val isSelected = pref == selected
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(RytmRadii.Control))
+                        .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent)
+                        .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(pref) }
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SettingsIconBadge(icon, SettingsGroupColors.Appearance)
+                    Text(
+                        label,
+                        modifier = Modifier.padding(start = 12.dp).weight(1f),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    )
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = null,
+                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary),
+                    )
+                }
+                if (index != options.lastIndex) Spacer(Modifier.height(2.dp))
+            }
+        }
+    }
+}
 
 @Composable
 private fun RoundedChoiceSelector(
@@ -1223,7 +1277,7 @@ private fun SettingsRowScope.SettingsToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         SettingsIconBadge(icon, badgeColor)
-        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+        Column(Modifier.padding(start = 12.dp, end = 12.dp).weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
