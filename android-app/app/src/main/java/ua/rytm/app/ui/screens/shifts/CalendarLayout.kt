@@ -5,16 +5,20 @@ import java.time.YearMonth
 import androidx.compose.runtime.Immutable
 
 @Immutable
-data class CalendarCell(val date: LocalDate?, val isWeekend: Boolean = false)
+data class CalendarCell(
+    val date: LocalDate?,
+    val isWeekend: Boolean = false,
+    val isCurrentMonth: Boolean = true,
+)
 
 /** Monday-first calendar cells shared by UI and deterministic tests. */
 fun monthCalendarCells(month: YearMonth): List<CalendarCell> {
     val leading = month.atDay(1).dayOfWeek.value - 1
-    return List(leading) { CalendarCell(null) } +
-        (1..month.lengthOfMonth()).map { day ->
-            val date = month.atDay(day)
-            CalendarCell(date, date.dayOfWeek.value >= 6)
-        }
+    val gridStart = month.atDay(1).minusDays(leading.toLong())
+    return List(42) { index ->
+        val date = gridStart.plusDays(index.toLong())
+        CalendarCell(date, date.dayOfWeek.value >= 6, YearMonth.from(date) == month)
+    }
 }
 
 fun daysForShiftPattern(daysInMonth: Int, pattern: String): List<Int> {

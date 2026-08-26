@@ -482,8 +482,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stat-card:active{transform:scale(.98)}
-.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 0 14px;margin-bottom:6px}
-.quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:84px;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-row);font-family:inherit;padding:10px 6px;transition:transform .15s,border-color .2s,background .2s}
+.quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:84px;gap:8px;padding:2px 0 14px;margin-bottom:6px}
+.quick-action{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:7px;height:100%;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-row);font-family:inherit;padding:8px;transition:transform .15s,border-color .2s,background .2s}
 /* Phantom-style: every action tile is the same neutral weight — the
    "primary" action is distinguished only by its icon color/gradient, not
    by filling the whole tile, so Операція/Інструменти/Бюджети/Цілі read as
@@ -494,7 +494,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .quick-action-icon .ico{width:21px;height:21px;margin-right:0}
 .quick-action:active{transform:scale(.97)}
 .quick-action:active .quick-action-icon{transform:scale(.92)}
-.quick-action-label{font-size:12.5px;font-weight:800;color:var(--text-strong);text-align:center;line-height:1.2;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+.quick-action-label{max-width:100%;font-size:12.5px;font-weight:800;color:var(--text-strong);text-align:center;line-height:1.2;white-space:nowrap;word-break:normal;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){
+  .quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 .stat-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(130,130,150,.12);color:var(--muted)}
 .stat-icon .ico{width:20px;height:20px;margin-right:0}
 
@@ -648,25 +651,46 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .salary-goal-edit{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;margin:-6px;border-radius:50%;display:inline-flex;flex:0 0 auto;transition:all .15s}
 .salary-goal-edit svg{width:14px;height:14px}
 body.profile-readonly .salary-goal-edit{display:none}
+.goal-manager-card{padding:16px!important;border-radius:22px!important;background:var(--bg2)!important;border:1px solid var(--border)!important}
+.goal-manager-head{align-items:center}
+.goal-manager-actions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.goal-manager-progress-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:13px;font-weight:700}
+.goal-manager-progress-meta strong{color:var(--purple2);font-size:14px}
+.goal-manager-progress{height:8px;border-radius:99px;overflow:hidden;background:rgba(139,92,246,.10)}
+.goal-manager-progress>div{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--purple),var(--purple2));transition:width .6s ease}
 
 /* ── ANALYTICS DONUT (conic-gradient, no chart library) ── */
 @keyframes donutIn{from{opacity:0;transform:scale(.85) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
-.analytics-donut{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;background:var(--bg3);filter:drop-shadow(0 8px 20px var(--donut-glow))}
+.analytics-insight{padding:12px 14px;margin:4px 0 18px;border:1px solid var(--border);border-radius:var(--radius-row);background:var(--bg2);line-height:1.45}
+.analytics-insight:empty{display:none}
+.analytics-breakdown{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.analytics-donut{width:184px;height:184px;border-radius:50%;flex-shrink:0;position:relative;background:var(--bg3);filter:drop-shadow(0 10px 24px var(--donut-glow))}
 /* .donut-anim is toggled by renderAnalytics() (removed + reflowed + re-added)
    each time the chart's data changes, since a CSS animation only fires once
    for an element that stays in the DOM — see js/analytics-csv.js. */
 .analytics-donut.donut-anim{animation:donutIn .6s cubic-bezier(.22,1,.36,1) both}
 @media(prefers-reduced-motion:reduce){.analytics-donut.donut-anim{animation:none}}
-.analytics-donut-hole{position:absolute;inset:20px;border-radius:50%;background:var(--bg1)}
-.analytics-donut-center{position:absolute;inset:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px}
-.analytics-donut-total{font-size:15px;font-weight:800;color:var(--text-strong);line-height:1.2}
-.analytics-donut-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.analytics-donut-hole{position:absolute;inset:25px;border-radius:50%;background:var(--bg1);box-shadow:0 0 0 1px var(--border)}
+.analytics-donut-center{position:absolute;inset:25px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;padding:8px}
+.analytics-donut-total{max-width:100%;font-size:16px;font-weight:850;color:var(--text-strong);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.analytics-donut-label{font-size:12px;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.055em}
 .analytics-cat-row{margin-bottom:10px}
 .analytics-cat-row:last-child{margin-bottom:0}
 .analytics-cat-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:4px}
 .analytics-cat-name{display:flex;align-items:center;gap:6px;color:var(--text-strong);min-width:0;overflow:hidden}
 .analytics-cat-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .analytics-cat-amt{white-space:nowrap;color:var(--muted);font-weight:500}
+@media(max-width:600px){
+  .analytics-breakdown{flex-direction:column;align-items:stretch}
+  .analytics-donut{align-self:center}
+}
+
+.fx-converter-stack{display:flex;flex-direction:column;gap:10px}
+.fx-converter-label{font-size:13px;font-weight:750;color:var(--muted)}
+.fx-converter-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(104px,.72fr);gap:8px;align-items:stretch}
+.fx-converter-row input,.fx-converter-row select,.fx-converter-output{width:100%;min-width:0;min-height:56px;margin:0}
+.fx-converter-output{display:flex;align-items:center;padding:12px 14px;border:1px solid var(--border2);border-radius:16px;background:var(--bg2);color:var(--text-strong);font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-converter-swap{align-self:center;width:48px;height:48px;padding:0!important;border-radius:50%!important;background:rgba(139,92,246,.16)!important;color:var(--purple2)!important}
 
 /* ── TOOLS PANEL ── */
 .tools-panel{
@@ -675,10 +699,15 @@ body.profile-readonly .salary-goal-edit{display:none}
   padding:12px 16px;margin-bottom:18px;
 }
 .tools-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:100%;margin-bottom:2px}
-.tools-label-toggle{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;justify-content:space-between}
+.tools-label-toggle{background:none;border:none;padding:4px 0;cursor:pointer;font-family:inherit;justify-content:space-between;text-transform:none;letter-spacing:0;font-size:15px;color:var(--text-strong)}
 .tools-toggle-chevron{margin-left:auto;width:14px;height:14px;flex-shrink:0;display:inline-flex;transition:transform .2s;color:var(--muted)}
 .tools-toggle-chevron .ico{margin-right:0}
 .tools-panel-body{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:10px}
+.quick-fill-section{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--border)}
+.quick-fill-section-title{font-size:14px;font-weight:800;color:var(--text-strong)}
+.quick-fill-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.quick-fill-clear{background:transparent!important;border-color:transparent!important;color:var(--red2)!important}
+.quick-fill-auto-toggle{padding:10px 12px!important;border-radius:16px;background:var(--bg2)}
 .tool-select{
   background:var(--bg2);color:var(--text);border:1px solid var(--border2);
   padding:8px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none;
@@ -688,9 +717,12 @@ body.profile-readonly .salary-goal-edit{display:none}
 
 /* ── CALENDAR WRAPPER ── */
 .cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:26px;padding:20px;margin-bottom:24px}
-.cal-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
-.cal-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.cal-nav select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:14px;font-size:14px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
+.cal-controls{display:flex;flex-direction:column;margin-bottom:16px;gap:8px}
+.cal-nav-main{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px}
+.cal-month-selects{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.cal-month-selects select{background:var(--bg2);color:var(--text-strong);border:1px solid var(--border2);padding:8px 12px;border-radius:14px;font-size:14px;font-weight:700;outline:none;cursor:pointer;font-family:inherit}
+.cal-nav-main>.btn:not(.cal-today-btn){width:48px;height:48px;padding:0!important;justify-content:center}
+.cal-today-btn{grid-column:1/-1;justify-self:end;min-height:48px}
 .cal-hint{font-size:13px;color:var(--muted);font-weight:500}
 .legend{display:flex;gap:8px 14px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:18px}
 [data-theme="light"] .legend{background:rgba(0,0,0,.02)}
@@ -700,7 +732,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 /* ── CALENDAR GRID ── */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .wday{text-align:center;font-size:13px;font-weight:800;color:var(--muted2);text-transform:uppercase;padding:5px 0;letter-spacing:.05em}
-.wday.weekend{color:rgba(239,68,68,.5)}
+.wday.weekend{color:var(--red2)}
 
 .day-cell{
   background:var(--bg2);border:1px solid var(--border);border-radius:16px;
@@ -711,8 +743,11 @@ body.profile-readonly .salary-goal-edit{display:none}
 .day-cell:active{transform:scale(.98)}
 .day-cell.empty{background:transparent;border:none;cursor:default;min-height:auto;pointer-events:none}
 .day-cell.today{border-color:var(--purple)!important;background:rgba(139,92,246,.07)!important;box-shadow:var(--ring-today)}
-.day-cell.today .day-num{color:var(--text-strong);font-weight:800}
+.day-cell.today .day-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--purple);color:#111113;font-weight:800}
+[data-theme="light"] .day-cell.today .day-num{background:var(--purple2);color:#fff}
 .day-cell.weekend-cell{background:rgba(239,68,68,.03)}
+.day-cell.outside-month{background:transparent;border-color:var(--border2);box-shadow:none}
+.day-cell.outside-month .day-num{color:var(--muted2)}
 /* .has-shifts is declared after .weekend-cell (equal specificity — two
    classes each) specifically so a weekend day *with* a shift shows its
    shift-type tint, not the plain weekend tint underneath it. */
@@ -722,8 +757,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 
 .day-header{display:flex;justify-content:space-between;align-items:center}
 .day-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--muted2)}
-.day-num.weekend-num{color:rgba(239,68,68,.6)}
-.today-pip{width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0}
+.day-num.weekend-num{color:var(--red2)}
 
 .badge{font-size:13px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Compact shift markers on a calendar day cell: a colored rounded "keycap"
@@ -1561,7 +1595,7 @@ body.amounts-hidden #fx-converter-result{
   .chart-bars{height:60px}
   .tab-icon-wrap{width:44px;height:44px}
   .tab-btn .ico{width:21px;height:21px}
-  .cal-nav{gap:6px}
+  .cal-nav-main{gap:6px}
   .cs.cs-sm{min-width:0;flex:1 1 74px}
   .cs.cs-sm .cs-trigger{padding:8px 8px;font-size:13px}
   .cs:not(.cs-sm) .cs-trigger{padding:13px 14px}
@@ -1583,9 +1617,10 @@ body.amounts-hidden #fx-converter-result{
      space than the year select (always 4 digits) and push "Сьогодні" onto
      its own line so the ‹/month/year/› cluster isn't fighting it for
      width on one line. */
-  .cal-nav > .cs.cs-sm:nth-child(2){flex:1.6 1 108px;min-width:108px}
-  .cal-nav > .cs.cs-sm:nth-child(3){flex:1 1 70px;min-width:70px}
-  .cal-today-btn{flex:1 1 100%;justify-content:center}
+  .cal-month-selects{gap:6px}
+  .cal-month-selects > .cs.cs-sm:first-child{flex:1.6 1 108px;min-width:108px}
+  .cal-month-selects > .cs.cs-sm:last-child{flex:1 1 70px;min-width:70px}
+  .cal-nav-footer{align-items:flex-start}
 }
 </style>
 </head>
@@ -1792,6 +1827,8 @@ body.amounts-hidden #fx-converter-result{
         <span class="tools-toggle-chevron" id="tools-toggle-chevron"></span>
       </button>
       <div class="tools-panel-body" id="tools-panel-body" style="display:none">
+        <section class="quick-fill-section">
+        <div class="quick-fill-section-title" data-i18n="shifts_fill_current_month">Заповнити поточний місяць</div>
         <div class="fg">
           <label data-i18n="shifts_template_type">Тип зміни</label>
           <select id="template-shift"></select>
@@ -1806,15 +1843,16 @@ body.amounts-hidden #fx-converter-result{
           </select>
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="apply-template" data-i18n="shifts_apply">Застосувати</button>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-ghost" style="flex:1 1 140px;justify-content:center" data-action="open-shift-types-manager"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
-          <button class="btn btn-danger" style="flex:1 1 140px;justify-content:center" data-action="clear-current-month"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
+        <div class="quick-fill-actions">
+          <button class="btn btn-ghost" data-action="open-shift-types-manager"><span id="ic-shift-types"></span><span data-i18n="shifts_types_btn">Типи змін</span></button>
+          <button class="btn btn-ghost quick-fill-clear" data-action="clear-current-month"><span id="ic-trash-month"></span><span data-i18n="shifts_clear_month">Очистити місяць</span></button>
         </div>
+        </section>
 
-        <div style="border-top:1px dashed var(--border);margin:4px 0"></div>
-        <div class="settings-row" style="cursor:default;padding:2px 0">
+        <section class="quick-fill-section">
+        <div class="settings-row quick-fill-auto-toggle" style="cursor:default">
           <div class="settings-row-text">
-            <div class="settings-row-title" data-i18n="shifts_autofill_title">Автозаповнення кожного дня</div>
+            <div class="settings-row-title" data-i18n="shifts_autofill_future">Автоматично надалі</div>
             <div class="settings-row-sub" data-i18n="shifts_autofill_hint">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</div>
           </div>
           <label class="toggle">
@@ -1842,16 +1880,19 @@ body.amounts-hidden #fx-converter-result{
           </div>
           <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="save-autofill-config" data-i18n="common_save">Зберегти</button>
         </div>
+        </section>
       </div>
     </div>
 
     <!-- Календар -->
     <div class="cal-wrap">
       <div class="cal-controls">
-        <div class="cal-nav">
+        <div class="cal-nav-main">
           <button class="btn btn-ghost" data-action="shift-month" data-dir="-1" style="padding:8px 10px">‹</button>
+          <div class="cal-month-selects">
           <select id="select-month" data-action="render-calendar"></select>
           <select id="select-year"  data-action="render-calendar"></select>
+          </div>
           <button class="btn btn-ghost" data-action="shift-month" data-dir="1"  style="padding:8px 10px">›</button>
           <button class="btn btn-ghost cal-today-btn" data-action="go-today" style="font-size:13px" data-i18n="shifts_today">Сьогодні</button>
         </div>
@@ -2686,8 +2727,8 @@ body.amounts-hidden #fx-converter-result{
         <div class="filter-chip" data-period="all" data-action="set-analytics-period" data-i18n="analytics_period_all">Весь час</div>
       </div>
       <div class="stats-row" id="analytics-stats"></div>
-      <div id="analytics-insight" class="chk-desc" style="text-align:left;margin:2px 0 14px"></div>
-      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+      <div id="analytics-insight" class="chk-desc analytics-insight"></div>
+      <div class="analytics-breakdown">
         <div class="analytics-donut" id="analytics-donut"></div>
         <div style="flex:1 1 220px;min-width:220px">
           <div class="tools-label" style="margin-bottom:8px" data-i18n="analytics_by_expense_category">Витрати за категоріями</div>
@@ -2715,22 +2756,19 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section" id="fx-converter-section" style="padding:0;border:none;background:none">
       <div class="chart-title"><span id="ic-fx-converter"></span><span data-i18n="fx_converter_title">Конвертер валют</span></div>
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-        <div class="fg" style="flex:1 1 110px;margin:0">
-          <label data-i18n="fx_converter_amount">Сума</label>
-          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" data-action="render-fx-converter">
-        </div>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_from">З</label>
+      <div class="fx-converter-stack">
+        <div class="fx-converter-label" data-i18n="fx_converter_from">З</div>
+        <div class="fx-converter-row">
+          <input type="number" id="fx-conv-amount" value="1" min="0" step="0.01" data-action="render-fx-converter" data-i18n-placeholder="fx_converter_amount" placeholder="Сума">
           <select id="fx-conv-from" data-action="render-fx-converter"></select>
         </div>
-        <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:9px" data-action="swap-fx-converter" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
-        <div class="fg" style="flex:1 1 100px;margin:0">
-          <label data-i18n="fx_converter_to">В</label>
+        <button type="button" class="btn btn-ghost fx-converter-swap" data-action="swap-fx-converter" aria-label="Поміняти місцями"><span id="ic-fx-converter-swap"></span></button>
+        <div class="fx-converter-label" data-i18n="fx_converter_to">В</div>
+        <div class="fx-converter-row">
+          <div class="fx-converter-output" id="fx-converter-result"></div>
           <select id="fx-conv-to" data-action="render-fx-converter"></select>
         </div>
       </div>
-      <div style="text-align:center;margin-top:14px;font-size:22px;font-weight:800;color:var(--text-strong)" id="fx-converter-result"></div>
     </div>
 
     <div style="height:1px;background:var(--border);margin:18px 0"></div>
@@ -2948,7 +2986,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center" data-action="confirm-add-goal" data-i18n="goals_add_confirm">Додати</button>
     </div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="toggle-new-goal-form"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px" data-action="toggle-new-goal-form"><span id="ic-add-goal"></span><span data-i18n="goals_add">Додати ціль</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>

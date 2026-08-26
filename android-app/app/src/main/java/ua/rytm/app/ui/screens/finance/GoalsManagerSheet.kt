@@ -3,8 +3,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -37,6 +41,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,6 +66,8 @@ import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.Delete
 import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.MoreVert
 
 // Mirrors js/goals-profile.js's goals-modal — see GoalsManagerViewModel's
 // doc comment. Same collapsed-summary-row-with-pencil-toggle shape as
@@ -84,6 +94,11 @@ fun GoalsManagerSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RytmSheetTitle(stringResource(R.string.goals_title))
+            Text(
+                stringResource(R.string.goals_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->
@@ -159,6 +174,7 @@ private fun GoalRow(
     val savedClamped = saved.coerceAtLeast(0.0)
     val progress = if (target > 0) (savedClamped / target).coerceIn(0.0, 1.0) else 0.0
     val done = target > 0 && savedClamped >= target
+    val percent = (progress * 100).toInt()
     val summary = if (wallet != null) {
         stringResource(if (done) R.string.goals_summary_done else R.string.goals_summary, savedClamped.toInt(), target.toInt(), wallet.currency)
     } else {
@@ -170,12 +186,16 @@ private fun GoalRow(
         shape = RoundedCornerShape(RytmRadii.Input),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(RytmIcons.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(21.dp))
+            }
             Column(Modifier.weight(1f)) {
                 Text((wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name)) + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text(summary, style = MaterialTheme.typography.bodySmall, color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-                LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
             IconButton(
                 onClick = onToggleEdit,
@@ -186,13 +206,29 @@ private fun GoalRow(
             ) {
                 Icon(if (expanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            IconButton(
-                onClick = onDelete,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            var menuOpen by remember { mutableStateOf(false) }
+            Box {
+                IconButton(onClick = { menuOpen = true }) { Icon(RytmIcons.MoreVert, contentDescription = stringResource(R.string.action_more)) }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { menuOpen = false; onDelete() },
+                    )
+                }
+            }
+        }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(summary, style = MaterialTheme.typography.bodyMedium, color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("$percent%", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        }
+        Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
+            Box(
+                Modifier.fillMaxWidth(progress.toFloat()).height(8.dp).background(
+                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.PurpleLight2)),
                 ),
-            ) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            )
         }
 
         if (expanded) {

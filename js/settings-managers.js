@@ -577,7 +577,7 @@ export function renderFxConverter(){
   const amount=parseFloat(amountEl.value)||0;
   const from=fromEl.value||'UAH', to=toEl.value||'UAH';
   const result=convertCurrency(amount, from, to);
-  resultEl.textContent=`${amount.toLocaleString('uk-UA')} ${currencySymbol(from)} = ${result.toLocaleString('uk-UA')} ${currencySymbol(to)}`;
+  resultEl.textContent=`${result.toLocaleString('uk-UA')} ${currencySymbol(to)}`;
 }
 
 const swapFxConverter = function(){

@@ -128,6 +128,15 @@ function shiftCode(t){
   return tail ? first+tail.toLowerCase() : first;
 }
 
+/** Accessible foreground for a solid #RRGGBB badge (WCAG relative luminance). @param {string} hex */
+function calendarBadgeOnColor(hex){
+  const m=/^#([0-9a-f]{6})$/i.exec(hex);
+  if(!m) return '#fff';
+  const rgb=[0,2,4].map(i=>parseInt(m[1].slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+  const luminance=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];
+  return (luminance+.05)/.05 >= 1.05/(luminance+.05) ? '#111113' : '#fff';
+}
+
 /** @returns {void} */
 export function renderCalendar(){
   const grid=document.getElementById('calendar-grid');
@@ -145,7 +154,6 @@ export function renderCalendar(){
   const m=parseInt(/** @type {HTMLSelectElement} */ (document.getElementById('select-month')).value);
   const y=parseInt(/** @type {HTMLSelectElement} */ (document.getElementById('select-year')).value);
   const now=new Date();
-  const isCurrent=now.getMonth()===m&&now.getFullYear()===y;
 
   // Weekday headers
   AppState.WEEKDAYS.forEach((d,i)=>{
@@ -156,20 +164,21 @@ export function renderCalendar(){
   });
 
   const firstDay=(new Date(y,m,1).getDay()+6)%7;
-  const total=new Date(y,m+1,0).getDate();
-  for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='day-cell empty';grid.appendChild(e);}
 
   let earn=0,hrs=0,cShifts=0,cOff=0;
 
-  for(let d=1;d<=total;d++){
-    const dk=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  for(let i=0;i<42;i++){
+    const date=new Date(y,m,1-firstDay+i);
+    const cellYear=date.getFullYear(), cellMonth=date.getMonth(), d=date.getDate();
+    const outsideMonth=cellYear!==y||cellMonth!==m;
+    const dk=`${cellYear}-${String(cellMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const ds=AppState.shifts[dk]||[];
-    const isToday=isCurrent&&now.getDate()===d;
-    const dow=(new Date(y,m,d).getDay()+6)%7;
+    const isToday=now.getFullYear()===cellYear&&now.getMonth()===cellMonth&&now.getDate()===d;
+    const dow=(date.getDay()+6)%7;
     const isWeekend=dow>=5;
 
     const cell=document.createElement('div');
-    cell.className='day-cell'+(ds.length?' has-shifts':'')+(isToday?' today':'')+(isWeekend?' weekend-cell':'');
+    cell.className='day-cell'+(ds.length?' has-shifts':'')+(isToday?' today':'')+(isWeekend?' weekend-cell':'')+(outsideMonth?' outside-month':'');
     // Faint background tint from the day's first shift type, so a month
     // reads as color patches at a glance instead of relying purely on the
     // small badge pill's text — same .07 alpha .day-cell.today already
@@ -183,12 +192,14 @@ export function renderCalendar(){
     ds.forEach(id=>{
       const t=shiftType(id);
       if(!t) return; // unknown/removed type — skip gracefully
-      badges+=`<div class="shift-token" style="background:${hexA(t.color,.22)};border:1px solid ${hexA(t.color,.55)};color:${t.color}" aria-label="${escapeHtml(t.name)}">${escapeHtml(shiftCode(t))}</div>`;
-      earn+=t.amount||0; hrs+=t.hours||0;
-      if(t.isOff) cOff++; else cShifts++;
+      badges+=`<div class="shift-token" style="background:${t.color};border:1px solid ${t.color};color:${calendarBadgeOnColor(t.color)}" aria-label="${escapeHtml(t.name)}">${escapeHtml(shiftCode(t))}</div>`;
+      if(!outsideMonth){
+        earn+=t.amount||0; hrs+=t.hours||0;
+        if(t.isOff) cOff++; else cShifts++;
+      }
     });
 
-    cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span>${isToday?'<span class="today-pip"></span>':''}</div>${badges?`<div class="day-tokens">${badges}</div>`:''}`;
+    cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span></div>${badges?`<div class="day-tokens">${badges}</div>`:''}`;
     cell.tabIndex=0;
     cell.onclick=()=>openModal(dk,d);
     cell.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(dk,d); } };

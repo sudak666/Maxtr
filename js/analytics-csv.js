@@ -200,12 +200,19 @@ function renderAnalytics(){
       donut.style.background='var(--bg3)';
       render(h(AnalyticsDonut, { empty:true, label: tr('analytics_no_data') }), donut);
     }else{
+      /** @type {Array<[string, number]>} */
+      const chartEntries=expenseByCat.length<=6
+        ? expenseByCat
+        : [...expenseByCat.slice(0,5), [tr('cat_other'), expenseByCat.slice(5).reduce((sum,[,amount])=>sum+amount,0)]];
       let acc=0;
-      const stops=expenseByCat.map(([cat,amt])=>{
+      const gapPct=0.42;
+      const stops=chartEntries.map(([cat,amt])=>{
         const color=categoryColor(cat);
         const startPct=acc/totalExpense*100;
         acc+=amt;
-        return `${color} ${startPct}% ${acc/totalExpense*100}%`;
+        const endPct=acc/totalExpense*100;
+        const gap=Math.min(gapPct,(endPct-startPct)*0.18);
+        return `var(--bg1) ${startPct}% ${startPct+gap}%, ${color} ${startPct+gap}% ${endPct-gap}%, var(--bg1) ${endPct-gap}% ${endPct}%`;
       }).join(', ');
       donut.style.background=`conic-gradient(${stops})`;
       render(h(AnalyticsDonut, { empty:false, totalStr: totalExpense.toLocaleString('uk-UA'), label: tr('finance_amount_prefix') }), donut);

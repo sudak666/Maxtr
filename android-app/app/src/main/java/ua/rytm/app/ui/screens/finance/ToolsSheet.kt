@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
@@ -119,32 +121,32 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_income_label),
                 amount = vm.totalIncome,
                 color = ua.rytm.app.ui.theme.GreenDark2,
                 icon = RytmIcons.TrendingUp,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_expense_label),
                 amount = vm.totalExpense,
                 color = ua.rytm.app.ui.theme.RedDark2,
                 icon = RytmIcons.TrendingDown,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_difference), amount = vm.difference,
                 color = if (vm.difference >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
-                icon = RytmIcons.CompareArrows, modifier = Modifier.weight(1f),
+                icon = RytmIcons.CompareArrows, modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             AnalyticsRateCard(
                 label = stringResource(R.string.analytics_savings_rate), value = vm.savingsRate,
                 color = if (vm.savingsRate >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
 
@@ -232,8 +234,14 @@ private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier:
 @Composable
 private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
     val progress = motionProgress(byCategory, 600)
+    val otherLabel = stringResource(R.string.analytics_other)
+    val chartEntries = remember(byCategory, otherLabel) {
+        if (byCategory.size <= 6) byCategory
+        else byCategory.take(5) + (otherLabel to byCategory.drop(5).sumOf { it.second })
+    }
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
     Box(
-        Modifier.size(108.dp).graphicsLayer {
+        Modifier.size(184.dp).graphicsLayer {
             alpha = progress
             scaleX = 0.85f + 0.15f * progress
             scaleY = 0.85f + 0.15f * progress
@@ -243,27 +251,40 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
     ) {
         // Canvas charts carry no semantics of their own — spoken summary added.
         val donutSummary = stringResource(R.string.analytics_title) + ": " +
-            byCategory.joinToString(", ") { (cat, amt) ->
+            chartEntries.joinToString(", ") { (cat, amt) ->
                 cat + " " + formatMoney(amt) + " (" + (amt / total * 100).toInt() + "%)"
             }
-        Canvas(Modifier.size(108.dp).semantics { contentDescription = donutSummary }) {
+        Canvas(Modifier.size(184.dp).semantics { contentDescription = donutSummary }) {
             var startAngle = -90f
-            val stroke = size.minDimension * 0.14f
-            byCategory.forEach { (cat, amt) ->
+            val stroke = 22.dp.toPx()
+            drawArc(
+                color = trackColor,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = stroke, cap = StrokeCap.Round),
+                topLeft = Offset(stroke / 2, stroke / 2),
+                size = Size(size.width - stroke, size.height - stroke),
+            )
+            chartEntries.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
+                val gap = minOf(3f, sweep * 0.18f)
                 drawArc(
                     color = categoryColor(cat),
-                    startAngle = startAngle,
-                    sweepAngle = (sweep - 1.2f).coerceAtLeast(0.6f),
+                    startAngle = startAngle + gap / 2,
+                    sweepAngle = (sweep - gap).coerceAtLeast(0.6f) * progress,
                     useCenter = false,
-                    style = Stroke(width = stroke),
+                    style = Stroke(width = stroke, cap = StrokeCap.Round),
                     topLeft = Offset(stroke / 2, stroke / 2),
                     size = Size(size.width - stroke, size.height - stroke),
                 )
                 startAngle += sweep
             }
         }
-        Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.analytics_expense_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+        }
     }
 }
 
@@ -330,27 +351,38 @@ private fun FxRatesSection(vm: ToolsViewModel) {
 @Composable
 private fun ConverterSection(vm: ToolsViewModel) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.converter_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.converter_from), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = vm.converterAmount,
                 onValueChange = vm::onConverterAmountChange,
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                label = { Text(stringResource(R.string.amount_label)) },
+                placeholder = { Text(stringResource(R.string.amount_label)) },
             )
-            CurrencyDropdown(vm.availableCurrencies, vm.converterFrom, vm::onConverterFromChange, Modifier.weight(1f))
-            IconButton(onClick = vm::swapConverter) { Icon(RytmIcons.SwapHoriz, contentDescription = stringResource(R.string.converter_swap)) }
+            CurrencyDropdown(vm.availableCurrencies, vm.converterFrom, vm::onConverterFromChange, Modifier.weight(0.72f))
         }
-        CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.fillMaxWidth())
-        Text(
-            maskedAmount("${formatMoney(vm.converterResult)} ${vm.converterTo}"),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-        )
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            IconButton(onClick = vm::swapConverter, modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)) {
+                Icon(RytmIcons.SwapHoriz, contentDescription = stringResource(R.string.converter_swap), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+        Text(stringResource(R.string.converter_to), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Card(
+                modifier = Modifier.weight(1f).height(56.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
+                Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
+                    Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+            CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(0.72f))
+        }
     }
     }
 }

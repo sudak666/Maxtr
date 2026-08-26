@@ -2,6 +2,7 @@ package ua.rytm.app.ui.screens.shifts
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -471,25 +472,16 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     var clearMonthConfirmVisible by rememberSaveable { mutableStateOf(false) }
-    val containerColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (vm.quickFillExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surface,
-        animationSpec = motionAwareSpec(androidx.compose.animation.core.tween(220)),
-        label = "quick-fill-container",
-    )
-    val headerColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (vm.quickFillExpanded) MaterialTheme.colorScheme.surface.copy(alpha = 0.78f) else Color.Transparent,
-        animationSpec = motionAwareSpec(androidx.compose.animation.core.tween(220)),
-        label = "quick-fill-header",
-    )
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(RytmRadii.Card),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (vm.quickFillExpanded) 6.dp else 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
     Column(Modifier.fillMaxWidth().padding(12.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(RytmRadii.Row)).background(headerColor).clickable(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(RytmRadii.Row)).clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = vm::toggleQuickFillExpanded,
@@ -515,16 +507,20 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 animationSpec = motionAwareSpec(androidx.compose.animation.core.spring()),
                 label = "chevron",
             )
-            Box(Modifier.size(34.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp).rotate(rotation))
+            Box(Modifier.size(34.dp).background(MaterialTheme.colorScheme.surfaceContainer, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(rotation))
             }
         }
         ReducedMotionVisibility(visible = vm.quickFillExpanded) {
             Column(
-                Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(RytmRadii.Input))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)).padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                Text(
+                    stringResource(R.string.shifts_fill_current_month),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
                 LabeledDropdown(
                     label = stringResource(R.string.shift_type),
                     options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
@@ -546,15 +542,14 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 ) {
                     Text(stringResource(R.string.action_apply))
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, modifier = Modifier.weight(1f)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }
-                    androidx.compose.material3.OutlinedButton(
+                    TextButton(
                         onClick = { clearMonthConfirmVisible = true },
-                        modifier = Modifier.weight(1f),
-                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) {
                         Text(stringResource(R.string.shifts_clear_month))
                     }
@@ -575,12 +570,12 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 }
 
                 Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh).padding(horizontal = 12.dp, vertical = 8.dp),
+                    Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(RytmRadii.Control))
+                        .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.shifts_autofill_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.shifts_autofill_future), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         Text(
                             stringResource(R.string.shifts_autofill_body),
                             style = MaterialTheme.typography.labelSmall,
@@ -694,7 +689,7 @@ private fun WeekdayHeaderRow() {
         weekdays.forEachIndexed { i, d ->
             Text(
                 stringResource(d),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -706,9 +701,11 @@ private fun WeekdayHeaderRow() {
 
 @Composable
 private fun MonthNav(viewModel: ShiftsViewModel) {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = viewModel::goToPreviousMonth) { Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month)) }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            IconButton(onClick = viewModel::goToPreviousMonth, modifier = Modifier.align(Alignment.CenterStart)) {
+                Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month))
+            }
             val locale = LocalConfiguration.current.locales[0]
             val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, locale) + " " + viewModel.visibleMonth.year
             Text(
@@ -720,19 +717,21 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    onClick = viewModel::goToToday,
-                    shape = RoundedCornerShape(RytmRadii.Pill),
-                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.primary,
-                    ),
-                ) { Text(stringResource(R.string.action_today), fontWeight = FontWeight.Bold) }
-                IconButton(onClick = viewModel::goToNextMonth) { Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month)) }
+            IconButton(onClick = viewModel::goToNextMonth, modifier = Modifier.align(Alignment.CenterEnd)) {
+                Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month))
             }
         }
-        Text(stringResource(R.string.shifts_edit_hint), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.shifts_edit_hint), modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(
+                onClick = viewModel::goToToday,
+                shape = RoundedCornerShape(RytmRadii.Pill),
+                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+            ) { Text(stringResource(R.string.action_today), fontWeight = FontWeight.Bold) }
+        }
     }
 }
 
@@ -761,6 +760,7 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
                             assigned = viewModel.shiftsFor(dateKey),
                             isToday = dateKey == todayKey,
                             isWeekend = cell.isWeekend,
+                            isOutsideMonth = !cell.isCurrentMonth,
                             enabled = canEdit,
                             onClick = { viewModel.openDayModal(dateKey) },
                             modifier = Modifier.weight(1f),
@@ -780,17 +780,23 @@ private fun DayCell(
     assigned: List<ShiftType>,
     isToday: Boolean,
     isWeekend: Boolean,
+    isOutsideMonth: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val bg = when {
         isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
+        isOutsideMonth -> Color.Transparent
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
         isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.03f)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    val borderColor = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val borderColor = when {
+        isToday -> MaterialTheme.colorScheme.primary
+        isOutsideMonth -> MaterialTheme.colorScheme.outlineVariant
+        else -> MaterialTheme.colorScheme.outline
+    }
     val weekendAccent = RytmSemantic.expense
     val shown = assigned.take(2)
     val overflow = assigned.size - shown.size
@@ -802,6 +808,7 @@ private fun DayCell(
     val parts = buildList {
         add(dayLabel)
         if (isToday) add(stringResource(R.string.action_today))
+        if (isOutsideMonth) add(stringResource(R.string.shifts_other_month_a11y))
         if (isWeekend) add(stringResource(R.string.shifts_weekend_a11y))
         assigned.forEach { add(localizedDomainText(it.name)) }
     }
@@ -821,12 +828,18 @@ private fun DayCell(
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (isToday) FontWeight.Black else FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            if (isToday) {
+                Box(Modifier.size(26.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary), contentAlignment = Alignment.Center) {
+                    Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = onColorFor(MaterialTheme.colorScheme.primary))
+                }
+            } else {
+                Text(
+                    date.dayOfMonth.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isOutsideMonth) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                )
+            }
             // Weekends were signalled by a reddish tint alone (2.13:1 dark /
             // 2.53:1 light) — WCAG 1.4.1. A real marker carries the meaning
             // now; the number itself keeps full-contrast body color.

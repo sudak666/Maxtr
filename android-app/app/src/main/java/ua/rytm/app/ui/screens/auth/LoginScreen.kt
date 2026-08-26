@@ -267,8 +267,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
 private fun AuthModeTabs(mode: AuthMode, enabled: Boolean, onModeChanged: (AuthMode) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Pill)).background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(RytmRadii.Pill)).padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(RytmRadii.Pill)).padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         AuthModeTab(stringResource(R.string.auth_login_tab), mode == AuthMode.LOGIN, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.LOGIN) }
         AuthModeTab(stringResource(R.string.auth_register_tab), mode == AuthMode.REGISTER, enabled, Modifier.weight(1f)) { onModeChanged(AuthMode.REGISTER) }
