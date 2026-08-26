@@ -293,11 +293,20 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         ) {
             RytmDestination.entries.forEach { destination ->
                 val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
+                // Ukrainian navigation labels vary greatly in width. Reserving
+                // equal fifths forced "Налаштування" into the unclear "Налашт.".
+                // Keep one shared type style and distribute width by content.
+                val itemWeight = when (destination) {
+                    RytmDestination.Settings -> 1.45f
+                    RytmDestination.Shopping -> 1.05f
+                    RytmDestination.Shifts, RytmDestination.Debt -> 0.8f
+                    else -> 1f
+                }
                 RytmTabButton(
                     destination = destination,
                     selected = selected,
                     compact = compactHeight,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(itemWeight),
                     onClick = {
                         navController.navigate(destination.route) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }

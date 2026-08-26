@@ -5,7 +5,7 @@
     <string name="nav_shifts">Зміни</string>
     <string name="nav_debt">Борги</string>
     <string name="nav_shopping">Покупки</string>
-    <string name="nav_settings">Налашт.</string>
+    <string name="nav_settings">Налаштування</string>
 
     <string name="notification_channel_name">Нагадування Rytm</string>
     <string name="action_skip">Пропустити</string>

@@ -786,14 +786,12 @@ private fun DayCell(
     modifier: Modifier = Modifier,
 ) {
     val bg = when {
-        isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
         isOutsideMonth -> Color.Transparent
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
         isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.03f)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
     val borderColor = when {
-        isToday -> MaterialTheme.colorScheme.primary
         isOutsideMonth -> MaterialTheme.colorScheme.outlineVariant
         else -> MaterialTheme.colorScheme.outline
     }
@@ -828,16 +826,18 @@ private fun DayCell(
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                date.dayOfMonth.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isOutsideMonth) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            )
             if (isToday) {
-                Box(Modifier.size(26.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary), contentAlignment = Alignment.Center) {
-                    Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = onColorFor(MaterialTheme.colorScheme.primary))
-                }
-            } else {
-                Text(
-                    date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (isOutsideMonth) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                Box(
+                    Modifier
+                        .size(width = 12.dp, height = 3.dp)
+                        .clip(RoundedCornerShape(RytmRadii.Pill))
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
             // Weekends were signalled by a reddish tint alone (2.13:1 dark /

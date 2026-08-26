@@ -15,11 +15,11 @@ object RytmDimens {
     val SheetVertical = 20.dp
     val HeroHorizontal = 24.dp
     val HeroVertical = 22.dp
-    val QuickActionMinHeight = 84.dp
+    val QuickActionMinHeight = 76.dp
     val TouchTarget = 48.dp
     val IconBadge = 34.dp
     val IconBadgeIcon = 17.dp
-    val QuickActionIcon = 44.dp
+    val QuickActionIcon = 26.dp
     val BottomNavRadius = 26.dp
     val TabIcon = 48.dp
     val TabGlyph = 23.dp

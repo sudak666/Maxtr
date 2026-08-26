@@ -503,7 +503,11 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
     ).filterIndexed { index, _ -> canEdit || index == 1 }
     val configuration = LocalConfiguration.current
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    val columnCount = if (configuration.screenWidthDp < 600 || largeText) 2 else 4
+    val columnCount = when {
+        largeText -> 1
+        configuration.screenWidthDp < 600 -> 2
+        else -> 4
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.chunked(columnCount).forEach { rowActions ->
@@ -516,9 +520,6 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                         animationSpec = motionAwareSpec(tween(100)),
                         label = "quick-action-press",
                     )
-                    // Matches the PWA's .quick-action: a plain neutral card with a
-                    // circular tinted icon badge inside (.quick-action-icon), not a
-                    // whole-card color fill — see ANDROID_MIGRATION.md visual-parity note.
                     Card(
                         onClick = action.onClick,
                         modifier = Modifier.weight(1f).height(RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },
@@ -527,38 +528,24 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         interactionSource = interactionSource,
                     ) {
-                        Column(
-                            Modifier.fillMaxSize().padding(vertical = 8.dp, horizontal = 8.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        Row(
+                            Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(RytmDimens.QuickActionIcon)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (action.primary) {
-                                            Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep))
-                                        } else {
-                                            Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)))
-                                        },
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    action.icon,
-                                    contentDescription = null,
-                                    tint = if (action.primary) Color.White else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(21.dp),
-                                )
-                            }
-                            Spacer(Modifier.height(7.dp))
+                            Icon(
+                                action.icon,
+                                contentDescription = null,
+                                tint = if (action.primary) RytmSemantic.income else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(RytmDimens.QuickActionIcon),
+                            )
                             Text(
                                 action.label,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Start,
                                 maxLines = 1,
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
