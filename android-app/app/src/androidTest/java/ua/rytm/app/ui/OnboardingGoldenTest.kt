@@ -23,20 +23,18 @@ import org.junit.Test
 import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 
-// STALE HASHES — MUST BE REGENERATED ON THE NEXT DEVICE/EMULATOR RUN.
-// The 2026-08-25 design-audit pass reworked OnboardingScreen (real
-// HorizontalPager + swipe, a Back button on pages 2-3, heightIn instead of a
-// fixed 52dp button), so both expected pixel hashes below are guaranteed
-// wrong. They were deliberately NOT guessed or auto-"fixed": no emulator was
-// available in that session, and inventing a hash would turn a real
-// regression guard into a rubber stamp. Recipe: run these two tests on a
-// device, read the `actual` value out of the assertion message, paste it in.
+// Regenerated 2026-08-25 on a real device (Galaxy A51, SM-A515F, API 33)
+// via `:app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ua.rytm.app.ui.OnboardingGoldenTest`,
+// after the design-audit pass reworked OnboardingScreen (real HorizontalPager
+// + swipe, a Back button on pages 2-3, heightIn instead of a fixed 52dp
+// button) left the previous two hashes stale. Values below are the real
+// `actual` output read from that run's assertion failures, not guessed.
 class OnboardingGoldenTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "b54d8ec6273c5b350a0453bfe5066a33b19c070397337e7a3e41dc37b986c0f7")
+    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "777bcd62895304aa127ba678291caf0559b9c3b35d77dafe5ea44e73edb58dcf")
 
-    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "a80e1de629b4dd1e7951f131c430385c0fe8a6117a8b991433293d4a99f723bd")
+    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "c3224ee3098d084510abbd7a8223ec1684698b224f7e98236976992a81d6f037")
 
     private fun verifyGolden(language: String, dark: Boolean, expected: String) {
         val base = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
