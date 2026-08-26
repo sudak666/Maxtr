@@ -5,8 +5,8 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { saveConfigLocal, saveLocal, scheduleSave } from './color-picker.js';
-import { SALARY_GOAL, canEditActiveProfile, shiftType, toBase } from './core.js';
-import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm } from './ui-widgets.js';
+import { canEditActiveProfile, shiftType, toBase } from './core.js';
+import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // Cold-start only: called once from js/app-init.js's init() when there was
 // no local config cache to paint from instantly — same pattern and same
@@ -215,11 +215,27 @@ export function renderCalendar(){
     });
   }
   // Progress bar
-  const pct=Math.min(100,Math.round(earn/SALARY_GOAL*100));
+  const goal=AppState.salaryGoal||1;
+  const pct=Math.min(100,Math.round(earn/goal*100));
   const bar=document.getElementById('salary-bar');
   const lbl=document.getElementById('salary-bar-label');
   if(bar) bar.style.width=pct+'%';
-  if(lbl) lbl.textContent=`${pct}% ${tr('shifts_goal_progress')} ${SALARY_GOAL.toLocaleString('uk-UA')} грн`;
+  if(lbl) lbl.textContent=`${pct}% ${tr('shifts_goal_progress')} ${AppState.salaryGoal.toLocaleString('uk-UA')} грн`;
+  const editBtn=document.getElementById('salary-goal-edit-btn');
+  if(editBtn) editBtn.setAttribute('aria-label', tr('shifts_goal_edit_title'));
+}
+
+/** @returns {Promise<void>} */
+async function editSalaryGoal(){
+  if(!canEditActiveProfile()) return;
+  const raw=await uiPrompt(tr('shifts_goal_edit_prompt'), String(AppState.salaryGoal), tr('shifts_goal_edit_title'));
+  if(raw===null) return;
+  const n=parseFloat(raw.replace(',','.'));
+  if(!isFinite(n) || n<0) return;
+  AppState.salaryGoal=n;
+  saveConfigLocal();
+  scheduleSave();
+  renderCalendar();
 }
 
 /** @returns {void} */
@@ -603,6 +619,7 @@ const CLICK_ACTIONS = {
   'shift-month': ds=>shiftMonth(Number(ds.dir)),
   'go-today': ()=>goToday(),
   'toggle-quick-fill': ()=>toggleQuickFill(),
+  'edit-salary-goal': ()=>editSalaryGoal(),
   'save-autofill-config': ()=>saveAutoFillConfig(),
   'set-fin-chart-series': ds=>setFinChartSeries(ds.series||'net'),
 };

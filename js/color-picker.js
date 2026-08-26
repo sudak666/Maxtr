@@ -7,7 +7,7 @@ import { AppState } from './state.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { DEFAULT_CATEGORIES, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
+import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
 import { batchWriteTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
@@ -366,7 +366,7 @@ async function fbSaveNow(){
       // whole-finance-doc rewrite. `{merge:false}` replacing the whole doc
       // is exactly what drops any stale legacy `data` field for an
       // already-migrated account, with no extra cleanup code needed.
-      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, salaryGoal: AppState.salaryGoal, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -445,6 +445,7 @@ export function seedConfigFromDocs(sData, fData){
     const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
     if(AppState.notifSettings.enabled && AppState.notifSettings.timeZone!==tz){ AppState.notifSettings.timeZone=tz; saveNotifSettings(); }
   }catch(e){}
+  AppState.salaryGoal = (fData && typeof fData.salaryGoal==='number' && fData.salaryGoal>=0) ? fData.salaryGoal : DEFAULT_SALARY_GOAL;
   AppState.catBackfillDone = !!(fData && fData.catBackfillDone);
   AppState.catLegacyMerged = !!(fData && fData.catLegacyMerged);
   AppState.integrations = (fData && fData.integrations && typeof fData.integrations==='object') ? fData.integrations : {monobank:null};
@@ -636,7 +637,7 @@ async function processRecurring(){
 
 /** @returns {void} */
 export function saveConfigLocal(){
-  const k=lsKey('cfg'); if(k) setCacheItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged}));
+  const k=lsKey('cfg'); if(k) setCacheItem(k, JSON.stringify({shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, salaryGoal: AppState.salaryGoal}));
 }
 
 // Top-level statements that DO something immediately (as opposed to a

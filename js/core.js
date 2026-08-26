@@ -119,7 +119,10 @@ function logAppError(kind, detail){
   }
 }
 
-export const SALARY_GOAL = 20000;
+// Bootstrap/fallback only — the real, editable value lives in
+// AppState.salaryGoal (js/state.js), synced via the finance doc. See
+// ANDROID_MIGRATION.md step 52.
+export const DEFAULT_SALARY_GOAL = 20000;
 
 /**
  * @param {string} type
