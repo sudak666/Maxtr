@@ -107,12 +107,14 @@ import ua.rytm.app.ui.icons.BeachAccess
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.ChevronLeft
 import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.Edit
 import ua.rytm.app.ui.icons.EventAvailable
 import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.Schedule
 import ua.rytm.app.ui.icons.Style
 import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.theme.tabularNums
+import kotlinx.coroutines.launch
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
 // chip stats, 6-month earnings chart, collapsible quick-fill (template +
@@ -132,6 +134,8 @@ fun ShiftsScreen() {
         factory = ShiftsViewModel.factory(app.shiftsRepository, dataUid, profileId),
     )
     val stats = viewModel.monthStats
+    val salaryGoal by app.settingsStore.salaryGoal(accountUid).collectAsState(initial = ua.rytm.app.data.local.DEFAULT_SALARY_GOAL)
+    var editingGoal by rememberSaveable { mutableStateOf(false) }
     var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
@@ -155,7 +159,7 @@ fun ShiftsScreen() {
         item { RealtimeStateBanner() }
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
-        item { HeroMetric(stats.earned) }
+        item { HeroMetric(stats.earned, salaryGoal, canEdit) { editingGoal = true } }
         item { ChipStats(stats) }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
         if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
@@ -227,6 +231,31 @@ fun ShiftsScreen() {
     if (canEdit && shiftTypesSheetOpen) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = dataUid, profileId = profileId, onDismiss = { shiftTypesSheetOpen = false })
     }
+
+    if (canEdit && editingGoal) {
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+        var text by rememberSaveable(editingGoal) { mutableStateOf(if (salaryGoal == 0.0) "" else salaryGoal.toString()) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { editingGoal = false },
+            title = { Text(stringResource(R.string.shifts_goal_edit_title)) },
+            text = {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.shifts_goal_edit_label)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    text.toDoubleOrNull()?.let { scope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
+                    editingGoal = false
+                }) { Text(stringResource(R.string.action_done)) }
+            },
+            dismissButton = { TextButton(onClick = { editingGoal = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
 }
 
 // Matches the PWA's .hero-metric: a subtle bg1->bg2 diagonal gradient plus a
@@ -234,7 +263,7 @@ fun ShiftsScreen() {
 // (.salary-bar-fill) rather than the theme's purple — same treatment
 // FinanceScreen's HeroBalanceCard got in step 38.
 @Composable
-private fun HeroMetric(earned: Double) {
+private fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGoal: () -> Unit) {
     val shape = MaterialTheme.shapes.large
     Box(
         modifier = Modifier
@@ -251,7 +280,8 @@ private fun HeroMetric(earned: Double) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
-            val pct = (earned / SALARY_GOAL).coerceIn(0.0, 1.0)
+            val goalSafe = goal.coerceAtLeast(1.0)
+            val pct = (earned / goalSafe).coerceIn(0.0, 1.0)
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -270,12 +300,24 @@ private fun HeroMetric(earned: Double) {
                         .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
                 )
             }
-            Text(
-                maskedAmount(stringResource(R.string.shifts_goal_progress, (pct * 100).toInt(), formatMoney(SALARY_GOAL))),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                Text(
+                    maskedAmount(stringResource(R.string.shifts_goal_progress, (pct * 100).toInt(), formatMoney(goal))),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (canEdit) {
+                    IconButton(onClick = onEditGoal, modifier = Modifier.size(RytmDimens.TouchTarget)) {
+                        Icon(
+                            RytmIcons.Edit,
+                            contentDescription = stringResource(R.string.shifts_goal_edit_title),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
     }
 }
