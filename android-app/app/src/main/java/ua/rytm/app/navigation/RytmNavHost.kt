@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -290,6 +291,15 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 10.dp, vertical = if (compactHeight) 4.dp else 8.dp),
+            // Deliberately NOT `weight(1f)` on each child: an equal 1/5 share
+            // still clips the selected tab's label even though it's now the
+            // only one rendering text (reported live — "Налаштув" clipped
+            // with no ellipsis, worse than before). SpaceEvenly sizes every
+            // tab to its own content (icon-only tabs stay compact, the one
+            // tab currently showing icon+label gets exactly the room its
+            // text needs) and spreads the leftover space as gaps — the
+            // actual fix, not another magic-number width tweak.
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             RytmDestination.entries.forEach { destination ->
                 val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
@@ -297,7 +307,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                     destination = destination,
                     selected = selected,
                     compact = compactHeight,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier,
                     onClick = {
                         navController.navigate(destination.route) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -439,7 +449,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
                     translationY = labelOffsetDp.value * density
                 },
                 maxLines = 1,
-                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
