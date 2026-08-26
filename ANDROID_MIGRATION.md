@@ -1,22 +1,30 @@
 # ANDROID_MIGRATION.md - Rytm Native Android
 
-## Session checkpoint — 2026-08-22 (resume here)
+## Session checkpoint — 2026-08-26 (resume here)
 
-Current state: the native Android parity/data-integrity audit was delivered in PR #411; real-phone layout follow-ups were delivered in PRs #414 and #415. The checklist below is historical implementation scope, not an open-task list.
+**Найактуальніший стан репо — кроки 49-51 нижче, PR #424-427, усі змерджені.** Дизайн-аудит (кроки 43-48, 6 етапів) повністю закритий; після нього пройшла жива верифікація на реальному пристрої власника акаунта (Galaxy A51, `ua.rytm.app`, wireless adb) трьома сесіями. Секції нижче (кроки 1-48) — історичний лог реалізації, не список відкритих задач.
 
-Completed in this batch: Settings search/group filters, exact reset defaults, explicit sign-out, Premium/About, email/password auth, profile nickname/avatar picker, Goals and full rates manager, CSV import/export, widget manager/dashboard with PWA Firestore `widgets`/`widgetOrder` sync, auto-rules, full Monobank connect/sync/disconnect (explicitly authorized token flow), notification-path/parity corrections, and Room schema migrations 13→14 (`auto_rules`) and 14→15 (`transactions.monobankId`). Firestore write-through with owner/profile paths, isolated merge-only writes, serialized mutations, rollback/error states now covers transactions, wallets, shifts/autofill, categories/subcategories/icons, budgets, tags (including affected transaction docs), recurring operations, and goals.
+**Що робити далі (у порядку, як домовились із власником акаунта):**
+1. **Live-перевірка Боргів (Debt) і Покупок (Shopping)** — єдиний з трьох пунктів минулої розмови, який ще НЕ зроблено (домовились «з другим потім вирішимо»). Решта 5 екранів (Фінанси, Зміни, Налаштування, логін, онбординг) уже пройшли живу перевірку в кроках 49-50.
+2. **Іконка категорії «Brawl stars»** — зараз ⭐ замість оригінального 🏳 через мій випадковий тап під час live-тестування пікера іконок (крок 49, детальний опис інциденту нижче). Власник акаунта сказав **сам поправить** — не займатись, поки не попросить.
+3. **Брендовий шрифт** (§5.8 аудиту) — заблоковано, потребує рішення власника акаунта, яке саме (чи взагалі) впроваджувати. Не вибирати самостійно.
+4. **Редагована ціль зарплати** (§3.10 аудиту, 20 000 грн хардкод) — паритет із PWA, продуктове рішення, не технічний борг. Не чіпати без прямого запиту.
+5. **Новий `android` CI job** (доданий крок 51) — перший в історії репо, пройшов з першого разу, але вартий пильнішого нагляду ще кілька PR поспіль (незвична конфігурація: `android-actions/setup-android@v3` на compileSdk 37/AGP 9.3.0 — сумісність не гарантована наперед на новіших SDK-версіях).
+6. **pre-33 гілка перемикання мови** (крок 46) — код написаний, але жоден реальний пристрій з API<33 не перевіряв; позначити відкритим, якщо колись з'явиться скарга з такого пристрою.
 
-Verification: the delivered audit passed the full JVM suite, Android lint, 13 emulator Compose tests, responsive/source-parity contracts, real `assembleDebug`, signed APK verification and signed `bundleRelease`; see `android-app/QA_MATRIX.md` and `CHANGELOG.md`.
-
-Current audit work: complete. Firestore listeners keep the active profile current across clients; local mutations write through via the domain repositories. Remaining release action is uploading the signed `.aab` to Play Console closed testing.
+**Технічний борг, з яким я вже двічі помилявся цієї сесії — читай перед тим як вважати щось «перевіреним»:**
+- **Live-тапи по реальних фінансових даних власника акаунта — ризиковані.** Один swipe під час тестування delete-with-undo одного разу спричинив РЕАЛЬНЕ, остаточне видалення транзакції (вікно "Скасувати" згасло, поки сесія переривалась через ліміт використання) — довелось вручну відновлювати транзакцію за тими самими даними. **Перед будь-яким свайпом/тапом по екрану з реальними грошовими даними — питай дозволу або принаймні попереджай, що дія деструктивна.**
+- **"Виглядає нормально на скріншоті" ≠ верифікація для дрібних (кілька dp) змін лейауту.** Крок 50 показав це прямо: заявив padding-фікс виправленим, подивившись на скріншот, а він насправді давав 0px реального зазору. Для будь-якого spacing/clearance-фіксу під ~20dp — спершу піксельний скан (`PIL.Image.getpixel` по лінії через межу), а вже потім заявляти "виправлено".
+- **Координати з `uiautomator dump` одразу після `swipe` можуть бути застарілими**, якщо fling ще доанімовується — звідси випадкова зміна іконки "Brawl stars"/"AI" в кроці 49. Чекай стабілізації прокрутки (два ідентичні dump поспіль), перш ніж тапати за координатами з попереднього dump.
+- **Wireless adb-з'єднання (IP:порт) змінюється між сесіями** — телефон переходить у сон/Wi-Fi відключається, порт бездротового налагодження ротується. Рецепт відновлення: `adb kill-server && adb start-server && adb mdns services` → взяти свіжий `IP:порт` → `adb connect`.
 
 Ціль: нативний Android-клієнт (Kotlin, Jetpack Compose + Material 3, MVVM/Clean, Room + DataStore) зі 100% функціоналом PWA `Rytm`, з покращеннями під нативні Android-патерни там, де PWA-рішення були браузерним компромісом.
 
-Директорія: `./android-app`.
+Директорія: `./android-app`. Package: `ua.rytm.app`.
 
 ## Почни звідси наступну сесію
 
-**АКТИВНА РОБОТА (2026-08-25): виправлення повного дизайн-аудиту.** Аудит (статичний аналіз усього `android-app/app/src/main`, обчислені WCAG-контрасти) знайшов знахідки P0-P3 у 6 розділах і поклав план у 6 етапів (0-5). Власник акаунта дав пряме доручення виправити **геть усе, включно з найдрібнішим**, пакетними PR (один етап = один PR), і попередньо схвалив раніше «спірні» зміни (зокрема підняття шкали `labelSmall`/`labelMedium`). Прогрес:
+**Дизайн-аудит (2026-08-25): виправлення повного дизайн-аудиту — ЗАКРИТО.** Аудит (статичний аналіз усього `android-app/app/src/main`, обчислені WCAG-контрасти) знайшов знахідки P0-P3 у 6 розділах і поклав план у 6 етапів (0-5). Власник акаунта дав пряме доручення виправити **геть усе, включно з найдрібнішим**, пакетними PR (один етап = один PR), і попередньо схвалив раніше «спірні» зміни (зокрема підняття шкали `labelSmall`/`labelMedium`). Прогрес:
 - **Етап 0 (блокери релізу) — ✅ зроблено, крок 43** (іконка+monochrome+roundIcon, скрол у 4 аркушах, `imePadding` у 18, єдиний патерн деструктивних дій + `RytmDestructiveConfirm`, тема-aware семантичні кольори, `values-night`, опція «Системна» тема, R8 62.6→47.5 МБ, `locales_config.xml`).
 - **Етап 1 (accessibility + масштаб шрифту) — ✅ зроблено, крок 44** (семантика 4 графіків, переписана сітка календаря, `DatePickerField`, спільний `RytmEmptyState`, FAB не зникає при великому шрифті, логін/онбординг, контрастні провали §4.5). Один свідомо залишений червоний тест: `OnboardingGoldenTest`-хеші (див. крок 44).
 - **Етап 2 (дизайн-система) — ✅ зроблено, крок 45** (`Type.kt` з `headline*`/`lineHeight`/піднятою шкалою/`tnum`, `RytmSheetTitle`/`RytmStatChip`/`RytmEmptyState`/`RytmDestructiveConfirm`, один хост снекбарів, skeleton+retry+акцентний офлайн-банер, 92 hex-літерали → 0, бейджі Налаштувань по групах, `RytmSpacing` + зведені радіуси).
