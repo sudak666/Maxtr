@@ -1,6 +1,6 @@
 # Changelog
 
-- **Release-build hygiene follow-up (2026-08-26)**. Updated the shared design-token regression test for the intentional 84dp→76dp Finance quick-action height. Excluded the native `android-app/` project from the PWA artifact copier: it was never a Hosting asset and on Windows could lock Gradle checksum files or silently bloat `dist/` while Android and PWA builds overlapped.
+- **Release-build hygiene follow-up (2026-08-26, PR #431)**. Updated the shared design-token regression test for the intentional 84dp→76dp Finance quick-action height. Excluded the native `android-app/` project from the PWA artifact copier: it was never a Hosting asset and on Windows could lock Gradle checksum files or silently bloat `dist/` while Android and PWA builds overlapped. Final `testDebugUnitTest`, `lintDebug`, signed `assembleRelease`, PWA lint/typecheck/build, and APK signature verification passed before merge.
 
 - **Full Ukrainian Settings navigation label (2026-08-26)**. Replaced the ambiguous Android bottom-navigation abbreviation “Налашт.” with “Налаштування”. Tabs now receive content-aware widths—more space for Settings and Shopping, less for the short Shifts and Debt labels—so the complete localized label fits without uniquely shrinking its typography or reducing touch targets.
 
