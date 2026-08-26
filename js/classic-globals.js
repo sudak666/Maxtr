@@ -207,6 +207,7 @@
   setIcon('ic-vacation','umbrella');
   setIcon('ic-trend','trendUp');
   setIcon('ic-bolt','bolt');
+  setIcon('ic-salary-goal-edit','pencil');
   setIcon('tools-toggle-chevron','caretDown');
   setIcon('ic-shift-types','gear');
   setIcon('ic-trash-month','trash');
@@ -389,6 +390,7 @@
       shifts_pattern_every:'Щодня', shifts_pattern_alt:'День через день', shifts_pattern_2_2:'2 через 2', shifts_pattern_3_3:'3 через 3',
       shifts_apply:'Застосувати', shifts_types_btn:'Типи змін', shifts_clear_month:'Очистити місяць',
       shifts_today:'Сьогодні', shifts_hint:'Натисни на день щоб редагувати зміни', shifts_goal_progress:'від цілі',
+      shifts_goal_edit_title:'Ціль заробітку', shifts_goal_edit_prompt:'Сума, грн',
       shifts_pick_title:'Оберіть зміни', shifts_add_type:'Додати тип зміни',
       shifts_types_empty:'Немає типів змін', shifts_type_pay:'Оплата, грн', shifts_type_hours:'Години', shifts_type_off_label:'вихідний',
       shifts_default_name:'Зміна', shifts_add_type_prompt:'Назва типу зміни:', shifts_new_type_default:'Нова зміна',
@@ -691,6 +693,7 @@
       shifts_pattern_every:'Every day', shifts_pattern_alt:'Every other day', shifts_pattern_2_2:'2 on 2 off', shifts_pattern_3_3:'3 on 3 off',
       shifts_apply:'Apply', shifts_types_btn:'Shift types', shifts_clear_month:'Clear month',
       shifts_today:'Today', shifts_hint:'Tap a day to edit shifts', shifts_goal_progress:'of goal',
+      shifts_goal_edit_title:'Earnings goal', shifts_goal_edit_prompt:'Amount, UAH',
       shifts_pick_title:'Choose shifts', shifts_add_type:'Add shift type',
       shifts_types_empty:'No shift types', shifts_type_pay:'Pay, UAH', shifts_type_hours:'Hours', shifts_type_off_label:'day off',
       shifts_default_name:'Shift', shifts_add_type_prompt:'Shift type name:', shifts_new_type_default:'New shift',

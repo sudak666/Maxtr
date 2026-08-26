@@ -108,6 +108,14 @@ export const AppState = {
   selectedTagIds: [],
   profile: {nickname:'', avatar:''},
   subscription: {plan:'free', expiresAt:null},
+  // Shifts hero-metric earnings target. Used to be a hardcoded constant
+  // (core.js's SALARY_GOAL) on both platforms — made editable per
+  // ANDROID_MIGRATION.md step 52's design-audit follow-up (§3.10), since
+  // it's an obviously personal figure, not a shared default. 20000 is a
+  // bootstrap default only (state.js has zero imports of its own, so this
+  // can't reference core.js's DEFAULT_SALARY_GOAL directly — kept in sync
+  // by convention, same as this file's other duplicated defaults).
+  salaryGoal: 20000,
   /** @type {Record<string, boolean>} */
   widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
