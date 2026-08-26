@@ -2,6 +2,7 @@ package ua.rytm.app.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -149,6 +150,19 @@ class SettingsStore(private val context: Context) {
 
     suspend fun getFinanceWidgets(): FinanceWidgetsConfig = financeWidgets.first()
 
+    // Editable earnings target for the Shifts hero metric — a per-account
+    // local preference, not synced to Firestore. Both PWA (js/core.js's
+    // SALARY_GOAL) and the pre-step-52 Android build hardcoded this to
+    // 20000; a design-audit follow-up (§3.10) decided it should be an
+    // editable, personal figure since it obviously differs per user. Kept
+    // Android-only for now: no Firestore field/rules change, and the PWA
+    // still hardcodes its own constant.
+    private fun salaryGoalKey(uid: String) = doublePreferencesKey("salary_goal_$uid")
+    fun salaryGoal(uid: String): Flow<Double> = context.settingsDataStore.data.map { it[salaryGoalKey(uid)] ?: DEFAULT_SALARY_GOAL }
+    suspend fun setSalaryGoal(uid: String, amount: Double) {
+        context.settingsDataStore.edit { it[salaryGoalKey(uid)] = amount.coerceAtLeast(0.0) }
+    }
+
     val cryptoCache: Flow<CryptoCache?> = context.settingsDataStore.data.map { prefs ->
         prefs[cryptoCacheKey]?.let { CryptoCache(it, prefs[cryptoCacheAtKey] ?: 0L) }
     }
@@ -161,6 +175,7 @@ class SettingsStore(private val context: Context) {
     }
 }
 
+const val DEFAULT_SALARY_GOAL = 20000.0
 val FINANCE_WIDGET_KEYS = listOf("goals", "dailyTip", "cryptoTop")
 data class FinanceWidgetsConfig(val enabled: Set<String>, val order: List<String>)
 data class CryptoCache(val json: String, val at: Long)

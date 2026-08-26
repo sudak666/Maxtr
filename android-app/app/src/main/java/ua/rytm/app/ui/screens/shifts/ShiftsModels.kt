@@ -13,9 +13,6 @@ data class ShiftType(
     val isOff: Boolean,
 )
 
-// bootstrap, same convention as SampleFinanceData/SampleShoppingData.
-const val SALARY_GOAL = 20000.0
-
 // Mirrors js/state.js's AppState.autoFillSchedule.
 @Immutable
 data class AutoFillSchedule(
