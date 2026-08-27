@@ -89,7 +89,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
                         IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(RytmIcons.Edit, stringResource(R.string.action_edit)) }
-                        IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving) { Icon(RytmIcons.Delete, stringResource(R.string.action_delete)) }
+                        IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, stringResource(R.string.action_delete)) }
                     }
                     if (expandedId == rule.id) RuleEditor(rule, categories, onUpdate = { persist { repository.updateAutoRule(it) } })
                 }

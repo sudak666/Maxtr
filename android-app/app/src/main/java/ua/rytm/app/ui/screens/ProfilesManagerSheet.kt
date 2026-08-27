@@ -287,7 +287,7 @@ private fun ProfileRow(
             IconButton(onClick = onShare) { Icon(RytmIcons.Share, contentDescription = stringResource(R.string.profile_share)) }
             IconButton(onClick = onManageMembers) { Icon(RytmIcons.Group, contentDescription = stringResource(R.string.profile_members)) }
             IconButton(onClick = onStartRename) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.profile_rename)) }
-            IconButton(onClick = onDelete) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
     }
     }
