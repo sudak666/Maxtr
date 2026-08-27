@@ -3,7 +3,6 @@ import androidx.core.net.toUri
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -130,10 +129,17 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                 )
             }
 
+            // Was border + 24dp shadow + its own surface color all at once —
+            // three separate ways to separate this card from the background
+            // simultaneously. No other card in the app (GoalRow, Debt's
+            // InfoPanel, etc.) combines an explicit border with a shadow;
+            // they rely on the surface-color/elevation difference alone.
+            // Dropped the border, kept the shadow + surface fill — reads
+            // cleaner and matches the app's own established card style
+            // instead of standing out as the one over-decorated exception.
             Card(
                 modifier = Modifier.fillMaxWidth().widthIn(max = 340.dp).padding(top = 22.dp).shadow(24.dp, RoundedCornerShape(RytmRadii.AuthCard)),
                 shape = RoundedCornerShape(RytmRadii.AuthCard),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Column(modifier = Modifier.padding(horizontal = 22.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
