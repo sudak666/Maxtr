@@ -88,7 +88,16 @@ val EthereumBlue = Color(0xFF627EEA)
 // counterpart: on a dark surfaceContainer the pure #111111 badge was
 // invisible (~1.5:1) and only the white glyph floated in the void.
 val MonobankBrand = Color(0xFF111111)
-val MonobankBrandDark = Color(0xFF3A3A3D)
+// The original #3A3A3D "fix" above was itself nearly invisible — it's
+// almost the same tone as DarkBg3 (#38373D, one of this theme's own darkest
+// surface fills), and SettingsIconBadge tints BOTH the 16%-alpha circle AND
+// the glyph with this one color, so a too-dark value makes the whole badge
+// disappear rather than just look low-contrast. Reported live (screenshot):
+// "Прив'язати Monobank" had no visible icon at all in dark mode. A neutral
+// mid-gray (Tailwind's gray-400 family) reads clearly against every dark
+// surface tone in this theme while still looking like a monochrome brand
+// mark rather than introducing a new hue.
+val MonobankBrandDark = Color(0xFF9CA3AF)
 
 // Light halves of the built-in avatar gradients. Their previous values were
 // literally Google's Material palette (#A8C7FA/#C4C7C5/#0B57D0/#1A73E8/

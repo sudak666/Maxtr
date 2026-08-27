@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -831,21 +832,29 @@ private fun DayCell(
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            // Was a tiny 12x3dp dash beside the number — disliked live
-            // ("не подобається"), and genuinely easy to miss/misread as a
-            // stray line rather than a "today" marker. An earlier version
-            // used a fully filled accent circle behind the number, dropped
-            // because it overpowered assigned-shift color underneath. A
-            // ring (outline only, not filled) is the real middle ground —
-            // the same convention Google Calendar/most calendar UIs use for
-            // "today": clearly reads as a marker at a glance, but the cell's
-            // own background and any shift-token colors stay fully visible
-            // since nothing is painted solid behind the number.
+            // History: a 12x3dp dash beside the number was disliked live
+            // ("не подобається"), a plain ring replacing it was ALSO
+            // disliked live ("обводка не вдала") — a thin 1.5dp outline
+            // tightly hugging 2-digit days like "27" reads as cramped/thin
+            // rather than a clear marker. A fully filled circle was tried
+            // even earlier and dropped for overpowering shift-token color
+            // underneath. Settled on a soft low-alpha FILL (a "chip"), not
+            // an outline — but a FIXED 20dp CircleShape had the exact same
+            // bug the ring did: verified live on a real device (Pixel
+            // emulator screenshot, zoomed) that "27"'s two digits actually
+            // overflow past the circle's left/right edges, since a circle
+            // forces width==height but 2-digit text is wider than tall.
+            // Switched to a pill that wraps its own content (with a 20dp
+            // minimum so single digits still render as a clean circle)
+            // instead of a fixed circle — the chip now always fully
+            // contains the number regardless of digit count.
             if (isToday) {
                 Box(
                     Modifier
-                        .size(18.dp)
-                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                        .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                        .clip(RoundedCornerShape(RytmRadii.Pill))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
+                        .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
