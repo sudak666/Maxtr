@@ -2,7 +2,6 @@ package ua.rytm.app.ui.screens.shifts
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -460,9 +459,14 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Box(Modifier.size(36.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            }
+            // Was a filled primaryContainer circle around the chevron —
+            // every other "this row opens something" chevron in the app
+            // (SettingsRow, etc.) is a bare icon with no colored badge; this
+            // one card was the sole exception, and next to the bolt icon's
+            // own solid purple-gradient badge it read as two competing
+            // purple blobs in one row (reported live via screenshot). Bare
+            // icon matches the app's actual established convention.
+            Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -472,14 +476,16 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     var clearMonthConfirmVisible by rememberSaveable { mutableStateOf(false) }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(RytmRadii.Card),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+    // No own Card/border/elevation here — this composable's only caller is
+    // the full-screen Dialog sheet above, which already provides one rounded
+    // surface (RytmRadii.Sheet, surfaceContainer). A second nested Card with
+    // its own shape+background+border+shadow read as a literal "window
+    // inside a window" (reported live via screenshot: a sliver of the
+    // sheet's own rounded top edge peeking above this card's rounded top
+    // edge) — this Card is a leftover from before the panel was moved into
+    // its own Dialog, when it used to sit inline among other cards in the
+    // main scrolling list and genuinely needed its own chrome.
+    Column(Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(RytmRadii.Row)).clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -612,7 +618,6 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 }
             }
         }
-    }
     }
 }
 
@@ -826,18 +831,36 @@ private fun DayCell(
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isOutsideMonth) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-            )
+            // Was a tiny 12x3dp dash beside the number — disliked live
+            // ("не подобається"), and genuinely easy to miss/misread as a
+            // stray line rather than a "today" marker. An earlier version
+            // used a fully filled accent circle behind the number, dropped
+            // because it overpowered assigned-shift color underneath. A
+            // ring (outline only, not filled) is the real middle ground —
+            // the same convention Google Calendar/most calendar UIs use for
+            // "today": clearly reads as a marker at a glance, but the cell's
+            // own background and any shift-token colors stay fully visible
+            // since nothing is painted solid behind the number.
             if (isToday) {
                 Box(
                     Modifier
-                        .size(width = 12.dp, height = 3.dp)
-                        .clip(RoundedCornerShape(RytmRadii.Pill))
-                        .background(MaterialTheme.colorScheme.primary),
+                        .size(18.dp)
+                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        date.dayOfMonth.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            } else {
+                Text(
+                    date.dayOfMonth.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isOutsideMonth) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 )
             }
             // Weekends were signalled by a reddish tint alone (2.13:1 dark /

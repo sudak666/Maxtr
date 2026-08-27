@@ -94,9 +94,17 @@ fun RytmStatChipRow(
     modifier: Modifier = Modifier,
     content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
 ) {
+    // CenterHorizontally here only centers the group when it's short enough
+    // to fit without scrolling (e.g. Shifts' fixed 3 chips) — when content
+    // is long enough to need scrolling (long localized labels, large font
+    // scale), there's no leftover space left to center into and this has no
+    // effect, so the scrollable-row protection this component exists for
+    // (see the doc comment above) is untouched. Fixes a real live report: 3
+    // short chips sat flush-left with dead space on the right, reading as
+    // "off-center" rather than a deliberately left-aligned group.
     LazyRow(
         modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         content = content,
     )
 }

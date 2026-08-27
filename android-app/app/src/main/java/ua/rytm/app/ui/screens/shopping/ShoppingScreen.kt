@@ -24,7 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -227,7 +227,14 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { viewModel.addItem() }),
         )
-        FilledTonalButton(
+        // Was FilledTonalButton — this app's theme only customizes `primary`,
+        // so FilledTonalButton's secondaryContainer fell back to Material3's
+        // muted default gray, making the one control that actually submits
+        // this form look inactive/secondary next to every other primary
+        // action in the app (FAB, "Застосувати", etc. all use solid
+        // primary purple). Reported live via screenshot. Plain Button
+        // defaults to colorScheme.primary, matching that convention.
+        Button(
             onClick = viewModel::addItem,
             enabled = !viewModel.saving && viewModel.nameInput.isNotBlank(),
             modifier = Modifier.heightIn(min = RytmDimens.TouchTarget),

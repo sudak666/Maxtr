@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -277,12 +278,20 @@ private fun AuthModeTabs(mode: AuthMode, enabled: Boolean, onModeChanged: (AuthM
 
 @Composable
 private fun AuthModeTab(label: String, selected: Boolean, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    // "Вхід" (4 letters) vs "Реєстрація" (10) split this 50/50 slot very
+    // unevenly by content — a full-bleed purple fill stretched to the whole
+    // half read as an oversized blob around a tiny word (reported live via
+    // screenshot: "непропорційно"). Insetting the button a few dp inside its
+    // own slot instead of letting it fill the slot edge-to-edge is the
+    // standard segmented-control fix (Duolingo/Headspace-style): the pill
+    // now reads as sized to its own content with visible track showing
+    // around it, not as a block matching an arbitrary 50% column width.
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.heightIn(min = 38.dp),
+        modifier = modifier.heightIn(min = 38.dp).padding(horizontal = 6.dp),
         shape = RoundedCornerShape(RytmRadii.Pill),
-        contentPadding = ButtonDefaults.ContentPadding,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
             contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
