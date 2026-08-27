@@ -408,9 +408,14 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                if (canEdit) Box(Modifier.size(38.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(if (viewModel.infoExpanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                }
+                // Was a filled primaryContainer circle around this pencil —
+                // every per-payment row's own edit pencil just below (see
+                // DebtEntryContent's IconButton) is a bare icon with no
+                // circle. Same "edit" action, two different visual
+                // treatments a few hundred px apart on the same screen
+                // (reported live via screenshot). Bare icon matches the
+                // row-level convention already established on this exact tab.
+                if (canEdit) Icon(if (viewModel.infoExpanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
         ReducedMotionVisibility(visible = viewModel.infoExpanded) {

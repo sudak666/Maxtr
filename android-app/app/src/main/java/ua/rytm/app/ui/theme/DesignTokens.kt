@@ -21,7 +21,10 @@ object RytmDimens {
     // such a FAB, rather than dodging horizontally (narrower button/eyeballed
     // end-padding) — narrowing was tried before here and already flagged as
     // fragile once translations/font scale change the FAB's own width.
-    val FabRowClearance = 72.dp
+    // Bumped from 72dp after a live check: the fix cleared the overlap but
+    // "Переглянути всі" and "+ Платіж" still read as touching with no
+    // breathing room between them.
+    val FabRowClearance = 88.dp
     val BottomNavHorizontal = 14.dp
     val BottomNavBottom = 14.dp
     val SheetHorizontal = 22.dp
