@@ -68,7 +68,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -91,7 +90,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.ui.maskedAmount
@@ -655,8 +653,9 @@ private fun TransactionRow(
     onClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
-    val revealWidthPx = with(LocalDensity.current) { SwipeRevealWidth.toPx() }
+    val density = LocalDensity.current
+    val swipeThresholdPx = with(density) { SwipeOpenThreshold.toPx() }
+    val revealWidthPx = with(density) { SwipeRevealWidth.toPx() }
     var rowWidthPx by remember(tx.id) { mutableIntStateOf(0) }
     var offsetPx by remember(tx.id) { mutableFloatStateOf(0f) }
 
@@ -697,6 +696,18 @@ private fun TransactionRow(
                 )
             }
         }
+        // Was `.fillMaxWidth().offset { IntOffset(offsetPx, 0) }` — a
+        // horizontal translate, the exact anti-pattern the PWA's own swipe
+        // rows explicitly avoid (see js/analytics-csv.js's setupTxSwipe()
+        // doc comment: "shrinks its own width... never transform:translateX
+        // — clips left-edge content"). Translating a rounded-corner Card
+        // left exposes ITS OWN rounded corner mid-row once it's no longer
+        // flush with the row's right edge — reported live via screenshot as
+        // a stray diagonal/rounded cut where the trash icon reveals. Shrink
+        // the card's actual width instead (anchored at the row's start), so
+        // the reveal edge is a straight vertical line matching the shrunk
+        // box's own corner, not a rounded corner floating mid-row.
+        val cardWidthDp = with(density) { (rowWidthPx + offsetPx).coerceAtLeast(0f).toDp() }
         Card(
             onClick = {
                 if (offsetPx < -1f) scope.launch { settleAt(0f) } else onClick()
@@ -705,8 +716,7 @@ private fun TransactionRow(
             shape = MaterialTheme.shapes.large,
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .offset { IntOffset(offsetPx.roundToInt(), 0) }
+                .width(cardWidthDp)
                 .draggable(
                     enabled = canEdit,
                     orientation = Orientation.Horizontal,
