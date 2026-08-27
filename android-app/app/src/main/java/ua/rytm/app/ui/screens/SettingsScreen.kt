@@ -875,49 +875,29 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     if (pendingDeleteAccount) {
-        AlertDialog(
-            onDismissRequest = { if (!authViewModel.isDeletingAccount) pendingDeleteAccount = false },
-            title = { Text(stringResource(R.string.settings_delete_account)) },
-            text = {
-                if (authViewModel.isDeletingAccount) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text(stringResource(R.string.settings_deleting_account))
-                    }
-                } else {
-                    Text(stringResource(R.string.settings_delete_account_body))
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !authViewModel.isDeletingAccount,
-                    onClick = { authViewModel.deleteAccount(context) },
-                ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(enabled = !authViewModel.isDeletingAccount, onClick = { pendingDeleteAccount = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.settings_delete_account),
+            body = stringResource(R.string.settings_delete_account_body),
+            confirmLabel = stringResource(R.string.action_delete),
+            busy = authViewModel.isDeletingAccount,
+            busyLabel = stringResource(R.string.settings_deleting_account),
+            onConfirm = { authViewModel.deleteAccount(context) },
+            onDismiss = { pendingDeleteAccount = false },
         )
     }
     if (pendingSignOut) {
-        AlertDialog(
-            onDismissRequest = { pendingSignOut = false },
-            title = { Text(stringResource(R.string.settings_sign_out_title)) },
-            text = { Text(stringResource(R.string.settings_sign_out_body)) },
-            confirmButton = {
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
-                    onClick = {
-                    pendingSignOut = false
-                    scope.launch {
-                        if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
-                        authViewModel.signOut()
-                    }
-                }) { Text(stringResource(R.string.settings_sign_out_action)) }
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.settings_sign_out_title),
+            body = stringResource(R.string.settings_sign_out_body),
+            confirmLabel = stringResource(R.string.settings_sign_out_action),
+            onConfirm = {
+                pendingSignOut = false
+                scope.launch {
+                    if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
+                    authViewModel.signOut()
+                }
             },
-            dismissButton = {
-                OutlinedButton(onClick = { pendingSignOut = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onDismiss = { pendingSignOut = false },
         )
     }
     if (premiumDialogOpen) {
@@ -962,41 +942,27 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         )
     }
     if (pendingResetProfile && uid != null) {
-        AlertDialog(
-            onDismissRequest = { if (!resetProfileBusy) pendingResetProfile = false },
-            title = { Text(stringResource(R.string.settings_reset_title)) },
-            text = {
-                if (resetProfileBusy) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text(stringResource(R.string.settings_resetting))
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.settings_reset_title),
+            body = stringResource(R.string.settings_reset_body),
+            confirmLabel = stringResource(R.string.settings_reset_action),
+            busy = resetProfileBusy,
+            busyLabel = stringResource(R.string.settings_resetting),
+            onConfirm = {
+                resetProfileBusy = true
+                scope.launch {
+                    try {
+                        app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
+                        pendingResetProfile = false
+                        pendingMessage = resources.getString(R.string.settings_reset_success)
+                    } catch (_: Exception) {
+                        pendingMessage = resources.getString(R.string.settings_reset_failed)
+                    } finally {
+                        resetProfileBusy = false
                     }
-                } else {
-                    Text(stringResource(R.string.settings_reset_body))
                 }
             },
-            confirmButton = {
-                TextButton(
-                    enabled = !resetProfileBusy,
-                    onClick = {
-                        resetProfileBusy = true
-                        scope.launch {
-                            try {
-                                app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
-                                pendingResetProfile = false
-                                pendingMessage = resources.getString(R.string.settings_reset_success)
-                            } catch (_: Exception) {
-                                pendingMessage = resources.getString(R.string.settings_reset_failed)
-                            } finally {
-                                resetProfileBusy = false
-                            }
-                        }
-                    },
-                ) { Text(stringResource(R.string.settings_reset_action), color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(enabled = !resetProfileBusy, onClick = { pendingResetProfile = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onDismiss = { pendingResetProfile = false },
         )
     }
     // The dialog above closes itself once the account is actually gone
