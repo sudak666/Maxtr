@@ -849,11 +849,21 @@ private fun DayCell(
             // instead of a fixed circle — the chip now always fully
             // contains the number regardless of digit count.
             if (isToday) {
+                // Real WCAG check (not eyeballed): `primary` (#8B5CF6) bold
+                // 13sp text on this cell's surfaceVariant background (dark
+                // theme, #2C2B30) computes to only ~3.32:1 — below the 4.5:1
+                // AA floor for normal-size text (13sp bold doesn't clear the
+                // large-text exemption). Light theme's primary already
+                // passes at ~4.82:1. `secondary` (PurpleDark2, #A78BFA) is
+                // already the dark scheme's own lighter accent and computes
+                // to ~5.16:1 against the same background — used here for
+                // dark theme specifically instead of introducing a new color.
+                val markerColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                 Box(
                     Modifier
                         .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                         .clip(RoundedCornerShape(RytmRadii.Pill))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
+                        .background(markerColor.copy(alpha = 0.16f))
                         .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -861,7 +871,7 @@ private fun DayCell(
                         date.dayOfMonth.toString(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = markerColor,
                     )
                 }
             } else {

@@ -1,5 +1,6 @@
 package ua.rytm.app
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,6 +32,7 @@ import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 import ua.rytm.app.ui.LocalHideAmounts
 import ua.rytm.app.ui.applyAppLanguage
+import ua.rytm.app.ui.wrapContext
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.rememberReducedMotion
 
@@ -39,6 +41,14 @@ import ua.rytm.app.ui.rememberReducedMotion
 // fingerprint/face fallback (see ui/screens/pin/BiometricUtil.kt). Compose's
 // setContent extension works identically on either base class.
 class MainActivity : FragmentActivity() {
+    // See ui/AppLanguage.kt's wrapContext() doc comment: this is what
+    // actually makes the in-app language toggle change visible text —
+    // AppCompatDelegate.setApplicationLocales() alone was verified live to
+    // not persist on two independent test environments.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(wrapContext(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

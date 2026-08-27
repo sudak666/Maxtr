@@ -28,6 +28,18 @@ fun builtInTextResource(value: String): Int? = when (value) {
     "День", "Day" -> R.string.builtin_shift_day_short
     "Ніч", "Night" -> R.string.builtin_shift_night_short
     "Вих", "Off" -> R.string.builtin_shift_off_short
+    // The PWA's legacy 6-type seed set (js/core.js's LEGACY_SHIFT_TYPES,
+    // used by accounts created before DEFAULT_SHIFT_TYPES was trimmed to 3)
+    // — real accounts still carry these names verbatim in Firestore. Missing
+    // here meant they rendered untranslated in English (reported live via
+    // screenshot: "Ніч пізня" stayed Ukrainian while "Day off" translated
+    // fine right next to it — the PWA itself doesn't translate these either,
+    // but on a platform where every other label switches language, the
+    // inconsistency reads as a bug rather than a shared, disclosed gap).
+    "Денна (підвищена)", "Day (enhanced)" -> R.string.builtin_shift_day_enhanced
+    "Нічна повна", "Night (full)" -> R.string.builtin_shift_night_full
+    "Ніч рання", "Night (early)" -> R.string.builtin_shift_night_early
+    "Ніч пізня", "Night (late)" -> R.string.builtin_shift_night_late
     "Кредит", "Loan" -> R.string.builtin_debt_credit
     "Я", "Me" -> R.string.builtin_profile_me
     "Банка", "Jar" -> R.string.builtin_monobank_jar

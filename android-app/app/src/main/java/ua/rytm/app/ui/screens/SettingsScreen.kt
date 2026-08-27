@@ -157,16 +157,15 @@ import ua.rytm.app.ui.icons.VisibilityOff
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
 // "Push-сповіщення" (+ granular "Типи сповіщень")/"Профілі" (own+shared,
 // invite/join/leave/roles — steps 30/32/33)/"Вигляд" (тема)/"Акаунт" (вихід
-// + видалення, step 35)/"Безпека" (PIN+біометрія) are real so far — the
-// rest of the PWA's Settings IA is deliberately not built yet, disclosed
-// honestly rather than faked:
-//   - Мова (uk/en toggle): blocked on a real prerequisite, not just
-//     unstarted — every screen in this app hardcodes Ukrainian text
-//     directly rather than going through string resources (see strings.xml,
-//     which only covers nav labels). A real language switch needs that
-//     whole strings.xml migration first (CLAUDE.md §3 improvement #12),
-//     which is its own multi-session effort, not a corner of this step.
-// See ANDROID_MIGRATION.md's "Chesno not done" convention.
+// + видалення, step 35)/"Безпека" (PIN+біометрія)/"Мова" (uk/en toggle) are
+// real. The "Мова" entry below used to carry a note claiming this was
+// blocked on a full strings.xml migration — stale as of this comment: the
+// whole app is on Android string resources (values/ + values-en/, near
+// full parity) and MainActivity observes the language setting and calls
+// AppCompatDelegate.setApplicationLocales() (see ui/AppLanguage.kt) — the
+// toggle genuinely switches the whole app's language, confirmed live on an
+// emulator with an English system locale. See ANDROID_MIGRATION.md's
+// "Chesno not done" convention for what's still genuinely unbuilt here.
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
