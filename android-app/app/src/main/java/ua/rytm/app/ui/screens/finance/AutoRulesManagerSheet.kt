@@ -33,6 +33,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
@@ -66,8 +67,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RytmSheetTitle(stringResource(R.string.auto_rules_title))
-            Text(stringResource(R.string.auto_rules_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            RytmSheetTitle(stringResource(R.string.auto_rules_title), subtitle = stringResource(R.string.auto_rules_body))
             if (errorVisible) Text(stringResource(R.string.auto_rules_save_failed), color = MaterialTheme.colorScheme.error)
             if (rules.isEmpty()) Text(stringResource(R.string.auto_rules_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             rules.forEach { rule ->
@@ -78,8 +78,14 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                 ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        val isDraft = rule.keyword.isEmpty()
                         Column(Modifier.weight(1f)) {
-                            Text(if (rule.keyword.isEmpty()) stringResource(R.string.auto_rules_example) else stringResource(R.string.auto_rules_summary, rule.keyword, localizedDomainText(rule.category)), fontWeight = FontWeight.SemiBold)
+                            Text(
+                                if (isDraft) stringResource(R.string.auto_rules_draft) else stringResource(R.string.auto_rules_summary, rule.keyword, localizedDomainText(rule.category)),
+                                fontWeight = if (isDraft) FontWeight.Normal else FontWeight.SemiBold,
+                                fontStyle = if (isDraft) FontStyle.Italic else FontStyle.Normal,
+                                color = if (isDraft) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                            )
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
                         IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(RytmIcons.Edit, stringResource(R.string.action_edit)) }

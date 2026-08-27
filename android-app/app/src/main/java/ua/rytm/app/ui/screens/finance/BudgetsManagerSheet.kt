@@ -60,7 +60,7 @@ fun BudgetsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            RytmSheetTitle(stringResource(R.string.budgets_title))
+            RytmSheetTitle(stringResource(R.string.budgets_title), subtitle = stringResource(R.string.budgets_body))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

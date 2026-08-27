@@ -75,7 +75,7 @@ fun ShiftTypesManagerSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-            RytmSheetTitle(stringResource(R.string.shift_types_title))
+            RytmSheetTitle(stringResource(R.string.shift_types_title), subtitle = stringResource(R.string.shift_types_body))
 
             if (viewModel.shiftTypes.isEmpty()) {
                 Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -79,7 +79,7 @@ fun WalletsManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RytmSheetTitle(stringResource(R.string.wallets_title))
+            RytmSheetTitle(stringResource(R.string.wallets_title), subtitle = stringResource(R.string.wallets_body))
 
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(

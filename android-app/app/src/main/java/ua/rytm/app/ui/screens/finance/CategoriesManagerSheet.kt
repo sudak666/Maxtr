@@ -93,7 +93,7 @@ fun CategoriesManagerSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            RytmSheetTitle(stringResource(R.string.categories_title))
+            RytmSheetTitle(stringResource(R.string.categories_title), subtitle = stringResource(R.string.categories_body))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = viewModel.activeType == TxType.EXPENSE, onClick = { viewModel.setType(TxType.EXPENSE) }, label = { Text(stringResource(R.string.tx_expense)) })
