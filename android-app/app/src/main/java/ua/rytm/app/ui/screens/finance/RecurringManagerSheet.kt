@@ -83,7 +83,7 @@ fun RecurringManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            RytmSheetTitle(stringResource(R.string.recurring_title))
+            RytmSheetTitle(stringResource(R.string.recurring_title), subtitle = stringResource(R.string.recurring_body))
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->

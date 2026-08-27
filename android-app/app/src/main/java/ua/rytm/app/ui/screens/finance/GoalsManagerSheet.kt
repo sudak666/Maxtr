@@ -93,12 +93,7 @@ fun GoalsManagerSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            RytmSheetTitle(stringResource(R.string.goals_title))
-            Text(
-                stringResource(R.string.goals_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            RytmSheetTitle(stringResource(R.string.goals_title), subtitle = stringResource(R.string.goals_description))
 
             if (viewModel.isSaving) LinearProgressIndicator(Modifier.fillMaxWidth())
             viewModel.errorMessageRes?.let { messageRes ->

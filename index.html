@@ -640,6 +640,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .fin-mini-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800}
 .fin-mini-stat.income .fin-mini-stat-val{color:var(--green2)}
 .fin-mini-stat.expense .fin-mini-stat-val{color:var(--red2)}
+/* Same "pastel card + solid icon circle" DNA as .stat-card/.stat-icon
+   (Tools → Analytics widget) — these two mini-cards show the same
+   income/expense-this-month figures and used to render without an icon,
+   reading as a different component instead of a compact variant of it. */
+.fin-mini-stat-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:8px}
+.fin-mini-stat-icon .ico{width:15px;height:15px;margin-right:0}
+.fin-mini-stat.income .fin-mini-stat-icon{background:var(--green)}
+.fin-mini-stat.expense .fin-mini-stat-icon{background:var(--red)}
 
 /* ── SALARY PROGRESS ── */
 .salary-progress{margin-top:8px}
@@ -1528,6 +1536,12 @@ body.amounts-hidden #fx-converter-result{
 .cat-row-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
 .cat-row-name{font-size:14px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cat-row-sub{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* One shared "this row is an unfilled draft" treatment — any manager entity
+   added via "+ Add X" but never given a real keyword/amount/category used to
+   fall back to formatting its empty fields as if they were real content
+   (rules_keyword_placeholder shown as a title, "0 грн" read as a real amount).
+   Apply .mgr-row-draft to the row instead of inventing a per-manager fallback. */
+.mgr-row-draft .cat-row-name{font-style:italic;font-weight:600;color:var(--muted)}
 
 /* ── DRAG-TO-REORDER (categories list) ── */
 .drag-handle{background:none;border:none;color:var(--muted2);cursor:grab;padding:6px;border-radius:50%;display:inline-flex;flex:0 0 auto;touch-action:none;transition:all .15s}
@@ -2499,6 +2513,7 @@ body.amounts-hidden #fx-converter-result{
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="shifts_types_btn">Типи змін</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="shift_types_desc">Оплата, тривалість і колір кожного типу зміни для календаря.</div>
     <div class="mgr-list" id="shift-types-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-shift-type"><span id="ic-add-st"></span><span data-i18n="shifts_add_type">Додати тип зміни</span></button>
     <div class="modal-actions" style="margin-top:12px">
@@ -2514,6 +2529,7 @@ body.amounts-hidden #fx-converter-result{
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_wallets">Гаманці</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="wallets_desc">Картки, готівка та інші рахунки, між якими рухаються гроші.</div>
     <div class="mgr-list" id="wallets-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-wallet"><span id="ic-add-w"></span><span data-i18n="wallets_add">Додати гаманець</span></button>
     <div class="modal-actions" style="margin-top:12px">
@@ -2657,6 +2673,7 @@ body.amounts-hidden #fx-converter-result{
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="settings_categories">Категорії</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="categories_desc">Свої категорії доходів і витрат, з підкатегоріями всередині.</div>
     <div class="type-seg" style="margin-bottom:12px">
       <button class="type-btn active" id="catmgr-inc" data-action="set-cat-mgr-type" data-type="income" data-i18n="cat_income">Дохід</button>
       <button class="type-btn" id="catmgr-exp" data-action="set-cat-mgr-type" data-type="expense" data-i18n="cat_expense">Витрата</button>
@@ -2852,6 +2869,7 @@ body.amounts-hidden #fx-converter-result{
    <div class="modal-card-body">
     <div class="sheet-grabber"></div>
     <div class="modal-header"><div class="modal-date" data-i18n="profiles_manager_title">Профілі</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="profiles_manager_desc">Окремі набори даних в одному акаунті — наприклад, для кожного члена сім'ї.</div>
     <div class="mgr-list" id="profiles-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-profile"><span id="ic-add-profile"></span><span data-i18n="profiles_add_btn">Додати профіль</span></button>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" data-action="share-current-profile"><span id="ic-share-profile"></span><span data-i18n="profiles_share_btn">Поділитись поточним профілем</span></button>

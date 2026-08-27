@@ -11,12 +11,14 @@
     <string name="action_apply">Apply</string>
     <string name="action_add">Add</string>
     <string name="tags_title">Tags</string>
+    <string name="tags_body">Freeform labels on transactions, separate from categories — a transaction can have several.</string>
     <string name="tags_empty">No tags</string>
     <string name="tags_name">Tag name</string>
     <string name="tags_delete_title">Delete tag</string>
     <string name="tags_delete_body">Delete this tag? It will be removed from every transaction.</string>
     <string name="tags_save_failed">Could not save tags. Try again.</string>
     <string name="wallets_title">Wallets</string>
+    <string name="wallets_body">Cards, cash, and other accounts your money moves between.</string>
     <string name="wallets_empty">No wallets</string>
     <string name="wallet_new_default">New wallet</string>
     <string name="wallet_add">Add wallet</string>
@@ -29,6 +31,7 @@
     <string name="tx_income">Income</string><string name="tx_expense">Expense</string><string name="tx_type">Type</string><string name="tx_category">Category</string>
     <string name="auto_rules_title">Automatic rules</string>
     <string name="auto_rules_body">When a comment contains a keyword, its category is selected automatically while you enter the transaction.</string>
+    <string name="auto_rules_draft">New rule — fill in a keyword</string>
     <string name="auto_rules_empty">No rules</string>
     <string name="auto_rules_example">e.g. Grocery</string>
     <string name="auto_rules_summary">“%1$s” → %2$s</string>
@@ -77,7 +80,7 @@
     <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
     <string name="wallet_label">Wallet</string>
     <string name="amount_label">Amount</string>
-    <string name="recurring_title">Recurring payments</string><string name="recurring_empty">No recurring payments</string>
+    <string name="recurring_title">Recurring payments</string><string name="recurring_body">Automatically added when you open the app, once the date arrives.</string><string name="recurring_empty">No recurring payments</string>
     <string name="recurring_add">Add recurring payment</string><string name="recurring_delete_title">Delete recurring payment</string>
     <string name="recurring_delete_body">Delete this recurring payment?</string>
     <string name="frequency_daily">Daily</string><string name="frequency_weekly">Weekly</string><string name="frequency_monthly">Monthly</string><string name="frequency_label">Frequency</string>
@@ -103,7 +106,7 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
-    <string name="budgets_title">Budgets</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$d/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$d/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
     <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
     <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
     <string name="action_move_up">Move up</string><string name="action_move_down">Move down</string><string name="widgets_sync_failed">Could not sync widget settings</string>
@@ -116,7 +119,7 @@
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>
     <string name="finance_empty_cta">Add your first transaction</string>
     <string name="finance_amount_uah">UAH %1$s</string><string name="finance_amount_uah_estimated">≈ UAH %1$s</string><string name="finance_month_net">%1$sUAH %2$s this month</string><string name="finance_signed_uah">%1$sUAH %2$s</string>
-    <string name="categories_title">Categories</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
+    <string name="categories_title">Categories</string><string name="categories_body">Your own income and expense categories, with subcategories inside.</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
     <string name="subcategory_delete_title">Delete subcategory</string><string name="subcategory_delete_body">Delete subcategory “%1$s”?</string><string name="category_icon_title">Category icon</string>
     <string name="subcategory_too_long">Subcategory name cannot exceed 120 characters</string><string name="subcategory_exists">This subcategory already exists</string><string name="category_too_long">Category name cannot exceed 120 characters</string><string name="category_exists">This category already exists</string><string name="categories_sync_failed">Could not sync changes</string>
@@ -199,7 +202,7 @@
     <string name="action_edit">Edit</string>
     <string name="field_name">Name</string>
     <string name="common_save_failed">Could not save changes</string>
-    <string name="shift_types_title">Shift types</string>
+    <string name="shift_types_title">Shift types</string><string name="shift_types_body">Pay, duration, and color for each shift type shown on the calendar.</string>
     <string name="shift_types_empty">No shift types</string>
     <string name="shift_type_new_default">New shift</string>
     <string name="shift_type_add">Add shift type</string>
@@ -270,7 +273,7 @@
     <string name="auth_error_invalid_credentials">Incorrect email or password.</string>
     <string name="auth_error_email_in_use">This email is already registered.</string>
     <string name="auth_error_too_many">Too many attempts. Try again later.</string>
-    <string name="profiles_title">Profiles</string>
+    <string name="profiles_title">Profiles</string><string name="profiles_body">Separate data sets in one account — e.g. one per family member.</string>
     <string name="profile_name">Profile name</string>
     <string name="profile_join_by_code">Join with a code</string>
     <string name="profile_invite_code">Invite code</string>

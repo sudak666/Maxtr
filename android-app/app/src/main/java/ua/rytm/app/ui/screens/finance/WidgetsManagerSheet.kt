@@ -77,7 +77,6 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             RytmSheetTitle(stringResource(R.string.widgets_title), subtitle = stringResource(R.string.widgets_body))
-            Text(stringResource(R.string.widgets_body), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp).align(Alignment.CenterHorizontally))
             config.order.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEachIndexed { index, item ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.foundation.layout.Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {

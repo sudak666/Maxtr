@@ -954,10 +954,11 @@ function renderRecurringList(){
     const open=AppState.expandedRecurringId===r.id;
     const paused=r.active===false;
     const freqLabel=tr(FREQ_LABEL_KEY[r.frequency]||'recurring_monthly');
-    const summary=`${escapeHtml(r.category||'')} · ${(r.amount||0).toLocaleString('uk-UA')} грн`;
+    const isDraft=!r.amount||!r.category;
+    const summary=isDraft ? tr('recurring_draft_label') : `${escapeHtml(r.category||'')} · ${(r.amount||0).toLocaleString('uk-UA')} грн`;
     const nextDateFmt=r.nextDate?r.nextDate.split('-').reverse().join('.'):'';
     const row=document.createElement('div');
-    row.className='mgr-row'+(paused?' recur-paused':'');
+    row.className='mgr-row'+(paused?' recur-paused':'')+(isDraft?' mgr-row-draft':'');
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">

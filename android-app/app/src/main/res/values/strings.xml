@@ -13,12 +13,14 @@
     <string name="action_apply">Застосувати</string>
     <string name="action_add">Додати</string>
     <string name="tags_title">Теги</string>
+    <string name="tags_body">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</string>
     <string name="tags_empty">Немає тегів</string>
     <string name="tags_name">Назва тега</string>
     <string name="tags_delete_title">Видалити тег</string>
     <string name="tags_delete_body">Видалити цей тег? Він буде знятий з усіх операцій.</string>
     <string name="tags_save_failed">Не вдалося зберегти теги. Спробуйте ще раз.</string>
     <string name="wallets_title">Гаманці</string>
+    <string name="wallets_body">Картки, готівка та інші рахунки, між якими рухаються гроші.</string>
     <string name="wallets_empty">Немає гаманців</string>
     <string name="wallet_new_default">Новий гаманець</string>
     <string name="wallet_add">Додати гаманець</string>
@@ -31,6 +33,7 @@
     <string name="tx_income">Дохід</string><string name="tx_expense">Витрата</string><string name="tx_type">Тип</string><string name="tx_category">Категорія</string>
     <string name="auto_rules_title">Автоматичні правила</string>
     <string name="auto_rules_body">Якщо коментар містить ключове слово — категорія підставляється сама, поки ти вводиш операцію.</string>
+    <string name="auto_rules_draft">Нове правило — заповни ключове слово</string>
     <string name="auto_rules_empty">Немає правил</string>
     <string name="auto_rules_example">напр. Сільпо</string>
     <string name="auto_rules_summary">“%1$s” → %2$s</string>
@@ -79,7 +82,7 @@
     <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
     <string name="wallet_label">Гаманець</string>
     <string name="amount_label">Сума</string>
-    <string name="recurring_title">Регулярні платежі</string><string name="recurring_empty">Немає регулярних платежів</string>
+    <string name="recurring_title">Регулярні платежі</string><string name="recurring_body">Автоматично додаються при вході в застосунок, коли настає дата.</string><string name="recurring_empty">Немає регулярних платежів</string>
     <string name="recurring_add">Додати регулярний платіж</string><string name="recurring_delete_title">Видалити регулярний платіж</string>
     <string name="recurring_delete_body">Видалити цей регулярний платіж?</string>
     <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
@@ -105,7 +108,7 @@
     <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$d грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$d грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_move_up">Вище</string><string name="action_move_down">Нижче</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -118,7 +121,7 @@
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
     <string name="finance_empty_cta">Додати першу операцію</string>
     <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
-    <string name="categories_title">Категорії</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
+    <string name="categories_title">Категорії</string><string name="categories_body">Свої категорії доходів і витрат, з підкатегоріями всередині.</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
     <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
     <string name="subcategory_too_long">Назва підкатегорії не може перевищувати 120 символів</string><string name="subcategory_exists">Така підкатегорія вже є</string><string name="category_too_long">Назва категорії не може перевищувати 120 символів</string><string name="category_exists">Така категорія вже є</string><string name="categories_sync_failed">Не вдалося синхронізувати зміни</string>
@@ -201,7 +204,7 @@
     <string name="action_edit">Редагувати</string>
     <string name="field_name">Назва</string>
     <string name="common_save_failed">Не вдалося зберегти зміни</string>
-    <string name="shift_types_title">Типи змін</string>
+    <string name="shift_types_title">Типи змін</string><string name="shift_types_body">Оплата, тривалість і колір кожного типу зміни для календаря.</string>
     <string name="shift_types_empty">Немає типів змін</string>
     <string name="shift_type_new_default">Нова зміна</string>
     <string name="shift_type_add">Додати тип зміни</string>
@@ -272,7 +275,7 @@
     <string name="auth_error_invalid_credentials">Невірний email або пароль.</string>
     <string name="auth_error_email_in_use">Цей email вже зареєстровано.</string>
     <string name="auth_error_too_many">Забагато спроб. Спробуйте пізніше.</string>
-    <string name="profiles_title">Профілі</string>
+    <string name="profiles_title">Профілі</string><string name="profiles_body">Окремі набори даних в одному акаунті — наприклад, для кожного члена сім\'ї.</string>
     <string name="profile_name">Назва профілю</string>
     <string name="profile_join_by_code">Приєднатися за кодом</string>
     <string name="profile_invite_code">Код запрошення</string>

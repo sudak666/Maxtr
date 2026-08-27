@@ -475,8 +475,8 @@ export function renderFinance(){
     html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${Math.abs(monthNet).toLocaleString('uk-UA')} грн</span> ${tr('finance_trend_this_month')}</div>`;
     if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
     html+=`<div class="fin-mini-stat-row">
-      <div class="fin-mini-stat income"><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
-      <div class="fin-mini-stat expense"><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
+      <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
+      <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
     </div>`;
     html+='<div class="wallet-chip-row">';
     AppState.wallets.forEach(w=>{

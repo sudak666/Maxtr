@@ -464,9 +464,10 @@ function renderAutoRulesList(){
     const catList=AppState.categories[r.type]||[];
     const open=AppState.expandedRuleId===r.id;
     const typeLabel=r.type==='income'?tr('cat_income'):tr('cat_expense');
-    const summary=r.keyword ? `"${escapeHtml(r.keyword)}" → ${escapeHtml(r.category||'')}` : tr('rules_keyword_placeholder');
+    const isDraft=!r.keyword;
+    const summary=isDraft ? tr('rules_draft_label') : `"${escapeHtml(r.keyword)}" → ${escapeHtml(r.category||'')}`;
     const row=document.createElement('div');
-    row.className='mgr-row';
+    row.className='mgr-row'+(isDraft?' mgr-row-draft':'');
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
