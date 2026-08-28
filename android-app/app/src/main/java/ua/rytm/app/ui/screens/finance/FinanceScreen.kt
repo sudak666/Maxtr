@@ -475,12 +475,24 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
             .padding(12.dp),
     ) {
         Column {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Same icon-circle + label treatment as ToolsSheet's
+            // AnalyticsTotalCard (income/expense-this-month, the same
+            // underlying figures) — this card used to render label+value
+            // only, reading as a different component instead of a compact
+            // variant of the same one; PWA's equivalent (.fin-mini-stat-icon)
+            // already got this fix, this one hadn't yet.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.size(22.dp).background(valueColor.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(if (positive) RytmIcons.TrendingUp else RytmIcons.TrendingDown, contentDescription = null, tint = valueColor, modifier = Modifier.size(13.dp))
+                }
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Text(
                 text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
                 style = MaterialTheme.typography.titleMedium.tabularNums(),
                 fontWeight = FontWeight.Bold,
                 color = valueColor,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }
