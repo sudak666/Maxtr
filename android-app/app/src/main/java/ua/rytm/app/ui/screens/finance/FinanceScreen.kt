@@ -710,9 +710,24 @@ private fun TransactionRow(
         // whole list (reported live). Not drawing this layer until the row
         // has a real measured width closes the gap.
         if (rowWidthPx > 0) {
+            // fillMaxSize() here (not matchParentSize()) sizes against this
+            // Box's OWN incoming constraints, not against the Card sibling's
+            // actual measured height — and a LazyColumn item's incoming
+            // height constraint is unbounded, so fillMaxSize() silently
+            // falls back to wrap-content for that axis (Compose's own
+            // documented behavior for fillMaxSize under an unbounded
+            // constraint). This layer, and the trash-icon box inside it,
+            // both collapsed down to roughly their own icon's intrinsic
+            // height instead of the Card's real height -- reported live,
+            // screenshot: red only covering the row's top third while the
+            // card's real content (date/amount/tag) showed through
+            // unclipped underneath. matchParentSize() defers measurement of
+            // this child until the Box's own size is resolved from its
+            // properly-sized sibling (the Card) and always matches that
+            // exactly, regardless of what the parent's own constraints are.
             Box(
                 Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .background(MaterialTheme.colorScheme.error),
                 contentAlignment = Alignment.CenterEnd,
             ) {
