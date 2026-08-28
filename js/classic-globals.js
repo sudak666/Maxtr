@@ -894,6 +894,13 @@
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){ el.setAttribute('placeholder', window.tr(el.getAttribute('data-i18n-placeholder'))); });
     document.querySelectorAll('.lang-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===window.currentLang); });
     document.documentElement.setAttribute('lang', window.currentLang);
+    // terms.html/privacy.html have no i18n of their own (standalone static
+    // pages) — data-legal-doc picks the -en.html sibling instead of always
+    // linking to the Ukrainian original regardless of app language.
+    document.querySelectorAll('[data-legal-doc]').forEach(function(a){
+      var doc=a.getAttribute('data-legal-doc');
+      a.setAttribute('href', window.currentLang==='en' ? doc+'-en.html' : doc+'.html');
+    });
   };
   window.setLang=function(lang){
     if(lang!=='en'&&lang!=='uk') return;
