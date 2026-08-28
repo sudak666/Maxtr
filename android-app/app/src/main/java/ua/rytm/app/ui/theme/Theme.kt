@@ -2,6 +2,8 @@ package ua.rytm.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -52,6 +54,32 @@ private val LightColors = lightColorScheme(
     outlineVariant = LightBorder2,
     error = RedLight2,
     onError = LightBg1,
+)
+
+/**
+ * Every `Switch` in the app needs this — M3's own default unchecked-thumb
+ * color is `colorScheme.outline`, but this app's `outline` is tuned for
+ * hairline card borders (`LightBorder` = #E4E4E9, barely darker than
+ * `surfaceContainerHigh`/`LightBg3` = #E2E0DD it sits on), not a control
+ * that needs to read as a real filled circle — an OFF switch rendered as a
+ * near-invisible pale oval with no visible thumb at all.
+ *
+ * This exact bug, exact root cause, and exact fix already existed once in
+ * `SettingsScreen.kt`'s `SettingsRow` (its own `SwitchDefaults.colors(...)`
+ * override, live-verified there) — it just never got extracted into
+ * something the other 4 `Switch` call sites (WidgetsManagerSheet,
+ * NotificationSettingsSheet, ShiftsScreen, PinSettingsSheet) could reuse,
+ * so they kept the invisible-thumb bug `SettingsScreen` had already fixed
+ * for itself. This is that fix, pulled out once so it can't drift again;
+ * `SettingsScreen` additionally overrides its *checked*-state colors on
+ * top of this for its own reasons and keeps its own `SwitchDefaults.colors`
+ * call for that, but uses these same three unchecked-state values.
+ */
+@Composable
+fun rytmSwitchColors(): SwitchColors = SwitchDefaults.colors(
+    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+    uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
 )
 
 @Composable

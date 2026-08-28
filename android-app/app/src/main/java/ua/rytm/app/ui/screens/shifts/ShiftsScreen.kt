@@ -589,7 +589,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled)
+                    Switch(checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                 }
                 ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
                     Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

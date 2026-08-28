@@ -135,7 +135,7 @@ private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, en
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
     }
 }
 
