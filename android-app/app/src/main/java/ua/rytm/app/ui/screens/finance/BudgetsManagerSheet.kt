@@ -16,6 +16,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -116,6 +117,14 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text(stringResource(R.string.budgets_monthly_limit)) },
+                // Default unfocused border is colorScheme.outline (#E4E4E9 in
+                // light) sitting on this row's surfaceContainerHigh (#E2E0DD)
+                // — same near-1:1-contrast pair already fixed once for the
+                // Switch thumb in SettingsScreen.kt. onSurfaceVariant is the
+                // same fix applied here.
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
             LaunchedEffect(limitText) {
                 delay(400)
