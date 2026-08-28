@@ -167,7 +167,13 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                             Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
+                        // Deliberately NOT `enabled = !busy`: busy is shared across the
+                        // whole sheet (guards against overlapping update() calls), but
+                        // reflecting it here disabled every row's Switch — including
+                        // ones the user didn't touch — for the duration of the *other*
+                        // row's background sync, which read as all 3 switches
+                        // flickering every time any one of them was tapped.
+                        Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                     }
                 }
             }

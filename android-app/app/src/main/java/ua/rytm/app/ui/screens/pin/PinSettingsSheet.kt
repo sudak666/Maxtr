@@ -121,7 +121,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                                 Text(stringResource(R.string.pin_biometric_title), fontWeight = FontWeight.Bold)
                                 Text(stringResource(R.string.pin_biometric_toggle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Switch(checked = biometricEnabled, onCheckedChange = null)
+                            Switch(checked = biometricEnabled, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                         }
                     }
                 }
