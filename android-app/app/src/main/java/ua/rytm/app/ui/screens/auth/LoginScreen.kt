@@ -241,9 +241,10 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                     }
 
+                    val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
                     TermsFooter(
-                        onTerms = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://maxtr-c238f.web.app/terms.html".toUri())) },
-                        onPrivacy = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://maxtr-c238f.web.app/privacy.html".toUri())) },
+                        onTerms = { context.startActivity(Intent(Intent.ACTION_VIEW, (if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html").toUri())) },
+                        onPrivacy = { context.startActivity(Intent(Intent.ACTION_VIEW, (if (legalDocsEn) "https://maxtr-c238f.web.app/privacy-en.html" else "https://maxtr-c238f.web.app/privacy.html").toUri())) },
                     )
 
                     if (BuildConfig.USE_FIREBASE_EMULATOR) {

@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Rytm</string>
+    <!-- Selects the English legal-doc pages (privacy-en.html/terms-en.html/
+         account-deletion-en.html) instead of the Ukrainian-only originals,
+         which have no built-in i18n of their own — see SettingsScreen.kt's
+         Terms/Privacy rows. -->
+    <bool name="legal_docs_en">false</bool>
 
     <string name="nav_finance">Фінанси</string>
     <string name="nav_shifts">Зміни</string>

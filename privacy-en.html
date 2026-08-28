@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0812">
+<meta name="color-scheme" content="dark light">
+<title>Privacy Policy — Rytm</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%238b5cf6'/><text y='.74em' x='26' font-size='58' font-family='Arial' font-weight='900' fill='white'>X</text></svg>">
+<style>
+:root{
+  --bg:#08060f; --bg1:#0f0c1a; --bg2:#161225; --border:#2a2245;
+  --text:#ede9f8; --text-strong:#ffffff; --muted:#9a90b8; --purple:#8b5cf6; --purple2:#a78bfa;
+}
+@media(prefers-color-scheme:light){
+  :root{ --bg:#f2f2f7; --bg1:#ffffff; --bg2:#f2f2f7; --border:#e4e4e9; --text:#1c1c1e; --text-strong:#0b0b0d; --muted:#6b6b70; --purple2:#7c3aed; }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;
+  line-height:1.65; padding:0 0 60px;
+}
+.wrap{max-width:720px;margin:0 auto;padding:32px 20px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0}
+.brand{font-weight:800;color:var(--text-strong);font-size:15px}
+h1{font-size:26px;font-weight:900;color:var(--text-strong);letter-spacing:-.02em;margin:0 0 6px}
+.updated{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:32px}
+h2{font-size:17px;font-weight:800;color:var(--text-strong);margin:32px 0 10px;letter-spacing:-.01em}
+p,li{font-size:14.5px;color:var(--text)}
+ul{padding-left:20px;margin:8px 0}
+li{margin-bottom:6px}
+a{color:var(--purple2)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:16px}
+.back{display:inline-block;margin-top:36px;font-size:13px;font-weight:700;color:var(--purple2);text-decoration:none}
+.back:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">X</div>
+    <div class="brand">Rytm</div>
+  </div>
+
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: July 3, 2026</div>
+
+  <div class="card">
+    <p>This Policy explains what data the Rytm app ("the app", "we") collects, how we use and store it, and what rights you have as a user. Rytm is a personal tracker for work shifts, finances, and debt/settlement schedules; it is not a legal entity or a commercial company — it is developed and maintained by a single individual.</p>
+  </div>
+
+  <h2>What data we collect</h2>
+  <p><strong>Account data.</strong> To sign in to the app, you register with email and password, or with a Google account. In the first case we store your email; in the second, the name, email, and profile photo that Google provides at sign-in.</p>
+  <p><strong>Data you enter yourself.</strong> Everything you enter in the app is stored exclusively for you:</p>
+  <ul>
+    <li>Financial transactions: amounts, categories, subcategories, tags, wallets, comments, dates;</li>
+    <li>Wallets, exchange rates, budgets, and recurring transactions you set up;</li>
+    <li>Your work shift schedule and shift types;</li>
+    <li>Settlement records (debts, installment plans) and their payment history.</li>
+  </ul>
+  <p><strong>Data kept only on your device.</strong> Your access PIN is stored in hashed form (SHA-256) locally in the browser and is never transmitted to any server — not even we can see it. The same applies to your theme choice (dark/light).</p>
+
+  <h2>How we use your data</h2>
+  <p>Data is used solely to run the app itself: showing your statistics, calculating balances, and syncing between your devices. We do <strong>not</strong> show ads, do <strong>not</strong> use third-party analytics or trackers, and do <strong>not</strong> sell or share your data with anyone for marketing or any other purposes.</p>
+
+  <h2>Where data is stored</h2>
+  <p>Data is stored in the Firebase cloud database (a Google service), which acts as the technical infrastructure provider. Each account has access only to its own data — this is enforced by server-side access rules (Firestore Security Rules), and no other app user can see or change your records.</p>
+
+  <h2>Your rights</h2>
+  <ul>
+    <li>View, edit, or delete any of your own records directly in the app at any time;</li>
+    <li>Export your financial transactions as CSV (the "Export CSV" button on the Finance tab);</li>
+    <li>Permanently delete your account and all associated data — the account-deletion button in the app does this immediately and irreversibly (see the <a href="account-deletion-en.html">account deletion page</a> for details);</li>
+    <li>Contact us with any questions about your data at the contact below.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>The connection to the server is always encrypted (HTTPS). Authentication is handled by Firebase Authentication. You can additionally enable a local PIN code to quickly lock the app on your device.</p>
+
+  <h2>Children</h2>
+  <p>The app is not intended for individuals under 16 and does not knowingly collect data from children.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this Policy from time to time. The last-updated date is always shown at the top of this page.</p>
+
+  <h2>Contact</h2>
+  <p>For questions about privacy, data processing, or deletion, write to <a href="mailto:maxim19800606@gmail.com">maxim19800606@gmail.com</a>.</p>
+
+  <a class="back" href="index.html">← Back to the app</a>
+</div>
+</body>
+</html>

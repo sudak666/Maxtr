@@ -589,19 +589,24 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         subtitle = stringResource(R.string.settings_web_subtitle),
                         onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
                     )
+                    // privacy.html/terms.html have no i18n of their own (standalone
+                    // static pages, not part of the app's string-resource system) —
+                    // legal_docs_en picks the -en.html sibling instead of silently
+                    // always opening the Ukrainian original regardless of app language.
+                    val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
                     SettingsRow(
                         icon = RytmIcons.Description,
                         badgeColor = SettingsGroupColors.About,
                         title = stringResource(R.string.terms_title),
                         subtitle = stringResource(R.string.settings_terms_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/terms.html") },
+                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") },
                     )
                     SettingsRow(
                         icon = RytmIcons.PrivacyTip,
                         badgeColor = SettingsGroupColors.About,
                         title = stringResource(R.string.privacy_title),
                         subtitle = stringResource(R.string.settings_privacy_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app/privacy.html") },
+                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/privacy-en.html" else "https://maxtr-c238f.web.app/privacy.html") },
                     )
                 }
                 Text(
