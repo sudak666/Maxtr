@@ -63,7 +63,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.ui.components.SwipeOpenThreshold
@@ -248,11 +250,16 @@ private fun AddItemForm(viewModel: ShoppingViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     var deleteCommitted by remember(item.id) { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(positionalThreshold = { swipeThresholdPx }, confirmValueChange = { value ->
         if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
-            if (!deleteCommitted) { deleteCommitted = true; onDelete() }
+            if (!deleteCommitted) {
+                deleteCommitted = true
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onDelete()
+            }
             true
         } else false
     })

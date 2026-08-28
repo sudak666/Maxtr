@@ -169,12 +169,22 @@ private fun GoalRow(
     val progress = if (target > 0) (savedClamped / target).coerceIn(0.0, 1.0) else 0.0
     val done = target > 0 && savedClamped >= target
     val percent = (progress * 100).toInt()
+    // Fires exactly once, the moment this goal crosses to 100% during a
+    // live session -- not on every later visit to an already-reached goal
+    // (previousDone seeds from the CURRENT `done` state).
+    var previousDone by remember(goal.id) { mutableStateOf(done) }
+    var celebrateTrigger by remember(goal.id) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(done) {
+        if (done && !previousDone) celebrateTrigger = (celebrateTrigger ?: 0) + 1
+        previousDone = done
+    }
     val summary = if (wallet != null) {
         stringResource(if (done) R.string.goals_summary_done else R.string.goals_summary, savedClamped.toInt(), target.toInt(), wallet.currency)
     } else {
         stringResource(R.string.goals_choose_wallet)
     }
 
+    Box(Modifier.fillMaxWidth()) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(RytmRadii.Input),
@@ -255,6 +265,8 @@ private fun GoalRow(
             }
         }
     }
+    }
+        ua.rytm.app.ui.components.CelebrationBurst(trigger = celebrateTrigger, modifier = Modifier.matchParentSize())
     }
 }
 

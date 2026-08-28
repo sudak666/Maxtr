@@ -76,6 +76,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import ua.rytm.app.ui.components.SwipeReleaseAction
@@ -189,6 +191,7 @@ fun FinanceScreen(
     }
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
+    val haptics = LocalHapticFeedback.current
     val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
 
     fun collapseTransactions() {
@@ -254,7 +257,10 @@ fun FinanceScreen(
                         .shadow(10.dp, shape, spotColor = ua.rytm.app.ui.theme.GreenLight2.copy(alpha = 0.5f))
                         .clip(shape)
                         .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
-                        .clickable(role = Role.Button, onClick = viewModel::openNewTransactionSheet)
+                        .clickable(role = Role.Button, onClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            viewModel.openNewTransactionSheet()
+                        })
                         .padding(horizontal = if (collapsed) 16.dp else 22.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -682,10 +688,16 @@ private fun TransactionRow(
 ) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+    val haptics = LocalHapticFeedback.current
     val swipeThresholdPx = with(density) { SwipeOpenThreshold.toPx() }
     val revealWidthPx = with(density) { SwipeRevealWidth.toPx() }
     var rowWidthPx by remember(tx.id) { mutableIntStateOf(0) }
     var offsetPx by remember(tx.id) { mutableFloatStateOf(0f) }
+    // Fires once per crossing (not every drag frame) when the swipe passes
+    // the point where releasing now would delete the row -- the same
+    // "point of no return" tick competitor apps (Gmail, Mail) give on a
+    // full swipe-to-delete gesture.
+    var pastDeleteThreshold by remember(tx.id) { mutableStateOf(false) }
 
     suspend fun settleAt(target: Float) {
         animate(offsetPx, target, animationSpec = tween(180)) { value, _ -> offsetPx = value }
@@ -736,6 +748,7 @@ private fun TransactionRow(
                         .width(SwipeRevealWidth)
                         .fillMaxHeight()
                         .clickable(enabled = canEdit && offsetPx <= -revealWidthPx / 2, role = Role.Button) {
+                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                             if (onDelete()) scope.launch { settleAt(-rowWidthPx.toFloat()) }
                         },
                     contentAlignment = Alignment.Center,
@@ -775,13 +788,22 @@ private fun TransactionRow(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
                         offsetPx = (offsetPx + delta).coerceIn(-rowWidthPx.toFloat(), 0f)
+                        val nowPast = rowWidthPx > 0 && offsetPx <= -rowWidthPx * 0.5f
+                        if (nowPast != pastDeleteThreshold) {
+                            pastDeleteThreshold = nowPast
+                            haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                        }
                     },
                     onDragStopped = { velocity ->
                         when (swipeReleaseAction(offsetPx, rowWidthPx.toFloat(), swipeThresholdPx, velocity)) {
-                            SwipeReleaseAction.Delete -> if (onDelete()) settleAt(-rowWidthPx.toFloat()) else settleAt(0f)
+                            SwipeReleaseAction.Delete -> {
+                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                if (onDelete()) settleAt(-rowWidthPx.toFloat()) else settleAt(0f)
+                            }
                             SwipeReleaseAction.Reveal -> settleAt(-revealWidthPx)
                             SwipeReleaseAction.Settle -> settleAt(0f)
                         }
+                        pastDeleteThreshold = false
                     },
                 ),
         ) {
