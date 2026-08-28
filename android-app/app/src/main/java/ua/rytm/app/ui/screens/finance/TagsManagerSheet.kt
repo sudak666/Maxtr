@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +39,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -103,7 +105,17 @@ fun TagsManagerSheet(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { if (newName.isNotBlank()) { viewModel.addTag(newName); newName = "" } else addAttempted = true }),
                 )
-                androidx.compose.material3.Button(onClick = { if (newName.isBlank()) addAttempted = true else { viewModel.addTag(newName); newName = "" } }, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+                androidx.compose.material3.Button(
+                    onClick = { if (newName.isBlank()) addAttempted = true else { viewModel.addTag(newName); newName = "" } },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row),
+                    // Default Button height (~40dp) is under this app's 48dp
+                    // touch-target floor -- happened to look fine here only
+                    // because the row centers it against a taller
+                    // OutlinedTextField, not because it's guaranteed. The
+                    // identical type-a-name-then-add pattern in
+                    // ShoppingScreen.kt already enforces this explicitly.
+                    modifier = Modifier.heightIn(min = RytmDimens.TouchTarget),
+                ) {
                     Icon(RytmIcons.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }
