@@ -58,7 +58,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
@@ -317,6 +319,18 @@ private fun EmptyDebtState() {
 @Composable
 private fun HeroBalance(cd: Debt) {
     val shape = MaterialTheme.shapes.large
+    val paidOff = cd.startAmount > 0 && cd.currentBalance() <= 0
+    // Fires exactly once, the moment this debt's balance crosses to zero
+    // during a live session (e.g. right after logging the payment that
+    // clears it) -- not on every later visit to an already-cleared debt.
+    // `previousPaidOff` seeds from the CURRENT state so a debt that was
+    // already paid off before this composable ever ran doesn't celebrate.
+    var previousPaidOff by remember(cd.id) { mutableStateOf(paidOff) }
+    var celebrateTrigger by remember(cd.id) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(paidOff) {
+        if (paidOff && !previousPaidOff) celebrateTrigger = (celebrateTrigger ?: 0) + 1
+        previousPaidOff = paidOff
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -333,6 +347,7 @@ private fun HeroBalance(cd: Debt) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
         }
+        ua.rytm.app.ui.components.CelebrationBurst(trigger = celebrateTrigger, modifier = Modifier.matchParentSize())
     }
 }
 
@@ -462,13 +477,18 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, content: @Composable () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     var deleteCommitted by rememberSaveable { mutableStateOf(false) }
     val dismissState = rememberSwipeToDismissBoxState(
         positionalThreshold = { swipeThresholdPx },
         confirmValueChange = { value ->
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
-                if (!deleteCommitted) { deleteCommitted = true; onDelete() }
+                if (!deleteCommitted) {
+                    deleteCommitted = true
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onDelete()
+                }
                 true
             } else false
         },
