@@ -88,6 +88,21 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
             val wallet = wallets.firstOrNull { it.id == goal.walletId }
             val current = FinanceRepository.walletBalance(transactions, goal.walletId)
             val progress = if (goal.targetAmount > 0) (current / goal.targetAmount).coerceIn(0.0, 1.0) else 0.0
+            val done = goal.targetAmount > 0 && progress >= 1.0
+            // This dashboard widget, not GoalsManagerSheet's own row, is
+            // where a goal is actually watched live in normal use (this
+            // card, always visible on the Finance tab) -- a user reaching
+            // 100% here while the manager sheet isn't even open never saw
+            // GoalRow's celebration trigger at all (reported live). Same
+            // guarded-transition pattern, just on the surface people are
+            // actually looking at when it happens.
+            var previousDone by remember(goal.id) { mutableStateOf(done) }
+            var celebrateTrigger by remember(goal.id) { mutableStateOf<Int?>(null) }
+            LaunchedEffect(done) {
+                if (done && !previousDone) celebrateTrigger = (celebrateTrigger ?: 0) + 1
+                previousDone = done
+            }
+            Box {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name), fontWeight = FontWeight.SemiBold)
@@ -96,6 +111,8 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
                 Box(Modifier.fillMaxWidth().height(7.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
                     Box(Modifier.fillMaxWidth(progress.toFloat()).height(7.dp).background(GreenDark, CircleShape))
                 }
+            }
+            ua.rytm.app.ui.components.CelebrationBurst(trigger = celebrateTrigger, modifier = Modifier.matchParentSize())
             }
         }
     }

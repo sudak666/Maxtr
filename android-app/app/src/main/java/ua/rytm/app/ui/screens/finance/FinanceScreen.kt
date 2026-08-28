@@ -258,7 +258,12 @@ fun FinanceScreen(
                         .clip(shape)
                         .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
                         .clickable(role = Role.Button, onClick = {
-                            haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            // LongPress, not VirtualKey/Confirm -- verified live on a
+                            // real device (Samsung A51) that the lighter constants
+                            // produce a barely-perceptible tick on this hardware.
+                            // LongPress is the strongest tap-style constant the
+                            // public HapticFeedbackType API exposes.
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.openNewTransactionSheet()
                         })
                         .padding(horizontal = if (collapsed) 16.dp else 22.dp, vertical = 16.dp),
@@ -748,7 +753,7 @@ private fun TransactionRow(
                         .width(SwipeRevealWidth)
                         .fillMaxHeight()
                         .clickable(enabled = canEdit && offsetPx <= -revealWidthPx / 2, role = Role.Button) {
-                            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (onDelete()) scope.launch { settleAt(-rowWidthPx.toFloat()) }
                         },
                     contentAlignment = Alignment.Center,
@@ -791,13 +796,13 @@ private fun TransactionRow(
                         val nowPast = rowWidthPx > 0 && offsetPx <= -rowWidthPx * 0.5f
                         if (nowPast != pastDeleteThreshold) {
                             pastDeleteThreshold = nowPast
-                            haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         }
                     },
                     onDragStopped = { velocity ->
                         when (swipeReleaseAction(offsetPx, rowWidthPx.toFloat(), swipeThresholdPx, velocity)) {
                             SwipeReleaseAction.Delete -> {
-                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (onDelete()) settleAt(-rowWidthPx.toFloat()) else settleAt(0f)
                             }
                             SwipeReleaseAction.Reveal -> settleAt(-revealWidthPx)

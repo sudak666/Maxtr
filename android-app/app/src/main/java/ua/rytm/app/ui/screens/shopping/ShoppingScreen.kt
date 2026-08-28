@@ -257,7 +257,7 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
         if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
             if (!deleteCommitted) {
                 deleteCommitted = true
-                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onDelete()
             }
             true
