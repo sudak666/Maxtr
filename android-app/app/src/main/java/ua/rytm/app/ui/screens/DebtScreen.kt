@@ -486,7 +486,7 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, con
             if (canEdit && value == SwipeToDismissBoxValue.EndToStart) {
                 if (!deleteCommitted) {
                     deleteCommitted = true
-                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onDelete()
                 }
                 true

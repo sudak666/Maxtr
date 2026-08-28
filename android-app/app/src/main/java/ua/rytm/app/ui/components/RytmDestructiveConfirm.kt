@@ -65,7 +65,7 @@ fun RytmDestructiveConfirm(
         confirmButton = {
             Button(
                 onClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onConfirm()
                 },
                 enabled = !busy,
