@@ -127,7 +127,13 @@ fun RatesManagerSheet(
             }
 
             Text(stringResource(R.string.rates_source), style = androidx.compose.material3.MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Modifier.fillMaxWidth() + weight(1f) per chip, not the
+            // hug-content FilterChip row used for open-ended filters
+            // elsewhere (Categories' type toggle, Analytics' period chips):
+            // this is a fixed 2-way exclusive choice, same shape as
+            // ToolsSheet's Balance/Income/Expense selector, which already
+            // uses this fill+weight pattern for exactly that reason.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("nbu" to R.string.rates_nbu, "privat" to R.string.rates_privat).forEach { (value, labelRes) ->
                     FilterChip(
                         selected = source == value,
@@ -139,6 +145,7 @@ fun RatesManagerSheet(
                         },
                         label = { Text(stringResource(labelRes)) },
                         enabled = !busy,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
