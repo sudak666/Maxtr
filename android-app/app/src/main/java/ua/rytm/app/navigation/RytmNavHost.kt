@@ -88,6 +88,7 @@ import ua.rytm.app.ui.screens.shifts.ShiftsScreen
 import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmInteraction
+import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import ua.rytm.app.ui.LocalSnackbarHost
@@ -284,12 +285,22 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 vertical = if (compactHeight) 6.dp else RytmDimens.BottomNavBottom,
             ),
     ) {
+        // In light theme, elevation reads via the drop shadow below (a white
+        // pill on a light lavender page). In dark theme a black shadow on an
+        // already near-black background is invisible — Material3's own
+        // answer to that is tonal elevation instead of shadow (a lighter
+        // surface, not a darker shadow), which this bar wasn't using: plain
+        // colorScheme.surface (#242327) barely separates from
+        // colorScheme.background (#1C1C1F) behind it, so the "floating pill"
+        // read as flush with the page (reported live). surfaceContainerHigh
+        // (#38373D) is enough lighter to actually look raised.
+        val barColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(shape)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(barColor)
                 .padding(horizontal = 10.dp, vertical = if (compactHeight) 4.dp else 8.dp),
             // Deliberately NOT `weight(1f)` on each child: an equal 1/5 share
             // still clips the selected tab's label even though it's now the

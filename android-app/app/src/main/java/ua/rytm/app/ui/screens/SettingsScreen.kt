@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -381,11 +382,26 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val financeVisible by remember(financeKeywords) { derivedStateOf { sectionVisible("finance", financeKeywords) } }
 
         LazyColumn(
+            // Was Modifier.padding(bottom = BottomContentClearance) — that
+            // shrinks the LazyColumn's own box/clip bounds by 112dp instead
+            // of reserving scrollable space past the last item the way
+            // FinanceScreen's contentPadding does. The visible effect:
+            // Settings' list content sat snug against its own (smaller)
+            // box edge rather than genuinely scrolling clear of the floating
+            // nav bar, reading as "attached to" rather than "floating over"
+            // content — reported live, the one screen that didn't feel like
+            // the others. Top clearance stays a plain Modifier padding
+            // (nothing overlays the top edge the way the nav bar overlays
+            // the bottom, so there's no equivalent need to keep that area
+            // in the scrollable/clip region).
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(innerPadding)
-                .padding(horizontal = RytmDimens.ContentHorizontal)
-                .padding(bottom = RytmDimens.BottomContentClearance),
+                .padding(top = innerPadding.calculateTopPadding()),
+            contentPadding = PaddingValues(
+                start = RytmDimens.ContentHorizontal,
+                end = RytmDimens.ContentHorizontal,
+                bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance,
+            ),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             item(key = "settings-title") {
