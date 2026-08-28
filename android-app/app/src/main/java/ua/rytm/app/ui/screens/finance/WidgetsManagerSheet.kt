@@ -19,6 +19,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -100,60 +101,74 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             RytmSheetTitle(stringResource(R.string.widgets_title), subtitle = stringResource(R.string.widgets_body))
             localOrder.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEach { item ->
-                val isDragging = draggingKey == item.key
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .onSizeChanged { rowHeightPx = it.height.toFloat() }
-                        .graphicsLayer { translationY = if (isDragging) dragOffsetY else 0f }
-                        .zIndex(if (isDragging) 1f else 0f),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        RytmIcons.GripVertical,
-                        contentDescription = stringResource(R.string.action_reorder),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .size(RytmDimens.TouchTarget)
-                            .padding(10.dp)
-                            .pointerInput(item.key) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = { draggingKey = item.key; dragOffsetY = 0f },
-                                    onDragEnd = {
-                                        draggingKey = null
-                                        dragOffsetY = 0f
-                                        update { settingsStore.replaceFinanceWidgets(config.copy(order = localOrder)) }
-                                    },
-                                    onDragCancel = { draggingKey = null; dragOffsetY = 0f },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        dragOffsetY += dragAmount.y
-                                        val height = rowHeightPx
-                                        if (height > 0f) {
-                                            val currentIndex = localOrder.indexOf(item.key)
-                                            val slots = (dragOffsetY / height).toInt()
-                                            val targetIndex = (currentIndex + slots).coerceIn(0, localOrder.lastIndex)
-                                            if (targetIndex != currentIndex) {
-                                                localOrder = localOrder.toMutableList().apply {
-                                                    removeAt(currentIndex)
-                                                    add(targetIndex, item.key)
+                key(item.key) {
+                    val isDragging = draggingKey == item.key
+                    val rowModifier = if (isDragging) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .onSizeChanged { rowHeightPx = it.height.toFloat() }
+                            .graphicsLayer { translationY = dragOffsetY }
+                            .zIndex(1f)
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .onSizeChanged { rowHeightPx = it.height.toFloat() }
+                    }
+                    Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            RytmIcons.GripVertical,
+                            contentDescription = stringResource(R.string.action_reorder),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(RytmDimens.TouchTarget)
+                                .padding(10.dp)
+                                .pointerInput(item.key) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = { draggingKey = item.key; dragOffsetY = 0f },
+                                        onDragEnd = {
+                                            // Capture the just-dragged order into a plain val *before*
+                                            // clearing draggingKey — that write schedules a recomposition
+                                            // that resets `localOrder` back to the stale `config.order`,
+                                            // and since update{} launches its block asynchronously, it
+                                            // would otherwise read `localOrder` *after* that reset had
+                                            // already happened, silently persisting the pre-drag order.
+                                            val finalOrder = localOrder
+                                            draggingKey = null
+                                            dragOffsetY = 0f
+                                            update { settingsStore.replaceFinanceWidgets(config.copy(order = finalOrder)) }
+                                        },
+                                        onDragCancel = { draggingKey = null; dragOffsetY = 0f },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            dragOffsetY += dragAmount.y
+                                            val height = rowHeightPx
+                                            if (height > 0f) {
+                                                val currentIndex = localOrder.indexOf(item.key)
+                                                val slots = (dragOffsetY / height).toInt()
+                                                val targetIndex = (currentIndex + slots).coerceIn(0, localOrder.lastIndex)
+                                                if (targetIndex != currentIndex) {
+                                                    localOrder = localOrder.toMutableList().apply {
+                                                        removeAt(currentIndex)
+                                                        add(targetIndex, item.key)
+                                                    }
+                                                    dragOffsetY -= (targetIndex - currentIndex) * height
                                                 }
-                                                dragOffsetY -= (targetIndex - currentIndex) * height
                                             }
-                                        }
-                                    },
-                                )
-                            },
-                    )
-                    Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
-                        Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
+                                        },
+                                    )
+                                },
+                        )
+                        Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
+                            Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
+                        }
+                        Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                            Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                     }
-                    Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                        Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                 }
             }
             if (syncError) Text(stringResource(R.string.widgets_sync_failed), color = MaterialTheme.colorScheme.error)
