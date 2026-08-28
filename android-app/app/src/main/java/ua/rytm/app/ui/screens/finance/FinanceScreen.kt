@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -772,6 +773,13 @@ private fun TransactionRow(
             Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 CategoryIconBadge(tx.category, iconOverride = iconOverride)
                 Spacer(Modifier.width(12.dp))
+                // Every Text below is single-line + ellipsized on purpose:
+                // this Column's width follows the Card's own width, which
+                // shrinks live while the row is being swiped (cardWidthDp
+                // above). Without a maxLines cap, a long comment or a
+                // compound Ukrainian word with no spaces (e.g. "Підробіток")
+                // wraps letter-by-letter as the column narrows mid-swipe,
+                // exploding the row's height (reported live, screenshot).
                 Column(Modifier.weight(1f)) {
                     val categoryLabel = localizedDomainText(tx.category)
                     val walletLabel = walletName(tx.walletId)?.let { localizedDomainText(it) }
@@ -784,13 +792,13 @@ private fun TransactionRow(
                             targetWalletLabel?.let { append(" → $it") }
                         }
                     }
-                    Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val dateParts = tx.date.split("-") // "yyyy-MM-dd" -> "dd.MM.yyyy", matches txItemInnerHtml()
                     val metaLine = buildString {
                         append("${dateParts.getOrElse(2) { "" }}.${dateParts.getOrElse(1) { "" }}.${dateParts.getOrElse(0) { "" }}")
                         tx.comment?.let { append(" · $it") }
                     }
-                    Text(metaLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(metaLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val rowTags = tx.tags.mapNotNull(tagLookup)
                     if (rowTags.isNotEmpty()) {
                         Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -802,7 +810,7 @@ private fun TransactionRow(
                                         .background(color.copy(alpha = 0.12f))
                                         .padding(horizontal = 6.dp, vertical = 2.dp),
                                 ) {
-                                    Text(tag.name, style = MaterialTheme.typography.labelSmall, color = color)
+                                    Text(tag.name, style = MaterialTheme.typography.labelSmall, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             }
                         }
