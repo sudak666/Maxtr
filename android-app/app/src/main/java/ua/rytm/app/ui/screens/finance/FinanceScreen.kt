@@ -170,7 +170,22 @@ fun FinanceScreen(
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex <= 8 } }
+    // The FAB should hide once the dashboard widgets (Goals/Top
+    // cryptocurrencies/Tip of the day, appended after the transaction list)
+    // scroll into view, so it doesn't sit on top of their content — this
+    // used to be a hardcoded `firstVisibleItemIndex <= 8`, which assumed a
+    // fixed item count before the widgets. That count actually varies with
+    // the loading/error banners, the category filter chip, the transaction
+    // row count, AND how many widgets are enabled — with fewer widgets
+    // enabled the list is shorter than index 8 even fully scrolled, so the
+    // FAB never hid at all (reported live). Checking each widget item's own
+    // stable key against what's actually visible is correct regardless of
+    // how many precede it.
+    val showFab by remember {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.none { (it.key as? String)?.startsWith("dashboard-widget-") == true }
+        }
+    }
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
     val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
