@@ -74,6 +74,7 @@ import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
@@ -164,6 +165,16 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     Text(stringResource(R.string.receipt_scan))
                 }
                 if (scanSourceOpen) {
+                    // Cancel used to live in AlertDialog's own confirmButton
+                    // slot — M3 right-aligns that in its own padded footer,
+                    // which read as disconnected from the Camera/Gallery
+                    // options above it (reported live, screenshot: a big gap
+                    // with Cancel floating alone at the bottom-right). This
+                    // is a source picker, not a message+confirm dialog, so
+                    // Cancel now joins the same option list as a third,
+                    // visually muted row instead — one cohesive block, no
+                    // dead space. confirmButton stays required by the API
+                    // but renders nothing.
                     AlertDialog(
                         onDismissRequest = { scanSourceOpen = false },
                         title = { Text(stringResource(R.string.receipt_scan)) },
@@ -190,11 +201,19 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     Spacer(Modifier.width(8.dp))
                                     Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
                                 }
+                                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                                TextButton(
+                                    onClick = { scanSourceOpen = false },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    ),
+                                ) {
+                                    Text(stringResource(R.string.action_cancel), modifier = Modifier.weight(1f))
+                                }
                             }
                         },
-                        confirmButton = {
-                            TextButton(onClick = { scanSourceOpen = false }) { Text(stringResource(R.string.action_cancel)) }
-                        },
+                        confirmButton = {},
                     )
                 }
                 if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
