@@ -700,27 +700,37 @@ private fun TransactionRow(
             .clip(MaterialTheme.shapes.large)
             .onSizeChanged { rowWidthPx = it.width },
     ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.error),
-            contentAlignment = Alignment.CenterEnd,
-        ) {
+        // The covering Card below is sized from rowWidthPx, which starts at
+        // 0 until the Box above reports its real width via onSizeChanged —
+        // for that one frame the Card is 0-wide and this full-red
+        // delete-reveal layer underneath is fully exposed. Invisible for a
+        // single freshly-composed row, but "View all" composes dozens at
+        // once, turning that one frame into a visible red flash across the
+        // whole list (reported live). Not drawing this layer until the row
+        // has a real measured width closes the gap.
+        if (rowWidthPx > 0) {
             Box(
                 Modifier
-                    .width(SwipeRevealWidth)
-                    .fillMaxHeight()
-                    .clickable(enabled = canEdit && offsetPx <= -revealWidthPx / 2, role = Role.Button) {
-                        if (onDelete()) scope.launch { settleAt(-rowWidthPx.toFloat()) }
-                    },
-                contentAlignment = Alignment.Center,
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.error),
+                contentAlignment = Alignment.CenterEnd,
             ) {
-                Icon(
-                    RytmIcons.Delete,
-                    contentDescription = stringResource(R.string.action_delete),
-                    tint = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.size(26.dp),
-                )
+                Box(
+                    Modifier
+                        .width(SwipeRevealWidth)
+                        .fillMaxHeight()
+                        .clickable(enabled = canEdit && offsetPx <= -revealWidthPx / 2, role = Role.Button) {
+                            if (onDelete()) scope.launch { settleAt(-rowWidthPx.toFloat()) }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        RytmIcons.Delete,
+                        contentDescription = stringResource(R.string.action_delete),
+                        tint = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
             }
         }
         // Was `.fillMaxWidth().offset { IntOffset(offsetPx, 0) }` — a
