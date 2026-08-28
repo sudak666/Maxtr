@@ -95,7 +95,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                 }
                 }
             }
-            Button(onClick = { persist { expandedId = repository.addAutoRule().id } }, enabled = !saving, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = { persist { expandedId = repository.addAutoRule().id } }, enabled = !saving, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row)) {
                 Icon(RytmIcons.Add, null); Text(stringResource(R.string.auto_rules_add))
             }
             TextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }

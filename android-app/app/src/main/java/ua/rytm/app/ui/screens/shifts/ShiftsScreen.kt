@@ -581,7 +581,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(1f).padding(end = 12.dp)) {
                         Text(stringResource(R.string.shifts_autofill_future), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         Text(
                             stringResource(R.string.shifts_autofill_body),

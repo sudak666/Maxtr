@@ -2,7 +2,9 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,21 +13,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.zIndex
 import ua.rytm.app.ui.theme.RytmDimens
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.WidgetSettingsSyncRepository
+import ua.rytm.app.data.local.FinanceWidgetsConfig
 import ua.rytm.app.data.local.SettingsStore
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
@@ -46,9 +53,8 @@ import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.BitcoinOrange
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.ArrowDownward
-import ua.rytm.app.ui.icons.ArrowUpward
 import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.GripVertical
 import ua.rytm.app.ui.icons.LocalFireDepartment
 import ua.rytm.app.ui.icons.TipsAndUpdates
 
@@ -62,7 +68,7 @@ private val widgetDefs = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSettingsSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
-    val config by settingsStore.financeWidgets.collectAsState(initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()))
+    val config by settingsStore.financeWidgets.collectAsState(initial = FinanceWidgetsConfig(emptySet(), emptyList()))
     val scope = rememberCoroutineScope()
     var syncError by rememberSaveable { mutableStateOf(false) }
     var busy by rememberSaveable { mutableStateOf(false) }
@@ -74,21 +80,78 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
             .onFailure { syncError = true }
         busy = false
     }
+
+    // Drag-to-reorder replaced a pair of up/down arrow buttons (account
+    // owner's explicit call — matches the tactile drag-handle pattern used
+    // for reordering everywhere else in the industry, e.g. home-screen/
+    // notification-settings editors). Only 3 widgets ever exist, so a plain
+    // Column (not LazyColumn) is fine — no virtualization needed.
+    // [localOrder] is the live preview during a drag; it resets from the
+    // persisted [config] whenever nothing is being dragged, so an external
+    // change (sync) still reaches the UI. The final order is only persisted
+    // via replaceFinanceWidgets() once the drag ends.
+    var localOrder by remember { mutableStateOf(config.order) }
+    var draggingKey by remember { mutableStateOf<String?>(null) }
+    var dragOffsetY by remember { mutableFloatStateOf(0f) }
+    var rowHeightPx by remember { mutableFloatStateOf(0f) }
+    if (draggingKey == null) localOrder = config.order
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             RytmSheetTitle(stringResource(R.string.widgets_title), subtitle = stringResource(R.string.widgets_body))
-            config.order.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEachIndexed { index, item ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.foundation.layout.Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
+            localOrder.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEach { item ->
+                val isDragging = draggingKey == item.key
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .onSizeChanged { rowHeightPx = it.height.toFloat() }
+                        .graphicsLayer { translationY = if (isDragging) dragOffsetY else 0f }
+                        .zIndex(if (isDragging) 1f else 0f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        RytmIcons.GripVertical,
+                        contentDescription = stringResource(R.string.action_reorder),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(RytmDimens.TouchTarget)
+                            .padding(10.dp)
+                            .pointerInput(item.key) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { draggingKey = item.key; dragOffsetY = 0f },
+                                    onDragEnd = {
+                                        draggingKey = null
+                                        dragOffsetY = 0f
+                                        update { settingsStore.replaceFinanceWidgets(config.copy(order = localOrder)) }
+                                    },
+                                    onDragCancel = { draggingKey = null; dragOffsetY = 0f },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        dragOffsetY += dragAmount.y
+                                        val height = rowHeightPx
+                                        if (height > 0f) {
+                                            val currentIndex = localOrder.indexOf(item.key)
+                                            val slots = (dragOffsetY / height).toInt()
+                                            val targetIndex = (currentIndex + slots).coerceIn(0, localOrder.lastIndex)
+                                            if (targetIndex != currentIndex) {
+                                                localOrder = localOrder.toMutableList().apply {
+                                                    removeAt(currentIndex)
+                                                    add(targetIndex, item.key)
+                                                }
+                                                dragOffsetY -= (targetIndex - currentIndex) * height
+                                            }
+                                        }
+                                    },
+                                )
+                            },
+                    )
+                    Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
                         Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
                     }
                     Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                         Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
                         Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Column {
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, -1) } }, enabled = !busy && index > 0, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(RytmIcons.ArrowUpward, stringResource(R.string.action_move_up), modifier = Modifier.size(18.dp)) }
-                        IconButton(onClick = { update { settingsStore.moveWidget(item.key, 1) } }, enabled = !busy && index < config.order.lastIndex, modifier = Modifier.size(RytmDimens.TouchTarget)) { Icon(RytmIcons.ArrowDownward, stringResource(R.string.action_move_down), modifier = Modifier.size(18.dp)) }
                     }
                     Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, enabled = !busy)
                 }

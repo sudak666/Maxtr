@@ -125,14 +125,14 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_income_label),
                 amount = vm.totalIncome,
-                color = ua.rytm.app.ui.theme.GreenDark2,
+                color = ua.rytm.app.ui.theme.RytmSemantic.income,
                 icon = RytmIcons.TrendingUp,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_expense_label),
                 amount = vm.totalExpense,
-                color = ua.rytm.app.ui.theme.RedDark2,
+                color = ua.rytm.app.ui.theme.RytmSemantic.expense,
                 icon = RytmIcons.TrendingDown,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
@@ -140,12 +140,12 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_difference), amount = vm.difference,
-                color = if (vm.difference >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
+                color = if (vm.difference >= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense,
                 icon = RytmIcons.CompareArrows, modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             AnalyticsRateCard(
                 label = stringResource(R.string.analytics_savings_rate), value = vm.savingsRate,
-                color = if (vm.savingsRate >= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2,
+                color = if (vm.savingsRate >= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
@@ -156,10 +156,10 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     expenseChange?.let {
-                        Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.GreenDark2 else ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
                     }
                     categoryGrowth?.let { (category, percent) ->
-                        Text(stringResource(R.string.analytics_top_growth, localizedDomainText(category), percent), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RedDark2, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.analytics_top_growth, localizedDomainText(category), percent), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
