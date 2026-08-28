@@ -127,13 +127,17 @@ fun RatesManagerSheet(
             }
 
             Text(stringResource(R.string.rates_source), style = androidx.compose.material3.MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            // Modifier.fillMaxWidth() + weight(1f) per chip, not the
-            // hug-content FilterChip row used for open-ended filters
-            // elsewhere (Categories' type toggle, Analytics' period chips):
-            // this is a fixed 2-way exclusive choice, same shape as
-            // ToolsSheet's Balance/Income/Expense selector, which already
-            // uses this fill+weight pattern for exactly that reason.
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Equal weight(1f) per chip (matching ToolsSheet's Balance/
+            // Income/Expense selector) was tried first, but that precedent
+            // assumes near-equal label lengths — "ПриватБанк (готівка)" is
+            // nearly 2x "НБУ (офіційний)", so forcing identical width
+            // squeezed the longer label into an awkward 2-line wrap right
+            // against the chip edge (reported live). Centering both chips
+            // at their own natural width across the full row avoids both
+            // problems: no more hugging the left edge with dead space
+            // trailing it, and no forced-equal-width squeeze on the
+            // asymmetric label.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
                 listOf("nbu" to R.string.rates_nbu, "privat" to R.string.rates_privat).forEach { (value, labelRes) ->
                     FilterChip(
                         selected = source == value,
@@ -145,7 +149,6 @@ fun RatesManagerSheet(
                         },
                         label = { Text(stringResource(labelRes)) },
                         enabled = !busy,
-                        modifier = Modifier.weight(1f),
                     )
                 }
             }
