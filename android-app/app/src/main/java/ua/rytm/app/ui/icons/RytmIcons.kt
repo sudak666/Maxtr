@@ -536,6 +536,18 @@ private val _flag by lazy { icon("Flag",
 /** Lucide `flag`. */
 val RytmIcons.Flag: ImageVector get() = _flag
 
+private val _gripVertical by lazy { icon("GripVertical",
+        "M8,12 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+        "M8,5 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+        "M8,19 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+        "M14,12 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+        "M14,5 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+        "M14,19 a1,1 0 1 0 2,0 a1,1 0 1 0 -2,0",
+) }
+
+/** Lucide `grip-vertical` — drag handle for reorderable lists. */
+val RytmIcons.GripVertical: ImageVector get() = _gripVertical
+
 private val _gpsFixed by lazy { icon("GpsFixed",
         "M2,12 a10,10 0 1 0 20,0 a10,10 0 1 0 -20,0",
         "M22,12 L18,12",

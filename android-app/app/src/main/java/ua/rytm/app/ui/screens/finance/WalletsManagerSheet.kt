@@ -177,6 +177,7 @@ private fun WalletRow(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
+                label = { Text(stringResource(R.string.field_currency)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
                 modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )

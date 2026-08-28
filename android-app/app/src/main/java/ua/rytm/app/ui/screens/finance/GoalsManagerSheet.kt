@@ -18,7 +18,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -192,26 +191,16 @@ private fun GoalRow(
             Column(Modifier.weight(1f)) {
                 Text((wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name)) + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             }
-            IconButton(
-                onClick = onToggleEdit,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
-            ) {
+            IconButton(onClick = onToggleEdit) {
                 Icon(if (expanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit))
             }
-            var menuOpen by remember { mutableStateOf(false) }
-            Box {
-                IconButton(onClick = { menuOpen = true }) { Icon(RytmIcons.MoreVert, contentDescription = stringResource(R.string.action_more)) }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
-                        leadingIcon = { Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                        onClick = { menuOpen = false; onDelete() },
-                    )
-                }
-            }
+            IconButton(
+                onClick = onDelete,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
+            ) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
