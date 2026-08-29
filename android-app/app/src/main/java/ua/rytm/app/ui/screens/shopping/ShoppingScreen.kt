@@ -268,11 +268,16 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = canEdit,
         backgroundContent = {
+            // Same fix as DebtScreen's identical swipe-delete row: red used
+            // to paint only the narrow icon-width inner Box, leaving the
+            // rest of the reveal area unpainted (a visible gap). Painting
+            // it on the outer full-width Box instead makes the whole
+            // reveal one continuous red field, matching FinanceScreen's.
             Box(
-                Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium),
+                Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.error),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth), contentAlignment = Alignment.Center) {
                     Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
                 }
             }
