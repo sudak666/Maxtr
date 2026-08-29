@@ -193,10 +193,16 @@ fun ShiftsScreen() {
             ) {
                 QuickFillPanel(
                     viewModel,
-                    onOpenShiftTypes = {
-                        viewModel.toggleQuickFillExpanded()
-                        shiftTypesSheetOpen = true
-                    },
+                    // Used to also toggleQuickFillExpanded() here -- closing
+                    // Quick Fill the instant Shift Types opened. Since Shift
+                    // Types layers on top of Quick Fill's own Dialog fine on
+                    // its own, that eager close just meant Quick Fill was
+                    // already gone by the time the user swiped Shift Types
+                    // away, so they landed back on the bare calendar instead
+                    // of Quick Fill -- reported live as everything closing
+                    // and "jumping". Leaving Quick Fill open underneath
+                    // matches what swiping Shift Types away actually reveals.
+                    onOpenShiftTypes = { shiftTypesSheetOpen = true },
                 )
             }
         }
