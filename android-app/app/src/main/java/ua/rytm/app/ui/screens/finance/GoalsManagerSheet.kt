@@ -135,18 +135,12 @@ fun GoalsManagerSheet(
     }
 
     viewModel.pendingDeleteId?.let {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.goals_delete_title)) },
-            text = { Text(stringResource(R.string.goals_delete_body)) },
-            confirmButton = {
-                Button(
-                    onClick = viewModel::confirmDelete,
-                    enabled = !viewModel.isSaving,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
-                ) { Text(stringResource(R.string.action_delete)) }
-            },
-            dismissButton = { OutlinedButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.goals_delete_title),
+            body = stringResource(R.string.goals_delete_body),
+            busy = viewModel.isSaving,
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::cancelDelete,
         )
     }
 }

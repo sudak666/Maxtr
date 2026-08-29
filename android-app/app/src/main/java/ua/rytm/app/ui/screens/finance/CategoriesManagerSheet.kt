@@ -241,26 +241,20 @@ fun CategoriesManagerSheet(
     }
 
     pendingDeleteId?.let { id ->
-        AlertDialog(
-            onDismissRequest = { pendingDeleteId = null },
-            title = { Text(stringResource(R.string.category_delete_title)) },
-            text = { Text(stringResource(R.string.category_delete_body)) },
-            confirmButton = {
-                Button(onClick = { viewModel.deleteCategory(id); pendingDeleteId = null }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) }
-            },
-            dismissButton = { OutlinedButton(onClick = { pendingDeleteId = null }) { Text(stringResource(R.string.action_cancel)) } },
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.category_delete_title),
+            body = stringResource(R.string.category_delete_body),
+            onConfirm = { viewModel.deleteCategory(id); pendingDeleteId = null },
+            onDismiss = { pendingDeleteId = null },
         )
     }
 
     pendingDeleteSub?.let { (categoryName, subName) ->
-        AlertDialog(
-            onDismissRequest = { pendingDeleteSub = null },
-            title = { Text(stringResource(R.string.subcategory_delete_title)) },
-            text = { Text(stringResource(R.string.subcategory_delete_body, subName)) },
-            confirmButton = {
-                Button(onClick = { viewModel.deleteSubcategory(categoryName, subName); pendingDeleteSub = null }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.action_delete)) }
-            },
-            dismissButton = { OutlinedButton(onClick = { pendingDeleteSub = null }) { Text(stringResource(R.string.action_cancel)) } },
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.subcategory_delete_title),
+            body = stringResource(R.string.subcategory_delete_body, subName),
+            onConfirm = { viewModel.deleteSubcategory(categoryName, subName); pendingDeleteSub = null },
+            onDismiss = { pendingDeleteSub = null },
         )
     }
 
