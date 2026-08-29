@@ -461,7 +461,13 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
 
 @Composable
 private fun EmptyEntriesState() {
-    Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    // Same fix as the "View all"/"Collapse" button a few lines up in
+    // DebtScreen (see its own comment): the list's contentPadding only
+    // clears the bottom NAV bar, not the floating "+ Платіж" FAB. With
+    // zero entries this empty-state text is the LAST list item, so it
+    // sat directly behind the FAB with no clearance of its own (reported
+    // live, screenshot: "Ще немає платежів" half-covered by the button).
+    Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 24.dp + RytmDimens.FabRowClearance), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(stringResource(R.string.debt_payments_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
