@@ -526,8 +526,18 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pen
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = canEdit,
         backgroundContent = {
-            Box(Modifier.fillMaxSize().clip(MaterialTheme.shapes.large), contentAlignment = Alignment.CenterEnd) {
-                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth).background(MaterialTheme.colorScheme.error), contentAlignment = Alignment.Center) {
+            // The red fill used to live only on the narrow icon-width inner
+            // Box -- the rest of the revealed area (between the shrinking
+            // content and that square) was unpainted, showing the page
+            // background through as a visible gap (reported live,
+            // screenshot). Painting red on the OUTER full-width Box, same
+            // as FinanceScreen's already-correct swipe-delete row, makes
+            // the whole reveal one continuous red field.
+            Box(
+                Modifier.fillMaxSize().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.error),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Box(Modifier.fillMaxHeight().width(SwipeRevealWidth), contentAlignment = Alignment.Center) {
                     Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.onError)
                 }
             }
