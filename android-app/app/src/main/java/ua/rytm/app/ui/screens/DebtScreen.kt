@@ -622,13 +622,20 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
             )
             DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OutlinedButton(onClick = viewModel::closeNewEntrySheet) { Text(stringResource(R.string.action_cancel)) }
+                // Neither button set an explicit shape, so both fell back
+                // to M3's own hardcoded "full" (pill) default instead of
+                // this app's own RytmRadii.Row (16dp) most other in-dialog
+                // Cancel/Confirm pairs use -- Compose Button/OutlinedButton
+                // don't actually read their default shape from this app's
+                // custom Shapes object, so this needs setting per call site.
+                OutlinedButton(onClick = viewModel::closeNewEntrySheet, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
                 Button(
                     onClick = {
                         submitted = true
                         if (parsePlainDebtAmount(amount) != null) viewModel.addEntry(amount, balance, date)
                     },
                     enabled = !viewModel.saving,
+                    shape = RoundedCornerShape(RytmRadii.Row),
                 ) { Text(stringResource(R.string.action_add)) }
             }
         }
