@@ -561,12 +561,17 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                         onClick = action.onClick,
                         modifier = Modifier.weight(1f).height(RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },
                         shape = RoundedCornerShape(RytmRadii.Row),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        // onSurfaceVariant, not outline -- same near-invisible-
-                        // in-light-theme pair already fixed for the Switch
-                        // thumb, the budget field border, and the Shopping
-                        // checkbox.
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
+                        // A hairline border here (fixed to onSurfaceVariant
+                        // for contrast, then reported live as reading too
+                        // harsh/stark next to the rest of the screen) was
+                        // fighting the wrong problem: this app's established
+                        // way to separate a card from the page isn't a
+                        // stroke at all -- it's a soft tonal fill, the same
+                        // surfaceContainerLow DebtScreen's InfoPanel already
+                        // uses with no border whatsoever. Matches here too,
+                        // and sidesteps the outline-contrast question
+                        // entirely by not drawing an outline.
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                         interactionSource = interactionSource,
                     ) {
                         Row(
