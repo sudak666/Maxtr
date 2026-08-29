@@ -37,7 +37,18 @@ private val DarkColors = darkColorScheme(
     surfaceContainerLow = DarkBg2,
     surfaceContainer = DarkBg2,
     surfaceContainerHigh = DarkBg3,
-    outline = DarkBorder,
+    // Was DarkBorder (#403F45) -- barely distinguishable from surface/
+    // surfaceContainerHigh in practice, the same near-1:1-contrast gap
+    // patched six separate times this session (Switch thumb, budget field,
+    // Shopping checkbox, quick-action/converter cards, salary goal field)
+    // before finally fixing it here instead of at each call site. This is
+    // the color M3 defaults every OutlinedTextField's unfocused border and
+    // many hairline Card borders to app-wide, so this one change covers
+    // every remaining/future instance of the same bug. outlineVariant
+    // (deliberately fainter, used for secondary distinctions like the
+    // Switch's own unchecked-border and calendar out-of-month cells) is
+    // untouched.
+    outline = DarkMuted2,
     outlineVariant = DarkBorder2,
     error = RedDark,
     // Not white: white on #EF4444 measures 3.76:1, below AA for the bold
@@ -59,7 +70,7 @@ private val LightColors = lightColorScheme(
     surfaceContainerLow = LightBg2,
     surfaceContainer = LightBg2,
     surfaceContainerHigh = LightBg3,
-    outline = LightBorder,
+    outline = LightMuted2,
     outlineVariant = LightBorder2,
     error = RedLight2,
     onError = LightBg1,
