@@ -175,11 +175,11 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
         }
     }
 
-    if (confirmDisconnect) AlertDialog(
-        onDismissRequest = { confirmDisconnect = false },
-        title = { Text(stringResource(R.string.monobank_disconnect_title)) },
-        text = { Text(stringResource(R.string.monobank_disconnect_body)) },
-        confirmButton = { TextButton(onClick = {
+    if (confirmDisconnect) ua.rytm.app.ui.components.RytmDestructiveConfirm(
+        title = stringResource(R.string.monobank_disconnect_title),
+        body = stringResource(R.string.monobank_disconnect_body),
+        confirmLabel = stringResource(R.string.monobank_disconnect),
+        onConfirm = {
             confirmDisconnect = false
             scope.launch {
                 busy = true
@@ -188,7 +188,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     .onFailure { errorRes = errorText(it) }
                 busy = false
             }
-        }) { Text(stringResource(R.string.monobank_disconnect), color = MaterialTheme.colorScheme.error) } },
-        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text(stringResource(R.string.action_cancel)) } },
+        },
+        onDismiss = { confirmDisconnect = false },
     )
 }

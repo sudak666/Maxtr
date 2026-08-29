@@ -124,12 +124,12 @@ fun RecurringManagerSheet(
     }
 
     viewModel.pendingDeleteId?.let {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.recurring_delete_title)) },
-            text = { Text(stringResource(R.string.recurring_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete, enabled = !viewModel.isSaving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.recurring_delete_title),
+            body = stringResource(R.string.recurring_delete_body),
+            busy = viewModel.isSaving,
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::cancelDelete,
         )
     }
 }
