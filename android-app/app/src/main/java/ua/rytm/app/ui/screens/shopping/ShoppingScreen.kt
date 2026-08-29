@@ -305,7 +305,14 @@ internal fun ShoppingRow(item: ShoppingItem, canEdit: Boolean, onToggle: (Boolea
                     )
                     .border(
                         width = 2.dp,
-                        color = if (item.done) Color.Transparent else MaterialTheme.colorScheme.outline,
+                        // onSurfaceVariant, not outline (#E4E4E9 in light) --
+                        // same near-invisible-against-a-light-card pair
+                        // already fixed once for the Switch thumb
+                        // (Theme.kt's rytmSwitchColors()) and the budget
+                        // limit field's border. Reported live again here,
+                        // screenshot: the unchecked circle all but
+                        // disappears in light theme.
+                        color = if (item.done) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant,
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
