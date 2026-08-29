@@ -159,6 +159,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     onClick = { scanSourceOpen = true },
                     enabled = !ocrBusy,
                     modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                 ) {
                     Icon(RytmIcons.DocumentScanner, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -326,7 +327,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
             }
         }

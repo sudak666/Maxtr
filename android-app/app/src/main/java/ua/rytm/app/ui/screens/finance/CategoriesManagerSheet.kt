@@ -234,9 +234,9 @@ fun CategoriesManagerSheet(
             title = { Text(stringResource(R.string.category_rename_title)) },
             text = { OutlinedTextField(value = editedName, onValueChange = { editedName = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
             confirmButton = {
-                Button(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty()) { Text(stringResource(R.string.action_save)) }
+                Button(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_save)) }
             },
-            dismissButton = { OutlinedButton(onClick = { pendingRename = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { OutlinedButton(onClick = { pendingRename = null }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 

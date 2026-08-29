@@ -563,6 +563,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         vm.toggleQuickFillExpanded()
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                 ) {
                     Text(stringResource(R.string.action_apply))
                 }
@@ -577,7 +578,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes) {
+                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, shape = RoundedCornerShape(RytmRadii.Row)) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }
@@ -639,7 +640,7 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                             modifier = Modifier.fillMaxWidth(),
                             allowEmpty = false,
                         )
-                        androidx.compose.material3.Button(onClick = vm::saveAutoFillConfig, modifier = Modifier.fillMaxWidth()) {
+                        androidx.compose.material3.Button(onClick = vm::saveAutoFillConfig, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                             Text(stringResource(R.string.action_save))
                         }
                     }

@@ -178,10 +178,12 @@ fun ProfileAppearanceCard(
                         OutlinedButton(
                             onClick = { draft = appearance.nickname; editing = false },
                             enabled = !busy,
+                            shape = RoundedCornerShape(RytmRadii.Row),
                         ) { Text(stringResource(R.string.action_cancel)) }
                         Button(
                             onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) },
                             enabled = !busy && draft.trim() != appearance.nickname,
+                            shape = RoundedCornerShape(RytmRadii.Row),
                         ) { Text(stringResource(R.string.action_save)) }
                     }
                 } else {
@@ -214,7 +216,7 @@ fun ProfileAppearanceCard(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         builtinAvatars.drop(3).forEach { avatar -> AvatarOption(avatar, presetDescription) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), avatarUpdated) } }
                     }
-                    Button(onClick = { avatarDialog = false; imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.profile_upload_photo)) }
+                    Button(onClick = { avatarDialog = false; imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.profile_upload_photo)) }
                 }
             },
             confirmButton = { TextButton(onClick = { avatarDialog = false }) { Text(stringResource(R.string.action_done)) } },

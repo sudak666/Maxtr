@@ -294,9 +294,9 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                     text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
-                        Button(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }) { Text(stringResource(R.string.action_add)) }
+                        Button(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
                     },
-                    dismissButton = { OutlinedButton(onClick = { addOpen = false }) { Text(stringResource(R.string.action_cancel)) } },
+                    dismissButton = { OutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
                 )
             }
         }

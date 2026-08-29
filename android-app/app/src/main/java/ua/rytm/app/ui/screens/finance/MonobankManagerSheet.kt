@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -45,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
+import ua.rytm.app.ui.theme.RytmRadii
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.MonobankConnection
 import ua.rytm.app.data.MonobankHttpException
@@ -127,6 +129,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         } },
                         enabled = !busy && token.isNotBlank(),
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(RytmRadii.Row),
                     ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(R.string.monobank_connect)) }
                 }
                 else -> {
@@ -158,6 +161,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         } },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(RytmRadii.Row),
                     ) {
                         if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         else { Icon(RytmIcons.Sync, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.monobank_sync)) }
@@ -166,6 +170,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         onClick = { confirmDisconnect = true },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(RytmRadii.Row),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) { Text(stringResource(R.string.monobank_disconnect)) }
                 }

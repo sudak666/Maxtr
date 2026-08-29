@@ -350,7 +350,10 @@ fun FinanceScreen(
                         androidx.compose.material3.OutlinedButton(
                             onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(RytmRadii.Pill),
+                            // Was Pill -- DebtScreen's functionally identical
+                            // "Переглянути всі"/"Згорнути" button uses Row;
+                            // found mismatched during the button-shape audit.
+                            shape = RoundedCornerShape(RytmRadii.Row),
                         ) {
                             Text(stringResource(if (viewModel.listExpanded) R.string.action_collapse_list else R.string.action_view_all))
                         }
