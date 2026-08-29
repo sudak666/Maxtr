@@ -3,6 +3,7 @@ package ua.rytm.app.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.R
+import ua.rytm.app.ui.theme.RytmRadii
 
 /**
  * The single confirmation dialog for irreversible/bulk destructive actions.
@@ -69,6 +71,7 @@ fun RytmDestructiveConfirm(
                     onConfirm()
                 },
                 enabled = !busy,
+                shape = RoundedCornerShape(RytmRadii.Row),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,
@@ -76,7 +79,7 @@ fun RytmDestructiveConfirm(
             ) { Text(confirmLabel) }
         },
         dismissButton = {
-            OutlinedButton(enabled = !busy, onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+            OutlinedButton(enabled = !busy, onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

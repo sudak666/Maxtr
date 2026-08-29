@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,7 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.CalendarMonth
 import ua.rytm.app.ui.icons.Security
+import ua.rytm.app.ui.theme.RytmRadii
 
 private data class OnboardingPage(val icon: ImageVector, @StringRes val title: Int, @StringRes val body: Int)
 
@@ -115,6 +117,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     OutlinedButton(
                         onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } },
                         modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                        shape = RoundedCornerShape(RytmRadii.Row),
                     ) { Text(stringResource(R.string.action_back)) }
                 }
                 Button(
@@ -124,6 +127,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     },
                     // heightIn: a fixed 52dp clipped the label at large fonts.
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(RytmRadii.Row),
                 ) { Text(stringResource(if (page == pages.lastIndex) R.string.action_done else R.string.action_next)) }
             }
         }

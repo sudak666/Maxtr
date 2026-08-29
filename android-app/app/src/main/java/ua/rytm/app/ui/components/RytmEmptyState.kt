@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.theme.RytmRadii
 
 /**
  * The one empty state for the whole app — icon inside a radial brand glow,
@@ -82,6 +84,7 @@ fun RytmEmptyState(
             Button(
                 onClick = onAction,
                 modifier = Modifier.padding(top = 10.dp).heightIn(min = RytmDimens.TouchTarget),
+                shape = RoundedCornerShape(RytmRadii.Row),
             ) { Text(actionLabel, fontWeight = FontWeight.Bold) }
         }
     }

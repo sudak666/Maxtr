@@ -170,18 +170,19 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
         }
     }
 
-    if (removeConfirmationVisible) AlertDialog(
-        onDismissRequest = { removeConfirmationVisible = false },
-        title = { Text(stringResource(R.string.pin_remove_title)) },
-        text = { Text(stringResource(R.string.pin_remove_body)) },
-        confirmButton = {
-            Button(
-                onClick = { viewModel.removePin(); removeConfirmationVisible = false; onDismiss() },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
-            ) { Text(stringResource(R.string.pin_remove)) }
-        },
-        dismissButton = { OutlinedButton(onClick = { removeConfirmationVisible = false }) { Text(stringResource(R.string.action_cancel)) } },
-    )
+    // Another hand-rolled destructive AlertDialog found during the button-
+    // shape audit -- same drift RytmDestructiveConfirm already consolidated
+    // seven other call sites onto today. Converted rather than just patching
+    // its shape.
+    if (removeConfirmationVisible) {
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.pin_remove_title),
+            body = stringResource(R.string.pin_remove_body),
+            confirmLabel = stringResource(R.string.pin_remove),
+            onConfirm = { viewModel.removePin(); removeConfirmationVisible = false; onDismiss() },
+            onDismiss = { removeConfirmationVisible = false },
+        )
+    }
 }
 
 @Composable
