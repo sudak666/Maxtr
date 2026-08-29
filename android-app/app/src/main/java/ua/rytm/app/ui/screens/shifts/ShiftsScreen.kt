@@ -254,6 +254,14 @@ fun ShiftsScreen() {
                     label = { Text(stringResource(R.string.shifts_goal_edit_label)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    // Default unfocused border is colorScheme.outline
+                    // (#E4E4E9 in light), near-invisible against this
+                    // dialog's own light surface -- same fix already
+                    // applied to the budget-limit field, Shopping checkbox,
+                    // and quick-action/converter cards this session.
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
                 )
             },
             confirmButton = {
