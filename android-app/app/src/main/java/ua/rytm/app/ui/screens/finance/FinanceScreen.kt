@@ -562,7 +562,11 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                         modifier = Modifier.weight(1f).height(RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },
                         shape = RoundedCornerShape(RytmRadii.Row),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        // onSurfaceVariant, not outline -- same near-invisible-
+                        // in-light-theme pair already fixed for the Switch
+                        // thumb, the budget field border, and the Shopping
+                        // checkbox.
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
                         interactionSource = interactionSource,
                     ) {
                         Row(
