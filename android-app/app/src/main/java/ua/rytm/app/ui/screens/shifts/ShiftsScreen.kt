@@ -11,6 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
@@ -474,6 +476,7 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
 
 // Full editor opens in a modal sheet so expanding it never pushes the calendar
 // far down the screen or causes a large in-place layout jump.
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     var clearMonthConfirmVisible by rememberSaveable { mutableStateOf(false) }
@@ -549,7 +552,17 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 ) {
                     Text(stringResource(R.string.action_apply))
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // FlowRow, not Row -- at large font scale or on a narrow
+                // screen these two labels' combined width can exceed the
+                // row's, and a plain Row with SpaceBetween has no fallback
+                // (crams them together or clips instead of wrapping).
+                // Matches SettingsScreen's own FlowRow precedent for the
+                // same class of overflow.
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
