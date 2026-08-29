@@ -27,6 +27,14 @@ private val DarkColors = darkColorScheme(
     onSurface = DarkText,
     surfaceVariant = DarkBg2,
     onSurfaceVariant = DarkMuted2,
+    // surfaceContainerLow was never part of this app's own deliberate
+    // 3-tier surface system (surface/surfaceContainer/surfaceContainerHigh
+    // below) -- left to M3's default tonal-palette derivation, which reads
+    // as barely distinguishable from `background` in dark theme specifically
+    // (reported live, screenshot: Finance's quick-action cards nearly
+    // invisible). Pinned to the same tone as surfaceContainer, which is
+    // already proven visible everywhere else it's used.
+    surfaceContainerLow = DarkBg2,
     surfaceContainer = DarkBg2,
     surfaceContainerHigh = DarkBg3,
     outline = DarkBorder,
@@ -48,6 +56,7 @@ private val LightColors = lightColorScheme(
     onSurface = LightText,
     surfaceVariant = LightBg2,
     onSurfaceVariant = LightMuted2,
+    surfaceContainerLow = LightBg2,
     surfaceContainer = LightBg2,
     surfaceContainerHigh = LightBg3,
     outline = LightBorder,
