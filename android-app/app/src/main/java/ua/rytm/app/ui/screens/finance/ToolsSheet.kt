@@ -374,7 +374,10 @@ private fun ConverterSection(vm: ToolsViewModel) {
             Card(
                 modifier = Modifier.weight(1f).height(56.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                // onSurfaceVariant, not outline -- same near-invisible-in-
+                // light-theme pair already fixed for the Switch thumb, the
+                // budget field border, and the Shopping checkbox.
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
