@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -272,7 +273,18 @@ private fun ProfileRow(
     ) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(localizedDomainText(profile.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            // The "Перемкнути" TextButton + up to 4 IconButtons alongside
+            // this column eat most of a narrow screen's width, and without
+            // a maxLines cap the name wrapped letter-by-letter into a
+            // squeezed vertical sliver instead of truncating (reported
+            // live, screenshot: "Max" rendered as "Ma"/"x" stacked).
+            Text(
+                localizedDomainText(profile.name),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 if (profile.isShared) Text(stringResource(R.string.profile_shared), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
