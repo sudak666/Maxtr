@@ -41,6 +41,7 @@ import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.ui.localizedDomainText
 import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -151,55 +152,49 @@ fun ProfilesManagerSheet(
         )
     }
 
+    // These three used to be hand-rolled AlertDialogs with plain TextButton
+    // confirms (one of them, delete, even the exact same drift
+    // RytmDestructiveConfirm's own doc comment describes finding and fixing
+    // once already for "reset profile data"/"delete account" — this file
+    // just never got migrated along with those). RytmDestructiveConfirm is
+    // this app's one confirm-then-proceed dialog pattern, no exceptions —
+    // used even for non-destructive-but-blocking cases like Sign Out.
     viewModel.pendingLeave?.let { profile ->
-        AlertDialog(
-            onDismissRequest = viewModel::cancelLeave,
-            title = { Text(stringResource(R.string.profile_leave_title)) },
-            text = { Text(stringResource(R.string.profile_leave_body, localizedDomainText(profile.name))) },
-            confirmButton = { TextButton(onClick = viewModel::confirmLeave) { Text(stringResource(R.string.profile_leave), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelLeave) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.profile_leave_title),
+            body = stringResource(R.string.profile_leave_body, localizedDomainText(profile.name)),
+            confirmLabel = stringResource(R.string.profile_leave),
+            onConfirm = viewModel::confirmLeave,
+            onDismiss = viewModel::cancelLeave,
         )
     }
 
     viewModel.pendingDeleteId?.let {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.profile_delete_title)) },
-            text = { Text(stringResource(R.string.profile_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.profile_delete_title),
+            body = stringResource(R.string.profile_delete_body),
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::cancelDelete,
         )
     }
 
     viewModel.pendingSwitch?.let { target ->
-        AlertDialog(
-            onDismissRequest = { if (!viewModel.switching) viewModel.cancelSwitch() },
-            title = { Text(stringResource(R.string.profile_switch_title)) },
-            text = {
-                if (viewModel.switching) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text(stringResource(R.string.profile_switching))
-                    }
-                } else {
-                    Text(stringResource(R.string.profile_switch_body))
+        RytmDestructiveConfirm(
+            title = stringResource(R.string.profile_switch_title),
+            body = stringResource(R.string.profile_switch_body),
+            confirmLabel = stringResource(R.string.profile_switch),
+            busy = viewModel.switching,
+            busyLabel = stringResource(R.string.profile_switching),
+            onConfirm = {
+                scope.launch {
+                    // onSwitched() (which the caller uses to dismiss this
+                    // sheet and show a success toast) only fires on a real
+                    // success — see confirmSwitch()'s own doc comment for
+                    // the real bug this guards against.
+                    if (viewModel.confirmSwitch()) onSwitched(target.id)
                 }
             },
-            confirmButton = {
-                TextButton(
-                    enabled = !viewModel.switching,
-                    onClick = {
-                        scope.launch {
-                            // onSwitched() (which the caller uses to dismiss this
-                            // sheet and show a success toast) only fires on a real
-                            // success — see confirmSwitch()'s own doc comment for
-                            // the real bug this guards against.
-                            if (viewModel.confirmSwitch()) onSwitched(target.id)
-                        }
-                    },
-                ) { Text(stringResource(R.string.profile_switch)) }
-            },
-            dismissButton = { TextButton(enabled = !viewModel.switching, onClick = viewModel::cancelSwitch) { Text(stringResource(R.string.action_cancel)) } },
+            onDismiss = viewModel::cancelSwitch,
         )
     }
 
