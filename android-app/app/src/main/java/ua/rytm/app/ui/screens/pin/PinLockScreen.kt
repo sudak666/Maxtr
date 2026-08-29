@@ -111,19 +111,17 @@ fun PinLockScreen(viewModel: PinViewModel) {
         TextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
     }
 
-    if (forgotConfirm) AlertDialog(
-        onDismissRequest = { forgotConfirm = false },
-        title = { Text(stringResource(R.string.pin_forgot_title)) },
-        text = { Text(stringResource(R.string.pin_forgot_body)) },
-        confirmButton = {
-            TextButton(onClick = {
-                forgotConfirm = false
-                viewModel.forgotPin {
-                    if (!app.settingsStore.isPrivacyCacheEnabled()) app.database.clearAllProfileScopedTables()
-                }
-            }) { Text(stringResource(R.string.pin_reset_sign_out), color = MaterialTheme.colorScheme.error) }
+    if (forgotConfirm) ua.rytm.app.ui.components.RytmDestructiveConfirm(
+        title = stringResource(R.string.pin_forgot_title),
+        body = stringResource(R.string.pin_forgot_body),
+        confirmLabel = stringResource(R.string.pin_reset_sign_out),
+        onConfirm = {
+            forgotConfirm = false
+            viewModel.forgotPin {
+                if (!app.settingsStore.isPrivacyCacheEnabled()) app.database.clearAllProfileScopedTables()
+            }
         },
-        dismissButton = { TextButton(onClick = { forgotConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
+        onDismiss = { forgotConfirm = false },
     )
     if (biometricOnboardingVisible) AlertDialog(
         onDismissRequest = {

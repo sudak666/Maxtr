@@ -101,7 +101,15 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
             TextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
         }
     }
-    pendingDelete?.let { id -> AlertDialog(onDismissRequest = { pendingDelete = null }, title = { Text(stringResource(R.string.auto_rules_delete_title)) }, text = { Text(stringResource(R.string.auto_rules_delete_body)) }, confirmButton = { TextButton(onClick = { persist { repository.deleteAutoRule(id) }; pendingDelete = null }, enabled = !saving) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.action_cancel)) } }) }
+    pendingDelete?.let { id ->
+        ua.rytm.app.ui.components.RytmDestructiveConfirm(
+            title = stringResource(R.string.auto_rules_delete_title),
+            body = stringResource(R.string.auto_rules_delete_body),
+            busy = saving,
+            onConfirm = { persist { repository.deleteAutoRule(id) }; pendingDelete = null },
+            onDismiss = { pendingDelete = null },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
