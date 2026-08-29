@@ -469,14 +469,18 @@ private fun EmptyEntriesState() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean) {
-    DebtEntrySwipeContainer(canEdit = canEdit, onDelete = { viewModel.requestDeleteEntry(entry.id) }) {
+    DebtEntrySwipeContainer(
+        canEdit = canEdit,
+        onDelete = { viewModel.requestDeleteEntry(entry.id) },
+        pendingConfirmation = viewModel.pendingDeleteEntryId == entry.id,
+    ) {
         DebtEntryContent(viewModel, entry, currency)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, content: @Composable () -> Unit) {
+internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pendingConfirmation: Boolean = false, content: @Composable () -> Unit) {
     val haptics = LocalHapticFeedback.current
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     var deleteCommitted by rememberSaveable { mutableStateOf(false) }
@@ -493,6 +497,24 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, con
             } else false
         },
     )
+    // onDelete() above only REQUESTS deletion -- a RytmDestructiveConfirm
+    // dialog decides whether it actually happens. But confirmValueChange
+    // already told SwipeToDismissBoxState the EndToStart transition is
+    // confirmed the moment the swipe crossed the threshold, so the box
+    // itself has already committed to looking "dismissed" regardless of
+    // what the dialog decides. Cancelling the dialog left this row
+    // permanently stuck in that dismissed-looking state -- blank content,
+    // the red reveal frozen open (reported live, screenshot). If the
+    // delete actually goes through, this row leaves composition entirely
+    // (removed from the entries list) and this effect never runs a
+    // meaningful reset; if it's cancelled, the entry is still there and
+    // this snaps the row back to normal.
+    LaunchedEffect(pendingConfirmation) {
+        if (!pendingConfirmation && deleteCommitted) {
+            deleteCommitted = false
+            dismissState.reset()
+        }
+    }
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
