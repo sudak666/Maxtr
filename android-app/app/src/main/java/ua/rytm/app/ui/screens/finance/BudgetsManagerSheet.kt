@@ -16,7 +16,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -117,14 +116,13 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text(stringResource(R.string.budgets_monthly_limit)) },
-                // Default unfocused border is colorScheme.outline (#E4E4E9 in
-                // light) sitting on this row's surfaceContainerHigh (#E2E0DD)
-                // — same near-1:1-contrast pair already fixed once for the
-                // Switch thumb in SettingsScreen.kt. onSurfaceVariant is the
-                // same fix applied here.
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                // Used to override unfocusedBorderColor to onSurfaceVariant
+                // here (default `outline` was invisible in light theme at
+                // the time). Now that Theme.kt's `outline` itself is a real,
+                // visible hairline tone app-wide, this override is both
+                // redundant and actively inconsistent -- it made this one
+                // field's border brighter than every other field's. Removed
+                // to fall back to the shared default.
             )
             LaunchedEffect(limitText) {
                 delay(400)

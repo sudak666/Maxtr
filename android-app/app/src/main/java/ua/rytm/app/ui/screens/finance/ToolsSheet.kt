@@ -374,11 +374,16 @@ private fun ConverterSection(vm: ToolsViewModel) {
             Card(
                 modifier = Modifier.weight(1f).height(56.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
-                // onSurfaceVariant, not outline -- same near-invisible-in-
-                // light-theme pair already fixed for the Switch thumb, the
-                // budget field border, and the Shopping checkbox.
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                // Was a 1dp onSurfaceVariant border (full body-text
+                // brightness) on a plain `surface` background -- flagged
+                // live as reading too sharp/bold, same category as the
+                // outline-token softening and calendar-gridline removal
+                // done in the same pass. Switched to the app's established
+                // borderless tonal-fill treatment (Categories rows,
+                // quick-action cards) instead of just dimming the stroke,
+                // for real consistency rather than a softer version of the
+                // same "outlined field" language.
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             ) {
                 Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
                     Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
