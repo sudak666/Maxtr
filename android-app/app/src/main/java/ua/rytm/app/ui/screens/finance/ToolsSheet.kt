@@ -424,7 +424,18 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val months = vm.sixMonthTotals
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("balance" to R.string.analytics_balance_label, "income" to R.string.analytics_income_label, "expense" to R.string.analytics_expense_label).forEach { (key, labelRes) ->
-                FilterChip(selected = metric == key, onClick = { metric = key }, label = { Text(stringResource(labelRes)) }, modifier = Modifier.weight(1f))
+                FilterChip(
+                    selected = metric == key,
+                    onClick = { metric = key },
+                    // FilterChip's label isn't centered within extra width
+                    // on its own -- barely visible at the chip's natural
+                    // size, but this row stretches all 3 chips equally via
+                    // weight(1f), which turned that into a real, visible
+                    // left-shift (flagged live, screenshot: "Дохід" sitting
+                    // noticeably off-center in its own pill).
+                    label = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text(stringResource(labelRes)) } },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
         val values = months.map { when (metric) { "income" -> it.income; "expense" -> it.expense; else -> it.income - it.expense } }
