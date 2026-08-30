@@ -144,8 +144,18 @@ fun ShiftsScreen() {
     // the ModalBottomSheet block below for why this replaced a second,
     // independently-dismissible sheet for Shift Types.
     var quickFillShowingShiftTypes by rememberSaveable { mutableStateOf(false) }
+    // Distinct "shiftTypes|" prefix, not just "$dataUid|$profileId" --
+    // ShiftsViewModel above is requested with that exact bare key in this
+    // same composable/ViewModelStoreOwner scope. androidx's viewModel()
+    // keys its backing ViewModelStore purely by this string, not by
+    // requested class, so two DIFFERENT ViewModel classes sharing one key
+    // string collide: the second .get() call can return/cache the wrong
+    // instance instead of throwing where it'd be caught immediately. This
+    // is the real root cause of the "Shifts tab stuck loading/zeros" bug
+    // reported live right after PR #478 introduced this second viewModel()
+    // call with the same key as an oversight.
     val shiftTypesViewModel: ShiftTypesManagerViewModel = viewModel(
-        key = "$dataUid|$profileId",
+        key = "shiftTypes|$dataUid|$profileId",
         factory = ShiftTypesManagerViewModel.factory(app.shiftsRepository, dataUid, profileId),
     )
     // Falls back to a local host only outside the nav graph (previews/tests).
