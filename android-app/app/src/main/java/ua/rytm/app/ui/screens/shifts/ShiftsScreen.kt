@@ -299,7 +299,7 @@ fun ShiftsScreen() {
                         onToggle = { viewModel.toggleDayModalType(type.id) },
                     )
                 }
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                     TextButton(onClick = viewModel::closeDayModal) { Text(stringResource(R.string.action_cancel)) }
                     TextButton(onClick = viewModel::saveDayModal) { Text(stringResource(R.string.action_done)) }
                 }
