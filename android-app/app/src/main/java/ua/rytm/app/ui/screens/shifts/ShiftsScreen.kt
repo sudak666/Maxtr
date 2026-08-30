@@ -837,10 +837,6 @@ private fun DayCell(
         isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.03f)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    val borderColor = when {
-        isOutsideMonth -> MaterialTheme.colorScheme.outlineVariant
-        else -> MaterialTheme.colorScheme.outline
-    }
     val weekendAccent = RytmSemantic.expense
     val shown = assigned.take(2)
     val overflow = assigned.size - shown.size
@@ -865,7 +861,14 @@ private fun DayCell(
             .heightIn(min = RytmDimens.TouchTarget)
             .clip(RoundedCornerShape(RytmRadii.Control))
             .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(RytmRadii.Control))
+            // No border here on purpose -- 35 stroked cells drawn at once
+            // read as a busy gridline overlay, the single "sharpest" thing
+            // on this screen (flagged live: "мені здається треба щоб вони
+            // були трішки не такі різкі"). Top-tier calendar UIs (Google
+            // Calendar, Apple Calendar) differentiate day cells by fill and
+            // spacing alone, not a stroke around every cell -- `bg` above
+            // already carries that (assigned/weekend/outside-month), so the
+            // border was pure redundant decoration.
             .clickable(enabled = enabled, onClickLabel = editLabel, role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = cellDescription }
             .padding(4.dp),

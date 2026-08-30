@@ -52,6 +52,10 @@ val DarkText = Color(0xFFE9E8EA)
 val DarkTextStrong = Color(0xFFFFFFFF)
 val DarkMuted = Color(0xFF96959C)
 val DarkMuted2 = Color(0xFF98979E)
+// Midpoint between DarkBorder2 (#525158, outlineVariant) and DarkMuted2
+// (#98979E) -- see Theme.kt's `outline` doc comment for why this exists as
+// its own token instead of reusing either.
+val DarkHairline = Color(0xFF75747B)
 
 // --- Light theme surfaces ---
 val LightBg = Color(0xFFF4F3F1)
@@ -64,6 +68,10 @@ val LightText = Color(0xFF1C1C1E)
 val LightTextStrong = Color(0xFF0B0B0D)
 val LightMuted = Color(0xFF6B6B70)
 val LightMuted2 = Color(0xFF626269)
+// Midpoint between LightBorder2 (#D1D1D6, outlineVariant) and LightMuted2
+// (#626269) -- see Theme.kt's `outline` doc comment for why this exists as
+// its own token instead of reusing either.
+val LightHairline = Color(0xFF99999F)
 
 // --- Extended palette ---
 // Colors the UI layer was already using as raw hex literals. Kept as named
