@@ -177,25 +177,37 @@ fun ShiftsScreen() {
     }
 
     if (canEdit && viewModel.quickFillExpanded) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = viewModel::toggleQuickFillExpanded,
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-        ) {
+        // Was a raw androidx.compose.ui.window.Dialog (its own separate
+        // Android Dialog window) with Shift Types' own ModalBottomSheet
+        // (a Compose Popup, different windowing mechanism) stacked on top
+        // of it -- the only place in this app that nests a sheet on top of
+        // a Dialog rather than the proven-safe reverse (an AlertDialog,
+        // e.g. RytmDestructiveConfirm, on top of a ModalBottomSheet, used
+        // throughout this file and every other manager sheet with no
+        // issue). That mismatched stacking is what caused the still-open
+        // bug PR #470 only partly fixed: swiping Shift Types' sheet down
+        // to dismiss it could deliver a leftover/redelivered pointer-up
+        // to whatever the Dialog window now had under the finger once the
+        // sheet's Popup window disappeared mid-gesture, closing Quick
+        // Fill's own Dialog a beat later with a visible jump. Converting
+        // Quick Fill to a ModalBottomSheet too -- matching every other
+        // manager panel in this app -- puts both layers through the same
+        // windowing mechanism that already stacks safely elsewhere.
+        val quickFillSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = viewModel::toggleQuickFillExpanded, sheetState = quickFillSheetState) {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.92f)
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(RytmRadii.Sheet))
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
                     .verticalScroll(rememberScrollState())
-                    .padding(12.dp),
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 QuickFillPanel(
                     viewModel,
                     // Used to also toggleQuickFillExpanded() here -- closing
                     // Quick Fill the instant Shift Types opened. Since Shift
-                    // Types layers on top of Quick Fill's own Dialog fine on
+                    // Types layers on top of Quick Fill's own sheet fine on
                     // its own, that eager close just meant Quick Fill was
                     // already gone by the time the user swiped Shift Types
                     // away, so they landed back on the bare calendar instead
@@ -495,8 +507,8 @@ private fun QuickFillLauncher(onClick: () -> Unit) {
 private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
     var clearMonthConfirmVisible by rememberSaveable { mutableStateOf(false) }
     // No own Card/border/elevation here — this composable's only caller is
-    // the full-screen Dialog sheet above, which already provides one rounded
-    // surface (RytmRadii.Sheet, surfaceContainer). A second nested Card with
+    // the ModalBottomSheet above, which already provides one rounded
+    // surface. A second nested Card with
     // its own shape+background+border+shadow read as a literal "window
     // inside a window" (reported live via screenshot: a sliver of the
     // sheet's own rounded top edge peeking above this card's rounded top
