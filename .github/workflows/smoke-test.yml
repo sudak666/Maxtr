@@ -362,6 +362,16 @@ jobs:
       - name: Lint (debug)
         run: ./gradlew lintDebug --no-daemon
 
+      # Cheap, dependency-free guard against the exact regression fixed in
+      # PR #476 (see CHANGELOG.md / scripts/check-border-tokens.sh's own
+      # doc comment): colorScheme.onSurfaceVariant reaching into a border
+      # call instead of the app's real hairline border tokens. Android
+      # Lint has no built-in rule for this (it's a project-specific design
+      # convention, not a general Android correctness issue), so this is a
+      # plain grep/perl script rather than a Detekt custom-rule setup.
+      - name: Border-token consistency check
+        run: bash scripts/check-border-tokens.sh
+
       - name: Upload Compose compiler stability/metrics reports
         if: always()
         uses: actions/upload-artifact@v4
