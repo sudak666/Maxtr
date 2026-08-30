@@ -71,7 +71,13 @@ fun ShiftTypesManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        ShiftTypesManagerContent(viewModel, showTitle = true)
+        // The scroll/inset/padding container lives here, not inside
+        // ShiftTypesManagerContent -- see that composable's own doc
+        // comment for why (nested verticalScroll crash when embedded in
+        // Quick Fill's already-scrollable sheet).
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ShiftTypesManagerContent(viewModel, showTitle = true)
+        }
     }
 }
 
@@ -94,9 +100,19 @@ fun ShiftTypesManagerSheet(
 // entry point above; ShiftsScreen.kt passes false and renders its own
 // back-affordance instead, since a nested "screen" inside Quick Fill's
 // sheet reads better as a sub-view than a second title block.
+//
+// Deliberately has NO verticalScroll()/navigationBarsPadding()/imePadding()
+// of its own -- a real crash, not just style: ShiftsScreen.kt embeds this
+// directly inside Quick Fill's own ModalBottomSheet Column, which already
+// has its own verticalScroll() for the whole sheet. Two nested
+// same-axis-scrollable Columns crash Compose at runtime with "Vertically
+// scrollable component was measured with an infinity maximum height
+// constraints" the moment "Типи змін" is tapped and this content mounts
+// (reported live: app crashes on tap). The standalone ShiftTypesManagerSheet
+// wrapper above supplies its own single scrollable container instead.
 @Composable
 fun ShiftTypesManagerContent(viewModel: ShiftTypesManagerViewModel, showTitle: Boolean = true) {
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
         if (showTitle) RytmSheetTitle(stringResource(R.string.shift_types_title), subtitle = stringResource(R.string.shift_types_body))
 
