@@ -106,6 +106,7 @@ import java.time.format.TextStyle
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.ArrowBack
 import ua.rytm.app.ui.icons.BeachAccess
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.ChevronLeft
@@ -139,7 +140,14 @@ fun ShiftsScreen() {
     val stats = viewModel.monthStats
     val salaryGoal by app.settingsStore.salaryGoal(accountUid).collectAsState(initial = ua.rytm.app.data.local.DEFAULT_SALARY_GOAL)
     var editingGoal by rememberSaveable { mutableStateOf(false) }
-    var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    // Which sub-view Quick Fill's single sheet is currently showing -- see
+    // the ModalBottomSheet block below for why this replaced a second,
+    // independently-dismissible sheet for Shift Types.
+    var quickFillShowingShiftTypes by rememberSaveable { mutableStateOf(false) }
+    val shiftTypesViewModel: ShiftTypesManagerViewModel = viewModel(
+        key = "$dataUid|$profileId",
+        factory = ShiftTypesManagerViewModel.factory(app.shiftsRepository, dataUid, profileId),
+    )
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbar = LocalSnackbarHost.current ?: ownHost
@@ -177,24 +185,32 @@ fun ShiftsScreen() {
     }
 
     if (canEdit && viewModel.quickFillExpanded) {
-        // Was a raw androidx.compose.ui.window.Dialog (its own separate
-        // Android Dialog window) with Shift Types' own ModalBottomSheet
-        // (a Compose Popup, different windowing mechanism) stacked on top
-        // of it -- the only place in this app that nests a sheet on top of
-        // a Dialog rather than the proven-safe reverse (an AlertDialog,
-        // e.g. RytmDestructiveConfirm, on top of a ModalBottomSheet, used
-        // throughout this file and every other manager sheet with no
-        // issue). That mismatched stacking is what caused the still-open
-        // bug PR #470 only partly fixed: swiping Shift Types' sheet down
-        // to dismiss it could deliver a leftover/redelivered pointer-up
-        // to whatever the Dialog window now had under the finger once the
-        // sheet's Popup window disappeared mid-gesture, closing Quick
-        // Fill's own Dialog a beat later with a visible jump. Converting
-        // Quick Fill to a ModalBottomSheet too -- matching every other
-        // manager panel in this app -- puts both layers through the same
-        // windowing mechanism that already stacks safely elsewhere.
+        // History: this used to be a raw Dialog with Shift Types' own
+        // separate ModalBottomSheet stacked on top (PR #475 converted the
+        // Dialog to a ModalBottomSheet too, matching every other manager
+        // panel). That still wasn't enough -- reported live as still
+        // happening: two independently-dismissible ModalBottomSheets
+        // stacked in the same bottom-of-screen swipe area is itself
+        // unsafe, regardless of which layer is a Dialog vs a Sheet. A
+        // swipe-down drag that crosses the TOP sheet's dismiss threshold
+        // removes it from composition while the finger is still moving;
+        // the still-in-progress pointer events then land on whatever is
+        // now underneath, which -- being itself swipe-to-dismiss -- keeps
+        // interpreting the same continued downward motion as ITS OWN
+        // dismiss drag, closing Quick Fill a beat later with a visible
+        // jump. Fix: never nest a second independently-dismissible sheet
+        // at all. Shift Types is now content SWAPPED IN inside this one
+        // sheet (see ShiftTypesManagerContent, ShiftTypesManagerSheet.kt)
+        // rather than its own sheet -- there's only ever one swipe-to-
+        // dismiss surface active at a time.
         val quickFillSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(onDismissRequest = viewModel::toggleQuickFillExpanded, sheetState = quickFillSheetState) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                quickFillShowingShiftTypes = false
+                viewModel.toggleQuickFillExpanded()
+            },
+            sheetState = quickFillSheetState,
+        ) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -203,19 +219,28 @@ fun ShiftsScreen() {
                     .imePadding()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                QuickFillPanel(
-                    viewModel,
-                    // Used to also toggleQuickFillExpanded() here -- closing
-                    // Quick Fill the instant Shift Types opened. Since Shift
-                    // Types layers on top of Quick Fill's own sheet fine on
-                    // its own, that eager close just meant Quick Fill was
-                    // already gone by the time the user swiped Shift Types
-                    // away, so they landed back on the bare calendar instead
-                    // of Quick Fill -- reported live as everything closing
-                    // and "jumping". Leaving Quick Fill open underneath
-                    // matches what swiping Shift Types away actually reveals.
-                    onOpenShiftTypes = { shiftTypesSheetOpen = true },
-                )
+                if (quickFillShowingShiftTypes) {
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = { quickFillShowingShiftTypes = false }) {
+                            Icon(RytmIcons.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
+                        Text(
+                            stringResource(R.string.shift_types_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                    ShiftTypesManagerContent(shiftTypesViewModel, showTitle = false)
+                } else {
+                    QuickFillPanel(
+                        viewModel,
+                        onOpenShiftTypes = { quickFillShowingShiftTypes = true },
+                    )
+                }
             }
         }
     }
@@ -247,10 +272,6 @@ fun ShiftsScreen() {
                 }
             }
         }
-    }
-
-    if (canEdit && shiftTypesSheetOpen) {
-        ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = dataUid, profileId = profileId, onDismiss = { shiftTypesSheetOpen = false })
     }
 
     if (canEdit && editingGoal) {
