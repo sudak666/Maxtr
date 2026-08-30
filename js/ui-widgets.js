@@ -547,6 +547,17 @@ export function initSheetDrag(card, onDismiss){
   handles.forEach(handle=>{
     handle.addEventListener('pointerdown', e=>{
       if(sheetModeOff()) return;
+      // Touch input fires a synthetic compatibility `click` right after
+      // pointerup, targeting whatever element ends up under the finger at
+      // that moment (elementFromPoint, not pointer-captured) - by the time
+      // it fires, settle() has already moved the dismissed card off-screen
+      // via `transform`, so that click lands on whatever is now revealed
+      // underneath instead (e.g. a button in the page behind the modal),
+      // firing an unrelated action. preventDefault() on pointerdown/up
+      // suppresses that synthetic click for this gesture, matching what
+      // the .modal-card-body touch-event branch below already gets for
+      // free from its own touchmove preventDefault().
+      e.preventDefault();
       dragging=true; startY=e.clientY; dy=0; activeHandle=handle;
       card.classList.add('sheet-dragging');
       try{ handle.setPointerCapture(e.pointerId); }catch(err){}
@@ -556,8 +567,10 @@ export function initSheetDrag(card, onDismiss){
       dy=Math.max(0, e.clientY-startY);
       card.style.transform=`translateY(${dy}px)`;
     });
-    const endDrag=()=>{
+    /** @param {PointerEvent} e */
+    const endDrag=e=>{
       if(!dragging || activeHandle!==handle) return;
+      e.preventDefault();
       dragging=false; activeHandle=null;
       card.classList.remove('sheet-dragging');
       settle(dy);
