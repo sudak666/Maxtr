@@ -64,7 +64,6 @@ fun TagsManagerSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var newName by rememberSaveable { mutableStateOf("") }
-    var addAttempted by rememberSaveable { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         androidx.compose.foundation.layout.Column(
@@ -93,20 +92,26 @@ fun TagsManagerSheet(
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                val nameInvalid = addAttempted && newName.isBlank()
                 OutlinedTextField(
                     value = newName,
-                    onValueChange = { newName = it; addAttempted = false },
+                    onValueChange = { newName = it },
                     label = { Text(stringResource(R.string.tags_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    isError = nameInvalid,
-                    supportingText = if (nameInvalid) ({ Text(stringResource(R.string.validation_name_required)) }) else null,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { if (newName.isNotBlank()) { viewModel.addTag(newName); newName = "" } else addAttempted = true }),
+                    keyboardActions = KeyboardActions(onDone = { if (newName.isNotBlank()) { viewModel.addTag(newName); newName = "" } }),
                 )
                 androidx.compose.material3.Button(
-                    onClick = { if (newName.isBlank()) addAttempted = true else { viewModel.addTag(newName); newName = "" } },
+                    onClick = { viewModel.addTag(newName); newName = "" },
+                    // Was always-enabled with a tap-to-reveal inline error
+                    // instead -- the only "type a name, tap Add" flow in the
+                    // app that worked this way. Categories/Subcategories
+                    // (CategoriesManagerSheet.kt) and Shopping
+                    // (ShoppingScreen.kt) all disable Add until the field is
+                    // non-blank instead; switched to match for real
+                    // consistency rather than a second valid-but-different
+                    // pattern (flagged live: "де вірно а де ні?").
+                    enabled = newName.isNotBlank(),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row),
                     // Default Button height (~40dp) is under this app's 48dp
                     // touch-target floor -- happened to look fine here only
