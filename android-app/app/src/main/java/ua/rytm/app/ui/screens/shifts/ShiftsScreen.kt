@@ -229,27 +229,50 @@ fun ShiftsScreen() {
                     .imePadding()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                if (quickFillShowingShiftTypes) {
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = { quickFillShowingShiftTypes = false }) {
-                            Icon(RytmIcons.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                // AnimatedContent, not a bare if/else swap. A raw if/else
+                // here (tried first) reproduced a real bug live: tapping
+                // "Типи змін" silently closed the whole sheet, no crash, no
+                // exception anywhere in logcat -- consistent with M3's
+                // ModalBottomSheet auto-dismissing (firing onDismissRequest
+                // itself) when its content's measured height drops abruptly
+                // in a single frame, which is exactly what swapping from
+                // Quick Fill's taller form to Shift Types' shorter list did.
+                // Switching to AnimatedContent (which interpolates the
+                // container size across the transition instead of jumping)
+                // was verified live, on-device, over adb, to fix it -- both
+                // navigating in (tap) and back out (arrow) now work with no
+                // dismiss. The exact root cause inside M3's sheet-anchor
+                // recalculation isn't independently confirmed (no access to
+                // its internals), but the fix is confirmed against the
+                // actual reported symptom, not just plausible in theory.
+                androidx.compose.animation.AnimatedContent(
+                    targetState = quickFillShowingShiftTypes,
+                    label = "quick-fill-content-swap",
+                ) { showingShiftTypes ->
+                    if (showingShiftTypes) {
+                        Column {
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                IconButton(onClick = { quickFillShowingShiftTypes = false }) {
+                                    Icon(RytmIcons.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                                }
+                                Text(
+                                    stringResource(R.string.shift_types_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 4.dp),
+                                )
+                            }
+                            ShiftTypesManagerContent(shiftTypesViewModel, showTitle = false)
                         }
-                        Text(
-                            stringResource(R.string.shift_types_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 4.dp),
+                    } else {
+                        QuickFillPanel(
+                            viewModel,
+                            onOpenShiftTypes = { quickFillShowingShiftTypes = true },
                         )
                     }
-                    ShiftTypesManagerContent(shiftTypesViewModel, showTitle = false)
-                } else {
-                    QuickFillPanel(
-                        viewModel,
-                        onOpenShiftTypes = { quickFillShowingShiftTypes = true },
-                    )
                 }
             }
         }
