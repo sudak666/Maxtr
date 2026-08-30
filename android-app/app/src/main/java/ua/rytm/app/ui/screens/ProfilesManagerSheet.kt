@@ -283,13 +283,22 @@ private fun ProfileRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 if (profile.isShared) Text(stringResource(R.string.profile_shared), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                // Was a trailing TextButton in the outer Row, vertically
+                // centered against the WHOLE row -- for the active row
+                // (two lines: name + "Активний") that landed roughly at the
+                // name's line, while "Активний" itself sits a line lower,
+                // so the two never lined up between rows (flagged live,
+                // screenshot). Moved into this same status-line Row so both
+                // "Активний" and "Перемкнути" occupy the identical slot.
+                if (!isActive) {
+                    TextButton(onClick = onSwitch, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                        Text(stringResource(R.string.profile_switch), style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
-        }
-        if (!isActive) {
-            TextButton(onClick = onSwitch) { Text(stringResource(R.string.profile_switch)) }
         }
         if (profile.isShared) {
             IconButton(onClick = onLeave) { Icon(RytmIcons.ExitToApp, contentDescription = stringResource(R.string.profile_leave)) }
