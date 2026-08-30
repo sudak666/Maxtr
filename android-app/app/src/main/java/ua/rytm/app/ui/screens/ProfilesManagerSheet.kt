@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +55,7 @@ import ua.rytm.app.ui.icons.Delete
 import ua.rytm.app.ui.icons.Edit
 import ua.rytm.app.ui.icons.ExitToApp
 import ua.rytm.app.ui.icons.Group
+import ua.rytm.app.ui.icons.MoreVert
 import ua.rytm.app.ui.icons.Share
 
 // Mirrors js/color-picker.js's profiles-modal (renderProfilesUI()), plus
@@ -291,10 +294,45 @@ private fun ProfileRow(
         if (profile.isShared) {
             IconButton(onClick = onLeave) { Icon(RytmIcons.ExitToApp, contentDescription = stringResource(R.string.profile_leave)) }
         } else {
-            IconButton(onClick = onShare) { Icon(RytmIcons.Share, contentDescription = stringResource(R.string.profile_share)) }
-            IconButton(onClick = onManageMembers) { Icon(RytmIcons.Group, contentDescription = stringResource(R.string.profile_members)) }
-            IconButton(onClick = onStartRename) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.profile_rename)) }
-            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            // Was 4 separate IconButtons (Share/Members/Rename/Delete)
+            // inline, alongside the "Перемкнути" TextButton on non-active
+            // rows -- 5 interactive elements left the name column almost no
+            // width, truncating a real name down to one letter + ellipsis
+            // (flagged live, screenshot: "Stas" showing as "S..."). The
+            // active row has none of these and rendered fine, confirming
+            // it's this crowding, not the ellipsis logic itself. Collapsed
+            // into a single overflow menu, same Box+IconButton+DropdownMenu
+            // pattern CategoriesManagerSheet.kt already uses for its own
+            // row actions -- "Перемкнути" stays inline since it's the
+            // single most common action on a non-active row.
+            var menuOpen by remember(profile.id) { mutableStateOf(false) }
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(RytmIcons.MoreVert, contentDescription = stringResource(R.string.action_more))
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.profile_share)) },
+                        leadingIcon = { Icon(RytmIcons.Share, contentDescription = null) },
+                        onClick = { menuOpen = false; onShare() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.profile_members)) },
+                        leadingIcon = { Icon(RytmIcons.Group, contentDescription = null) },
+                        onClick = { menuOpen = false; onManageMembers() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.profile_rename)) },
+                        leadingIcon = { Icon(RytmIcons.Edit, contentDescription = null) },
+                        onClick = { menuOpen = false; onStartRename() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { menuOpen = false; onDelete() },
+                    )
+                }
+            }
         }
     }
     }
