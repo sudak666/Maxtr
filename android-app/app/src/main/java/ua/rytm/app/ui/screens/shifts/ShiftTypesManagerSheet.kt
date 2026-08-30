@@ -71,35 +71,64 @@ fun ShiftTypesManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-            RytmSheetTitle(stringResource(R.string.shift_types_title), subtitle = stringResource(R.string.shift_types_body))
+        ShiftTypesManagerContent(viewModel, showTitle = true)
+    }
+}
 
-            if (viewModel.shiftTypes.isEmpty()) {
-                Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+// Extracted so Quick Fill (ShiftsScreen.kt) can swap this in as CONTENT
+// inside its own single ModalBottomSheet instead of opening a second,
+// independently-dismissible sheet stacked on top of it. Two stacked
+// ModalBottomSheets sharing the same bottom-of-screen swipe-to-dismiss
+// gesture area turned out to be unsafe regardless of which layer is a
+// Dialog vs a Sheet (PR #475 fixed the Dialog-under-Sheet ghost-click
+// variant of this, but the account owner reported it was STILL happening
+// afterward): a swipe-down drag that crosses the top sheet's dismiss
+// threshold removes that sheet from composition while the finger is still
+// moving, and the still-in-progress pointer events land on whatever sheet
+// is now underneath -- which, since it's also swipe-to-dismiss, keeps
+// interpreting the same continued downward motion as ITS OWN dismiss drag,
+// closing Quick Fill a beat after Shift Types with the reported "стрибає"
+// jump. Never nesting two independently-dismissible sheets in the first
+// place removes the entire bug class rather than chasing its next shape.
+// `showTitle` is true for the standalone Settings/Quick-Fill-launcher
+// entry point above; ShiftsScreen.kt passes false and renders its own
+// back-affordance instead, since a nested "screen" inside Quick Fill's
+// sheet reads better as a sub-view than a second title block.
+@Composable
+fun ShiftTypesManagerContent(viewModel: ShiftTypesManagerViewModel, showTitle: Boolean = true) {
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+        if (showTitle) RytmSheetTitle(stringResource(R.string.shift_types_title), subtitle = stringResource(R.string.shift_types_body))
 
-            viewModel.shiftTypes.forEach { type ->
-                ShiftTypeRow(
-                    type = type,
-                    expanded = viewModel.expandedId == type.id,
-                    onToggleEdit = { viewModel.toggleEdit(type.id) },
-                    onNameChange = { viewModel.updateName(type, it) },
-                    onAmountChange = { viewModel.updateAmount(type, it) },
-                    onHoursChange = { viewModel.updateHours(type, it) },
-                    onIsOffChange = { viewModel.updateIsOff(type, it) },
-                    onDelete = { viewModel.requestDelete(type.id) },
-                )
-            }
+        if (viewModel.shiftTypes.isEmpty()) {
+            Text(stringResource(R.string.shift_types_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
 
-            val newShiftName = stringResource(R.string.shift_type_new_default)
-            androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
-                Icon(RytmIcons.Add, contentDescription = null)
-                Text(stringResource(R.string.shift_type_add))
-            }
+        viewModel.shiftTypes.forEach { type ->
+            ShiftTypeRow(
+                type = type,
+                expanded = viewModel.expandedId == type.id,
+                onToggleEdit = { viewModel.toggleEdit(type.id) },
+                onNameChange = { viewModel.updateName(type, it) },
+                onAmountChange = { viewModel.updateAmount(type, it) },
+                onHoursChange = { viewModel.updateHours(type, it) },
+                onIsOffChange = { viewModel.updateIsOff(type, it) },
+                onDelete = { viewModel.requestDelete(type.id) },
+            )
+        }
+
+        val newShiftName = stringResource(R.string.shift_type_new_default)
+        androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+            Icon(RytmIcons.Add, contentDescription = null)
+            Text(stringResource(R.string.shift_type_add))
         }
     }
 
+    // A Dialog (AlertDialog/RytmDestructiveConfirm) layered on top of a
+    // ModalBottomSheet is the proven-safe nesting direction elsewhere in
+    // this app (unlike sheet-on-sheet above) -- unaffected by this change,
+    // works identically whether this content sits in its own sheet or is
+    // embedded inside Quick Fill's.
     viewModel.pendingDeleteId?.let {
         ua.rytm.app.ui.components.RytmDestructiveConfirm(
             title = stringResource(R.string.shift_type_delete_title),
