@@ -44,11 +44,20 @@ private val DarkColors = darkColorScheme(
     // before finally fixing it here instead of at each call site. This is
     // the color M3 defaults every OutlinedTextField's unfocused border and
     // many hairline Card borders to app-wide, so this one change covers
-    // every remaining/future instance of the same bug. outlineVariant
-    // (deliberately fainter, used for secondary distinctions like the
-    // Switch's own unchecked-border and calendar out-of-month cells) is
-    // untouched.
-    outline = DarkMuted2,
+    // every remaining/future instance of the same bug.
+    // Was then bumped all the way to DarkMuted2 (#98979E) to guarantee
+    // visibility -- but that's the exact same brightness as onSurfaceVariant
+    // (muted body text), so every field/border using it read as a bold,
+    // assertive line rather than a quiet structural hairline (flagged live:
+    // "мені здається треба щоб вони були трішки не такі різкі"). Top-tier
+    // competitor fintech UIs (Revolut, Monobank, Wise) keep real borders
+    // thin/quiet and reserve strong contrast for content, not chrome.
+    // DarkHairline sits at the midpoint between this and outlineVariant --
+    // still comfortably visible against every surface tier, just no longer
+    // as loud as body text. outlineVariant itself (deliberately fainter,
+    // used for secondary distinctions like the Switch's own
+    // unchecked-border and calendar out-of-month cells) is untouched.
+    outline = DarkHairline,
     outlineVariant = DarkBorder2,
     error = RedDark,
     // Not white: white on #EF4444 measures 3.76:1, below AA for the bold
@@ -70,7 +79,8 @@ private val LightColors = lightColorScheme(
     surfaceContainerLow = LightBg2,
     surfaceContainer = LightBg2,
     surfaceContainerHigh = LightBg3,
-    outline = LightMuted2,
+    // See DarkColors' `outline` doc comment -- same softened-hairline reasoning.
+    outline = LightHairline,
     outlineVariant = LightBorder2,
     error = RedLight2,
     onError = LightBg1,
