@@ -45,6 +45,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -136,6 +137,17 @@ fun DebtScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val historyHeaderIndex = 7 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
+    // Mirrors FinanceScreen.kt's identical fix: the floating "Згорнути
+    // список" FAB exists so a user scrolled deep into a long expanded
+    // history doesn't have to scroll back to the inline OutlinedButton
+    // (key "collapse-list-button") that does the same thing. Showing both
+    // at once when that inline button is still on screen duplicated the
+    // same action twice in one viewport (flagged live, screenshot).
+    val collapseButtonVisible by remember {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.any { it.key == "collapse-list-button" }
+        }
+    }
 
     fun collapseHistory() {
         if (!viewModel.historyExpanded) return
@@ -147,7 +159,7 @@ fun DebtScreen(
         floatingActionButton = {
             if (cd != null && canEdit) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
-                val collapse = viewModel.historyExpanded
+                val collapse = viewModel.historyExpanded && !collapseButtonVisible
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
@@ -197,7 +209,7 @@ fun DebtScreen(
                     }
                 }
                 if (newestEntries.size > 3) {
-                    item {
+                    item(key = "collapse-list-button") {
                         OutlinedButton(
                             onClick = { if (viewModel.historyExpanded) collapseHistory() else viewModel.toggleHistoryPanel() },
                             // Was `padding(end = 178.dp)` — an eyeballed offset

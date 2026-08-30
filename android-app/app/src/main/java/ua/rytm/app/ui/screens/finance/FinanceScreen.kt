@@ -189,6 +189,18 @@ fun FinanceScreen(
             listState.layoutInfo.visibleItemsInfo.none { (it.key as? String)?.startsWith("dashboard-widget-") == true }
         }
     }
+    // The floating "Згорнути список" FAB exists so a user who scrolled deep
+    // into a long expanded list can collapse it without scrolling all the
+    // way back to the inline OutlinedButton (key "collapse-list-button")
+    // that also does this. Showing both at once when that inline button is
+    // still on screen just duplicates the same action twice in one
+    // viewport (flagged live, screenshot: two "Згорнути список" controls
+    // stacked). Same visible-item-key technique as showFab above.
+    val collapseButtonVisible by remember {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.any { it.key == "collapse-list-button" }
+        }
+    }
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
     val haptics = LocalHapticFeedback.current
@@ -227,7 +239,7 @@ fun FinanceScreen(
         // The host itself lives in RytmNavHost now — one per app.
         snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
         floatingActionButton = {
-            if (viewModel.listExpanded) {
+            if (viewModel.listExpanded && !collapseButtonVisible) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
                 Row(
                     modifier = Modifier
@@ -346,7 +358,7 @@ fun FinanceScreen(
                     }
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
-                    item {
+                    item(key = "collapse-list-button") {
                         androidx.compose.material3.OutlinedButton(
                             onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },
                             modifier = Modifier.fillMaxWidth(),
