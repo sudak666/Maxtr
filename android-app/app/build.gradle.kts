@@ -74,6 +74,14 @@ android {
             // produce something Play will accept as an update to the
             // existing package.
             if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.getByName("release")
+            // Makes `bundleRelease` also emit native-debug-symbols.zip
+            // (alongside app-release.aab) so Play Console's "upload debug
+            // symbols" warning has something to attach — lets Play Console
+            // symbolicate native (SQLCipher etc.) crash/ANR stack traces
+            // instead of showing raw addresses.
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
