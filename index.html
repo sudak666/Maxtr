@@ -458,7 +458,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,var(--tab-glow-shadow-alpha));--tab-glow:16,185,129}
 .tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,var(--tab-glow-shadow-alpha));--tab-glow:245,158,11}
 .tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,var(--tab-glow-shadow-alpha));--tab-glow:100,116,139}
-.tab-btn.tab-c-shopping.active .tab-icon-wrap{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 14px rgba(236,72,153,var(--tab-glow-shadow-alpha));--tab-glow:236,72,153}
 
 /* ── TAB SWITCH CROSSFADE ── */
 /* .tab-in is toggled by switchTab() (remove + forced reflow + re-add,
@@ -1128,14 +1127,11 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .tx-list::-webkit-scrollbar{display:none}
 .tx-view-all-btn{justify-content:center;width:100%;margin-top:4px}
 /* Stagger-in for freshly-rendered list rows: the JS side sets a per-row
-   animation-delay (see renderFinance()/renderShoppingList()) so rows cascade
-   in instead of all appearing at once. .shop-row is a marker class added
-   alongside .mgr-row (which shopping rows share with every other manager
-   list) so this animation stays scoped to the shopping list, not every
-   settings manager. */
+   animation-delay (see renderFinance()) so rows cascade in instead of all
+   appearing at once. */
 @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.tx-item,.shop-row{animation:rowIn .32s cubic-bezier(.22,1,.36,1) both}
-@media(prefers-reduced-motion:reduce){.tx-item,.shop-row{animation:none}}
+.tx-item{animation:rowIn .32s cubic-bezier(.22,1,.36,1) both}
+@media(prefers-reduced-motion:reduce){.tx-item{animation:none}}
 /* Swipe-to-delete (Telegram/Gmail-style): .tx-item is now just the outer
    positioning/clipping shell (plus the virtualization containment below) -
    its visible card look (background/border/padding) moved onto the new
@@ -2135,41 +2131,6 @@ body.amounts-hidden #fx-converter-result{
     </button>
   </section>
 
-  <!-- ═══ СПИСОК ПОКУПОК ═══ -->
-  <section id="tab-shopping" class="tab-content" style="display:none" aria-labelledby="shopping-title">
-    <div class="page-head">
-      <div class="page-label" data-i18n="shopping_kicker">Ваші покупки</div>
-      <h2 class="page-title" id="shopping-title" data-i18n="shopping_title">Список покупок</h2>
-    </div>
-
-    <div class="chip-stat-row">
-      <span class="chip-stat"><span class="chip-stat-icon" id="ic-shopping-remaining"></span><span class="chip-stat-val" id="shopping-remaining-val">0</span><span class="chip-stat-lbl" data-i18n="shopping_stat_remaining">Залишилось</span></span>
-      <span class="chip-stat"><span class="chip-stat-icon" id="ic-shopping-bought"></span><span class="chip-stat-val" id="shopping-bought-val">0</span><span class="chip-stat-lbl" data-i18n="shopping_stat_bought">Куплено</span></span>
-    </div>
-
-    <div class="fin-form" style="margin-bottom:18px">
-      <div style="display:flex;flex-wrap:wrap;gap:10px">
-        <div class="fg" style="flex:1 1 200px">
-          <label data-i18n="shopping_add_placeholder">Назва товару</label>
-          <input type="text" id="shopping-name-input" placeholder="напр. Молоко" data-i18n-placeholder="shopping_add_placeholder" data-action="add-shopping-item">
-        </div>
-        <div class="fg" style="flex:0 1 90px">
-          <label data-i18n="shopping_qty_placeholder">К-сть</label>
-          <input type="number" id="shopping-qty-input" placeholder="1" min="1" step="1" data-action="add-shopping-item">
-        </div>
-      </div>
-      <button class="add-btn" data-action="add-shopping-item"><span id="ic-shopping-add"></span><span data-i18n="shopping_add_btn">Додати</span></button>
-    </div>
-
-    <div class="fin-history">
-      <div class="hist-head">
-        <div class="hist-title" data-i18n="shopping_title">Список покупок</div>
-        <button class="btn btn-danger" id="shopping-clear-btn" style="display:none;padding:6px 12px;font-size:13px" data-action="clear-bought-shopping" data-i18n="shopping_clear_bought">Очистити куплені</button>
-      </div>
-      <div class="mgr-list" id="shopping-list-container"></div>
-    </div>
-  </section>
-
   <!-- ═══ НАЛАШТУВАННЯ ═══ -->
   <section id="tab-settings" class="tab-content" style="display:none" aria-labelledby="settings-title">
     <div class="page-head">
@@ -2477,7 +2438,6 @@ body.amounts-hidden #fx-converter-result{
   <button id="nav-finance" class="tab-btn tab-c-finance active"><span class="tab-icon-wrap"><span id="tab-icon-finance"></span></span><span data-i18n="nav_finance">Фінанси</span></button>
   <button id="nav-shifts" class="tab-btn tab-c-shifts"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
   <button id="nav-debt" class="tab-btn tab-c-debt"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
-  <button id="nav-shopping" class="tab-btn tab-c-shopping"><span class="tab-icon-wrap"><span id="tab-icon-shopping"></span></span><span data-i18n="nav_shopping">Покупки</span></button>
   <!-- Kept in the DOM (not deleted) purely so a stale cached js/app-init.js
        from before this element was removed from the visible nav - sw.js
        serves js/*.js cache-first, so a client whose service worker hasn't

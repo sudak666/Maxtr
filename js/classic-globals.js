@@ -195,10 +195,6 @@
   setIcon('ic-debt-info','doc');
   setIcon('debt-info-chevron','caretDown');
   setIcon('debt-history-chevron','caretDown');
-  setIcon('tab-icon-shopping','cart');
-  setIcon('ic-shopping-remaining','cart');
-  setIcon('ic-shopping-bought','check');
-  setIcon('ic-shopping-add','plus');
   setIcon('ic-debt-plus','plus');
   setIcon('ic-debt-fab','plus');
   setIcon('ic-salary','banknote');
@@ -302,12 +298,7 @@
       auth_login_btn:'Увійти', auth_register_btn:'Зареєструватися', auth_forgot:'Забули пароль?', auth_or:'або',
       auth_google:'Продовжити через Google', auth_terms_pre:'Реєструючись, ти погоджуєшся з', auth_terms_and:'і',
       topbar_sub:'Зміни · Фінанси · Хмара',
-      nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування', nav_shopping:'Покупки',
-      shopping_kicker:'Ваші покупки', shopping_title:'Список покупок',
-      shopping_add_placeholder:'Назва товару', shopping_qty_placeholder:'К-сть', shopping_add_btn:'Додати',
-      shopping_empty:'Список порожній', shopping_clear_bought:'Очистити куплені',
-      shopping_stat_remaining:'Залишилось', shopping_stat_bought:'Куплено',
-      shopping_clear_confirm:'Видалити всі куплені товари зі списку?', shopping_clear_title:'Очистити куплені',
+      nav_shifts:'Графік змін', nav_finance:'Фінанси', nav_debt:'Розрахунки', nav_settings:'Налаштування',
       shifts_kicker:'Особистий робочий календар', shifts_title:'Робочі зміни',
       finance_kicker:'Особистий бюджет', finance_title:'Гаманці & Фінанси',
       debt_kicker:'Облік розрахунків', debt_title:'Розрахунки',
@@ -320,7 +311,6 @@
       shifts_empty_title:'Календар порожній', shifts_empty_desc:'Натисни на день у календарі або застосуй шаблон, щоб швидко заповнити графік.',
       debt_empty_title:'Платежів ще немає', debt_empty_desc:'Додай перший платіж, щоб бачити залишок, прогрес і історію розрахунку.',
       debt_empty_no_calc_title:'Розрахунків ще немає', debt_empty_no_calc_desc:'Створи перший розрахунок для позики, розстрочки або спільних витрат.',
-      shopping_empty_title:'Список порожній', shopping_empty_desc:'Додай товари перед походом у магазин і відмічай куплене одним тапом.',
       finance_chart_title:'Баланс за останні 6 місяців', finance_new_tx:'Нова операція',
       finance_chart_net:'Баланс', finance_chart_income:'Дохід', finance_chart_expense:'Витрата',
       finance_chart_forecast:'Прогноз', finance_chart_forecast_tip:'прогноз', finance_chart_avg:'Середнє',
@@ -375,7 +365,7 @@
       auth_delete_needs_login:'Дані видалено, але для видалення акаунту потрібен нещодавній вхід. Увійди ще раз і одразу повтори видалення акаунту.',
       auth_account_deleted:'Акаунт видалено',
       profiles_reset_title:'Скинути всі дані', profiles_reset_ok:'Скинути',
-      profiles_reset_confirm:'Остаточно стерти всі дані поточного профілю (зміни, фінанси, розрахунки, покупки) і почати спочатку? Акаунт і вхід залишаться — зміняться лише дані. Це незворотньо.',
+      profiles_reset_confirm:'Остаточно стерти всі дані поточного профілю (зміни, фінанси, розрахунки) і почати спочатку? Акаунт і вхід залишаться — зміняться лише дані. Це незворотньо.',
       profiles_reset_shared_blocked:'Це спільний профіль іншого акаунту — скинути можна лише свої власні профілі.',
       profiles_reset_fail:'Не вдалося скинути дані. Спробуйте ще раз.',
       profiles_reset_done:'Дані скинуто — починаємо спочатку',
@@ -611,12 +601,7 @@
       auth_login_btn:'Sign in', auth_register_btn:'Sign up', auth_forgot:'Forgot password?', auth_or:'or',
       auth_google:'Continue with Google', auth_terms_pre:'By signing up, you agree to the', auth_terms_and:'and',
       topbar_sub:'Shifts · Finance · Cloud',
-      nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings', nav_shopping:'Shopping',
-      shopping_kicker:'Your shopping', shopping_title:'Shopping list',
-      shopping_add_placeholder:'Item name', shopping_qty_placeholder:'Qty', shopping_add_btn:'Add',
-      shopping_empty:'The list is empty', shopping_clear_bought:'Clear bought',
-      shopping_stat_remaining:'Remaining', shopping_stat_bought:'Bought',
-      shopping_clear_confirm:'Remove all bought items from the list?', shopping_clear_title:'Clear bought',
+      nav_shifts:'Shifts', nav_finance:'Finance', nav_debt:'Settlements', nav_settings:'Settings',
       shifts_kicker:'Personal work calendar', shifts_title:'Work shifts',
       finance_kicker:'Personal budget', finance_title:'Wallets & Finance',
       debt_kicker:'Settlement tracking', debt_title:'Settlements',
@@ -629,7 +614,6 @@
       shifts_empty_title:'Calendar is empty', shifts_empty_desc:'Tap a calendar day or apply a template to fill your schedule faster.',
       debt_empty_title:'No payments yet', debt_empty_desc:'Add the first payment to track balance, progress, and settlement history.',
       debt_empty_no_calc_title:'No settlements yet', debt_empty_no_calc_desc:'Create your first settlement for a loan, installment, or shared expense.',
-      shopping_empty_title:'The list is empty', shopping_empty_desc:'Add items before going shopping and check them off with one tap.',
       finance_chart_title:'Balance over the last 6 months', finance_new_tx:'New transaction',
       finance_chart_net:'Balance', finance_chart_income:'Income', finance_chart_expense:'Expense',
       finance_chart_forecast:'Forecast', finance_chart_forecast_tip:'forecast', finance_chart_avg:'Average',
@@ -684,7 +668,7 @@
       auth_delete_needs_login:'Data deleted, but deleting the account needs a recent sign-in. Sign in again and repeat the account deletion right away.',
       auth_account_deleted:'Account deleted',
       profiles_reset_title:'Reset all data', profiles_reset_ok:'Reset',
-      profiles_reset_confirm:'Permanently erase all data in the current profile (shifts, finances, settlements, shopping) and start over? Your account and sign-in stay — only the data changes. This cannot be undone.',
+      profiles_reset_confirm:'Permanently erase all data in the current profile (shifts, finances, settlements) and start over? Your account and sign-in stay — only the data changes. This cannot be undone.',
       profiles_reset_shared_blocked:"This is another account's shared profile — you can only reset your own profiles.",
       profiles_reset_fail:'Failed to reset data. Please try again.',
       profiles_reset_done:'Data reset — starting fresh',

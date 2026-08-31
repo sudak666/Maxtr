@@ -21,8 +21,6 @@ import ua.rytm.app.data.RecurringSyncRepository
 import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.ShiftsRepository
 import ua.rytm.app.data.ShiftsSyncRepository
-import ua.rytm.app.data.ShoppingRepository
-import ua.rytm.app.data.ShoppingSyncRepository
 import ua.rytm.app.data.TagsSyncRepository
 import ua.rytm.app.data.PushRepository
 import ua.rytm.app.data.ProfileSyncCoordinator
@@ -85,7 +83,6 @@ class RytmApplication : Application() {
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
-    val shoppingRepository: ShoppingRepository by lazy { ShoppingRepository(database) }
     val shiftsRepository: ShiftsRepository by lazy { ShiftsRepository(database, shiftsSyncRepository) }
     val debtRepository: DebtRepository by lazy { DebtRepository(database) }
     val settingsStore: SettingsStore by lazy { SettingsStore(this) }
@@ -94,7 +91,6 @@ class RytmApplication : Application() {
     val shiftsSyncRepository: ShiftsSyncRepository by lazy { ShiftsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val categoriesSyncRepository: CategoriesSyncRepository by lazy { CategoriesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val transactionsSyncRepository: TransactionsSyncRepository by lazy { TransactionsSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val shoppingSyncRepository: ShoppingSyncRepository by lazy { ShoppingSyncRepository(database, FirebaseFirestore.getInstance()) }
     val debtSyncRepository: DebtSyncRepository by lazy { DebtSyncRepository(database, FirebaseFirestore.getInstance()) }
     val budgetsSyncRepository: BudgetsSyncRepository by lazy { BudgetsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val tagsSyncRepository: TagsSyncRepository by lazy { TagsSyncRepository(database, FirebaseFirestore.getInstance()) }

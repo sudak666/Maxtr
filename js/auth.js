@@ -710,7 +710,7 @@ onAuthStateChanged(auth, async (user)=>{
     await checkPinLock();
     if(!hasPinSet()) maybeShowOnboarding();
   }else{
-    AppState.shifts={}; AppState.transactions=[]; AppState.recurring=[]; AppState.shoppingList=[]; AppState.debts=[]; AppState.currentDebtId=null;
+    AppState.shifts={}; AppState.transactions=[]; AppState.recurring=[]; AppState.debts=[]; AppState.currentDebtId=null;
     AppState.activeProfileId='default'; AppState.profilesMeta={list:[{id:'default', name:''}], updatedAt:0};
     AppState.pinUnlocked=false;
     if(signOutBtn) signOutBtn.style.display='none';

@@ -62,7 +62,7 @@ await check(
   'owner can write a realistic finance doc',
   setDoc(doc(asA, `users/${uidA}/max_tracker/finance`), {
     data: [], wallets: [], categories: { expense: [], income: [] }, budgets: {}, subcategories: {},
-    currencyRates: {}, tags: [], autoRules: [], recurring: [], shoppingList: [], goals: [],
+    currencyRates: {}, tags: [], autoRules: [], recurring: [], goals: [],
     profile: { nickname: 'Test', avatar: '' }, subscription: { plan: 'free', expiresAt: null },
     widgets: { rates: true, converter: true, analytics: true, chart: true, goals: true },
     widgetOrder: ['rates', 'converter'], notifSettings: { enabled: true, time: '21:00', timeZone: 'Europe/Kyiv' },

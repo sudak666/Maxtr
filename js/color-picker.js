@@ -366,7 +366,7 @@ async function fbSaveNow(){
       // whole-finance-doc rewrite. `{merge:false}` replacing the whole doc
       // is exactly what drops any stale legacy `data` field for an
       // already-migrated account, with no extra cleanup code needed.
-      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, shoppingList: AppState.shoppingList, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, salaryGoal: AppState.salaryGoal, updatedAt:now}, {merge:false}),
+      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, integrations: AppState.integrations, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, salaryGoal: AppState.salaryGoal, updatedAt:now}, {merge:false}),
       setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
     ]);
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
@@ -524,8 +524,6 @@ export async function fbLoadNow(){
     const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     AppState.recurring=fData?(fData.recurring||[]):[];
     saveRecurringLocal();
-    AppState.shoppingList=fData?(fData.shoppingList||[]):[];
-    saveShoppingLocal();
     if(dS.exists()){
       const norm=normalizeDebtData(dS.data().data);
       AppState.debts=norm?norm.debts:[]; AppState.currentDebtId=norm?norm.currentDebtId:null;
@@ -589,10 +587,6 @@ export function saveRecurringLocal(){
   const k=lsKey('recurring'); if(k) setCacheItem(k, JSON.stringify(AppState.recurring));
 }
 
-/** @returns {void} */
-export function saveShoppingLocal(){
-  const k=lsKey('shopping'); if(k) localStorage.setItem(k, JSON.stringify(AppState.shoppingList));
-}
 
 /**
  * @param {string} dateStr

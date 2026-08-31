@@ -231,7 +231,7 @@ async function main() {
     // "settings" has no #nav-settings bottom-tab button (removed - see
     // CLAUDE.md's Mobile UI redesign section); it's reached via the topbar
     // gear button (#btn-settings) instead, so it's driven separately below.
-    const tabs = ['finance', 'shifts', 'debt', 'shopping'];
+    const tabs = ['finance', 'shifts', 'debt'];
     for (const tab of tabs) {
       await page.click(`#nav-${tab}`);
       await page.waitForTimeout(300);

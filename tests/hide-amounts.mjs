@@ -106,7 +106,7 @@ async function main() {
         ],
         categories: { income: ['Зарплата'], expense: ['Продукти'] },
         budgets: { 'Продукти': 5000 },
-        subcategories: {}, categoryIcons: {}, currencyRates: { USD: 41 }, tags: [], autoRules: [], recurring: [], shoppingList: [],
+        subcategories: {}, categoryIcons: {}, currencyRates: { USD: 41 }, tags: [], autoRules: [], recurring: [],
         goals: [{ id: 'g1', walletId: 'w-uah', targetAmount: 50000, targetDate: '' }],
         profile: {}, subscription: { plan: 'free', expiresAt: null },
         widgets: { rates: true, converter: true, analytics: true, chart: true, goals: true },

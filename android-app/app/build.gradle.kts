@@ -34,11 +34,11 @@ android {
         // testing release) — Play rejects an upload whose versionCode
         // doesn't strictly increase over the package's last one, TWA or not.
         // versionCode 2 was itself already uploaded to Play Console's
-        // Closed testing track (ANDROID_MIGRATION.md step 54) -- bumped to
-        // 3 for this batch of fixes (PR #470-#488), same strict-increase
-        // requirement.
-        versionCode = 3
-        versionName = "1.1"
+        // Closed testing track (ANDROID_MIGRATION.md step 54); 3 (PR #489)
+        // was uploaded too. Bumped to 4 for the bottom-nav perf fix, same
+        // strict-increase requirement.
+        versionCode = 4
+        versionName = "1.2"
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
         // with `./gradlew assembleDebug -PuseFirebaseEmulator=true`. See

@@ -37,11 +37,11 @@ export function escapeHtml(str){
 // block gets a fade-in+pop entrance animation (.empty-state, CSS).
 // `action` is the button label; `actionName` is a registered data-action
 // dispatched by the delegated capture-phase click listeners (finance.js /
-// debt.js / shopping.js / calendar.js / settings-managers.js). This used to
+// debt.js / calendar.js / settings-managers.js). This used to
 // bake an arbitrary JS string into an inline onclick="" attribute, which the
 // site's CSP (script-src without 'unsafe-inline') silently blocks — so every
 // empty-state action button (the "add first item" CTA on Finance/Shifts/
-// Debt/Shopping) was dead on the live site. A data-action goes through real
+// Debt) was dead on the live site. A data-action goes through real
 // addEventListener wiring, which CSP allows. (CSP also blocks eval/new
 // Function, so re-hydrating the old JS string dynamically wasn't an option
 // either — the callers were switched to action names instead.)

@@ -1,26 +1,29 @@
 package ua.rytm.app.navigation
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -39,7 +42,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -85,7 +86,6 @@ import ua.rytm.app.ui.screens.DebtScreen
 import ua.rytm.app.ui.screens.SettingsScreen
 import ua.rytm.app.ui.screens.finance.FinanceScreen
 import ua.rytm.app.ui.screens.shifts.ShiftsScreen
-import ua.rytm.app.ui.screens.shopping.ShoppingScreen
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmInteraction
 import ua.rytm.app.ui.theme.RytmSemantic
@@ -180,7 +180,6 @@ fun RytmNavHost() {
             composable(RytmDestination.Finance.route) { FinanceScreen() }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
-            composable(RytmDestination.Shopping.route) { ShoppingScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }
         }
         }
@@ -332,133 +331,65 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
     }
 }
 
-// Matches js/app-init.js's switchTab(): the icon's "pop" (tabIconPop, a
-// scale/translateY overshoot) plus a glow ripple (tabRipple, an expanding
-// disc in the tab's own glow color fading to transparent) replay on EVERY
-// tap of a nav icon — even re-tapping the already-active tab — not just on
-// selection change. Keyframe timings/values are 1:1 with index.html's
-// @keyframes tabIconPop/tabRipple (both 500ms). The label fade-in
-// (tabLabelIn, 300ms) instead only plays when a tab actually becomes
-// selected, mirroring `.tab-btn.active span:last-child`'s animation trigger.
+// DoRytm-style pill: icon + label share a capsule that only shows text for
+// the selected tab, its fill and press-scale animated with a single spring
+// each. Replaces the previous pop/ripple/gradient-badge combo, which drove
+// three parallel Animatable coroutines per tab (replaying on every tap,
+// even re-taps of the already-active tab) across all five tabs at once —
+// reported live as the nav feeling laggy, worst right when switching tabs
+// also recomposes a whole new screen underneath. motionAwareSpec still
+// collapses everything to a snap under reduced-motion, same as before.
 @Composable
 private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compact: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val reducedMotion = LocalReducedMotion.current
-    val scope = rememberCoroutineScope()
-    val popScale = remember { Animatable(1f) }
-    val popOffsetDp = remember { Animatable(0f) }
-    val rippleProgress = remember { Animatable(0f) }
-    var popTrigger by remember { mutableIntStateOf(0) }
+    val accent = destination.activeGradient.first()
+    val backgroundColor by animateColorAsState(
+        targetValue = if (selected) accent.copy(alpha = 0.16f) else Color.Transparent,
+        animationSpec = motionAwareSpec(tween(durationMillis = 220)),
+        label = "tabBg",
+    )
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val pressedScale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (pressed && !reducedMotion) RytmInteraction.TabPressedScale else 1f,
-        animationSpec = motionAwareSpec(tween(durationMillis = 180)),
+    val pressedScale by animateFloatAsState(
+        targetValue = if (pressed) RytmInteraction.TabPressedScale else 1f,
+        animationSpec = motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)),
         label = "tabPressedScale",
     )
 
-    LaunchedEffect(popTrigger) {
-        if (popTrigger == 0) return@LaunchedEffect
-        popScale.snapTo(1f)
-        popOffsetDp.snapTo(0f)
-        rippleProgress.snapTo(0f)
-        if (reducedMotion) return@LaunchedEffect
-        scope.launch {
-            popScale.animateTo(
-                targetValue = 1f,
-                animationSpec = keyframes {
-                    durationMillis = 500
-                    1f at 0
-                    1.2f at 175 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
-                    0.94f at 300
-                    1f at 500
-                },
-            )
-        }
-        scope.launch {
-            popOffsetDp.animateTo(
-                targetValue = 0f,
-                animationSpec = keyframes {
-                    durationMillis = 500
-                    0f at 0
-                    -6f at 175 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
-                    1f at 300
-                    0f at 500
-                },
-            )
-        }
-        rippleProgress.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = LinearEasing))
-    }
-
-    val labelAlpha = remember { Animatable(1f) }
-    val labelOffsetDp = remember { Animatable(0f) }
-    LaunchedEffect(selected) {
-        if (!selected) return@LaunchedEffect
-        if (reducedMotion) {
-            labelAlpha.snapTo(1f)
-            labelOffsetDp.snapTo(0f)
-            return@LaunchedEffect
-        }
-        labelAlpha.snapTo(0.35f)
-        labelOffsetDp.snapTo(4f)
-        launch { labelAlpha.animateTo(1f, animationSpec = tween(300, easing = LinearEasing)) }
-        labelOffsetDp.animateTo(0f, animationSpec = tween(300, easing = LinearEasing))
-    }
-
-    val glowColor = destination.activeGradient.first()
-
-    Column(
+    Row(
         modifier = modifier
-            .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = {
-                popTrigger++
-                onClick()
-            })
-            .padding(vertical = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .graphicsLayer {
+                scaleX = pressedScale
+                scaleY = pressedScale
+            }
+            .animateContentSize(motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)))
+            .clip(RoundedCornerShape(percent = 50))
+            .background(backgroundColor)
+            .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(horizontal = if (selected) 14.dp else 12.dp, vertical = if (compact) 8.dp else 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier
-                .size(if (compact) 40.dp else RytmDimens.TabIcon)
-                .drawBehind {
-                    if (rippleProgress.value in 0f..1f && rippleProgress.value > 0f) {
-                        val extraRadiusPx = rippleProgress.value * 15.dp.toPx()
-                        val alpha = (1f - rippleProgress.value) * 0.34f
-                        drawCircle(color = glowColor.copy(alpha = alpha), radius = size.minDimension / 2f + extraRadiusPx)
-                    }
-                }
-                .graphicsLayer {
-                    scaleX = popScale.value * pressedScale
-                    scaleY = popScale.value * pressedScale
-                    translationY = popOffsetDp.value * density
-                }
-                .clip(CircleShape)
-                .background(if (selected) Brush.linearGradient(destination.activeGradient) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                destination.icon,
-                // The label Text sits right next to it inside a Role.Tab
-                // selectable — a description here made TalkBack read the tab
-                // name twice.
-                contentDescription = null,
-                tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
-            )
-        }
+        Icon(
+            destination.icon,
+            // The label Text sits right next to it inside a Role.Tab
+            // selectable — a description here made TalkBack read the tab
+            // name twice.
+            contentDescription = null,
+            tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
+        )
         // Label only renders for the selected tab (Instagram/X/TikTok
         // pattern) — at most one label competes for width at any time,
         // so a long Ukrainian word like "Налаштування" always gets the
         // full row width instead of a fixed per-item share and can never
         // truncate, no matter how translations or font scale change later.
         if (selected) {
+            Spacer(Modifier.width(8.dp))
             Text(
                 stringResource(destination.labelRes),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.graphicsLayer {
-                    alpha = labelAlpha.value
-                    translationY = labelOffsetDp.value * density
-                },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

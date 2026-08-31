@@ -51,7 +51,7 @@ const MODULE_GRAPH_FILES = new Set([
   'auth.js', 'app-init.js', 'ui-widgets.js', 'calendar.js',
   'settings-managers.js', 'goals-profile.js', 'notifications.js',
   'finance.js', 'tx-validation.js', 'receipt-ocr.js', 'analytics-csv.js',
-  'debt.js', 'shopping.js', 'privacy-cache.js', 'monobank.js',
+  'debt.js', 'privacy-cache.js', 'monobank.js',
   'dashboard-widgets.js',
 ]);
 

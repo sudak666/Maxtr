@@ -9,7 +9,6 @@
     <string name="nav_finance">Фінанси</string>
     <string name="nav_shifts">Зміни</string>
     <string name="nav_debt">Борги</string>
-    <string name="nav_shopping">Покупки</string>
     <string name="nav_settings">Налаштування</string>
 
     <string name="notification_channel_name">Нагадування Rytm</string>
@@ -187,21 +186,7 @@
     <string name="sync_status_offline">Офлайн · показано кеш</string>
     <string name="sync_status_error">Помилка синхронізації</string>
     <string name="action_delete">Видалити</string>
-    <string name="shopping_name_required">Введіть назву покупки</string>
-    <string name="shopping_quantity_invalid">Кількість має бути цілим числом від 1</string>
-    <string name="shopping_title">Список покупок</string>
-    <string name="shopping_clear_bought">Очистити куплені</string>
-    <string name="shopping_clear_confirmation">Видалити всі куплені товари зі списку?</string>
-    <string name="shopping_save_failed">Не вдалося зберегти</string>
-    <string name="shopping_save_changes_failed">Не вдалося зберегти зміни</string>
     <string name="profile_read_only">Профіль доступний лише для перегляду</string>
-    <string name="shopping_remaining">Залишилось</string>
-    <string name="shopping_bought">Куплено</string>
-    <string name="shopping_item_name">Назва товару</string>
-    <string name="shopping_item_example">напр. Молоко</string>
-    <string name="shopping_quantity">К-сть</string>
-    <string name="shopping_empty_title">Список порожній</string>
-    <string name="shopping_empty_body">Додай товари перед походом у магазин і відмічай куплене одним тапом.</string>
     <string name="action_show_amounts">Показати суми</string>
     <string name="action_hide_amounts">Приховати суми</string>
     <string name="action_refresh">Оновити</string>
@@ -407,7 +392,7 @@
     <string name="settings_soon">СКОРО</string>
     <string name="settings_reset_title">Почати спочатку?</string>
     <string name="settings_resetting">Скидання даних…</string>
-    <string name="settings_reset_body">Буде видалено графік змін, фінанси, покупки та розрахунки поточного профілю. Акаунт і сам профіль залишаться.</string>
+    <string name="settings_reset_body">Буде видалено графік змін, фінанси та розрахунки поточного профілю. Акаунт і сам профіль залишаться.</string>
     <string name="settings_reset_success">Дані профілю скинуто</string>
     <string name="settings_reset_failed">Не вдалося скинути дані профілю</string>
     <string name="settings_reset_action">Скинути</string>

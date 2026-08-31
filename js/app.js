@@ -14,7 +14,6 @@ import { __init_notifications__ } from './notifications.js';
 import { __init_finance__, addTransaction } from './finance.js';
 import { __init_analytics_csv__ } from './analytics-csv.js';
 import { __init_debt__ } from './debt.js';
-import { __init_shopping__ } from './shopping.js';
 import { __init_monobank__, setMonobankSyncGapMsForTesting } from './monobank.js';
 import { scanReceiptImage } from './receipt-ocr.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
@@ -39,7 +38,6 @@ __init_notifications__();
 __init_finance__();
 __init_analytics_csv__();
 __init_debt__();
-__init_shopping__();
 __init_monobank__();
 
 // Test-only hook, unconditionally attached — not read by any production

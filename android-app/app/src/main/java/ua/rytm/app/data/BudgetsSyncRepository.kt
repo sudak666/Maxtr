@@ -8,8 +8,8 @@ import kotlinx.coroutines.sync.withLock
 import ua.rytm.app.data.local.BudgetEntity
 import ua.rytm.app.data.local.RytmDatabase
 
-// Same one-time cold-sync bootstrap pattern as CategoriesSyncRepository/
-// ShoppingSyncRepository, applied to the `finance` doc's `budgets` field
+// Same one-time cold-sync bootstrap pattern as CategoriesSyncRepository,
+// applied to the `finance` doc's `budgets` field
 // (js/state.js's AppState.budgets, `Record<expenseCategoryName, number>` —
 // confirmed by reading js/settings-managers.js's updateBudget(), no type
 // prefix needed since only EXPENSE categories can have a budget on either

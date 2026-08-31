@@ -11,7 +11,6 @@ a PWA and packaged as a Trusted Web Activity for Google Play.
 - **Finance** — transactions, multiple wallets/currencies, categories, budgets, tags, auto-categorization rules, recurring payments, savings goals, CSV export, a live NBU/PrivatBank exchange-rate converter, and a balance chart with a simple trend-based forecast.
 - **Shifts** — a calendar for tracking work shifts and hours, with configurable shift types and quick-fill templates.
 - **Debt / settlements** — payment schedules with a structured due date, payoff progress bar, and reminders.
-- **Shopping list**.
 - **Multiple profiles** per account (e.g. separate finances for two family members), local PIN + biometric unlock on top of Firebase Auth, and both in-app and push notifications for daily reminders, budget overruns, and upcoming payments.
 
 ## Stack
@@ -43,7 +42,7 @@ Firebase Auth/Firestore calls hit the real project unless you intercept the SDK'
 ```bash
 node tests/unit.mjs           # pure helpers (currency conversion, timezone/date logic)
 node tests/privacy-cache.mjs  # local privacy-cache helper behavior (no browser/Firebase)
-node tests/smoke.mjs          # stubbed-Firebase Playwright pass: all 5 tabs render, no console errors
+node tests/smoke.mjs          # stubbed-Firebase Playwright pass: all 4 tabs render, no console errors
 node tests/e2e-crud.mjs       # Finance tab: create/edit/delete a transaction end-to-end
 node tests/e2e-modals.mjs     # settings-manager modal open/close behavior
 node tests/functions-sweep.mjs   # Cloud Function notification-sweep logic (fake db, no credentials needed)

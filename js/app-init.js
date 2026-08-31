@@ -17,7 +17,6 @@ import { renderProfileUI } from './goals-profile.js';
 import { getMessagingInstance, loadNotifSettings, populateNotifTimeSelects, pushEnabledKey, renderNotifUI, runNotificationChecks } from './notifications.js';
 import { clearSensitiveLocalCacheForAccount, getCacheItem, isSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { maybeAutoUpdateRates, populateFxConverterSelects, renderFxConverter, setupModalAccessibility, syncHideAmountsButton, toggleHideAmounts } from './settings-managers.js';
-import { renderShoppingList } from './shopping.js';
 import { TX_COMMENT_MAX } from './tx-validation.js';
 import { applyProfileReadOnlyUI, enhanceAllSelects, filterSettings, setupAccessibleSettingsRows, setupCollapsibleFinanceSections, showToast } from './ui-widgets.js';
 
@@ -68,7 +67,6 @@ export async function init(){
   try{const k=lsKey('shifts'); const s=k&&getCacheItem(k); if(s) AppState.shifts=JSON.parse(s);}catch{}
   try{const k=lsKey('tx'); const t=k&&getCacheItem(k); if(t) AppState.transactions=JSON.parse(t);}catch{}
   try{const k=lsKey('recurring'); const r=k&&getCacheItem(k); if(r) AppState.recurring=JSON.parse(r);}catch{}
-  try{const k=lsKey('shopping'); const s2=k&&localStorage.getItem(k); if(s2) AppState.shoppingList=JSON.parse(s2);}catch{}
   try{const k=lsKey('debt'); const d=k&&getCacheItem(k); if(d){const norm=normalizeDebtData(JSON.parse(d)); if(norm){AppState.debts=norm.debts; AppState.currentDebtId=norm.currentDebtId;}}}catch{}
   // Config cache (shift types / wallets / categories); seed sane defaults
   // if none cached yet so the first render before cloud load doesn't break.
@@ -298,12 +296,10 @@ export function switchTab(tab){
   document.getElementById('nav-shifts')?.classList.toggle('active',tab==='shifts');
   document.getElementById('nav-finance')?.classList.toggle('active',tab==='finance');
   document.getElementById('nav-debt')?.classList.toggle('active',tab==='debt');
-  document.getElementById('nav-shopping')?.classList.toggle('active',tab==='shopping');
   document.getElementById('btn-settings')?.classList.toggle('active',tab==='settings');
   const tabShifts=document.getElementById('tab-shifts'); if(tabShifts) tabShifts.style.display  = tab==='shifts'  ? 'block':'none';
   const tabFinance=document.getElementById('tab-finance'); if(tabFinance) tabFinance.style.display = tab==='finance' ? 'block':'none';
   const tabDebt=document.getElementById('tab-debt'); if(tabDebt) tabDebt.style.display    = tab==='debt'    ? 'block':'none';
-  const tabShopping=document.getElementById('tab-shopping'); if(tabShopping) tabShopping.style.display= tab==='shopping'? 'block':'none';
   const tabSettings=document.getElementById('tab-settings'); if(tabSettings) tabSettings.style.display= tab==='settings'? 'block':'none';
   const shownTab=document.getElementById(`tab-${tab}`);
   // .tab-in's entrance animation uses animation-fill-mode:both (index.html),
@@ -329,7 +325,6 @@ export function switchTab(tab){
   if(tab==='shifts')  {renderCalendar(); renderIncomeChart();}
   if(tab==='finance') {setupCollapsibleFinanceSections(); applyWidgetVisibility(); renderFinance(); renderFinanceChart();}
   if(tab==='debt') {renderDebt();}
-  if(tab==='shopping') {renderShoppingList();}
   if(tab==='settings') {filterSettings(/** @type {HTMLInputElement} */ (document.getElementById('settings-search-input'))?.value||''); maybeShowSettingsTip();}
 }
 
@@ -367,5 +362,4 @@ document.getElementById('btn-refresh')?.addEventListener('click', async (e)=>{
 document.getElementById('nav-finance')?.addEventListener('click', ()=>switchTab('finance'));
 document.getElementById('nav-shifts')?.addEventListener('click', ()=>switchTab('shifts'));
 document.getElementById('nav-debt')?.addEventListener('click', ()=>switchTab('debt'));
-document.getElementById('nav-shopping')?.addEventListener('click', ()=>switchTab('shopping'));
 }

@@ -20,7 +20,6 @@
 // Finance-tab-widgets section) and are no longer part of the
 // show/hide+reorder widget system. dailyTip/cryptoTop (js/dashboard-widgets.js)
 // added alongside goals so the Widgets manager has more than one item.
-/** @typedef {{id: string, name: string, qty: number, done: boolean, createdAt: number}} ShoppingItem */
 /** @typedef {{id: string, name: string, color: string, icon: string, currency?: string}} Wallet */
 /** @typedef {{id: string, name: string, short: string, code?: string, color: string, amount: number, hours: number, isOff?: boolean}} ShiftType */
 /** @typedef {{id: string, name: string, avatar?: string, createdAt?: number, kind?: 'shared', ownerUid?: string}} ProfileMeta */
@@ -69,8 +68,6 @@ export const AppState = {
   transactions: [],
   /** @type {any[]} */
   recurring: [],
-  /** @type {ShoppingItem[]} */
-  shoppingList: [],
   currentFinanceType: 'income',
   /** @type {string | number | null} */
   editingTxId: null,

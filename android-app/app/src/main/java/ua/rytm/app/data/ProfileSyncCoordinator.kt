@@ -64,7 +64,6 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
         app.widgetSettingsSyncRepository.syncOnSignIn(uid, profileId)
         app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
-        app.shoppingSyncRepository.syncShoppingListOnSignIn(uid, profileId)
         app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
         app.financeRepository.processRecurring()
         // Same "run the day-by-day catch-up once per cold sync" treatment as

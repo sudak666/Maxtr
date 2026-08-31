@@ -217,22 +217,6 @@ async function main() {
     if ((await page.locator('#tx-list-container .tx-item').count()) !== 0) throw new Error('transaction was not deleted after confirming');
     console.log('[ok] confirming actually deletes the transaction under CSP');
 
-    // ── Shopping: the empty-state "add first item" CTA (data-action, was an
-    // inline onclick) must work, and so must the main Додати button. ──
-    await page.click('#nav-shopping');
-    await page.waitForTimeout(300);
-    const emptyCta = page.locator('#shopping-list-container .empty-state [data-action="focus-shopping-name"]');
-    if (!(await emptyCta.count())) throw new Error('shopping empty-state CTA button missing');
-    await page.evaluate(() => document.querySelector('#shopping-list-container .empty-state [data-action="focus-shopping-name"]').click());
-    await page.waitForTimeout(150);
-    if (!(await page.evaluate(() => document.activeElement && document.activeElement.id === 'shopping-name-input'))) throw new Error('empty-state CTA did not focus the name input — inline-handler CSP regression');
-    console.log('[ok] shopping empty-state CTA works under CSP (focuses the input)');
-    await page.fill('#shopping-name-input', 'Хліб');
-    await page.evaluate(() => document.querySelector('button.add-btn[data-action="add-shopping-item"]').click());
-    await page.waitForTimeout(250);
-    if ((await page.locator('#shopping-list-container .shop-row').count()) !== 1) throw new Error('shopping add button did not add an item under CSP');
-    console.log('[ok] shopping "Додати" button adds an item under CSP');
-
     if (pageErrors.length) throw new Error(`uncaught page errors: ${pageErrors.join(' | ')}`);
     if (cspViolations.length) throw new Error(`inline-script/handler CSP violations (app should have none): ${cspViolations.slice(0, 3).join(' | ')}`);
     console.log('[ok] no inline-script/handler CSP violations from the app');

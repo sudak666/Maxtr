@@ -26,9 +26,9 @@ import ua.rytm.app.ui.theme.RytmRadii
  *
  * App-wide destructive-action policy (one pattern, no exceptions):
  *  - deleting ONE item from a list → optimistic delete + undo snackbar
- *    (FinanceScreen / ShoppingScreen);
+ *    (FinanceScreen);
  *  - anything bulk or unrecoverable (clear a month of shifts, delete a debt,
- *    clear bought items, reset profile data, delete the account) → this
+ *    reset profile data, delete the account) → this
  *    dialog.
  *
  * Before this existed the app shipped three incompatible patterns plus two
