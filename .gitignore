@@ -19,3 +19,9 @@ android-app/local.env
 android-app/keystore.properties
 android-app/*.jks
 android-app/*.keystore
+
+# Local-only tool config (Claude desktop preview server, Codex local copies)
+.claude/launch.json
+.claude/worktrees/
+.agents/
+.codex/
