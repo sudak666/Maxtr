@@ -23,7 +23,7 @@ declare interface Window {
   // runtime (classic-globals.js's own setLang() and localStorage-restore
   // path both gate on that exact check before assigning), narrowed here
   // rather than left a plain string so js/state.js's LANG_CALENDAR[...]
-  // index and js/monobank.js's ternary both type-check honestly.
+  // index type-checks honestly.
   currentLang: 'uk' | 'en';
   // js/core.js's one hook back to the classic (non-module) inline script's
   // setLang() — see CLAUDE.md's "index.html script structure" for why this

@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v164';
+const CACHE_NAME = 'rytm-v165';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -99,7 +99,6 @@ const STATIC_ASSETS = [
   './js/analytics-csv.js',
   './js/debt.js',
   './js/privacy-cache.js',
-  './js/monobank.js',
   './js/dashboard-widgets.js',
   // Vendored Preact (js/debt.js's payoff-forecast widget — see CLAUDE.md's
   // "Preact adoption" note) — a real static import always loaded as part

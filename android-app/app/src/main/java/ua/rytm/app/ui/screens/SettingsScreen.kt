@@ -89,7 +89,6 @@ import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
 import ua.rytm.app.ui.screens.finance.AutoRulesManagerSheet
 import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
 import ua.rytm.app.ui.screens.finance.GoalsManagerSheet
-import ua.rytm.app.ui.screens.finance.MonobankManagerSheet
 import ua.rytm.app.ui.screens.finance.RecurringManagerSheet
 import ua.rytm.app.ui.screens.finance.TagsManagerSheet
 import ua.rytm.app.ui.screens.finance.RatesManagerSheet
@@ -105,8 +104,6 @@ import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.GreenDark
 import ua.rytm.app.ui.theme.Gray
 import ua.rytm.app.ui.theme.PurpleDark
-import ua.rytm.app.ui.theme.MonobankBrand
-import ua.rytm.app.ui.theme.MonobankBrandDark
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.OrangeDark
 import ua.rytm.app.ui.theme.Pink
@@ -115,8 +112,8 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
+import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.AccountBalance
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.BrightnessAuto
 import ua.rytm.app.ui.icons.Category
@@ -180,7 +177,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var autoRulesSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var ratesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
     var widgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
     var pinSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -311,7 +307,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
         val financeKeywords = rememberSettingsKeywords(
             R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
-            R.string.settings_monobank, R.string.settings_monobank_subtitle, R.string.rates_title,
+            R.string.rates_title,
             R.string.settings_rates_subtitle, R.string.categories_title, R.string.settings_categories_subtitle,
             R.string.budgets_title, R.string.settings_budgets_subtitle, R.string.tags_title,
             R.string.settings_tags_subtitle, R.string.goals_title, R.string.settings_goals_subtitle,
@@ -599,15 +595,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         onClick = { walletsSheetOpen = true },
                     )
                 } }
-                item(key = "settings-finance-1") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.AccountBalance,
-                        badgeColor = monobankBadge(),
-                        title = stringResource(R.string.settings_monobank),
-                        subtitle = stringResource(R.string.settings_monobank_subtitle),
-                        onClick = { monobankSheetOpen = true },
-                    )
-                } }
                 item(key = "settings-finance-2") { SettingsCardSegment(SegmentPosition.Middle) {
                     SettingsRow(
                         icon = RytmIcons.Category,
@@ -796,16 +783,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onDismiss = { ratesSheetOpen = false },
         )
     }
-    if (monobankSheetOpen && uid != null) {
-        MonobankManagerSheet(
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            repository = app.monobankRepository,
-            syncCoordinator = app.monobankSyncCoordinator,
-            financeRepository = app.financeRepository,
-            onDismiss = { monobankSheetOpen = false },
-        )
-    }
     if (shiftTypesSheetOpen && uid != null) {
         ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { shiftTypesSheetOpen = false })
     }
@@ -915,10 +892,24 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         subtitle = stringResource(R.string.settings_premium_free_body),
                     )
                     PremiumPerkRow(
-                        icon = RytmIcons.AccountBalanceWallet,
+                        icon = RytmIcons.TrendingUp,
                         color = OrangeDark,
-                        title = stringResource(R.string.settings_premium_banks_title),
-                        subtitle = stringResource(R.string.settings_premium_banks_body),
+                        title = stringResource(R.string.settings_premium_forecast_title),
+                        subtitle = stringResource(R.string.settings_premium_forecast_body),
+                        badge = stringResource(R.string.settings_soon),
+                    )
+                    PremiumPerkRow(
+                        icon = RytmIcons.CloudDone,
+                        color = OrangeDark,
+                        title = stringResource(R.string.settings_premium_backup_title),
+                        subtitle = stringResource(R.string.settings_premium_backup_body),
+                        badge = stringResource(R.string.settings_soon),
+                    )
+                    PremiumPerkRow(
+                        icon = RytmIcons.GridView,
+                        color = OrangeDark,
+                        title = stringResource(R.string.settings_premium_widget_title),
+                        subtitle = stringResource(R.string.settings_premium_widget_body),
                         badge = stringResource(R.string.settings_soon),
                     )
                 }
@@ -1117,11 +1108,6 @@ private object SettingsGroupColors {
     val Neutral = Gray
 }
 
-/** Monobank's own brand black needs a lighter counterpart on dark surfaces:
- *  #111111 on surfaceContainer measured ~1.5:1, i.e. an invisible badge. */
-@Composable
-private fun monobankBadge(): Color =
-    if (RytmSemantic.isDark) MonobankBrandDark else MonobankBrand
 
 // Google Settings-style radio list: one full-width row per choice, an
 // icon badge for quick scanning, and a trailing RadioButton — the row

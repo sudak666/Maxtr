@@ -97,12 +97,12 @@ service cloud.firestore {
       // dedicated shared_members branches below), never delete the
       // profile's data doc outright or kick another member off.
       allow delete: if request.auth != null && request.auth.uid == uid
-        && document.matches('^(shifts|finance|debt|backup_v2|shared_members|monobank_secret)(@[A-Za-z0-9_]+)?$|^profiles_meta$');
+        && document.matches('^(shifts|finance|debt|backup_v2|shared_members)(@[A-Za-z0-9_]+)?$|^profiles_meta$');
       allow create, update: if request.auth != null && (
         // The owner writing any of their own known doc kinds — the
         // pre-existing path, now also covering shared_members.
         (request.auth.uid == uid
-          && document.matches('^(shifts|finance|debt|backup_v2|shared_members|monobank_secret)(@[A-Za-z0-9_]+)?$|^profiles_meta$')
+          && document.matches('^(shifts|finance|debt|backup_v2|shared_members)(@[A-Za-z0-9_]+)?$|^profiles_meta$')
           // Generous headroom over the ~19 top-level keys the `finance`
           // doc currently has — catches a malformed/injected payload
           // without needing to be updated for every ordinary new feature.

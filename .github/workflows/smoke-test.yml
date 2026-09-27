@@ -60,9 +60,6 @@ jobs:
       - name: Run Cloud Function sweep tests
         run: node tests/functions-sweep.mjs
 
-      - name: Run Monobank proxy unit tests
-        run: node tests/monobank-proxy.mjs
-
       - name: Run smoke test
         run: node tests/smoke.mjs
 
@@ -114,9 +111,6 @@ jobs:
       - name: Run reset profile data test ("start over")
         run: node tests/reset-profile-data.mjs
 
-      - name: Run Monobank connect/sync UI test
-        run: node tests/monobank-connect.mjs
-
       - name: Run hide-amounts privacy toggle test
         run: node tests/hide-amounts.mjs
 
@@ -152,7 +146,7 @@ jobs:
     # (everything below other than the pure-node tests and the Cloud
     # Function syntax check, neither of which touch a served page) — this
     # used to be a smaller, targeted subset because 3 test files
-    # (monobank-connect.mjs, receipt-scan-ui.mjs,
+    # (receipt-scan-ui.mjs,
     # shared-profile-permissions.mjs) reached into the live app's module
     # singletons via `page.evaluate(() => import('./js/state.js'))`, which
     # only worked when js/*.js files were served individually. Fixed by
@@ -190,7 +184,7 @@ jobs:
       - name: Stage tests against dist/
         run: |
           mkdir -p dist/tests
-          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/monobank-connect.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/dashboard-widgets.mjs tests/receipt-scan-ui.mjs dist/tests/
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/dashboard-widgets.mjs tests/receipt-scan-ui.mjs dist/tests/
           cp firebase.json dist/firebase.json
 
       - name: Run smoke test against dist/
@@ -260,10 +254,6 @@ jobs:
       - name: Run reset profile data test against dist/
         working-directory: dist/tests
         run: node reset-profile-data.mjs
-
-      - name: Run Monobank connect/sync test against dist/
-        working-directory: dist/tests
-        run: node monobank-connect.mjs
 
       - name: Run hide-amounts test against dist/
         working-directory: dist/tests

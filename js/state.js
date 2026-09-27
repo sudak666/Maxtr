@@ -139,15 +139,6 @@ export const AppState = {
   debts: [],
   /** @type {any} */
   currentDebtId: null,
-  // Bank-account integrations, keyed by provider — currently only
-  // 'monobank'. null until the user connects one; see js/monobank.js.
-  // Shape once connected: {token, clientName, accounts:[{id, kind:'account'|'jar',
-  // label, currencyAlpha}], mapping:{monobankAccountId: walletId}, lastSyncAt}.
-  // Synced in the finance doc WITHOUT the token (js/firebase-sync.js's
-  // publicIntegrations()); the token itself lives only in memory here and in
-  // the owner-only `monobank_secret` doc, and is only ever sent to this app's
-  // own monobankProxy Cloud Function.
-  integrations: {monobank: null},
   MONTHS: LANG_CALENDAR[window.currentLang].months,
   MONTHS_SHORT: LANG_CALENDAR[window.currentLang].monthsShort,
   WEEKDAYS: LANG_CALENDAR[window.currentLang].weekdays,

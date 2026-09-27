@@ -10,8 +10,6 @@ import ua.rytm.app.data.BudgetsSyncRepository
 import ua.rytm.app.data.AutoRulesSyncRepository
 import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.data.CurrencyRatesSyncRepository
-import ua.rytm.app.data.MonobankRepository
-import ua.rytm.app.data.MonobankSyncCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -102,10 +100,8 @@ class RytmApplication : Application() {
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
     val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
-    val monobankRepository: MonobankRepository by lazy { MonobankRepository(database, FirebaseFirestore.getInstance(), FirebaseAuth.getInstance()) }
-    /** Process-lifetime scope for work that must outlive any single screen (e.g. Monobank sync). */
+    /** Process-lifetime scope for work that must outlive any single screen. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    val monobankSyncCoordinator: MonobankSyncCoordinator by lazy { MonobankSyncCoordinator(monobankRepository, appScope) }
     val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
     val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
