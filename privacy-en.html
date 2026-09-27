@@ -45,7 +45,7 @@ a{color:var(--purple2)}
   </div>
 
   <h1>Privacy Policy</h1>
-  <div class="updated">Last updated: July 3, 2026</div>
+  <div class="updated">Last updated: September 28, 2026</div>
 
   <div class="card">
     <p>This Policy explains what data the Rytm app ("the app", "we") collects, how we use and store it, and what rights you have as a user. Rytm is a personal tracker for work shifts, finances, and debt/settlement schedules; it is not a legal entity or a commercial company — it is developed and maintained by a single individual.</p>
@@ -60,10 +60,12 @@ a{color:var(--purple2)}
     <li>Your work shift schedule and shift types;</li>
     <li>Settlement records (debts, installment plans) and their payment history.</li>
   </ul>
-  <p><strong>Data kept only on your device.</strong> Your access PIN is stored in hashed form (SHA-256) locally in the browser and is never transmitted to any server — not even we can see it. The same applies to your theme choice (dark/light).</p>
+  <p><strong>Data kept only on your device.</strong> Your access PIN is stored in hashed form locally on your device (SHA-256 in the browser, salted PBKDF2 in the Android app) and is never transmitted to any server — not even we can see it. The same applies to your theme choice (dark/light).</p>
+
+  <p><strong>Crash reports (Android app).</strong> If the app crashes, Firebase Crashlytics (Google) sends a technical report: where in the code it failed, device model, Android and app version. It contains none of your financial data, email or account identifier and is used only to fix bugs.</p>
 
   <h2>How we use your data</h2>
-  <p>Data is used solely to run the app itself: showing your statistics, calculating balances, and syncing between your devices. We do <strong>not</strong> show ads, do <strong>not</strong> use third-party analytics or trackers, and do <strong>not</strong> sell or share your data with anyone for marketing or any other purposes.</p>
+  <p>Data is used solely to run the app itself: showing your statistics, calculating balances, and syncing between your devices. We do <strong>not</strong> show ads, do <strong>not</strong> use third-party advertising analytics or trackers (apart from the crash reports described above), and do <strong>not</strong> sell or share your data with anyone for marketing or any other purposes.</p>
 
   <h2>Where data is stored</h2>
   <p>Data is stored in the Firebase cloud database (a Google service), which acts as the technical infrastructure provider. Each account has access only to its own data — this is enforced by server-side access rules (Firestore Security Rules), and no other app user can see or change your records.</p>
