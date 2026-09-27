@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import ua.rytm.app.data.local.PinStore
+import ua.rytm.app.data.local.PinRepository
 import com.google.firebase.auth.FirebaseAuth
 import androidx.annotation.StringRes
 import ua.rytm.app.R
@@ -20,10 +20,14 @@ import ua.rytm.app.R
 // gate and the main nav. isUnlocked resets to false on every process start
 // (in-memory only, not persisted) — same "lock on every app open" semantic
 // as the PWA's per-page-load AppState.pinUnlocked.
-class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel() {
+class PinViewModel(
+    private val pinStore: PinRepository,
+    val uid: String,
+    private val signOut: () -> Unit = { FirebaseAuth.getInstance().signOut() },
+) : ViewModel() {
 
     companion object {
-        fun factory(pinStore: PinStore, uid: String) = viewModelFactory {
+        fun factory(pinStore: PinRepository, uid: String) = viewModelFactory {
             initializer { PinViewModel(pinStore, uid) }
         }
     }
@@ -137,7 +141,7 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
             clearSensitiveCache()
             pinStore.removePin(uid)
             isUnlocked = true
-            FirebaseAuth.getInstance().signOut()
+            signOut()
         }
     }
 
