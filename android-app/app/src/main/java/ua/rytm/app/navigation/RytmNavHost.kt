@@ -371,10 +371,12 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
     ) {
         Icon(
             destination.icon,
-            // The label Text sits right next to it inside a Role.Tab
-            // selectable — a description here made TalkBack read the tab
-            // name twice.
-            contentDescription = null,
+            // Only the selected tab renders its label Text, so the others were
+            // unnamed for TalkBack (found in a live audit via uiautomator: just
+            // one of four tabs had any text/description). Describe the icon
+            // exactly when there's no visible label — never both, which read
+            // the name twice.
+            contentDescription = if (selected) null else stringResource(destination.labelRes),
             tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
         )

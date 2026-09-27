@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import androidx.compose.ui.layout.layout
 import androidx.core.net.toUri
 
 import android.Manifest
@@ -634,102 +635,130 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 )
             } }
 
-            if (canEdit && financeVisible) { item(key = "settings-finance") {
-                SettingsSectionLabel(stringResource(R.string.settings_finance))
-                SettingsGroupCard {
-                SettingsRow(
-                    icon = RytmIcons.AccountBalanceWallet,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.wallets_title),
-                    subtitle = stringResource(R.string.settings_wallets_subtitle),
-                    onClick = { walletsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.AccountBalance,
-                    badgeColor = monobankBadge(),
-                    title = stringResource(R.string.settings_monobank),
-                    subtitle = stringResource(R.string.settings_monobank_subtitle),
-                    onClick = { monobankSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Category,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.categories_title),
-                    subtitle = stringResource(R.string.settings_categories_subtitle),
-                    onClick = { categoriesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.CurrencyExchange,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.rates_title),
-                    subtitle = stringResource(R.string.settings_rates_subtitle),
-                    onClick = { ratesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.PieChart,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.budgets_title),
-                    subtitle = stringResource(R.string.settings_budgets_subtitle),
-                    onClick = { budgetsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Sell,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.tags_title),
-                    subtitle = stringResource(R.string.settings_tags_subtitle),
-                    onClick = { tagsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Flag,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.goals_title),
-                    subtitle = stringResource(R.string.settings_goals_subtitle),
-                    onClick = { goalsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.GridView,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.widgets_title),
-                    subtitle = stringResource(R.string.settings_widgets_subtitle),
-                    onClick = { widgetsSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Repeat,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.recurring_title),
-                    subtitle = stringResource(R.string.settings_recurring_subtitle),
-                    onClick = { recurringSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Tune,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.auto_rules_title),
-                    subtitle = stringResource(R.string.settings_auto_rules_subtitle),
-                    onClick = { autoRulesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Style,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.shift_types_title),
-                    subtitle = stringResource(R.string.settings_shift_types_subtitle),
-                    onClick = { shiftTypesSheetOpen = true },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Download,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.settings_csv_export),
-                    subtitle = stringResource(R.string.settings_csv_export_subtitle),
-                    onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
-                )
-                SettingsRow(
-                    icon = RytmIcons.Upload,
-                    badgeColor = SettingsGroupColors.Neutral,
-                    title = stringResource(R.string.settings_csv_import),
-                    subtitle = stringResource(R.string.settings_csv_import_subtitle),
-                    onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
-                )
-                }
-            } }
+            // One item per row (not one item for the whole 13-row card): composing
+            // the whole group in a single frame cost up to ~40ms on a Galaxy A51
+            // (Perfetto, live). SettingsCardSegment redraws the same rounded card
+            // piecewise so it looks identical.
+            if (canEdit && financeVisible) {
+                item(key = "settings-finance-label") { SettingsSectionLabel(stringResource(R.string.settings_finance)) }
+                item(key = "settings-finance-0") { SettingsCardSegment(SegmentPosition.First) {
+                    SettingsRow(
+                        icon = RytmIcons.AccountBalanceWallet,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.wallets_title),
+                        subtitle = stringResource(R.string.settings_wallets_subtitle),
+                        onClick = { walletsSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-1") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.AccountBalance,
+                        badgeColor = monobankBadge(),
+                        title = stringResource(R.string.settings_monobank),
+                        subtitle = stringResource(R.string.settings_monobank_subtitle),
+                        onClick = { monobankSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-2") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Category,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.categories_title),
+                        subtitle = stringResource(R.string.settings_categories_subtitle),
+                        onClick = { categoriesSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-3") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.CurrencyExchange,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.rates_title),
+                        subtitle = stringResource(R.string.settings_rates_subtitle),
+                        onClick = { ratesSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-4") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.PieChart,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.budgets_title),
+                        subtitle = stringResource(R.string.settings_budgets_subtitle),
+                        onClick = { budgetsSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-5") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Sell,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.tags_title),
+                        subtitle = stringResource(R.string.settings_tags_subtitle),
+                        onClick = { tagsSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-6") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Flag,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.goals_title),
+                        subtitle = stringResource(R.string.settings_goals_subtitle),
+                        onClick = { goalsSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-7") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.GridView,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.widgets_title),
+                        subtitle = stringResource(R.string.settings_widgets_subtitle),
+                        onClick = { widgetsSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-8") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Repeat,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.recurring_title),
+                        subtitle = stringResource(R.string.settings_recurring_subtitle),
+                        onClick = { recurringSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-9") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Tune,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.auto_rules_title),
+                        subtitle = stringResource(R.string.settings_auto_rules_subtitle),
+                        onClick = { autoRulesSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-10") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Style,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.shift_types_title),
+                        subtitle = stringResource(R.string.settings_shift_types_subtitle),
+                        onClick = { shiftTypesSheetOpen = true },
+                    )
+                } }
+                item(key = "settings-finance-11") { SettingsCardSegment(SegmentPosition.Middle) {
+                    SettingsRow(
+                        icon = RytmIcons.Download,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.settings_csv_export),
+                        subtitle = stringResource(R.string.settings_csv_export_subtitle),
+                        onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
+                    )
+                } }
+                item(key = "settings-finance-12") { SettingsCardSegment(SegmentPosition.Last) {
+                    SettingsRow(
+                        icon = RytmIcons.Upload,
+                        badgeColor = SettingsGroupColors.Neutral,
+                        title = stringResource(R.string.settings_csv_import),
+                        subtitle = stringResource(R.string.settings_csv_import_subtitle),
+                        onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
+                    )
+                } }
+            }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
                 item(key = "settings-search-empty") {
                 Column(
@@ -1083,6 +1112,38 @@ private fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) 
 }
 
 private object SettingsRowScope
+
+private enum class SegmentPosition { First, Middle, Last }
+
+// A slice of SettingsGroupCard for groups rendered one LazyColumn item per
+// row. Only the first/last slice rounds its outer corners, and non-last
+// slices report 4dp less height than they draw so the LazyColumn's own 4dp
+// item spacing is covered and the slices join into one seamless card.
+@Composable
+private fun SettingsCardSegment(position: SegmentPosition, content: @Composable SettingsRowScope.() -> Unit) {
+    val r = RytmRadii.Chart
+    val shape = when (position) {
+        SegmentPosition.First -> RoundedCornerShape(topStart = r, topEnd = r)
+        SegmentPosition.Middle -> RoundedCornerShape(0.dp)
+        SegmentPosition.Last -> RoundedCornerShape(bottomStart = r, bottomEnd = r)
+    }
+    val gap = 4.dp
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .then(
+                if (position == SegmentPosition.Last) Modifier
+                else Modifier.layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, placeable.height - gap.roundToPx()) { placeable.place(0, 0) }
+                }
+            )
+            .background(CardDefaults.cardColors().containerColor, shape)
+            .padding(start = 4.dp, end = 4.dp, bottom = if (position == SegmentPosition.Last) 0.dp else gap),
+    ) {
+        SettingsRowScope.content()
+    }
+}
 
 // Matches the PWA's .icon-badge: a circular badge tinted at ~16% of its own
 // color, with the icon drawn in that full color — not a generic outline icon.
