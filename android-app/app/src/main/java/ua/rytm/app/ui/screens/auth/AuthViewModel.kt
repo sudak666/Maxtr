@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.auth
 
+import kotlinx.coroutines.CancellationException
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
@@ -109,6 +110,8 @@ class AuthViewModel : ViewModel() {
                 publishFormMessage(R.string.auth_error_google_unavailable)
             } catch (e: GoogleIdTokenParsingException) {
                 publishFormMessage(R.string.auth_error_google_token)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 publishFormMessage(R.string.auth_error_generic)
             } finally {
@@ -229,6 +232,8 @@ class AuthViewModel : ViewModel() {
                     batch.commit().await()
                 }
                 listOf("shifts", "finance", "debt").forEach { profileCol.document(it).delete().await() }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.auth_delete_data_failed
                 isDeletingAccount = false
@@ -255,6 +260,8 @@ class AuthViewModel : ViewModel() {
                     isDeletingAccount = false
                     return@launch
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.auth_delete_account_failed
                 isDeletingAccount = false
@@ -277,6 +284,8 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 auth.signInAnonymously().await()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.auth_emulator_sign_in_failed
             } finally {

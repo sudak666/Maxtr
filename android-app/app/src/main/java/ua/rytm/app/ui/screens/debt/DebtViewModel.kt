@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.debt
 
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -181,6 +182,8 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
             try {
                 change()
                 app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 repository.restore(before)
                 errorMessageRes = R.string.common_save_failed
