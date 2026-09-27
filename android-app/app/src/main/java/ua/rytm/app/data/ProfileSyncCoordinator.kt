@@ -3,6 +3,7 @@ package ua.rytm.app.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.MetadataChanges
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,6 +43,11 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     private var listeners = emptyList<ListenerRegistration>()
     private var pendingRealtimeSync: Job? = null
     private var listenerGeneration = 0L
+    // (ownerUid, profileId) the realtime listeners are currently attached to.
+    // Lets loadOnSignIn() skip a full cold re-sync when the Activity is merely
+    // recreated (theme/language change, rotation) — the application-scoped
+    // listeners are still live and Room is already current.
+    private var activeTarget: Pair<String, String>? = null
 
     // Every domain's cold sync against the given profile, plus recurring
     // materialization — same order MainActivity always ran these in.
@@ -89,6 +95,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     suspend fun loadOnSignIn(uid: String): String {
         val profileId = app.activeProfileStore.getActiveProfileId(uid)
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
+        if (listeners.isNotEmpty() && activeTarget == (dataOwnerUid to profileId)) return profileId
         app.financeRepository.seedIfEmpty()
         app.shiftsRepository.seedIfEmpty()
         syncAllDomains(dataOwnerUid, profileId)
@@ -144,6 +151,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     /** Keeps Room current when another signed-in client changes the active profile. */
     fun startRealtimeSync(ownerUid: String, profileId: String) {
         stopRealtimeSync()
+        activeTarget = ownerUid to profileId
         val generation = ++listenerGeneration
         val profileCollection = FirebaseFirestore.getInstance()
             .collection("users").document(ownerUid).collection("max_tracker")
@@ -182,7 +190,12 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                     _realtimeState.value = RealtimeState.Syncing
                     runCatching { syncAllDomains(ownerUid, profileId) }
                         .onSuccess { _realtimeState.value = RealtimeState.Listening }
-                        .onFailure { _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed") }
+                        .onFailure {
+                            // A sync cancelled by stopRealtimeSync()/a newer change is not
+                            // a failure — reporting it flashed a false "sync error" banner.
+                            if (it is CancellationException || generation != listenerGeneration) return@onFailure
+                            _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed")
+                        }
                 }
             }
         }
@@ -204,6 +217,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         pendingRealtimeSync = null
         listeners.forEach(ListenerRegistration::remove)
         listeners = emptyList()
+        activeTarget = null
         _realtimeState.value = RealtimeState.Stopped
     }
 }
