@@ -141,14 +141,14 @@ private fun WalletRow(
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box {
             IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
-                Box(Modifier.size(28.dp).clip(CircleShape).background(Color(wallet.colorHex)))
+                Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
             }
             DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
                 PALETTE.chunked(4).forEach { colors ->
                     Row {
                         colors.forEach { color ->
                             IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
-                                Box(Modifier.size(28.dp).clip(CircleShape).background(Color(color)))
+                                Box(Modifier.size(28.dp).background(Color(color), CircleShape))
                             }
                         }
                     }

@@ -477,7 +477,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     // colored circle. Flagged live, screenshot; matched
                     // that convention here too.
                     Box(
-                        Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer),
+                        Modifier.size(28.dp).background(MaterialTheme.colorScheme.errorContainer, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(16.dp))

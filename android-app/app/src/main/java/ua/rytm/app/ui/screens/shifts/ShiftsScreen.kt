@@ -493,8 +493,7 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
                             Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight(heightFraction)
-                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
-                                .background(if (isCur) purple else purple.copy(alpha = 0.35f)),
+                                .background(if (isCur) purple else purple.copy(alpha = 0.35f), RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp)),
                         )
                     }
                 }
@@ -773,8 +772,7 @@ private fun LegendRow(types: List<ShiftType>) {
                 Box(
                     Modifier
                         .size(10.dp)
-                        .clip(CircleShape)
-                        .background(accent.copy(alpha = 0.25f))
+                        .background(accent.copy(alpha = 0.25f), CircleShape)
                         .border(1.dp, accent.copy(alpha = 0.6f), CircleShape),
                 )
                 Text(
@@ -965,8 +963,7 @@ private fun DayCell(
                 Box(
                     Modifier
                         .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
-                        .clip(RoundedCornerShape(RytmRadii.Pill))
-                        .background(markerColor.copy(alpha = 0.16f))
+                        .background(markerColor.copy(alpha = 0.16f), RoundedCornerShape(RytmRadii.Pill))
                         .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -988,7 +985,7 @@ private fun DayCell(
             // Weekends were signalled by a reddish tint alone (2.13:1 dark /
             // 2.53:1 light) — WCAG 1.4.1. A real marker carries the meaning
             // now; the number itself keeps full-contrast body color.
-            if (isWeekend) Box(Modifier.size(5.dp).clip(CircleShape).background(weekendAccent))
+            if (isWeekend) Box(Modifier.size(5.dp).background(weekendAccent, CircleShape))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             shown.forEach { type ->

@@ -6,7 +6,6 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -77,15 +76,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
-import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.CsvImportError
 import ua.rytm.app.data.CsvImportErrorReason
-import ua.rytm.app.data.TransactionsCsvRepository
 import ua.rytm.app.data.local.ThemePreference
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import ua.rytm.app.ui.screens.auth.AuthViewModel
@@ -194,12 +190,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var premiumDialogOpen by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
     var pendingResetProfile by rememberSaveable { mutableStateOf(false) }
-    var resetProfileBusy by rememberSaveable { mutableStateOf(false) }
     var settingsSearch by rememberSaveable { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
-    val csvRepository = remember { TransactionsCsvRepository(app.database, com.google.firebase.firestore.FirebaseFirestore.getInstance()) }
-    var csvImportPreview by remember { mutableStateOf<CsvImportPreview?>(null) }
-    var csvBusy by rememberSaveable { mutableStateOf(false) }
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val csvImportPreview = settingsViewModel.csvImportPreview
+    val csvBusy = settingsViewModel.csvBusy
     val themePreference by app.settingsStore.themePreference.collectAsState(initial = ThemePreference.DARK)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
@@ -207,15 +202,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val uid = authViewModel.currentUser?.uid
     val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
-    val pushEnabledMessage = stringResource(R.string.settings_push_enabled)
-    val pushDisabledMessage = stringResource(R.string.settings_push_disabled)
-    val pushChangeFailedMessage = stringResource(R.string.settings_push_change_failed)
     val pushPermissionDeniedMessage = stringResource(R.string.settings_push_permission_denied)
     val linkOpenFailedMessage = stringResource(R.string.settings_link_open_failed)
-    val csvExportedMessage = stringResource(R.string.settings_csv_exported)
-    val csvExportFailedMessage = stringResource(R.string.settings_csv_export_failed)
-    val csvReadFailedMessage = stringResource(R.string.settings_csv_read_failed)
-    val csvImportFailedMessage = stringResource(R.string.settings_csv_import_failed)
 
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
@@ -224,47 +212,31 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     LaunchedEffect(pendingMessage) {
         pendingMessage?.let { snackbarHostState.showSnackbar(it); pendingMessage = null }
     }
+    LaunchedEffect(settingsViewModel.message) {
+        when (val m = settingsViewModel.message) {
+            is SettingsMessage.Text -> pendingMessage = if (m.arg != null) resources.getString(m.res, m.arg) else resources.getString(m.res)
+            is SettingsMessage.Plural -> pendingMessage = resources.getQuantityString(m.res, m.count, m.count)
+            null -> return@LaunchedEffect
+        }
+        settingsViewModel.consumeMessage()
+    }
+    LaunchedEffect(settingsViewModel.resetProfileSucceeded) {
+        if (settingsViewModel.resetProfileSucceeded) { pendingResetProfile = false; settingsViewModel.consumeResetSucceeded() }
+    }
     LaunchedEffect(authViewModel.errorMessageRes) {
         authViewModel.errorMessageRes?.let { snackbarHostState.showSnackbar(resources.getString(it)); authViewModel.consumeError() }
     }
 
-    var pushBusy by rememberSaveable { mutableStateOf(false) }
+    val pushBusy = settingsViewModel.pushBusy
     val pushEnabled by (if (uid != null) app.settingsStore.isPushEnabled(uid) else flowOf(false)).collectAsState(initial = false)
-    var pendingPushEnabled by remember { mutableStateOf<Boolean?>(null) }
-    val displayedPushEnabled = pendingPushEnabled ?: pushEnabled
-    LaunchedEffect(pushEnabled, pendingPushEnabled) {
-        if (pendingPushEnabled != null && pushEnabled == pendingPushEnabled) pendingPushEnabled = null
-    }
+    val displayedPushEnabled = settingsViewModel.pendingPushEnabled ?: pushEnabled
+    LaunchedEffect(pushEnabled) { settingsViewModel.settlePendingPush(pushEnabled) }
 
-    // Mirrors js/notifications.js's enablePushNotifications()'s own
-    // permission-then-register sequence. Only relevant on API 33+ — earlier
-    // versions never require a runtime notification permission at all.
+    // Only relevant on API 33+ — earlier versions never require a runtime
+    // notification permission at all.
     fun applyPushEnabled(target: Boolean) {
         val accountUid = uid ?: return
-        if (pushBusy) return
-        pendingPushEnabled = target
-        pushBusy = true
-        scope.launch {
-            var preferenceSaved = false
-            try {
-                // Persist the user's intent first. FCM token registration can fail
-                // transiently; that must not make the switch look unresponsive.
-                app.settingsStore.setPushEnabled(accountUid, target)
-                preferenceSaved = true
-                val dataOwnerUid = activeProfileOwnerUid ?: accountUid
-                withTimeout(10_000) {
-                    if (target) app.pushRepository.enable(accountUid, dataOwnerUid, activeProfileId)
-                    else app.pushRepository.disable(accountUid, dataOwnerUid, activeProfileId)
-                }
-                pendingMessage = if (target) pushEnabledMessage else pushDisabledMessage
-            } catch (e: Exception) {
-                Log.e("RytmPush", "Push registration failed; keeping user preference=$target", e)
-                pendingMessage = pushChangeFailedMessage
-                if (!preferenceSaved) pendingPushEnabled = null
-            } finally {
-                pushBusy = false
-            }
-        }
+        settingsViewModel.setPushEnabled(accountUid, activeProfileOwnerUid ?: accountUid, activeProfileId, target)
     }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -291,33 +263,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        if (uri != null) scope.launch {
-            csvBusy = true
-            try {
-                val csv = csvRepository.export(language)
-                context.contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
-                    ?: error(csvExportFailedMessage)
-                pendingMessage = csvExportedMessage
-            } catch (_: Exception) { pendingMessage = csvExportFailedMessage }
-            finally { csvBusy = false }
-        }
+        if (uri != null) settingsViewModel.exportCsv(uri, language)
     }
     val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) scope.launch {
-            csvBusy = true
-            try {
-                val text = context.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
-                    ?: error(csvReadFailedMessage)
-                val preview = csvRepository.parse(text)
-                if (preview.transactions.isEmpty()) pendingMessage = if (preview.errors.isEmpty()) {
-                    resources.getString(R.string.settings_csv_empty)
-                } else {
-                    resources.getQuantityString(R.plurals.settings_csv_no_valid_rows, preview.errors.size, preview.errors.size)
-                }
-                else csvImportPreview = preview
-            } catch (_: Exception) { pendingMessage = csvImportFailedMessage }
-            finally { csvBusy = false }
-        }
+        if (uri != null) settingsViewModel.readImport(uri)
     }
 
     Scaffold(
@@ -884,13 +833,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     csvImportPreview?.let { preview ->
         val importCount = pluralStringResource(R.plurals.settings_csv_operations, preview.transactions.size, preview.transactions.size)
         val skippedCount = pluralStringResource(R.plurals.settings_csv_errors, preview.errors.size, preview.errors.size)
-        val importSuccess = stringResource(R.string.settings_csv_imported, preview.transactions.size)
-        val importSaveFailed = stringResource(R.string.settings_csv_import_save_failed)
         AlertDialog(
-            onDismissRequest = { if (!csvBusy) csvImportPreview = null },
+            onDismissRequest = settingsViewModel::dismissImportPreview,
             shape = RoundedCornerShape(RytmRadii.Sheet),
             icon = {
-                Box(Modifier.size(52.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(52.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
                     Icon(RytmIcons.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 }
             },
@@ -907,19 +854,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             confirmButton = {
                 androidx.compose.material3.Button(enabled = !csvBusy && uid != null, onClick = {
                     val accountUid = activeProfileOwnerUid ?: uid ?: return@Button
-                    scope.launch {
-                        csvBusy = true
-                        try {
-                            csvRepository.import(accountUid, activeProfileId, preview.transactions)
-                            pendingMessage = importSuccess
-                            csvImportPreview = null
-                        } catch (_: Exception) { pendingMessage = importSaveFailed }
-                        finally { csvBusy = false }
-                    }
+                    settingsViewModel.confirmImport(accountUid, activeProfileId)
                 }, shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.settings_csv_import_action)) }
             },
             dismissButton = {
-                androidx.compose.material3.OutlinedButton(enabled = !csvBusy, onClick = { csvImportPreview = null }, shape = RoundedCornerShape(RytmRadii.Control)) {
+                androidx.compose.material3.OutlinedButton(enabled = !csvBusy, onClick = settingsViewModel::dismissImportPreview, shape = RoundedCornerShape(RytmRadii.Control)) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
@@ -998,21 +937,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             title = stringResource(R.string.settings_reset_title),
             body = stringResource(R.string.settings_reset_body),
             confirmLabel = stringResource(R.string.settings_reset_action),
-            busy = resetProfileBusy,
+            busy = settingsViewModel.resetProfileBusy,
             busyLabel = stringResource(R.string.settings_resetting),
             onConfirm = {
-                resetProfileBusy = true
-                scope.launch {
-                    try {
-                        app.profileSyncCoordinator.resetOwnProfile(uid, activeProfileId, activeProfileOwnerUid)
-                        pendingResetProfile = false
-                        pendingMessage = resources.getString(R.string.settings_reset_success)
-                    } catch (_: Exception) {
-                        pendingMessage = resources.getString(R.string.settings_reset_failed)
-                    } finally {
-                        resetProfileBusy = false
-                    }
-                }
+                settingsViewModel.resetProfile(uid, activeProfileId, activeProfileOwnerUid)
             },
             onDismiss = { pendingResetProfile = false },
         )
@@ -1037,7 +965,7 @@ private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subti
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Box(
-                Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.16f)),
+                Modifier.size(42.dp).background(color.copy(alpha = 0.16f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp)) }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -1049,7 +977,7 @@ private fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subti
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = color,
-                            modifier = Modifier.clip(RoundedCornerShape(RytmRadii.Pill)).background(color.copy(alpha = 0.14f)).padding(horizontal = 8.dp, vertical = 3.dp),
+                            modifier = Modifier.background(color.copy(alpha = 0.14f), RoundedCornerShape(RytmRadii.Pill)).padding(horizontal = 8.dp, vertical = 3.dp),
                         )
                     }
                 }
@@ -1152,8 +1080,7 @@ private fun SettingsIconBadge(icon: ImageVector, color: Color) {
     Box(
         Modifier
             .size(RytmDimens.IconBadge)
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.16f)),
+            .background(color.copy(alpha = 0.16f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(RytmDimens.IconBadgeIcon))

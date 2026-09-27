@@ -175,7 +175,7 @@ private fun ShiftTypeRow(
     ) {
     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.size(28.dp).clip(CircleShape).background(Color(type.colorHex)))
+            Box(Modifier.size(28.dp).background(Color(type.colorHex), CircleShape))
             Column(Modifier.weight(1f)) {
                 Text(localizedDomainText(type.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
