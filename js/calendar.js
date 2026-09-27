@@ -227,11 +227,12 @@ export function renderCalendar(){
   }
   // Progress bar
   const goal=AppState.salaryGoal||1;
-  const pct=Math.min(100,Math.round(earn/goal*100));
+  const realPct=Math.round(earn/goal*100);
+  const pct=Math.min(100,realPct);
   const bar=document.getElementById('salary-bar');
   const lbl=document.getElementById('salary-bar-label');
   if(bar) bar.style.width=pct+'%';
-  if(lbl) lbl.textContent=`${pct}% ${tr('shifts_goal_progress')} ${AppState.salaryGoal.toLocaleString('uk-UA')} грн`;
+  if(lbl) lbl.textContent=`${realPct}% ${tr('shifts_goal_progress')} ${AppState.salaryGoal.toLocaleString('uk-UA')} грн`;
   const editBtn=document.getElementById('salary-goal-edit-btn');
   if(editBtn) editBtn.setAttribute('aria-label', tr('shifts_goal_edit_title'));
 }

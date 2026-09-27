@@ -166,7 +166,10 @@ fun ShiftsScreen() {
         errorMessage?.let { snackbar.showSnackbar(it); viewModel.consumeError() }
     }
 
-    Scaffold(snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost) }) { padding ->
+    Scaffold(
+        containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
+        snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost) },
+    ) { padding ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(
@@ -364,7 +367,10 @@ private fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGoa
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             val goalSafe = goal.coerceAtLeast(1.0)
-            val pct = (earned / goalSafe).coerceIn(0.0, 1.0)
+            // Bar is clamped to full width; the label shows the real share so
+            // overachieving (e.g. 163%) isn't hidden behind a flat "100%".
+            val rawPct = (earned / goalSafe).coerceAtLeast(0.0)
+            val pct = rawPct.coerceAtMost(1.0)
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -385,7 +391,7 @@ private fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGoa
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                 Text(
-                    maskedAmount(stringResource(R.string.shifts_goal_progress, (pct * 100).toInt(), formatMoney(goal))),
+                    maskedAmount(stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), formatMoney(goal))),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f, fill = false),

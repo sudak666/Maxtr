@@ -320,6 +320,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     Scaffold(
+        containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
     ) { innerPadding ->
         // Real bug found during step 39's visual-parity pass: this Column had

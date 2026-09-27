@@ -149,6 +149,10 @@ fun DebtScreen(
         }
     }
 
+    // Same shrink-on-scroll behaviour as FinanceScreen's FAB: the wide
+    // "Платіж" pill covered the history rows' edit pencils mid-scroll.
+    val fabAtTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+
     fun collapseHistory() {
         if (!viewModel.historyExpanded) return
         viewModel.toggleHistoryPanel()
@@ -156,6 +160,7 @@ fun DebtScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         floatingActionButton = {
             if (cd != null && canEdit) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
@@ -170,12 +175,14 @@ fun DebtScreen(
                             else Brush.linearGradient(listOf(ua.rytm.app.ui.theme.OrangeDark, ua.rytm.app.ui.theme.OrangeLight2)),
                         )
                         .clickable(role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
-                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                        .padding(horizontal = if (collapse || fabAtTop) 22.dp else 16.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(if (collapse) RytmIcons.ExpandLess else RytmIcons.Add, contentDescription = null, tint = Color.White)
-                    Text(stringResource(if (collapse) R.string.action_collapse_list else R.string.debt_payment), color = Color.White, fontWeight = FontWeight.Bold)
+                    val label = stringResource(if (collapse) R.string.action_collapse_list else R.string.debt_payment)
+                    val showLabel = collapse || fabAtTop
+                    Icon(if (collapse) RytmIcons.ExpandLess else RytmIcons.Add, contentDescription = if (showLabel) null else label, tint = Color.White)
+                    if (showLabel) Text(label, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         },
