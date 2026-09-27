@@ -563,7 +563,9 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pen
             // screenshot). Painting red on the OUTER full-width Box, same
             // as FinanceScreen's already-correct swipe-delete row, makes
             // the whole reveal one continuous red field.
-            Box(
+            // Only drawn while a swipe is in progress — otherwise it's a full
+            // red layer of pure overdraw under every settled row.
+            if (dismissState.dismissDirection != SwipeToDismissBoxValue.Settled) Box(
                 Modifier.fillMaxSize().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.error),
                 contentAlignment = Alignment.CenterEnd,
             ) {

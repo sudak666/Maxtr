@@ -744,7 +744,11 @@ private fun TransactionRow(
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
+            // Clip + the red reveal layer below only while the row is actually
+            // swiped: drawing a full-size red layer (plus a rounded clip) under
+            // EVERY row was pure GPU overdraw — the expanded 443-row history
+            // was RenderThread-bound on a Galaxy A51 (Perfetto, live).
+            .then(if (offsetPx < 0f) Modifier.clip(MaterialTheme.shapes.large) else Modifier)
             .onSizeChanged { rowWidthPx = it.width },
     ) {
         // The covering Card below is sized from rowWidthPx, which starts at
@@ -755,7 +759,7 @@ private fun TransactionRow(
         // once, turning that one frame into a visible red flash across the
         // whole list (reported live). Not drawing this layer until the row
         // has a real measured width closes the gap.
-        if (rowWidthPx > 0) {
+        if (rowWidthPx > 0 && offsetPx < 0f) {
             // fillMaxSize() here (not matchParentSize()) sizes against this
             // Box's OWN incoming constraints, not against the Card sibling's
             // actual measured height — and a LazyColumn item's incoming
