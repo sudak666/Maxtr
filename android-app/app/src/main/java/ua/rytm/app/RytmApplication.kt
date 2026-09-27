@@ -36,6 +36,10 @@ import ua.rytm.app.push.ensureNotificationChannel
 class RytmApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Crash reports (release/qa only): stack traces + device model/OS, no
+        // user id or financial data is attached. Debug builds stay silent.
+        com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+            .isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
         // See build.gradle.kts's USE_FIREBASE_EMULATOR comment — off by default,
         // only set by an explicit -PuseFirebaseEmulator=true build. Must run before
         // anything touches FirebaseAuth/FirebaseFirestore (both below are `by lazy`,
