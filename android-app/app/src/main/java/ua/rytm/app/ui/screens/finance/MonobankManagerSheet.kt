@@ -50,8 +50,10 @@ import ua.rytm.app.ui.theme.RytmRadii
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.MonobankConnection
 import ua.rytm.app.data.MonobankHttpException
+import ua.rytm.app.data.MonobankNoAccountsException
+import ua.rytm.app.data.MonobankOwnerOnlyException
 import ua.rytm.app.data.MonobankRepository
-import ua.rytm.app.data.MonobankSyncProgress
+import ua.rytm.app.data.MonobankSyncCoordinator
 import ua.rytm.app.data.FinanceRepository
 import java.text.DateFormat
 import java.util.Date
@@ -64,7 +66,7 @@ import ua.rytm.app.ui.icons.Sync
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRepository, financeRepository: FinanceRepository, onDismiss: () -> Unit) {
+fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRepository, syncCoordinator: MonobankSyncCoordinator, financeRepository: FinanceRepository, onDismiss: () -> Unit) {
     var connection by remember(uid, profileId) { mutableStateOf<MonobankConnection?>(null) }
     var token by rememberSaveable { mutableStateOf("") }
     var loading by rememberSaveable { mutableStateOf(true) }
@@ -72,7 +74,9 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
     var errorRes by remember { mutableStateOf<Int?>(null) }
     var messageRes by remember { mutableStateOf<Int?>(null) }
     var importedCount by remember { mutableStateOf<Int?>(null) }
-    var progress by remember { mutableStateOf<MonobankSyncProgress?>(null) }
+    val syncState by syncCoordinator.state.collectAsState()
+    val profileKey = "$uid/$profileId"
+    val syncing = syncState.running && syncState.profileKey == profileKey
     var confirmDisconnect by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -85,7 +89,16 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
             429 -> R.string.monobank_rate_limit
             else -> R.string.monobank_connection_failed
         }
+        is MonobankNoAccountsException -> R.string.monobank_no_accounts
+        is MonobankOwnerOnlyException -> R.string.monobank_owner_only
         else -> R.string.monobank_connection_failed
+    }
+
+    LaunchedEffect(syncState) {
+        if (syncState.running || syncState.profileKey != profileKey) return@LaunchedEffect
+        syncState.result?.let { (next, count) -> connection = next; importedCount = count }
+        syncState.error?.let { errorRes = errorText(it) }
+        if (syncState.result != null || syncState.error != null) syncCoordinator.consume()
     }
 
     LaunchedEffect(uid, profileId) {
@@ -132,8 +145,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         shape = RoundedCornerShape(RytmRadii.Row),
                     ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(R.string.monobank_connect)) }
                 }
-                else -> {
-                    val mono = connection!!
+                else -> connection?.let { mono ->
                     Text(mono.clientName.ifBlank { stringResource(R.string.monobank_connected) }, fontWeight = FontWeight.SemiBold)
                     mono.accounts.forEach { account ->
                         Card(Modifier.fillMaxWidth()) {
@@ -147,28 +159,28 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
                     val lastSync = mono.lastSyncAt?.let { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it * 1000)) } ?: stringResource(R.string.monobank_never_synced)
                     Text(stringResource(R.string.monobank_last_sync, lastSync))
-                    progress?.let { Text(stringResource(R.string.monobank_sync_progress, it.current, it.total)) }
+                    if (syncing) {
+                        syncState.progress?.let { Text(stringResource(R.string.monobank_sync_progress, it.current, it.total)) }
+                        Text(stringResource(R.string.monobank_sync_background), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     errorRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
                     messageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
                     importedCount?.let { Text(stringResource(R.string.monobank_sync_result, it), color = MaterialTheme.colorScheme.primary) }
                     Button(
-                        onClick = { scope.launch {
-                            busy = true; errorRes = null; messageRes = null; importedCount = null
-                            runCatching { repository.sync(uid, profileId, mono) { progress = it } }
-                                .onSuccess { (next, count) -> connection = next; importedCount = count }
-                                .onFailure { errorRes = errorText(it) }
-                            progress = null; busy = false
-                        } },
-                        enabled = !busy,
+                        onClick = {
+                            errorRes = null; messageRes = null; importedCount = null
+                            syncCoordinator.start(uid, profileId, mono)
+                        },
+                        enabled = !busy && !syncing,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(RytmRadii.Row),
                     ) {
-                        if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        if (syncing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         else { Icon(RytmIcons.Sync, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.monobank_sync)) }
                     }
                     OutlinedButton(
                         onClick = { confirmDisconnect = true },
-                        enabled = !busy,
+                        enabled = !busy && !syncing,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(RytmRadii.Row),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),

@@ -822,6 +822,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             uid = activeProfileOwnerUid ?: uid,
             profileId = activeProfileId,
             repository = app.monobankRepository,
+            syncCoordinator = app.monobankSyncCoordinator,
             financeRepository = app.financeRepository,
             onDismiss = { monobankSheetOpen = false },
         )

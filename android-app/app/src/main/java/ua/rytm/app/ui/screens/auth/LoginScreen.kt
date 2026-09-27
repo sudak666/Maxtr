@@ -117,11 +117,10 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                 ) {
                     Text("R", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
                 }
-                Text("Rytm", style = MaterialTheme.typography.displaySmall, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
                 Text(
                     stringResource(R.string.auth_tagline),
-                    fontSize = 13.5.sp,
-                    lineHeight = 20.25.sp,
+                    style = MaterialTheme.typography.labelMedium.copy(lineHeight = 20.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -336,8 +335,7 @@ private fun TermsFooter(onTerms: () -> Unit, onPrivacy: () -> Unit) {
             withLink(LinkAnnotation.Clickable("privacy") { onPrivacy() }) { withStyle(linkStyle) { append(privacy) } }
         },
         modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-        fontSize = 12.sp,
-        lineHeight = 18.sp,
+        style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
     )
