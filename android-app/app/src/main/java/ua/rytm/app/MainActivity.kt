@@ -3,6 +3,9 @@ package ua.rytm.app
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,6 +55,9 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Compose paints an opaque full-screen Surface, so the theme's window
+        // background is pure overdraw once the first frame is up.
+        window.decorView.post { window.setBackgroundDrawable(null) }
         val app = application as RytmApplication
         setContent {
             // Nullable initial on purpose (same reasoning as `hasPin` below):
@@ -80,7 +86,12 @@ class MainActivity : FragmentActivity() {
             }
             RytmTheme(darkTheme = darkTheme) {
                 CompositionLocalProvider(LocalHideAmounts provides hideAmounts, LocalReducedMotion provides reducedMotion) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                // Overdraw: this Surface is the ONE full-screen background layer.
+                // It uses `background` (what every tab's Scaffold used to paint on
+                // top of it), the tabs' Scaffolds are transparent, and the window
+                // background is dropped after the first frame (onCreate below) —
+                // measured live on an A51: the whole screen was drawn 3x before.
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     if (themePreference == null) return@Surface
                     val authViewModel: AuthViewModel = viewModel()
                     val uid = authViewModel.currentUser?.uid
@@ -138,11 +149,13 @@ class MainActivity : FragmentActivity() {
                         val onboardingComplete by app.settingsStore.onboardingComplete.collectAsState(initial = null)
                         when {
                             onboardingComplete == null -> {}
-                            onboardingComplete == false -> OnboardingScreen(onComplete = {
-                                lifecycleScope.launch { app.settingsStore.setOnboardingComplete(true) }
-                            })
+                            onboardingComplete == false -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+                                OnboardingScreen(onComplete = {
+                                    lifecycleScope.launch { app.settingsStore.setOnboardingComplete(true) }
+                                })
+                            }
                             hasPin == null -> {}
-                            hasPin == true && !pinViewModel.isUnlocked -> PinLockScreen(pinViewModel)
+                            hasPin == true && !pinViewModel.isUnlocked -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) { PinLockScreen(pinViewModel) }
                             else -> RytmNavHost()
                         }
                     }

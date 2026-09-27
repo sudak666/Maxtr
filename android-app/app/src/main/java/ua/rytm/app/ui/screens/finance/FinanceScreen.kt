@@ -201,6 +201,10 @@ fun FinanceScreen(
             listState.layoutInfo.visibleItemsInfo.any { it.key == "collapse-list-button" }
         }
     }
+    // M3 extended-FAB behaviour: full label at the top, shrinks to the round
+    // icon FAB once the list is scrolled, so it stops covering rows (the
+    // wide pill hid amounts/"Переглянути всі" mid-scroll, seen live on an A51).
+    val fabAtTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
     val haptics = LocalHapticFeedback.current
@@ -236,6 +240,7 @@ fun FinanceScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         // The host itself lives in RytmNavHost now — one per app.
         snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
         floatingActionButton = {
@@ -261,7 +266,7 @@ fun FinanceScreen(
                 // to be hidden outright — removing the screen's primary action
                 // from exactly the users who need it most. M3's answer is to
                 // collapse it to a round icon FAB instead.
-                val collapsed = largeText || compactHeight
+                val collapsed = largeText || compactHeight || !fabAtTop
                 val label = stringResource(R.string.transaction_new_title)
                 Row(
                     modifier = Modifier

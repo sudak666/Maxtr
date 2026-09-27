@@ -43,8 +43,8 @@ android {
         // Closed testing track (ANDROID_MIGRATION.md step 54); 3 (PR #489)
         // and 4 (bottom-nav perf fix) were uploaded too. Bumped to 5 for the
         // Shopping-removal batch, same strict-increase requirement.
-        versionCode = 7
-        versionName = "1.5"
+        versionCode = 8
+        versionName = "1.6"
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
         // with `./gradlew assembleDebug -PuseFirebaseEmulator=true`. See
@@ -88,6 +88,17 @@ android {
             ndk {
                 debugSymbolLevel = "FULL"
             }
+        }
+        // Side-by-side QA build: same R8/release code as Play, but its own
+        // package (ua.rytm.app.qa, registered as a separate Firebase Android
+        // app with the upload key's SHA) so it installs next to the
+        // Play-signed app, plus <profileable shell> (src/qa) for real
+        // on-device gfxinfo/Perfetto measurements. Never uploaded to Play.
+        create("qa") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            matchingFallbacks += listOf("release")
         }
     }
 
