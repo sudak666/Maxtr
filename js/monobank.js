@@ -9,17 +9,17 @@
 // Monobank directly from the browser. The user's personal Monobank API
 // token is only ever sent to that proxy (alongside this account's own
 // Firebase ID token, which the proxy verifies before relaying anything) —
-// it's stored in AppState.integrations.monobank the same way every other
-// per-profile setting is stored (synced in the finance doc, see
-// js/color-picker.js's fbSaveNow/seedConfigFromDocs), never sent anywhere
-// else.
+// it lives in memory on AppState.integrations.monobank.token but is persisted
+// only in the owner-only `monobank_secret` doc (see js/firebase-sync.js's
+// saveMonobankSecret/hydrateMonobankSecret) — never in the finance doc that
+// shared-profile members can read, never in the localStorage cache.
 import { AppState } from './state.js';
 import { PALETTE, canEditActiveProfile, walletCurrency } from './core.js';
 import { renderFinance } from './analytics-csv.js';
 import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { findMatchingRule, newTransactionId, refreshWalletSelects } from './finance.js';
-import { batchWriteTransactions, lsKey } from './firebase-sync.js';
+import { batchWriteTransactions, deleteMonobankSecret, lsKey, saveMonobankSecret } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
 import { escapeHtml, showToast, uiConfirm } from './ui-widgets.js';
@@ -127,6 +127,7 @@ const connectMonobankUI=async function(){
     const info=await monobankApiRequest('client-info', {}, token);
     const accounts=buildMonobankAccountsList(info);
     if(!accounts.length) throw new Error(tr('monobank_no_accounts'));
+    await saveMonobankSecret(token);
     const mapping={};
     accounts.forEach(a=>{ mapping[a.id]=createWalletForMonobankAccount(a).id; });
     AppState.integrations.monobank={token, clientName:info.name||'', accounts, mapping, lastSyncAt:null};
@@ -192,6 +193,7 @@ const syncMonobankUI=async function(){
   if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
   const mono=AppState.integrations.monobank;
   if(!mono) return;
+  if(!mono.token){ showToast(tr('monobank_err_invalid_token'),'xmark'); return; }
   const entries=Object.entries(mono.mapping);
   if(!entries.length){ showToast(tr('monobank_no_accounts'),'xmark'); return; }
   const btn=/** @type {HTMLButtonElement|null} */(document.getElementById('monobank-sync-btn'));
@@ -234,6 +236,7 @@ const disconnectMonobankUI=async function(){
   if(!AppState.integrations.monobank) return;
   if(!(await uiConfirm(tr('monobank_disconnect_confirm'), {title:tr('monobank_disconnect_title'), okText:tr('common_delete'), danger:true}))) return;
   AppState.integrations.monobank=null;
+  deleteMonobankSecret().catch(e=>console.error(e));
   saveConfigLocal(); scheduleSave();
   renderMonobankUI();
   showToast(tr('monobank_disconnected'),'trash');

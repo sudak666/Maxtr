@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.components.TapThrottle
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -42,9 +44,11 @@ class TagsManagerViewModel(private val repository: FinanceRepository, private va
         repository.tags.onEach { tags = it }.launchIn(viewModelScope)
     }
 
+    private val addThrottle = TapThrottle()
+
     fun addTag(name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        if (clean.isEmpty() || !addThrottle.allow()) return
         val color = PALETTE[tags.size % PALETTE.size]
         mutateAndSync { repository.addTag(clean, color) }
     }

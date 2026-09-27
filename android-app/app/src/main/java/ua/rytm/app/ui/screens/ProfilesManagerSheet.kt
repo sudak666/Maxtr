@@ -206,18 +206,19 @@ fun ProfilesManagerSheet(
             onDismissRequest = viewModel::closeMembersManager,
             title = { Text(stringResource(R.string.profile_members_title, localizedDomainText(profile.name))) },
             text = {
+                val members = viewModel.members
                 when {
                     viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    viewModel.members == null -> Text(stringResource(R.string.profile_members_not_shared))
+                    members == null -> Text(stringResource(R.string.profile_members_not_shared))
                     else -> {
                         val currentUid = uid
-                        val others = viewModel.members!!.members.filter { it != currentUid }
+                        val others = members.members.filter { it != currentUid }
                         if (others.isEmpty()) {
                             Text(stringResource(R.string.profile_members_empty))
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 others.forEach { memberUid ->
-                                    val role = viewModel.members!!.roles[memberUid] ?: "editor"
+                                    val role = members.roles[memberUid] ?: "editor"
                                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                         // No cross-account display-name infra exists (this app has no
                                         // contacts/friends list) — a shortened uid is the only real

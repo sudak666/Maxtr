@@ -143,9 +143,10 @@ export const AppState = {
   // 'monobank'. null until the user connects one; see js/monobank.js.
   // Shape once connected: {token, clientName, accounts:[{id, kind:'account'|'jar',
   // label, currencyAlpha}], mapping:{monobankAccountId: walletId}, lastSyncAt}.
-  // Synced in the finance doc (js/color-picker.js's fbSaveNow/seedConfigFromDocs)
-  // like every other per-profile setting — the token itself is only ever
-  // sent to this app's own monobankProxy Cloud Function, never anywhere else.
+  // Synced in the finance doc WITHOUT the token (js/firebase-sync.js's
+  // publicIntegrations()); the token itself lives only in memory here and in
+  // the owner-only `monobank_secret` doc, and is only ever sent to this app's
+  // own monobankProxy Cloud Function.
   integrations: {monobank: null},
   MONTHS: LANG_CALENDAR[window.currentLang].months,
   MONTHS_SHORT: LANG_CALENDAR[window.currentLang].monthsShort,

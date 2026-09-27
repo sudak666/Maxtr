@@ -240,6 +240,7 @@
     <string name="pin_new">Новий PIN (4–6 цифр)</string>
     <string name="pin_confirm">Підтвердіть PIN</string>
     <string name="pin_save">Зберегти PIN</string>
+    <string name="pin_error_locked">Забагато невдалих спроб. Спробуйте пізніше або скористайтесь відбитком.</string>
     <string name="pin_error_invalid">Невірний PIN-код</string>
     <string name="pin_error_length">PIN має містити 4–6 цифр</string>
     <string name="pin_error_mismatch">PIN-коди не збігаються</string>

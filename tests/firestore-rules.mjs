@@ -257,6 +257,10 @@ await check('owner can downgrade uidC to viewer', updateDoc(doc(asA, sharedMembe
 await check('viewer can still read the finance doc', getDoc(doc(asC, financeDocPathY)), 'allow');
 await check('viewer cannot write the finance doc', setDoc(doc(asC, financeDocPathY), { wallets: [{ id: 'w2' }], updatedAt: Date.now() }), 'deny');
 await check('viewer cannot write the shifts doc', setDoc(doc(asC, `users/${uidA}/max_tracker/shifts@${PROFILE_ID_Y}`), { data: [], updatedAt: Date.now() }), 'deny');
+await check('owner can write their own monobank_secret', setDoc(doc(asA, `users/${uidA}/max_tracker/monobank_secret@${PROFILE_ID_Y}`), { token: 't', updatedAt: Date.now() }), 'allow');
+await check('owner can read their own monobank_secret', getDoc(doc(asA, `users/${uidA}/max_tracker/monobank_secret@${PROFILE_ID_Y}`)), 'allow');
+await check('shared viewer cannot read the owner monobank_secret', getDoc(doc(asC, `users/${uidA}/max_tracker/monobank_secret@${PROFILE_ID_Y}`)), 'deny');
+await check('shared member cannot write the owner monobank_secret', setDoc(doc(asC, `users/${uidA}/max_tracker/monobank_secret@${PROFILE_ID_Y}`), { token: 'x', updatedAt: Date.now() }), 'deny');
 await check('viewer can read shared_members@profY itself (to know their own role)', getDoc(doc(asC, sharedMembersPathY)), 'allow');
 
 const viewerTxPath = `${financeDocPathY}/transactions/tx1`;

@@ -185,8 +185,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     onClick = {
                                         scanSourceOpen = false
                                         val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
-                                        cameraUri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
-                                        cameraLauncher.launch(cameraUri!!)
+                                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
+                                        cameraUri = uri
+                                        cameraLauncher.launch(uri)
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {

@@ -355,6 +355,8 @@ jobs:
           java-version: '21'
 
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Compile (debug), with Compose compiler metrics
         run: ./gradlew compileDebugKotlin -PcomposeCompilerReports=true --no-daemon

@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.components.TapThrottle
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -50,7 +52,10 @@ class WalletsManagerViewModel(
         repository.wallets.onEach { wallets = it }.launchIn(viewModelScope)
     }
 
+    private val addThrottle = TapThrottle()
+
     fun addWallet(name: String) {
+        if (!addThrottle.allow()) return
         val color = PALETTE[wallets.size % PALETTE.size]
         mutateAndSync {
             repository.addWallet(Wallet(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = color, currency = "UAH"))

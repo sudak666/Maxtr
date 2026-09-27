@@ -1,6 +1,7 @@
 package ua.rytm.app.data
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
@@ -45,9 +46,34 @@ class MonobankRepository(
     private fun financeRef(uid: String, profileId: String) = firestore.collection("users").document(uid)
         .collection("max_tracker").document(profileDocName("finance", profileId))
 
+    // The live token lives only in the owner-only `monobank_secret` doc
+    // (firestore.rules never grants it to shared members); the finance doc
+    // keeps just the non-secret metadata. Mirrors js/firebase-sync.js.
+    private fun secretRef(uid: String, profileId: String) = firestore.collection("users").document(uid)
+        .collection("max_tracker").document(profileDocName("monobank_secret", profileId))
+
     suspend fun load(uid: String, profileId: String): MonobankConnection? {
         val map = financeRef(uid, profileId).get().await().get("integrations.monobank") as? Map<*, *> ?: return null
-        return parseConnection(map)
+        val meta = parseConnection(map) ?: return null
+        val legacyToken = (map["token"] as? String)?.takeIf { it.isNotBlank() }
+        if (auth.currentUser?.uid != uid) return meta.copy(token = "")
+        val secret = runCatching { secretRef(uid, profileId).get().await().getString("token") }.getOrNull()
+        if (!secret.isNullOrBlank()) {
+            if (legacyToken != null) stripLegacyToken(uid, profileId)
+            return meta.copy(token = secret)
+        }
+        if (legacyToken != null) {
+            secretRef(uid, profileId).set(mapOf("token" to legacyToken, "updatedAt" to System.currentTimeMillis())).await()
+            stripLegacyToken(uid, profileId)
+            return meta.copy(token = legacyToken)
+        }
+        return meta.copy(token = "")
+    }
+
+    private suspend fun stripLegacyToken(uid: String, profileId: String) {
+        runCatching {
+            financeRef(uid, profileId).update(mapOf("integrations.monobank.token" to FieldValue.delete(), "updatedAt" to System.currentTimeMillis())).await()
+        }
     }
 
     suspend fun connect(uid: String, profileId: String, rawToken: String): MonobankConnection {
@@ -67,6 +93,7 @@ class MonobankRepository(
                 icon = if (account.kind == "jar") "target" else "card",
             )
         }
+        secretRef(uid, profileId).set(mapOf("token" to token, "updatedAt" to System.currentTimeMillis())).await()
         db.walletDao().insertAll(wallets)
         val connection = MonobankConnection(token, info.optString("name"), accounts, accounts.mapIndexed { i, a -> a.id to wallets[i].id }.toMap(), null)
         try {
@@ -79,6 +106,7 @@ class MonobankRepository(
     }
 
     suspend fun disconnect(uid: String, profileId: String) {
+        runCatching { secretRef(uid, profileId).delete().await() }
         financeRef(uid, profileId).set(
             mapOf("integrations" to mapOf("monobank" to null), "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
@@ -91,6 +119,7 @@ class MonobankRepository(
         connection: MonobankConnection,
         onProgress: (MonobankSyncProgress) -> Unit,
     ): Pair<MonobankConnection, Int> {
+        require(connection.token.isNotBlank()) { "missing-token" }
         val entries = connection.mapping.entries.toList()
         require(entries.isNotEmpty()) { "У Monobank не знайдено рахунків" }
         val nowSec = System.currentTimeMillis() / 1000L
@@ -210,17 +239,16 @@ class MonobankRepository(
     }
 
     private fun parseConnection(map: Map<*, *>): MonobankConnection? {
-        val token = map["token"] as? String ?: return null
         val accounts = (map["accounts"] as? List<*>)?.mapNotNull { raw ->
             val a = raw as? Map<*, *> ?: return@mapNotNull null
             MonobankAccount(a["id"] as? String ?: return@mapNotNull null, a["kind"] as? String ?: "account", a["label"] as? String ?: "Monobank", a["currencyAlpha"] as? String ?: "UAH")
         }.orEmpty()
         val mapping = (map["mapping"] as? Map<*, *>)?.entries?.mapNotNull { (key, value) -> (key as? String)?.let { it to (value as? String ?: return@mapNotNull null) } }?.toMap().orEmpty()
-        return MonobankConnection(token, map["clientName"] as? String ?: "", accounts, mapping, (map["lastSyncAt"] as? Number)?.toLong())
+        return MonobankConnection("", map["clientName"] as? String ?: "", accounts, mapping, (map["lastSyncAt"] as? Number)?.toLong())
     }
 
     private fun MonobankConnection.toRemoteMap() = mapOf(
-        "token" to token, "clientName" to clientName,
+        "clientName" to clientName,
         "accounts" to accounts.map { mapOf("id" to it.id, "kind" to it.kind, "label" to it.label, "currencyAlpha" to it.currency) },
         "mapping" to mapping, "lastSyncAt" to lastSyncAt,
     )

@@ -29,6 +29,47 @@ export function userDoc(name){
   const docName = (AppState.activeProfileId && AppState.activeProfileId!=='default') ? `${name}@${AppState.activeProfileId}` : name;
   return doc(db,'users',ownerUid,DCOL,docName);
 }
+// ── MONOBANK TOKEN (owner-only secret doc) ──
+// The live Monobank API token never rides inside the finance doc (which
+// shared-profile members, including viewers, can read) — it lives in its
+// own `monobank_secret(@profileId)` doc that firestore.rules grants to the
+// owner only. The finance doc keeps just the non-secret connection
+// metadata (clientName/accounts/mapping/lastSyncAt). See CHANGELOG.md.
+/** @returns {any} integrations with the Monobank token stripped, for persisting */
+export function publicIntegrations(){
+  const integ=AppState.integrations||{monobank:null};
+  const mono=/** @type {any} */(integ.monobank);
+  if(!mono) return integ;
+  const rest={...mono};
+  delete rest.token;
+  return {...integ, monobank:rest};
+}
+/** @param {string} token */
+export async function saveMonobankSecret(token){
+  await setDoc(userDoc('monobank_secret'), {token, updatedAt:Date.now()});
+}
+export async function deleteMonobankSecret(){
+  await deleteDoc(userDoc('monobank_secret'));
+}
+/**
+ * Loads the owner-only token into AppState.integrations.monobank.token.
+ * Migrates a legacy token found inline in the finance doc into the secret
+ * doc; resolves true when the finance doc still needs a save to strip it.
+ * @returns {Promise<boolean>}
+ */
+export async function hydrateMonobankSecret(){
+  const mono=/** @type {any} */(AppState.integrations && AppState.integrations.monobank);
+  if(!mono) return false;
+  const legacy=typeof mono.token==='string' && mono.token ? mono.token : null;
+  if(AppState.activeProfileOwnerUid){ delete mono.token; return false; }
+  try{
+    const snap=await getDoc(userDoc('monobank_secret'));
+    const secret=snap.exists()?snap.data().token:null;
+    if(typeof secret==='string' && secret){ mono.token=secret; return !!legacy; }
+    if(legacy){ await saveMonobankSecret(legacy); return true; }
+  }catch(e){ console.error(e); }
+  return false;
+}
 /**
  * @param {string} name
  * @returns {string | null}
