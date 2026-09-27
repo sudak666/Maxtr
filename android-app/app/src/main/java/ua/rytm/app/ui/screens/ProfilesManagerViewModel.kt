@@ -118,6 +118,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             loading = true
             try {
                 profiles = app.profilesRepository.list(uid)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.profiles_load_failed
             } finally {
@@ -215,6 +217,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         return try {
             app.profileSyncCoordinator.switchProfile(uid, target.id, if (target.isShared) target.ownerUid else null)
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             errorMessageRes = R.string.profile_switch_failed
             false
@@ -233,6 +237,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             sharing = true
             try {
                 inviteCode = app.profilesRepository.shareProfile(uid, profile.id, profile.name)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.profile_share_failed
             } finally {
@@ -281,6 +287,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             try {
                 app.profilesRepository.leaveSharedProfile(uid, ownerUid, profile.id)
                 reload()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.profile_leave_failed
             }
@@ -310,6 +318,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             membersLoading = true
             try {
                 members = app.profilesRepository.listSharedMembers(uid, profile.id)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.profile_members_load_failed
             } finally {
@@ -327,6 +337,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
             try {
                 app.profilesRepository.setMemberRole(uid, profile.id, memberUid, nextRole)
                 reloadMembers()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 errorMessageRes = R.string.profile_role_change_failed
             }

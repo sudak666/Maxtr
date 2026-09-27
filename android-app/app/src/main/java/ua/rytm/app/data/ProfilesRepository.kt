@@ -1,5 +1,6 @@
 package ua.rytm.app.data
 
+import kotlinx.coroutines.CancellationException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -222,6 +223,8 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
                 docRef.set(mapOf("list" to rawList, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
             }
             RedeemInviteResult.Ok(ownerUid, profileId, profileName)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             RedeemInviteResult.Failed("failed")
         }

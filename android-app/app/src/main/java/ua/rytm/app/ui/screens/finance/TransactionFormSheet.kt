@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
@@ -117,6 +118,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 result.amount?.let { vm.onFormAmountChange(it.toString()) }
                 result.date?.let(vm::onFormDateChange)
                 ocrMessage = if (result.amount != null || result.date != null) ocrFound else ocrNotFound
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 ocrMessage = ocrFailed
             } finally {

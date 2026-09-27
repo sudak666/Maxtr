@@ -82,7 +82,15 @@ class RytmApplication : Application() {
                     db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_monobankId` ON `transactions` (`monobankId`)")
                 }
             })
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(object : Migration(15, 16) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    // Shopping list was removed; its cache table goes with it.
+                    db.execSQL("DROP TABLE IF EXISTS `shopping_items`")
+                }
+            })
+            // Only pre-release schemas (<13) have no migration path; from 13 up
+            // a missing Migration must crash in testing, not silently wipe data.
+            .fallbackToDestructiveMigrationFrom(true, *(1..12).toList().toIntArray())
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }

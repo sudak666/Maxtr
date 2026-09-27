@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: coroutine cancellation + Room migrations (2026-09-27)** (10/10 list items 7 and 4a). 13 generic `catch (e: Exception)` blocks that swallowed `CancellationException` (ProfilesRepository.redeemInvite, AuthViewModel ×4, DebtViewModel save, TransactionFormSheet OCR, ProfilesManagerViewModel ×6) now rethrow it first — a cancelled job no longer shows a false error or keeps running. Room: added the missing `Migration(15,16)` (drops the removed `shopping_items` table) and replaced blanket `fallbackToDestructiveMigration` with `fallbackToDestructiveMigrationFrom(1..12)` — from v13 up a missing migration now crashes in testing instead of silently wiping unsynced local edits. `assembleDebug`/`lintDebug`/`testDebugUnitTest` green. Crash reporting (no Crashlytics in the project yet) still open.
+
 - **Deploy after PR #501 (2026-09-27)**: `firebase deploy --only functions,firestore:rules,hosting --force` from clean `origin/main` — `monobankProxy(us-central1)` deleted, rules without `monobank_secret` (vchasnoUsers kept), hosting updated. Built 1.9 (vc11) `.aab` for the owner (not uploaded). Session paused at the owner's request before the full live QA pass; resume point written at the top of ANDROID_MIGRATION.md.
 
 - **Bank integration removed, Premium roadmap rethought, build 1.9 (versionCode 11) (2026-09-27)**. Owner's product call: with many banks around, a Monobank-only link read as thin — remove banks entirely and promise more useful features instead.
