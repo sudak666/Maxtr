@@ -700,7 +700,8 @@ private fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+                    val autofillTitle = stringResource(R.string.shifts_autofill_future)
+                    Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                 }
                 ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
                     Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

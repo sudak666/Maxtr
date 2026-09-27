@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -176,7 +178,9 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         // ones the user didn't touch — for the duration of the *other*
                         // row's background sync, which read as all 3 switches
                         // flickering every time any one of them was tapped.
-                        Switch(checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+                        val widgetTitle = stringResource(item.title)
+                        // TalkBack read these as a bare "switch, off" with no name.
+                        Switch(modifier = Modifier.semantics { contentDescription = widgetTitle }, checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                     }
                 }
             }
