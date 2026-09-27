@@ -109,7 +109,10 @@ class MainActivity : FragmentActivity() {
                             app.profileSyncCoordinator.loadOnSignIn(uid)
                         }
                         DisposableEffect(uid) {
-                            onDispose { app.profileSyncCoordinator.stopRealtimeSync() }
+                            // Keep the app-scoped listeners across a configuration change
+                            // (theme/language/rotation); stopping here forced a full cold
+                            // re-sync of every domain on each recreation.
+                            onDispose { if (!isChangingConfigurations) app.profileSyncCoordinator.stopRealtimeSync() }
                         }
 
                         // PIN re-lock gate, between Auth and the main nav — mirrors
