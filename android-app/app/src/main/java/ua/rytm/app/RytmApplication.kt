@@ -2,8 +2,6 @@ package ua.rytm.app
 
 import android.app.Application
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import ua.rytm.app.data.BudgetsSyncRepository
@@ -31,6 +29,7 @@ import ua.rytm.app.data.ProfilesRepository
 import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.local.PinStore
 import ua.rytm.app.data.local.RytmDatabase
+import ua.rytm.app.data.local.RytmMigrations
 import ua.rytm.app.data.local.SettingsStore
 import ua.rytm.app.push.ensureNotificationChannel
 
@@ -71,26 +70,10 @@ class RytmApplication : Application() {
         // the app now has Play testers. Every schema bump from v16 on must
         // ship a real Migration (schemas/ is exported for exactly that).
         Room.databaseBuilder(this, RytmDatabase::class.java, "rytm.db")
-            .addMigrations(object : Migration(13, 14) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL("CREATE TABLE IF NOT EXISTS `auto_rules` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `keyword` TEXT NOT NULL, `category` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-                }
-            })
-            .addMigrations(object : Migration(14, 15) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    db.execSQL("ALTER TABLE `transactions` ADD COLUMN `monobankId` TEXT")
-                    db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_monobankId` ON `transactions` (`monobankId`)")
-                }
-            })
-            .addMigrations(object : Migration(15, 16) {
-                override fun migrate(db: SupportSQLiteDatabase) {
-                    // Shopping list was removed; its cache table goes with it.
-                    db.execSQL("DROP TABLE IF EXISTS `shopping_items`")
-                }
-            })
+            .addMigrations(*RytmMigrations.ALL)
             // Only pre-release schemas (<13) have no migration path; from 13 up
             // a missing Migration must crash in testing, not silently wipe data.
-            .fallbackToDestructiveMigrationFrom(true, *(1..12).toList().toIntArray())
+            .fallbackToDestructiveMigrationFrom(true, *(1 until RytmMigrations.FIRST_MIGRATED_VERSION).toList().toIntArray())
             .build()
     }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }

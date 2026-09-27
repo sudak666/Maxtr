@@ -54,30 +54,43 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // Deliberately does NOT seed sample data — see switchProfile()'s own
     // comment for why a fresh non-default profile must never get demo
     // content pushed to it.
-    private suspend fun syncAllDomains(uid: String, profileId: String) {
-        app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
-        app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
-        app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
-        app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid, profileId)
-        app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
-        app.budgetsSyncRepository.syncBudgetsOnSignIn(uid, profileId)
-        app.tagsSyncRepository.syncTagsOnSignIn(uid, profileId)
-        app.autoRulesSyncRepository.syncOnSignIn(uid, profileId)
-        app.recurringSyncRepository.syncRecurringOnSignIn(uid, profileId)
-        app.goalsSyncRepository.syncGoalsOnSignIn(uid, profileId)
-        app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
-        app.widgetSettingsSyncRepository.syncOnSignIn(uid, profileId)
-        app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
-        app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
-        app.financeRepository.processRecurring()
+    /** Which watched Firestore source a realtime change came from. */
+    enum class SyncDomain { FINANCE, TRANSACTIONS, SHIFTS, DEBT }
+
+    private suspend fun syncAllDomains(uid: String, profileId: String) =
+        syncDomains(uid, profileId, SyncDomain.entries.toSet())
+
+    // Realtime changes re-sync only the domains whose source doc changed —
+    // a shift edit used to re-read every finance domain and the whole
+    // transactions subcollection too.
+    private suspend fun syncDomains(uid: String, profileId: String, domains: Set<SyncDomain>) {
+        if (SyncDomain.FINANCE in domains) {
+            app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
+            app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
+            app.categoriesSyncRepository.syncSubcategoriesOnSignIn(uid, profileId)
+            app.categoriesSyncRepository.syncCategoryIconsOnSignIn(uid, profileId)
+            app.budgetsSyncRepository.syncBudgetsOnSignIn(uid, profileId)
+            app.tagsSyncRepository.syncTagsOnSignIn(uid, profileId)
+            app.autoRulesSyncRepository.syncOnSignIn(uid, profileId)
+            app.recurringSyncRepository.syncRecurringOnSignIn(uid, profileId)
+            app.goalsSyncRepository.syncGoalsOnSignIn(uid, profileId)
+            app.currencyRatesSyncRepository.syncCurrencyRatesOnSignIn(uid, profileId)
+            app.widgetSettingsSyncRepository.syncOnSignIn(uid, profileId)
+        }
+        if (SyncDomain.SHIFTS in domains) {
+            app.shiftsSyncRepository.syncShiftTypesOnSignIn(uid, profileId)
+            app.shiftsSyncRepository.syncShiftDaysOnSignIn(uid, profileId)
+            app.shiftsSyncRepository.syncAutoFillScheduleOnSignIn(uid, profileId)
+        }
+        if (SyncDomain.TRANSACTIONS in domains) app.transactionsSyncRepository.syncTransactionsOnSignIn(uid, profileId)
+        if (SyncDomain.DEBT in domains) app.debtSyncRepository.syncDebtsOnSignIn(uid, profileId)
+        if (SyncDomain.FINANCE in domains || SyncDomain.TRANSACTIONS in domains) app.financeRepository.processRecurring()
         // Same "run the day-by-day catch-up once per cold sync" treatment as
         // processRecurring() above — the PWA re-checks on every visibility
         // change + a 5-minute interval (js/app-init.js), which this app has
         // no equivalent long-lived-tab lifecycle for; once per sign-in/
         // profile-switch is the honest Android analog, not a silent gap.
-        if (app.shiftsRepository.processAutoFillShifts() > 0) {
+        if (SyncDomain.SHIFTS in domains && app.shiftsRepository.processAutoFillShifts() > 0) {
             app.shiftsSyncRepository.saveShiftDays(uid, profileId)
         }
     }
@@ -157,14 +170,17 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             .collection("users").document(ownerUid).collection("max_tracker")
         val finance = profileCollection.document(profileDocName("finance", profileId))
         val watched = listOf(
-            finance,
-            profileCollection.document(profileDocName("shifts", profileId)),
-            profileCollection.document(profileDocName("debt", profileId)),
+            finance to SyncDomain.FINANCE,
+            profileCollection.document(profileDocName("shifts", profileId)) to SyncDomain.SHIFTS,
+            profileCollection.document(profileDocName("debt", profileId)) to SyncDomain.DEBT,
         )
+        // Domains changed since the last realtime sync started; accumulated so a
+        // debounce-cancelled job never drops a domain a newer change didn't touch.
+        val dirty = mutableSetOf<SyncDomain>()
         var initialSnapshotsRemaining = watched.size + 1
         var initialSnapshotWasOffline = false
 
-        fun remoteChanged(error: Exception?, fromCache: Boolean) {
+        fun remoteChanged(domain: SyncDomain, error: Exception?, fromCache: Boolean) {
             if (generation != listenerGeneration) return
             if (error != null) {
                 _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
@@ -182,32 +198,39 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                 _realtimeState.value = RealtimeState.Offline
                 return
             }
+            synchronized(dirty) { dirty += domain }
             pendingRealtimeSync?.cancel()
             pendingRealtimeSync = scope.launch {
                 delay(250)
                 realtimeSyncMutex.withLock {
                     if (generation != listenerGeneration) return@withLock
+                    val domains = synchronized(dirty) { dirty.toSet().also { dirty.clear() } }
+                    if (domains.isEmpty()) return@withLock
                     _realtimeState.value = RealtimeState.Syncing
-                    runCatching { syncAllDomains(ownerUid, profileId) }
+                    runCatching { syncDomains(ownerUid, profileId, domains) }
                         .onSuccess { _realtimeState.value = RealtimeState.Listening }
                         .onFailure {
                             // A sync cancelled by stopRealtimeSync()/a newer change is not
                             // a failure — reporting it flashed a false "sync error" banner.
-                            if (it is CancellationException || generation != listenerGeneration) return@onFailure
+                            if (generation != listenerGeneration) return@onFailure
+                            if (it is CancellationException) {
+                                synchronized(dirty) { dirty += domains } // retried by the newer job
+                                return@onFailure
+                            }
                             _realtimeState.value = RealtimeState.Error(it.message ?: "Realtime sync failed")
                         }
                 }
             }
         }
 
-        listeners = watched.map { ref ->
+        listeners = watched.map { (ref, domain) ->
             ref.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-                remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+                remoteChanged(domain, error, snapshot?.metadata?.isFromCache() == true)
             }
         } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(error, snapshot?.metadata?.isFromCache() == true)
+            remoteChanged(SyncDomain.TRANSACTIONS, error, snapshot?.metadata?.isFromCache() == true)
         }
     }
 

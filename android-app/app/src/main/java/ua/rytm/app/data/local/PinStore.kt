@@ -10,7 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
@@ -49,20 +48,12 @@ class PinStore(private val context: Context) {
 
     suspend fun verifyPin(uid: String, rawPin: String): Boolean {
         val stored = context.pinDataStore.data.first()[pinKey(uid)] ?: return false
-        if (stored.startsWith("v2$")) {
-            val parts = stored.split('$')
-            if (parts.size != 4) return false
-            val iterations = parts[1].toIntOrNull() ?: return false
-            val salt = Base64.decode(parts[2], Base64.NO_WRAP)
-            val expected = Base64.decode(parts[3], Base64.NO_WRAP)
-            return MessageDigest.isEqual(pbkdf2(rawPin, salt, iterations), expected)
-        }
-        val ok = MessageDigest.isEqual(stored.toByteArray(), sha256Hex(rawPin).toByteArray())
-        if (ok) {
+        val result = withContext(Dispatchers.Default) { PinHash.verify(stored, rawPin) }
+        if (result == PinHash.Verify.OK_LEGACY) {
             val upgraded = hashV2(rawPin)
             context.pinDataStore.edit { it[pinKey(uid)] = upgraded }
         }
-        return ok
+        return result != PinHash.Verify.WRONG
     }
 
     /** Epoch ms until which PIN entry is locked out, or 0. */
@@ -74,9 +65,8 @@ class PinStore(private val context: Context) {
         context.pinDataStore.edit {
             val fails = (it[failKey(uid)] ?: 0) + 1
             it[failKey(uid)] = fails
-            if (fails >= FREE_ATTEMPTS) {
-                val delayMs = minOf(BASE_LOCK_MS shl minOf(fails - FREE_ATTEMPTS, 7), MAX_LOCK_MS)
-                until = System.currentTimeMillis() + delayMs
+            if (fails >= PinHash.FREE_ATTEMPTS) {
+                until = System.currentTimeMillis() + PinHash.lockDelayMs(fails)
                 it[lockKey(uid)] = until
             }
         }
@@ -87,27 +77,7 @@ class PinStore(private val context: Context) {
         context.pinDataStore.edit { it.remove(failKey(uid)); it.remove(lockKey(uid)) }
     }
 
-    private suspend fun hashV2(rawPin: String): String {
-        val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
-        val hash = pbkdf2(rawPin, salt, ITERATIONS)
-        return "v2$" + ITERATIONS + "$" + Base64.encodeToString(salt, Base64.NO_WRAP) + "$" + Base64.encodeToString(hash, Base64.NO_WRAP)
-    }
-
-    private suspend fun pbkdf2(rawPin: String, salt: ByteArray, iterations: Int): ByteArray = withContext(Dispatchers.Default) {
-        val spec = PBEKeySpec(rawPin.toCharArray(), salt, iterations, 256)
-        try {
-            SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
-        } finally {
-            spec.clearPassword()
-        }
-    }
-
-    private companion object {
-        const val ITERATIONS = 120_000
-        const val FREE_ATTEMPTS = 5
-        const val BASE_LOCK_MS = 30_000L
-        const val MAX_LOCK_MS = 60 * 60_000L
-    }
+    private suspend fun hashV2(rawPin: String): String = withContext(Dispatchers.Default) { PinHash.encode(rawPin) }
 
     suspend fun removePin(uid: String) {
         context.pinDataStore.edit {
@@ -119,6 +89,48 @@ class PinStore(private val context: Context) {
 
     suspend fun setBiometricEnabled(uid: String, enabled: Boolean) {
         context.pinDataStore.edit { it[bioKey(uid)] = enabled }
+    }
+}
+
+/** Pure PIN hashing/lockout logic, kept Android-free so JVM unit tests cover it. */
+internal object PinHash {
+    const val ITERATIONS = 120_000
+    const val FREE_ATTEMPTS = 5
+    private const val BASE_LOCK_MS = 30_000L
+    private const val MAX_LOCK_MS = 60 * 60_000L
+
+    enum class Verify { OK, OK_LEGACY, WRONG }
+
+    // java.util.Base64's basic encoder == android.util.Base64.NO_WRAP, so
+    // hashes written by earlier builds still parse.
+    fun encode(rawPin: String, salt: ByteArray = ByteArray(16).also { SecureRandom().nextBytes(it) }, iterations: Int = ITERATIONS): String {
+        val b64 = java.util.Base64.getEncoder()
+        return "v2$" + iterations + "$" + b64.encodeToString(salt) + "$" + b64.encodeToString(pbkdf2(rawPin, salt, iterations))
+    }
+
+    fun verify(stored: String, rawPin: String): Verify {
+        if (stored.startsWith("v2$")) {
+            val parts = stored.split('$')
+            if (parts.size != 4) return Verify.WRONG
+            val iterations = parts[1].toIntOrNull()?.takeIf { it > 0 } ?: return Verify.WRONG
+            val b64 = java.util.Base64.getDecoder()
+            val salt = runCatching { b64.decode(parts[2]) }.getOrNull() ?: return Verify.WRONG
+            val expected = runCatching { b64.decode(parts[3]) }.getOrNull() ?: return Verify.WRONG
+            return if (MessageDigest.isEqual(pbkdf2(rawPin, salt, iterations), expected)) Verify.OK else Verify.WRONG
+        }
+        return if (MessageDigest.isEqual(stored.toByteArray(), sha256Hex(rawPin).toByteArray())) Verify.OK_LEGACY else Verify.WRONG
+    }
+
+    /** Lockout after the [fails]-th wrong PIN (>= FREE_ATTEMPTS): 30s doubling, capped at 1h. */
+    fun lockDelayMs(fails: Int): Long = minOf(BASE_LOCK_MS shl minOf(fails - FREE_ATTEMPTS, 7), MAX_LOCK_MS)
+
+    private fun pbkdf2(rawPin: String, salt: ByteArray, iterations: Int): ByteArray {
+        val spec = PBEKeySpec(rawPin.toCharArray(), salt, iterations, 256)
+        try {
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+        } finally {
+            spec.clearPassword()
+        }
     }
 }
 
