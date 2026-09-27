@@ -160,7 +160,7 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                                     )
                                 },
                         )
-                        Box(Modifier.size(34.dp).clip(CircleShape).background(item.color.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(34.dp).background(item.color.copy(alpha = .16f), CircleShape), contentAlignment = Alignment.Center) {
                             Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
                         }
                         Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {

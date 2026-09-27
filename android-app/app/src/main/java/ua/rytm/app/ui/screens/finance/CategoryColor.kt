@@ -244,7 +244,7 @@ fun categoryIcon(category: String, iconOverride: String? = null): ImageVector {
 fun CategoryIconBadge(category: String, iconOverride: String? = null, size: Dp = 40.dp, modifier: Modifier = Modifier) {
     val color = categoryColor(category)
     Box(
-        modifier.size(size).clip(CircleShape).background(color.copy(alpha = 0.18f)),
+        modifier.size(size).background(color.copy(alpha = 0.18f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(categoryIcon(category, iconOverride), contentDescription = null, tint = color, modifier = Modifier.size(size * 0.55f))

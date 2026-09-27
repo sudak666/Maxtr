@@ -535,7 +535,7 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
     Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
-            Box(Modifier.size(8.dp).clip(CircleShape).background(Color(wallet.colorHex)))
+            Box(Modifier.size(8.dp).background(Color(wallet.colorHex), CircleShape))
             Spacer(Modifier.width(8.dp))
             Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.width(8.dp))
@@ -881,8 +881,7 @@ private fun TransactionRow(
                                 val color = Color(tag.colorHex)
                                 Box(
                                     Modifier
-                                        .clip(MaterialTheme.shapes.small)
-                                        .background(color.copy(alpha = 0.12f))
+                                        .background(color.copy(alpha = 0.12f), MaterialTheme.shapes.small)
                                         .padding(horizontal = 6.dp, vertical = 2.dp),
                                 ) {
                                     Text(tag.name, style = MaterialTheme.typography.labelSmall, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)

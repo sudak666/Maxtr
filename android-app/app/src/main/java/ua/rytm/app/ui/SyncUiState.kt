@@ -117,7 +117,7 @@ fun ScreenLoadingState(rows: Int = 3) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Box(Modifier.size(34.dp).clip(CircleShape).background(shimmer))
+                    Box(Modifier.size(34.dp).background(shimmer, CircleShape))
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         SkeletonBar(shimmer, widthFraction = 0.55f)
                         SkeletonBar(shimmer, widthFraction = 0.35f)
@@ -134,8 +134,7 @@ private fun SkeletonBar(color: Color, widthFraction: Float) {
         Modifier
             .fillMaxWidth(widthFraction)
             .height(12.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(color),
+            .background(color, RoundedCornerShape(6.dp)),
     )
 }
 

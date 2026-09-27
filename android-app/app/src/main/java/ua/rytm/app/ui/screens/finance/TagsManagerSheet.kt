@@ -85,7 +85,7 @@ fun TagsManagerSheet(
 
             viewModel.tags.forEach { tag ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(Modifier.size(20.dp).clip(CircleShape).background(Color(tag.colorHex)))
+                    Box(Modifier.size(20.dp).background(Color(tag.colorHex), CircleShape))
                     Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     IconButton(onClick = { viewModel.requestDelete(tag.id) }, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
                 }
