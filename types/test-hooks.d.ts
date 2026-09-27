@@ -14,7 +14,6 @@ declare interface Window {
     AppState: typeof import('../js/state.js').AppState;
     addTransaction: typeof import('../js/finance.js').addTransaction;
     scanReceiptImage: typeof import('../js/receipt-ocr.js').scanReceiptImage;
-    setMonobankSyncGapMsForTesting: typeof import('../js/monobank.js').setMonobankSyncGapMsForTesting;
     maybeRefreshCryptoTop: typeof import('../js/dashboard-widgets.js').maybeRefreshCryptoTop;
   };
 }

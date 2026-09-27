@@ -67,21 +67,6 @@
     <string name="profile_upload_photo">Завантажити фото</string>
     <string name="profile_avatar">Аватар</string>
     <string name="profile_avatar_preset">Варіант аватара</string>
-    <string name="monobank_intro">Вкажіть персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен бачите лише ви (навіть учасники спільного профілю не мають до нього доступу) і передається лише Monobank через захищений сервер Rytm.</string>
-    <string name="monobank_get_token">Отримати токен на api.monobank.ua</string><string name="monobank_token">Персональний токен</string>
-    <string name="monobank_connect">Підключити</string><string name="monobank_connected">Monobank підключено</string>
-    <string name="monobank_invalid_token">Токен недійсний. Перевірте його та спробуйте ще раз.</string>
-    <string name="monobank_rate_limit">Monobank дозволяє не більше одного запиту на хвилину. Спробуйте пізніше.</string>
-    <string name="monobank_no_accounts">У Monobank не знайдено карток або банок</string>
-    <string name="monobank_owner_only">Синхронізувати Monobank може лише власник профілю</string>
-    <string name="monobank_sync_background">Синхронізація триває у фоні — шторку можна закрити.</string>
-    <string name="monobank_connection_failed">Не вдалося з’єднатися з Monobank</string>
-    <string name="monobank_unmapped">%1$s · не прив’язано</string><string name="monobank_never_synced">ще не синхронізовано</string>
-    <string name="monobank_last_sync">Востаннє синхронізовано: %1$s</string><string name="monobank_sync_progress">Синхронізую рахунок %1$d/%2$d…</string>
-    <string name="monobank_sync_result">Синхронізовано, нових операцій: %1$d</string><string name="monobank_sync">Синхронізувати</string>
-    <string name="monobank_disconnect">Відключити</string><string name="monobank_disconnected">Monobank відключено</string>
-    <string name="monobank_disconnect_title">Відключити Monobank</string>
-    <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
     <string name="goals_title">Цілі</string><string name="goals_description">Відстежуйте накопичення на важливі покупки</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
     <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
     <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Досягнуто</string>
@@ -349,8 +334,6 @@
     <string name="settings_privacy_subtitle">Як ми обробляємо твої дані</string>
     <string name="settings_about_summary">Rytm — трекер змін, фінансів і розрахунків</string>
     <string name="settings_wallets_subtitle">Картки, готівка та інші рахунки</string>
-    <string name="settings_monobank">Прив’язати Monobank</string>
-    <string name="settings_monobank_subtitle">Підтягувати операції з карток і банок автоматично</string>
     <string name="settings_rates_subtitle">Синхронізовані курси до гривні</string>
     <string name="settings_categories_subtitle">Власні категорії доходів і витрат</string>
     <string name="settings_budgets_subtitle">Місячні ліміти для категорій витрат</string>
@@ -391,8 +374,12 @@
     <string name="settings_premium_body">Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:</string>
     <string name="settings_premium_free_title">Вже доступно безкоштовно</string>
     <string name="settings_premium_free_body">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</string>
-    <string name="settings_premium_banks_title">Інтеграція з банками</string>
-    <string name="settings_premium_banks_body">Автоматичне підвантаження операцій — у розробці</string>
+    <string name="settings_premium_forecast_title">Прогноз заробітку</string>
+    <string name="settings_premium_forecast_body">Скільки отримаєте цього місяця за запланованими змінами</string>
+    <string name="settings_premium_backup_title">Резервні копії</string>
+    <string name="settings_premium_backup_body">Автоматичні копії в хмарі та відновлення в один дотик</string>
+    <string name="settings_premium_widget_title">Віджет на екрані</string>
+    <string name="settings_premium_widget_body">Баланс і найближча зміна без відкриття застосунку</string>
     <string name="settings_soon">СКОРО</string>
     <string name="settings_reset_title">Почати спочатку?</string>
     <string name="settings_resetting">Скидання даних…</string>

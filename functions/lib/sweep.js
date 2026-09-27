@@ -9,7 +9,7 @@
 // and a plain no-op/console logger.
 //
 // Fourth file opted into TypeScript's checkJs, after js/tx-validation.js,
-// functions/lib/pure.js and functions/lib/monobank.js — see CLAUDE.md's
+// functions/lib/pure.js — see CLAUDE.md's
 // TypeScript adoption section, which explicitly flagged this one as a
 // bigger step than the first three: it's coupled to firebase-admin's
 // Firestore snapshot/doc types and the finance/debt docs' own shape.

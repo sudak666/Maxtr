@@ -82,8 +82,8 @@ export function onMessage(){ return () => {}; }
 export async function isSupported(){ return true; }
 `;
 
-// Fixed stub response for CoinGecko's /coins/markets — same reasoning as
-// tests/monobank-connect.mjs stubbing "/api/monobank": this repo's test
+// Fixed stub response for CoinGecko's /coins/markets:
+// this repo's test
 // setup has no way to depend on a real third-party API's actual live
 // response, so the network call itself is intercepted and fulfilled with a
 // deterministic fixture instead (matches the fx-widget-rates.mjs lesson —
@@ -172,8 +172,8 @@ async function main() {
     // 30-minute refresh window must NOT call CoinGecko a second time — same
     // "doesn't re-fetch within the window" convention as
     // maybeAutoUpdateRates()'s own 24h gate. Triggered directly via the
-    // window.__RYTM_TEST_HOOKS__ export (same reasoning
-    // setMonobankSyncGapMsForTesting already exists for: verifying a
+    // window.__RYTM_TEST_HOOKS__ export (a test hook exists for exactly
+    // this: verifying a
     // time-gated action without waiting for the real interval or reloading
     // the whole page). ──
     const callsBeforeSecondCall = coinGeckoCalls;

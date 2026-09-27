@@ -14,7 +14,6 @@ import { __init_notifications__ } from './notifications.js';
 import { __init_finance__, addTransaction } from './finance.js';
 import { __init_analytics_csv__ } from './analytics-csv.js';
 import { __init_debt__ } from './debt.js';
-import { __init_monobank__, setMonobankSyncGapMsForTesting } from './monobank.js';
 import { scanReceiptImage } from './receipt-ocr.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 
@@ -38,14 +37,13 @@ __init_notifications__();
 __init_finance__();
 __init_analytics_csv__();
 __init_debt__();
-__init_monobank__();
 
 // Test-only hook, unconditionally attached — not read by any production
 // code path. Exists purely so Playwright tests can reach a handful of
 // module-scoped internals (AppState directly, plus a few functions each
 // kept around specifically for a test to call: addTransaction() to
 // simulate a bypassed-UI write attempt, scanReceiptImage()'s optional
-// timeoutMs override, setMonobankSyncGapMsForTesting(),
+// timeoutMs override,
 // maybeRefreshCryptoTop() so tests/dashboard-widgets.mjs can trigger a
 // second refresh attempt directly to verify its 30-minute rate-limit gate
 // dedups correctly, without a full page reload) without depending on
@@ -55,4 +53,4 @@ __init_monobank__();
 // (see CHANGELOG.md's Vite bundler Phase 2/3 entries). This one shared
 // hook object works identically whichever way the app was built, so tests
 // no longer need to care.
-window.__RYTM_TEST_HOOKS__ = { AppState, addTransaction, scanReceiptImage, setMonobankSyncGapMsForTesting, maybeRefreshCryptoTop };
+window.__RYTM_TEST_HOOKS__ = { AppState, addTransaction, scanReceiptImage, maybeRefreshCryptoTop };
