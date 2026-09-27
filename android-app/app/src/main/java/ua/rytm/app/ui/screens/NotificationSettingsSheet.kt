@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
@@ -135,7 +137,7 @@ private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, en
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+        Switch(modifier = Modifier.semantics { contentDescription = title }, checked = checked, onCheckedChange = onCheckedChange, enabled = enabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
     }
 }
 

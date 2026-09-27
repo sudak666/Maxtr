@@ -9,7 +9,7 @@
   2. ~~Автотести в CI~~ — `testDebugUnitTest` у CI, тести PinHash і ланцюжка міграцій. Лишилось: тести ViewModel-ів (потрібен DI-шов замість `RytmApplication`).
   3. ~~Точкова синхронізація~~ — зроблено (`SyncDomain`), живцем ще не перевірено.
   4. ~~Прибрати `fallbackToDestructiveMigration`~~ (зроблено: Migration 15→16, fallback лише для <13). Звіти про падіння — Crashlytics додано 2026-09-28 (у Play Data safety задекларувати Crash logs/Diagnostics).
-  5. TalkBack-прохід + замір контрасту, шрифти/відступи на шкалу.
+  5. ~~TalkBack-прохід~~ — зроблено 2026-09-28 (безіменні Switch-і виправлено; контраст — ThemeContrastTest у CI).
   6. Плавність (зараз ~42% janky у розгорнутій історії на A51).
   7. ~~`catch`-и, що ковтають `CancellationException`~~ — зроблено (13 місць).
 - Push із QA-збірки не вмикати (спільний `push_tokens/{uid}` з Play-версією).
