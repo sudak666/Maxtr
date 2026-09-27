@@ -159,7 +159,7 @@
     <string name="onboarding_shifts_title">Your work rhythm</string>
     <string name="onboarding_shifts_body">Plan shifts, calculate income, and forecast your working month.</string>
     <string name="onboarding_security_title">Privacy and synchronization</string>
-    <string name="onboarding_security_body">Data is synchronized through your Firebase account. PIN and biometrics protect access on this device.</string>
+    <string name="onboarding_security_body">Data is synced across your devices via your account. PIN and biometrics protect access on this device.</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_clear">Clear</string>
     <string name="action_choose_date">Choose date</string>
@@ -431,4 +431,5 @@
     <string name="common_data_load_failed">Could not load data</string>
     <string name="category_icon_option">Icon %1$d of %2$d</string>
     <string name="shifts_no_types">No shift types yet — create the first one.</string>
+    <string name="action_copy_code">Copy code</string>
 </resources>

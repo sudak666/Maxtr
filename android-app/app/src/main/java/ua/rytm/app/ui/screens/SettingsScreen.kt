@@ -862,7 +862,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 pendingSignOut = false
                 scope.launch {
                     if (!privacyCacheEnabled) app.database.clearAllProfileScopedTables()
-                    authViewModel.signOut()
+                    authViewModel.signOut(context)
                 }
             },
             onDismiss = { pendingSignOut = false },

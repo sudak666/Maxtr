@@ -165,7 +165,7 @@
     <string name="onboarding_shifts_title">Робочий ритм</string>
     <string name="onboarding_shifts_body">Плануйте зміни, рахуйте дохід і прогнозуйте робочий місяць.</string>
     <string name="onboarding_security_title">Приватність і синхронізація</string>
-    <string name="onboarding_security_body">Дані синхронізуються через ваш Firebase-акаунт. PIN і біометрія захищають доступ на пристрої.</string>
+    <string name="onboarding_security_body">Дані синхронізуються між вашими пристроями через акаунт. PIN і біометрія захищають доступ на пристрої.</string>
     <string name="action_cancel">Скасувати</string>
     <string name="action_clear">Очистити</string>
     <string name="action_choose_date">Обрати дату</string>
@@ -437,4 +437,5 @@
     <string name="common_data_load_failed">Не вдалося завантажити дані</string>
     <string name="category_icon_option">Іконка %1$d з %2$d</string>
     <string name="shifts_no_types">Ще немає типів змін — створіть перший.</string>
+    <string name="action_copy_code">Копіювати код</string>
 </resources>

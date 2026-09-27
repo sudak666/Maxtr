@@ -118,6 +118,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         val profileId = app.activeProfileStore.getActiveProfileId(uid)
         val dataOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(uid) ?: uid
         if (listeners.isNotEmpty() && activeTarget == (dataOwnerUid to profileId)) return profileId
+        ensureCacheBelongsTo(uid)
         // Demo seeding only for the account's own default profile — same rule as
         // switchProfile(). On a restart into any other profile, an empty table
         // got demo shift types that the sync then wiped (seen live flashing in
@@ -129,6 +130,21 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         syncAllDomains(dataOwnerUid, profileId)
         startRealtimeSync(dataOwnerUid, profileId)
         return profileId
+    }
+
+    // Room is one shared cache with no per-account tagging. Signing in as a
+    // different account used to show the previous account's data, and every
+    // domain the new account had no remote doc for got that data PUSHED to
+    // its Firestore (the "no remote doc -> seed from local" branch). Any
+    // sign-out path (menu, forgotten PIN, revoked token) is covered here.
+    private suspend fun ensureCacheBelongsTo(uid: String) {
+        val prefs = app.getSharedPreferences("rytm_cache_owner", android.content.Context.MODE_PRIVATE)
+        val owner = prefs.getString("uid", null)
+        if (owner != uid) {
+            stopRealtimeSync()
+            app.database.clearAllProfileScopedTables()
+            prefs.edit().putString("uid", uid).commit()
+        }
     }
 
     // Mirrors js/color-picker.js's switchProfile(): flush-then-reload,
@@ -157,6 +173,10 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // Shared ownership is rejected again here, not only by the UI.
     suspend fun resetOwnProfile(uid: String, profileId: String, activeProfileOwnerUid: String?) {
         require(activeProfileOwnerUid == null) { "Shared profiles cannot be reset" }
+        // Listeners off during the wipe: a realtime sync mid-delete pulled the
+        // docs back into Room and the final sync re-uploaded them (seen live —
+        // "reset" left all 449 transactions in place).
+        stopRealtimeSync()
         val profileCollection = FirebaseFirestore.getInstance()
             .collection("users").document(uid).collection("max_tracker")
         val financeRef = profileCollection.document(profileDocName("finance", profileId))
@@ -174,6 +194,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.financeRepository.seedFreshProfileDefaults()
         app.shiftsRepository.seedFreshProfileDefaults()
         syncAllDomains(uid, profileId)
+        startRealtimeSync(uid, profileId)
     }
 
     /** Keeps Room current when another signed-in client changes the active profile. */

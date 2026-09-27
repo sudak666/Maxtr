@@ -199,10 +199,17 @@ class AuthViewModel : ViewModel() {
         else -> R.string.auth_error_generic
     }
 
-    fun signOut() {
+    fun signOut(context: android.content.Context) {
         authMode = AuthMode.LOGIN
         formMessageRes = null
-        auth.signOut()
+        val app = context.applicationContext as RytmApplication
+        viewModelScope.launch {
+            // Listeners belong to this account. The cache itself stays when
+            // "offline cache" is on; ProfileSyncCoordinator wipes it if a
+            // different account signs in next.
+            app.profileSyncCoordinator.stopRealtimeSync()
+            auth.signOut()
+        }
     }
 
     var isDeletingAccount by mutableStateOf(false)
