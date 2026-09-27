@@ -1,5 +1,7 @@
 # Changelog
 
+- **Deployed `firestore:rules` + `hosting` after PR #490/#491 (2026-09-27)** from a clean `origin/main` (2e7e32d0) worktree. Live ruleset now has both `monobank_secret` and the codified `vchasnoUsers` block. PR #490 also fixed the `android` CI job (runner's sdkmanager 16.0 dropped the legacy `tools` package that `setup-android@v3` installs by default → `packages: platform-tools`). No Functions changes. Android build for Play not bumped/uploaded this session.
+
 - **Codified the live `vchasnoUsers/{uid}` Firestore rule into git (2026-09-27)**. It had been deployed 2026-09-06 from an uncommitted working tree (separate Vchasno Android app, same Firebase project) and existed only live — any rules deploy from `main` would have silently deleted it and broken Vchasno's cloud backup. Committed verbatim (checked against the live ruleset via the Rules API) before deploying PR #490's rules. Note: its `data.size() < 2000000` cap exceeds Firestore's 1 MiB doc limit, so it's effectively unbounded by the rule — harmless, left as-is to match live.
 
 - **Security/robustness audit fixes, batch 1 (2026-09-27)**. From a full audit requested by the account owner (app is live in Play closed testing, so every change keeps existing tester data working).
