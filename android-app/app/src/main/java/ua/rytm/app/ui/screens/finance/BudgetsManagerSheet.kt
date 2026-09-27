@@ -89,7 +89,7 @@ fun BudgetsManagerSheet(
 
 @Composable
 private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
-    val summary = if (limit > 0) stringResource(R.string.budgets_summary, limit.toInt()) else stringResource(R.string.budgets_unlimited)
+    val summary = if (limit > 0) stringResource(R.string.budgets_summary, formatMoney(limit)) else stringResource(R.string.budgets_unlimited)
 
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
@@ -109,7 +109,7 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
         }
 
         if (expanded) {
-            var limitText by remember(category) { mutableStateOf(if (limit == 0.0) "" else limit.toString()) }
+            var limitText by remember(category) { mutableStateOf(if (limit == 0.0) "" else formatMoney(limit)) }
             OutlinedTextField(
                 value = limitText,
                 onValueChange = { limitText = it },
@@ -126,7 +126,7 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
             )
             LaunchedEffect(limitText) {
                 delay(400)
-                val parsed = limitText.toDoubleOrNull() ?: 0.0
+                val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(limitText) ?: 0.0
                 if (parsed != limit) onLimitChange(parsed)
             }
         }

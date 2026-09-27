@@ -1,4 +1,7 @@
 package ua.rytm.app.ui.screens.finance
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,12 +59,23 @@ import ua.rytm.app.ui.icons.Edit
 fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
     val rules by repository.autoRules.collectAsState(initial = emptyList())
     val categories by repository.categoriesByType.collectAsState(initial = emptyMap())
-    val scope = rememberCoroutineScope()
     var expandedId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var saving by rememberSaveable { mutableStateOf(false) }
     var errorVisible by rememberSaveable { mutableStateOf(false) }
-    fun persist(block: suspend () -> Unit) { if (!saving) scope.launch { saving = true; runCatching { block(); sync.save(uid, profileId) }.onFailure { errorVisible = true }; saving = false } }
+    // App scope + a mutex: edits are serialized instead of dropped while a save is
+    // in flight, and a save started as the sheet closes still completes.
+    val appScope = (androidx.compose.ui.platform.LocalContext.current.applicationContext as ua.rytm.app.RytmApplication).appScope
+    val saveMutex = remember { kotlinx.coroutines.sync.Mutex() }
+    fun persist(block: suspend () -> Unit) {
+        appScope.launch {
+            saveMutex.lock()
+            try {
+                saving = true
+                runCatching { block(); sync.save(uid, profileId) }.onFailure { if (it !is kotlinx.coroutines.CancellationException) errorVisible = true }
+            } finally { saving = false; saveMutex.unlock() }
+        }
+    }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -119,7 +132,21 @@ private fun RuleEditor(rule: AutoRuleEntity, categories: Map<TxType, List<String
         val txType = if (newType == "income") TxType.INCOME else TxType.EXPENSE
         onUpdate(rule.copy(type = newType, category = categories[txType]?.firstOrNull().orEmpty()))
     }
-    OutlinedTextField(rule.keyword, { onUpdate(rule.copy(keyword = it)) }, label = { Text(stringResource(R.string.auto_rules_keyword)) }, placeholder = { Text(stringResource(R.string.auto_rules_example)) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+    // Local text + debounced save: binding the field straight to the persisted
+    // rule dropped keystrokes (each one round-tripped through Room/Firestore —
+    // "coffee" typed quickly was saved as "c") and wrote to Firestore per char.
+    var keyword by remember(rule.id) { mutableStateOf(rule.keyword) }
+    val latestRule by rememberUpdatedState(rule)
+    LaunchedEffect(keyword) {
+        kotlinx.coroutines.delay(400)
+        if (keyword != latestRule.keyword) onUpdate(latestRule.copy(keyword = keyword))
+    }
+    val latestKeyword by rememberUpdatedState(keyword)
+    DisposableEffect(rule.id) {
+        // Closing the editor/sheet inside the debounce window must not drop the edit.
+        onDispose { if (latestKeyword != latestRule.keyword) onUpdate(latestRule.copy(keyword = latestKeyword)) }
+    }
+    OutlinedTextField(keyword, { keyword = it }, label = { Text(stringResource(R.string.auto_rules_keyword)) }, placeholder = { Text(stringResource(R.string.auto_rules_example)) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
     RuleDropdown(R.string.tx_category, categories[type].orEmpty(), rule.category, false) { onUpdate(rule.copy(category = it)) }
 }
 

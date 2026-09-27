@@ -226,20 +226,20 @@ private fun GoalRow(
             // through the repository, and re-keying on the echoed value would
             // reset mid-typing local state back to whatever partial value was
             // last committed, silently truncating fast input.
-            var amountText by remember(goal.id) { mutableStateOf(if (goal.targetAmount == 0.0) "" else goal.targetAmount.toString()) }
+            var amountText by remember(goal.id) { mutableStateOf(if (goal.targetAmount == 0.0) "" else formatMoney(goal.targetAmount)) }
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { amountText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
-                supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                isError = amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null,
+                supportingText = if (amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 label = { Text(stringResource(R.string.goals_target_amount)) },
             )
             LaunchedEffect(amountText) {
                 delay(400)
-                val parsed = amountText.toDoubleOrNull() ?: 0.0
+                val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) ?: 0.0
                 if (parsed != goal.targetAmount) onTargetAmountChange(parsed)
             }
 

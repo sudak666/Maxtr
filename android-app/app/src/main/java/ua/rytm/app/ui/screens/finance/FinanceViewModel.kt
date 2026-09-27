@@ -288,7 +288,8 @@ class FinanceViewModel(
     fun onFormWalletChange(id: String) { formWalletId = id; persistDraft() }
     fun onFormTargetWalletChange(id: String) { formTargetWalletId = id; persistDraft() }
     fun onFormAmountChange(text: String) {
-        formAmountText = text
+        // Pasted/hardware-keyboard text could put letters into the amount field.
+        formAmountText = text.filter { it.isDigit() || it == '.' || it == ',' || it == ' ' || it == ' ' }
         formErrorRes = null
         formErrorField = null
         persistDraft()

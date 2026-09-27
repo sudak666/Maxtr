@@ -295,6 +295,18 @@ fun ShiftsScreen() {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (viewModel.shiftTypes.isEmpty()) {
+                    // A fresh profile has no shift types; the sheet used to be blank.
+                    Text(stringResource(R.string.shifts_no_types), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            viewModel.closeDayModal()
+                            quickFillShowingShiftTypes = true
+                            if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded()
+                        },
+                        shape = RoundedCornerShape(RytmRadii.Row),
+                    ) { Text(stringResource(R.string.shift_types_title)) }
+                }
                 viewModel.shiftTypes.forEach { type ->
                     ShiftSelectionRow(
                         type = type,
@@ -335,7 +347,7 @@ fun ShiftsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    text.toDoubleOrNull()?.let { scope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
+                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { scope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
                     editingGoal = false
                 }) { Text(stringResource(R.string.action_done)) }
             },
@@ -475,7 +487,7 @@ private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             // Boxes with no semantics at all. One spoken summary carries the
             // same information the sighted reading does.
             val monthAmounts = months.map { m ->
-                m.yearMonth.month.getDisplayName(TextStyle.FULL, locale) + " " +
+                m.yearMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale) + " " +
                     stringResource(R.string.money_uah, formatMoney(m.earned))
             }
             val chartSummary = stringResource(R.string.shifts_income_chart) + ": " + monthAmounts.joinToString(", ")
@@ -811,7 +823,7 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
                 Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month))
             }
             val locale = LocalConfiguration.current.locales[0]
-            val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL, locale) + " " + viewModel.visibleMonth.year
+            val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale) + " " + viewModel.visibleMonth.year
             Text(
                 label,
                 style = MaterialTheme.typography.titleMedium,

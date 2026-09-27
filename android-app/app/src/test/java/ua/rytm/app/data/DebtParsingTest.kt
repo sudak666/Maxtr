@@ -10,7 +10,7 @@ import ua.rytm.app.ui.screens.debt.autoDebtBalance
 class DebtParsingTest {
     @Test fun positiveIntegerParses() = assertEquals(250.0, parsePlainDebtAmount("250")!!, 0.0)
     @Test fun decimalParses() = assertEquals(250.75, parsePlainDebtAmount(" 250.75 ")!!, 0.0)
-    @Test fun commaDecimalIsNotPlainPwaNumber() = assertNull(parsePlainDebtAmount("250,75"))
+    @Test fun commaDecimalParses() = assertEquals(250.75, parsePlainDebtAmount("250,75")!!, 0.0)
     @Test fun negativeIsNotPlainPwaNumber() = assertNull(parsePlainDebtAmount("-20"))
     @Test fun scientificNotationIsNotPlainPwaNumber() = assertNull(parsePlainDebtAmount("2e3"))
     @Test fun textualAmountIsPreservedRatherThanAutoParsed() = assertNull(parsePlainDebtAmount("cash 250"))

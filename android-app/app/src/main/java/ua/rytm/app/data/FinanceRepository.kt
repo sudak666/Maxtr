@@ -427,9 +427,10 @@ class FinanceRepository(private val db: RytmDatabase) {
     // write in this app — Android has no continuous Firestore push yet (step 19's
     // disclosed scope), so newly materialized transactions stay local until the
     // remote catches up some other way.
-    suspend fun processRecurring(): Int {
+    /** Returns the materialized transactions; the caller must push them (and the advanced recurring dates) to Firestore. */
+    suspend fun processRecurring(): List<TransactionEntity> {
         val recurringList = db.recurringDao().getAllOnce()
-        if (recurringList.isEmpty()) return 0
+        if (recurringList.isEmpty()) return emptyList()
         val walletCurrency = db.walletDao().getAllOnce().associate { it.id to it.currency }
         val todayStr = java.time.LocalDate.now().toString()
         val newTx = mutableListOf<TransactionEntity>()
@@ -467,6 +468,6 @@ class FinanceRepository(private val db: RytmDatabase) {
             db.transactionDao().insertAll(newTx)
             updated.forEach { db.recurringDao().update(it) }
         }
-        return added
+        return newTx
     }
 }
