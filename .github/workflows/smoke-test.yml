@@ -354,6 +354,9 @@ jobs:
       - name: Lint (debug)
         run: ./gradlew lintDebug --no-daemon
 
+      - name: Unit tests (debug)
+        run: ./gradlew testDebugUnitTest --no-daemon
+
       # Cheap, dependency-free guard against the exact regression fixed in
       # PR #476 (see CHANGELOG.md / scripts/check-border-tokens.sh's own
       # doc comment): colorScheme.onSurfaceVariant reaching into a border
