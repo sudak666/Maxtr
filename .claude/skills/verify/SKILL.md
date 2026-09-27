@@ -1,5 +1,16 @@
 # Verify recipe for this repo (Rytm)
 
+> **Updated 2026-09-27 — read this first.** Parts of the recipe below predate
+> the Vite build, the `tests/*.mjs` suite and the native Android app. The
+> current sources of truth are CLAUDE.md → "Commands" (PWA: `npm run build`,
+> `npm run typecheck`, `npm run lint`, `node tests/<name>.mjs`; CI runs them
+> all) and CLAUDE.md → "Native Android — live-device testing & perf"
+> (`./gradlew assembleDebug`/`assembleQa`, wireless adb to the owner's A51).
+> The stub-Firebase Playwright technique below is still how the PWA tests
+> work; paths like `/home/user/Maxtr` refer to the old cloud sandbox — use the
+> repo root on this machine.
+
+
 No build step, no test runner (see `CLAUDE.md`). The app is one static
 `index.html` that talks to real Firebase (`maxtr-c238f`) over the network.
 Verification means: serve the file locally, intercept the Firebase SDK
