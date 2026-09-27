@@ -34,6 +34,9 @@ data class MonobankConnection(
 )
 data class MonobankSyncProgress(val current: Int, val total: Int)
 class MonobankHttpException(val status: Int, message: String) : Exception(message)
+class MonobankNoAccountsException : Exception("no-accounts")
+/** The token lives in an owner-only doc, so a shared-profile member can't sync. */
+class MonobankOwnerOnlyException : Exception("owner-only")
 
 class MonobankRepository(
     private val db: RytmDatabase,
@@ -81,7 +84,7 @@ class MonobankRepository(
         require(token.isNotBlank()) { "Введіть токен Monobank" }
         val info = request("client-info", emptyMap(), token) as? JSONObject ?: error("Некоректна відповідь Monobank")
         val accounts = buildAccounts(info)
-        require(accounts.isNotEmpty()) { "У Monobank не знайдено карток або банок" }
+        if (accounts.isEmpty()) throw MonobankNoAccountsException()
         val existing = db.walletDao().getAllOnce()
         val palette = listOf(0xFF8B5CF6, 0xFF10B981, 0xFF3B82F6, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4)
         val wallets = accounts.mapIndexed { index, account ->
@@ -119,9 +122,9 @@ class MonobankRepository(
         connection: MonobankConnection,
         onProgress: (MonobankSyncProgress) -> Unit,
     ): Pair<MonobankConnection, Int> {
-        require(connection.token.isNotBlank()) { "missing-token" }
+        if (connection.token.isBlank()) throw MonobankOwnerOnlyException()
         val entries = connection.mapping.entries.toList()
-        require(entries.isNotEmpty()) { "У Monobank не знайдено рахунків" }
+        if (entries.isEmpty()) throw MonobankNoAccountsException()
         val nowSec = System.currentTimeMillis() / 1000L
         val fromSec = connection.lastSyncAt ?: nowSec - MAX_WINDOW_SEC
         val knownIds = db.transactionDao().getAllMonobankIds().toMutableSet()
