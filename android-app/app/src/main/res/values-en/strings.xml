@@ -72,7 +72,7 @@
     <string name="recurring_add">Add recurring payment</string><string name="recurring_delete_title">Delete recurring payment</string>
     <string name="recurring_delete_body">Delete this recurring payment?</string>
     <string name="frequency_daily">Daily</string><string name="frequency_weekly">Weekly</string><string name="frequency_monthly">Monthly</string><string name="frequency_label">Frequency</string>
-    <string name="recurring_summary">%1$s · UAH %2$d · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · UAH %2$d · %3$s · %4$s · paused</string>
+    <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · paused</string>
     <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
     <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
     <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string><string name="analytics_balance_label">Balance</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">UAH %1$s average</string><string name="analytics_maximum_uah">UAH %1$s maximum</string>
@@ -94,7 +94,7 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
-    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$d/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$s/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
     <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
     <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
     <string name="action_reorder">Drag to reorder</string><string name="widgets_sync_failed">Could not sync widget settings</string>
@@ -159,7 +159,7 @@
     <string name="onboarding_shifts_title">Your work rhythm</string>
     <string name="onboarding_shifts_body">Plan shifts, calculate income, and forecast your working month.</string>
     <string name="onboarding_security_title">Privacy and synchronization</string>
-    <string name="onboarding_security_body">Data is synchronized through your Firebase account. PIN and biometrics protect access on this device.</string>
+    <string name="onboarding_security_body">Data is synced across your devices via your account. PIN and biometrics protect access on this device.</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_clear">Clear</string>
     <string name="action_choose_date">Choose date</string>
@@ -183,7 +183,7 @@
     <string name="shift_type_delete_title">Delete shift type</string>
     <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
     <string name="shift_day_off">Day off</string>
-    <string name="shift_type_summary">%1$d UAH · %2$s hr</string>
+    <string name="shift_type_summary">%1$s UAH · %2$s hr</string>
     <string name="shift_pay">Pay</string>
     <string name="shift_hours">Hours</string>
     <string name="shift_day_off_unpaid">Day off (unpaid)</string>
@@ -429,4 +429,7 @@
     <string name="common_loading">Loading…</string>
     <string name="action_retry">Retry</string>
     <string name="common_data_load_failed">Could not load data</string>
+    <string name="category_icon_option">Icon %1$d of %2$d</string>
+    <string name="shifts_no_types">No shift types yet — create the first one.</string>
+    <string name="action_copy_code">Copy code</string>
 </resources>

@@ -153,7 +153,10 @@ private fun RecurringRow(
     val expenseLabel = stringResource(R.string.tx_expense)
     val frequencyOptions = listOf("daily" to stringResource(R.string.frequency_daily), "weekly" to stringResource(R.string.frequency_weekly), "monthly" to stringResource(R.string.frequency_monthly))
     val freqLabel = frequencyOptions.firstOrNull { it.first == r.frequency }?.second ?: stringResource(R.string.frequency_monthly)
-    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category), r.amount.toInt(), freqLabel, r.nextDate)
+    val summary = stringResource(if (r.active) R.string.recurring_summary else R.string.recurring_summary_inactive, localizedDomainText(r.category),
+        formatMoney(r.amount) + " " + currencySymbol(wallets.firstOrNull { it.id == r.walletId }?.currency ?: "UAH"),
+        freqLabel,
+        runCatching { java.time.LocalDate.parse(r.nextDate).format(ua.rytm.app.ui.components.NumericDateFormatter) }.getOrDefault(r.nextDate))
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -183,12 +186,12 @@ private fun RecurringRow(
                     modifier = Modifier.weight(1f),
                 )
 
-                var amountText by remember(r.id, r.amount) { mutableStateOf(if (r.amount == 0.0) "" else r.amount.toString()) }
+                var amountText by remember(r.id, r.amount) { mutableStateOf(if (r.amount == 0.0) "" else formatMoney(r.amount)) }
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
-                    isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
-                    supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    isError = amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null,
+                    supportingText = if (amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
@@ -196,7 +199,7 @@ private fun RecurringRow(
                 )
                 LaunchedEffect(amountText) {
                     delay(400)
-                    val parsed = amountText.toDoubleOrNull() ?: 0.0
+                    val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) ?: 0.0
                     if (parsed != r.amount) onAmountChange(parsed)
                 }
             }

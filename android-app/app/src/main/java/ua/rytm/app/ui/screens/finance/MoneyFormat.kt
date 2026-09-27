@@ -16,7 +16,7 @@ fun formatMoney(amount: Double, locale: Locale = Locale.getDefault()): String =
             maximumFractionDigits = 2
             minimumFractionDigits = 0
         }
-    }.format(amount)
+    }.format(amount).replace('-', '−') // typographic minus, matching the "−" used for signed amounts
 
 /** Accepts the decimal comma produced by Ukrainian keyboards while keeping
  * the value stored as a locale-neutral Double. Grouping spaces are ignored. */
@@ -25,6 +25,7 @@ fun parseMoneyInput(value: String): Double? = value
     .replace(" ", "")
     .replace("\u00A0", "")
     .replace("\u202F", "")
+    .replace('−', '-')
     .replace(',', '.')
     .takeIf { it.count { char -> char == '.' } <= 1 }
     ?.toDoubleOrNull()

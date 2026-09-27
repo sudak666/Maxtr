@@ -78,7 +78,7 @@
     <string name="recurring_add">Додати регулярний платіж</string><string name="recurring_delete_title">Видалити регулярний платіж</string>
     <string name="recurring_delete_body">Видалити цей регулярний платіж?</string>
     <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
-    <string name="recurring_summary">%1$s · %2$d грн · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$d грн · %3$s · %4$s · на паузі</string>
+    <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
     <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
     <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s грн середнє</string><string name="analytics_maximum_uah">%1$s грн максимум</string>
@@ -100,7 +100,7 @@
     <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$d грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_reorder">Перетягнути, щоб змінити порядок</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -165,7 +165,7 @@
     <string name="onboarding_shifts_title">Робочий ритм</string>
     <string name="onboarding_shifts_body">Плануйте зміни, рахуйте дохід і прогнозуйте робочий місяць.</string>
     <string name="onboarding_security_title">Приватність і синхронізація</string>
-    <string name="onboarding_security_body">Дані синхронізуються через ваш Firebase-акаунт. PIN і біометрія захищають доступ на пристрої.</string>
+    <string name="onboarding_security_body">Дані синхронізуються між вашими пристроями через акаунт. PIN і біометрія захищають доступ на пристрої.</string>
     <string name="action_cancel">Скасувати</string>
     <string name="action_clear">Очистити</string>
     <string name="action_choose_date">Обрати дату</string>
@@ -189,7 +189,7 @@
     <string name="shift_type_delete_title">Видалити тип зміни</string>
     <string name="shift_type_delete_body">Видалити цей тип зміни? Він буде знятий з усіх днів календаря.</string>
     <string name="shift_day_off">Вихідний</string>
-    <string name="shift_type_summary">%1$d грн · %2$s год</string>
+    <string name="shift_type_summary">%1$s грн · %2$s год</string>
     <string name="shift_pay">Оплата</string>
     <string name="shift_hours">Години</string>
     <string name="shift_day_off_unpaid">Вихідний (без оплати)</string>
@@ -435,4 +435,7 @@
     <string name="common_loading">Завантаження…</string>
     <string name="action_retry">Повторити</string>
     <string name="common_data_load_failed">Не вдалося завантажити дані</string>
+    <string name="category_icon_option">Іконка %1$d з %2$d</string>
+    <string name="shifts_no_types">Ще немає типів змін — створіть перший.</string>
+    <string name="action_copy_code">Копіювати код</string>
 </resources>

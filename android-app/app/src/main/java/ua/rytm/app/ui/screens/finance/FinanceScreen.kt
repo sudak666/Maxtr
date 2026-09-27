@@ -520,7 +520,7 @@ private fun MiniStatCard(label: String, value: Double, positive: Boolean, modifi
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
-                text = maskedAmount(stringResource(R.string.finance_signed_uah, if (positive) "+" else "−", formatMoney(value))),
+                text = maskedAmount(stringResource(R.string.finance_signed_uah, if (value == 0.0) "" else if (positive) "+" else "−", formatMoney(value))),
                 style = MaterialTheme.typography.titleMedium.tabularNums(),
                 fontWeight = FontWeight.Bold,
                 color = valueColor,

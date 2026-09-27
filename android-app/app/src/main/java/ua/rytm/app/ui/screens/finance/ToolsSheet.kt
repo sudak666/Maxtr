@@ -447,7 +447,7 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val progress = motionProgress(months, 500)
         val chartLocale = LocalConfiguration.current.locales[0]
         val lineSummary = stringResource(R.string.analytics_six_months) + ": " + months.mapIndexed { i, m ->
-            m.yearMonth.month.getDisplayName(TextStyle.FULL, chartLocale) + " " + formatMoney(values[i])
+            m.yearMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, chartLocale) + " " + formatMoney(values[i])
         }.joinToString(", ")
         Canvas(
             Modifier.fillMaxWidth().height(140.dp)

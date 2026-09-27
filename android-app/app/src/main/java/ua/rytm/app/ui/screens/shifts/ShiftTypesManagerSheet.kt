@@ -166,7 +166,7 @@ private fun ShiftTypeRow(
     onIsOffChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, type.amount.toInt(), type.hours)
+    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, ua.rytm.app.ui.screens.finance.formatMoney(type.amount), ua.rytm.app.ui.screens.finance.formatMoney(type.hours))
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -188,8 +188,8 @@ private fun ShiftTypeRow(
 
         if (expanded) {
             var nameText by remember(type.id) { mutableStateOf(type.name) }
-            var amountText by remember(type.id) { mutableStateOf(if (type.amount == 0.0) "" else type.amount.toString()) }
-            var hoursText by remember(type.id) { mutableStateOf(if (type.hours == 0.0) "" else type.hours.toString()) }
+            var amountText by remember(type.id) { mutableStateOf(if (type.amount == 0.0) "" else ua.rytm.app.ui.screens.finance.formatMoney(type.amount)) }
+            var hoursText by remember(type.id) { mutableStateOf(if (type.hours == 0.0) "" else ua.rytm.app.ui.screens.finance.formatMoney(type.hours)) }
 
             OutlinedTextField(
                 value = nameText,
@@ -211,14 +211,14 @@ private fun ShiftTypeRow(
                     onValueChange = { amountText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    isError = amountText.isNotBlank() && amountText.toDoubleOrNull() == null,
-                    supportingText = if (amountText.isNotBlank() && amountText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    isError = amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null,
+                    supportingText = if (amountText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     label = { Text(stringResource(R.string.shift_pay)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(amountText) {
                     kotlinx.coroutines.delay(400)
-                    val parsed = amountText.toDoubleOrNull() ?: 0.0
+                    val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText) ?: 0.0
                     if (parsed != type.amount) onAmountChange(parsed)
                 }
 
@@ -227,14 +227,14 @@ private fun ShiftTypeRow(
                     onValueChange = { hoursText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    isError = hoursText.isNotBlank() && hoursText.toDoubleOrNull() == null,
-                    supportingText = if (hoursText.isNotBlank() && hoursText.toDoubleOrNull() == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                    isError = hoursText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(hoursText) == null,
+                    supportingText = if (hoursText.isNotBlank() && ua.rytm.app.ui.screens.finance.parseMoneyInput(hoursText) == null) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     label = { Text(stringResource(R.string.shift_hours)) },
                 )
                 androidx.compose.runtime.LaunchedEffect(hoursText) {
                     kotlinx.coroutines.delay(400)
-                    val parsed = hoursText.toDoubleOrNull() ?: 0.0
+                    val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(hoursText) ?: 0.0
                     if (parsed != type.hours) onHoursChange(parsed)
                 }
             }

@@ -109,7 +109,7 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun updateInfo(name: String, note: String, currency: String, startAmount: Double, dueDate: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) {
+        mutate(cd.id, dropIfBusy = false) {
             repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
         }
     }
@@ -128,9 +128,10 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun addEntry(amountText: String, balanceText: String, dateText: String) {
         val cd = currentDebt ?: return
-        val amount = amountText.trim()
+        // A comma-decimal plain number is stored as "200.5" so the PWA parses it too.
+        val amount = amountText.trim().let { if (parsePlainDebtAmount(it) != null) it.replace(',', '.') else it }
         if (amount.isEmpty()) { errorMessageRes = R.string.debt_amount_required; return }
-        var balance = balanceText.toDoubleOrNull()
+        var balance = ua.rytm.app.ui.screens.finance.parseMoneyInput(balanceText)
         if (balance == null) {
             val plain = parsePlainDebtAmount(amount)
             balance = if (plain != null) cd.currentBalance() - plain else { errorMessageRes = R.string.debt_balance_required; return }
@@ -144,17 +145,17 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
 
     fun updateEntryAmount(entry: DebtEntry, amount: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(amount = amount)) }
+        mutate(cd.id, dropIfBusy = false) { repository.updateEntry(cd.id, entry.copy(amount = amount)) }
     }
 
     fun updateEntryBalance(entry: DebtEntry, balanceText: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(balance = balanceText.toDoubleOrNull() ?: 0.0)) }
+        mutate(cd.id, dropIfBusy = false) { repository.updateEntry(cd.id, entry.copy(balance = ua.rytm.app.ui.screens.finance.parseMoneyInput(balanceText) ?: 0.0)) }
     }
 
     fun updateEntryDate(entry: DebtEntry, date: String) {
         val cd = currentDebt ?: return
-        mutate(cd.id) { repository.updateEntry(cd.id, entry.copy(date = normalizeDebtEntryDate(date))) }
+        mutate(cd.id, dropIfBusy = false) { repository.updateEntry(cd.id, entry.copy(date = normalizeDebtEntryDate(date))) }
     }
 
     fun requestDeleteEntry(id: Long) { pendingDeleteEntryId = id }
@@ -166,30 +167,36 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     }
     fun cancelDeleteEntry() { pendingDeleteEntryId = null }
 
-    private fun mutate(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
-        if (saving) return
-        viewModelScope.launch {
-            val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
-            val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
-            if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
-                errorMessageRes = R.string.profile_read_only
-                return@launch
-            }
-            val ownerUid = activeOwnerUid ?: accountUid
-            val before = repository.snapshot()
-            saving = true
-            try {
-                change()
-                app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                repository.restore(before)
-                errorMessageRes = R.string.common_save_failed
-            } finally {
-                saving = false
-            }
+    // Field edits commit on every keystroke; dropping them while a save was in
+    // flight kept only the first character ("1000,5" saved as 1, seen live).
+    // Edits queue behind the mutex; add/delete keep the double-tap drop.
+    private val saveMutex = kotlinx.coroutines.sync.Mutex()
+    private fun mutate(nextCurrentDebtId: Long?, dropIfBusy: Boolean = true, change: suspend () -> Unit) {
+        if (dropIfBusy && saving) return
+        viewModelScope.launch { saveMutex.lock(); try { mutateLocked(nextCurrentDebtId, change) } finally { saveMutex.unlock() } }
+    }
+
+    private suspend fun mutateLocked(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
+        val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
+        val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
+        if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
+            errorMessageRes = R.string.profile_read_only
+            return
+        }
+        val ownerUid = activeOwnerUid ?: accountUid
+        val before = repository.snapshot()
+        saving = true
+        try {
+            change()
+            app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            repository.restore(before)
+            errorMessageRes = R.string.common_save_failed
+        } finally {
+            saving = false
         }
     }
 }

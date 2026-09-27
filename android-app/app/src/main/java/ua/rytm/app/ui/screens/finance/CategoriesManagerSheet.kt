@@ -197,7 +197,6 @@ fun CategoriesManagerSheet(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     OutlinedTextField(
-                                        isError = newSubName.isBlank(),
                                         value = newSubName,
                                         onValueChange = { newSubName = it },
                                         label = { Text(stringResource(R.string.subcategory_label)) },
@@ -217,7 +216,6 @@ fun CategoriesManagerSheet(
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    isError = newName.isBlank(),
                     label = { Text(stringResource(R.string.category_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
@@ -283,10 +281,12 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                gridItems(icons.entries.toList()) { (name, icon) ->
+                val entries = icons.entries.toList()
+                gridItems(entries) { (name, icon) ->
                     Icon(
                         icon,
-                        contentDescription = name,
+                        // Keys are internal ids ("trendUp"); TalkBack gets a localized position instead.
+                        contentDescription = stringResource(R.string.category_icon_option, entries.indexOfFirst { it.key == name } + 1, entries.size),
                         modifier = Modifier
                             .size(RytmDimens.TouchTarget)
                             .clip(CircleShape)

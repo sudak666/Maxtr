@@ -3,13 +3,13 @@ package ua.rytm.app.ui.screens.debt
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-private val plainPaymentPattern = Regex("^\\d+(\\.\\d+)?$")
+private val plainPaymentPattern = Regex("^\\d+([.,]\\d+)?$")
 
-/** Exact equivalent of the PWA's plain-number payment check. */
+/** The PWA's plain-number payment check, plus the decimal comma Ukrainian keyboards type (stored normalized to '.'). */
 fun parsePlainDebtAmount(value: String): Double? {
     val trimmed = value.trim()
     if (!plainPaymentPattern.matches(trimmed)) return null
-    return trimmed.toDoubleOrNull()
+    return trimmed.replace(',', '.').toDoubleOrNull()
 }
 
 private val debtDisplayDate = DateTimeFormatter.ofPattern("dd.MM.yyyy")

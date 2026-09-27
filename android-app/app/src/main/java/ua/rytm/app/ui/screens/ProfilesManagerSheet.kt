@@ -152,6 +152,14 @@ fun ProfilesManagerSheet(
             title = { Text(stringResource(R.string.profile_invite_code)) },
             text = { Text(stringResource(R.string.profile_invite_body, code)) },
             confirmButton = { TextButton(onClick = viewModel::consumeInviteCode) { Text(stringResource(R.string.action_done)) } },
+            // The code had to be retyped by hand into a messenger before.
+            dismissButton = {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                TextButton(onClick = {
+                    val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
+                    clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("Rytm", code))
+                }) { Text(stringResource(R.string.action_copy_code)) }
+            },
         )
     }
 

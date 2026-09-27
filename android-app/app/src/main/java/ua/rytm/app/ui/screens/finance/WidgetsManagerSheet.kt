@@ -2,6 +2,7 @@ package ua.rytm.app.ui.screens.finance
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -163,7 +164,9 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         Box(Modifier.size(34.dp).background(item.color.copy(alpha = .16f), CircleShape), contentAlignment = Alignment.Center) {
                             Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
                         }
-                        Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                        val enabled = item.key in config.enabled
+                        // The label toggles too — a tap on the row text did nothing before.
+                        Column(Modifier.weight(1f).clickable { update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = 12.dp)) {
                             Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

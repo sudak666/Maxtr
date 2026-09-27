@@ -456,10 +456,10 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
             var name by remember(cd.id) { mutableStateOf(cd.name) }
             var note by remember(cd.id) { mutableStateOf(cd.note) }
             var currency by remember(cd.id) { mutableStateOf(cd.currency) }
-            var startAmount by remember(cd.id) { mutableStateOf(if (cd.startAmount == 0.0) "" else cd.startAmount.toString()) }
+            var startAmount by remember(cd.id) { mutableStateOf(if (cd.startAmount == 0.0) "" else ua.rytm.app.ui.screens.finance.formatMoney(cd.startAmount)) }
             var dueDate by remember(cd.id) { mutableStateOf(cd.dueDate) }
 
-            fun commit() { viewModel.updateInfo(name, note, currency, startAmount.toDoubleOrNull() ?: 0.0, dueDate) }
+            fun commit() { viewModel.updateInfo(name, note, currency, ua.rytm.app.ui.screens.finance.parseMoneyInput(startAmount) ?: 0.0, dueDate) }
 
             Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.field_name)) })
@@ -597,7 +597,7 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("${entry.amount} $currency", fontWeight = FontWeight.SemiBold)
+                            Text("${parsePlainDebtAmount(entry.amount)?.let { ua.rytm.app.ui.screens.finance.formatMoney(it) } ?: entry.amount} $currency", fontWeight = FontWeight.SemiBold)
                             Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit)) }

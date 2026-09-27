@@ -53,7 +53,6 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         viewModelScope.launch { lockedUntil = pinStore.lockedUntil(uid) }
     }
 
-    private var verifying = false
 
     // Settings-sheet-only state (new/confirm PIN entry), kept separate from
     // the unlock-screen's own pinInput so opening Settings mid-unlock-flow
@@ -65,7 +64,9 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         private set
 
     fun press(digit: String) {
-        if (pinInput.length >= 6 || verifying) return
+        // Not gated on an in-flight check: PBKDF2 takes ~0.3-0.5s on low-end
+        // phones, and digits typed meanwhile used to be silently dropped.
+        if (pinInput.length >= 6) return
         if (System.currentTimeMillis() < lockedUntil) { errorMessageRes = R.string.pin_error_locked; return }
         pinInput += digit
         // A saved PIN is 4-6 digits and this screen doesn't know the real
@@ -83,22 +84,17 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
 
     fun tryUnlock(silentIfMismatchAndNotFull: Boolean = false) {
         val entered = pinInput
-        verifying = true
         viewModelScope.launch {
-            try {
-                if (pinStore.verifyPin(uid, entered)) {
-                    pinStore.clearFailures(uid)
-                    lockedUntil = 0L
-                    isUnlocked = true
-                    errorMessageRes = null
-                    pinInput = ""
-                } else if (!silentIfMismatchAndNotFull) {
-                    lockedUntil = pinStore.registerFailure(uid)
-                    errorMessageRes = if (lockedUntil > System.currentTimeMillis()) R.string.pin_error_locked else R.string.pin_error_invalid
-                    pinInput = ""
-                }
-            } finally {
-                verifying = false
+            if (pinStore.verifyPin(uid, entered)) {
+                pinStore.clearFailures(uid)
+                lockedUntil = 0L
+                isUnlocked = true
+                errorMessageRes = null
+                pinInput = ""
+            } else if (!silentIfMismatchAndNotFull && pinInput == entered) {
+                lockedUntil = pinStore.registerFailure(uid)
+                errorMessageRes = if (lockedUntil > System.currentTimeMillis()) R.string.pin_error_locked else R.string.pin_error_invalid
+                pinInput = ""
             }
         }
     }
