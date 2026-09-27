@@ -64,9 +64,10 @@ class RytmApplication : Application() {
     }
 
     val database: RytmDatabase by lazy {
-        // Pre-launch, no real users yet (CLAUDE.md convention) — a destructive
-        // fallback across local schema bumps is fine; there's no user data to
-        // protect through a real migration path.
+        // Room is a cache of Firestore, so the destructive fallback re-pulls
+        // from the cloud — but it drops any not-yet-synced local edits, and
+        // the app now has Play testers. Every schema bump from v16 on must
+        // ship a real Migration (schemas/ is exported for exactly that).
         Room.databaseBuilder(this, RytmDatabase::class.java, "rytm.db")
             .addMigrations(object : Migration(13, 14) {
                 override fun migrate(db: SupportSQLiteDatabase) {

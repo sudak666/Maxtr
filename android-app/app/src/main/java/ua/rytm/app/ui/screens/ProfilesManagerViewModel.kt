@@ -1,5 +1,8 @@
 package ua.rytm.app.ui.screens
 
+import kotlinx.coroutines.CancellationException
+import ua.rytm.app.ui.components.TapThrottle
+
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -123,12 +126,20 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         }
     }
 
+    private val addThrottle = TapThrottle()
+
     fun addProfile(name: String) {
         val clean = name.trim()
-        if (clean.isEmpty()) return
+        if (clean.isEmpty() || !addThrottle.allow()) return
         viewModelScope.launch {
-            app.profilesRepository.addProfile(uid, clean)
-            reload()
+            try {
+                app.profilesRepository.addProfile(uid, clean)
+                reload()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessageRes = R.string.common_save_retry
+            }
         }
     }
 
@@ -136,8 +147,14 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         val clean = name.trim()
         if (clean.isEmpty()) return
         viewModelScope.launch {
-            app.profilesRepository.renameProfile(uid, id, clean)
-            reload()
+            try {
+                app.profilesRepository.renameProfile(uid, id, clean)
+                reload()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessageRes = R.string.common_save_retry
+            }
         }
     }
 
@@ -162,8 +179,14 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         val id = pendingDeleteId ?: return
         pendingDeleteId = null
         viewModelScope.launch {
-            app.profilesRepository.deleteProfile(uid, id)
-            reload()
+            try {
+                app.profilesRepository.deleteProfile(uid, id)
+                reload()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessageRes = R.string.common_save_retry
+            }
         }
     }
 

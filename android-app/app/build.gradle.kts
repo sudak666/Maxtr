@@ -21,6 +21,12 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
 
+// Room schema JSON is exported and committed so every future version bump
+// can be diffed and covered by a real Migration instead of the destructive fallback.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "ua.rytm.app"
     compileSdk = 37

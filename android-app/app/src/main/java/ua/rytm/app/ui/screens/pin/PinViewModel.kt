@@ -45,6 +45,16 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         private set
     fun consumeError() { errorMessageRes = null }
 
+    /** Epoch ms until which entry is locked after repeated wrong PINs (0 = not locked). */
+    var lockedUntil by mutableStateOf(0L)
+        private set
+
+    init {
+        viewModelScope.launch { lockedUntil = pinStore.lockedUntil(uid) }
+    }
+
+    private var verifying = false
+
     // Settings-sheet-only state (new/confirm PIN entry), kept separate from
     // the unlock-screen's own pinInput so opening Settings mid-unlock-flow
     // (impossible in practice, since Settings lives behind the lock, but
@@ -55,7 +65,8 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
         private set
 
     fun press(digit: String) {
-        if (pinInput.length >= 6) return
+        if (pinInput.length >= 6 || verifying) return
+        if (System.currentTimeMillis() < lockedUntil) { errorMessageRes = R.string.pin_error_locked; return }
         pinInput += digit
         // A saved PIN is 4-6 digits and this screen doesn't know the real
         // length in advance (only a hash is stored) — so try a real unlock
@@ -72,19 +83,29 @@ class PinViewModel(private val pinStore: PinStore, val uid: String) : ViewModel(
 
     fun tryUnlock(silentIfMismatchAndNotFull: Boolean = false) {
         val entered = pinInput
+        verifying = true
         viewModelScope.launch {
-            if (pinStore.verifyPin(uid, entered)) {
-                isUnlocked = true
-                errorMessageRes = null
-                pinInput = ""
-            } else if (!silentIfMismatchAndNotFull) {
-                errorMessageRes = R.string.pin_error_invalid
-                pinInput = ""
+            try {
+                if (pinStore.verifyPin(uid, entered)) {
+                    pinStore.clearFailures(uid)
+                    lockedUntil = 0L
+                    isUnlocked = true
+                    errorMessageRes = null
+                    pinInput = ""
+                } else if (!silentIfMismatchAndNotFull) {
+                    lockedUntil = pinStore.registerFailure(uid)
+                    errorMessageRes = if (lockedUntil > System.currentTimeMillis()) R.string.pin_error_locked else R.string.pin_error_invalid
+                    pinInput = ""
+                }
+            } finally {
+                verifying = false
             }
         }
     }
 
     fun unlockWithBiometric() {
+        viewModelScope.launch { pinStore.clearFailures(uid) }
+        lockedUntil = 0L
         isUnlocked = true
         errorMessageRes = null
         pinInput = ""

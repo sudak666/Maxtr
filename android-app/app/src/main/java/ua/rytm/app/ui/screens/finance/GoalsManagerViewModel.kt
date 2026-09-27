@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.components.TapThrottle
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -69,7 +71,10 @@ class GoalsManagerViewModel(
         expandedId = if (expandedId == id) null else id
     }
 
+    private val addThrottle = TapThrottle()
+
     fun addGoal() {
+        if (!addThrottle.allow()) return
         mutateAndSync { repository.addGoal() }
     }
 

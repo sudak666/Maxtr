@@ -127,16 +127,16 @@ class FinanceViewModel(
 
     init {
         restoreDraft()
-        viewModelScope.launch { repository.seedIfEmpty() }
+        viewModelScope.launch { runCatching { repository.seedIfEmpty() }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; markLoadFailed() } }
         repository.wallets.onEach { wallets = it; walletsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.transactions.onEach { transactions = it; transactionsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
-        repository.categoriesByType.onEach { categoriesByType = it }.launchIn(viewModelScope)
-        repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.launchIn(viewModelScope)
-        repository.tags.onEach { tags = it }.launchIn(viewModelScope)
-        repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
-        repository.autoRules.onEach { autoRules = it }.launchIn(viewModelScope)
-        repository.currencyRates.onEach { currencyRates = it }.launchIn(viewModelScope)
-        repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
+        repository.categoriesByType.onEach { categoriesByType = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.subcategoriesByKey.onEach { subcategoriesByKey = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.tags.onEach { tags = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.categoryIcons.onEach { categoryIcons = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.autoRules.onEach { autoRules = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.currencyRates.onEach { currencyRates = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
