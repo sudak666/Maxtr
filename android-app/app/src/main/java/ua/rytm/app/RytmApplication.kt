@@ -121,6 +121,12 @@ class RytmApplication : Application() {
     val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
     /** Process-lifetime scope for work that must outlive any single screen. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /**
+     * One-shot action requested from outside the UI (home-screen widget "+").
+     * Held until a screen consumes it, so it survives the PIN gate.
+     */
+    val pendingLaunchAction = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
     val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
     val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }

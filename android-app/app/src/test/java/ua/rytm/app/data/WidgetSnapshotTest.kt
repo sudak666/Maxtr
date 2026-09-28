@@ -38,5 +38,11 @@ class WidgetSnapshotTest {
 
     @Test fun forecastUsesCurrentMonth() = assertEquals(3000.0, snap(mapOf("2026-09-01" to listOf("d"), "2026-09-30" to listOf("d"))).monthForecastUah, 0.0)
 
+    @Test fun shiftCodeFallsBackToFirstLetter() {
+        val noCode = day.copy(code = "")
+        val s = WidgetSnapshot.compute(today, wallets, txs, emptyMap(), listOf(noCode), mapOf("2026-09-29" to listOf("d")), AutoFillSchedule(), false)
+        assertEquals("Д", s.nextShift!!.code)
+    }
+
     @Test fun maskedFlagPassesThrough() = assertEquals(true, snap(emptyMap(), masked = true).masked)
 }

@@ -59,6 +59,7 @@ class MainActivity : FragmentActivity() {
         // background is pure overdraw once the first frame is up.
         window.decorView.post { window.setBackgroundDrawable(null) }
         val app = application as RytmApplication
+        handleLaunchAction(intent)
         setContent {
             // Nullable initial on purpose (same reasoning as `hasPin` below):
             // committing to a theme before DataStore is read guaranteed a
@@ -163,5 +164,19 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        handleLaunchAction(intent)
+    }
+
+    private fun handleLaunchAction(intent: android.content.Intent?) {
+        intent?.getStringExtra(EXTRA_LAUNCH_ACTION)?.let { (application as RytmApplication).pendingLaunchAction.value = it }
+    }
+
+    companion object {
+        const val EXTRA_LAUNCH_ACTION = "ua.rytm.app.LAUNCH_ACTION"
+        const val ACTION_NEW_TRANSACTION = "new_transaction"
     }
 }
