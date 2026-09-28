@@ -27,11 +27,18 @@ import ua.rytm.app.data.SharedMemberInfo
 // redeemSharedInvite()/leaveSharedProfile() for joining/hosting a shared
 // profile — see ProfilesRepository's own doc comment for why granular
 // editor/viewer roles aren't ported yet.
-class ProfilesManagerViewModel(private val app: RytmApplication, private val uid: String) : ViewModel() {
+class ProfilesManagerViewModel(
+    private val profilesRepository: ua.rytm.app.data.ProfilesRepository,
+    private val activeProfileStore: ua.rytm.app.data.local.ActiveProfileStore,
+    private val switchProfile: suspend (uid: String, profileId: String, ownerUid: String?) -> Unit,
+    private val uid: String,
+) : ViewModel() {
 
     companion object {
         fun factory(app: RytmApplication, uid: String) = viewModelFactory {
-            initializer { ProfilesManagerViewModel(app, uid) }
+            initializer {
+                ProfilesManagerViewModel(app.profilesRepository, app.activeProfileStore, app.profileSyncCoordinator::switchProfile, uid)
+            }
         }
     }
 
@@ -93,8 +100,8 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         private set
 
     init {
-        app.activeProfileStore.activeProfileId(uid).onEach { activeProfileId = it }.launchIn(viewModelScope)
-        app.activeProfileStore.activeProfileOwnerUid(uid).onEach { activeProfileOwnerUid = it }.launchIn(viewModelScope)
+        activeProfileStore.activeProfileId(uid).onEach { activeProfileId = it }.launchIn(viewModelScope)
+        activeProfileStore.activeProfileOwnerUid(uid).onEach { activeProfileOwnerUid = it }.launchIn(viewModelScope)
         reload()
     }
 
@@ -117,7 +124,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         viewModelScope.launch {
             loading = true
             try {
-                profiles = app.profilesRepository.list(uid)
+                profiles = profilesRepository.list(uid)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -135,7 +142,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         if (clean.isEmpty() || !addThrottle.allow()) return
         viewModelScope.launch {
             try {
-                app.profilesRepository.addProfile(uid, clean)
+                profilesRepository.addProfile(uid, clean)
                 reload()
             } catch (e: CancellationException) {
                 throw e
@@ -150,7 +157,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         if (clean.isEmpty()) return
         viewModelScope.launch {
             try {
-                app.profilesRepository.renameProfile(uid, id, clean)
+                profilesRepository.renameProfile(uid, id, clean)
                 reload()
             } catch (e: CancellationException) {
                 throw e
@@ -182,7 +189,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         pendingDeleteId = null
         viewModelScope.launch {
             try {
-                app.profilesRepository.deleteProfile(uid, id)
+                profilesRepository.deleteProfile(uid, id)
                 reload()
             } catch (e: CancellationException) {
                 throw e
@@ -215,7 +222,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         pendingSwitch = null
         switching = true
         return try {
-            app.profileSyncCoordinator.switchProfile(uid, target.id, if (target.isShared) target.ownerUid else null)
+            switchProfile(uid, target.id, if (target.isShared) target.ownerUid else null)
             true
         } catch (e: CancellationException) {
             throw e
@@ -236,7 +243,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         viewModelScope.launch {
             sharing = true
             try {
-                inviteCode = app.profilesRepository.shareProfile(uid, profile.id, profile.name)
+                inviteCode = profilesRepository.shareProfile(uid, profile.id, profile.name)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -257,7 +264,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         if (code.isEmpty() || joining) return
         viewModelScope.launch {
             joining = true
-            when (val result = app.profilesRepository.redeemInvite(uid, code)) {
+            when (val result = profilesRepository.redeemInvite(uid, code)) {
                 is RedeemInviteResult.Ok -> reload()
                 is RedeemInviteResult.Failed -> errorMessageRes = when (result.reason) {
                     "own-profile" -> R.string.profile_join_own_error
@@ -285,7 +292,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         pendingLeave = null
         viewModelScope.launch {
             try {
-                app.profilesRepository.leaveSharedProfile(uid, ownerUid, profile.id)
+                profilesRepository.leaveSharedProfile(uid, ownerUid, profile.id)
                 reload()
             } catch (e: CancellationException) {
                 throw e
@@ -317,7 +324,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         viewModelScope.launch {
             membersLoading = true
             try {
-                members = app.profilesRepository.listSharedMembers(uid, profile.id)
+                members = profilesRepository.listSharedMembers(uid, profile.id)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -335,7 +342,7 @@ class ProfilesManagerViewModel(private val app: RytmApplication, private val uid
         val nextRole = if (currentRole == "viewer") "editor" else "viewer"
         viewModelScope.launch {
             try {
-                app.profilesRepository.setMemberRole(uid, profile.id, memberUid, nextRole)
+                profilesRepository.setMemberRole(uid, profile.id, memberUid, nextRole)
                 reloadMembers()
             } catch (e: CancellationException) {
                 throw e
