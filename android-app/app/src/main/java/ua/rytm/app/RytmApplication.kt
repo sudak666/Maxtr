@@ -26,6 +26,7 @@ import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.ShiftsRepository
 import ua.rytm.app.data.ShiftsSyncRepository
 import ua.rytm.app.data.TagsSyncRepository
+import ua.rytm.app.data.BackupsRepository
 import ua.rytm.app.data.PushRepository
 import ua.rytm.app.data.ProfileSyncCoordinator
 import ua.rytm.app.data.ProfileAppearanceRepository
@@ -130,6 +131,9 @@ class RytmApplication : Application() {
     val widgetSettingsSyncRepository: WidgetSettingsSyncRepository by lazy { WidgetSettingsSyncRepository(settingsStore, FirebaseFirestore.getInstance()) }
     val autoRulesSyncRepository: AutoRulesSyncRepository by lazy { AutoRulesSyncRepository(database, FirebaseFirestore.getInstance()) }
     val pushRepository: PushRepository by lazy { PushRepository(FirebaseFirestore.getInstance()) }
+    val backupsRepository: BackupsRepository by lazy {
+        BackupsRepository(FirebaseFirestore.getInstance(), com.google.firebase.functions.FirebaseFunctions.getInstance())
+    }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }
     val profileAppearanceRepository: ProfileAppearanceRepository by lazy { ProfileAppearanceRepository(FirebaseFirestore.getInstance()) }

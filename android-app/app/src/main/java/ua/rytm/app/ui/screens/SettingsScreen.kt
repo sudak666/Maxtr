@@ -182,6 +182,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var pinSheetOpen by rememberSaveable { mutableStateOf(false) }
     var notifTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
     var profilesSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var backupsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var pendingSignOut by rememberSaveable { mutableStateOf(false) }
     var premiumDialogOpen by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
@@ -298,6 +299,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val accountKeywords = rememberSettingsKeywords(
             R.string.settings_account, R.string.settings_sign_out, R.string.settings_sign_out_subtitle,
             R.string.profiles_title, R.string.settings_profiles_subtitle, R.string.settings_premium,
+            R.string.settings_backups_title, R.string.settings_backups_subtitle,
             R.string.settings_free_plan, R.string.settings_reset_profile, R.string.settings_reset_profile_subtitle,
             R.string.settings_delete_account, R.string.settings_delete_account_subtitle,
         )
@@ -421,6 +423,19 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             title = stringResource(R.string.profiles_title),
                             subtitle = stringResource(R.string.settings_profiles_subtitle),
                             onClick = { profilesSheetOpen = true },
+                        )
+                        SettingsRow(
+                            icon = RytmIcons.CloudDone,
+                            badgeColor = SettingsGroupColors.Account,
+                            title = stringResource(R.string.settings_backups_title),
+                            subtitle = stringResource(R.string.settings_backups_subtitle),
+                            onClick = {
+                                if (activeProfileOwnerUid != null) {
+                                    pendingMessage = resources.getString(R.string.backups_shared_unavailable)
+                                } else {
+                                    backupsSheetOpen = true
+                                }
+                            },
                         )
                         SettingsRow(
                             icon = RytmIcons.Star,
@@ -789,6 +804,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     if (notifTypesSheetOpen && uid != null) {
         NotificationSettingsSheet(uid = activeProfileOwnerUid ?: uid, repository = app.pushRepository, profileId = activeProfileId, onDismiss = { notifTypesSheetOpen = false })
     }
+    if (backupsSheetOpen && uid != null && activeProfileOwnerUid == null) {
+        BackupsSheet(uid = uid, profileId = activeProfileId, viewModel = settingsViewModel, onDismiss = { backupsSheetOpen = false })
+    }
     if (profilesSheetOpen && uid != null) {
         ProfilesManagerSheet(
             uid = uid,
@@ -899,10 +917,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                     PremiumPerkRow(
                         icon = RytmIcons.CloudDone,
-                        color = OrangeDark,
+                        color = GreenDark,
                         title = stringResource(R.string.settings_premium_backup_title),
                         subtitle = stringResource(R.string.settings_premium_backup_body),
-                        badge = stringResource(R.string.settings_soon),
                     )
                     PremiumPerkRow(
                         icon = RytmIcons.GridView,
