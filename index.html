@@ -2180,6 +2180,13 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" id="settings-profiles-sub" data-i18n="settings_profiles_sub">Перемикайтеся між окремими наборами даних</div>
         </div>
       </div>
+      <div class="settings-row" data-action="open-backups-manager">
+        <span id="ic-settings-backups" class="icon-badge" style="--badge-color:#10b981"></span>
+        <div class="settings-row-text">
+          <div class="settings-row-title" data-i18n="settings_backups">Резервні копії</div>
+          <div class="settings-row-sub" data-i18n="settings_backups_sub">Щоденні копії в хмарі, відновлення на дату</div>
+        </div>
+      </div>
     </div>
 
     <div class="chart-section settings-section" data-settings-group="account">
@@ -2759,9 +2766,8 @@ body.amounts-hidden #fx-converter-result{
       <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
     </div>
     <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--orange)" id="ic-premium-backup"></span>
+      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-backup"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_backup">Резервні копії</div><div class="settings-row-sub" data-i18n="premium_perk_backup_sub">Автоматичні копії в хмарі та відновлення в один дотик</div></div>
-      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
     </div>
     <div class="settings-row" style="border-top:none">
       <span class="icon-badge icon-badge-sm" style="--badge-color:var(--orange)" id="ic-premium-widget"></span>
@@ -2784,6 +2790,21 @@ body.amounts-hidden #fx-converter-result{
     <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="tags_desc">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</div>
     <div class="mgr-list" id="tags-list"></div>
     <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" data-action="add-tag"><span id="ic-add-tag"></span><span data-i18n="tags_add">Додати тег</span></button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
+    </div>
+   </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="backups-modal">
+  <div class="modal-card">
+   <div class="modal-card-body">
+    <div class="sheet-grabber"></div>
+    <div class="modal-header"><div class="modal-date" data-i18n="settings_backups">Резервні копії</div></div>
+    <div class="chk-desc" style="text-align:center;margin-bottom:12px" data-i18n="backups_desc">Rytm щодня зберігає копію цього профілю.</div>
+    <div class="mgr-list" id="backups-list"></div>
+    <button class="btn btn-ghost" id="backups-create-btn" style="width:100%;justify-content:center;margin-top:10px" data-action="create-backup-now"><span id="ic-backups-create"></span><span data-i18n="backups_create">Створити копію зараз</span></button>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
     </div>

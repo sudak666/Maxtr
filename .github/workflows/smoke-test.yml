@@ -114,6 +114,9 @@ jobs:
       - name: Run reset profile data test ("start over")
         run: node tests/reset-profile-data.mjs
 
+      - name: Run cloud backups UI test
+        run: node tests/backups-ui.mjs
+
       - name: Run hide-amounts privacy toggle test
         run: node tests/hide-amounts.mjs
 
@@ -187,7 +190,7 @@ jobs:
       - name: Stage tests against dist/
         run: |
           mkdir -p dist/tests
-          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/dashboard-widgets.mjs tests/receipt-scan-ui.mjs dist/tests/
+          cp tests/smoke.mjs tests/e2e-crud.mjs tests/e2e-modals.mjs tests/stress-tx-list.mjs tests/tx-list-targeted-update.mjs tests/pull-to-refresh.mjs tests/tx-swipe-delete.mjs tests/debt-swipe-delete.mjs tests/tx-list-sort-order.mjs tests/sheet-drag-dismiss.mjs tests/csp-handlers.mjs tests/pwa-launch-params.mjs tests/csv-import-export.mjs tests/ai-category-suggestion.mjs tests/shared-profiles-ui.mjs tests/shared-profile-permissions.mjs tests/reset-profile-data.mjs tests/backups-ui.mjs tests/hide-amounts.mjs tests/debt-forecast-chart.mjs tests/analytics-donut-chart.mjs tests/fx-widget-rates.mjs tests/dashboard-widgets.mjs tests/receipt-scan-ui.mjs dist/tests/
           cp firebase.json dist/firebase.json
 
       - name: Run smoke test against dist/
@@ -257,6 +260,10 @@ jobs:
       - name: Run reset profile data test against dist/
         working-directory: dist/tests
         run: node reset-profile-data.mjs
+
+      - name: Run cloud backups UI test against dist/
+        working-directory: dist/tests
+        run: node backups-ui.mjs
 
       - name: Run hide-amounts test against dist/
         working-directory: dist/tests

@@ -6,6 +6,7 @@
 import { AppState } from './state.js';
 import { init, switchTab } from './app-init.js';
 import { EmailAuthProvider, applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
+import { safetyBackup } from './backups.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { deleteAllTransactionDocs, loadActiveProfileId, lsKey, userDoc } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
@@ -226,6 +227,7 @@ const resetProfileData = async function(){
   if(AppState.activeProfileOwnerUid){ showToast(tr('profiles_reset_shared_blocked'),'warning'); return; }
   if(!(await uiConfirm(tr('profiles_reset_confirm'),{title:tr('profiles_reset_title'),okText:tr('profiles_reset_ok'),danger:true}))) return;
   clearTimeout(AppState.fbTimer ?? undefined);
+  await safetyBackup('pre_reset');
   try{
     await Promise.all([
       deleteDoc(userDoc('shifts')),

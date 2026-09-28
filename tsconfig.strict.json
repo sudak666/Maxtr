@@ -16,6 +16,7 @@
     "js/state.js",
     "js/receipt-ocr.js",
     "js/dashboard-widgets.js",
+    "js/backups.js",
     "js/ui-widgets.js",
     "js/goals-profile.js",
     "js/auth.js",
