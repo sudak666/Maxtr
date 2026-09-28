@@ -906,10 +906,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                     PremiumPerkRow(
                         icon = RytmIcons.GridView,
-                        color = OrangeDark,
+                        color = GreenDark,
                         title = stringResource(R.string.settings_premium_widget_title),
                         subtitle = stringResource(R.string.settings_premium_widget_body),
-                        badge = stringResource(R.string.settings_soon),
                     )
                 }
             },

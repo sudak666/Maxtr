@@ -1,5 +1,9 @@
 package ua.rytm.app
 
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.debounce
 import android.app.Application
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
@@ -66,6 +70,26 @@ class RytmApplication : Application() {
         // is a safe no-op when the channel already exists (same id, same
         // settings), so calling this on every cold start is fine.
         ensureNotificationChannel(this)
+        startWidgetRefresh()
+    }
+
+    // Home-screen widget follows the data: any change to the inputs it shows
+    // (debounced — a sync writes many rows at once) re-renders placed widgets.
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private fun startWidgetRefresh() {
+        val auth = kotlinx.coroutines.flow.callbackFlow {
+            val listener = FirebaseAuth.AuthStateListener { trySend(it.currentUser?.uid) }
+            FirebaseAuth.getInstance().addAuthStateListener(listener)
+            awaitClose { FirebaseAuth.getInstance().removeAuthStateListener(listener) }
+        }
+        kotlinx.coroutines.flow.merge(
+            financeRepository.wallets, financeRepository.transactions, financeRepository.currencyRates,
+            shiftsRepository.shiftTypes, shiftsRepository.shiftsByDate, shiftsRepository.autoFillSchedule,
+            settingsStore.hideAmounts, auth,
+        )
+            .debounce(1500)
+            .onEach { runCatching { ua.rytm.app.widget.RytmWidget.refresh(this) } }
+            .launchIn(appScope)
     }
 
     val database: RytmDatabase by lazy {
