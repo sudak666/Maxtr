@@ -187,6 +187,18 @@ await check('missing updatedAt rejected', setDoc(doc(asA, `error_reports/${uidA}
 await check('owner can delete their error log', deleteDoc(doc(asA, `error_reports/${uidA}`)), 'allow');
 await check('other user cannot delete uidA error log', deleteDoc(doc(asB, `error_reports/${uidA}`)), 'deny');
 
+// 11b. Cloud backups: owner reads metadata only; nobody writes from a client.
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  const adb = ctx.firestore();
+  await setDoc(doc(adb, `users/${uidA}/backups/default_1`), { profileId: 'default', createdAt: 1 });
+  await setDoc(doc(adb, `users/${uidA}/backups/default_1/chunks/0`), { i: 0 });
+});
+await check('owner can read backup metadata', getDoc(doc(asA, `users/${uidA}/backups/default_1`)), 'allow');
+await check('other user cannot read backup metadata', getDoc(doc(asB, `users/${uidA}/backups/default_1`)), 'deny');
+await check('owner cannot read backup chunks', getDoc(doc(asA, `users/${uidA}/backups/default_1/chunks/0`)), 'deny');
+await check('owner cannot forge a backup', setDoc(doc(asA, `users/${uidA}/backups/default_2`), { profileId: 'default', createdAt: 2 }), 'deny');
+await check('owner cannot delete a backup from the client', deleteDoc(doc(asA, `users/${uidA}/backups/default_1`)), 'deny');
+
 // 12. Shared profiles (audit-followup session) — uidA owns a profile
 // "profX", invites uidB to join it via a code, uidC is an uninvolved
 // stranger throughout. Covers the full invite-redeem-join-leave lifecycle

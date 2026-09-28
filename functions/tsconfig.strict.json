@@ -7,11 +7,14 @@
     "module": "CommonJS",
     "lib": ["ES2022"],
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"],
+    "typeRoots": ["../node_modules/@types"]
   },
   "include": [
     "lib/pure.js",
-    "lib/sweep.js"
+    "lib/sweep.js",
+    "lib/backup.js"
   ],
   "exclude": ["node_modules"]
 }
