@@ -379,7 +379,7 @@
     <string name="settings_premium_backup_title">Резервні копії</string>
     <string name="settings_premium_backup_body">Автоматичні копії в хмарі та відновлення в один дотик</string>
     <string name="settings_premium_widget_title">Віджет на екрані</string>
-    <string name="settings_premium_widget_body">Баланс і найближча зміна без відкриття застосунку</string>
+    <string name="settings_premium_widget_body">Вже є: баланс, найближча зміна і прогноз на головному екрані — утримуйте екран → Віджети → Rytm</string>
     <string name="settings_soon">СКОРО</string>
     <string name="settings_reset_title">Почати спочатку?</string>
     <string name="settings_resetting">Скидання даних…</string>
@@ -448,4 +448,13 @@
     <plurals name="forecast_goal_shifts"><item quantity="one">До цілі бракує %1$s грн ≈ ще %2$d зміна</item><item quantity="few">До цілі бракує %1$s грн ≈ ще %2$d зміни</item><item quantity="many">До цілі бракує %1$s грн ≈ ще %2$d змін</item><item quantity="other">До цілі бракує %1$s грн ≈ ще %2$d зміни</item></plurals>
     <string name="forecast_next_month">%1$s: ≈ %2$s грн</string>
     <string name="forecast_empty">Додай зміни в календар або ввімкни автозаповнення — і тут з’явиться прогноз.</string>
+    <string name="widget_label">Rytm</string>
+    <string name="widget_description">Баланс, найближча зміна і прогноз заробітку</string>
+    <string name="widget_balance">Баланс</string>
+    <string name="widget_next_shift">Найближча зміна</string>
+    <string name="widget_no_shift">Змін не заплановано</string>
+    <string name="widget_forecast">Прогноз на місяць</string>
+    <string name="widget_signed_out">Увійдіть у Rytm</string>
+    <string name="widget_today">Сьогодні</string>
+    <string name="widget_tomorrow">Завтра</string>
 </resources>

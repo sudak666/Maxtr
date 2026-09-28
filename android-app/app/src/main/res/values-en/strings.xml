@@ -373,7 +373,7 @@
     <string name="settings_premium_backup_title">Backups</string>
     <string name="settings_premium_backup_body">Automatic cloud backups and one-tap restore</string>
     <string name="settings_premium_widget_title">Home-screen widget</string>
-    <string name="settings_premium_widget_body">Balance and next shift without opening the app</string>
+    <string name="settings_premium_widget_body">Available now: balance, next shift and forecast on your home screen — long-press the home screen → Widgets → Rytm</string>
     <string name="settings_soon">SOON</string>
     <string name="settings_reset_title">Start over?</string>
     <string name="settings_resetting">Resetting data…</string>
@@ -442,4 +442,13 @@
     <plurals name="forecast_goal_shifts"><item quantity="one">UAH %1$s short of the goal ≈ %2$d more shift</item><item quantity="other">UAH %1$s short of the goal ≈ %2$d more shifts</item></plurals>
     <string name="forecast_next_month">%1$s: ≈ UAH %2$s</string>
     <string name="forecast_empty">Add shifts to the calendar or turn on autofill to see a forecast here.</string>
+    <string name="widget_label">Rytm</string>
+    <string name="widget_description">Balance, next shift and earnings forecast</string>
+    <string name="widget_balance">Balance</string>
+    <string name="widget_next_shift">Next shift</string>
+    <string name="widget_no_shift">No shifts planned</string>
+    <string name="widget_forecast">Month forecast</string>
+    <string name="widget_signed_out">Sign in to Rytm</string>
+    <string name="widget_today">Today</string>
+    <string name="widget_tomorrow">Tomorrow</string>
 </resources>
