@@ -24,21 +24,34 @@ import javax.crypto.spec.PBEKeySpec
 // second account signed into the same device gets its own independent PIN.
 private val Context.pinDataStore by preferencesDataStore(name = "rytm_pin")
 
-class PinStore(private val context: Context) {
+/** What PinViewModel needs from PIN storage — an interface so it can be unit-tested with a fake. */
+interface PinRepository {
+    fun hasPin(uid: String): Flow<Boolean>
+    fun isBiometricEnabled(uid: String): Flow<Boolean>
+    suspend fun setPin(uid: String, rawPin: String)
+    suspend fun verifyPin(uid: String, rawPin: String): Boolean
+    suspend fun lockedUntil(uid: String): Long
+    suspend fun registerFailure(uid: String): Long
+    suspend fun clearFailures(uid: String)
+    suspend fun removePin(uid: String)
+    suspend fun setBiometricEnabled(uid: String, enabled: Boolean)
+}
+
+class PinStore(private val context: Context) : PinRepository {
     private fun pinKey(uid: String) = stringPreferencesKey("pin_hash_$uid")
     private fun bioKey(uid: String) = booleanPreferencesKey("bio_enabled_$uid")
     private fun failKey(uid: String) = intPreferencesKey("pin_fail_$uid")
     private fun lockKey(uid: String) = longPreferencesKey("pin_lock_until_$uid")
 
-    fun hasPin(uid: String): Flow<Boolean> = context.pinDataStore.data.map { it[pinKey(uid)] != null }
-    fun isBiometricEnabled(uid: String): Flow<Boolean> = context.pinDataStore.data.map { it[bioKey(uid)] ?: false }
+    override fun hasPin(uid: String): Flow<Boolean> = context.pinDataStore.data.map { it[pinKey(uid)] != null }
+    override fun isBiometricEnabled(uid: String): Flow<Boolean> = context.pinDataStore.data.map { it[bioKey(uid)] ?: false }
 
     // A 4-6 digit PIN has at most 10^6 values, so the hash alone can't make
     // offline guessing expensive -- salted PBKDF2 raises the per-guess cost,
     // and the persisted failure counter/lockout below throttles the UI path.
     // Format: "v2$<iterations>$<saltB64>$<hashB64>". Legacy unsalted SHA-256
     // hashes (pre-2026-09 builds) still verify once and are upgraded in place.
-    suspend fun setPin(uid: String, rawPin: String) {
+    override suspend fun setPin(uid: String, rawPin: String) {
         val encoded = hashV2(rawPin)
         context.pinDataStore.edit {
             it[pinKey(uid)] = encoded
@@ -46,7 +59,7 @@ class PinStore(private val context: Context) {
         }
     }
 
-    suspend fun verifyPin(uid: String, rawPin: String): Boolean {
+    override suspend fun verifyPin(uid: String, rawPin: String): Boolean {
         val stored = context.pinDataStore.data.first()[pinKey(uid)] ?: return false
         val result = withContext(Dispatchers.Default) { PinHash.verify(stored, rawPin) }
         if (result == PinHash.Verify.OK_LEGACY) {
@@ -57,10 +70,10 @@ class PinStore(private val context: Context) {
     }
 
     /** Epoch ms until which PIN entry is locked out, or 0. */
-    suspend fun lockedUntil(uid: String): Long = context.pinDataStore.data.first()[lockKey(uid)] ?: 0L
+    override suspend fun lockedUntil(uid: String): Long = context.pinDataStore.data.first()[lockKey(uid)] ?: 0L
 
     /** Records a real (full-length) wrong PIN; returns the lockout deadline (0 if none). */
-    suspend fun registerFailure(uid: String): Long {
+    override suspend fun registerFailure(uid: String): Long {
         var until = 0L
         context.pinDataStore.edit {
             val fails = (it[failKey(uid)] ?: 0) + 1
@@ -73,13 +86,13 @@ class PinStore(private val context: Context) {
         return until
     }
 
-    suspend fun clearFailures(uid: String) {
+    override suspend fun clearFailures(uid: String) {
         context.pinDataStore.edit { it.remove(failKey(uid)); it.remove(lockKey(uid)) }
     }
 
     private suspend fun hashV2(rawPin: String): String = withContext(Dispatchers.Default) { PinHash.encode(rawPin) }
 
-    suspend fun removePin(uid: String) {
+    override suspend fun removePin(uid: String) {
         context.pinDataStore.edit {
             it.remove(pinKey(uid))
             it.remove(failKey(uid)); it.remove(lockKey(uid))
@@ -87,7 +100,7 @@ class PinStore(private val context: Context) {
         }
     }
 
-    suspend fun setBiometricEnabled(uid: String, enabled: Boolean) {
+    override suspend fun setBiometricEnabled(uid: String, enabled: Boolean) {
         context.pinDataStore.edit { it[bioKey(uid)] = enabled }
     }
 }
