@@ -369,7 +369,7 @@
     <string name="settings_premium_free_title">Already free</string>
     <string name="settings_premium_free_body">Unlimited wallets, categories, rules, recurring payments, and push notifications</string>
     <string name="settings_premium_forecast_title">Earnings forecast</string>
-    <string name="settings_premium_forecast_body">What you will earn this month from your scheduled shifts</string>
+    <string name="settings_premium_forecast_body">Now on the Shifts tab: expected pay for this and next month and shifts left to reach your goal</string>
     <string name="settings_premium_backup_title">Backups</string>
     <string name="settings_premium_backup_body">Automatic cloud backups and one-tap restore</string>
     <string name="settings_premium_widget_title">Home-screen widget</string>
@@ -432,4 +432,14 @@
     <string name="category_icon_option">Icon %1$d of %2$d</string>
     <string name="shifts_no_types">No shift types yet — create the first one.</string>
     <string name="action_copy_code">Copy code</string>
+    <string name="forecast_title">Earnings forecast</string>
+    <string name="forecast_month_total">≈ UAH %1$s</string>
+    <string name="forecast_earned">earned %1$s</string>
+    <string name="forecast_planned">planned %1$s</string>
+    <string name="forecast_schedule">by schedule %1$s</string>
+    <string name="forecast_goal_reached">Goal of UAH %1$s will be reached</string>
+    <string name="forecast_goal_short">UAH %1$s short of the goal</string>
+    <plurals name="forecast_goal_shifts"><item quantity="one">UAH %1$s short of the goal ≈ %2$d more shift</item><item quantity="other">UAH %1$s short of the goal ≈ %2$d more shifts</item></plurals>
+    <string name="forecast_next_month">%1$s: ≈ UAH %2$s</string>
+    <string name="forecast_empty">Add shifts to the calendar or turn on autofill to see a forecast here.</string>
 </resources>

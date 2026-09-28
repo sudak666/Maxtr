@@ -375,7 +375,7 @@
     <string name="settings_premium_free_title">Вже доступно безкоштовно</string>
     <string name="settings_premium_free_body">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</string>
     <string name="settings_premium_forecast_title">Прогноз заробітку</string>
-    <string name="settings_premium_forecast_body">Скільки отримаєте цього місяця за запланованими змінами</string>
+    <string name="settings_premium_forecast_body">Вже на вкладці «Зміни»: скільки отримаєте цього й наступного місяця та скільки змін бракує до цілі</string>
     <string name="settings_premium_backup_title">Резервні копії</string>
     <string name="settings_premium_backup_body">Автоматичні копії в хмарі та відновлення в один дотик</string>
     <string name="settings_premium_widget_title">Віджет на екрані</string>
@@ -438,4 +438,14 @@
     <string name="category_icon_option">Іконка %1$d з %2$d</string>
     <string name="shifts_no_types">Ще немає типів змін — створіть перший.</string>
     <string name="action_copy_code">Копіювати код</string>
+    <string name="forecast_title">Прогноз заробітку</string>
+    <string name="forecast_month_total">≈ %1$s грн</string>
+    <string name="forecast_earned">зароблено %1$s</string>
+    <string name="forecast_planned">заплановано %1$s</string>
+    <string name="forecast_schedule">за графіком %1$s</string>
+    <string name="forecast_goal_reached">Ціль %1$s грн буде досягнуто</string>
+    <string name="forecast_goal_short">До цілі бракує %1$s грн</string>
+    <plurals name="forecast_goal_shifts"><item quantity="one">До цілі бракує %1$s грн ≈ ще %2$d зміна</item><item quantity="few">До цілі бракує %1$s грн ≈ ще %2$d зміни</item><item quantity="many">До цілі бракує %1$s грн ≈ ще %2$d змін</item><item quantity="other">До цілі бракує %1$s грн ≈ ще %2$d зміни</item></plurals>
+    <string name="forecast_next_month">%1$s: ≈ %2$s грн</string>
+    <string name="forecast_empty">Додай зміни в календар або ввімкни автозаповнення — і тут з’явиться прогноз.</string>
 </resources>
