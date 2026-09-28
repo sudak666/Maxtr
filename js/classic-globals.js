@@ -146,6 +146,8 @@
   setIcon('ic-settings-profile','person');
   setIcon('ic-nickname-edit','pencil');
   setIcon('ic-settings-profiles','people');
+  setIcon('ic-settings-backups','cloud');
+  setIcon('ic-backups-create','cloud');
   setIcon('ic-settings-finance','wallet');
   setIcon('ic-settings-security','lock');
   setIcon('ic-settings-notif','bell');
@@ -425,6 +427,7 @@
       premium_limit_recurring:'Безкоштовний план дозволяє до 3 повторюваних платежів. Преміум знімає це обмеження.',
       premium_limit_goals:'Безкоштовний план дозволяє 1 ціль. Преміум знімає це обмеження.',
       profiles_default_name:'Профіль 1',
+      settings_backups:'Резервні копії', settings_backups_sub:'Щоденні копії в хмарі, відновлення на дату', backups_desc:'Rytm щодня зберігає копію цього профілю: 7 останніх і ще по одній на тиждень за місяць. Відновлення замінює поточні дані, але перед ним поточний стан теж зберігається копією.', backups_create:'Створити копію зараз', backups_loading:'Завантаження…', backups_empty:'Копій ще немає. Перша з’явиться вночі або після натискання кнопки нижче.', backups_reason_daily:'Щоденна', backups_reason_manual:'Вручну', backups_reason_pre_reset:'Перед скиданням', backups_reason_pre_import:'Перед імпортом', backups_reason_pre_restore:'Перед відновленням', backups_restore:'Відновити', backups_restore_title:'Відновити копію?', backups_restore_body:'Дані профілю буде замінено станом на {date}. Поточний стан збережеться окремою копією, тож це можна скасувати.', backups_restoring:'Відновлюю…', backups_restored:'Дані відновлено', backups_created:'Копію створено', backups_unchanged:'Дані не змінились з останньої копії', backups_nothing:'Профіль порожній, копіювати нічого', backups_failed:'Не вдалося. Перевірте з’єднання', backups_rate_limited:'Зачекайте трохи перед наступною копією', backups_shared_unavailable:'Копії спільного профілю робить його власник',
       settings_profiles:'Профілі', settings_profiles_sub:'Перемикайтеся між окремими наборами даних',
       profiles_manager_title:'Профілі', profiles_manager_desc:'Окремі набори даних в одному акаунті — наприклад, для кожного члена сім\'ї.',
       profiles_active_badge:'Активний', profiles_switch_btn:'Перемкнути',
@@ -714,6 +717,7 @@
       premium_limit_recurring:'The free plan allows up to 3 recurring payments. Premium removes this limit.',
       premium_limit_goals:'The free plan allows 1 goal. Premium removes this limit.',
       profiles_default_name:'Profile 1',
+      settings_backups:'Backups', settings_backups_sub:'Daily cloud copies, restore to a date', backups_desc:'Rytm saves a copy of this profile every day: the last 7, plus one per week for a month. Restoring replaces the current data, but the current state is saved as a copy first.', backups_create:'Back up now', backups_loading:'Loading…', backups_empty:'No backups yet. The first one appears overnight or when you tap the button below.', backups_reason_daily:'Daily', backups_reason_manual:'Manual', backups_reason_pre_reset:'Before reset', backups_reason_pre_import:'Before import', backups_reason_pre_restore:'Before restore', backups_restore:'Restore', backups_restore_title:'Restore this backup?', backups_restore_body:'The profile data will be replaced with its state as of {date}. The current state is saved as a separate backup, so this can be undone.', backups_restoring:'Restoring…', backups_restored:'Data restored', backups_created:'Backup created', backups_unchanged:'Nothing changed since the last backup', backups_nothing:'The profile is empty, nothing to back up', backups_failed:'Failed. Check your connection', backups_rate_limited:'Wait a moment before the next backup', backups_shared_unavailable:'Backups of a shared profile are made by its owner',
       settings_profiles:'Profiles', settings_profiles_sub:'Switch between separate sets of data',
       profiles_manager_title:'Profiles', profiles_manager_desc:'Separate data sets in one account — e.g. one per family member.',
       profiles_active_badge:'Active', profiles_switch_btn:'Switch',

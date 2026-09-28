@@ -12,6 +12,7 @@ import { renderGoals } from './goals-profile.js';
 import { setCacheItem } from './privacy-cache.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
 import { validateTransactionDraft } from './tx-validation.js';
+import { safetyBackup } from './backups.js';
 import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/analytics-csv.js is served unbundled (GitHub Pages) or bundled by
@@ -798,6 +799,7 @@ const handleImportCSVFile = async function(e){
     ? `${tr('csv_import_confirm_prefix')} ${valid.length}. ${tr('csv_import_skip_prefix')} ${errors.length}.`
     : `${tr('csv_import_confirm_prefix')} ${valid.length}.`;
   if(!(await uiConfirm(summary, {title:tr('csv_import_confirm_title'), okText:tr('csv_import_confirm_ok')}))) return;
+  await safetyBackup('pre_import');
   try{
     await batchWriteTransactions(valid);
   }catch(err){

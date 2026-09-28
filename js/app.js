@@ -14,6 +14,7 @@ import { __init_notifications__ } from './notifications.js';
 import { __init_finance__, addTransaction } from './finance.js';
 import { __init_analytics_csv__ } from './analytics-csv.js';
 import { __init_debt__ } from './debt.js';
+import { __init_backups__ } from './backups.js';
 import { scanReceiptImage } from './receipt-ocr.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 
@@ -37,6 +38,7 @@ __init_notifications__();
 __init_finance__();
 __init_analytics_csv__();
 __init_debt__();
+__init_backups__();
 
 // Test-only hook, unconditionally attached — not read by any production
 // code path. Exists purely so Playwright tests can reach a handful of
