@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -185,6 +186,7 @@ fun ShiftsScreen() {
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { HeroMetric(stats.earned, salaryGoal, canEdit) { editingGoal = true } }
         item { ChipStats(stats) }
+        item { ForecastCard(viewModel.currentForecast, viewModel.nextForecast, salaryGoal, viewModel.typicalShiftPay) }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
         if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
         item { MonthNav(viewModel) }
@@ -464,6 +466,65 @@ private fun localizedPatternOptions(): List<Pair<String, String>> = listOf(
 // Matches the PWA's .chart-section card + .chart-bars single-series bar
 // chart (js/calendar.js's renderIncomeChart()) — current month solid purple,
 // the other 5 faded purple, mirroring var(--purple)/rgba(139,92,246,.35).
+// Earnings forecast for the real current month (+ next month): what's
+// earned, what's already on the calendar ahead, and what the autofill
+// schedule will add — against the salary goal.
+@Composable
+private fun ForecastCard(current: MonthForecast, next: MonthForecast, goal: Double, typicalPay: Double?) {
+    val locale = LocalConfiguration.current.locales[0]
+    fun monthName(f: MonthForecast) = f.month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
+        .replaceFirstChar { it.titlecase(locale) }
+    Card(shape = RoundedCornerShape(RytmRadii.AuthCard)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(RytmIcons.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                Text(
+                    stringResource(R.string.forecast_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 7.dp),
+                )
+            }
+            if (current.total <= 0.0 && next.total <= 0.0) {
+                Text(stringResource(R.string.forecast_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                return@Column
+            }
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(monthName(current), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(
+                    maskedAmount(stringResource(R.string.forecast_month_total, formatMoney(current.total))),
+                    style = MaterialTheme.typography.headlineSmall.tabularNums(),
+                    fontWeight = FontWeight.Black,
+                )
+            }
+            val parts = buildList {
+                if (current.earned > 0) add(stringResource(R.string.forecast_earned, formatMoney(current.earned)))
+                if (current.planned > 0) add(stringResource(R.string.forecast_planned, formatMoney(current.planned)))
+                if (current.fromSchedule > 0) add(stringResource(R.string.forecast_schedule, formatMoney(current.fromSchedule)))
+            }
+            if (parts.isNotEmpty()) {
+                Text(maskedAmount(parts.joinToString(" · ")), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (goal > 0) {
+                val (text, color) = when (val o = EarningsForecast.outlook(current.total, goal, typicalPay)) {
+                    GoalOutlook.Reached -> stringResource(R.string.forecast_goal_reached, formatMoney(goal)) to ua.rytm.app.ui.theme.RytmSemantic.income
+                    is GoalOutlook.Short -> (o.shiftsNeeded?.let { pluralStringResource(R.plurals.forecast_goal_shifts, it, formatMoney(o.missing), it) }
+                        ?: stringResource(R.string.forecast_goal_short, formatMoney(o.missing))) to MaterialTheme.colorScheme.onSurface
+                }
+                Text(maskedAmount(text), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = color)
+            }
+            if (next.total > 0) {
+                Text(
+                    maskedAmount(stringResource(R.string.forecast_next_month, monthName(next), formatMoney(next.total))),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     val locale = LocalConfiguration.current.locales[0]

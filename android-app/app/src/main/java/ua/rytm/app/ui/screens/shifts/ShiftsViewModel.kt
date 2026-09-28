@@ -198,5 +198,14 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
             }
         }
 
+    // Always the real current + next month (like the income chart), not the
+    // navigated one — a forecast of a past month makes no sense.
+    val currentForecast: MonthForecast
+        get() = EarningsForecast.forMonth(YearMonth.now(), LocalDate.now(), shiftsByDate, shiftTypes, autoFillSchedule)
+    val nextForecast: MonthForecast
+        get() = EarningsForecast.forMonth(YearMonth.now().plusMonths(1), LocalDate.now(), shiftsByDate, shiftTypes, autoFillSchedule)
+    val typicalShiftPay: Double?
+        get() = EarningsForecast.typicalShiftPay(shiftsByDate, shiftTypes, autoFillSchedule)
+
     val today: LocalDate get() = LocalDate.now()
 }

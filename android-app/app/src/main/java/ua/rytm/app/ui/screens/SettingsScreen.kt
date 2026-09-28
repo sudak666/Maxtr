@@ -893,10 +893,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                     PremiumPerkRow(
                         icon = RytmIcons.TrendingUp,
-                        color = OrangeDark,
+                        color = GreenDark,
                         title = stringResource(R.string.settings_premium_forecast_title),
                         subtitle = stringResource(R.string.settings_premium_forecast_body),
-                        badge = stringResource(R.string.settings_soon),
                     )
                     PremiumPerkRow(
                         icon = RytmIcons.CloudDone,
