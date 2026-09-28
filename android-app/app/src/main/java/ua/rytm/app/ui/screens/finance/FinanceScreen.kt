@@ -812,15 +812,30 @@ private fun TransactionRow(
         // the reveal edge is a straight vertical line matching the shrunk
         // box's own corner, not a rounded corner floating mid-row.
         val cardWidthDp = with(density) { (rowWidthPx + offsetPx).coerceAtLeast(0f).toDp() }
-        Card(
-            onClick = {
-                if (offsetPx < -1f) scope.launch { settleAt(0f) } else onClick()
-            },
-            enabled = canEdit,
-            shape = MaterialTheme.shapes.large,
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
+        // Was an M3 Card, which always clips its content to the rounded
+        // shape. A/B on the A51 (expanded 449-row history, alternating
+        // order, 4 runs each): GPU p50 12-13ms -> 8-10ms, janky frames
+        // avg 33% -> 13%, every B run better than every A run. A shaped
+        // background draws the same card without a clip; the clip is only
+        // applied while pressed so the ripple keeps its rounded corners.
+        // fillMaxWidth() while not swiped also skips the width derived from
+        // onSizeChanged (a second layout pass for every newly composed row).
+        val shape = MaterialTheme.shapes.large
+        val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+        val pressed by interaction.collectIsPressedAsState()
+        Box(
             modifier = Modifier
-                .width(cardWidthDp)
+                .then(if (offsetPx < 0f) Modifier.width(cardWidthDp) else Modifier.fillMaxWidth())
+                .then(if (pressed) Modifier.clip(shape) else Modifier)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
+                .clickable(
+                    enabled = canEdit,
+                    interactionSource = interaction,
+                    indication = androidx.compose.material3.ripple(),
+                    role = Role.Button,
+                ) {
+                    if (offsetPx < -1f) scope.launch { settleAt(0f) } else onClick()
+                }
                 .draggable(
                     enabled = canEdit,
                     orientation = Orientation.Horizontal,
