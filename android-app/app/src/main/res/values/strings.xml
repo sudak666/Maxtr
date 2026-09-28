@@ -129,7 +129,7 @@
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s грн</string>
     <string name="shifts_choose">Оберіть зміни</string>
-    <string name="shifts_earned_month">Зароблено цього місяця</string>
+    <string name="shifts_earned_month">Заробіток за місяць</string>
     <string name="shifts_goal_progress">%1$d%% від цілі %2$s грн</string>
     <string name="shifts_goal_edit_title">Ціль заробітку</string>
     <string name="shifts_goal_edit_label">Сума, грн</string>

@@ -123,7 +123,7 @@
     <string name="action_today">Today</string>
     <string name="money_uah">UAH %1$s</string>
     <string name="shifts_choose">Choose shifts</string>
-    <string name="shifts_earned_month">Earned this month</string>
+    <string name="shifts_earned_month">Pay for the month</string>
     <string name="shifts_goal_progress">%1$d%% of the UAH %2$s goal</string>
     <string name="shifts_goal_edit_title">Earnings goal</string>
     <string name="shifts_goal_edit_label">Amount, UAH</string>
