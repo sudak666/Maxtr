@@ -45,7 +45,7 @@ async function callBackups(data){
 /** @returns {Promise<BackupInfo[]>} */
 async function loadBackups(){
   if(!AppState.currentUser) return [];
-  const snap = await getDocs(collection(db, 'users', AppState.currentUser.uid, 'backups'));
+  const snap = await getDocs(collection(db, `users/${AppState.currentUser.uid}/backups`));
   /** @type {BackupInfo[]} */
   const list = [];
   snap.forEach((/** @type {import('firebase/firestore').QueryDocumentSnapshot} */ d) => {
