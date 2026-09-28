@@ -139,6 +139,14 @@ fun FinanceScreen(
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
+    val launchApp = LocalContext.current.applicationContext as RytmApplication
+    val launchAction by launchApp.pendingLaunchAction.collectAsState()
+    LaunchedEffect(launchAction, canEdit) {
+        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION) {
+            launchApp.pendingLaunchAction.value = null
+            if (canEdit) viewModel.openNewTransactionSheet()
+        }
+    }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbarHostState = LocalSnackbarHost.current ?: ownHost

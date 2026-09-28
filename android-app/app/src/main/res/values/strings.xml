@@ -457,4 +457,5 @@
     <string name="widget_signed_out">Увійдіть у Rytm</string>
     <string name="widget_today">Сьогодні</string>
     <string name="widget_tomorrow">Завтра</string>
+    <string name="widget_goal_pct">%1$d%% цілі</string>
 </resources>

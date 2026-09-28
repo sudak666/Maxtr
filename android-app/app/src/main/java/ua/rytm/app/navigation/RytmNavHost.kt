@@ -102,6 +102,20 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 fun RytmNavHost() {
     val navController = rememberNavController()
     val app = LocalContext.current.applicationContext as RytmApplication
+    // Widget "+" → make sure the Finance tab is showing; FinanceScreen then
+    // opens the new-transaction sheet and consumes the action.
+    val launchAction by app.pendingLaunchAction.collectAsState()
+    LaunchedEffect(launchAction) {
+        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION &&
+            navController.currentDestination?.route != RytmDestination.Finance.route
+        ) {
+            navController.navigate(RytmDestination.Finance.route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
     val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val ownerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null)).collectAsState(initial = null)

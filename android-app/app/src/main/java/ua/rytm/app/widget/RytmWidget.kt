@@ -1,23 +1,32 @@
 package ua.rytm.app.widget
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.LocalSize
+import androidx.glance.action.Action
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.action.actionStartActivity
+import androidx.glance.appwidget.LinearProgressIndicator
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -31,6 +40,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -43,25 +53,32 @@ import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle as JavaTextStyle
 
 /**
- * Home-screen widget: balance, next shift, month earnings forecast.
- * Reads the local Room cache (the active profile), so it's instant and works
- * offline. The widget lives outside the PIN gate, so amounts are masked when
- * a PIN or "hide amounts" is on.
+ * Home-screen widget: balance, next shift, month earnings forecast vs goal,
+ * and a "+" that opens the new-transaction sheet. Reads the local Room cache
+ * (active profile), so it's instant and offline. It sits outside the PIN
+ * gate, so amounts are masked when a PIN or "hide amounts" is on.
  */
 class RytmWidget : GlanceAppWidget() {
+    override val sizeMode = SizeMode.Responsive(setOf(COMPACT, FULL))
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val snapshot = withContext(Dispatchers.IO) { loadSnapshot(context) }
-        provideContent { GlanceTheme { WidgetContent(snapshot) } }
+        provideContent { WidgetContent(snapshot) }
     }
 
     companion object {
+        private val COMPACT = DpSize(180.dp, 90.dp)
+        private val FULL = DpSize(250.dp, 170.dp)
+
         suspend fun loadSnapshot(context: Context): WidgetSnapshot {
             val app = context.applicationContext as RytmApplication
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return WidgetSnapshot.SignedOut
             val masked = app.settingsStore.hideAmounts.first() || app.pinStore.hasPin(uid).first()
-            return WidgetSnapshot.load(app.financeRepository, app.shiftsRepository, signedIn = true, masked = masked)
+            val goal = app.settingsStore.salaryGoal(uid).first()
+            return WidgetSnapshot.load(app.financeRepository, app.shiftsRepository, signedIn = true, masked = masked, salaryGoal = goal)
         }
 
         /** Refreshes placed widgets; a no-op (no work) when none are on the home screen. */
@@ -76,56 +93,136 @@ class RytmWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget = RytmWidget()
 }
 
+// Brand palette (matches the app's dark theme / light theme surfaces).
+private val Bg = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF242327))
+private val Tile = ColorProvider(day = Color(0xFFF3F1F8), night = Color(0xFF2E2D33))
+private val OnBg = ColorProvider(day = Color(0xFF1C1B1F), night = Color(0xFFF4F4F6))
+private val Muted = ColorProvider(day = Color(0xFF626269), night = Color(0xFF98979E))
+private val Accent = ColorProvider(day = Color(0xFF7C3AED), night = Color(0xFF8B5CF6))
+private val Track = ColorProvider(day = Color(0xFFE4E1EC), night = Color(0xFF3A3940))
+private val Good = ColorProvider(day = Color(0xFF059669), night = Color(0xFF10B981))
+private val White = ColorProvider(Color.White)
+
 private const val MASK = "••••••"
+private val TILE_HEIGHT = 92.dp
 
 @Composable
 private fun WidgetContent(s: WidgetSnapshot) {
     val context = LocalContext.current
-    val muted = GlanceTheme.colors.onSurfaceVariant
-    val main = GlanceTheme.colors.onSurface
+    val open = actionStartActivity<MainActivity>()
+    val newTx = androidx.glance.appwidget.action.actionStartActivity(
+        Intent(context, MainActivity::class.java)
+            .setData(Uri.parse("rytm://widget/new-transaction")) // distinct PendingIntent
+            .putExtra(MainActivity.EXTRA_LAUNCH_ACTION, MainActivity.ACTION_NEW_TRANSACTION),
+    )
+    val compact = LocalSize.current.height < 160.dp
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(GlanceTheme.colors.widgetBackground)
-            .cornerRadius(22.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .clickable(actionStartActivity<MainActivity>()),
-        verticalAlignment = Alignment.Vertical.CenterVertically,
+            .background(Bg)
+            .cornerRadius(24.dp)
+            .padding(14.dp)
+            .clickable(open),
     ) {
+        Header(if (s.signedIn) newTx else null)
         if (!s.signedIn) {
-            Text(context.getString(R.string.widget_signed_out), style = TextStyle(color = main, fontSize = 15.sp, fontWeight = FontWeight.Medium))
+            Spacer(GlanceModifier.defaultWeight())
+            Text(context.getString(R.string.widget_signed_out), style = TextStyle(color = OnBg, fontSize = 15.sp, fontWeight = FontWeight.Medium))
+            Spacer(GlanceModifier.defaultWeight())
             return@Column
         }
-        Text(context.getString(R.string.widget_balance), style = TextStyle(color = muted, fontSize = 12.sp))
+        Spacer(GlanceModifier.height(if (compact) 4.dp else 8.dp))
+        Text(context.getString(R.string.widget_balance), style = TextStyle(color = Muted, fontSize = 12.sp))
         Text(
             if (s.masked) MASK else context.getString(R.string.money_uah, formatMoney(s.balanceUah)),
-            style = TextStyle(color = main, fontSize = 24.sp, fontWeight = FontWeight.Bold),
+            style = TextStyle(color = OnBg, fontSize = if (compact) 22.sp else 28.sp, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        Spacer(GlanceModifier.height(8.dp))
-        Text(context.getString(R.string.widget_next_shift), style = TextStyle(color = muted, fontSize = 12.sp))
-        val shift = s.nextShift
-        if (shift == null) {
-            Text(context.getString(R.string.widget_no_shift), style = TextStyle(color = main, fontSize = 14.sp), maxLines = 1)
-        } else {
-            Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
-                Box(GlanceModifier.size(8.dp).cornerRadius(4.dp).background(ColorProvider(Color(shift.colorHex)))) {}
-                Spacer(GlanceModifier.width(6.dp))
-                Text(
-                    "${dayLabel(context, shift.date)} · ${shift.name}",
-                    style = TextStyle(color = main, fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                    maxLines = 1,
-                )
+        if (!compact) {
+            Spacer(GlanceModifier.defaultWeight())
+            Row(GlanceModifier.fillMaxWidth()) {
+                ShiftTile(s.nextShift, GlanceModifier.defaultWeight())
+                Spacer(GlanceModifier.width(8.dp))
+                ForecastTile(s, GlanceModifier.defaultWeight())
             }
         }
-        if (s.monthForecastUah > 0) {
+    }
+}
+
+@Composable
+private fun Header(newTx: Action?) {
+    Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            ImageProvider(R.drawable.ic_widget_logo),
+            contentDescription = null,
+            modifier = GlanceModifier.size(22.dp).cornerRadius(6.dp),
+        )
+        Spacer(GlanceModifier.width(8.dp))
+        Text("Rytm", style = TextStyle(color = OnBg, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+        Spacer(GlanceModifier.defaultWeight())
+        if (newTx != null) {
+            Box(
+                modifier = GlanceModifier.size(36.dp).cornerRadius(18.dp).background(Accent).clickable(newTx),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("+", style = TextStyle(color = White, fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier) {
+    val context = LocalContext.current
+    Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
+        Text(context.getString(R.string.widget_next_shift), style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+        Spacer(GlanceModifier.height(6.dp))
+        if (shift == null) {
+            Text(context.getString(R.string.widget_no_shift), style = TextStyle(color = OnBg, fontSize = 13.sp), maxLines = 2)
+            return@Column
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                GlanceModifier.size(30.dp).cornerRadius(9.dp).background(ColorProvider(Color(shift.colorHex))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(shift.code, style = TextStyle(color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
+            }
+            Spacer(GlanceModifier.width(8.dp))
+            Column {
+                Text(dayLabel(context, shift.date), style = TextStyle(color = OnBg, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
+                Text(shift.name, style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0]
+    val month = LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) }
+    Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
+        Text(month, style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+        Spacer(GlanceModifier.height(6.dp))
+        Text(
+            if (s.masked) MASK else "≈ " + formatMoney(s.monthForecastUah),
+            style = TextStyle(color = OnBg, fontSize = 15.sp, fontWeight = FontWeight.Bold),
+            maxLines = 1,
+        )
+        if (s.salaryGoal > 0) {
+            val pct = (s.monthForecastUah / s.salaryGoal).coerceAtLeast(0.0)
             Spacer(GlanceModifier.height(6.dp))
-            Text(
-                context.getString(R.string.widget_forecast) + ": " +
-                    if (s.masked) MASK else "≈ " + context.getString(R.string.money_uah, formatMoney(s.monthForecastUah)),
-                style = TextStyle(color = muted, fontSize = 12.sp),
-                maxLines = 1,
+            LinearProgressIndicator(
+                progress = pct.coerceAtMost(1.0).toFloat(),
+                modifier = GlanceModifier.fillMaxWidth().height(4.dp),
+                color = if (pct >= 1.0) Good else Accent,
+                backgroundColor = Track,
             )
+            if (!s.masked) {
+                Spacer(GlanceModifier.height(4.dp))
+                Text(context.getString(R.string.widget_goal_pct, (pct * 100).toInt()), style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+            }
         }
     }
 }

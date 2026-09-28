@@ -20,8 +20,9 @@ data class WidgetSnapshot(
     val balanceUah: Double,
     val nextShift: NextShift?,
     val monthForecastUah: Double,
+    val salaryGoal: Double = 0.0,
 ) {
-    data class NextShift(val date: LocalDate, val name: String, val colorHex: Long)
+    data class NextShift(val date: LocalDate, val name: String, val code: String, val colorHex: Long)
 
     companion object {
         val SignedOut = WidgetSnapshot(signedIn = false, masked = true, balanceUah = 0.0, nextShift = null, monthForecastUah = 0.0)
@@ -35,6 +36,7 @@ data class WidgetSnapshot(
             shiftsByDate: Map<String, List<String>>,
             schedule: AutoFillSchedule,
             masked: Boolean,
+            salaryGoal: Double = 0.0,
         ): WidgetSnapshot {
             val balance = wallets.sumOf { w ->
                 convertCurrencyAmount(FinanceRepository.walletBalance(transactions, w.id), w.currency, "UAH", rates)
@@ -46,10 +48,10 @@ data class WidgetSnapshot(
                 .filter { (date, _) -> !date.isBefore(today) }
                 .sortedBy { it.first }
                 .firstNotNullOfOrNull { (date, ids) ->
-                    ids.mapNotNull { byId[it] }.firstOrNull { !it.isOff }?.let { WidgetSnapshot.NextShift(date, it.name, it.colorHex) }
+                    ids.mapNotNull { byId[it] }.firstOrNull { !it.isOff }?.let { WidgetSnapshot.NextShift(date, it.name, it.code.ifBlank { it.name.take(1).uppercase() }.take(2), it.colorHex) }
                 }
             val forecast = EarningsForecast.forMonth(YearMonth.from(today), today, shiftsByDate, types, schedule).total
-            return WidgetSnapshot(true, masked, balance, next, forecast)
+            return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal)
         }
 
         suspend fun load(
@@ -57,6 +59,7 @@ data class WidgetSnapshot(
             shifts: ShiftsRepository,
             signedIn: Boolean,
             masked: Boolean,
+            salaryGoal: Double,
         ): WidgetSnapshot {
             if (!signedIn) return SignedOut
             return compute(
@@ -68,6 +71,7 @@ data class WidgetSnapshot(
                 shifts.shiftsByDate.first(),
                 shifts.autoFillSchedule.first(),
                 masked,
+                salaryGoal,
             )
         }
     }
