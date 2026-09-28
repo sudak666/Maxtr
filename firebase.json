@@ -18,7 +18,8 @@
     "public": "dist",
     "ignore": ["firebase.json", "firestore.rules", "**/node_modules/**", "functions/**", "**/*.md", "docs/**", "scripts/**", "tests/**", "_config.yml", "**/.*", "!/.well-known/**"],
     "rewrites": [
-      { "source": "/api/privat-rates", "function": "privatRates" }
+      { "source": "/api/privat-rates", "function": "privatRates" },
+      { "source": "/api/backups", "function": "backups" }
     ],
     "headers": [
       {

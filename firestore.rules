@@ -318,6 +318,15 @@ service cloud.firestore {
     // and whichever side is newer wins entirely — no per-field merge.
     // Size cap is generous headroom over a few dozen medicines with years
     // of dose history in JSON form.
+    // Cloud backups (functions/lib/backup.js): metadata is readable by the
+    // owner only; every write — and the payload chunks entirely — stay
+    // Admin-SDK-only, so a client (or a shared-profile member) can neither
+    // forge nor tamper with a snapshot.
+    match /users/{uid}/backups/{backupId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
     match /vchasnoUsers/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.uid == uid

@@ -60,6 +60,9 @@ jobs:
       - name: Run Cloud Function sweep tests
         run: node tests/functions-sweep.mjs
 
+      - name: Run Cloud Function backup tests
+        run: node tests/functions-backup.mjs
+
       - name: Run smoke test
         run: node tests/smoke.mjs
 

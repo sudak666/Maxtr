@@ -31,14 +31,16 @@
  * only the thing that's supposed to call it hourly was missing.
  */
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
+const functionsV1 = require('firebase-functions/v1');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { getAuth } = require('firebase-admin/auth');
 const logger = require('firebase-functions/logger');
 const { mapWithConcurrency } = require('./lib/pure');
 const { sweepToken } = require('./lib/sweep');
+const backup = require('./lib/backup');
 
 initializeApp();
 const db = getFirestore();
@@ -127,3 +129,62 @@ exports.privatRates = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
+
+// ── Cloud backups (see lib/backup.js and CLAUDE.md "Cloud backups") ──
+// Daily snapshot of every account's own profiles. users/{uid} parent docs
+// don't exist (only subcollections do), so listDocuments() — which also
+// returns "missing" parents — is the way to enumerate accounts.
+const BACKUP_CONCURRENCY = 10;
+exports.dailyBackup = onSchedule({ schedule: 'every day 03:30', timeZone: 'Europe/Kyiv', timeoutSeconds: 540, memory: '512MiB' }, async () => {
+  const refs = await db.collection('users').listDocuments();
+  const now = Date.now();
+  const results = await mapWithConcurrency(refs, BACKUP_CONCURRENCY, (ref) => backup.backupAccount(db, ref.id, now));
+  let failed = 0;
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      failed++;
+      logger.error('backupAccount failed', { uid: refs[i].id, error: r.reason?.message || String(r.reason) });
+    }
+  });
+  logger.info('dailyBackup done', { accounts: refs.length, failed });
+});
+
+// Client entry point (Android via the Functions SDK, PWA via fetch to the
+// /api/backups Hosting rewrite — same callable protocol). Only ever acts
+// on the caller's own tree, so shared-profile members can't touch the
+// owner's backups by construction.
+const CLIENT_REASONS = new Set(['manual', 'pre_reset', 'pre_import']);
+const MANUAL_MIN_INTERVAL_MS = 20 * 1000;
+exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
+  const data = req.data || {};
+  const now = Date.now();
+  try {
+    if (data.action === 'create') {
+      const profileId = String(data.profileId || 'default');
+      const reason = CLIENT_REASONS.has(data.reason) ? data.reason : 'manual';
+      if (!(await backup.ownProfileIds(db, uid)).includes(profileId)) throw new HttpsError('permission-denied', 'not your profile');
+      const existing = await backup.listBackups(db, uid);
+      if (reason === 'manual' && existing.some((e) => e.meta.reason === 'manual' && now - e.meta.createdAt < MANUAL_MIN_INTERVAL_MS)) {
+        throw new HttpsError('resource-exhausted', 'too many backups');
+      }
+      return await backup.createBackup(db, uid, profileId, reason, now, existing);
+    }
+    if (data.action === 'restore') {
+      return await backup.restoreBackup(db, uid, data.backupId, now, (ms) => Timestamp.fromMillis(ms));
+    }
+    throw new HttpsError('invalid-argument', 'unknown action');
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    if (err instanceof backup.BackupError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
+    logger.error('backups callable failed', { uid, action: data.action, error: err.message });
+    throw new HttpsError('internal', 'backup failed');
+  }
+});
+
+// Account deletion: clients delete their own max_tracker data, but backups
+// are server-written and client-undeletable, so they go here.
+exports.deleteBackupsOnAccountDelete = functionsV1.auth.user().onDelete(async (user) => {
+  await db.recursiveDelete(db.collection(`users/${user.uid}/backups`));
+});
