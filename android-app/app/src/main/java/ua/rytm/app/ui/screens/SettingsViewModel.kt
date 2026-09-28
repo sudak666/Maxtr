@@ -19,6 +19,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.functions.FirebaseFunctionsException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import ua.rytm.app.data.BackupCreateResult
+import ua.rytm.app.data.BackupException
+import ua.rytm.app.data.BackupInfo
 import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.data.TransactionsCsvRepository
 
@@ -108,6 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         csvBusy = true
         viewModelScope.launch {
             try {
+                if (dataOwnerUid == FirebaseAuth.getInstance().currentUser?.uid) safetyBackup(profileId, "pre_import")
                 csvRepository.import(dataOwnerUid, profileId, preview.transactions)
                 message = SettingsMessage.Text(R.string.settings_csv_imported, preview.transactions.size)
                 csvImportPreview = null
@@ -167,6 +175,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         resetProfileBusy = true
         viewModelScope.launch {
             try {
+                if (activeProfileOwnerUid == null) safetyBackup(profileId, "pre_reset")
                 app.profileSyncCoordinator.resetOwnProfile(uid, profileId, activeProfileOwnerUid)
                 resetProfileSucceeded = true
                 message = SettingsMessage.Text(R.string.settings_reset_success)
@@ -177,6 +186,80 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } finally {
                 resetProfileBusy = false
             }
+        }
+    }
+
+    // ── Cloud backups (functions/lib/backup.js) ──
+    /** null while loading. Own profiles only — the screen hides this for shared ones. */
+    fun backups(uid: String, profileId: String): Flow<List<BackupInfo>?> =
+        app.backupsRepository.observe(uid, profileId).catch { emit(emptyList()) }
+
+    var backupBusy by mutableStateOf(false)
+        private set
+    var restoringBackupId by mutableStateOf<String?>(null)
+        private set
+    var restoreSucceeded by mutableStateOf(false)
+        private set
+    fun consumeRestoreSucceeded() { restoreSucceeded = false }
+
+    fun createBackup(profileId: String) {
+        if (backupBusy) return
+        backupBusy = true
+        viewModelScope.launch {
+            try {
+                message = SettingsMessage.Text(
+                    when (app.backupsRepository.create(profileId)) {
+                        BackupCreateResult.Created -> R.string.backups_created
+                        BackupCreateResult.Unchanged -> R.string.backups_unchanged
+                        BackupCreateResult.Empty -> R.string.backups_nothing
+                    },
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("RytmBackup", "Backup failed", e)
+                message = SettingsMessage.Text(backupErrorRes(e))
+            } finally {
+                backupBusy = false
+            }
+        }
+    }
+
+    fun restoreBackup(uid: String, profileId: String, backupId: String) {
+        if (restoringBackupId != null) return
+        restoringBackupId = backupId
+        viewModelScope.launch {
+            try {
+                app.backupsRepository.restore(backupId)
+                app.profileSyncCoordinator.reloadActiveProfile(uid, profileId)
+                restoreSucceeded = true
+                message = SettingsMessage.Text(R.string.backups_restored)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("RytmBackup", "Restore failed", e)
+                message = SettingsMessage.Text(backupErrorRes(e))
+            } finally {
+                restoringBackupId = null
+            }
+        }
+    }
+
+    private fun backupErrorRes(e: Exception) =
+        if ((e as? BackupException)?.code == FirebaseFunctionsException.Code.RESOURCE_EXHAUSTED) R.string.backups_rate_limited
+        else R.string.backups_failed
+
+    // Best-effort snapshot before a destructive bulk action. Never blocks the
+    // action itself (offline, server hiccup) — the daily backup still exists.
+    private suspend fun safetyBackup(profileId: String, reason: String) {
+        try {
+            withTimeout(20_000) { app.backupsRepository.create(profileId, reason) }
+        } catch (e: TimeoutCancellationException) {
+            Log.w("RytmBackup", "Safety backup ($reason) timed out", e)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("RytmBackup", "Safety backup ($reason) failed", e)
         }
     }
 }

@@ -454,4 +454,26 @@
     <string name="widget_goal_pct">%1$d%% of goal</string>
     <string name="widget_week">This week</string>
     <string name="widget_recent">Recent operations</string>
+    <string name="settings_backups_title">Backups</string>
+    <string name="settings_backups_subtitle">Daily cloud copies, restore to a date</string>
+    <string name="backups_body">Rytm saves a copy of this profile every day: the last 7, plus one per week for a month. Restoring replaces the current data, but the current state is saved as a copy first.</string>
+    <string name="backups_create">Back up now</string>
+    <string name="backups_empty">No backups yet. The first one appears overnight or when you tap the button above.</string>
+    <string name="backups_reason_daily">Daily</string>
+    <string name="backups_reason_manual">Manual</string>
+    <string name="backups_reason_pre_reset">Before reset</string>
+    <string name="backups_reason_pre_import">Before import</string>
+    <string name="backups_reason_pre_restore">Before restore</string>
+    <plurals name="backups_tx_count"><item quantity="one">%1$d transaction</item><item quantity="other">%1$d transactions</item></plurals>
+    <string name="backups_restore">Restore</string>
+    <string name="backups_restore_title">Restore this backup?</string>
+    <string name="backups_restore_body">The profile data will be replaced with its state as of %1$s. The current state is saved as a separate backup, so this can be undone.</string>
+    <string name="backups_restoring">Restoring…</string>
+    <string name="backups_restored">Data restored</string>
+    <string name="backups_created">Backup created</string>
+    <string name="backups_unchanged">Nothing changed since the last backup</string>
+    <string name="backups_nothing">The profile is empty, nothing to back up</string>
+    <string name="backups_failed">Failed. Check your connection</string>
+    <string name="backups_rate_limited">Wait a moment before the next backup</string>
+    <string name="backups_shared_unavailable">Backups of a shared profile are made by its owner</string>
 </resources>

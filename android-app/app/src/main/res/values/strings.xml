@@ -460,4 +460,26 @@
     <string name="widget_goal_pct">%1$d%% цілі</string>
     <string name="widget_week">Тиждень</string>
     <string name="widget_recent">Останні операції</string>
+    <string name="settings_backups_title">Резервні копії</string>
+    <string name="settings_backups_subtitle">Щоденні копії в хмарі, відновлення на дату</string>
+    <string name="backups_body">Rytm щодня зберігає копію цього профілю: 7 останніх і ще по одній на тиждень за місяць. Відновлення замінює поточні дані, але перед ним поточний стан теж зберігається копією.</string>
+    <string name="backups_create">Створити копію зараз</string>
+    <string name="backups_empty">Копій ще немає. Перша з’явиться вночі або після натискання кнопки вище.</string>
+    <string name="backups_reason_daily">Щоденна</string>
+    <string name="backups_reason_manual">Вручну</string>
+    <string name="backups_reason_pre_reset">Перед скиданням</string>
+    <string name="backups_reason_pre_import">Перед імпортом</string>
+    <string name="backups_reason_pre_restore">Перед відновленням</string>
+    <plurals name="backups_tx_count"><item quantity="one">%1$d операція</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
+    <string name="backups_restore">Відновити</string>
+    <string name="backups_restore_title">Відновити копію?</string>
+    <string name="backups_restore_body">Дані профілю буде замінено станом на %1$s. Поточний стан збережеться окремою копією, тож це можна скасувати.</string>
+    <string name="backups_restoring">Відновлюю…</string>
+    <string name="backups_restored">Дані відновлено</string>
+    <string name="backups_created">Копію створено</string>
+    <string name="backups_unchanged">Дані не змінились з останньої копії</string>
+    <string name="backups_nothing">Профіль порожній, копіювати нічого</string>
+    <string name="backups_failed">Не вдалося. Перевірте з’єднання</string>
+    <string name="backups_rate_limited">Зачекайте трохи перед наступною копією</string>
+    <string name="backups_shared_unavailable">Копії спільного профілю робить його власник</string>
 </resources>

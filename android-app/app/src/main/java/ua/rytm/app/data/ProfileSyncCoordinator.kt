@@ -38,6 +38,8 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val realtimeSyncMutex = Mutex()
+    // A restore's own reload and the listener-triggered one can overlap.
+    private val reloadMutex = Mutex()
     private val _realtimeState = MutableStateFlow<RealtimeState>(RealtimeState.Stopped)
     val realtimeState = _realtimeState.asStateFlow()
     private var listeners = emptyList<ListenerRegistration>()
@@ -197,6 +199,21 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         startRealtimeSync(uid, profileId)
     }
 
+    /**
+     * Drops the local cache for the active profile and re-pulls everything —
+     * used after a cloud-backup restore, and internally when a watched doc
+     * (or the whole transactions subcollection) disappears remotely.
+     */
+    suspend fun reloadActiveProfile(ownerUid: String, profileId: String) = reloadMutex.withLock {
+        stopRealtimeSync()
+        app.database.clearAllProfileScopedTables()
+        try {
+            syncAllDomains(ownerUid, profileId)
+        } finally {
+            startRealtimeSync(ownerUid, profileId)
+        }
+    }
+
     /** Keeps Room current when another signed-in client changes the active profile. */
     fun startRealtimeSync(ownerUid: String, profileId: String) {
         stopRealtimeSync()
@@ -216,7 +233,15 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         var initialSnapshotsRemaining = watched.size + 1
         var initialSnapshotWasOffline = false
 
-        fun remoteChanged(domain: SyncDomain, error: Exception?, fromCache: Boolean) {
+        // Every per-domain sync treats "no remote doc/field" as "first launch ->
+        // push local as the seed". Correct at sign-in, wrong for a realtime
+        // event: another device resetting the profile, deleting the last
+        // transaction or restoring a cloud backup made this device push its
+        // stale data straight back. A remote disappearance instead triggers a
+        // full reload from an empty cache (nothing left to push).
+        val goneDomains = mutableSetOf<SyncDomain>()
+
+        fun remoteChanged(domain: SyncDomain, error: Exception?, fromCache: Boolean, gone: Boolean = false) {
             if (generation != listenerGeneration) return
             if (error != null) {
                 _realtimeState.value = RealtimeState.Error(error.message ?: "Realtime sync failed")
@@ -234,14 +259,34 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                 _realtimeState.value = RealtimeState.Offline
                 return
             }
-            synchronized(dirty) { dirty += domain }
+            synchronized(dirty) { dirty += domain; if (gone) goneDomains += domain }
             pendingRealtimeSync?.cancel()
             pendingRealtimeSync = scope.launch {
                 delay(250)
                 realtimeSyncMutex.withLock {
                     if (generation != listenerGeneration) return@withLock
-                    val domains = synchronized(dirty) { dirty.toSet().also { dirty.clear() } }
+                    val (domains, gone) = synchronized(dirty) {
+                        (dirty.toSet() to goneDomains.toSet()).also { dirty.clear(); goneDomains.clear() }
+                    }
                     if (domains.isEmpty()) return@withLock
+                    // This device deleting its own last transaction also ends in an
+                    // empty subcollection — nothing stale to protect then.
+                    val needsReload = (gone - SyncDomain.TRANSACTIONS).isNotEmpty() ||
+                        (SyncDomain.TRANSACTIONS in gone && app.database.transactionDao().getAllOnce().isNotEmpty())
+                    if (needsReload) {
+                        // Separate job: reloadActiveProfile() stops the listeners,
+                        // which cancels this one.
+                        scope.launch {
+                            try {
+                                reloadActiveProfile(ownerUid, profileId)
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                _realtimeState.value = RealtimeState.Error(e.message ?: "Realtime sync failed")
+                            }
+                        }
+                        return@withLock
+                    }
                     _realtimeState.value = RealtimeState.Syncing
                     runCatching { syncDomains(ownerUid, profileId, domains) }
                         .onSuccess { _realtimeState.value = RealtimeState.Listening }
@@ -262,11 +307,11 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         listeners = watched.map { (ref, domain) ->
             ref.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-                remoteChanged(domain, error, snapshot?.metadata?.isFromCache() == true)
+                remoteChanged(domain, error, snapshot?.metadata?.isFromCache() == true, gone = snapshot != null && !snapshot.exists())
             }
         } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(SyncDomain.TRANSACTIONS, error, snapshot?.metadata?.isFromCache() == true)
+            remoteChanged(SyncDomain.TRANSACTIONS, error, snapshot?.metadata?.isFromCache() == true, gone = snapshot != null && snapshot.isEmpty)
         }
     }
 

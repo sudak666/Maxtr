@@ -160,6 +160,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.functions)
     implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)

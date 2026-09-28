@@ -25,3 +25,4 @@ android-app/*.keystore
 .claude/worktrees/
 .agents/
 .codex/
+android-app/.kotlin/
