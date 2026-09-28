@@ -26,12 +26,35 @@ import ua.rytm.app.R
 // ANDROID_MIGRATION.md's "chesno not done" for this step) — everything else
 // (chips, hero balance, progress bar, due chip, collapsible info/history,
 // payment CRUD with swipe-to-delete) is real.
-class DebtViewModel(private val app: RytmApplication) : ViewModel() {
-    private val repository = app.debtRepository
+/** Where a debt edit is saved and whether it's allowed — injectable for tests. */
+interface DebtSaver {
+    sealed interface Target {
+        data class Editable(val ownerUid: String, val profileId: String) : Target
+        data object ReadOnly : Target
+        data object SignedOut : Target
+    }
+    suspend fun target(): Target
+    suspend fun save(ownerUid: String, profileId: String, currentDebtId: Long?)
+}
+
+private class AppDebtSaver(private val app: RytmApplication) : DebtSaver {
+    override suspend fun target(): DebtSaver.Target {
+        val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return DebtSaver.Target.SignedOut
+        val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
+        val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
+        if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) return DebtSaver.Target.ReadOnly
+        return DebtSaver.Target.Editable(activeOwnerUid ?: accountUid, profileId)
+    }
+    override suspend fun save(ownerUid: String, profileId: String, currentDebtId: Long?) {
+        app.debtSyncRepository.saveSnapshot(ownerUid, profileId, currentDebtId)
+    }
+}
+
+class DebtViewModel(private val repository: DebtRepository, private val saver: DebtSaver) : ViewModel() {
 
     companion object {
         fun factory(app: RytmApplication) = viewModelFactory {
-            initializer { DebtViewModel(app) }
+            initializer { DebtViewModel(app.debtRepository, AppDebtSaver(app)) }
         }
     }
 
@@ -177,19 +200,18 @@ class DebtViewModel(private val app: RytmApplication) : ViewModel() {
     }
 
     private suspend fun mutateLocked(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
-        val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val profileId = app.activeProfileStore.getActiveProfileId(accountUid)
-        val activeOwnerUid = app.activeProfileStore.getActiveProfileOwnerUid(accountUid)
-        if (!app.profilesRepository.canEditProfile(accountUid, activeOwnerUid, profileId)) {
-            errorMessageRes = R.string.profile_read_only
-            return
+        val target = when (val t = saver.target()) {
+            is DebtSaver.Target.Editable -> t
+            DebtSaver.Target.ReadOnly -> { errorMessageRes = R.string.profile_read_only; return }
+            DebtSaver.Target.SignedOut -> return
         }
-        val ownerUid = activeOwnerUid ?: accountUid
+        val ownerUid = target.ownerUid
+        val profileId = target.profileId
         val before = repository.snapshot()
         saving = true
         try {
             change()
-            app.debtSyncRepository.saveSnapshot(ownerUid, profileId, nextCurrentDebtId)
+            saver.save(ownerUid, profileId, nextCurrentDebtId)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
