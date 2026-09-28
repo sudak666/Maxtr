@@ -108,6 +108,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Robolectric tests need merged resources (R.string lookups, Room in-memory).
+    testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -175,4 +177,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("io.mockk:mockk:1.14.6")
+    testImplementation("androidx.test:core:1.7.0")
 }
