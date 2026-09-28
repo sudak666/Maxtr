@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -62,7 +61,8 @@ import java.time.format.TextStyle as JavaTextStyle
  * gate, so amounts are masked when a PIN or "hide amounts" is on.
  */
 class RytmWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(COMPACT, FULL))
+    // Exact: the layout adds rows (week strip, recent operations) as height allows.
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val snapshot = withContext(Dispatchers.IO) { loadSnapshot(context) }
@@ -70,9 +70,6 @@ class RytmWidget : GlanceAppWidget() {
     }
 
     companion object {
-        private val COMPACT = DpSize(180.dp, 90.dp)
-        private val FULL = DpSize(250.dp, 170.dp)
-
         suspend fun loadSnapshot(context: Context): WidgetSnapshot {
             val app = context.applicationContext as RytmApplication
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return WidgetSnapshot.SignedOut
@@ -105,6 +102,13 @@ private val White = ColorProvider(Color.White)
 
 private const val MASK = "••••••"
 private val TILE_HEIGHT = 92.dp
+// Vertical budget (dp) used to decide which extra sections fit.
+private val BASE_HEIGHT = 220.dp
+private val WEEK_HEIGHT = 88.dp
+private val RECENT_HEADER = 30.dp
+private val RECENT_ROW = 40.dp
+// Recent list Column holds header spacer+label + 2 children per row ≤ Glance's 10.
+private const val MAX_RECENT_ROWS = 4
 
 @Composable
 private fun WidgetContent(s: WidgetSnapshot) {
@@ -115,7 +119,8 @@ private fun WidgetContent(s: WidgetSnapshot) {
             .setData(Uri.parse("rytm://widget/new-transaction")) // distinct PendingIntent
             .putExtra(MainActivity.EXTRA_LAUNCH_ACTION, MainActivity.ACTION_NEW_TRANSACTION),
     )
-    val compact = LocalSize.current.height < 160.dp
+    val height = LocalSize.current.height
+    val compact = height < 160.dp
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -139,12 +144,21 @@ private fun WidgetContent(s: WidgetSnapshot) {
             maxLines = 1,
         )
         if (!compact) {
-            Spacer(GlanceModifier.defaultWeight())
+            // Content stacks from the top; extra height buys more rows instead
+            // of a blank gap (v2 pushed the tiles to the bottom of a tall widget).
+            Spacer(GlanceModifier.height(12.dp))
             Row(GlanceModifier.fillMaxWidth()) {
                 ShiftTile(s.nextShift, GlanceModifier.defaultWeight())
                 Spacer(GlanceModifier.width(8.dp))
                 ForecastTile(s, GlanceModifier.defaultWeight())
             }
+            var used = BASE_HEIGHT
+            if (height >= used + WEEK_HEIGHT && s.week.isNotEmpty()) {
+                WeekStrip(s.week)
+                used += WEEK_HEIGHT
+            }
+            val rows = ((height - used - RECENT_HEADER) / RECENT_ROW).toInt().coerceIn(0, minOf(s.recent.size, MAX_RECENT_ROWS))
+            if (rows > 0) RecentList(s.recent.take(rows), s.masked)
         }
     }
 }
@@ -155,7 +169,7 @@ private fun Header(newTx: Action?) {
         Image(
             ImageProvider(R.drawable.ic_widget_logo),
             contentDescription = null,
-            modifier = GlanceModifier.size(22.dp).cornerRadius(6.dp),
+            modifier = GlanceModifier.size(26.dp).cornerRadius(7.dp),
         )
         Spacer(GlanceModifier.width(8.dp))
         Text("Rytm", style = TextStyle(color = OnBg, fontSize = 14.sp, fontWeight = FontWeight.Bold))
@@ -224,6 +238,67 @@ private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
                 Text(context.getString(R.string.widget_goal_pct, (pct * 100).toInt()), style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
             }
         }
+    }
+}
+
+@Composable
+private fun WeekStrip(week: List<WidgetSnapshot.WeekDay>) {
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0]
+    // Own Column: a Glance Column renders at most 10 children and silently
+    // drops the rest — inlined into the root these sections vanished.
+    Column(GlanceModifier.fillMaxWidth()) {
+    Spacer(GlanceModifier.height(14.dp))
+    Text(context.getString(R.string.widget_week), style = TextStyle(color = Muted, fontSize = 12.sp))
+    Spacer(GlanceModifier.height(6.dp))
+    Row(GlanceModifier.fillMaxWidth()) {
+        week.forEachIndexed { i, d ->
+            Column(GlanceModifier.defaultWeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    d.date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT_STANDALONE, locale).take(2).replaceFirstChar { it.titlecase(locale) },
+                    style = TextStyle(color = if (i == 0) Accent else Muted, fontSize = 11.sp, fontWeight = if (i == 0) FontWeight.Bold else FontWeight.Normal),
+                )
+                Spacer(GlanceModifier.height(4.dp))
+                Box(
+                    GlanceModifier.size(30.dp).cornerRadius(9.dp).background(if (d.code != null) ColorProvider(Color(d.colorHex)) else Tile),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        d.code ?: d.date.dayOfMonth.toString(),
+                        style = TextStyle(color = if (d.code != null) White else Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+    }
+    }
+}
+
+@Composable
+private fun RecentList(items: List<WidgetSnapshot.RecentTx>, masked: Boolean) {
+    val context = LocalContext.current
+    Column(GlanceModifier.fillMaxWidth()) {
+    Spacer(GlanceModifier.height(14.dp))
+    Text(context.getString(R.string.widget_recent), style = TextStyle(color = Muted, fontSize = 12.sp))
+    items.forEach { t ->
+        Spacer(GlanceModifier.height(6.dp))
+        Row(GlanceModifier.fillMaxWidth().height(34.dp).background(Tile).cornerRadius(12.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(GlanceModifier.defaultWeight()) {
+                Text(t.title, style = TextStyle(color = OnBg, fontSize = 12.sp, fontWeight = FontWeight.Medium), maxLines = 1)
+            }
+            Spacer(GlanceModifier.width(8.dp))
+            Text(
+                if (masked) MASK else t.signedAmount,
+                style = TextStyle(
+                    color = if (!masked && t.signedAmount.startsWith("+")) Good else OnBg,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 1,
+            )
+        }
+    }
     }
 }
 

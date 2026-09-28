@@ -452,4 +452,6 @@
     <string name="widget_today">Today</string>
     <string name="widget_tomorrow">Tomorrow</string>
     <string name="widget_goal_pct">%1$d%% of goal</string>
+    <string name="widget_week">This week</string>
+    <string name="widget_recent">Recent operations</string>
 </resources>
