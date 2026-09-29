@@ -1,5 +1,7 @@
 # Changelog
 
+- **2.2 (vc14) uploaded to Play by the owner (2026-09-29)** — closed testing; 2.1 (vc13) was never uploaded. Next bump: vc15.
+
 - **Cloud backups: full live two-device check (2026-09-29)**. PWA (owner's Chrome) + A51 QA, main account: added a 1 грн "QA backup test" expense in the PWA → phone showed 1 427 грн; restored the 03:30 backup (450 tx) from the PWA → server took a "Перед відновленням · 451" safety backup, PWA back to 450, phone back to 1 428 грн, and after 20 s + a fresh PWA reload still 450 with no test tx — i.e. the phone did NOT re-upload the removed transaction (the #521 realtime re-seed fix holds). Both open items from the previous entry are now closed. Owner's data is exactly as before the test; the test tx survives only inside the pre_restore backup.
 
 - **Cloud backups verified live + build 2.2 (vc14) (2026-09-29)**. First real `dailyBackup` run (03:30) produced the owner's default-profile backup (450 transactions) — visible in the Android QA sheet. "Back up now" on unchanged data correctly deduped (no new entry). Restore of that backup on the A51 (QA build, main account): confirm dialog → "Відновлюю…" → done; balance/totals identical afterwards (1 428 грн), no sync-error banner. `.aab` 2.2 (vc14) built from main and handed to the owner (Desktop `Rytm-2.2-vc14.aab`) — supersedes the never-uploaded 2.1 vc13 (forecast + widget + backups). Not yet exercised live: restoring a *differing* snapshot, and the two-device re-seed fix.
