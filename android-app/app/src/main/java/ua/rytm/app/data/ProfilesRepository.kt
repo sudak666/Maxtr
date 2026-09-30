@@ -268,7 +268,15 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
 
     suspend fun canEditProfile(signedInUid: String, ownerUid: String?, profileId: String): Boolean {
         if (ownerUid == null || ownerUid == signedInUid) return true
-        val info = listSharedMembers(ownerUid, profileId) ?: return false
+        // Fails open to editor when the role can't be read (offline) — same as
+        // the PWA's loadActiveProfileRole(); firestore.rules stay the real gate.
+        val info = try {
+            listSharedMembers(ownerUid, profileId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return true
+        } ?: return false
         return canEditProfile(signedInUid, ownerUid, info.members, info.roles)
     }
 

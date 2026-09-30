@@ -129,7 +129,17 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             app.financeRepository.seedIfEmpty()
             app.shiftsRepository.seedIfEmpty()
         }
-        syncAllDomains(dataOwnerUid, profileId)
+        // Offline with a doc missing from Firestore's cache, get() throws — that
+        // used to crash the app on every launch until the network came back.
+        // Room already holds the last synced state; the listeners below re-sync
+        // each domain once the server answers.
+        try {
+            syncAllDomains(dataOwnerUid, profileId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            android.util.Log.w("RytmSync", "Cold sync failed, continuing from local cache", e)
+        }
         startRealtimeSync(dataOwnerUid, profileId)
         return profileId
     }
