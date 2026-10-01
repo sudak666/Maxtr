@@ -324,9 +324,14 @@ fun ShiftsScreen() {
         }
     }
 
+    // Must outlive the dialog: a scope remembered inside `if (editingGoal)` was
+    // cancelled the moment "Готово" closed it, before DataStore wrote — the
+    // goal never saved (reported live).
+    val goalScope = androidx.compose.runtime.rememberCoroutineScope()
     if (canEdit && editingGoal) {
-        val scope = androidx.compose.runtime.rememberCoroutineScope()
-        var text by rememberSaveable(editingGoal) { mutableStateOf(if (salaryGoal == 0.0) "" else salaryGoal.toString()) }
+        var text by rememberSaveable(editingGoal) {
+            mutableStateOf(if (salaryGoal == 0.0) "" else java.math.BigDecimal.valueOf(salaryGoal).stripTrailingZeros().toPlainString())
+        }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { editingGoal = false },
             title = { Text(stringResource(R.string.shifts_goal_edit_title)) },
@@ -349,7 +354,7 @@ fun ShiftsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { scope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
+                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { goalScope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
                     editingGoal = false
                 }) { Text(stringResource(R.string.action_done)) }
             },
