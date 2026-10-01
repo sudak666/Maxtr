@@ -480,9 +480,13 @@ class FinanceViewModel(
             if (search.isNotBlank()) {
                 val q = search.trim().lowercase()
                 fun walletName(id: String?) = wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: ""
+                val tagNames = tags.associate { it.id to it.name }
+                // "#кава" finds the tag "кава"; a bare word matches tag names too.
+                val tagQuery = q.removePrefix("#")
                 result = result.filter { t ->
                     listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
-                        .any { it.lowercase().contains(q) }
+                        .any { it.lowercase().contains(q) } ||
+                        (tagQuery.isNotEmpty() && t.tags.any { tagNames[it]?.lowercase()?.contains(tagQuery) == true })
                 }
             }
 
