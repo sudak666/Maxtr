@@ -104,6 +104,29 @@ class FinanceViewModelTest {
         assertEquals(100.0, vm.monthExpenseUah, 0.001)
     }
 
+    @Test fun searchMatchesTagNames() {
+        runBlocking { db.tagDao().insert(ua.rytm.app.data.local.TagEntity("t1", "Коло", 0xFFFF0000)) }
+        val vm = vm()
+        waitUntil { vm.tags.isNotEmpty() }
+        vm.openNewTransactionSheet()
+        vm.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        vm.onFormWalletChange("uah")
+        vm.onFormAmountChange("5")
+        vm.onFormCategoryChange("Food")
+        vm.onFormDateChange(LocalDate.now().toString())
+        vm.toggleFormTag("t1")
+        vm.submitForm()
+        waitUntil { vm.filteredTransactions.size == 1 }
+        vm.addExpense("uah", "7", category = "Fun")
+        waitUntil { vm.filteredTransactions.size == 2 }
+        vm.onSearchChange("коло")
+        assertEquals(listOf(5.0), vm.filteredTransactions.map { it.amount })
+        vm.onSearchChange("#КОЛ")
+        assertEquals(1, vm.filteredTransactions.size)
+        vm.onSearchChange("#")
+        assertEquals(0, vm.filteredTransactions.size)
+    }
+
     @Test fun failedSyncKeepsNothingAndReportsError() {
         coEvery { sync.saveTransaction(any(), any(), any()) } throws RuntimeException("offline")
         val vm = vm()

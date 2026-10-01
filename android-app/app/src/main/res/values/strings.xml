@@ -109,7 +109,7 @@
     <string name="finance_estimated_balance">Орієнтовний баланс</string><string name="finance_total_balance">Загальний баланс</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
     <string name="finance_month_income">Дохід цього місяця</string><string name="finance_month_expense">Витрата цього місяця</string><string name="finance_action_transaction">Операція</string><string name="finance_history">Історія операцій</string>
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
-    <string name="finance_search_hint">Пошук за коментарем, категорією, гаманцем…</string><string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
+    <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
     <string name="finance_empty_cta">Додати першу операцію</string>
     <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
@@ -482,4 +482,5 @@
     <string name="backups_failed">Не вдалося. Перевірте з’єднання</string>
     <string name="backups_rate_limited">Зачекайте трохи перед наступною копією</string>
     <string name="backups_shared_unavailable">Копії спільного профілю робить його власник</string>
+    <string name="finance_search_prefix">Шукати</string><string name="finance_search_what_comment">за коментарем</string><string name="finance_search_what_category">за категорією</string><string name="finance_search_what_tag">за тегом</string><string name="finance_search_what_wallet">за гаманцем</string>
 </resources>

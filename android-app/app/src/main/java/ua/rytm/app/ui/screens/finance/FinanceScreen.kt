@@ -29,6 +29,18 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.focus.onFocusChanged
+import ua.rytm.app.ui.LocalReducedMotion
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,7 +57,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -276,6 +287,8 @@ fun FinanceScreen(
                 // collapse it to a round icon FAB instead.
                 val collapsed = largeText || compactHeight || !fabAtTop
                 val label = stringResource(R.string.transaction_new_title)
+                val fabAnimMs = if (LocalReducedMotion.current) 0 else 450
+                val fabPadding by animateDpAsState(if (collapsed) 16.dp else 22.dp, tween(fabAnimMs), label = "fabPadding")
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
@@ -291,8 +304,7 @@ fun FinanceScreen(
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.openNewTransactionSheet()
                         })
-                        .padding(horizontal = if (collapsed) 16.dp else 22.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        .padding(horizontal = fabPadding, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
@@ -300,7 +312,15 @@ fun FinanceScreen(
                         contentDescription = if (collapsed) label else null,
                         tint = Color.White,
                     )
-                    if (!collapsed) Text(label, color = Color.White, fontWeight = FontWeight.Bold)
+                    // Label slides/fades out and the pill narrows together, instead
+                    // of snapping straight to the round "+" (owner: "оп і плюс").
+                    AnimatedVisibility(
+                        visible = !collapsed,
+                        enter = expandHorizontally(tween(fabAnimMs), expandFrom = Alignment.Start) + fadeIn(tween(fabAnimMs)),
+                        exit = shrinkHorizontally(tween(fabAnimMs), shrinkTowards = Alignment.Start) + fadeOut(tween(fabAnimMs / 2)),
+                    ) {
+                        Text(label, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(start = 10.dp))
+                    }
                 }
             }
         },
@@ -640,11 +660,51 @@ private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
 
 @Composable
 private fun SearchField(vm: FinanceViewModel) {
-    OutlinedTextField(
+    // Rotating "Шукати <що>" hint, like other finance apps' search bars.
+    val hints = listOf(
+        stringResource(R.string.finance_search_what_comment),
+        stringResource(R.string.finance_search_what_category),
+        stringResource(R.string.finance_search_what_tag),
+        stringResource(R.string.finance_search_what_wallet),
+    )
+    val reducedMotion = LocalReducedMotion.current
+    var hintIndex by remember { mutableStateOf(0) }
+    var focused by remember { mutableStateOf(false) }
+    val animateHint = vm.search.isEmpty() && !focused && !reducedMotion
+    LaunchedEffect(animateHint) {
+        while (animateHint) {
+            kotlinx.coroutines.delay(2600)
+            hintIndex = (hintIndex + 1) % hints.size
+        }
+    }
+    val shape = RoundedCornerShape(RytmRadii.Pill)
+    TextField(
         value = vm.search,
         onValueChange = vm::onSearchChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(stringResource(R.string.finance_search_hint)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focused = it.isFocused },
+        shape = shape,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+        ),
+        placeholder = {
+            Row {
+                Text(stringResource(R.string.finance_search_prefix) + " ", maxLines = 1)
+                AnimatedContent(
+                    targetState = hintIndex,
+                    transitionSpec = {
+                        (slideInVertically(tween(420)) { it } + fadeIn(tween(420)))
+                            .togetherWith(slideOutVertically(tween(420)) { -it } + fadeOut(tween(300)))
+                    },
+                    label = "searchHint",
+                ) { i -> Text(hints[i], maxLines = 1) }
+            }
+        },
         leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
         trailingIcon = {
             if (vm.search.isNotEmpty()) {
