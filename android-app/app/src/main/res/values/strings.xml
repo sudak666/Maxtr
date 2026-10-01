@@ -295,7 +295,7 @@
     <string name="profile_role_change_failed">Не вдалося змінити роль</string>
     <string name="settings_title">Налаштування</string>
     <string name="settings_clear_search">Очистити пошук</string>
-    <string name="settings_search_hint">Пошук: гаманці, категорії, push…</string>
+    
     <string name="settings_group_all">Усі</string>
     <string name="settings_account">Акаунт</string>
     <string name="settings_finance">Фінанси</string>
@@ -483,4 +483,5 @@
     <string name="backups_rate_limited">Зачекайте трохи перед наступною копією</string>
     <string name="backups_shared_unavailable">Копії спільного профілю робить його власник</string>
     <string name="finance_search_prefix">Шукати</string><string name="finance_search_what_comment">за коментарем</string><string name="finance_search_what_category">за категорією</string><string name="finance_search_what_tag">за тегом</string><string name="finance_search_what_wallet">за гаманцем</string>
+    <string name="settings_search_what_wallets">гаманці</string><string name="settings_search_what_categories">категорії</string><string name="settings_search_what_notifications">сповіщення</string><string name="settings_search_what_pin">PIN-код</string><string name="settings_search_what_theme">тему</string>
 </resources>

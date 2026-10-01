@@ -289,7 +289,7 @@
     <string name="profile_role_change_failed">Could not change the role</string>
     <string name="settings_title">Settings</string>
     <string name="settings_clear_search">Clear search</string>
-    <string name="settings_search_hint">Search: wallets, categories, push…</string>
+    
     <string name="settings_group_all">All</string>
     <string name="settings_account">Account</string>
     <string name="settings_finance">Finance</string>
@@ -477,4 +477,5 @@
     <string name="backups_rate_limited">Wait a moment before the next backup</string>
     <string name="backups_shared_unavailable">Backups of a shared profile are made by its owner</string>
     <string name="finance_search_prefix">Search</string><string name="finance_search_what_comment">by comment</string><string name="finance_search_what_category">by category</string><string name="finance_search_what_tag">by tag</string><string name="finance_search_what_wallet">by wallet</string>
+    <string name="settings_search_what_wallets">wallets</string><string name="settings_search_what_categories">categories</string><string name="settings_search_what_notifications">notifications</string><string name="settings_search_what_pin">PIN</string><string name="settings_search_what_theme">theme</string>
 </resources>

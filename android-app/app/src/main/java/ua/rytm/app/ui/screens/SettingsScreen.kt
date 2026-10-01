@@ -358,20 +358,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             item(key = "settings-search") {
-            OutlinedTextField(
+            ua.rytm.app.ui.components.RytmSearchField(
                 value = settingsSearch,
                 onValueChange = { settingsSearch = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
-                trailingIcon = if (settingsSearch.isNotEmpty()) {
-                    {
-                        androidx.compose.material3.IconButton(onClick = { settingsSearch = "" }) {
-                            Icon(RytmIcons.Clear, contentDescription = stringResource(R.string.settings_clear_search))
-                        }
-                    }
-                } else null,
-                placeholder = { Text(stringResource(R.string.settings_search_hint)) },
+                prefix = stringResource(R.string.finance_search_prefix),
+                hints = listOf(
+                    stringResource(R.string.settings_search_what_wallets),
+                    stringResource(R.string.settings_search_what_categories),
+                    stringResource(R.string.settings_search_what_notifications),
+                    stringResource(R.string.settings_search_what_pin),
+                    stringResource(R.string.settings_search_what_theme),
+                ),
+                clearDescription = stringResource(R.string.settings_clear_search),
             )
             }
             item(key = "settings-group-filter") {

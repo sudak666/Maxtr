@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: earnings goal now saves; one shared search bar (2026-10-01)** — owner report: Shifts "Ціль заробітку" dialog → 50000 → Готово, value stayed 20 000. Cause: the `rememberCoroutineScope()` used for `settingsStore.setSalaryGoal` lived inside `if (editingGoal)`, so closing the dialog cancelled the launch before DataStore wrote. Scope hoisted to the screen; the field also pre-fills `20000` instead of `20000.0`. Search: new `ui/components/RytmSearchField` (pill, rotating "Шукати …" hint, reduced-motion aware) now used by both Finance history and Settings (hints: гаманці / категорії / сповіщення / PIN-код / тему); `settings_search_hint` removed. Build + unit tests pass; **not yet checked on the A51** (wireless adb was off).
+
 - **Build 2.3.1 (vc17) (2026-10-01)**: FAB-clearance fix (#531) on top of 2.3 (vc16, uploaded by the owner). `.aab` → Desktop `Rytm-2.3.1-vc17.aab`, not uploaded yet. Next bump vc18.
 
 - **Android: FAB no longer covers the last list row (2026-10-01)** — owner screenshot: Finance filtered to 1 income row, the "+" FAB sat on top of it with nowhere left to scroll. Root cause: list `contentPadding` only cleared the floating nav bar; FAB clearance had been added per item (Debt's "Переглянути всі" and empty state), which missed short filtered lists. New token `RytmDimens.FabScreenBottomClearance` (= `BottomContentClearance` + `FabRowClearance`) is the bottom content padding of both FAB screens (Finance, Debt); Debt's two per-item paddings removed. Shifts/Settings have no FAB — unchanged.

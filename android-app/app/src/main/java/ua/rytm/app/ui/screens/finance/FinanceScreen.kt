@@ -660,58 +660,17 @@ private fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
 
 @Composable
 private fun SearchField(vm: FinanceViewModel) {
-    // Rotating "Шукати <що>" hint, like other finance apps' search bars.
-    val hints = listOf(
-        stringResource(R.string.finance_search_what_comment),
-        stringResource(R.string.finance_search_what_category),
-        stringResource(R.string.finance_search_what_tag),
-        stringResource(R.string.finance_search_what_wallet),
-    )
-    val reducedMotion = LocalReducedMotion.current
-    var hintIndex by remember { mutableStateOf(0) }
-    var focused by remember { mutableStateOf(false) }
-    val animateHint = vm.search.isEmpty() && !focused && !reducedMotion
-    LaunchedEffect(animateHint) {
-        while (animateHint) {
-            kotlinx.coroutines.delay(2600)
-            hintIndex = (hintIndex + 1) % hints.size
-        }
-    }
-    val shape = RoundedCornerShape(RytmRadii.Pill)
-    TextField(
+    ua.rytm.app.ui.components.RytmSearchField(
         value = vm.search,
         onValueChange = vm::onSearchChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .onFocusChanged { focused = it.isFocused },
-        shape = shape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
+        prefix = stringResource(R.string.finance_search_prefix),
+        hints = listOf(
+            stringResource(R.string.finance_search_what_comment),
+            stringResource(R.string.finance_search_what_category),
+            stringResource(R.string.finance_search_what_tag),
+            stringResource(R.string.finance_search_what_wallet),
         ),
-        placeholder = {
-            Row {
-                Text(stringResource(R.string.finance_search_prefix) + " ", maxLines = 1)
-                AnimatedContent(
-                    targetState = hintIndex,
-                    transitionSpec = {
-                        (slideInVertically(tween(420)) { it } + fadeIn(tween(420)))
-                            .togetherWith(slideOutVertically(tween(420)) { -it } + fadeOut(tween(300)))
-                    },
-                    label = "searchHint",
-                ) { i -> Text(hints[i], maxLines = 1) }
-            }
-        },
-        leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
-        trailingIcon = {
-            if (vm.search.isNotEmpty()) {
-                IconButton(onClick = vm::clearSearch) { Icon(RytmIcons.Clear, contentDescription = stringResource(R.string.finance_clear_search)) }
-            }
-        },
-        singleLine = true,
+        clearDescription = stringResource(R.string.finance_clear_search),
     )
 }
 
