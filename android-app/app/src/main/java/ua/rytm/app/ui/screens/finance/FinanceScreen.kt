@@ -342,7 +342,7 @@ fun FinanceScreen(
                 start = 16.dp,
                 end = 16.dp,
                 top = 16.dp,
-                bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance,
+                bottom = innerPadding.calculateBottomPadding() + RytmDimens.FabScreenBottomClearance,
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

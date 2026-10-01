@@ -25,6 +25,11 @@ object RytmDimens {
     // "Переглянути всі" and "+ Платіж" still read as touching with no
     // breathing room between them.
     val FabRowClearance = 88.dp
+    // Bottom content padding for every scrolling screen that has a floating
+    // FAB: whatever item ends up last (a short filtered list, an empty state,
+    // "Переглянути всі") can always scroll fully above the FAB. Per-item
+    // padding missed the "1-2 filtered rows" case (reported live).
+    val FabScreenBottomClearance = BottomContentClearance + FabRowClearance
     val BottomNavHorizontal = 14.dp
     val BottomNavBottom = 14.dp
     val SheetHorizontal = 22.dp
