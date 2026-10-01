@@ -1,5 +1,7 @@
 # Changelog
 
+- **Build 2.3.1 (vc17) (2026-10-01)**: FAB-clearance fix (#531) on top of 2.3 (vc16, uploaded by the owner). `.aab` → Desktop `Rytm-2.3.1-vc17.aab`, not uploaded yet. Next bump vc18.
+
 - **Android: FAB no longer covers the last list row (2026-10-01)** — owner screenshot: Finance filtered to 1 income row, the "+" FAB sat on top of it with nowhere left to scroll. Root cause: list `contentPadding` only cleared the floating nav bar; FAB clearance had been added per item (Debt's "Переглянути всі" and empty state), which missed short filtered lists. New token `RytmDimens.FabScreenBottomClearance` (= `BottomContentClearance` + `FabRowClearance`) is the bottom content padding of both FAB screens (Finance, Debt); Debt's two per-item paddings removed. Shifts/Settings have no FAB — unchanged.
 
 - **Build 2.3 (vc16) (2026-10-01)**: tag search, pill search bar, smoother FAB (#529) on top of 2.2.1 (offline crash fix, uploaded by the owner). `.aab` → Desktop `Rytm-2.3-vc16.aab`, not uploaded yet. Next bump vc17.
