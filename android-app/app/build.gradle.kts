@@ -44,8 +44,8 @@ android {
         // Closed testing track (ANDROID_MIGRATION.md step 54); 3 (PR #489)
         // and 4 (bottom-nav perf fix) were uploaded too. Bumped to 5 for the
         // Shopping-removal batch, same strict-increase requirement.
-        versionCode = 16
-        versionName = "2.3"
+        versionCode = 17
+        versionName = "2.3.1"
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
         // with `./gradlew assembleDebug -PuseFirebaseEmulator=true`. See
