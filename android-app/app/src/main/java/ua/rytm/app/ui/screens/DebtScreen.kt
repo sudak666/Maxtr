@@ -190,7 +190,7 @@ fun DebtScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + RytmDimens.FabScreenBottomClearance),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { RealtimeStateBanner() }
@@ -232,7 +232,7 @@ fun DebtScreen(
                             // screenshot). Real fix: extra bottom margin so this
                             // button stacks fully above the FAB instead of
                             // narrowing to dodge it sideways.
-                            modifier = Modifier.fillMaxWidth().padding(bottom = RytmDimens.FabRowClearance),
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(RytmRadii.Row),
                         ) {
                             Text(stringResource(if (viewModel.historyExpanded) R.string.action_collapse_list else R.string.action_view_all))
@@ -497,7 +497,7 @@ private fun EmptyEntriesState() {
     // zero entries this empty-state text is the LAST list item, so it
     // sat directly behind the FAB with no clearance of its own (reported
     // live, screenshot: "Ще немає платежів" half-covered by the button).
-    Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 24.dp + RytmDimens.FabRowClearance), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(stringResource(R.string.debt_payments_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
