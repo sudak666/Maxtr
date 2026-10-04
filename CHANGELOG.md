@@ -1741,3 +1741,5 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Web**: "Динаміка заробітку" bars rendered flat — `.chart-bar-wrap` had no height, so the bar's `height:%` resolved to 0. Added `height:100%;justify-content:flex-end`. `sw.js` `rytm-v167`→`v168`.
 - **Android**: earnings goal was stored only in local DataStore (PR #533), so web showed the PWA's `salaryGoal` (20 000) while the app showed 30 000. `WidgetSettingsSyncRepository` now pulls `finance.salaryGoal` on sync (pushes the local value if the doc has none) and `ShiftsScreen` writes it on edit. No rules change (`finance` doc field).
 - Earnings forecast card is Android-only — not a data mismatch.
+- **Shifts calendar collapsed to the current week (Android)**: `CalendarGrid` shows only the week containing today in the current month, with a "Показати весь місяць"/"Згорнути" toggle; other months show in full.
+- **Builds 2.3.3 (vc19) and 2.3.4 (vc20) (2026-10-04)**: vc19 = goal sync (#535); vc20 = vc19 + collapsed calendar. `.aab`s on Desktop, not uploaded yet. Next bump vc21.
