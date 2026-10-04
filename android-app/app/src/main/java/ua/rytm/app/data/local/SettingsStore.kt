@@ -155,8 +155,8 @@ class SettingsStore(private val context: Context) {
     // SALARY_GOAL) and the pre-step-52 Android build hardcoded this to
     // 20000; a design-audit follow-up (§3.10) decided it should be an
     // editable, personal figure since it obviously differs per user. Kept
-    // Android-only for now: no Firestore field/rules change, and the PWA
-    // still hardcodes its own constant.
+    // Local cache; synced with the finance doc's `salaryGoal` by
+    // WidgetSettingsSyncRepository.
     private fun salaryGoalKey(uid: String) = doublePreferencesKey("salary_goal_$uid")
     fun salaryGoal(uid: String): Flow<Double> = context.settingsDataStore.data.map { it[salaryGoalKey(uid)] ?: DEFAULT_SALARY_GOAL }
     suspend fun setSalaryGoal(uid: String, amount: Double) {

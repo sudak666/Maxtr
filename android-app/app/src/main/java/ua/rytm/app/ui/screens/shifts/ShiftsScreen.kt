@@ -354,7 +354,10 @@ fun ShiftsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { goalScope.launch { app.settingsStore.setSalaryGoal(accountUid, it) } }
+                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { goalScope.launch {
+                        app.settingsStore.setSalaryGoal(accountUid, it)
+                        runCatching { app.widgetSettingsSyncRepository.saveSalaryGoal(dataUid, profileId, it) }
+                    } }
                     editingGoal = false
                 }) { Text(stringResource(R.string.action_done)) }
             },
