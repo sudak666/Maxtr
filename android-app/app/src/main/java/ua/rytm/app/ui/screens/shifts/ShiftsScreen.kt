@@ -932,8 +932,16 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
     // which is why the grid used to carry a hardcoded `height(rows * 80.dp)`.
     // At 360dp that wasted ~27dp per row; at >=600dp it clipped the cells.
     // Height now follows the cell's own aspect ratio at any width.
+    // Collapsed by default to the week with today in it, so the current day is
+    // visible without scrolling through the whole month. Other months (no
+    // today in them) always show in full.
+    val weeks = cells.chunked(7)
+    val todayWeek = weeks.indexOfFirst { w -> w.any { it.date?.toString() == todayKey && it.isCurrentMonth } }
+    var expanded by rememberSaveable(month.toString()) { mutableStateOf(false) }
+    val collapsible = todayWeek >= 0
+    val shownWeeks = if (collapsible && !expanded) listOf(weeks[todayWeek]) else weeks
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        cells.chunked(7).forEach { week ->
+        shownWeeks.forEach { week ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 week.forEach { cell ->
                     val date = cell.date
@@ -955,6 +963,11 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
                 }
                 // A short final week still has to keep the 7-column rhythm.
                 repeat(7 - week.size) { Box(Modifier.weight(1f)) }
+            }
+        }
+        if (collapsible) {
+            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text(stringResource(if (expanded) R.string.action_collapse else R.string.shifts_show_month))
             }
         }
     }
