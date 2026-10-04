@@ -2,6 +2,7 @@ package ua.rytm.app.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -27,6 +28,22 @@ class WidgetSettingsSyncRepository(
         } else {
             save(uid, profileId)
         }
+        // salaryGoal lives in the finance doc (the PWA reads/writes it there);
+        // locally it is cached per signed-in account.
+        val accountUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val remoteGoal = (snapshot.get("salaryGoal") as? Number)?.toDouble()
+        if (remoteGoal != null && remoteGoal >= 0) {
+            settingsStore.setSalaryGoal(accountUid, remoteGoal)
+        } else {
+            saveSalaryGoal(uid, profileId, settingsStore.salaryGoal(accountUid).first())
+        }
+    }
+
+    suspend fun saveSalaryGoal(uid: String, profileId: String, amount: Double) {
+        ref(uid, profileId).set(
+            mapOf("salaryGoal" to amount.coerceAtLeast(0.0), "updatedAt" to System.currentTimeMillis()),
+            SetOptions.merge(),
+        ).await()
     }
 
     suspend fun save(uid: String, profileId: String) = saveMutex.withLock {
