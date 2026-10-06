@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -80,6 +81,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.theme.RytmDimens
@@ -245,6 +247,12 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val amountInvalid = vm.formErrorField == TxFormField.AMOUNT
+                // A new entry starts in the amount field with the keyboard up —
+                // the first thing typed is always the sum.
+                val amountFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+                LaunchedEffect(Unit) {
+                    if (vm.editingTxId == null && vm.formAmountText.isEmpty()) runCatching { amountFocus.requestFocus() }
+                }
                 OutlinedTextField(
                     value = vm.formAmountText,
                     onValueChange = vm::onFormAmountChange,
@@ -257,7 +265,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     isError = amountInvalid,
                     supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
                         ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
                     singleLine = true,
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -269,6 +277,18 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             if (vm.formType != TxType.TRANSFER) {
                 val categories = vm.categoriesByType[vm.formType].orEmpty()
+                val frequent = vm.formFrequentCategories
+                if (frequent.size >= 2) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(frequent, key = { it }) { cat ->
+                            androidx.compose.material3.FilterChip(
+                                selected = (vm.formCategory ?: categories.firstOrNull()) == cat,
+                                onClick = { vm.onFormCategoryChange(cat) },
+                                label = { Text(ua.rytm.app.ui.localizedDomainText(cat)) },
+                            )
+                        }
+                    }
+                }
                 if (categories.isNotEmpty()) {
                     DropdownField(
                         label = stringResource(R.string.tx_category),

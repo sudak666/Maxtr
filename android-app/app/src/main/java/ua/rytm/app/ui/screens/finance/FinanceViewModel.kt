@@ -254,6 +254,18 @@ class FinanceViewModel(
             return toUah(amount, formWalletCurrency) / pay
         }
 
+    /** Most used categories of the form's type over the last 90 days — one-tap picks above the dropdown. */
+    val formFrequentCategories: List<String>
+        get() {
+            if (formType == TxType.TRANSFER) return emptyList()
+            val known = categoriesByType[formType].orEmpty().toSet()
+            val since = LocalDate.now().minusDays(90).toString()
+            return transactions.asSequence()
+                .filter { it.type == formType && it.date >= since && it.category in known }
+                .groupingBy { it.category }.eachCount()
+                .entries.sortedByDescending { it.value }.take(6).map { it.key }
+        }
+
     /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
     fun netUah(txs: List<Transaction>): Double = txs.sumOf {
         when (it.type) {
