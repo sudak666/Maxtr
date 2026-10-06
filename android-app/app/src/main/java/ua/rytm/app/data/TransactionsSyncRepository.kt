@@ -101,6 +101,8 @@ internal fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "monobankId" to monobankId,
     "by" to createdBy,
     "byName" to createdByName,
+    // Lets the daily backup skip untouched profiles (functions/lib/backup.js).
+    "updatedAt" to System.currentTimeMillis(),
 )
 
 private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {

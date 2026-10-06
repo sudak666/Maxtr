@@ -331,7 +331,8 @@ export function txDocRef(id){
  * @returns {Promise<void>}
  */
 export async function saveTransactionDoc(t){
-  await setDoc(txDocRef(t.id), t, {merge:false});
+  // updatedAt lets the daily backup skip untouched profiles (functions/lib/backup.js).
+  await setDoc(txDocRef(t.id), {...t, updatedAt:Date.now()}, {merge:false});
 }
 /**
  * @param {string | number} id
@@ -358,7 +359,7 @@ const BATCH_CHUNK=450;
 export async function batchWriteTransactions(txs){
   for(let i=0;i<txs.length;i+=BATCH_CHUNK){
     const batch=writeBatch(db);
-    txs.slice(i,i+BATCH_CHUNK).forEach(t=>batch.set(txDocRef(t.id), t));
+    txs.slice(i,i+BATCH_CHUNK).forEach(t=>batch.set(txDocRef(t.id), {...t, updatedAt:Date.now()}));
     await batch.commit();
   }
 }
