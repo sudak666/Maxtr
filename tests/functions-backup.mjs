@@ -32,7 +32,18 @@ function fakeDb(seed = {}) {
     store,
     doc: docRef,
     collection(path) {
+      const db = this;
+      const rows = () => [...store].filter(([p]) => p.startsWith(path + '/') && !p.slice(path.length + 1).includes('/'));
       return {
+        count: () => ({ get: async () => ({ data: () => ({ count: rows().length }) }) }),
+        where: (field, op, value) => ({
+          limit: () => ({
+            get: async () => {
+              const hit = rows().filter(([, d]) => op === '>' && typeof d[field] === 'number' && d[field] > value);
+              return { empty: hit.length === 0, docs: hit.slice(0, 1) };
+            },
+          }),
+        }),
         async get() {
           const docs = [];
           for (const [p, d] of store) {
@@ -175,5 +186,22 @@ await test('backupAccount covers own profiles, skips shared refs, drops old orph
   assert.equal(db.store.has(`users/${U}/backups/gone_1`), false);
   assert.ok(!Object.keys(r).includes('p_sh'));
 });
+
+await test('daily pass skips an untouched profile cheaply and backs up after a tx write', async () => {
+  const DAY = 24 * 3600 * 1000;
+  const db = fakeDb(base());
+  const first = await backup.backupAccount(db, U, 10 * DAY);
+  assert.equal(first.default, 'created');
+  let txReads = 0;
+  const origCollection = db.collection.bind(db);
+  db.collection = (path) => { const c = origCollection(path); const g = c.get; c.get = async () => { if (path.endsWith('/transactions')) txReads++; return g(); }; return c; };
+  const second = await backup.backupAccount(db, U, 11 * DAY);
+  assert.equal(second.default, 'unchanged');
+  assert.equal(txReads, 0, 'no full transactions read for an untouched profile');
+  db.store.set(`users/${U}/max_tracker/finance/transactions/2`, { id: 2, amount: 75, date: '2026-09-02', updatedAt: 11 * DAY + 1 });
+  const third = await backup.backupAccount(db, U, 12 * DAY);
+  assert.equal(third.default, 'created', 'an edited transaction (same count) is still caught');
+});
+
 
 console.log(`\n${passed} backup tests passed`);

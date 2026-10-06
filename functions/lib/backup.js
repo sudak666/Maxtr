@@ -196,6 +196,35 @@ async function createBackup(db, uid, profileId, reason, now, existing) {
 }
 
 /**
+ * Cheap "nothing changed since `since`" check for the daily pass, so an idle
+ * account costs ~5 reads instead of re-reading every transaction just to
+ * compute a hash that would match: the three docs' `updatedAt` (every client
+ * write bumps it), the transaction count (catches deletes) and any
+ * transaction written after `since` (clients stamp `updatedAt` on each tx
+ * write). Any doubt → false, and the normal hash path decides.
+ * @param {any} db @param {string} uid @param {string} profileId @param {BackupMeta} latest
+ */
+async function untouchedSince(db, uid, profileId, latest) {
+  try {
+    const since = latest.createdAt;
+    const docs = await Promise.all(DATA_DOCS.map((n) => db.doc(`users/${uid}/${DCOL}/${docName(n, profileId)}`).get()));
+    for (const d of docs) {
+      if (!d.exists) continue;
+      const u = d.data()?.updatedAt;
+      if (typeof u !== 'number' || u > since) return false;
+    }
+    const col = db.collection(txPath(uid, profileId));
+    const [countSnap, newer] = await Promise.all([
+      col.count().get(),
+      col.where('updatedAt', '>', since).limit(1).get(),
+    ]);
+    return countSnap.data().count === latest.txCount && newer.empty;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Daily pass for one account: back up every own profile, then drop backups
  * of profiles that no longer exist once they're older than a month.
  * @param {any} db @param {string} uid @param {number} now
@@ -205,6 +234,9 @@ async function backupAccount(db, uid, now) {
   /** @type {Record<string, string>} */
   const results = {};
   for (const pid of profileIds) {
+    const latest = existing.filter((e) => e.meta.profileId === pid)
+      .reduce((/** @type {BackupEntry|null} */ best, e) => (!best || e.meta.createdAt > best.meta.createdAt ? e : best), null);
+    if (latest && await untouchedSince(db, uid, pid, latest.meta)) { results[pid] = 'unchanged'; continue; }
     results[pid] = (await createBackup(db, uid, pid, 'daily', now, existing)).status;
   }
   const live = new Set(profileIds);
