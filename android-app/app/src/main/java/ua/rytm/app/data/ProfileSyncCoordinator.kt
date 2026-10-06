@@ -102,7 +102,10 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     // Realtime changes re-sync only the domains whose source doc changed —
     // a shift edit used to re-read every finance domain and the whole
     // transactions subcollection too.
-    private suspend fun syncDomains(uid: String, profileId: String, domains: Set<SyncDomain>) {
+    private suspend fun syncDomains(uid: String, profileId: String, domains: Set<SyncDomain>) =
+        LocalWriteLock.mutex.withLock { syncDomainsLocked(uid, profileId, domains) }
+
+    private suspend fun syncDomainsLocked(uid: String, profileId: String, domains: Set<SyncDomain>) {
         if (SyncDomain.FINANCE in domains) {
             app.financeSyncRepository.syncWalletsOnSignIn(uid, profileId)
             app.categoriesSyncRepository.syncCategoriesOnSignIn(uid, profileId)
@@ -395,7 +398,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                     realtimeSyncMutex.withLock {
                         if (generation != listenerGeneration) return@withLock
                         try {
-                            app.transactionsSyncRepository.applyRemoteChanges(changes)
+                            LocalWriteLock.mutex.withLock { app.transactionsSyncRepository.applyRemoteChanges(changes) }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {

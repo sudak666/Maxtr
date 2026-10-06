@@ -40,10 +40,7 @@ class WidgetSettingsSyncRepository(
     }
 
     suspend fun saveSalaryGoal(uid: String, profileId: String, amount: Double) {
-        ref(uid, profileId).set(
-            mapOf("salaryGoal" to amount.coerceAtLeast(0.0), "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        ref(uid, profileId).setFields(mapOf("salaryGoal" to amount.coerceAtLeast(0.0), "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun save(uid: String, profileId: String) = saveMutex.withLock {
@@ -57,9 +54,6 @@ class WidgetSettingsSyncRepository(
             "dailyTip" to ("dailyTip" in config.enabled),
             "cryptoTop" to ("cryptoTop" in config.enabled),
         )
-        ref(uid, profileId).set(
-            mapOf("widgets" to widgets, "widgetOrder" to config.order, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        ref(uid, profileId).setFields(mapOf("widgets" to widgets, "widgetOrder" to config.order, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 }

@@ -64,23 +64,17 @@ class DebtSyncRepository(private val db: RytmDatabase, private val firestore: Fi
             val localDebts = db.debtDao().getAllOnce()
             val localEntries = db.debtEntryDao().getAllOnce().groupBy { it.debtId }
             val remoteDebtsOut = localDebts.map { it.toRemoteMap(localEntries[it.id].orEmpty()) }
-            docRef.set(
-                mapOf("data" to mapOf("debts" to remoteDebtsOut, "currentDebtId" to null), "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("data" to mapOf("debts" to remoteDebtsOut, "currentDebtId" to null), "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
     suspend fun saveSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID, currentDebtId: Long? = null) = saveMutex.withLock {
         val debts = db.debtDao().getAllOnce()
         val entries = db.debtEntryDao().getAllOnce().groupBy { it.debtId }
-        debtDocRef(uid, profileId).set(
-            mapOf(
+        debtDocRef(uid, profileId).setFields(mapOf(
                 "data" to mapOf("debts" to debts.map { it.toRemoteMap(entries[it.id].orEmpty()) }, "currentDebtId" to currentDebtId),
                 "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).enqueue()
+            )).enqueue()
     }
 }
 

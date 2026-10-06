@@ -34,19 +34,13 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
             db.recurringDao().replaceAll(entities)
         } else {
             val local = db.recurringDao().getAllOnce()
-            docRef.set(
-                mapOf("recurring" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("recurring" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
     suspend fun saveRecurringSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val recurring = db.recurringDao().getAllOnce()
-        financeDocRef(uid, profileId).set(
-            mapOf("recurring" to recurring.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("recurring" to recurring.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 }
 

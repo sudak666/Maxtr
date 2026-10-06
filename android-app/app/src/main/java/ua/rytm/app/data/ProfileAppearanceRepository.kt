@@ -16,12 +16,9 @@ class ProfileAppearanceRepository(private val firestore: FirebaseFirestore) {
     }
 
     suspend fun save(uid: String, profileId: String, appearance: ProfileAppearance) {
-        financeDoc(uid, profileId).set(
-            mapOf(
+        financeDoc(uid, profileId).setFields(mapOf(
                 "profile" to mapOf("nickname" to appearance.nickname.trim(), "avatar" to appearance.avatar),
                 "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).enqueue()
+            )).enqueue()
     }
 }

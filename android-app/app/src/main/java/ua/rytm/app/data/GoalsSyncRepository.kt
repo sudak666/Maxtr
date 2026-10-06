@@ -29,19 +29,13 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
             db.goalDao().replaceAll(entities)
         } else {
             val local = db.goalDao().getAllOnce()
-            docRef.set(
-                mapOf("goals" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("goals" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
     suspend fun saveGoalsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val goals = db.goalDao().getAllOnce()
-        financeDocRef(uid, profileId).set(
-            mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 }
 

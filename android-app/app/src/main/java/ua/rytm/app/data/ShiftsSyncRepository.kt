@@ -33,10 +33,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             db.shiftTypeDao().replaceAll(entities)
         } else {
             val local = db.shiftTypeDao().getAllOnce()
-            docRef.set(
-                mapOf("shiftTypes" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("shiftTypes" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -59,10 +56,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
         } else {
             val local = db.shiftDayDao().getAllOnce()
             val remoteMap = local.groupBy({ it.dateKey }, { it.shiftTypeId })
-            docRef.set(
-                mapOf("data" to remoteMap, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("data" to remoteMap, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -90,8 +84,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             )
         } else {
             val local = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(id = 0, enabled = false, typeId = "", pattern = "every", anchorDate = "")
-            docRef.set(
-                mapOf(
+            docRef.setFields(mapOf(
                     "autoFillSchedule" to mapOf(
                         "enabled" to local.enabled,
                         "typeId" to local.typeId,
@@ -99,17 +92,13 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
                         "anchorDate" to local.anchorDate,
                     ),
                     "updatedAt" to System.currentTimeMillis(),
-                ),
-                SetOptions.merge(),
-            ).enqueue()
+                )).enqueue()
         }
     }
 
     suspend fun saveShiftTypes(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val types = db.shiftTypeDao().getAllOnce().map { it.toRemoteMap() }
-        shiftsDocRef(uid, profileId).set(
-            mapOf("shiftTypes" to types, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).enqueue()
+        shiftsDocRef(uid, profileId).setFields(mapOf("shiftTypes" to types, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveShiftDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
@@ -118,35 +107,24 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
 
     suspend fun saveAutoFillSchedule(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val schedule = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(0, false, "", "every", "")
-        shiftsDocRef(uid, profileId).set(
-            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        shiftsDocRef(uid, profileId).setFields(mapOf("autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveShiftTypesAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val types = db.shiftTypeDao().getAllOnce().map { it.toRemoteMap() }
         val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("shiftTypes" to types, "data" to days, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        shiftsDocRef(uid, profileId).setFields(mapOf("shiftTypes" to types, "data" to days, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveAutoFillAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val schedule = db.autoFillScheduleDao().getOnce() ?: AutoFillScheduleEntity(0, false, "", "every", "")
         val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("autoFillSchedule" to schedule.toRemoteMap(), "data" to days, "updatedAt" to System.currentTimeMillis()),
-            SetOptions.merge(),
-        ).enqueue()
+        shiftsDocRef(uid, profileId).setFields(mapOf("autoFillSchedule" to schedule.toRemoteMap(), "data" to days, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     private suspend fun saveShiftDaysLocked(uid: String, profileId: String) {
         val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
-        shiftsDocRef(uid, profileId).set(
-            mapOf("data" to days, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).enqueue()
+        shiftsDocRef(uid, profileId).setFields(mapOf("data" to days, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 }
 

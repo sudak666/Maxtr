@@ -30,18 +30,13 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
             db.tagDao().replaceAll(entities)
         } else {
             val local = db.tagDao().getAllOnce()
-            docRef.set(
-                mapOf("tags" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("tags" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
     suspend fun saveTagsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val tags = db.tagDao().getAllOnce().map { it.toRemoteMap() }
-        financeDocRef(uid, profileId).set(
-            mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveTagsAndChangedTransactions(
@@ -52,7 +47,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         val batch = firestore.batch()
         val financeRef = financeDocRef(uid, profileId)
         val tags = db.tagDao().getAllOnce().map { it.toRemoteMap() }
-        batch.set(financeRef, mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge())
+        batch.set(financeRef, mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.mergeFields("tags", "updatedAt"))
         val transactions = financeRef.collection("transactions")
         changedTransactions.forEach { tx -> batch.set(transactions.document(tx.id), tx.toRemoteMap()) }
         require(changedTransactions.size <= 499) { "Too many tagged transactions for one atomic update" }

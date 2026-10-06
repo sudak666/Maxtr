@@ -92,11 +92,11 @@ class DebtViewModelTest {
         val saver = FakeDebtSaver()
         val vm = newVm(saver)
         saver.fail = true
-        vm.addEntry("200", "", "")
+        vm.updateInfo("Renamed", "", "UAH", 5.0, "")
         waitUntil { vm.errorMessageRes != null }
         assertEquals(R.string.common_save_failed, vm.errorMessageRes)
-        waitUntil { vm.currentDebt?.entries?.isEmpty() == true }
-        assertEquals(true, vm.currentDebt!!.entries.isEmpty())
+        waitUntil { vm.currentDebt?.name == "Loan" }
+        assertEquals("Loan", vm.currentDebt?.name)
     }
 
     // Field edits go through the same save path (debounce is 0 in tests).

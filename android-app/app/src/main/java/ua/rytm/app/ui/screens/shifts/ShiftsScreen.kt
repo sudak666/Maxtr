@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.input.pointer.pointerInput
@@ -869,7 +870,7 @@ private fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        type.code,
+                        type.displayCode,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         color = if (selected) onColorFor(accent) else accent,
@@ -905,7 +906,7 @@ private fun WeekdayHeaderRow() {
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = if (i >= 5) RytmSemantic.expense else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -913,28 +914,24 @@ private fun WeekdayHeaderRow() {
 
 @Composable
 private fun MonthNav(viewModel: ShiftsViewModel) {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            IconButton(onClick = viewModel::goToPreviousMonth, modifier = Modifier.align(Alignment.CenterStart)) {
-                Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month))
-            }
-            val locale = LocalConfiguration.current.locales[0]
-            val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale) + " " + viewModel.visibleMonth.year
-            Text(
-                label,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(RytmRadii.Pill))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-            )
-            IconButton(onClick = viewModel::goToNextMonth, modifier = Modifier.align(Alignment.CenterEnd)) {
-                Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month))
-            }
+    // One row: the separate "Сьогодні" row cost ~70dp above the calendar.
+    // The shortcut only appears when it would actually move somewhere.
+    val locale = LocalConfiguration.current.locales[0]
+    val label = viewModel.visibleMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
+        .replaceFirstChar { it.titlecase(locale) } + " " + viewModel.visibleMonth.year
+    val onCurrentMonth = viewModel.visibleMonth == java.time.YearMonth.now()
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = viewModel::goToPreviousMonth) {
+            Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.action_previous_month))
         }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.shifts_edit_hint), modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.weight(1f),
+        )
+        androidx.compose.animation.AnimatedVisibility(visible = !onCurrentMonth) {
             TextButton(
                 onClick = viewModel::goToToday,
                 shape = RoundedCornerShape(RytmRadii.Pill),
@@ -943,6 +940,9 @@ private fun MonthNav(viewModel: ShiftsViewModel) {
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
             ) { Text(stringResource(R.string.action_today), fontWeight = FontWeight.Bold) }
+        }
+        IconButton(onClick = viewModel::goToNextMonth) {
+            Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month))
         }
     }
 }
@@ -1136,7 +1136,7 @@ private fun DayCell(
                         .background(accent)
                         .padding(horizontal = 4.dp, vertical = 1.dp),
                 ) {
-                    Text(type.code, style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
+                    Text(type.displayCode, style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
                 }
             }
             // The model allows any number of shifts per day; the cell silently

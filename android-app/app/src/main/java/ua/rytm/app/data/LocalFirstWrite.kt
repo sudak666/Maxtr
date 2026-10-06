@@ -4,6 +4,7 @@ import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.sync.Mutex
 
 /**
  * Writes rejected by the server after they were queued (security rules,
@@ -31,3 +32,25 @@ internal fun Task<*>.enqueue() {
         SyncWriteErrors.report(e)
     }
 }
+
+/**
+ * Serializes "edit Room + snapshot it to Firestore" against realtime syncs
+ * that overwrite Room from the server. Without it a realtime sync triggered
+ * by the previous edit's server ack could land between the next edit's Room
+ * write and its snapshot: Room got the stale server state back and the
+ * snapshot then pushed that stale state (seen live: toggling a shift off in
+ * brush mode right after toggling it on left it on).
+ */
+object LocalWriteLock {
+    val mutex = Mutex()
+}
+
+/**
+ * Writes exactly these top-level fields, each REPLACED as a whole, and leaves
+ * every other field of the doc alone. `set(map, SetOptions.merge())` deep-
+ * merges nested maps instead, so a key removed locally (a cleared shift day,
+ * a deleted budget/subcategory/icon) was never removed in the cloud and came
+ * back on the next sync.
+ */
+internal fun com.google.firebase.firestore.DocumentReference.setFields(fields: Map<String, Any?>) =
+    set(fields, com.google.firebase.firestore.SetOptions.mergeFields(fields.keys.toList()))
