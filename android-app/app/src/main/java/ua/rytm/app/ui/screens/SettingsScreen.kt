@@ -114,6 +114,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
 import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Public
 import ua.rytm.app.ui.icons.AccountBalance
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.BrightnessAuto
@@ -307,7 +308,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         val securityKeywords = rememberSettingsKeywords(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle)
         val notificationsKeywords = rememberSettingsKeywords(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle)
         val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
-        val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.terms_title, R.string.settings_terms_subtitle, R.string.privacy_title, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
+        val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.settings_terms_row, R.string.settings_terms_subtitle, R.string.settings_privacy_row, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
         val financeKeywords = rememberSettingsKeywords(
             R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,
             R.string.rates_title,
@@ -591,43 +592,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
             } }
 
-            if (aboutVisible) { item(key = "settings-about") {
-                SettingsSectionLabel(stringResource(R.string.settings_about))
-                SettingsGroupCard {
-                    SettingsRow(
-                        icon = RytmIcons.Language,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.settings_web),
-                        subtitle = stringResource(R.string.settings_web_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
-                    )
-                    // privacy.html/terms.html have no i18n of their own (standalone
-                    // static pages, not part of the app's string-resource system) —
-                    // legal_docs_en picks the -en.html sibling instead of silently
-                    // always opening the Ukrainian original regardless of app language.
-                    val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
-                    SettingsRow(
-                        icon = RytmIcons.Description,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.terms_title),
-                        subtitle = stringResource(R.string.settings_terms_subtitle),
-                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") },
-                    )
-                    SettingsRow(
-                        icon = RytmIcons.PrivacyTip,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.privacy_title),
-                        subtitle = stringResource(R.string.settings_privacy_subtitle),
-                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/privacy-en.html" else "https://maxtr-c238f.web.app/privacy.html") },
-                    )
-                }
-                Text(
-                    stringResource(R.string.settings_about_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                )
-            } }
 
             // One item per row (not one item for the whole 13-row card): composing
             // the whole group in a single frame cost up to ~40ms on a Galaxy A51
@@ -744,6 +708,45 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     )
                 } }
             }
+
+            // "Про застосунок" goes last, after every functional group.
+            if (aboutVisible) { item(key = "settings-about") {
+                SettingsSectionLabel(stringResource(R.string.settings_about))
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = RytmIcons.Public,
+                        badgeColor = SettingsGroupColors.About,
+                        title = stringResource(R.string.settings_web),
+                        subtitle = stringResource(R.string.settings_web_subtitle),
+                        onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
+                    )
+                    // privacy.html/terms.html have no i18n of their own (standalone
+                    // static pages, not part of the app's string-resource system) —
+                    // legal_docs_en picks the -en.html sibling instead of silently
+                    // always opening the Ukrainian original regardless of app language.
+                    val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
+                    SettingsRow(
+                        icon = RytmIcons.Description,
+                        badgeColor = SettingsGroupColors.About,
+                        title = stringResource(R.string.settings_terms_row),
+                        subtitle = stringResource(R.string.settings_terms_subtitle),
+                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") },
+                    )
+                    SettingsRow(
+                        icon = RytmIcons.PrivacyTip,
+                        badgeColor = SettingsGroupColors.About,
+                        title = stringResource(R.string.settings_privacy_row),
+                        subtitle = stringResource(R.string.settings_privacy_subtitle),
+                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/privacy-en.html" else "https://maxtr-c238f.web.app/privacy.html") },
+                    )
+                }
+                Text(
+                    stringResource(R.string.settings_about_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                )
+            } }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
                 item(key = "settings-search-empty") {
                 Column(
