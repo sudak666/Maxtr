@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.icons.Share
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.background
@@ -696,7 +697,26 @@ internal fun MonthNav(viewModel: ShiftsViewModel) {
         IconButton(onClick = viewModel::goToNextMonth) {
             Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.action_next_month))
         }
+        // Export the month to any calendar app via the system share sheet.
+        val context = LocalContext.current
+        val chooserTitle = stringResource(R.string.shifts_export_calendar)
+        IconButton(onClick = { shareMonthIcs(context, viewModel, chooserTitle) }) {
+            Icon(RytmIcons.Share, contentDescription = chooserTitle)
+        }
     }
+}
+
+internal fun shareMonthIcs(context: android.content.Context, viewModel: ShiftsViewModel, title: String) {
+    val dir = java.io.File(context.cacheDir, "exports").apply { mkdirs() }
+    val file = java.io.File(dir, "rytm-shifts-${viewModel.visibleMonth}.ics")
+    file.writeText(viewModel.visibleMonthIcs())
+    val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type = "text/calendar"
+        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(android.content.Intent.createChooser(send, title))
 }
 
 @Composable

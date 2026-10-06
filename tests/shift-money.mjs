@@ -29,3 +29,16 @@ assert.equal(rec.out, 400);
 assert.equal(rec.inc, 50);
 
 console.log('shift-money: OK');
+
+// iCalendar export: one all-day event per working shift in the month, escaped, CRLF.
+import { monthIcs } from '../js/shift-money.js';
+{
+  const ics = monthIcs(2026, 9, { '2026-10-05': ['d'], '2026-10-06': ['o'], '2026-11-01': ['d'] },
+    [{ id: 'd', name: 'Денна, зміна', hours: 12 }, { id: 'o', name: 'Вихідний', isOff: true }], new Date('2026-10-06T12:00:00Z'));
+  assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 1);
+  assert.ok(ics.includes('DTSTART;VALUE=DATE:20261005\r\nDTEND;VALUE=DATE:20261006'));
+  assert.ok(ics.includes('SUMMARY:Денна\\, зміна · 12 год'));
+  assert.ok(ics.includes('UID:rytm-20261005-d@rytm.app'));
+  assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\n') && ics.endsWith('END:VCALENDAR\r\n'));
+  console.log('shift-money ics: OK');
+}

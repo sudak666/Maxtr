@@ -507,4 +507,5 @@
     <string name="shifts_insight_detail">≈ %1$s грн на день у зміну проти %2$s грн у вихідний</string>
     <string name="finance_contributions_title">Хто скільки цього місяця</string>
     <string name="finance_contributions_me">%1$s (ти)</string>
+    <string name="shifts_export_calendar">Експорт у календар</string>
 </resources>
