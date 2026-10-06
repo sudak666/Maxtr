@@ -13,6 +13,7 @@ import { setCacheItem } from './privacy-cache.js';
 import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-managers.js';
 import { validateTransactionDraft } from './tx-validation.js';
 import { safetyBackup } from './backups.js';
+import { recurringUntilMonthEnd, remainingShiftPay } from './shift-money.js';
 import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/analytics-csv.js is served unbundled (GitHub Pages) or bundled by
@@ -475,6 +476,17 @@ export function renderFinance(){
     const trendSign=monthNet>0?'+':monthNet<0?'−':'';
     html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${Math.abs(monthNet).toLocaleString('uk-UA')} грн</span> ${tr('finance_trend_this_month')}</div>`;
     if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
+    // What is still coming before month end — shift pay placed/scheduled after
+    // today and recurring occurrences — as separate facts, not a projected
+    // balance (shift pay often lands next month). Same as Android's monthOutlook.
+    const shiftsLeft=remainingShiftPay(now, AppState.shifts, AppState.shiftTypes, AppState.autoFillSchedule);
+    const rec=recurringUntilMonthEnd(now, AppState.recurring, (amount, wallet)=>toBase(amount, walletById(wallet||'')?.currency||'UAH'));
+    /** @type {string[]} */
+    const outlook=[];
+    if(shiftsLeft>0) outlook.push(tr('finance_outlook_shifts').replace('{v}', shiftsLeft.toLocaleString('uk-UA')));
+    if(rec.inc>0) outlook.push(tr('finance_outlook_recurring_in').replace('{v}', Math.round(rec.inc).toLocaleString('uk-UA')));
+    if(rec.out>0) outlook.push(tr('finance_outlook_recurring_out').replace('{v}', Math.round(rec.out).toLocaleString('uk-UA')));
+    if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
       <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>

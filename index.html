@@ -617,6 +617,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-balance-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 16px;line-height:1}
 .hero-balance-hint{font-size:13px;font-weight:700;color:var(--muted);line-height:1.35;margin:-10px 0 16px}
+.hero-outlook{display:flex;gap:6px;align-items:flex-start}.hero-outlook .ico{width:14px;height:14px;flex:0 0 auto;margin-top:2px}
+.tx-shift-cost{font-size:13px;color:var(--muted);margin-top:6px}
 /* Phantom-style trend chip next to the balance number — this month's net
    change (income − expense), derived from the same figures already shown
    in the two mini-stat cards below, not a separate calculation. */
@@ -1245,6 +1247,8 @@ body.amounts-hidden .tx-amount,
 body.amounts-hidden .fx-widget-rate,
 body.amounts-hidden .hero-balance-val,
 body.amounts-hidden .hero-balance-trend-val,
+body.amounts-hidden .hero-outlook-val,
+body.amounts-hidden .tx-shift-cost,
 body.amounts-hidden .hero-metric-val,
 body.amounts-hidden .wallet-chip-val,
 body.amounts-hidden .chip-stat-val,
@@ -2529,6 +2533,7 @@ body.amounts-hidden #fx-converter-result{
       <div class="fg">
         <label id="fin-amount-label">Сума (грн)</label>
         <input type="number" id="fin-amount" data-action="update-transfer-hint" inputmode="decimal" placeholder="0.00" min="0.01" step="0.01">
+        <div id="fin-shift-cost" class="tx-shift-cost" hidden></div>
         <div class="quick-amount-row" aria-label="Швидкі суми">
           <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="50">50</button>
           <button type="button" class="quick-amount-chip" data-action="set-tx-amount" data-amount="100">100</button>
