@@ -137,6 +137,22 @@ function calendarBadgeOnColor(hex){
   return (luminance+.05)/.05 >= 1.05/(luminance+.05) ? '#111113' : '#fff';
 }
 
+/** @type {string|null} */
+let brushTypeId=null;
+
+/** @param {string} id */
+function pickBrush(id){ brushTypeId = brushTypeId===id ? null : id; renderCalendar(); }
+
+/** @param {string} dk @param {number} d */
+function onDayTap(dk,d){
+  if(!brushTypeId) return openModal(dk,d);
+  if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
+  const cur=AppState.shifts[dk]||[];
+  const next=cur.includes(brushTypeId)?cur.filter(x=>x!==brushTypeId):[...cur,brushTypeId];
+  if(next.length===0) delete AppState.shifts[dk]; else AppState.shifts[dk]=next;
+  saveLocal(); scheduleSave(); renderCalendar(); renderIncomeChart();
+}
+
 /** @returns {void} */
 export function renderCalendar(){
   const grid=document.getElementById('calendar-grid');
@@ -146,9 +162,17 @@ export function renderCalendar(){
   // Legend from current shift types
   const leg=document.getElementById('shift-legend');
   if(leg){
-    leg.innerHTML=AppState.shiftTypes.map(t=>
-      `<div class="leg-item"><div class="leg-dot" style="background:${hexA(t.color,.25)};border:1px solid ${hexA(t.color,.6)}"></div>${escapeHtml(t.name)}</div>`
-    ).join('');
+    // Legend doubles as the brush picker (same as Android): pick a type, then
+    // each day tap toggles it — no modal per day. Tap the type again to exit.
+    const canPaint=canEditActiveProfile();
+    if(!AppState.shiftTypes.some(t=>t.id===brushTypeId)) brushTypeId=null;
+    leg.innerHTML=AppState.shiftTypes.map(t=>{
+      const on=t.id===brushTypeId;
+      const inner=`<div class="leg-dot" style="background:${hexA(t.color,on?1:.25)};border:1px solid ${hexA(t.color,.6)}"></div>${escapeHtml(t.name)}`;
+      return canPaint
+        ? `<button type="button" class="leg-item leg-brush${on?' active':''}" data-action="pick-brush" data-id="${escapeHtml(t.id)}" aria-pressed="${on}" style="--leg-color:${t.color}">${inner}</button>`
+        : `<div class="leg-item">${inner}</div>`;
+    }).join('')+(canPaint?`<div class="leg-hint${brushTypeId?' active':''}">${tr(brushTypeId?'shifts_brush_active_hint':'shifts_brush_hint')}</div>`:'');
   }
   grid.innerHTML='';
   const m=parseInt(/** @type {HTMLSelectElement} */ (document.getElementById('select-month')).value);
@@ -201,8 +225,8 @@ export function renderCalendar(){
 
     cell.innerHTML=`<div class="day-header"><span class="day-num${isWeekend?' weekend-num':''}">${d}</span></div>${badges?`<div class="day-tokens">${badges}</div>`:''}`;
     cell.tabIndex=0;
-    cell.onclick=()=>openModal(dk,d);
-    cell.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(dk,d); } };
+    cell.onclick=()=>onDayTap(dk,d);
+    cell.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); onDayTap(dk,d); } };
     grid.appendChild(cell);
   }
 
@@ -625,6 +649,7 @@ export function __init_calendar__(){
 /** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
   'close-modal': ()=>closeModal(),
+  'pick-brush': (ds)=>pickBrush(ds.id||''),
   'save-modal-selection': ()=>saveModalSelection(),
   'apply-template': ()=>applyTemplate(),
   'clear-current-month': ()=>clearCurrentMonth(),
