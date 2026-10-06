@@ -82,6 +82,6 @@ val Typography = Typography(
     bodyMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 15.sp, lineHeight = 21.sp, letterSpacing = 0.15.sp),
     bodySmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 19.sp, letterSpacing = 0.15.sp), // --text-sm
     labelLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.1.sp),
-    labelMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 13.5.sp, lineHeight = 18.sp, letterSpacing = 0.2.sp), // --text-xs
+    labelMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.2.sp), // --text-xs
     labelSmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 13.sp, lineHeight = 17.sp, letterSpacing = 0.2.sp), // --text-2xs
 )
