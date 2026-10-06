@@ -499,4 +499,5 @@
     <string name="shifts_insight_detail">≈ %1$s UAH a day on shifts vs %2$s UAH on days off</string>
     <string name="finance_contributions_title">Who added what this month</string>
     <string name="finance_contributions_me">%1$s (you)</string>
+    <string name="shifts_export_calendar">Export to calendar</string>
 </resources>

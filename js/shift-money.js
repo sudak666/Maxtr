@@ -87,3 +87,32 @@ export function recurringUntilMonthEnd(today, recurring, toUah) {
   });
   return { out, inc };
 }
+
+/**
+ * The month's working shifts as iCalendar text (all-day events, stable UIDs) —
+ * same format as Android's ShiftsIcs.
+ * @param {number} year @param {number} month0 0-based month
+ * @param {Record<string, string[]>} shifts
+ * @param {{id: string, name: string, hours?: number, isOff?: boolean}[]} types
+ * @param {Date} [now]
+ */
+export function monthIcs(year, month0, shifts, types, now = new Date()) {
+  const byId = Object.fromEntries(types.map((t) => [t.id, t]));
+  const esc = (/** @type {string} */ s) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Rytm//Shifts//UK', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  const d = new Date(year, month0, 1);
+  while (d.getMonth() === month0) {
+    const k = key(d);
+    const next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    (shifts[k] || []).map((id) => byId[id]).filter((t) => t && !t.isOff).forEach((t) => {
+      const hours = t.hours && t.hours > 0 ? ` · ${t.hours} год` : '';
+      out.push('BEGIN:VEVENT', `UID:rytm-${k.replace(/-/g, '')}-${t.id}@rytm.app`, `DTSTAMP:${stamp}`,
+        `DTSTART;VALUE=DATE:${k.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${key(next).replace(/-/g, '')}`,
+        `SUMMARY:${esc(t.name + hours)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+    });
+    d.setDate(d.getDate() + 1);
+  }
+  out.push('END:VCALENDAR');
+  return out.join('\r\n') + '\r\n';
+}

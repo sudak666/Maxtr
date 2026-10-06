@@ -115,6 +115,9 @@ class ShiftsViewModel(
     fun goToNextMonth() { visibleMonth = visibleMonth.plusMonths(1) }
     fun goToToday() { visibleMonth = YearMonth.now() }
 
+    /** iCalendar text for the visible month (see ShiftsIcs). */
+    fun visibleMonthIcs(): String = ShiftsIcs.build(visibleMonth, shiftsByDate, shiftTypes)
+
     fun shiftsFor(dateKey: String): List<ShiftType> =
         shiftsByDate[dateKey].orEmpty().mapNotNull { id -> shiftTypes.firstOrNull { it.id == id } }
 
