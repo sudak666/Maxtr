@@ -511,4 +511,6 @@
     <string name="bank_disclosure_body">Rytm will read only notifications from banking apps (monobank, PUMB, Privat24 and others) to suggest adding a transaction with the amount and merchant.\n\n• Other apps\' notifications are never read.\n• The text is parsed on this phone only — never sent anywhere or stored.\n• A transaction appears only after you check and save it.\n\nAndroid settings open next: turn Rytm on there. You can turn it off any time in the same place.</string>
     <string name="bank_disclosure_ok">Open settings</string>
     <string name="debt_forecast_finish">At this pace ≈ by %1$s</string>
+    <string name="settings_terms_row">Terms of use</string>
+    <string name="settings_privacy_row">Privacy policy</string>
 </resources>
