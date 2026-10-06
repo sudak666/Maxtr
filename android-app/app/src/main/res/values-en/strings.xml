@@ -482,4 +482,10 @@
     <string name="finance_day_yesterday">Yesterday</string>
     <string name="shifts_brush_hint">Tip: pick a shift type above to fill days with one tap</string>
     <string name="shifts_brush_active_hint">Brush mode: tapping a day adds or removes this shift. Tap the type again to exit</string>
+    <string name="transaction_shift_cost">≈ %1$s shifts of work</string>
+    <string name="transaction_shift_cost_tiny">Under 0.1 of a shift</string>
+    <plurals name="transaction_shift_cost_whole">
+        <item quantity="one">≈ %d shift of work</item>
+        <item quantity="other">≈ %d shifts of work</item>
+    </plurals>
 </resources>

@@ -43,6 +43,7 @@ class FinanceViewModel(
     private val auth: FirebaseAuth,
     private val activeProfileStore: ActiveProfileStore,
     private val savedState: SavedStateHandle = SavedStateHandle(),
+    typicalShiftPayFlow: kotlinx.coroutines.flow.Flow<Double?> = kotlinx.coroutines.flow.flowOf(null),
 ) : ViewModel() {
 
     companion object {
@@ -54,6 +55,13 @@ class FinanceViewModel(
                     FirebaseAuth.getInstance(),
                     app.activeProfileStore,
                     createSavedStateHandle(),
+                    kotlinx.coroutines.flow.combine(
+                        app.shiftsRepository.shiftTypes,
+                        app.shiftsRepository.shiftsByDate,
+                        app.shiftsRepository.autoFillSchedule,
+                    ) { types, days, schedule ->
+                        ua.rytm.app.ui.screens.shifts.EarningsForecast.typicalShiftPay(days, types, schedule)
+                    },
                 )
             }
         }
@@ -137,6 +145,7 @@ class FinanceViewModel(
         repository.autoRules.onEach { autoRules = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.currencyRates.onEach { currencyRates = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
+        typicalShiftPayFlow.onEach { typicalShiftPay = it }.catch { }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -188,6 +197,21 @@ class FinanceViewModel(
             }
         }
     }
+
+    private var typicalShiftPay by mutableStateOf<Double?>(null)
+
+    /**
+     * An expense priced in shifts of work ("≈ 1,4 зміни"), from the pay of
+     * the shift type the user actually works most (EarningsForecast). Null
+     * when there is no paid shift type or nothing typed yet.
+     */
+    val formShiftCost: Double?
+        get() {
+            if (formType != TxType.EXPENSE) return null
+            val pay = typicalShiftPay?.takeIf { it > 0 } ?: return null
+            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: return null
+            return toUah(amount, formWalletCurrency) / pay
+        }
 
     /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
     fun netUah(txs: List<Transaction>): Double = txs.sumOf {

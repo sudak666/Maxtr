@@ -255,7 +255,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     // The error used to be one generic line at the bottom of
                     // the form, with no field highlighted at all.
                     isError = amountInvalid,
-                    supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } },
+                    supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
+                        ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
@@ -436,5 +437,16 @@ private fun DropdownField(label: String, options: List<String>, selected: String
                 DropdownMenuItem(text = { Text(localizedDomainText(option)) }, onClick = { onSelect(option); expanded = false })
             }
         }
+    }
+}
+
+/** "≈ 1,4 зміни роботи" / "≈ 3 зміни роботи" — whole numbers take the plural form. */
+@Composable
+private fun shiftCostText(shifts: Double): String {
+    val rounded = Math.round(shifts * 10) / 10.0
+    return when {
+        rounded < 0.1 -> stringResource(R.string.transaction_shift_cost_tiny)
+        rounded == Math.floor(rounded) -> androidx.compose.ui.res.pluralStringResource(R.plurals.transaction_shift_cost_whole, rounded.toInt(), rounded.toInt())
+        else -> stringResource(R.string.transaction_shift_cost, java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(rounded))
     }
 }

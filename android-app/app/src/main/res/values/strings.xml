@@ -488,4 +488,12 @@
     <string name="finance_day_yesterday">Вчора</string>
     <string name="shifts_brush_hint">Порада: обери тип зміни вище, щоб проставляти дні одним дотиком</string>
     <string name="shifts_brush_active_hint">Режим пензлика: дотик до дня додає або прибирає цю зміну. Торкнись типу ще раз, щоб вийти</string>
+    <string name="transaction_shift_cost">≈ %1$s зміни роботи</string>
+    <string name="transaction_shift_cost_tiny">Менше 0,1 зміни роботи</string>
+    <plurals name="transaction_shift_cost_whole">
+        <item quantity="one">≈ %d зміна роботи</item>
+        <item quantity="few">≈ %d зміни роботи</item>
+        <item quantity="many">≈ %d змін роботи</item>
+        <item quantity="other">≈ %d зміни роботи</item>
+    </plurals>
 </resources>
