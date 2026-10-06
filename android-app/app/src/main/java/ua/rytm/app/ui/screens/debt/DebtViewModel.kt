@@ -221,7 +221,7 @@ class DebtViewModel(
         try {
             change()
             pendingSave?.cancel()
-            if (debounceSave) {
+            if (debounceSave && fieldSaveDebounceMs > 0) {
                 pendingSave = viewModelScope.launch {
                     kotlinx.coroutines.delay(fieldSaveDebounceMs)
                     runCatching { saver.save(ownerUid, profileId, nextCurrentDebtId) }

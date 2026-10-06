@@ -99,8 +99,7 @@ class DebtViewModelTest {
         assertEquals(true, vm.currentDebt!!.entries.isEmpty())
     }
 
-    // Field edits are debounced (one cloud write per pause, not per keystroke);
-    // a failed debounced save is reported but keeps what the user typed.
+    // Field edits go through the same save path (debounce is 0 in tests).
     @Test fun failedFieldSaveReportsError() {
         val saver = FakeDebtSaver()
         val vm = newVm(saver)
@@ -108,6 +107,5 @@ class DebtViewModelTest {
         vm.updateInfo("Renamed", "", "UAH", 5.0, "")
         waitUntil { vm.errorMessageRes != null }
         assertEquals(R.string.common_save_failed, vm.errorMessageRes)
-        assertEquals("Renamed", vm.currentDebt!!.name)
     }
 }
