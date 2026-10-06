@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.debt
 
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -219,16 +220,16 @@ class DebtViewModel(
         val before = repository.snapshot()
         saving = true
         try {
-            change()
+            ua.rytm.app.data.LocalWriteLock.mutex.withLock { change() }
             pendingSave?.cancel()
             if (debounceSave && fieldSaveDebounceMs > 0) {
                 pendingSave = viewModelScope.launch {
                     kotlinx.coroutines.delay(fieldSaveDebounceMs)
-                    runCatching { saver.save(ownerUid, profileId, nextCurrentDebtId) }
+                    runCatching { ua.rytm.app.data.LocalWriteLock.mutex.withLock { saver.save(ownerUid, profileId, nextCurrentDebtId) } }
                         .onFailure { if (it !is CancellationException) errorMessageRes = R.string.common_save_failed }
                 }
             } else {
-                saver.save(ownerUid, profileId, nextCurrentDebtId)
+                ua.rytm.app.data.LocalWriteLock.mutex.withLock { saver.save(ownerUid, profileId, nextCurrentDebtId) }
             }
         } catch (e: CancellationException) {
             throw e

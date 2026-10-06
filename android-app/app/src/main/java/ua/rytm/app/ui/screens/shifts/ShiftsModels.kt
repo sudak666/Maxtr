@@ -11,7 +11,10 @@ data class ShiftType(
     val amount: Double,
     val hours: Double,
     val isOff: Boolean,
-)
+) {
+    /** Calendar token: the explicit code, else the name's first letter (PWA shiftCode()). */
+    val displayCode: String get() = code.ifBlank { name.take(1) }.take(2).uppercase()
+}
 
 // Mirrors js/state.js's AppState.autoFillSchedule.
 @Immutable

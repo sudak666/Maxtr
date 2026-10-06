@@ -44,10 +44,7 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
             // First-time account (no finance doc yet, or one predating wallets
             // syncing at all) — push this device's local wallets up as the seed.
             val local = db.walletDao().getAllOnce()
-            docRef.set(
-                mapOf("wallets" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
-                SetOptions.merge(),
-            ).enqueue()
+            docRef.setFields(mapOf("wallets" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -55,13 +52,10 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
     suspend fun saveWalletsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         walletSaveMutex.withLock {
             val wallets = db.walletDao().getAllOnce()
-            financeDocRef(uid, profileId).set(
-                mapOf(
+            financeDocRef(uid, profileId).setFields(mapOf(
                     "wallets" to wallets.map { it.toRemoteMap() },
                     "updatedAt" to System.currentTimeMillis(),
-                ),
-                SetOptions.merge(),
-            ).enqueue()
+                )).enqueue()
         }
     }
 }

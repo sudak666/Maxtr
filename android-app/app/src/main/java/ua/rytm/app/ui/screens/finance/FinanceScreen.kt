@@ -99,6 +99,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -121,6 +123,8 @@ import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.SwapHoriz
+import ua.rytm.app.ui.icons.Event
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Build
@@ -353,7 +357,6 @@ fun FinanceScreen(
             item {
                 QuickActionsRow(
                     canEdit = canEdit,
-                    onNewTransaction = viewModel::openNewTransactionSheet,
                     onTools = { toolsSheetOpen = true },
                     onBudgets = { budgetsSheetOpen = true },
                     onGoals = { goalsSheetOpen = true },
@@ -361,8 +364,7 @@ fun FinanceScreen(
             }
             item { HistoryHeader(viewModel, resultCount = displayedCount) }
             item { SearchField(viewModel) }
-            item { TypeFilterRow(viewModel) }
-            item { PeriodFilterRow(viewModel) }
+            item { FilterRow(viewModel) }
             viewModel.categoryFilter?.let { cat ->
                 item { CategoryFilterChip(cat, onClear = viewModel::clearCategoryFilter) }
             }
@@ -373,7 +375,19 @@ fun FinanceScreen(
                 // Was a lambda per row doing firstOrNull over every wallet and
                 // every tag — O(rows x wallets) on each recomposition, and four
                 // freshly-allocated lambdas per row capturing the ViewModel.
-                items(visible, key = { it.id }) { tx ->
+                // Grouped by day (newest first, as sorted by the ViewModel), each
+                // header carrying that day's net — the Monobank/Revolut pattern;
+                // the per-row date it replaces is gone from the rows.
+                val days = visible.groupBy { it.date }
+                days.forEach { (date, dayTxs) ->
+                    val shown = dayTxs.filter { it.id != pendingDeleteId }
+                    item(key = "day-$date") {
+                        AnimatedVisibility(visible = shown.isNotEmpty(), exit = fadeOut(tween(180)) + shrinkVertically(tween(220))) {
+                            // Whole day's net, not just the rows shown while collapsed.
+                            DayHeader(date, viewModel.netUah(filtered.filter { it.date == date && it.id != pendingDeleteId }))
+                        }
+                    }
+                items(dayTxs, key = { it.id }) { tx ->
                     AnimatedVisibility(
                         visible = pendingDeleteId != tx.id,
                         exit = fadeOut(tween(180)) + shrinkVertically(tween(220)),
@@ -389,6 +403,7 @@ fun FinanceScreen(
                             onClick = { viewModel.openEditTransactionSheet(tx) },
                         )
                     }
+                }
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
                     item(key = "collapse-list-button") {
@@ -481,6 +496,24 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                     color = trendColor,
                     fontWeight = FontWeight.Bold,
                 )
+            }
+
+            val outlook = vm.monthOutlook
+            if (!outlook.isEmpty) {
+                val parts = buildList {
+                    if (outlook.shiftsEarnings > 0) add(stringResource(R.string.finance_outlook_shifts, formatMoney(outlook.shiftsEarnings)))
+                    if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
+                    if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
+                }
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 8.dp)) {
+                    Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.finance_outlook_prefix) + " " + maskedAmount(parts.joinToString(" · ")),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (vm.isMultiCurrency) {
@@ -577,22 +610,18 @@ private fun WalletChip(wallet: Wallet, balance: Double) {
 }
 
 @Composable
-private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTools: () -> Unit, onBudgets: () -> Unit, onGoals: () -> Unit) {
+private fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: () -> Unit, onGoals: () -> Unit) {
     data class QuickAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
+    // "+ Операція" is not repeated here: the FAB (and the empty state's CTA)
+    // already own that action on this screen.
     val actions = listOf(
-        QuickAction(stringResource(R.string.finance_action_transaction), RytmIcons.Add, primary = true, onClick = onNewTransaction),
         QuickAction(stringResource(R.string.tools_title), RytmIcons.Build, primary = false, onClick = onTools),
         QuickAction(stringResource(R.string.budgets_title), RytmIcons.PieChart, primary = false, onClick = onBudgets),
         QuickAction(stringResource(R.string.goals_title), RytmIcons.Flag, primary = false, onClick = onGoals),
-    ).filterIndexed { index, _ -> canEdit || index == 1 }
-    val configuration = LocalConfiguration.current
+    ).filterIndexed { index, _ -> canEdit || index == 0 }
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    val columnCount = when {
-        largeText -> 1
-        configuration.screenWidthDp < 600 -> 2
-        else -> 4
-    }
+    val columnCount = if (largeText) 1 else 3
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.chunked(columnCount).forEach { rowActions ->
@@ -622,11 +651,9 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                         interactionSource = interactionSource,
                     ) {
-                        Row(
-                            Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
+                        // Three across: icon over label, so "Інструменти" never truncates
+                        // at 360dp; one per row at large font scale keeps icon + label inline.
+                        val tile: @Composable () -> Unit = {
                             Icon(
                                 action.icon,
                                 contentDescription = null,
@@ -637,10 +664,23 @@ private fun QuickActionsRow(canEdit: Boolean, onNewTransaction: () -> Unit, onTo
                                 action.label,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Start,
+                                textAlign = TextAlign.Center,
                                 maxLines = 1,
-                                modifier = Modifier.weight(1f),
+                                overflow = TextOverflow.Ellipsis,
                             )
+                        }
+                        if (columnCount == 1) {
+                            Row(
+                                Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) { tile() }
+                        } else {
+                            Column(
+                                Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) { tile() }
                         }
                     }
                 }
@@ -675,18 +715,36 @@ private fun SearchField(vm: FinanceViewModel) {
 }
 
 @Composable
-private fun TypeFilterRow(vm: FinanceViewModel) {
-    val options = listOf(
-        TxTypeFilter.ALL to stringResource(R.string.filter_all),
-        TxTypeFilter.INCOME to "+ " + stringResource(R.string.tx_income),
-        TxTypeFilter.EXPENSE to "− " + stringResource(R.string.tx_expense),
-        TxTypeFilter.TRANSFER to "⇄ " + stringResource(R.string.tx_transfer),
+private fun FilterRow(vm: FinanceViewModel) {
+    val types = listOf(
+        Triple(TxTypeFilter.ALL, stringResource(R.string.filter_all), null),
+        Triple(TxTypeFilter.INCOME, stringResource(R.string.tx_income), RytmIcons.TrendingUp),
+        Triple(TxTypeFilter.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.TrendingDown),
+        Triple(TxTypeFilter.TRANSFER, stringResource(R.string.tx_transfer), RytmIcons.SwapHoriz),
     )
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(options) { (value, label) ->
+    val periods = listOf(
+        PeriodFilter.DAY to stringResource(R.string.action_today),
+        PeriodFilter.MONTH to stringResource(R.string.period_month),
+        PeriodFilter.ALL to stringResource(R.string.period_all),
+    )
+    // One scrollable row (type, divider, period) instead of two stacked rows
+    // — ~56dp more of the actual history above the fold.
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        items(types, key = { "t-${it.first}" }) { (value, label, icon) ->
             FilterChip(
                 selected = vm.typeFilter == value,
                 onClick = { vm.onTypeFilterChange(value) },
+                label = { Text(label) },
+                leadingIcon = icon?.let { { Icon(it, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) } },
+            )
+        }
+        item(key = "divider") {
+            Box(Modifier.padding(horizontal = 4.dp).size(width = 1.dp, height = 24.dp).background(MaterialTheme.colorScheme.outlineVariant))
+        }
+        items(periods, key = { "p-${it.first}" }) { (value, label) ->
+            FilterChip(
+                selected = vm.periodFilter == value,
+                onClick = { vm.onPeriodFilterChange(value) },
                 label = { Text(label) },
             )
         }
@@ -694,18 +752,29 @@ private fun TypeFilterRow(vm: FinanceViewModel) {
 }
 
 @Composable
-private fun PeriodFilterRow(vm: FinanceViewModel) {
-    val options = listOf(
-        PeriodFilter.DAY to stringResource(R.string.action_today),
-        PeriodFilter.MONTH to stringResource(R.string.period_month),
-        PeriodFilter.ALL to stringResource(R.string.period_all),
-    )
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(options) { (value, label) ->
-            FilterChip(
-                selected = vm.periodFilter == value,
-                onClick = { vm.onPeriodFilterChange(value) },
-                label = { Text(label) },
+private fun DayHeader(date: String, netUah: Double) {
+    val locale = LocalConfiguration.current.locales[0]
+    val parsed = remember(date) { runCatching { java.time.LocalDate.parse(date) }.getOrNull() }
+    val today = java.time.LocalDate.now()
+    val label = when {
+        parsed == null -> date
+        parsed == today -> stringResource(R.string.action_today)
+        parsed == today.minusDays(1) -> stringResource(R.string.finance_day_yesterday)
+        parsed.year == today.year -> parsed.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d MMMM", locale))
+        else -> parsed.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", locale))
+    }.replaceFirstChar { it.titlecase(locale) }
+    Row(
+        Modifier.fillMaxWidth().padding(top = 4.dp).semantics(mergeDescendants = true) { heading() },
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (netUah != 0.0) {
+            val sign = if (netUah > 0) "+" else "−"
+            Text(
+                maskedAmount(stringResource(R.string.finance_signed_uah, sign, formatMoney(kotlin.math.abs(netUah)))),
+                style = MaterialTheme.typography.labelLarge.tabularNums(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -910,12 +979,10 @@ private fun TransactionRow(
                         }
                     }
                     Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    val dateParts = tx.date.split("-") // "yyyy-MM-dd" -> "dd.MM.yyyy", matches txItemInnerHtml()
-                    val metaLine = buildString {
-                        append("${dateParts.getOrElse(2) { "" }}.${dateParts.getOrElse(1) { "" }}.${dateParts.getOrElse(0) { "" }}")
-                        tx.comment?.let { append(" · $it") }
+                    // The date lives in the day header above.
+                    tx.comment?.takeIf { it.isNotBlank() }?.let { comment ->
+                        Text(comment, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    Text(metaLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val rowTags = tx.tags.mapNotNull(tagLookup)
                     if (rowTags.isNotEmpty()) {
                         Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {

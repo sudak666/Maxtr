@@ -479,4 +479,18 @@
     <string name="backups_shared_unavailable">Backups of a shared profile are made by its owner</string>
     <string name="finance_search_prefix">Search</string><string name="finance_search_what_comment">by comment</string><string name="finance_search_what_category">by category</string><string name="finance_search_what_tag">by tag</string><string name="finance_search_what_wallet">by wallet</string>
     <string name="settings_search_what_wallets">wallets</string><string name="settings_search_what_categories">categories</string><string name="settings_search_what_notifications">notifications</string><string name="settings_search_what_pin">PIN</string><string name="settings_search_what_theme">theme</string>
+    <string name="finance_day_yesterday">Yesterday</string>
+    <string name="shifts_brush_hint">Tip: pick a shift type above to fill days with one tap</string>
+    <string name="shifts_brush_active_hint">Brush mode: tapping a day adds or removes this shift. Tap the type again to exit</string>
+    <string name="transaction_shift_cost">≈ %1$s shifts of work</string>
+    <string name="transaction_shift_cost_tiny">Under 0.1 of a shift</string>
+    <plurals name="transaction_shift_cost_whole">
+        <item quantity="one">≈ %d shift of work</item>
+        <item quantity="other">≈ %d shifts of work</item>
+    </plurals>
+    <string name="finance_outlook_prefix">Until month end:</string>
+    <string name="finance_outlook_shifts">+%1$s UAH from shifts</string>
+    <string name="finance_outlook_recurring_in">+%1$s UAH recurring income</string>
+    <string name="finance_outlook_recurring_out">−%1$s UAH recurring payments</string>
+    <string name="auth_email_placeholder">you@example.com</string>
 </resources>

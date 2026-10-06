@@ -57,7 +57,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
                 "income" to local.filter { it.type == "INCOME" }.map { it.name },
                 "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
             )
-            docRef.set(mapOf("categories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+            docRef.setFields(mapOf("categories" to remoteMap, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -89,7 +89,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         } else {
             val local = db.subcategoryDao().getAllOnce()
             val remoteMap = local.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
-            docRef.set(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+            docRef.setFields(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -114,7 +114,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         } else {
             val local = db.categoryIconDao().getAllOnce()
             val remoteMap = local.associate { it.categoryName to it.iconName }
-            docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+            docRef.setFields(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis())).enqueue()
         }
     }
 
@@ -124,25 +124,24 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             "income" to local.filter { it.type == "INCOME" }.map { it.name },
             "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
         )
-        financeDocRef(uid, profileId).set(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.subcategoryDao().getAllOnce().groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
-        financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.categoryIconDao().getAllOnce().associate { it.categoryName to it.iconName }
-        financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
+        financeDocRef(uid, profileId).setFields(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveAllCategorySnapshots(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val categories = db.categoryDao().getAllOnce()
         val subcategories = db.subcategoryDao().getAllOnce()
         val icons = db.categoryIconDao().getAllOnce()
-        financeDocRef(uid, profileId).set(
-            mapOf(
+        financeDocRef(uid, profileId).setFields(mapOf(
                 "categories" to mapOf(
                     "income" to categories.filter { it.type == "INCOME" }.map { it.name },
                     "expense" to categories.filter { it.type == "EXPENSE" }.map { it.name },
@@ -150,9 +149,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
                 "subcategories" to subcategories.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name }),
                 "categoryIcons" to icons.associate { it.categoryName to it.iconName },
                 "updatedAt" to System.currentTimeMillis(),
-            ),
-            SetOptions.merge(),
-        ).enqueue()
+            )).enqueue()
         val txCollection = financeDocRef(uid, profileId).collection("transactions")
         db.transactionDao().getAllOnce().chunked(450).forEach { chunk ->
             val batch = firestore.batch()

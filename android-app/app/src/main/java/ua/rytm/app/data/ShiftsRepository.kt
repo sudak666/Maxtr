@@ -1,5 +1,6 @@
 package ua.rytm.app.data
 
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ua.rytm.app.data.local.AutoFillScheduleEntity
@@ -131,14 +132,18 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
     }
 
     private suspend fun mutateDays(uid: String, profileId: String, block: suspend () -> Unit) {
-        val old = db.shiftDayDao().getAllOnce()
-        try { block(); sync.saveShiftDays(uid, profileId) }
-        catch (e: Exception) { db.shiftDayDao().replaceAll(old); throw e }
+        LocalWriteLock.mutex.withLock {
+            val old = db.shiftDayDao().getAllOnce()
+            try { block(); sync.saveShiftDays(uid, profileId) }
+            catch (e: Exception) { db.shiftDayDao().replaceAll(old); throw e }
+        }
     }
 
     private suspend fun mutateTypes(uid: String, profileId: String, block: suspend () -> Unit) {
-        val old = db.shiftTypeDao().getAllOnce()
-        try { block(); sync.saveShiftTypes(uid, profileId) }
-        catch (e: Exception) { db.shiftTypeDao().replaceAll(old); throw e }
+        LocalWriteLock.mutex.withLock {
+            val old = db.shiftTypeDao().getAllOnce()
+            try { block(); sync.saveShiftTypes(uid, profileId) }
+            catch (e: Exception) { db.shiftTypeDao().replaceAll(old); throw e }
+        }
     }
 }

@@ -174,7 +174,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
-                        placeholder = { Text("you@example.com") },
+                        placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
                         shape = RoundedCornerShape(RytmRadii.Control),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         colors = authFieldColors(),
