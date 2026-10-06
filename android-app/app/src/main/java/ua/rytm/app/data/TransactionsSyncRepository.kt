@@ -1,6 +1,7 @@
 package ua.rytm.app.data
 
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.room.withTransaction
 import kotlinx.coroutines.tasks.await
 import ua.rytm.app.data.local.RytmDatabase
 import ua.rytm.app.data.local.TransactionEntity
@@ -44,6 +45,23 @@ class TransactionsSyncRepository(private val db: RytmDatabase, private val fires
                 val batch = firestore.batch()
                 chunk.forEach { tx -> batch.set(colRef.document(tx.id), tx.toRemoteMap()) }
                 batch.commit().enqueue()
+            }
+        }
+    }
+
+    /**
+     * Realtime delta: applies only the docs that changed instead of
+     * re-reading the whole subcollection (N reads per remote edit before).
+     */
+    suspend fun applyRemoteChanges(changes: List<com.google.firebase.firestore.DocumentChange>) {
+        val dao = db.transactionDao()
+        db.withTransaction {
+            changes.forEach { change ->
+                if (change.type == com.google.firebase.firestore.DocumentChange.Type.REMOVED) {
+                    dao.deleteById(change.document.id)
+                } else {
+                    change.document.data.let(::parseRemoteTransaction)?.let { dao.upsert(it) }
+                }
             }
         }
     }

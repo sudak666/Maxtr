@@ -273,6 +273,19 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
 // to UTC (best-effort, not to-the-minute precise) until they next touch
 // their notification settings, at which point the client backfills it.
 /**
+ * The sweep only ever looks at today's and this month's transactions (daily
+ * reminder, budget totals), but read the WHOLE subcollection of every
+ * profile every hour — reads grew with each user's entire history. Bounded
+ * to dates from the first day of the previous UTC month, which covers "this
+ * month" in every time zone.
+ * @param {any} db @param {string} path @param {Date} now
+ */
+function recentTransactions(db, path, now) {
+  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toISOString().slice(0, 10);
+  return db.collection(path).where('date', '>=', from).get();
+}
+
+/**
  * @param {any} db Firestore-like `{doc(path): {get(): Promise}}` — see sweepProfile's own param comment.
  * @param {SendPushFn} sendPushFn
  * @param {TokenDocSnap} tokenDoc
@@ -301,7 +314,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     db.doc(`users/${uid}/${DCOL}/profiles_meta`).get(),
     db.doc(`users/${uid}/${DCOL}/${financeDocName('default')}`).get(),
     db.doc(`users/${uid}/${DCOL}/${debtDocName('default')}`).get(),
-    db.collection(`users/${uid}/${DCOL}/${financeDocName('default')}/transactions`).get(),
+    recentTransactions(db, `users/${uid}/${DCOL}/${financeDocName('default')}/transactions`, now),
   ]);
   // Keep the full profiles_meta entries, not just ids — a shared-profile
   // entry (kind:'shared', ownerUid: <the sharing account's uid>) needs its
@@ -335,7 +348,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   const [otherFinanceSnaps, otherDebtSnaps, otherTransactionsSnaps] = await Promise.all([
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}`).get())),
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${debtDocName(id)}`).get())),
-    Promise.all(otherProfileIds.map((id) => db.collection(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`).get())),
+    Promise.all(otherProfileIds.map((id) => recentTransactions(db, `users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`, now))),
   ]);
   /** @type {Record<string, FinanceDocSnap>} */
   const financeSnapByProfile = { default: defaultFinanceSnap };

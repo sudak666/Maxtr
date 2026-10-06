@@ -382,7 +382,30 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             }
         } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(SyncDomain.TRANSACTIONS, error, snapshot?.metadata?.isFromCache() == true, gone = snapshot != null && snapshot.isEmpty)
+            val fromCache = snapshot?.metadata?.isFromCache() == true
+            val gone = snapshot != null && snapshot.isEmpty
+            // Steady state: apply just the changed docs. The initial snapshots,
+            // errors, offline and "everything deleted" keep the full path above.
+            if (snapshot != null && error == null && initialSnapshotsRemaining == 0 && !fromCache && !gone) {
+                val changes = snapshot.getDocumentChanges(MetadataChanges.EXCLUDE)
+                if (generation != listenerGeneration) return@addSnapshotListener
+                _realtimeState.value = RealtimeState.Listening
+                if (changes.isEmpty()) return@addSnapshotListener
+                scope.launch {
+                    realtimeSyncMutex.withLock {
+                        if (generation != listenerGeneration) return@withLock
+                        try {
+                            app.transactionsSyncRepository.applyRemoteChanges(changes)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            _realtimeState.value = RealtimeState.Error(e.message ?: "Realtime sync failed")
+                        }
+                    }
+                }
+                return@addSnapshotListener
+            }
+            remoteChanged(SyncDomain.TRANSACTIONS, error, fromCache, gone = gone)
         }
     }
 
