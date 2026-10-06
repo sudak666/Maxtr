@@ -504,6 +504,25 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // shows whether it is currently granted (re-read on resume).
                     val bankContext = LocalContext.current
                     var bankEnabled by remember { mutableStateOf(ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)) }
+                    // Prominent disclosure (Play User Data policy): say exactly what is
+                    // read and what is not before sending the user to the system switch.
+                    var bankDisclosureOpen by remember { mutableStateOf(false) }
+                    if (bankDisclosureOpen) {
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { bankDisclosureOpen = false },
+                            title = { Text(stringResource(R.string.bank_disclosure_title)) },
+                            text = { Text(stringResource(R.string.bank_disclosure_body)) },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    bankDisclosureOpen = false
+                                    runCatching { bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+                                }) { Text(stringResource(R.string.bank_disclosure_ok)) }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(onClick = { bankDisclosureOpen = false }) { Text(stringResource(R.string.action_cancel)) }
+                            },
+                        )
+                    }
                     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
                         bankEnabled = ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)
                         onPauseOrDispose { }
@@ -513,11 +532,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         badgeColor = SettingsGroupColors.Notifications,
                         title = stringResource(R.string.bank_listener_title),
                         subtitle = stringResource(if (bankEnabled) R.string.bank_listener_on else R.string.bank_listener_off),
-                        onClick = {
-                            runCatching {
-                                bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                            }
-                        },
+                        onClick = { bankDisclosureOpen = true },
                     )
                     if (displayedPushEnabled) {
                         SettingsRow(
