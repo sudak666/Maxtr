@@ -61,7 +61,19 @@ function fakeDb(docsByPath, delaysByPath = {}) {
       };
     },
     collection(path) {
+      const db = this;
       return {
+        // Only `where(field, '>=', value)` is used (recentTransactions()).
+        where(field, op, value) {
+          assert.equal(op, '>=');
+          return {
+            async get() {
+              const all = await db.collection(path).get();
+              const docs = all.docs.filter((d) => String(d.data()[field] ?? '') >= value);
+              return { empty: docs.length === 0, docs };
+            },
+          };
+        },
         async get() {
           const startedAt = Date.now();
           const delay = delaysByPath[path] || 0;

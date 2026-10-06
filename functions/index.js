@@ -41,6 +41,7 @@ const logger = require('firebase-functions/logger');
 const { mapWithConcurrency } = require('./lib/pure');
 const { sweepToken } = require('./lib/sweep');
 const backup = require('./lib/backup');
+const { deleteAccountData } = require('./lib/account');
 
 initializeApp();
 const db = getFirestore();
@@ -183,8 +184,27 @@ exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
   }
 });
 
-// Account deletion: clients delete their own max_tracker data, but backups
-// are server-written and client-undeletable, so they go here.
+// Account deletion (Android via the Functions SDK, PWA via the /api/account
+// rewrite). Data first, then the Auth user — both server-side, so neither a
+// stale client session (requires-recent-login) nor a big history can leave
+// the account half-deleted. See lib/account.js.
+exports.account = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
+  if ((req.data || {}).action !== 'delete') throw new HttpsError('invalid-argument', 'unknown action');
+  try {
+    await deleteAccountData(db, uid);
+    await getAuth().deleteUser(uid);
+    logger.info('account deleted', { uid });
+    return { ok: true };
+  } catch (err) {
+    logger.error('account delete failed', { uid, error: err.message });
+    throw new HttpsError('internal', 'delete failed');
+  }
+});
+
+// Safety net for an account deleted any other way (Console, old clients):
+// backups are server-written and client-undeletable, so they go here.
 exports.deleteBackupsOnAccountDelete = functionsV1.auth.user().onDelete(async (user) => {
   await db.recursiveDelete(db.collection(`users/${user.uid}/backups`));
 });

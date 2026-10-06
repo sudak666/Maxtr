@@ -57,7 +57,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
                 "income" to local.filter { it.type == "INCOME" }.map { it.name },
                 "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
             )
-            docRef.set(mapOf("categories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+            docRef.set(mapOf("categories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
         }
     }
 
@@ -89,7 +89,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         } else {
             val local = db.subcategoryDao().getAllOnce()
             val remoteMap = local.groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
-            docRef.set(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+            docRef.set(mapOf("subcategories" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
         }
     }
 
@@ -114,7 +114,7 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         } else {
             val local = db.categoryIconDao().getAllOnce()
             val remoteMap = local.associate { it.categoryName to it.iconName }
-            docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+            docRef.set(mapOf("categoryIcons" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
         }
     }
 
@@ -124,17 +124,17 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
             "income" to local.filter { it.type == "INCOME" }.map { it.name },
             "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
         )
-        financeDocRef(uid, profileId).set(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        financeDocRef(uid, profileId).set(mapOf("categories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
     }
 
     suspend fun saveSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.subcategoryDao().getAllOnce().groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name })
-        financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        financeDocRef(uid, profileId).set(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
     }
 
     suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.categoryIconDao().getAllOnce().associate { it.categoryName to it.iconName }
-        financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        financeDocRef(uid, profileId).set(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
     }
 
     suspend fun saveAllCategorySnapshots(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
@@ -152,12 +152,12 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
                 "updatedAt" to System.currentTimeMillis(),
             ),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
         val txCollection = financeDocRef(uid, profileId).collection("transactions")
         db.transactionDao().getAllOnce().chunked(450).forEach { chunk ->
             val batch = firestore.batch()
             chunk.forEach { tx -> batch.set(txCollection.document(tx.id), tx.toRemoteMap()) }
-            batch.commit().await()
+            batch.commit().enqueue()
         }
     }
 }

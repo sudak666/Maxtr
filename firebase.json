@@ -19,7 +19,8 @@
     "ignore": ["firebase.json", "firestore.rules", "**/node_modules/**", "functions/**", "**/*.md", "docs/**", "scripts/**", "tests/**", "_config.yml", "**/.*", "!/.well-known/**"],
     "rewrites": [
       { "source": "/api/privat-rates", "function": "privatRates" },
-      { "source": "/api/backups", "function": "backups" }
+      { "source": "/api/backups", "function": "backups" },
+      { "source": "/api/account", "function": "account" }
     ],
     "headers": [
       {

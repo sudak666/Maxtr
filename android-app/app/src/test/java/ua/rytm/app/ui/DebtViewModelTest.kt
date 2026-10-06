@@ -50,7 +50,7 @@ class DebtViewModelTest {
     private fun waitUntil(cond: () -> Boolean) { repeat(150) { if (cond()) return; Thread.sleep(20) } }
 
     private fun newVm(saver: FakeDebtSaver): DebtViewModel {
-        val vm = DebtViewModel(repo, saver)
+        val vm = DebtViewModel(repo, saver, fieldSaveDebounceMs = 0)
         vm.addDebt("Loan", "Debt")
         waitUntil { vm.currentDebt != null }
         return vm
@@ -92,10 +92,20 @@ class DebtViewModelTest {
         val saver = FakeDebtSaver()
         val vm = newVm(saver)
         saver.fail = true
+        vm.addEntry("200", "", "")
+        waitUntil { vm.errorMessageRes != null }
+        assertEquals(R.string.common_save_failed, vm.errorMessageRes)
+        waitUntil { vm.currentDebt?.entries?.isEmpty() == true }
+        assertEquals(true, vm.currentDebt!!.entries.isEmpty())
+    }
+
+    // Field edits go through the same save path (debounce is 0 in tests).
+    @Test fun failedFieldSaveReportsError() {
+        val saver = FakeDebtSaver()
+        val vm = newVm(saver)
+        saver.fail = true
         vm.updateInfo("Renamed", "", "UAH", 5.0, "")
         waitUntil { vm.errorMessageRes != null }
         assertEquals(R.string.common_save_failed, vm.errorMessageRes)
-        waitUntil { vm.currentDebt?.name == "Loan" }
-        assertEquals("Loan", runBlocking { repo.snapshot() }.let { vm.currentDebt!!.name })
     }
 }

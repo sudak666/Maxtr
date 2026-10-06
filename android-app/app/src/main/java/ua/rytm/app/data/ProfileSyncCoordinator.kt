@@ -59,8 +59,45 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     /** Which watched Firestore source a realtime change came from. */
     enum class SyncDomain { FINANCE, TRANSACTIONS, SHIFTS, DEBT }
 
-    private suspend fun syncAllDomains(uid: String, profileId: String) =
+    private suspend fun syncAllDomains(uid: String, profileId: String) {
         syncDomains(uid, profileId, SyncDomain.entries.toSet())
+        syncMarks().edit().putBoolean(markKey(uid, profileId), true).apply()
+    }
+
+    // Remembers which (owner, profile) pairs this device has completed a full
+    // sync against. Only such a cache can be STALE — a never-synced one is a
+    // genuine first launch whose local seed should be pushed.
+    private fun syncMarks() = app.getSharedPreferences("rytm_sync_marks", android.content.Context.MODE_PRIVATE)
+    private fun markKey(ownerUid: String, profileId: String) = "$ownerUid|$profileId"
+
+    /**
+     * Cold-start twin of the realtime "remote disappeared" check. Every
+     * per-domain sync pushes local data when the remote doc/collection is
+     * empty — right on a first launch, but after another client reset the
+     * profile or deleted every transaction while this app was not running it
+     * pushed the stale cache straight back. Server-only reads: an offline
+     * cache answer of "empty" must never wipe anything.
+     */
+    private suspend fun dropCacheIfRemoteWiped(uid: String, ownerUid: String, profileId: String) {
+        if (!syncMarks().getBoolean(markKey(ownerUid, profileId), false)) return
+        val server = com.google.firebase.firestore.Source.SERVER
+        val col = FirebaseFirestore.getInstance().collection("users").document(ownerUid).collection("max_tracker")
+        val financeRef = col.document(profileDocName("finance", profileId))
+        val financeGone = !financeRef.get(server).await().exists()
+        val shiftsGone = !col.document(profileDocName("shifts", profileId)).get(server).await().exists()
+        val debtGone = !col.document(profileDocName("debt", profileId)).get(server).await().exists()
+        val txGone = financeRef.collection("transactions").limit(1).get(server).await().isEmpty
+        val stale = financeGone || shiftsGone ||
+            (debtGone && app.database.debtDao().getAllOnce().isNotEmpty()) ||
+            (txGone && app.database.transactionDao().getAllOnce().isNotEmpty())
+        if (!stale) return
+        android.util.Log.i("RytmSync", "Remote profile was wiped elsewhere; dropping stale cache")
+        app.database.clearAllProfileScopedTables()
+        if ((financeGone || shiftsGone) && ownerUid == uid) {
+            app.financeRepository.seedFreshProfileDefaults()
+            app.shiftsRepository.seedFreshProfileDefaults()
+        }
+    }
 
     // Realtime changes re-sync only the domains whose source doc changed —
     // a shift edit used to re-read every finance domain and the whole
@@ -134,6 +171,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         // Room already holds the last synced state; the listeners below re-sync
         // each domain once the server answers.
         try {
+            dropCacheIfRemoteWiped(uid, dataOwnerUid, profileId)
             syncAllDomains(dataOwnerUid, profileId)
         } catch (e: CancellationException) {
             throw e
@@ -142,6 +180,29 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         }
         startRealtimeSync(dataOwnerUid, profileId)
         return profileId
+    }
+
+    /**
+     * Pull-to-refresh / retry. loadOnSignIn() deliberately returns early while
+     * listeners are attached (Activity recreation), which made a manual
+     * refresh a silent no-op; this always re-pulls the active profile.
+     */
+    suspend fun refresh(uid: String) {
+        val target = activeTarget ?: run { loadOnSignIn(uid); return }
+        realtimeSyncMutex.withLock {
+            _realtimeState.value = RealtimeState.Syncing
+            try {
+                dropCacheIfRemoteWiped(uid, target.first, target.second)
+                syncAllDomains(target.first, target.second)
+                _realtimeState.value = RealtimeState.Listening
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val offline = (e as? com.google.firebase.firestore.FirebaseFirestoreException)?.code ==
+                    com.google.firebase.firestore.FirebaseFirestoreException.Code.UNAVAILABLE
+                _realtimeState.value = if (offline) RealtimeState.Offline else RealtimeState.Error(e.message ?: "Sync failed")
+            }
+        }
     }
 
     // Room is one shared cache with no per-account tagging. Signing in as a
@@ -155,7 +216,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         if (owner != uid) {
             stopRealtimeSync()
             app.database.clearAllProfileScopedTables()
-            prefs.edit().putString("uid", uid).commit()
+            prefs.edit().putString("uid", uid).apply()
         }
     }
 
@@ -321,7 +382,30 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
             }
         } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
-            remoteChanged(SyncDomain.TRANSACTIONS, error, snapshot?.metadata?.isFromCache() == true, gone = snapshot != null && snapshot.isEmpty)
+            val fromCache = snapshot?.metadata?.isFromCache() == true
+            val gone = snapshot != null && snapshot.isEmpty
+            // Steady state: apply just the changed docs. The initial snapshots,
+            // errors, offline and "everything deleted" keep the full path above.
+            if (snapshot != null && error == null && initialSnapshotsRemaining == 0 && !fromCache && !gone) {
+                val changes = snapshot.getDocumentChanges(MetadataChanges.EXCLUDE)
+                if (generation != listenerGeneration) return@addSnapshotListener
+                _realtimeState.value = RealtimeState.Listening
+                if (changes.isEmpty()) return@addSnapshotListener
+                scope.launch {
+                    realtimeSyncMutex.withLock {
+                        if (generation != listenerGeneration) return@withLock
+                        try {
+                            app.transactionsSyncRepository.applyRemoteChanges(changes)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            _realtimeState.value = RealtimeState.Error(e.message ?: "Realtime sync failed")
+                        }
+                    }
+                }
+                return@addSnapshotListener
+            }
+            remoteChanged(SyncDomain.TRANSACTIONS, error, fromCache, gone = gone)
         }
     }
 

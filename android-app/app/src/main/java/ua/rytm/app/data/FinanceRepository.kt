@@ -442,7 +442,10 @@ class FinanceRepository(private val db: RytmDatabase) {
             var guard = 0
             while (nextDate <= todayStr && guard < 24) {
                 newTx += TransactionEntity(
-                    id = java.util.UUID.randomUUID().toString(),
+                    // Deterministic: every client (PWA, other phones, a shared
+                    // profile's member) materializing the same occurrence writes the
+                    // SAME doc instead of each adding its own copy.
+                    id = recurringOccurrenceId(r.id, nextDate),
                     type = r.type,
                     amount = r.amount,
                     currency = walletCurrency[r.walletId] ?: "UAH",
@@ -471,3 +474,6 @@ class FinanceRepository(private val db: RytmDatabase) {
         return newTx
     }
 }
+
+/** Shared with js/color-picker.js's processRecurring() — keep the format identical. */
+internal fun recurringOccurrenceId(recurringId: String, date: String): String = "rec_${recurringId}_$date"

@@ -33,7 +33,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
             docRef.set(
                 mapOf("tags" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -41,7 +41,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         val tags = db.tagDao().getAllOnce().map { it.toRemoteMap() }
         financeDocRef(uid, profileId).set(
             mapOf("tags" to tags, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     suspend fun saveTagsAndChangedTransactions(
@@ -56,7 +56,7 @@ class TagsSyncRepository(private val db: RytmDatabase, private val firestore: Fi
         val transactions = financeRef.collection("transactions")
         changedTransactions.forEach { tx -> batch.set(transactions.document(tx.id), tx.toRemoteMap()) }
         require(changedTransactions.size <= 499) { "Too many tagged transactions for one atomic update" }
-        batch.commit().await()
+        batch.commit().enqueue()
     }
 }
 

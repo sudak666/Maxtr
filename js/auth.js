@@ -5,14 +5,14 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { init, switchTab } from './app-init.js';
-import { EmailAuthProvider, applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, deleteUser, getRedirectResult, googleProvider, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
-import { safetyBackup } from './backups.js';
+import { applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, getRedirectResult, googleProvider, onAuthStateChanged, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
+import { callFunction, safetyBackup } from './backups.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { deleteAllTransactionDocs, loadActiveProfileId, lsKey, userDoc } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { renderNotifUI } from './notifications.js';
 import { closeManagers } from './settings-managers.js';
-import { showToast, uiAlert, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { showToast, uiAlert, uiConfirm } from './ui-widgets.js';
 
 /** @param {string} mode */
 const setAuthMode = function(mode){
@@ -156,65 +156,25 @@ const signOutUser = async function(){
   await signOut(auth);
 };
 
-async function reauthenticateForDeletion(){
-  const currentUser=AppState.currentUser;
-  if(!currentUser) return false;
-  const providerId=currentUser.providerData[0]?.providerId;
-  try{
-    if(providerId==='google.com'){
-      await reauthenticateWithPopup(currentUser, googleProvider);
-    }else{
-      const password=await uiPrompt(tr('auth_reauth_prompt'),'',tr('auth_reauth_title'));
-      if(!password) return false;
-      await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email||'', password));
-    }
-    return true;
-  }catch(e){
-    console.error(e);
-    return false;
-  }
-}
-
+// Server-side (functions/lib/account.js): every profile, transactions,
+// backups, push token, invites, shared memberships, then the Auth user. The
+// old client-side version only reached the ACTIVE profile (a shared one's
+// owner data, if that was active), and needed a fresh re-login first.
 const deleteAccountUser = async function(){
   const currentUser=AppState.currentUser;
   if(!currentUser) return;
   if(!(await uiConfirm(tr('auth_delete_confirm'),{title:tr('auth_delete_title'),okText:tr('common_delete'),danger:true}))) return;
-  try{
-    await Promise.all([
-      deleteDoc(userDoc('shifts')),
-      deleteDoc(userDoc('finance')),
-      deleteDoc(userDoc('debt')),
-      // Firestore never cascade-deletes a subcollection when its parent
-      // doc is deleted — without this, every transaction doc would be
-      // orphaned under a finance doc that no longer exists. See
-      // js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION section.
-      deleteAllTransactionDocs(),
-    ]);
-  }catch(e){
-    console.error(e);
-    await uiAlert(tr('auth_delete_data_fail'));
-    return;
-  }
   const uid=currentUser.uid;
   try{
-    await deleteUser(currentUser);
+    await callFunction('account', {action:'delete'});
   }catch(e){
-    if(firebaseErrCode(e)==='auth/requires-recent-login' && await reauthenticateForDeletion()){
-      try{
-        await deleteUser(currentUser);
-      }catch(e2){
-        console.error(e2);
-        await uiAlert(tr('auth_delete_account_fail'));
-        return;
-      }
-    }else{
-      console.error(e);
-      await uiAlert(tr('auth_delete_needs_login'));
-      return;
-    }
+    console.error(e);
+    await uiAlert(tr('auth_delete_account_fail'));
+    return;
   }
   ['shifts','tx','recurring','debt','cfg','pin','biocred'].forEach(n=>localStorage.removeItem(`mx_${n}_${uid}`));
   showToast(tr('auth_account_deleted'),'trash');
+  await signOut(auth).catch(()=>{});
 };
 
 // "Start over" — wipes shifts/finance/debt/transactions for the *current*

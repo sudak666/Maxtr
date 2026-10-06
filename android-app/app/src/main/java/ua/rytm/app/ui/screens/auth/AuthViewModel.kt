@@ -19,10 +19,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -215,58 +213,23 @@ class AuthViewModel : ViewModel() {
     var isDeletingAccount by mutableStateOf(false)
         private set
 
-    // Mirrors js/auth.js's deleteAccountUser(): delete this account's own
-    // (default-profile) Firestore data, then the Firebase Auth account
-    // itself, then wipe local caches. Same disclosed scope simplification
-    // as the PWA — a secondary @profileId-suffixed doc, or shared_members/
-    // profile_invites references, are left behind as harmless orphans under
-    // a uid nobody can ever sign back into (see CLAUDE.md's Multiple
-    // profiles / Shared profiles sections for why the PWA itself doesn't
-    // clean those up either).
+    // Server-side (functions/lib/account.js): every profile, transactions,
+    // backups, push token, invites and shared-profile memberships, then the
+    // Auth user itself. Done client-side this missed most of that, failed for
+    // any history over 500 transactions (one batch) and, for email accounts,
+    // could never pass Firebase's requires-recent-login check.
     fun deleteAccount(context: Context) {
         val user = auth.currentUser ?: return
         if (isDeletingAccount) return
         isDeletingAccount = true
         val uid = user.uid
+        val app = context.applicationContext as RytmApplication
         viewModelScope.launch {
-            val db = FirebaseFirestore.getInstance()
             try {
-                val profileCol = db.collection("users").document(uid).collection("max_tracker")
-                val txSnap = profileCol.document("finance").collection("transactions").get().await()
-                if (txSnap.documents.isNotEmpty()) {
-                    val batch = db.batch()
-                    txSnap.documents.forEach { batch.delete(it.reference) }
-                    batch.commit().await()
-                }
-                listOf("shifts", "finance", "debt").forEach { profileCol.document(it).delete().await() }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                errorMessageRes = R.string.auth_delete_data_failed
-                isDeletingAccount = false
-                return@launch
-            }
-            try {
-                user.delete().await()
-            } catch (e: FirebaseAuthRecentLoginRequiredException) {
-                // Firebase requires a session newer than some threshold for
-                // account deletion specifically — the PWA hits the same
-                // auth/requires-recent-login error and re-authenticates
-                // in place before retrying, same shape here.
-                val credential = try { fetchGoogleCredential(context) } catch (e2: Exception) { null }
-                if (credential == null) {
-                    errorMessageRes = R.string.auth_delete_reauth_required
-                    isDeletingAccount = false
-                    return@launch
-                }
-                try {
-                    user.reauthenticate(credential).await()
-                    user.delete().await()
-                } catch (e2: Exception) {
-                    errorMessageRes = R.string.auth_delete_account_failed
-                    isDeletingAccount = false
-                    return@launch
-                }
+                app.profileSyncCoordinator.stopRealtimeSync()
+                com.google.firebase.functions.FirebaseFunctions.getInstance()
+                    .getHttpsCallable("account").apply { setTimeout(300, java.util.concurrent.TimeUnit.SECONDS) }
+                    .call(mapOf("action" to "delete")).await()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -274,9 +237,9 @@ class AuthViewModel : ViewModel() {
                 isDeletingAccount = false
                 return@launch
             }
-            val app = context.applicationContext as RytmApplication
             app.pinStore.removePin(uid)
             app.database.clearAllProfileScopedTables()
+            auth.signOut()
             isDeletingAccount = false
         }
     }

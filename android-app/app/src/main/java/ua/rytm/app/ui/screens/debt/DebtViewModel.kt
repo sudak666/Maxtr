@@ -50,7 +50,11 @@ private class AppDebtSaver(private val app: RytmApplication) : DebtSaver {
     }
 }
 
-class DebtViewModel(private val repository: DebtRepository, private val saver: DebtSaver) : ViewModel() {
+class DebtViewModel(
+    private val repository: DebtRepository,
+    private val saver: DebtSaver,
+    private val fieldSaveDebounceMs: Long = 600,
+) : ViewModel() {
 
     companion object {
         fun factory(app: RytmApplication) = viewModelFactory {
@@ -196,10 +200,15 @@ class DebtViewModel(private val repository: DebtRepository, private val saver: D
     private val saveMutex = kotlinx.coroutines.sync.Mutex()
     private fun mutate(nextCurrentDebtId: Long?, dropIfBusy: Boolean = true, change: suspend () -> Unit) {
         if (dropIfBusy && saving) return
-        viewModelScope.launch { saveMutex.lock(); try { mutateLocked(nextCurrentDebtId, change) } finally { saveMutex.unlock() } }
+        viewModelScope.launch { saveMutex.lock(); try { mutateLocked(nextCurrentDebtId, change, debounceSave = !dropIfBusy) } finally { saveMutex.unlock() } }
     }
 
-    private suspend fun mutateLocked(nextCurrentDebtId: Long?, change: suspend () -> Unit) {
+    // Field edits fire per keystroke; each used to rewrite the whole debt doc
+    // in Firestore (and echo to every other device). Room updates at once, the
+    // cloud snapshot goes out once typing pauses.
+    private var pendingSave: kotlinx.coroutines.Job? = null
+
+    private suspend fun mutateLocked(nextCurrentDebtId: Long?, change: suspend () -> Unit, debounceSave: Boolean = false) {
         val target = when (val t = saver.target()) {
             is DebtSaver.Target.Editable -> t
             DebtSaver.Target.ReadOnly -> { errorMessageRes = R.string.profile_read_only; return }
@@ -211,7 +220,16 @@ class DebtViewModel(private val repository: DebtRepository, private val saver: D
         saving = true
         try {
             change()
-            saver.save(ownerUid, profileId, nextCurrentDebtId)
+            pendingSave?.cancel()
+            if (debounceSave && fieldSaveDebounceMs > 0) {
+                pendingSave = viewModelScope.launch {
+                    kotlinx.coroutines.delay(fieldSaveDebounceMs)
+                    runCatching { saver.save(ownerUid, profileId, nextCurrentDebtId) }
+                        .onFailure { if (it !is CancellationException) errorMessageRes = R.string.common_save_failed }
+                }
+            } else {
+                saver.save(ownerUid, profileId, nextCurrentDebtId)
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

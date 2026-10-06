@@ -609,12 +609,14 @@ async function processRecurring(){
     if(r.active===false || !r.nextDate || !r.amount) return;
     let guard=0;
     while(r.nextDate<=todayStr && guard<24){
+      // Deterministic id (same format as Android's recurringOccurrenceId()):
+      // two clients materializing one occurrence write the same doc, not a duplicate.
       const t={
-        id:uid('tx'), createdAt:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
+        id:`rec_${r.id}_${r.nextDate}`, createdAt:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
         wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
         comment:(r.comment?r.comment+' · ':'')+tr('recurring_comment_tag')
       };
-      AppState.transactions.unshift(t);
+      if(!AppState.transactions.some(x=>String(x.id)===t.id)) AppState.transactions.unshift(t);
       newTx.push(t);
       r.nextDate=computeNextDate(r.nextDate, r.frequency||'monthly');
       added++; guard++;

@@ -22,6 +22,6 @@ class ProfileAppearanceRepository(private val firestore: FirebaseFirestore) {
                 "updatedAt" to System.currentTimeMillis(),
             ),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }
