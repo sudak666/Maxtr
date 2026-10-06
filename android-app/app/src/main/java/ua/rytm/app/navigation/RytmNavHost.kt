@@ -119,7 +119,8 @@ fun RytmNavHost() {
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
     val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
     val ownerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null)).collectAsState(initial = null)
-    val canEdit by produceState(initialValue = ownerUid == null, accountUid, ownerUid, profileId) {
+    // Starts read-only: a shared viewer briefly saw edit controls (FAB, swipe) before the role loaded.
+    val canEdit by produceState(initialValue = false, accountUid, ownerUid, profileId) {
         value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
     }
     val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsState()

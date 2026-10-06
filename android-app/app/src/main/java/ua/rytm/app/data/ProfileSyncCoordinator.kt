@@ -216,7 +216,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         if (owner != uid) {
             stopRealtimeSync()
             app.database.clearAllProfileScopedTables()
-            prefs.edit().putString("uid", uid).commit()
+            prefs.edit().putString("uid", uid).apply()
         }
     }
 
