@@ -97,7 +97,7 @@ class TransactionsCsvRepository(
         transactions.chunked(450).forEach { chunk ->
             val batch = firestore.batch()
             chunk.forEach { batch.set(collection.document(it.id), it.toRemoteMap()) }
-            batch.commit().await()
+            batch.commit().enqueue()
         }
         db.transactionDao().insertAll(transactions)
     }

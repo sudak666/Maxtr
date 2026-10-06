@@ -22,6 +22,6 @@ class AutoRulesSyncRepository(private val db: RytmDatabase, private val firestor
     }
     suspend fun save(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val rules = db.autoRuleDao().getAllOnce().map { mapOf("id" to it.id, "type" to it.type.lowercase(), "keyword" to it.keyword, "category" to it.category) }
-        ref(uid, profileId).set(mapOf("autoRules" to rules, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        ref(uid, profileId).set(mapOf("autoRules" to rules, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
     }
 }

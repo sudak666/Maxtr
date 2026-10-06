@@ -63,6 +63,9 @@ jobs:
       - name: Run Cloud Function backup tests
         run: node tests/functions-backup.mjs
 
+      - name: Run Cloud Function account deletion tests
+        run: node tests/functions-account.mjs
+
       - name: Run smoke test
         run: node tests/smoke.mjs
 

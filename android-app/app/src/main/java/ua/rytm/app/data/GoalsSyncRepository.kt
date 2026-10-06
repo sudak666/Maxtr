@@ -32,7 +32,7 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
             docRef.set(
                 mapOf("goals" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -41,7 +41,7 @@ class GoalsSyncRepository(private val db: RytmDatabase, private val firestore: F
         financeDocRef(uid, profileId).set(
             mapOf("goals" to goals.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }
 

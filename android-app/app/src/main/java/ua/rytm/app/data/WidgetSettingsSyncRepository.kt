@@ -43,7 +43,7 @@ class WidgetSettingsSyncRepository(
         ref(uid, profileId).set(
             mapOf("salaryGoal" to amount.coerceAtLeast(0.0), "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     suspend fun save(uid: String, profileId: String) = saveMutex.withLock {
@@ -60,6 +60,6 @@ class WidgetSettingsSyncRepository(
         ref(uid, profileId).set(
             mapOf("widgets" to widgets, "widgetOrder" to config.order, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }

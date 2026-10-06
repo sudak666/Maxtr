@@ -47,7 +47,7 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
             docRef.set(
                 mapOf("wallets" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -61,7 +61,7 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
                     "updatedAt" to System.currentTimeMillis(),
                 ),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 }

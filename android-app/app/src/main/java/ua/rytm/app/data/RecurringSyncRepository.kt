@@ -37,7 +37,7 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
             docRef.set(
                 mapOf("recurring" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -46,7 +46,7 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
         financeDocRef(uid, profileId).set(
             mapOf("recurring" to recurring.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }
 

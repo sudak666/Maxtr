@@ -36,7 +36,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             docRef.set(
                 mapOf("shiftTypes" to local.map { it.toRemoteMap() }, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -62,7 +62,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
             docRef.set(
                 mapOf("data" to remoteMap, "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -101,7 +101,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
                     "updatedAt" to System.currentTimeMillis(),
                 ),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -109,7 +109,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
         val types = db.shiftTypeDao().getAllOnce().map { it.toRemoteMap() }
         shiftsDocRef(uid, profileId).set(
             mapOf("shiftTypes" to types, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     suspend fun saveShiftDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
@@ -121,7 +121,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
         shiftsDocRef(uid, profileId).set(
             mapOf("autoFillSchedule" to schedule.toRemoteMap(), "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     suspend fun saveShiftTypesAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
@@ -130,7 +130,7 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
         shiftsDocRef(uid, profileId).set(
             mapOf("shiftTypes" to types, "data" to days, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     suspend fun saveAutoFillAndDays(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
@@ -139,14 +139,14 @@ class ShiftsSyncRepository(private val db: RytmDatabase, private val firestore: 
         shiftsDocRef(uid, profileId).set(
             mapOf("autoFillSchedule" to schedule.toRemoteMap(), "data" to days, "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 
     private suspend fun saveShiftDaysLocked(uid: String, profileId: String) {
         val days = db.shiftDayDao().getAllOnce().groupBy({ it.dateKey }, { it.shiftTypeId })
         shiftsDocRef(uid, profileId).set(
             mapOf("data" to days, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }
 

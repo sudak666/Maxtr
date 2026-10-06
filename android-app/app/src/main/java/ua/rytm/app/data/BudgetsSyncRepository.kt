@@ -39,7 +39,7 @@ class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore:
             // push this device's local budgets up as the seed.
             val local = db.budgetDao().getAllOnce()
             val remoteMap = local.associate { it.category to it.amount }
-            docRef.set(mapOf("budgets" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+            docRef.set(mapOf("budgets" to remoteMap, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
         }
     }
 
@@ -47,6 +47,6 @@ class BudgetsSyncRepository(private val db: RytmDatabase, private val firestore:
         val budgets = db.budgetDao().getAllOnce().associate { it.category to it.amount }
         financeDocRef(uid, profileId).set(
             mapOf("budgets" to budgets, "updatedAt" to System.currentTimeMillis()), SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }

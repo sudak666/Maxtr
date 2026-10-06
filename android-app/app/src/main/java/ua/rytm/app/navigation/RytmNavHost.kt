@@ -132,7 +132,7 @@ fun RytmNavHost() {
         if (refreshing) return
         scope.launch {
             refreshing = true
-            try { app.profileSyncCoordinator.loadOnSignIn(uid) } finally { refreshing = false }
+            try { app.profileSyncCoordinator.refresh(uid) } finally { refreshing = false }
         }
     }
 
@@ -141,6 +141,17 @@ fun RytmNavHost() {
     // One snackbar host for the whole nav graph, so every screen reports
     // transient events the same way (see ui/SnackbarHost.kt).
     val snackbarHostState = remember { SnackbarHostState() }
+    // Writes are queued locally and confirmed later (data/LocalFirstWrite.kt),
+    // so a server rejection can only be reported here, after the fact — and the
+    // rejected edit is replaced by the server's state on the reload below.
+    val rejectedMessage = stringResource(R.string.sync_write_rejected)
+    LaunchedEffect(Unit) {
+        // No manual reload needed: Firestore reverts a rejected write in its
+        // cache, the realtime listener sees that and re-syncs Room.
+        ua.rytm.app.data.SyncWriteErrors.events.collect {
+            snackbarHostState.showSnackbar(rejectedMessage)
+        }
+    }
     CompositionLocalProvider(
         LocalCanEditProfile provides canEdit,
         LocalRealtimeState provides realtimeState,

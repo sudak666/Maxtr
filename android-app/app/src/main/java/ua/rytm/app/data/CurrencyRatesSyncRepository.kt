@@ -80,7 +80,7 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
 
     private suspend fun persist(uid: String, profileId: String, rates: Map<String, Double>) {
         db.currencyRateDao().replaceAll(rates.map { CurrencyRateEntity(it.key, it.value) })
-        financeDocRef(uid, profileId).set(mapOf("currencyRates" to rates, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).await()
+        financeDocRef(uid, profileId).set(mapOf("currencyRates" to rates, "updatedAt" to System.currentTimeMillis()), SetOptions.merge()).enqueue()
     }
 
     private suspend fun fetchJsonArray(url: String): JSONArray = withContext(Dispatchers.IO) {

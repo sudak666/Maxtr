@@ -16,10 +16,11 @@ import { showToast, uiConfirm } from './ui-widgets.js';
 /** @typedef {{id: string, profileId: string, createdAt: number, reason: string, txCount: number}} BackupInfo */
 
 const HOSTING_HOSTS = ['maxtr-c238f.web.app', 'maxtr-c238f.firebaseapp.com'];
-function backupsEndpoint(){
+/** @param {string} name */
+function functionEndpoint(name){
   return HOSTING_HOSTS.includes(location.hostname)
-    ? '/api/backups'
-    : 'https://us-central1-maxtr-c238f.cloudfunctions.net/backups';
+    ? `/api/${name}`
+    : `https://us-central1-maxtr-c238f.cloudfunctions.net/${name}`;
 }
 
 class BackupCallError extends Error {
@@ -28,17 +29,23 @@ class BackupCallError extends Error {
 }
 
 /** @param {Record<string, unknown>} data @returns {Promise<any>} */
-async function callBackups(data){
+function callBackups(data){ return callFunction('backups', data); }
+
+/**
+ * Callable protocol over plain fetch (no Functions SDK module needed).
+ * @param {string} name @param {Record<string, unknown>} data @returns {Promise<any>}
+ */
+export async function callFunction(name, data){
   const user = AppState.currentUser;
   if(!user) throw new BackupCallError('UNAUTHENTICATED', 'signed out');
   const token = await user.getIdToken();
-  const res = await fetch(backupsEndpoint(), {
+  const res = await fetch(functionEndpoint(name), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ data }),
   });
   const body = await res.json().catch(() => ({}));
-  if(!res.ok || body.error) throw new BackupCallError(body.error?.status || String(res.status), body.error?.message || 'backup call failed');
+  if(!res.ok || body.error) throw new BackupCallError(body.error?.status || String(res.status), body.error?.message || `${name} call failed`);
   return body.result;
 }
 

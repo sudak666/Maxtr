@@ -182,6 +182,7 @@
     <string name="action_edit">Редагувати</string>
     <string name="field_name">Назва</string>
     <string name="common_save_failed">Не вдалося зберегти зміни</string>
+    <string name="sync_write_rejected">Сервер не прийняв зміну. Дані оновляться з хмари</string>
     <string name="shift_types_title">Типи змін</string><string name="shift_types_body">Оплата, тривалість і колір кожного типу зміни для календаря.</string>
     <string name="shift_types_empty">Немає типів змін</string>
     <string name="shift_type_new_default">Нова зміна</string>

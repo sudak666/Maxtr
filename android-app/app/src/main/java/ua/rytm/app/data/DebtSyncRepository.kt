@@ -67,7 +67,7 @@ class DebtSyncRepository(private val db: RytmDatabase, private val firestore: Fi
             docRef.set(
                 mapOf("data" to mapOf("debts" to remoteDebtsOut, "currentDebtId" to null), "updatedAt" to System.currentTimeMillis()),
                 SetOptions.merge(),
-            ).await()
+            ).enqueue()
         }
     }
 
@@ -80,7 +80,7 @@ class DebtSyncRepository(private val db: RytmDatabase, private val firestore: Fi
                 "updatedAt" to System.currentTimeMillis(),
             ),
             SetOptions.merge(),
-        ).await()
+        ).enqueue()
     }
 }
 

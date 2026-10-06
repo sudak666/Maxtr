@@ -176,6 +176,7 @@
     <string name="action_edit">Edit</string>
     <string name="field_name">Name</string>
     <string name="common_save_failed">Could not save changes</string>
+    <string name="sync_write_rejected">The server rejected a change. Data will refresh from the cloud</string>
     <string name="shift_types_title">Shift types</string><string name="shift_types_body">Pay, duration, and color for each shift type shown on the calendar.</string>
     <string name="shift_types_empty">No shift types</string>
     <string name="shift_type_new_default">New shift</string>
