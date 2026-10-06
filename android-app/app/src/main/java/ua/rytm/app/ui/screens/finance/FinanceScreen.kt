@@ -159,7 +159,9 @@ fun FinanceScreen(
     LaunchedEffect(launchAction, canEdit) {
         if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION) {
             launchApp.pendingLaunchAction.value = null
-            if (canEdit) viewModel.openNewTransactionSheet()
+            val prefill = launchApp.pendingPrefill.value
+            launchApp.pendingPrefill.value = null
+            if (canEdit) viewModel.openNewTransactionSheet(prefill)
         }
     }
     // Falls back to a local host only outside the nav graph (previews/tests).

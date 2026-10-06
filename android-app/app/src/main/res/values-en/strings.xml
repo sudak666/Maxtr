@@ -500,4 +500,11 @@
     <string name="finance_contributions_title">Who added what this month</string>
     <string name="finance_contributions_me">%1$s (you)</string>
     <string name="shifts_export_calendar">Export to calendar</string>
+    <string name="bank_listener_label">Rytm: transactions from bank notifications</string>
+    <string name="bank_listener_title">Transactions from bank notifications</string>
+    <string name="bank_listener_on">On: I suggest adding payments from bank pushes</string>
+    <string name="bank_listener_off">Off. Reads bank pushes only, sends nothing anywhere</string>
+    <string name="bank_suggest_expense">Add expense %1$s?</string>
+    <string name="bank_suggest_income">Add income %1$s?</string>
+    <string name="bank_suggest_tap">Tap to check and save</string>
 </resources>
