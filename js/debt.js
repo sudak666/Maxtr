@@ -6,7 +6,7 @@
 import { AppState } from './state.js';
 import { saveDebtLocal, scheduleSave } from './color-picker.js';
 import { DEBT_COLORS, canEditActiveProfile } from './core.js';
-import { emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt, recordsLabel } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/debt.js is served unbundled (GitHub Pages, a bare 'preact' package
 // specifier isn't a valid URL there) or bundled by Vite (dist/, Firebase
@@ -436,7 +436,7 @@ export function renderDebt(){
   const lc=document.getElementById('debt-list-container');
   const cc=document.getElementById('debt-entry-count');
   if(!lc) return;
-  if(cc) cc.textContent=cd.entries.length+' '+tr('finance_records_suffix');
+  if(cc) cc.textContent=recordsLabel(cd.entries.length);
   lc.innerHTML='';
 
   if(cd.entries.length===0){
