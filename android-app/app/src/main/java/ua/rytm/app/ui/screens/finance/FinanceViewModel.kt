@@ -266,6 +266,27 @@ class FinanceViewModel(
                 .entries.sortedByDescending { it.value }.take(6).map { it.key }
         }
 
+    /**
+     * Shared profile, this month: income/expense per person who added the
+     * entries. Shown only once at least two people have added something —
+     * a solo profile never sees it.
+     */
+    val monthContributions: List<Contribution>
+        get() {
+            val mine = auth.currentUser?.uid
+            val rows = transactions.filter { it.date.startsWith(currentMonthPrefix) && it.createdBy != null && it.type != TxType.TRANSFER }
+            val byPerson = rows.groupBy { it.createdBy!! }
+            if (byPerson.size < 2) return emptyList()
+            return byPerson.map { (uid, txs) ->
+                Contribution(
+                    name = txs.firstNotNullOfOrNull { it.createdByName } ?: "?",
+                    isMe = uid == mine,
+                    income = txs.filter { it.type == TxType.INCOME }.sumOf { toUah(it.amount, it.currency) },
+                    expense = txs.filter { it.type == TxType.EXPENSE }.sumOf { toUah(it.amount, it.currency) },
+                )
+            }.sortedByDescending { it.isMe }
+        }
+
     /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
     fun netUah(txs: List<Transaction>): Double = txs.sumOf {
         when (it.type) {
@@ -464,7 +485,12 @@ class FinanceViewModel(
 
         val editingId = editingTxId
         val existing = editingId?.let { id -> transactions.firstOrNull { it.id == id } }
-        val toSave = (existing ?: Transaction(id = java.util.UUID.randomUUID().toString(), type = formType, amount = amount, date = formDate, walletId = formWalletId, category = draft.category ?: "Інше")).copy(
+        val me = auth.currentUser
+        val toSave = (existing ?: Transaction(
+            id = java.util.UUID.randomUUID().toString(), type = formType, amount = amount, date = formDate, walletId = formWalletId, category = draft.category ?: "Інше",
+            createdBy = me?.uid,
+            createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
+        )).copy(
             type = formType, amount = amount, currency = srcCur,
             category = draft.category ?: "Інше", subcategory = draft.subcategory,
             walletId = formWalletId,
@@ -585,3 +611,5 @@ data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: 
 data class MonthOutlook(val shiftsEarnings: Double, val recurringOut: Double, val recurringIn: Double) {
     val isEmpty: Boolean get() = shiftsEarnings <= 0 && recurringOut <= 0 && recurringIn <= 0
 }
+
+data class Contribution(val name: String, val isMe: Boolean, val income: Double, val expense: Double)

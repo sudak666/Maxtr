@@ -179,6 +179,8 @@ service cloud.firestore {
         && nullableString(d, 'category', 120)
         && nullableString(d, 'subcategory', 120)
         && nullableString(d, 'comment', 500)
+        && nullableString(d, 'by', 128)
+        && nullableString(d, 'byName', 80)
         && nullableString(d, 'wallet', 120)
         && nullableString(d, 'targetWallet', 120)
         && (!('currency' in d) || d.currency == null || (d.currency is string && d.currency.matches('^[A-Z]{3}$')))
