@@ -42,9 +42,10 @@ class TagsManagerViewModelTest {
 
     @After fun tearDown() { db.close(); Dispatchers.resetMain() }
 
-    private suspend fun awaitTags(expected: Int) {
-        repeat(50) { if (db.tagDao().getAllOnce().size == expected) return; Thread.sleep(20) }
-    }
+    // 3 s, not 1 s: a loaded CI runner missed the rename within 1 s (flaky on main, 2026-10-06).
+    private fun waitUntil(cond: () -> Boolean) { repeat(150) { if (cond()) return; Thread.sleep(20) } }
+
+    private suspend fun awaitTags(expected: Int) = waitUntil { kotlinx.coroutines.runBlocking { db.tagDao().getAllOnce().size == expected } }
 
     @Test fun addRenameDeleteSyncEachTime() = runTest {
         val vm = TagsManagerViewModel(repo, sync, "u", "default")
@@ -54,7 +55,7 @@ class TagsManagerViewModelTest {
         assertEquals("trip", tag.name)
 
         vm.renameTag(ua.rytm.app.ui.screens.finance.Tag(tag.id, tag.name, tag.colorHex), "travel")
-        repeat(50) { if (db.tagDao().getAllOnce().single().name == "travel") return@repeat; Thread.sleep(20) }
+        waitUntil { kotlinx.coroutines.runBlocking { db.tagDao().getAllOnce().single().name == "travel" } }
         assertEquals("travel", db.tagDao().getAllOnce().single().name)
 
         vm.requestDelete(tag.id); vm.confirmDelete()
@@ -67,7 +68,7 @@ class TagsManagerViewModelTest {
         coEvery { sync.saveTagsSnapshot(any(), any()) } throws RuntimeException("offline")
         val vm = TagsManagerViewModel(repo, sync, "u", "default")
         vm.addTag("trip")
-        repeat(50) { if (vm.errorMessageRes != null) return@repeat; Thread.sleep(20) }
+        waitUntil { vm.errorMessageRes != null }
         assertEquals(R.string.tags_save_failed, vm.errorMessageRes)
         assertTrue(db.tagDao().getAllOnce().isEmpty())
     }

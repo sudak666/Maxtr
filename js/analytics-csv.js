@@ -14,7 +14,7 @@ import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-man
 import { validateTransactionDraft } from './tx-validation.js';
 import { safetyBackup } from './backups.js';
 import { recurringUntilMonthEnd, remainingShiftPay } from './shift-money.js';
-import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm } from './ui-widgets.js';
+import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm, recordsLabel } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/analytics-csv.js is served unbundled (GitHub Pages) or bundled by
 // Vite (dist/, Firebase Hosting) — same reasoning as js/debt.js's own
@@ -569,7 +569,7 @@ export function renderFinance(){
     else catChip.style.display='none';
   }
 
-  if(tc) tc.textContent=filtered.length+' '+tr('finance_records_suffix');
+  if(tc) tc.textContent=recordsLabel(filtered.length);
 
   if(filtered.length===0){
     const isSearching=!!AppState.txSearch || AppState.txFilter!=='all' || !!AppState.txCategoryFilter;

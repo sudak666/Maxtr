@@ -668,3 +668,16 @@ if(authTabs) initSegThumb(authTabs, {tint:TINT_PURPLE});
 const finChartToggle=/** @type {HTMLElement | null} */ (document.querySelector('.fin-chart-toggle'));
 if(finChartToggle) initSegThumb(finChartToggle, {tint:TINT_PURPLE});
 }
+
+/**
+ * "1 запис / 2 записи / 5 записів" (uk) or "1 record / 5 records" (en) — the
+ * suffix used to be a fixed "записів", wrong for 1, 21, 481…
+ * @param {number} n
+ * @returns {string}
+ */
+export function recordsLabel(n){
+  if(window.currentLang==='en') return `${n} ${n===1?'record':'records'}`;
+  const m10=n%10, m100=n%100;
+  const word=(m10===1&&m100!==11)?'запис':(m10>=2&&m10<=4&&(m100<12||m100>14))?'записи':'записів';
+  return `${n} ${word}`;
+}
