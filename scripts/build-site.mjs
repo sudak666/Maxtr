@@ -52,7 +52,7 @@ const MODULE_GRAPH_FILES = new Set([
   'settings-managers.js', 'goals-profile.js', 'notifications.js',
   'finance.js', 'tx-validation.js', 'receipt-ocr.js', 'analytics-csv.js',
   'debt.js', 'privacy-cache.js',
-  'dashboard-widgets.js', 'backups.js', 'shift-money.js',
+  'dashboard-widgets.js', 'backups.js', 'shift-money.js', 'debt-pace.js',
 ]);
 
 // Vendored dependencies reached via a real *static* import (unlike

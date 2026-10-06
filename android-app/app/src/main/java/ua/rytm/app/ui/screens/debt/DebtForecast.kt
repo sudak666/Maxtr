@@ -57,17 +57,8 @@ fun DebtForecastCard(debt: Debt) {
     val series = listOf(start) + entries.map { it.balance }
     val currentBalance = debt.currentBalance()
 
-    // Average paydown per payment, counting only payments that actually reduced
-    // the balance — a correction that raised it isn't "progress" (1:1 with the PWA).
-    var prev = start
-    var totalDown = 0.0
-    var downCount = 0
-    entries.forEach { e ->
-        val d = prev - e.balance
-        if (d > 0) { totalDown += d; downCount++ }
-        prev = e.balance
-    }
-    val avgDown = if (downCount > 0) totalDown / downCount else 0.0
+    val pace = DebtPaceCalc.compute(start, entries)
+    val avgDown = pace?.typicalPayment ?: 0.0
 
     // Matches the PWA's .debt-forecast: an uppercase icon+label header, same
     // shape/label treatment as Shifts' IncomeChartSection (step 39).
@@ -98,6 +89,14 @@ fun DebtForecastCard(debt: Debt) {
                     val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
                     Text(pluralStringResource(R.plurals.debt_payments_left, paymentsLeft, paymentsLeft), style = MaterialTheme.typography.bodyMedium)
                     Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // At the user's real cadence: payments left × median gap between them.
+                    pace?.typicalGapDays?.let { gap ->
+                        val finish = java.time.LocalDate.now().plusDays(gap * paymentsLeft)
+                        val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+                        // "листопада 2071": format-style (genitive) month after "до".
+                        val label = finish.format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy", locale))
+                        Text(stringResource(R.string.debt_forecast_finish, label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
         }
