@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
@@ -185,17 +188,23 @@ fun ShiftsScreen() {
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
         item { HeroMetric(stats.earned, salaryGoal, canEdit) { editingGoal = true } }
-        item { ChipStats(stats) }
-        item { ForecastCard(viewModel.currentForecast, viewModel.nextForecast, salaryGoal, viewModel.typicalShiftPay) }
-        item { IncomeChartSection(viewModel.sixMonthEarnings) }
-        if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
+        // The calendar is what this tab is opened for — it used to sit below
+        // the stats, forecast and six-month chart, i.e. off-screen on a phone.
         item { MonthNav(viewModel) }
-        item { LegendRow(viewModel.shiftTypes) }
+        item { LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) viewModel::selectBrush else null) }
         if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
-        item { WeekdayHeaderRow() }
-        item { CalendarGrid(viewModel, canEdit) }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                WeekdayHeaderRow()
+                CalendarGrid(viewModel, canEdit)
+            }
+        }
+        if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
+        item { ChipStats(stats) }
+        item { ForecastCard(viewModel.currentForecast, viewModel.nextForecast, salaryGoal, viewModel.typicalShiftPay) }
+        item { IncomeChartSection(viewModel.sixMonthEarnings) }
     }
     }
 
@@ -839,31 +848,48 @@ private fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
 }
 
 @Composable
-private fun LegendRow(types: List<ShiftType>) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(types) { type ->
-            val accent = Color(type.colorHex)
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(RytmRadii.Pill))
-                    .background(accent.copy(alpha = 0.12f))
-                    .border(1.dp, accent.copy(alpha = 0.28f), RoundedCornerShape(RytmRadii.Pill))
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier
-                        .size(10.dp)
-                        .background(accent.copy(alpha = 0.25f), CircleShape)
-                        .border(1.dp, accent.copy(alpha = 0.6f), CircleShape),
-                )
-                Text(
-                    localizedDomainText(type.name),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(start = 6.dp),
-                )
+private fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((String) -> Unit)?) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(types, key = { it.id }) { type ->
+                val accent = Color(type.colorHex)
+                val selected = type.id == brushTypeId
+                val shape = RoundedCornerShape(RytmRadii.Pill)
+                Row(
+                    modifier = Modifier
+                        .heightIn(min = 40.dp)
+                        .clip(shape)
+                        .background(if (selected) accent else accent.copy(alpha = 0.12f))
+                        .border(1.dp, accent.copy(alpha = if (selected) 1f else 0.28f), shape)
+                        .then(
+                            if (onSelect != null) Modifier.selectable(selected = selected, role = Role.RadioButton) { onSelect(type.id) }
+                            else Modifier,
+                        )
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        type.code,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = if (selected) onColorFor(accent) else accent,
+                    )
+                    Text(
+                        localizedDomainText(type.name),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selected) onColorFor(accent) else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                }
             }
+        }
+        if (onSelect != null) {
+            Text(
+                stringResource(if (brushTypeId != null) R.string.shifts_brush_active_hint else R.string.shifts_brush_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (brushTypeId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -940,7 +966,24 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
     var expanded by rememberSaveable(month.toString()) { mutableStateOf(false) }
     val collapsible = todayWeek >= 0
     val shownWeeks = if (collapsible && !expanded) listOf(weeks[todayWeek]) else weeks
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    // Horizontal swipe flips months, like every calendar app; vertical
+    // scrolling of the screen is untouched (horizontal-only detector).
+    val swipeThresholdPx = with(androidx.compose.ui.platform.LocalDensity.current) { 64.dp.toPx() }
+    Column(
+        Modifier.fillMaxWidth().pointerInput(Unit) {
+            var total = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { total = 0f },
+                onDragEnd = {
+                    when {
+                        total <= -swipeThresholdPx -> viewModel.goToNextMonth()
+                        total >= swipeThresholdPx -> viewModel.goToPreviousMonth()
+                    }
+                },
+            ) { _, dx -> total += dx }
+        },
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         shownWeeks.forEach { week ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 week.forEach { cell ->
@@ -956,7 +999,7 @@ private fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
                             isWeekend = cell.isWeekend,
                             isOutsideMonth = !cell.isCurrentMonth,
                             enabled = canEdit,
-                            onClick = { viewModel.openDayModal(dateKey) },
+                            onClick = { viewModel.onDayTapped(dateKey) },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -987,10 +1030,10 @@ private fun DayCell(
     val bg = when {
         isOutsideMonth -> Color.Transparent
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
-        isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.03f)
-        else -> MaterialTheme.colorScheme.surfaceVariant
+                else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    val weekendAccent = RytmSemantic.expense
+    // Neutral, not the expense red: a weekend is not an error or a cost.
+    val weekendAccent = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     val shown = assigned.take(2)
     val overflow = assigned.size - shown.size
 

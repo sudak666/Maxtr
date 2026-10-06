@@ -189,6 +189,15 @@ class FinanceViewModel(
         }
     }
 
+    /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
+    fun netUah(txs: List<Transaction>): Double = txs.sumOf {
+        when (it.type) {
+            TxType.INCOME -> toUah(it.amount, it.currency)
+            TxType.EXPENSE -> -toUah(it.amount, it.currency)
+            TxType.TRANSFER -> 0.0
+        }
+    }
+
     private fun toUah(amount: Double, currency: String): Double =
         repository.convertCurrency(amount, currency, "UAH", currencyRates)
 

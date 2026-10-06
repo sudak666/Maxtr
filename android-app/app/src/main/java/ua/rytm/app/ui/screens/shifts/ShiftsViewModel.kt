@@ -105,6 +105,23 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     fun shiftsFor(dateKey: String): List<ShiftType> =
         shiftsByDate[dateKey].orEmpty().mapNotNull { id -> shiftTypes.firstOrNull { it.id == id } }
 
+    // Paint mode: with a shift type picked as the "brush", tapping a day
+    // toggles that type on it directly — no sheet per day. Filling a month by
+    // hand used to cost two taps + a sheet per day.
+    var brushTypeId by mutableStateOf<String?>(null)
+        private set
+
+    fun selectBrush(typeId: String?) { brushTypeId = if (brushTypeId == typeId) null else typeId }
+
+    fun onDayTapped(dateKey: String) {
+        val brush = brushTypeId ?: return openDayModal(dateKey)
+        val current = shiftsByDate[dateKey].orEmpty()
+        val next = if (brush in current) current - brush else current + brush
+        // Optimistic: the cell updates on the tap itself, Room confirms.
+        shiftsByDate = shiftsByDate + (dateKey to next)
+        launchMutation { repository.setShiftsForDay(uid, profileId, dateKey, next) }
+    }
+
     fun openDayModal(dateKey: String) {
         dayModalDateKey = dateKey
         dayModalSelection = shiftsByDate[dateKey].orEmpty().toSet()

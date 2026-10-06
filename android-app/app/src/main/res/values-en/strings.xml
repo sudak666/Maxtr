@@ -479,4 +479,7 @@
     <string name="backups_shared_unavailable">Backups of a shared profile are made by its owner</string>
     <string name="finance_search_prefix">Search</string><string name="finance_search_what_comment">by comment</string><string name="finance_search_what_category">by category</string><string name="finance_search_what_tag">by tag</string><string name="finance_search_what_wallet">by wallet</string>
     <string name="settings_search_what_wallets">wallets</string><string name="settings_search_what_categories">categories</string><string name="settings_search_what_notifications">notifications</string><string name="settings_search_what_pin">PIN</string><string name="settings_search_what_theme">theme</string>
+    <string name="finance_day_yesterday">Yesterday</string>
+    <string name="shifts_brush_hint">Tip: pick a shift type above to fill days with one tap</string>
+    <string name="shifts_brush_active_hint">Brush mode: tapping a day adds or removes this shift. Tap the type again to exit</string>
 </resources>
