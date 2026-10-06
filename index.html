@@ -1230,6 +1230,8 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .tx-left{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tx-cat{font-size:14px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tx-meta{font-size:13px;color:var(--muted);font-weight:400;margin-top:1px}
+.tx-day-header{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);padding:10px 4px 2px;flex-shrink:0}
+.tx-day-net{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
 .tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .tx-amount{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;white-space:nowrap}
 .tx-amount.income{color:var(--green2)}
@@ -1248,6 +1250,7 @@ body.amounts-hidden .fx-widget-rate,
 body.amounts-hidden .hero-balance-val,
 body.amounts-hidden .hero-balance-trend-val,
 body.amounts-hidden .hero-outlook-val,
+body.amounts-hidden .tx-day-net,
 body.amounts-hidden .tx-shift-cost,
 body.amounts-hidden .hero-metric-val,
 body.amounts-hidden .wallet-chip-val,
