@@ -501,4 +501,8 @@
     <string name="finance_outlook_recurring_in">+%1$s грн регулярні надходження</string>
     <string name="finance_outlook_recurring_out">−%1$s грн регулярні платежі</string>
     <string name="auth_email_placeholder">you@example.com</string>
+    <string name="shifts_insight_title">Інсайт за 90 днів</string>
+    <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d%% більше</string>
+    <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d%% менше</string>
+    <string name="shifts_insight_detail">≈ %1$s грн на день у зміну проти %2$s грн у вихідний</string>
 </resources>

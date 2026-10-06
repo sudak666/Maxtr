@@ -42,14 +42,17 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     private val reloadMutex = Mutex()
     private val _realtimeState = MutableStateFlow<RealtimeState>(RealtimeState.Stopped)
     val realtimeState = _realtimeState.asStateFlow()
-    private var listeners = emptyList<ListenerRegistration>()
-    private var pendingRealtimeSync: Job? = null
-    private var listenerGeneration = 0L
+    // Listener bookkeeping is touched from the main thread (snapshot callbacks,
+    // Activity) and from IO coroutines (reload/switch); start/stop are
+    // @Synchronized and these fields @Volatile so neither side sees a torn state.
+    @Volatile private var listeners = emptyList<ListenerRegistration>()
+    @Volatile private var pendingRealtimeSync: Job? = null
+    @Volatile private var listenerGeneration = 0L
     // (ownerUid, profileId) the realtime listeners are currently attached to.
     // Lets loadOnSignIn() skip a full cold re-sync when the Activity is merely
     // recreated (theme/language change, rotation) — the application-scoped
     // listeners are still live and Room is already current.
-    private var activeTarget: Pair<String, String>? = null
+    @Volatile private var activeTarget: Pair<String, String>? = null
 
     // Every domain's cold sync against the given profile, plus recurring
     // materialization — same order MainActivity always ran these in.
@@ -289,6 +292,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
     }
 
     /** Keeps Room current when another signed-in client changes the active profile. */
+    @Synchronized
     fun startRealtimeSync(ownerUid: String, profileId: String) {
         stopRealtimeSync()
         activeTarget = ownerUid to profileId
@@ -412,6 +416,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         }
     }
 
+    @Synchronized
     fun stopRealtimeSync() {
         listenerGeneration++
         pendingRealtimeSync?.cancel()

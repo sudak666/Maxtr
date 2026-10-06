@@ -21,13 +21,25 @@ import java.time.YearMonth
 // applyTemplate()/toggleAutoFill()/renderIncomeChart() — full parity as of
 // step 39 (quick-fill/autofill/6-month chart, previously deferred by
 // SHIFTS_SCREEN_SPEC.md's step 8 scoping).
-class ShiftsViewModel(private val repository: ShiftsRepository, private val uid: String, private val profileId: String) : ViewModel() {
+class ShiftsViewModel(
+    private val repository: ShiftsRepository,
+    private val uid: String,
+    private val profileId: String,
+    expensesUahByDateFlow: kotlinx.coroutines.flow.Flow<Map<String, Double>> = kotlinx.coroutines.flow.flowOf(emptyMap()),
+) : ViewModel() {
 
     companion object {
-        fun factory(repository: ShiftsRepository, uid: String, profileId: String) = viewModelFactory {
-            initializer { ShiftsViewModel(repository, uid, profileId) }
+        fun factory(
+            repository: ShiftsRepository,
+            uid: String,
+            profileId: String,
+            expensesUahByDateFlow: kotlinx.coroutines.flow.Flow<Map<String, Double>> = kotlinx.coroutines.flow.flowOf(emptyMap()),
+        ) = viewModelFactory {
+            initializer { ShiftsViewModel(repository, uid, profileId, expensesUahByDateFlow) }
         }
     }
+
+    private var expensesUahByDate by mutableStateOf<Map<String, Double>>(emptyMap())
 
     var shiftTypes by mutableStateOf<List<ShiftType>>(emptyList())
         private set
@@ -80,6 +92,7 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
     }
 
     init {
+        expensesUahByDateFlow.onEach { expensesUahByDate = it }.catch { }.launchIn(viewModelScope)
         viewModelScope.launch { repository.seedIfEmpty() }
         repository.shiftTypes.onEach { types ->
             shiftTypes = types
@@ -221,6 +234,8 @@ class ShiftsViewModel(private val repository: ShiftsRepository, private val uid:
         get() = EarningsForecast.forMonth(YearMonth.now(), LocalDate.now(), shiftsByDate, shiftTypes, autoFillSchedule)
     val nextForecast: MonthForecast
         get() = EarningsForecast.forMonth(YearMonth.now().plusMonths(1), LocalDate.now(), shiftsByDate, shiftTypes, autoFillSchedule)
+    val spendingInsight: ShiftSpendingInsight?
+        get() = ShiftSpending.compute(LocalDate.now(), expensesUahByDate, shiftsByDate, shiftTypes)
     val typicalShiftPay: Double?
         get() = EarningsForecast.typicalShiftPay(shiftsByDate, shiftTypes, autoFillSchedule)
 

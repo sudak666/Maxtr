@@ -66,6 +66,9 @@ jobs:
       - name: Run Cloud Function account deletion tests
         run: node tests/functions-account.mjs
 
+      - name: Run shift-money tests
+        run: node tests/shift-money.mjs
+
       - name: Run smoke test
         run: node tests/smoke.mjs
 
