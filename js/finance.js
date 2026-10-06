@@ -239,6 +239,9 @@ export async function addTransaction(){
     return;
   }
   const newTx={id:newTransactionId(),createdAt:Date.now(),type:AppState.currentFinanceType,amount,currency:srcCur,category:cat,subcategory:sub,tags:AppState.selectedTagIds.slice(),wallet:ws,targetWallet:AppState.currentFinanceType==='transfer'?wt:null,targetAmount,targetCurrency,date,comment};
+  // Author, for per-member contributions in a shared profile (same fields as Android).
+  const me=AppState.currentUser;
+  if(me){ /** @type {any} */ (newTx).by=me.uid; /** @type {any} */ (newTx).byName=(me.displayName||(me.email||'').split('@')[0]||'').slice(0,80); }
   AppState.transactions.unshift(newTx);
   const txKey=lsKey('tx'); if(txKey) setCacheItem(txKey,JSON.stringify(AppState.transactions));
   saveTransactionDoc(newTx).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });

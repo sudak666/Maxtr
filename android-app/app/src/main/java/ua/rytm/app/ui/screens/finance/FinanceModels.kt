@@ -48,6 +48,8 @@ data class Transaction(
     val tags: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis(),
     val monobankId: String? = null,
+    val createdBy: String? = null,
+    val createdByName: String? = null,
 )
 
 @Immutable

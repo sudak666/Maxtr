@@ -99,6 +99,8 @@ internal fun TransactionEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "date" to date,
     "comment" to comment,
     "monobankId" to monobankId,
+    "by" to createdBy,
+    "byName" to createdByName,
 )
 
 private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
@@ -124,5 +126,7 @@ private fun parseRemoteTransaction(m: Map<String, Any?>): TransactionEntity? {
         tags = tags,
         createdAt = (m["createdAt"] as? Number)?.toLong() ?: 0L,
         monobankId = m["monobankId"] as? String,
+        createdBy = m["by"] as? String,
+        createdByName = m["byName"] as? String,
     )
 }

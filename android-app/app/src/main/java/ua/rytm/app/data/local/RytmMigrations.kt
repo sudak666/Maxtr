@@ -25,5 +25,11 @@ object RytmMigrations {
                 db.execSQL("DROP TABLE IF EXISTS `shopping_items`")
             }
         },
+        object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `createdBy` TEXT")
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `createdByName` TEXT")
+            }
+        },
     )
 }

@@ -516,6 +516,30 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                 }
             }
 
+            val contributions = vm.monthContributions
+            if (contributions.isNotEmpty()) {
+                Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(stringResource(R.string.finance_contributions_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    contributions.forEach { c ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                if (c.isMe) stringResource(R.string.finance_contributions_me, c.name) else c.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                maskedAmount("+${formatMoney(c.income)} · −${formatMoney(c.expense)} ₴"),
+                                style = MaterialTheme.typography.bodySmall.tabularNums(),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
             if (vm.isMultiCurrency) {
                 Text(
                     text = stringResource(R.string.finance_conversion_note),

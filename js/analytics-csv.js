@@ -500,7 +500,24 @@ export function renderFinance(){
     if(shiftsLeft>0) outlook.push(tr('finance_outlook_shifts').replace('{v}', shiftsLeft.toLocaleString('uk-UA')));
     if(rec.inc>0) outlook.push(tr('finance_outlook_recurring_in').replace('{v}', Math.round(rec.inc).toLocaleString('uk-UA')));
     if(rec.out>0) outlook.push(tr('finance_outlook_recurring_out').replace('{v}', Math.round(rec.out).toLocaleString('uk-UA')));
+    // Shared profile: who added what this month — shown once ≥2 people have entries.
+    /** @type {Record<string, {name: string, inc: number, exp: number}>} */
+    const people={};
+    AppState.transactions.forEach(t=>{
+      const by=/** @type {any} */ (t).by;
+      if(!by||!t.date||!t.date.startsWith(curPrefix)||t.type==='transfer') return;
+      const p=people[by]||(people[by]={name:/** @type {any} */ (t).byName||'?', inc:0, exp:0});
+      if(t.type==='income') p.inc+=toBase(t.amount,t.currency||'UAH'); else p.exp+=toBase(t.amount,t.currency||'UAH');
+    });
+    const contrib=Object.entries(people);
+    let contribHtml='';
+    if(contrib.length>=2){
+      const myUid=AppState.currentUser?.uid;
+      contrib.sort((a,b)=>(b[0]===myUid?1:0)-(a[0]===myUid?1:0));
+      contribHtml=`<div class="hero-contrib"><div class="hero-contrib-title">${tr('finance_contributions_title')}</div>${contrib.map(([uid,p])=>`<div class="hero-contrib-row"><span>${escapeHtml(p.name)}${uid===myUid?' '+tr('finance_contributions_you'):''}</span><span class="hero-contrib-val">+${Math.round(p.inc).toLocaleString('uk-UA')} · −${Math.round(p.exp).toLocaleString('uk-UA')} грн</span></div>`).join('')}</div>`;
+    }
     if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;
+    html+=contribHtml;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
       <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>

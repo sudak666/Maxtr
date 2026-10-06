@@ -505,4 +505,6 @@
     <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d%% більше</string>
     <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d%% менше</string>
     <string name="shifts_insight_detail">≈ %1$s грн на день у зміну проти %2$s грн у вихідний</string>
+    <string name="finance_contributions_title">Хто скільки цього місяця</string>
+    <string name="finance_contributions_me">%1$s (ти)</string>
 </resources>

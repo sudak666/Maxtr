@@ -27,6 +27,8 @@ fun TransactionEntity.toDomain() = Transaction(
     tags = if (tags.isBlank()) emptyList() else tags.split(","),
     createdAt = createdAt,
     monobankId = monobankId,
+    createdBy = createdBy,
+    createdByName = createdByName,
 )
 
 fun Transaction.toEntity(createdAt: Long = this.createdAt) = TransactionEntity(
@@ -45,6 +47,8 @@ fun Transaction.toEntity(createdAt: Long = this.createdAt) = TransactionEntity(
     tags = tags.joinToString(","),
     createdAt = createdAt,
     monobankId = monobankId,
+    createdBy = createdBy,
+    createdByName = createdByName,
 )
 
 fun RecurringEntity.toDomain() = Recurring(

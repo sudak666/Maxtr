@@ -41,6 +41,8 @@ class FinanceViewModelTest {
     private val auth = mockk<FirebaseAuth>().also { a ->
         val user = mockk<FirebaseUser>()
         every { user.uid } returns "u"
+        every { user.displayName } returns "Me"
+        every { user.email } returns "me@example.com"
         every { a.currentUser } returns user
     }
 
@@ -94,6 +96,28 @@ class FinanceViewModelTest {
         assertEquals(100.0 * weeklyHits, v.monthOutlook.recurringOut, 0.001)
         assertEquals(50.0, v.monthOutlook.recurringIn, 0.001)
         assertEquals(3000.0, v.monthOutlook.shiftsEarnings, 0.001)
+    }
+
+    // New entries carry their author; contributions appear only with 2+ people.
+    @Test fun contributionsNeedTwoPeopleAndNewEntriesCarryAuthor() {
+        val v = vm()
+        v.addExpense("uah", "100")
+        waitUntil { v.filteredTransactions.size == 1 }
+        assertEquals("u", v.filteredTransactions.single().createdBy)
+        assertEquals("Me", v.filteredTransactions.single().createdByName)
+        assertTrue(v.monthContributions.isEmpty())
+        runBlocking {
+            repo.upsertTransaction(ua.rytm.app.ui.screens.finance.Transaction(
+                id = "p", type = ua.rytm.app.ui.screens.finance.TxType.EXPENSE, amount = 40.0, date = LocalDate.now().toString(),
+                walletId = "uah", category = "Food", createdBy = "partner", createdByName = "Оля",
+            ))
+        }
+        waitUntil { v.monthContributions.size == 2 }
+        val c = v.monthContributions
+        assertTrue(c.first().isMe)
+        assertEquals(100.0, c.first().expense, 0.001)
+        assertEquals("Оля", c[1].name)
+        assertEquals(40.0, c[1].expense, 0.001)
     }
 
     @Test fun submitPersistsAndSyncs() {

@@ -497,4 +497,6 @@
     <string name="shifts_insight_more">You spend %1$d%% more on shift days</string>
     <string name="shifts_insight_less">You spend %1$d%% less on shift days</string>
     <string name="shifts_insight_detail">≈ %1$s UAH a day on shifts vs %2$s UAH on days off</string>
+    <string name="finance_contributions_title">Who added what this month</string>
+    <string name="finance_contributions_me">%1$s (you)</string>
 </resources>
