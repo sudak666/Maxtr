@@ -488,4 +488,8 @@
         <item quantity="one">≈ %d shift of work</item>
         <item quantity="other">≈ %d shifts of work</item>
     </plurals>
+    <string name="finance_outlook_prefix">Until month end:</string>
+    <string name="finance_outlook_shifts">+%1$s UAH from shifts</string>
+    <string name="finance_outlook_recurring_in">+%1$s UAH recurring income</string>
+    <string name="finance_outlook_recurring_out">−%1$s UAH recurring payments</string>
 </resources>

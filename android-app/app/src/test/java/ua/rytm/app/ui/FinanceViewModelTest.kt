@@ -72,6 +72,30 @@ class FinanceViewModelTest {
         submitForm()
     }
 
+    // Recurring due between today and month end counts every occurrence
+    // (weekly → several), past-dated and inactive ones don't; shift pay comes
+    // from the outlook flow untouched.
+    @Test fun monthOutlookSumsRemainingRecurringAndShifts() {
+        val today = LocalDate.now()
+        runBlocking {
+            repo.replaceRecurring(listOf(
+                ua.rytm.app.data.local.RecurringEntity("w", "EXPENSE", 100.0, "Rent", "uah", "weekly", today.toString(), true, ""),
+                ua.rytm.app.data.local.RecurringEntity("off", "EXPENSE", 999.0, "X", "uah", "monthly", today.toString(), false, ""),
+                ua.rytm.app.data.local.RecurringEntity("in", "INCOME", 50.0, "Gift", "uah", "monthly", today.toString(), true, ""),
+            ))
+        }
+        val v = FinanceViewModel(
+            repo, sync, auth, ActiveProfileStore(ApplicationProvider.getApplicationContext()),
+            shiftOutlookFlow = kotlinx.coroutines.flow.flowOf(ua.rytm.app.ui.screens.finance.ShiftOutlook(1000.0, 3000.0)),
+        )
+        waitUntil { v.wallets.size == 2 && v.monthOutlook.recurringOut > 0 }
+        val end = java.time.YearMonth.now().atEndOfMonth()
+        val weeklyHits = generateSequence(today) { it.plusWeeks(1) }.takeWhile { !it.isAfter(end) }.count()
+        assertEquals(100.0 * weeklyHits, v.monthOutlook.recurringOut, 0.001)
+        assertEquals(50.0, v.monthOutlook.recurringIn, 0.001)
+        assertEquals(3000.0, v.monthOutlook.shiftsEarnings, 0.001)
+    }
+
     @Test fun submitPersistsAndSyncs() {
         val vm = vm()
         vm.addExpense("uah", "12,5")

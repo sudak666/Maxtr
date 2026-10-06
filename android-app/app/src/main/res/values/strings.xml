@@ -496,4 +496,8 @@
         <item quantity="many">≈ %d змін роботи</item>
         <item quantity="other">≈ %d зміни роботи</item>
     </plurals>
+    <string name="finance_outlook_prefix">До кінця місяця:</string>
+    <string name="finance_outlook_shifts">+%1$s грн за змінами</string>
+    <string name="finance_outlook_recurring_in">+%1$s грн регулярні надходження</string>
+    <string name="finance_outlook_recurring_out">−%1$s грн регулярні платежі</string>
 </resources>

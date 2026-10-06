@@ -124,6 +124,7 @@ import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.SwapHoriz
+import ua.rytm.app.ui.icons.Event
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Build
@@ -495,6 +496,24 @@ private fun HeroBalanceCard(vm: FinanceViewModel) {
                     color = trendColor,
                     fontWeight = FontWeight.Bold,
                 )
+            }
+
+            val outlook = vm.monthOutlook
+            if (!outlook.isEmpty) {
+                val parts = buildList {
+                    if (outlook.shiftsEarnings > 0) add(stringResource(R.string.finance_outlook_shifts, formatMoney(outlook.shiftsEarnings)))
+                    if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
+                    if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
+                }
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 8.dp)) {
+                    Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.finance_outlook_prefix) + " " + maskedAmount(parts.joinToString(" · ")),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (vm.isMultiCurrency) {

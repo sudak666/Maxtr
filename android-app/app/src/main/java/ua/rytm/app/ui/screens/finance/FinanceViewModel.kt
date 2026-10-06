@@ -43,7 +43,7 @@ class FinanceViewModel(
     private val auth: FirebaseAuth,
     private val activeProfileStore: ActiveProfileStore,
     private val savedState: SavedStateHandle = SavedStateHandle(),
-    typicalShiftPayFlow: kotlinx.coroutines.flow.Flow<Double?> = kotlinx.coroutines.flow.flowOf(null),
+    shiftOutlookFlow: kotlinx.coroutines.flow.Flow<ShiftOutlook> = kotlinx.coroutines.flow.flowOf(ShiftOutlook()),
 ) : ViewModel() {
 
     companion object {
@@ -60,7 +60,13 @@ class FinanceViewModel(
                         app.shiftsRepository.shiftsByDate,
                         app.shiftsRepository.autoFillSchedule,
                     ) { types, days, schedule ->
-                        ua.rytm.app.ui.screens.shifts.EarningsForecast.typicalShiftPay(days, types, schedule)
+                        val month = ua.rytm.app.ui.screens.shifts.EarningsForecast.forMonth(
+                            java.time.YearMonth.now(), LocalDate.now(), days, types, schedule,
+                        )
+                        ShiftOutlook(
+                            typicalPay = ua.rytm.app.ui.screens.shifts.EarningsForecast.typicalShiftPay(days, types, schedule),
+                            remainingThisMonth = month.planned + month.fromSchedule,
+                        )
                     },
                 )
             }
@@ -133,6 +139,12 @@ class FinanceViewModel(
     private fun markLoaded() { loading = !(walletsLoaded && transactionsLoaded); loadFailed = false }
     private fun markLoadFailed() { loading = false; loadFailed = true }
 
+    // Declared before init: the flows below can emit synchronously while init
+    // runs, and a property initialised later would reset what they wrote.
+    private var shiftOutlook by mutableStateOf(ShiftOutlook())
+    private val typicalShiftPay: Double? get() = shiftOutlook.typicalPay
+    private var recurring by mutableStateOf<List<Recurring>>(emptyList())
+
     init {
         restoreDraft()
         viewModelScope.launch { runCatching { repository.seedIfEmpty() }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; markLoadFailed() } }
@@ -145,7 +157,8 @@ class FinanceViewModel(
         repository.autoRules.onEach { autoRules = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.currencyRates.onEach { currencyRates = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
-        typicalShiftPayFlow.onEach { typicalShiftPay = it }.catch { }.launchIn(viewModelScope)
+        shiftOutlookFlow.onEach { shiftOutlook = it }.catch { }.launchIn(viewModelScope)
+        repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
     }
 
     var search by mutableStateOf("")
@@ -198,7 +211,35 @@ class FinanceViewModel(
         }
     }
 
-    private var typicalShiftPay by mutableStateOf<Double?>(null)
+
+    /**
+     * What is still coming before the month ends — the link between the two
+     * halves of this app no tracker makes: shifts placed (or scheduled by
+     * autofill) after today, and active recurring payments due by month end.
+     * Shown as two separate facts, not folded into a projected balance: shift
+     * pay often lands next month, so a single number would mislead.
+     */
+    val monthOutlook: MonthOutlook
+        get() {
+            val today = LocalDate.now()
+            val end = java.time.YearMonth.now().atEndOfMonth()
+            var outgoing = 0.0
+            var incoming = 0.0
+            recurring.filter { it.active && it.amount > 0 }.forEach { r ->
+                val currency = wallets.firstOrNull { it.id == r.walletId }?.currency ?: "UAH"
+                var date = runCatching { LocalDate.parse(r.nextDate) }.getOrNull() ?: return@forEach
+                var guard = 0
+                while (!date.isAfter(end) && guard < 62) {
+                    if (!date.isBefore(today)) {
+                        val uah = toUah(r.amount, currency)
+                        if (r.type == TxType.EXPENSE) outgoing += uah else incoming += uah
+                    }
+                    date = when (r.frequency) { "daily" -> date.plusDays(1); "weekly" -> date.plusWeeks(1); else -> date.plusMonths(1) }
+                    guard++
+                }
+            }
+            return MonthOutlook(shiftsEarnings = shiftOutlook.remainingThisMonth, recurringOut = outgoing, recurringIn = incoming)
+        }
 
     /**
      * An expense priced in shifts of work ("≈ 1,4 зміни"), from the pay of
@@ -525,4 +566,10 @@ class FinanceViewModel(
 
             return result.sortedByDescending { it.date }
         }
+}
+
+data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0)
+
+data class MonthOutlook(val shiftsEarnings: Double, val recurringOut: Double, val recurringIn: Double) {
+    val isEmpty: Boolean get() = shiftsEarnings <= 0 && recurringOut <= 0 && recurringIn <= 0
 }
