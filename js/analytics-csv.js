@@ -325,9 +325,23 @@ export function renderFinanceSkeleton(){
 // refreshing an existing (reused) one's content in place. Does not include
 // the outer .tx-item element itself, which persists across renders for
 // unchanged transactions (see renderFinance()'s targeted-update comment).
+/** "Сьогодні" / "Вчора" / "неділя, 4 жовтня" (+ year when not this year). @param {string} date */
+function dayLabel(date){
+  const d=new Date(date+'T00:00:00');
+  if(isNaN(d.getTime())) return date;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((today.getTime()-d.getTime())/86400000);
+  if(diff===0) return tr('finance_day_today');
+  if(diff===1) return tr('finance_day_yesterday');
+  const locale=window.currentLang==='en'?'en-US':'uk-UA';
+  /** @type {Intl.DateTimeFormatOptions} */
+  const opts=d.getFullYear()===today.getFullYear()?{weekday:'long',day:'numeric',month:'long'}:{day:'numeric',month:'long',year:'numeric'};
+  const s=d.toLocaleDateString(locale, opts);
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+
 /** @param {Transaction} t */
 function txItemInnerHtml(t){
-  const df=t.date?t.date.split('-').reverse().join('.'):'';
   const cur=currencySymbol(t.currency||'UAH');
   let cls='',amtStr='';
   if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
@@ -353,7 +367,7 @@ function txItemInnerHtml(t){
           <div class="icon-badge" style="--badge-color:${categoryColor(t.category||'')}">${catIcon}</div>
           <div class="tx-left">
             <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
-            <div class="tx-meta">${df}${t.comment?' · '+escapeHtml(t.comment):''}</div>
+            ${t.comment?`<div class="tx-meta">${escapeHtml(t.comment)}</div>`:''}
             ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
           </div>
         </div>
@@ -556,7 +570,7 @@ export function renderFinance(){
   // (.empty-state / .skeleton-row) sitting in lc that the targeted update
   // below wouldn't otherwise know to remove, since it only tracks
   // .tx-item/.tx-view-all-btn children — clear anything else out first.
-  lc.querySelectorAll(':scope > :not(.tx-item):not(.tx-view-all-btn)').forEach(node=>node.remove());
+  lc.querySelectorAll(':scope > :not(.tx-item):not(.tx-view-all-btn):not(.tx-day-header)').forEach(node=>node.remove());
 
   const showAll=txListExpanded || filtered.length<=TX_LIST_COLLAPSED_COUNT;
   const visible=showAll?filtered:filtered.slice(0,TX_LIST_COLLAPSED_COUNT);
@@ -583,10 +597,43 @@ export function renderFinance(){
   const existingById=new Map();
   lc.querySelectorAll(':scope > .tx-item').forEach(node=>{ const el=/** @type {HTMLElement} */ (node); if(el.dataset.txId) existingById.set(el.dataset.txId, el); });
 
+  // Day headers ("Сьогодні · −245 грн") — reused by date the same way rows
+  // are reused by id, so an unrelated re-render never rebuilds them. The
+  // net is the whole day's (from `filtered`), not just the rows shown.
+  /** @type {Map<string, HTMLElement>} */
+  const headersByDate=new Map();
+  lc.querySelectorAll(':scope > .tx-day-header').forEach(node=>{ const el=/** @type {HTMLElement} */ (node); if(el.dataset.day) headersByDate.set(el.dataset.day, el); });
+  /** @type {Record<string, number>} */
+  const dayNet={};
+  filtered.forEach(t=>{
+    if(!t.date) return;
+    const v=t.type==='income'?toBase(t.amount,t.currency||'UAH'):t.type==='expense'?-toBase(t.amount,t.currency||'UAH'):0;
+    dayNet[t.date]=(dayNet[t.date]||0)+v;
+  });
+  let lastDay='';
+
   let newNodeCount=0;
   /** @type {HTMLElement | null} */
   let prevNode=null;
   visible.forEach(t=>{
+    if(t.date && t.date!==lastDay){
+      lastDay=t.date;
+      let header=headersByDate.get(t.date);
+      if(header) headersByDate.delete(t.date);
+      else{
+        header=document.createElement('div');
+        header.className='tx-day-header';
+        header.dataset.day=t.date;
+        header.setAttribute('role','heading');
+        header.setAttribute('aria-level','3');
+      }
+      const net=dayNet[t.date]||0;
+      const netHtml=net?`<span class="tx-day-net">${net>0?'+':'−'}${Math.abs(Math.round(net*100)/100).toLocaleString('uk-UA')} грн</span>`:'';
+      header.innerHTML=`<span>${escapeHtml(dayLabel(t.date))}</span>${netHtml}`;
+      if(prevNode){ if(prevNode.nextSibling!==header) lc.insertBefore(header, prevNode.nextSibling); }
+      else if(lc.firstChild!==header) lc.insertBefore(header, lc.firstChild);
+      prevNode=header;
+    }
     const idStr=String(t.id);
     const existing=existingById.get(idStr);
     const isNew=!existing;
@@ -639,6 +686,7 @@ export function renderFinance(){
   // Whatever's left in existingById is a row for a transaction no longer
   // in `visible` (deleted, or filtered/collapsed out) — remove it.
   existingById.forEach(node=>node.remove());
+  headersByDate.forEach(node=>node.remove());
 
   // The "view all"/"show less" button always goes last; simplest to just
   // remove and re-append rather than diff a single control element.

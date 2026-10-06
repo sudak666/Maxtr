@@ -168,7 +168,7 @@ async function main() {
     await page.waitForTimeout(300);
 
     const commentsInDomOrder = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tx-item .tx-meta')).map((el) => el.textContent.split(' · ')[1])
+      Array.from(document.querySelectorAll('.tx-item .tx-meta')).map((el) => el.textContent.trim())
     );
     const expected = ['newest-by-date-and-id', 'newest-by-date', 'middle', 'oldest'];
     if (JSON.stringify(commentsInDomOrder) !== JSON.stringify(expected)) {
