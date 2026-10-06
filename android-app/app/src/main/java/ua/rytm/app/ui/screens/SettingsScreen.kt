@@ -114,6 +114,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
 import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AccountBalance
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.BrightnessAuto
 import ua.rytm.app.ui.icons.Category
@@ -498,6 +499,26 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // *which* alerts to send is meaningless before the device
                     // has even registered to receive any (see
                     // NotificationSettingsSheet's own doc comment).
+                    // Bank-push suggestions: system-level notification access is
+                    // the switch itself, so this opens that screen; the subtitle
+                    // shows whether it is currently granted (re-read on resume).
+                    val bankContext = LocalContext.current
+                    var bankEnabled by remember { mutableStateOf(ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)) }
+                    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+                        bankEnabled = ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)
+                        onPauseOrDispose { }
+                    }
+                    SettingsRow(
+                        icon = RytmIcons.AccountBalance,
+                        badgeColor = SettingsGroupColors.Notifications,
+                        title = stringResource(R.string.bank_listener_title),
+                        subtitle = stringResource(if (bankEnabled) R.string.bank_listener_on else R.string.bank_listener_off),
+                        onClick = {
+                            runCatching {
+                                bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                            }
+                        },
+                    )
                     if (displayedPushEnabled) {
                         SettingsRow(
                             icon = RytmIcons.NotificationsActive,

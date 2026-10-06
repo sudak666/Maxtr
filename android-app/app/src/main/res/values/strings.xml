@@ -508,4 +508,11 @@
     <string name="finance_contributions_title">Хто скільки цього місяця</string>
     <string name="finance_contributions_me">%1$s (ти)</string>
     <string name="shifts_export_calendar">Експорт у календар</string>
+    <string name="bank_listener_label">Rytm: операції з банківських сповіщень</string>
+    <string name="bank_listener_title">Операції з банківських сповіщень</string>
+    <string name="bank_listener_on">Увімкнено: пропоную додати оплату з пушу банку</string>
+    <string name="bank_listener_off">Вимкнено. Читаю лише пуші банків, нічого не надсилаю</string>
+    <string name="bank_suggest_expense">Додати витрату %1$s?</string>
+    <string name="bank_suggest_income">Додати дохід %1$s?</string>
+    <string name="bank_suggest_tap">Торкнись, щоб перевірити й зберегти</string>
 </resources>

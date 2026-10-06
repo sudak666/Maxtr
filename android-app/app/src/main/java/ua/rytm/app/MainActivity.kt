@@ -172,7 +172,9 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleLaunchAction(intent: android.content.Intent?) {
-        intent?.getStringExtra(EXTRA_LAUNCH_ACTION)?.let { (application as RytmApplication).pendingLaunchAction.value = it }
+        val app = application as RytmApplication
+        app.pendingPrefill.value = ua.rytm.app.bank.BankNotificationListener.prefillFrom(intent)
+        intent?.getStringExtra(EXTRA_LAUNCH_ACTION)?.let { app.pendingLaunchAction.value = it }
     }
 
     companion object {
