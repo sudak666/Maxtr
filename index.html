@@ -735,6 +735,10 @@ body.profile-readonly .salary-goal-edit{display:none}
 .cal-nav-main>.btn:not(.cal-today-btn){width:48px;height:48px;padding:0!important;justify-content:center}
 .cal-today-btn{grid-column:1/-1;justify-self:end;min-height:48px}
 .cal-hint{font-size:13px;color:var(--muted);font-weight:500}
+.leg-brush{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.leg-brush.active{border-color:var(--leg-color);background:color-mix(in srgb,var(--leg-color) 18%,transparent);font-weight:700}
+.leg-hint{flex-basis:100%;font-size:13px;color:var(--muted)}.leg-hint.active{color:var(--purple2)}
+.fin-cat-chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}.fin-cat-chips .filter-chip{flex-shrink:0}
 .legend{display:flex;gap:8px 14px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:18px}
 [data-theme="light"] .legend{background:rgba(0,0,0,.02)}
 .leg-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:600}
@@ -2548,6 +2552,7 @@ body.amounts-hidden #fx-converter-result{
       </div>
       <div class="fg" id="category-group">
         <label data-i18n="finance_category">Категорія</label>
+        <div id="fin-cat-chips" class="fin-cat-chips" hidden></div>
         <select id="fin-category"></select>
       </div>
       <div class="fg" id="subcategory-group" style="display:none">

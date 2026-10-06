@@ -146,6 +146,37 @@ export function fillCats(type){
   (AppState.categories[type]||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
   if(prev&&(AppState.categories[type]||[]).includes(prev)) sel.value=prev;
   fillSubcats();
+  renderFrequentCats(type);
+}
+
+/**
+ * Up to 6 most-used categories of the type (last 90 days) as one-tap chips
+ * above the select — same as Android's formFrequentCategories.
+ * @param {string} type
+ */
+function renderFrequentCats(type){
+  const box=document.getElementById('fin-cat-chips');
+  const sel=/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-category'));
+  if(!box||!sel) return;
+  const known=new Set(AppState.categories[type]||[]);
+  const since=new Date(Date.now()-90*86400000).toISOString().slice(0,10);
+  /** @type {Record<string, number>} */
+  const counts={};
+  AppState.transactions.forEach(t=>{ if(t.type===type&&t.date>=since&&known.has(t.category)) counts[t.category]=(counts[t.category]||0)+1; });
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c])=>c);
+  if(type==='transfer'||top.length<2){ box.innerHTML=''; box.hidden=true; return; }
+  box.hidden=false;
+  box.innerHTML=top.map(c=>`<button type="button" class="filter-chip${sel.value===c?' active':''}" data-action="pick-frequent-cat" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+}
+
+/** @param {string} cat */
+function pickFrequentCat(cat){
+  const sel=/** @type {HTMLSelectElement | null} */ (document.getElementById('fin-category'));
+  if(!sel||!cat) return;
+  sel.value=cat;
+  sel.dispatchEvent(new Event('change',{bubbles:true}));
+  csSync(sel);
+  renderFrequentCats(AppState.currentFinanceType);
 }
 
 /** @returns {void} */
@@ -737,6 +768,7 @@ export function __init_finance__(){
 // moved here and converted as part of phase 9, see CLAUDE.md.
 /** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
+  'pick-frequent-cat': (ds)=>pickFrequentCat(ds.cat||''),
   'toggle-fin-tag': ds=>toggleFinTag(ds.id||''),
   'open-new-tx-modal': ()=>openNewTxModal(),
   'close-tx-modal': ()=>closeTxModal(),
