@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import ua.rytm.app.ui.icons.TipsAndUpdates
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.selectable
@@ -140,7 +142,15 @@ fun ShiftsScreen() {
     val dataUid = ownerUid ?: accountUid
     val viewModel: ShiftsViewModel = viewModel(
         key = "$dataUid|$profileId",
-        factory = ShiftsViewModel.factory(app.shiftsRepository, dataUid, profileId),
+        factory = ShiftsViewModel.factory(
+            app.shiftsRepository, dataUid, profileId,
+            kotlinx.coroutines.flow.combine(app.financeRepository.transactions, app.financeRepository.currencyRates) { txs, rates ->
+                txs.asSequence()
+                    .filter { it.type == ua.rytm.app.ui.screens.finance.TxType.EXPENSE }
+                    .groupBy({ it.date }, { app.financeRepository.convertCurrency(it.amount, it.currency, "UAH", rates) })
+                    .mapValues { (_, v) -> v.sum() }
+            },
+        ),
     )
     val stats = viewModel.monthStats
     val salaryGoal by app.settingsStore.salaryGoal(accountUid).collectAsState(initial = ua.rytm.app.data.local.DEFAULT_SALARY_GOAL)
@@ -205,6 +215,7 @@ fun ShiftsScreen() {
         if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
         item { ChipStats(stats) }
         item { ForecastCard(viewModel.currentForecast, viewModel.nextForecast, salaryGoal, viewModel.typicalShiftPay) }
+        viewModel.spendingInsight?.let { insight -> item { SpendingInsightCard(insight) } }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }
     }
     }
@@ -1149,6 +1160,42 @@ private fun DayCell(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SpendingInsightCard(insight: ShiftSpendingInsight) {
+    val more = insight.diffPercent > 0
+    Card(
+        shape = RoundedCornerShape(RytmRadii.Card),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(RytmIcons.TipsAndUpdates, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.shifts_insight_title), style = MaterialTheme.typography.titleSmall)
+            }
+            Text(
+                stringResource(
+                    if (more) R.string.shifts_insight_more else R.string.shifts_insight_less,
+                    kotlin.math.abs(insight.diffPercent),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                maskedAmount(
+                    stringResource(
+                        R.string.shifts_insight_detail,
+                        ua.rytm.app.ui.screens.finance.formatMoney(insight.avgOnShiftDays),
+                        ua.rytm.app.ui.screens.finance.formatMoney(insight.avgOnOffDays),
+                    ),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
