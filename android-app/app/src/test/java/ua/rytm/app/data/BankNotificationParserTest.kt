@@ -60,4 +60,34 @@ class BankNotificationParserTest {
         assertTrue(s.isIncome)
         assertEquals(500.0, s.amount, 0.001)
     }
+
+    @Test fun monoPurchaseWithCashbackLineIsExpense() {
+        val s = BankNotificationParser.parse(mono, "Покупка", "🛒 Сільпо 150.00₴\nКешбек: 1.50₴")!!
+        assertFalse(s.isIncome)
+        assertEquals(150.0, s.amount, 0.001)
+    }
+
+    @Test fun monoCashbackPushIsIncome() {
+        val s = BankNotificationParser.parse(mono, "Кешбек", "Кешбек 25.40₴ зараховано")!!
+        assertTrue(s.isIncome)
+        assertEquals(25.4, s.amount, 0.001)
+    }
+
+    @Test fun monoTransferFromPerson() {
+        val s = BankNotificationParser.parse(mono, "+500.00₴", "Від: Іван І.\nБаланс 1 200.00₴")!!
+        assertTrue(s.isIncome)
+        assertEquals("Іван І", s.merchant)
+    }
+
+    @Test fun monoForeignCurrencyKeepsOriginal() {
+        val s = BankNotificationParser.parse(mono, "−10.00$ (−412.30₴)", "Steam")!!
+        assertFalse(s.isIncome)
+        assertEquals("USD", s.currency)
+        assertEquals(10.0, s.amount, 0.001)
+    }
+
+    @Test fun creditLimitIsNotTheAmount() {
+        val s = BankNotificationParser.parse(mono, "Оплата", "Кредитний ліміт: 5 000₴\nАТБ 89.90₴")!!
+        assertEquals(89.9, s.amount, 0.001)
+    }
 }

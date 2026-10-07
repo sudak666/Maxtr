@@ -533,6 +533,11 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
+
+## 2026-10-07 — Bank-push parser: monobank formats hardened
+- `BankNotificationParser`: a "Кешбек 1.50₴" line under a purchase no longer flips it to income (cashback counts as income only when it precedes the main amount); amounts after "ліміт"/"limit" are skipped like balances; "Від: Іван І." merchant prefix stripped. 5 new unit tests (12/12 green). Formats taken from typical mono pushes — still not seen live on the owner's phone.
+- Owner uploaded 2.4 (vc21) to Play; next bump vc22.
+
 ## Known gaps / pending work
 
 - **No payment provider wired up.** Premium is upsell-only right now (and its free-tier caps are currently all disabled app-wide for exactly that reason — see Premium / free-tier limits above). Plan discussed: Stripe first (still a PWA), RevenueCat later once/if this ships to app stores (Apple/Google require native IAP there).

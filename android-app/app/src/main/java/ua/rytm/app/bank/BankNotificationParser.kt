@@ -37,9 +37,10 @@ object BankNotificationParser {
     // sign? number (spaces/nbsp as thousands, , or . decimals) currency — or currency before the number.
     private val amountAfter = Regex("([−\\-+]?)\\s*(\\d{1,3}(?:[ \\u00A0\\u202F]\\d{3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)\\s*$CUR", RegexOption.IGNORE_CASE)
     private val amountBefore = Regex("([−\\-+]?)\\s*$CUR\\s*(\\d{1,3}(?:[ \\u00A0\\u202F]\\d{3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)", RegexOption.IGNORE_CASE)
-    private val balanceWords = Regex("(баланс|залишок|доступно|balance|available)\\s*:?\\s*$", RegexOption.IGNORE_CASE)
+    private val balanceWords = Regex("(баланс|залишок|доступно|ліміт|balance|available|limit)\\s*:?\\s*$", RegexOption.IGNORE_CASE)
     private val expenseWords = Regex("списан|оплат|покупк|платіж|зняття|переказ на|withdraw|purchase|payment", RegexOption.IGNORE_CASE)
-    private val incomeWords = Regex("зарахуван|поповнен|надходжен|переказ від|повернен|кешбек|cashback|refund|received", RegexOption.IGNORE_CASE)
+    private val incomeWords = Regex("зарахуван|поповнен|надходжен|переказ від|повернен|refund|received", RegexOption.IGNORE_CASE)
+    private val cashbackWords = Regex("кешбек|cashback", RegexOption.IGNORE_CASE)
     private val cardMask = Regex("\\*{1,4}\\d{2,4}|\\d{4}\\s?\\*{2,}")
 
     fun parse(packageName: String, title: String?, text: String?): BankSuggestion? {
@@ -64,6 +65,8 @@ object BankNotificationParser {
             sign == "+" -> true
             sign == "-" || sign == "−" -> false
             incomeWords.containsMatchIn(full) -> true
+            // "Кешбек 1.50₴" under a purchase is not income; only a push that leads with cashback is.
+            cashbackWords.containsMatchIn(full.substring(0, end)) -> true
             expenseWords.containsMatchIn(full) -> false
             else -> return null
         }
@@ -74,7 +77,7 @@ object BankNotificationParser {
             .map { cleanMerchant(it.trim().trim(',', '.', ':', '—', '-').trim()) }
             .firstOrNull { line ->
                 line.length in 2..60 &&
-                    !line.contains(Regex("баланс|залишок|доступно|balance|available", RegexOption.IGNORE_CASE)) &&
+                    !line.contains(Regex("баланс|залишок|доступно|ліміт|кешбек|cashback|balance|available", RegexOption.IGNORE_CASE)) &&
                     !amountAfter.containsMatchIn(line) && !amountBefore.containsMatchIn(line) &&
                     !cardMask.containsMatchIn(line) && !line.startsWith("Картка", ignoreCase = true) &&
                     line.any { it.isLetter() }
@@ -87,5 +90,5 @@ object BankNotificationParser {
     /** Drops leading verbs ("Оплата", "Покупка в") so the comment reads as a place. */
     private fun cleanMerchant(s: String): String =
         s.replace(Regex("^(оплата|покупка|списання|зарахування|поповнення|платіж|переказ)\\s*(в|у|на|від)?\\s*:?\\s*", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("^(від|в|у)\\s+", RegexOption.IGNORE_CASE), "").trim()
+            .replace(Regex("^(від|в|у)\\s*:?\\s+", RegexOption.IGNORE_CASE), "").trim()
 }
