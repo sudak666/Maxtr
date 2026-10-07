@@ -521,4 +521,6 @@
     <string name="debt_forecast_finish">У такому темпі ≈ до %1$s</string>
     <string name="settings_terms_row">Умови використання</string>
     <string name="settings_privacy_row">Політика конфіденційності</string>
+    <string name="bank_listener_blocked">Сповіщення Rytm вимкнено — пропозиції не з\'являться. Торкнись, щоб дозволити</string>
+    <string name="bank_suggest_transfer">Переказ між рахунками %1$s?</string>
 </resources>

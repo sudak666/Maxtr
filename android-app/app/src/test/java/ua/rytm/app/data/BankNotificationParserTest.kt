@@ -44,4 +44,19 @@ class BankNotificationParserTest {
         assertNull("no direction → no guess", BankNotificationParser.parse(mono, "Інформація", "Ваш ліміт 10 000 грн"))
         assertNull("only a balance", BankNotificationParser.parse(mono, "Баланс", "Баланс 100 грн"))
     }
+
+    // Real ПУМБ pushes captured on the owner's phone (2026-10-06): title only
+    // a capitalised keyword, amount glued to "UAH", balance can be negative.
+    @Test fun realPumbExpense() {
+        val s = BankNotificationParser.parse(pumb, "Списання", "500.00UAH\n06-10-2026 22:11\nРахунок: *5536\nДоступно: 2093.53UAH")!!
+        assertFalse(s.isIncome)
+        assertEquals(500.0, s.amount, 0.001)
+        assertNull(s.merchant)
+    }
+
+    @Test fun realPumbIncomeWithNegativeAvailable() {
+        val s = BankNotificationParser.parse(pumb, "Надходження", "500.00UAH\n06-10-2026 22:11\nРахунок: *3924\nДоступно: -5135.82UAH")!!
+        assertTrue(s.isIncome)
+        assertEquals(500.0, s.amount, 0.001)
+    }
 }
