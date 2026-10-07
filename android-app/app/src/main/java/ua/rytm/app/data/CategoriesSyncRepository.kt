@@ -39,7 +39,8 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteCategories = snapshot.get("categories") as? Map<*, *>
-        if (snapshot.exists() && remoteCategories != null) {
+        // An empty remote set is treated as "not seeded yet" (see switchProfile's fresh-profile seed).
+        if (snapshot.exists() && remoteCategories != null && remoteCategories.values.any { (it as? List<*>)?.isNotEmpty() == true }) {
             // Remote wins on cold sign-in — same bootstrap direction as wallets/shift types.
             val entities = mutableListOf<CategoryEntity>()
             (remoteCategories["income"] as? List<*>)?.forEach { name ->
