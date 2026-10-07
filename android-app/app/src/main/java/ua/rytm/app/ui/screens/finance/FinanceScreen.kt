@@ -157,11 +157,13 @@ fun FinanceScreen(
     val launchApp = LocalContext.current.applicationContext as RytmApplication
     val launchAction by launchApp.pendingLaunchAction.collectAsState()
     LaunchedEffect(launchAction, canEdit) {
-        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION) {
+        // canEdit starts false until the role loads; on a cold start (tap on a
+        // bank suggestion / widget "+") consuming the action now dropped it.
+        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit) {
             launchApp.pendingLaunchAction.value = null
             val prefill = launchApp.pendingPrefill.value
             launchApp.pendingPrefill.value = null
-            if (canEdit) viewModel.openNewTransactionSheet(prefill)
+            viewModel.openNewTransactionSheet(prefill)
         }
     }
     // Falls back to a local host only outside the nav graph (previews/tests).
