@@ -21,9 +21,7 @@
 
 **Свідомо не робили:** перестановка ~700 відступів на сітку 4/8 (без видимої користі), DI/Hilt, окремий механізм надбавок (у власника вони — окремі типи змін).
 
-**Нотатки для перевірок на A51:** Rytm QA має доступ до сповіщень і POST_NOTIFICATIONS (надано 07.10). Перед КОЖНОЮ дією adb — перевірка `mCallState=0`. Локальний Playwright: глобальний `playwright` + junction `C:\opt
-ode22\lib
-ode_modules\playwright` + `~/bin/python3.exe` (+`PYTHONHOME=C:\Python314`); smoke/e2e падають локально на біометричному вікні Windows — це артефакт середовища, джерело правди — CI.
+**Нотатки для перевірок на A51:** Rytm QA має доступ до сповіщень і POST_NOTIFICATIONS (надано 07.10). Перед КОЖНОЮ дією adb — перевірка `mCallState=0`. Локальний Playwright: глобальний `playwright` + junction `C:\opt\node22\lib\node_modules\playwright` + `~/bin/python3.exe` (+`PYTHONHOME=C:\Python314`); smoke/e2e падають локально на біометричному вікні Windows — це артефакт середовища, джерело правди — CI.
 
 ## Session checkpoint — 2026-09-28, night (історичний)
 
