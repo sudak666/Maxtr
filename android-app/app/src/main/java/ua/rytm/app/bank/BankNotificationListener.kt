@@ -16,7 +16,7 @@ import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.ui.screens.finance.formatMoney
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
-data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null)
+data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null)
 
 /**
  * Reads ONLY the notifications of the bank apps in
@@ -59,12 +59,14 @@ class BankNotificationListener : NotificationListenerService() {
             val from = if (suggestion.isIncome) pair.s.account else suggestion.account
             val to = if (suggestion.isIncome) suggestion.account else pair.s.account
             val route = if (from != null && to != null) "$from → $to" else null
-            suggest(this, suggestion.copy(merchant = route, account = from), pair.id, transfer = true, targetAccount = to)
+            val fromBank = if (suggestion.isIncome) pair.pkg else sbn.packageName
+            val toBank = if (suggestion.isIncome) sbn.packageName else pair.pkg
+            suggest(this, suggestion.copy(merchant = route, account = from), pair.id, transfer = true, targetAccount = to, bank = fromBank, targetBank = toBank)
             return
         }
         val id = dedupeKey.hashCode()
         recent += Recent(sbn.packageName, suggestion, now, id)
-        suggest(this, suggestion, id)
+        suggest(this, suggestion, id, bank = sbn.packageName)
     }
 
     private data class Recent(val pkg: String, val s: BankSuggestion, val at: Long, val id: Int)
@@ -78,6 +80,8 @@ class BankNotificationListener : NotificationListenerService() {
         const val EXTRA_PREFILL_TRANSFER = "ua.rytm.app.PREFILL_TRANSFER"
         const val EXTRA_PREFILL_ACCOUNT = "ua.rytm.app.PREFILL_ACCOUNT"
         const val EXTRA_PREFILL_TARGET_ACCOUNT = "ua.rytm.app.PREFILL_TARGET_ACCOUNT"
+        const val EXTRA_PREFILL_BANK = "ua.rytm.app.PREFILL_BANK"
+        const val EXTRA_PREFILL_TARGET_BANK = "ua.rytm.app.PREFILL_TARGET_BANK"
         private const val PAIR_WINDOW_MS = 3 * 60 * 1000L
 
         fun isEnabled(context: Context): Boolean =
@@ -93,10 +97,12 @@ class BankNotificationListener : NotificationListenerService() {
                 isTransfer = intent.getBooleanExtra(EXTRA_PREFILL_TRANSFER, false),
                 account = intent.getStringExtra(EXTRA_PREFILL_ACCOUNT),
                 targetAccount = intent.getStringExtra(EXTRA_PREFILL_TARGET_ACCOUNT),
+                bank = intent.getStringExtra(EXTRA_PREFILL_BANK),
+                targetBank = intent.getStringExtra(EXTRA_PREFILL_TARGET_BANK),
             )
         }
 
-        private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false, targetAccount: String? = null) {
+        private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false, targetAccount: String? = null, bank: String? = null, targetBank: String? = null) {
             if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
             ensureNotificationChannel(context)
             val open = Intent(context, MainActivity::class.java).apply {
@@ -109,6 +115,8 @@ class BankNotificationListener : NotificationListenerService() {
                 putExtra(EXTRA_PREFILL_TRANSFER, transfer)
                 putExtra(EXTRA_PREFILL_ACCOUNT, s.account)
                 putExtra(EXTRA_PREFILL_TARGET_ACCOUNT, targetAccount)
+                putExtra(EXTRA_PREFILL_BANK, bank)
+                putExtra(EXTRA_PREFILL_TARGET_BANK, targetBank)
             }
             val pending = PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val symbol = when (s.currency) { "USD" -> "$"; "EUR" -> "€"; else -> "₴" }

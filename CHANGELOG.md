@@ -542,6 +542,7 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Wallets manager: auto-saved rename now shows "Збережено ✓" under the field for 2s (owner looked for a Save button). Verified on A51 QA. Included in vc22 (rebuilt).
 - Live ПУМБ→mono 1₴ (07.10): first real mono push seen — title "👉💳 1.00₴", text "Від: <name>
 Баланс 2.00₴ 🐇", no sign, no keyword → parser returned null, so only the ПУМБ expense was suggested. Added "Від:" sender line → income (test from the live sample), and transfer pairing no longer requires the same bank app (ПУМБ→mono comes from two apps). In vc22 (rebuilt).
+- Live ПУМБ→mono 1₴ on QA: one "Переказ між рахунками 1 ₴?" suggestion (pairing verified). mono pushes have no card mask, so "куди" fell back to the first wallet; wallets are now also matched by bank name ("monobank", "Картка ПУМБ") from the push's package. Verified on A51 QA: ПУМБ 5536 → monobank. In vc22 (rebuilt).
 - Owner uploaded 2.4 (vc21) to Play; next bump vc22.
 
 ## Known gaps / pending work
