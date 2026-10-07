@@ -40,6 +40,7 @@ object BankNotificationParser {
     private val balanceWords = Regex("(баланс|залишок|доступно|ліміт|balance|available|limit)\\s*:?\\s*$", RegexOption.IGNORE_CASE)
     private val expenseWords = Regex("списан|оплат|покупк|платіж|зняття|переказ на|withdraw|purchase|payment", RegexOption.IGNORE_CASE)
     private val incomeWords = Regex("зарахуван|поповнен|надходжен|переказ від|повернен|refund|received", RegexOption.IGNORE_CASE)
+    private val senderLine = Regex("(^|\\n)\\s*від\\s*:", RegexOption.IGNORE_CASE)
     private val cashbackWords = Regex("кешбек|cashback", RegexOption.IGNORE_CASE)
     private val cardMask = Regex("\\*{1,4}\\d{2,4}|\\d{4}\\s?\\*{2,}")
 
@@ -65,6 +66,8 @@ object BankNotificationParser {
             sign == "+" -> true
             sign == "-" || sign == "−" -> false
             incomeWords.containsMatchIn(full) -> true
+            // monobank incoming transfer: "👉💳 1.00₴" / "Від: Ім'я Прізвище" (seen live 07.10).
+            senderLine.containsMatchIn(full) -> true
             // "Кешбек 1.50₴" under a purchase is not income; only a push that leads with cashback is.
             cashbackWords.containsMatchIn(full.substring(0, end)) -> true
             expenseWords.containsMatchIn(full) -> false

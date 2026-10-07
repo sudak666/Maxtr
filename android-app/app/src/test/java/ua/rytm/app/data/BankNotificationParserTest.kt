@@ -90,4 +90,11 @@ class BankNotificationParserTest {
         val s = BankNotificationParser.parse(mono, "Оплата", "Кредитний ліміт: 5 000₴\nАТБ 89.90₴")!!
         assertEquals(89.9, s.amount, 0.001)
     }
+
+    @Test fun monoIncomingTransferLiveSample() {
+        val s = BankNotificationParser.parse(mono, "👉💳 1.00₴", "Від: Afonchenko Vitalii\nБаланс 2.00₴ 🐇")!!
+        assertTrue(s.isIncome)
+        assertEquals(1.0, s.amount, 0.001)
+        assertEquals("UAH", s.currency)
+    }
 }

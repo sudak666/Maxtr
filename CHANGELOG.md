@@ -540,6 +540,8 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Tap on a bank suggestion (or widget "+") from a cold start opened the app but no form: FinanceScreen consumed the launch action while `canEdit` was still its initial `false` (role loading). Now waits until `canEdit` is true. Warm-start taps always worked, which is why the earlier live check passed.
 - Bank suggestion picks the wallet whose name contains the card digits (e.g. "ПУМБ 5536" for *5536; transfer: both sides), else same currency, else first. Bumped 2.4.1 (vc22).
 - Wallets manager: auto-saved rename now shows "Збережено ✓" under the field for 2s (owner looked for a Save button). Verified on A51 QA. Included in vc22 (rebuilt).
+- Live ПУМБ→mono 1₴ (07.10): first real mono push seen — title "👉💳 1.00₴", text "Від: <name>
+Баланс 2.00₴ 🐇", no sign, no keyword → parser returned null, so only the ПУМБ expense was suggested. Added "Від:" sender line → income (test from the live sample), and transfer pairing no longer requires the same bank app (ПУМБ→mono comes from two apps). In vc22 (rebuilt).
 - Owner uploaded 2.4 (vc21) to Play; next bump vc22.
 
 ## Known gaps / pending work
