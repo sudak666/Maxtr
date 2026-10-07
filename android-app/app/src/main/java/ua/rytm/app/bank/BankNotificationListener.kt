@@ -49,7 +49,8 @@ class BankNotificationListener : NotificationListenerService() {
         // of the same amount within seconds (seen live: ПУМБ *5536 → *3924).
         // Offer one transfer instead of an expense plus an income.
         val pair = recent.firstOrNull {
-            it.pkg == sbn.packageName && it.s.isIncome != suggestion.isIncome &&
+            // Any bank pair counts: ПУМБ → mono arrives from two different apps.
+            it.s.isIncome != suggestion.isIncome &&
                 it.s.currency == suggestion.currency && kotlin.math.abs(it.s.amount - suggestion.amount) < 0.005
         }
         if (pair != null) {
