@@ -107,7 +107,7 @@ class BankNotificationListener : NotificationListenerService() {
                 "${formatMoney(s.amount)} $symbol",
             )
             val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_monochrome) // the Rytm mark, not the reminder bell
+                .setSmallIcon(R.drawable.ic_notification_rytm) // the Rytm mark, not the reminder bell
                 .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
                 .setContentTitle(title)
                 .setContentText(s.merchant ?: s.account?.let { context.getString(R.string.bank_suggest_account, it) } ?: context.getString(R.string.bank_suggest_tap))
