@@ -32,6 +32,20 @@ object BankNotificationParser {
         "com.izibank.app",                 // izibank
     )
 
+    /** Words a user is likely to put in a wallet's name for each bank ("monobank", "Картка ПУМБ"). */
+    private val bankNameWords = mapOf(
+        "com.ftband.mono" to listOf("mono", "моно"),
+        "com.fuib.android.spot.online" to listOf("пумб", "pumb", "fuib"),
+        "ua.privatbank.ap24" to listOf("приват", "privat"),
+        "ua.com.abank" to listOf("a-bank", "а-банк", "абанк", "abank"),
+        "com.sensebank.mobile" to listOf("sense", "сенс"),
+        "ua.oschadbank.online" to listOf("ощад", "oschad"),
+        "ua.raiffeisen.myraif" to listOf("райф", "raif"),
+        "com.izibank.app" to listOf("izi", "ізі"),
+    )
+
+    fun bankWords(packageName: String?): List<String> = bankNameWords[packageName].orEmpty()
+
     private val currencyMap = mapOf("₴" to "UAH", "грн" to "UAH", "uah" to "UAH", "$" to "USD", "usd" to "USD", "€" to "EUR", "eur" to "EUR")
     private const val CUR = "(₴|грн\\.?|uah|usd|eur|\\$|€)"
     // sign? number (spaces/nbsp as thousands, , or . decimals) currency — or currency before the number.
