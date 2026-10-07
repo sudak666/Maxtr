@@ -32,6 +32,9 @@ class BankNotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName !in BankNotificationParser.BANK_PACKAGES) return
+        // The QA build sits next to the Play one; when both read bank pushes, let only Play suggest.
+        if (packageName.endsWith(".qa") &&
+            NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName.removeSuffix(".qa"))) return
         val extras = sbn.notification?.extras ?: return
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
         val text = (extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString()
