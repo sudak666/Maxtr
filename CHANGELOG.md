@@ -538,6 +538,7 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - `BankNotificationParser`: a "Кешбек 1.50₴" line under a purchase no longer flips it to income (cashback counts as income only when it precedes the main amount); amounts after "ліміт"/"limit" are skipped like balances; "Від: Іван І." merchant prefix stripped. 5 new unit tests (12/12 green). Formats taken from typical mono pushes — still not seen live on the owner's phone.
 - Live ПУМБ debit 1₴ (07.10) produced TWO "Додати витрату" suggestions: Play vc21 and Rytm QA both have notification access and each posted one (in-process dedupe works). QA listener now stays silent when the Play app's listener is enabled.
 - Tap on a bank suggestion (or widget "+") from a cold start opened the app but no form: FinanceScreen consumed the launch action while `canEdit` was still its initial `false` (role loading). Now waits until `canEdit` is true. Warm-start taps always worked, which is why the earlier live check passed.
+- Bank suggestion picks the wallet whose name contains the card digits (e.g. "ПУМБ 5536" for *5536; transfer: both sides), else same currency, else first. Bumped 2.4.1 (vc22).
 - Owner uploaded 2.4 (vc21) to Play; next bump vc22.
 
 ## Known gaps / pending work

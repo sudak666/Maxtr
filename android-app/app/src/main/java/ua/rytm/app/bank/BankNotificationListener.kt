@@ -16,7 +16,7 @@ import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.ui.screens.finance.formatMoney
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
-data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false)
+data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null)
 
 /**
  * Reads ONLY the notifications of the bank apps in
@@ -58,7 +58,7 @@ class BankNotificationListener : NotificationListenerService() {
             val from = if (suggestion.isIncome) pair.s.account else suggestion.account
             val to = if (suggestion.isIncome) suggestion.account else pair.s.account
             val route = if (from != null && to != null) "$from → $to" else null
-            suggest(this, suggestion.copy(merchant = route), pair.id, transfer = true)
+            suggest(this, suggestion.copy(merchant = route, account = from), pair.id, transfer = true, targetAccount = to)
             return
         }
         val id = dedupeKey.hashCode()
@@ -75,6 +75,8 @@ class BankNotificationListener : NotificationListenerService() {
         const val EXTRA_PREFILL_CURRENCY = "ua.rytm.app.PREFILL_CURRENCY"
         const val EXTRA_PREFILL_COMMENT = "ua.rytm.app.PREFILL_COMMENT"
         const val EXTRA_PREFILL_TRANSFER = "ua.rytm.app.PREFILL_TRANSFER"
+        const val EXTRA_PREFILL_ACCOUNT = "ua.rytm.app.PREFILL_ACCOUNT"
+        const val EXTRA_PREFILL_TARGET_ACCOUNT = "ua.rytm.app.PREFILL_TARGET_ACCOUNT"
         private const val PAIR_WINDOW_MS = 3 * 60 * 1000L
 
         fun isEnabled(context: Context): Boolean =
@@ -88,10 +90,12 @@ class BankNotificationListener : NotificationListenerService() {
                 currency = intent.getStringExtra(EXTRA_PREFILL_CURRENCY) ?: "UAH",
                 comment = intent.getStringExtra(EXTRA_PREFILL_COMMENT),
                 isTransfer = intent.getBooleanExtra(EXTRA_PREFILL_TRANSFER, false),
+                account = intent.getStringExtra(EXTRA_PREFILL_ACCOUNT),
+                targetAccount = intent.getStringExtra(EXTRA_PREFILL_TARGET_ACCOUNT),
             )
         }
 
-        private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false) {
+        private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false, targetAccount: String? = null) {
             if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
             ensureNotificationChannel(context)
             val open = Intent(context, MainActivity::class.java).apply {
@@ -102,6 +106,8 @@ class BankNotificationListener : NotificationListenerService() {
                 putExtra(EXTRA_PREFILL_CURRENCY, s.currency)
                 putExtra(EXTRA_PREFILL_COMMENT, s.merchant)
                 putExtra(EXTRA_PREFILL_TRANSFER, transfer)
+                putExtra(EXTRA_PREFILL_ACCOUNT, s.account)
+                putExtra(EXTRA_PREFILL_TARGET_ACCOUNT, targetAccount)
             }
             val pending = PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val symbol = when (s.currency) { "USD" -> "$"; "EUR" -> "€"; else -> "₴" }
