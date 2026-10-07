@@ -1,5 +1,7 @@
 # Changelog
 
+- **PWA: category chips usable with a mouse + history card spacing (2026-10-07)** — the frequent-category strip in the tx form scrolled only by touch (hidden scrollbar), so on desktop the chips past the edge were unreachable; on `(hover:hover) and (pointer:fine)` it now wraps. `.fin-history` had no bottom margin and sat glued to «Порада дня»; added 20px. `sw.js` `rytm-v179`→`v180`.
+
 - **Bank suggestions live + shared-profile/account-deletion check (2026-10-07, PR #558–#566)**:
   - `BankNotificationParser`: a "Кешбек 1.50₴" line under a purchase no longer flips it to income (cashback counts as income only when it precedes the main amount); amounts after "ліміт"/"limit" are skipped like balances; "Від: Іван І." merchant prefix stripped. 5 new unit tests (12/12 green). Formats taken from typical mono pushes — still not seen live on the owner's phone.
   - Live ПУМБ debit 1₴ (07.10) produced TWO "Додати витрату" suggestions: Play vc21 and Rytm QA both have notification access and each posted one (in-process dedupe works). QA listener now stays silent when the Play app's listener is enabled.
