@@ -351,10 +351,10 @@ class FinanceViewModel(
 
     fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null) {
         editingTxId = null
-        formType = if (prefill?.isIncome == true) TxType.INCOME else TxType.EXPENSE
+        formType = when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
         formWalletId = (prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
-        formTargetWalletId = wallets.getOrNull(1)?.id.orEmpty()
+        formTargetWalletId = (wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()
         formAmountText = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
         // The type's most-used category, not the alphabetically first one.
         formCategory = formFrequentCategories.firstOrNull() ?: categoriesByType[formType]?.firstOrNull()

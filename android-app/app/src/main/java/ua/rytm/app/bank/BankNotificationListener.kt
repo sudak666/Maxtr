@@ -16,7 +16,7 @@ import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.ui.screens.finance.formatMoney
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
-data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?)
+data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false)
 
 /**
  * Reads ONLY the notifications of the bank apps in
@@ -40,14 +40,36 @@ class BankNotificationListener : NotificationListenerService() {
         if (!seen.add(dedupeKey)) return
         if (seen.size > 50) seen.remove(seen.first())
         val suggestion = BankNotificationParser.parse(sbn.packageName, title, text) ?: return
-        suggest(this, suggestion, dedupeKey.hashCode())
+        val now = System.currentTimeMillis()
+        recent.removeAll { now - it.at > PAIR_WINDOW_MS }
+        // A move between the user's own accounts arrives as a debit and a credit
+        // of the same amount within seconds (seen live: ПУМБ *5536 → *3924).
+        // Offer one transfer instead of an expense plus an income.
+        val pair = recent.firstOrNull {
+            it.pkg == sbn.packageName && it.s.isIncome != suggestion.isIncome &&
+                it.s.currency == suggestion.currency && kotlin.math.abs(it.s.amount - suggestion.amount) < 0.005
+        }
+        if (pair != null) {
+            recent.remove(pair)
+            NotificationManagerCompat.from(this).cancel("bank", pair.id)
+            suggest(this, suggestion.copy(merchant = null), pair.id, transfer = true)
+            return
+        }
+        val id = dedupeKey.hashCode()
+        recent += Recent(sbn.packageName, suggestion, now, id)
+        suggest(this, suggestion, id)
     }
+
+    private data class Recent(val pkg: String, val s: BankSuggestion, val at: Long, val id: Int)
+    private val recent = mutableListOf<Recent>()
 
     companion object {
         const val EXTRA_PREFILL_INCOME = "ua.rytm.app.PREFILL_INCOME"
         const val EXTRA_PREFILL_AMOUNT = "ua.rytm.app.PREFILL_AMOUNT"
         const val EXTRA_PREFILL_CURRENCY = "ua.rytm.app.PREFILL_CURRENCY"
         const val EXTRA_PREFILL_COMMENT = "ua.rytm.app.PREFILL_COMMENT"
+        const val EXTRA_PREFILL_TRANSFER = "ua.rytm.app.PREFILL_TRANSFER"
+        private const val PAIR_WINDOW_MS = 3 * 60 * 1000L
 
         fun isEnabled(context: Context): Boolean =
             NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
@@ -59,10 +81,11 @@ class BankNotificationListener : NotificationListenerService() {
                 amount = amount,
                 currency = intent.getStringExtra(EXTRA_PREFILL_CURRENCY) ?: "UAH",
                 comment = intent.getStringExtra(EXTRA_PREFILL_COMMENT),
+                isTransfer = intent.getBooleanExtra(EXTRA_PREFILL_TRANSFER, false),
             )
         }
 
-        private fun suggest(context: Context, s: BankSuggestion, id: Int) {
+        private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false) {
             if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
             ensureNotificationChannel(context)
             val open = Intent(context, MainActivity::class.java).apply {
@@ -72,11 +95,12 @@ class BankNotificationListener : NotificationListenerService() {
                 putExtra(EXTRA_PREFILL_AMOUNT, s.amount)
                 putExtra(EXTRA_PREFILL_CURRENCY, s.currency)
                 putExtra(EXTRA_PREFILL_COMMENT, s.merchant)
+                putExtra(EXTRA_PREFILL_TRANSFER, transfer)
             }
             val pending = PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val symbol = when (s.currency) { "USD" -> "$"; "EUR" -> "€"; else -> "₴" }
             val title = context.getString(
-                if (s.isIncome) R.string.bank_suggest_income else R.string.bank_suggest_expense,
+                when { transfer -> R.string.bank_suggest_transfer; s.isIncome -> R.string.bank_suggest_income; else -> R.string.bank_suggest_expense },
                 "${formatMoney(s.amount)} $symbol",
             )
             val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)

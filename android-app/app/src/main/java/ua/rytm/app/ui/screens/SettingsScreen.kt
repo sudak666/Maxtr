@@ -505,6 +505,14 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // shows whether it is currently granted (re-read on resume).
                     val bankContext = LocalContext.current
                     var bankEnabled by remember { mutableStateOf(ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)) }
+                    // Suggestions are themselves notifications: without POST_NOTIFICATIONS
+                    // they were dropped silently (found live — the listener got real ПУМБ
+                    // pushes, nothing appeared). Ask for it on the way to the system switch.
+                    fun openListenerSettings() {
+                        runCatching { bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+                    }
+                    val bankNotifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { openListenerSettings() }
+                    val canPostNotifications = androidx.core.app.NotificationManagerCompat.from(bankContext).areNotificationsEnabled()
                     // Prominent disclosure (Play User Data policy): say exactly what is
                     // read and what is not before sending the user to the system switch.
                     var bankDisclosureOpen by remember { mutableStateOf(false) }
@@ -516,7 +524,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = {
                                     bankDisclosureOpen = false
-                                    runCatching { bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+                                    if (!canPostNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        bankNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else openListenerSettings()
                                 }) { Text(stringResource(R.string.bank_disclosure_ok)) }
                             },
                             dismissButton = {
@@ -532,8 +542,18 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         icon = RytmIcons.AccountBalance,
                         badgeColor = SettingsGroupColors.Notifications,
                         title = stringResource(R.string.bank_listener_title),
-                        subtitle = stringResource(if (bankEnabled) R.string.bank_listener_on else R.string.bank_listener_off),
-                        onClick = { bankDisclosureOpen = true },
+                        subtitle = stringResource(
+                            when {
+                                bankEnabled && !canPostNotifications -> R.string.bank_listener_blocked
+                                bankEnabled -> R.string.bank_listener_on
+                                else -> R.string.bank_listener_off
+                            },
+                        ),
+                        onClick = {
+                            if (bankEnabled && !canPostNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                bankNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else bankDisclosureOpen = true
+                        },
                     )
                     if (displayedPushEnabled) {
                         SettingsRow(

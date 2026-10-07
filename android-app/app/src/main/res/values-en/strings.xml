@@ -513,4 +513,6 @@
     <string name="debt_forecast_finish">At this pace ≈ by %1$s</string>
     <string name="settings_terms_row">Terms of use</string>
     <string name="settings_privacy_row">Privacy policy</string>
+    <string name="bank_listener_blocked">Rytm notifications are off — suggestions can\'t appear. Tap to allow</string>
+    <string name="bank_suggest_transfer">Transfer between accounts %1$s?</string>
 </resources>
