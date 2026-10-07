@@ -738,6 +738,8 @@ body.profile-readonly .salary-goal-edit{display:none}
 .leg-brush{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .leg-brush.active{border-color:var(--leg-color);background:color-mix(in srgb,var(--leg-color) 18%,transparent);font-weight:700}
 .leg-hint{flex-basis:100%;font-size:13px;color:var(--muted)}.leg-hint.active{color:var(--purple2)}
+/* "Open the web version on a computer" means nothing when you already are on one. */
+@media (hover:hover) and (pointer:fine){.settings-web-row{display:none!important}.settings-web-row+.settings-row{border-top:none}}
 .fin-cat-chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}.fin-cat-chips .filter-chip{flex-shrink:0}
 /* A mouse can't swipe a hidden-scrollbar strip — wrap the frequent categories instead. */
 @media (hover:hover) and (pointer:fine){.fin-cat-chips{flex-wrap:wrap;overflow-x:visible}}
@@ -2422,7 +2424,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="chart-section settings-section" data-settings-group="app">
       <div class="chart-title"><span id="ic-settings-about"></span><span data-i18n="settings_about">Про застосунок</span></div>
-      <a href="https://maxtr-c238f.web.app" target="_blank" class="settings-row" style="text-decoration:none;color:inherit">
+      <a href="https://maxtr-c238f.web.app" target="_blank" class="settings-row settings-web-row" style="text-decoration:none;color:inherit">
         <span id="ic-set-web" class="icon-badge" style="--badge-color:var(--purple)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_web">Веб-версія</div>
@@ -2773,24 +2775,24 @@ body.amounts-hidden #fx-converter-result{
       <span class="icon-badge" id="ic-premium-badge" style="width:52px;height:52px;background:linear-gradient(135deg,#f59e0b,#ec4899)"></span>
     </div>
     <div class="modal-header" style="justify-content:center;text-align:center"><div class="modal-date" data-i18n="premium_title">Rytm Преміум</div></div>
-    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:</div>
+    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Rytm зараз повністю безкоштовний — без лімітів. Що вже входить:</div>
     <div class="settings-row">
       <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-wallets"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_free_now">Вже доступно безкоштовно</div><div class="settings-row-sub" data-i18n="premium_perk_free_now_sub">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</div></div>
     </div>
     <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--orange)" id="ic-premium-forecast"></span>
+      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-forecast"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_forecast">Прогноз заробітку</div><div class="settings-row-sub" data-i18n="premium_perk_forecast_sub">Скільки отримаєте цього місяця за запланованими змінами</div></div>
-      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
+      
     </div>
     <div class="settings-row" style="border-top:none">
       <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-backup"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_backup">Резервні копії</div><div class="settings-row-sub" data-i18n="premium_perk_backup_sub">Автоматичні копії в хмарі та відновлення в один дотик</div></div>
     </div>
     <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--orange)" id="ic-premium-widget"></span>
+      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-widget"></span>
       <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_widget">Віджет на екрані</div><div class="settings-row-sub" data-i18n="premium_perk_widget_sub">Баланс і найближча зміна без відкриття застосунку</div></div>
-      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--orange2);flex:0 0 auto" data-i18n="premium_soon_badge">Скоро</span>
+      <span style="font-size:13px;font-weight:800;letter-spacing:.04em;color:var(--green);flex:0 0 auto" data-i18n="premium_android_badge">Android</span>
     </div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="modal-save" style="width:100%" data-close-modal data-i18n="common_done">Готово</button>
