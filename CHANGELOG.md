@@ -543,6 +543,7 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Live ПУМБ→mono 1₴ (07.10): first real mono push seen — title "👉💳 1.00₴", text "Від: <name>
 Баланс 2.00₴ 🐇", no sign, no keyword → parser returned null, so only the ПУМБ expense was suggested. Added "Від:" sender line → income (test from the live sample), and transfer pairing no longer requires the same bank app (ПУМБ→mono comes from two apps). In vc22 (rebuilt).
 - Live ПУМБ→mono 1₴ on QA: one "Переказ між рахунками 1 ₴?" suggestion (pairing verified). mono pushes have no card mask, so "куди" fell back to the first wallet; wallets are now also matched by bank name ("monobank", "Картка ПУМБ") from the push's package. Verified on A51 QA: ПУМБ 5536 → monobank. In vc22 (rebuilt).
+- Live shared-profile test (owner Play + test account fraxed777 on QA, new profile "Test"): a profile nobody had opened had no finance doc, so the first switch pushed `wallets: []` and nothing could be added (form: "Оберіть гаманець", no wallet to pick). `switchProfile` now seeds fresh defaults when the remote finance doc is missing or has an empty wallet list, and wallet/category sync treats an empty remote list as "not seeded". After the fix: test account added −10 ₴, owner −20 ₴, "Хто скільки цього місяця" showed both correctly. In vc22 (rebuilt).
 - Owner uploaded 2.4 (vc21) to Play; next bump vc22.
 
 ## Known gaps / pending work

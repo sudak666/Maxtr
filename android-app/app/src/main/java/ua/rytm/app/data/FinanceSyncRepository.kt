@@ -35,7 +35,8 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
         val docRef = financeDocRef(uid, profileId)
         val snapshot = docRef.get().await()
         val remoteWallets = snapshot.get("wallets") as? List<*>
-        if (snapshot.exists() && remoteWallets != null) {
+        // [] = never seeded (the last wallet can't be deleted), so push the local seed instead.
+        if (snapshot.exists() && !remoteWallets.isNullOrEmpty()) {
             // Remote wins on cold sign-in — same bootstrap direction as the PWA's
             // fbLoadNow() (load-then-render), just without the continuous sync after.
             val entities = remoteWallets.mapNotNull { (it as? Map<*, *>)?.let(::parseRemoteWallet) }

@@ -242,6 +242,21 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         app.database.clearAllProfileScopedTables()
         app.activeProfileStore.setActiveProfile(uid, newProfileId, dataOwnerUid)
         val ownerUid = dataOwnerUid ?: uid
+        // A profile nobody has opened yet has no finance doc; without a seed the
+        // sync below pushed an empty wallet list, leaving a profile (seen live: a
+        // fresh shared one) where nothing could be added — no wallet to pick.
+        val neverOpened = runCatching {
+            FirebaseFirestore.getInstance().collection("users").document(ownerUid).collection("max_tracker")
+                .document(profileDocName("finance", newProfileId))
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+                // Also an empty wallet list: the app never lets the last wallet be deleted,
+                // so [] only comes from that earlier empty push.
+                .let { !it.exists() || (it.get("wallets") as? List<*>)?.isEmpty() == true }
+        }.getOrDefault(false)
+        if (neverOpened) {
+            app.financeRepository.seedFreshProfileDefaults()
+            app.shiftsRepository.seedFreshProfileDefaults()
+        }
         syncAllDomains(ownerUid, newProfileId)
         startRealtimeSync(ownerUid, newProfileId)
     }
