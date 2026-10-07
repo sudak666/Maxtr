@@ -353,8 +353,11 @@ class FinanceViewModel(
         editingTxId = null
         formType = when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
-        formWalletId = (prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
-        formTargetWalletId = (wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()
+        // A wallet named with the card's last digits ("ПУМБ 5536") wins; then same currency; then the first.
+        formWalletId = (walletForCard(prefill?.account)
+            ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
+        formTargetWalletId = (walletForCard(prefill?.targetAccount)?.takeIf { it.id != formWalletId }
+            ?: wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()
         formAmountText = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
         // The type's most-used category, not the alphabetically first one.
         formCategory = formFrequentCategories.firstOrNull() ?: categoriesByType[formType]?.firstOrNull()
@@ -368,6 +371,11 @@ class FinanceViewModel(
         persistDraft()
         // Through the normal setter so keyword auto-rules pick the category.
         prefill?.comment?.let { onFormCommentChange(it) }
+    }
+
+    private fun walletForCard(mask: String?): Wallet? {
+        val digits = mask?.filter { it.isDigit() }?.takeIf { it.length >= 2 } ?: return null
+        return wallets.firstOrNull { it.name.contains(digits) }
     }
 
     fun openEditTransactionSheet(tx: Transaction) {
