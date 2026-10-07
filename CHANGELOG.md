@@ -536,6 +536,7 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 
 ## 2026-10-07 — Bank-push parser: monobank formats hardened
 - `BankNotificationParser`: a "Кешбек 1.50₴" line under a purchase no longer flips it to income (cashback counts as income only when it precedes the main amount); amounts after "ліміт"/"limit" are skipped like balances; "Від: Іван І." merchant prefix stripped. 5 new unit tests (12/12 green). Formats taken from typical mono pushes — still not seen live on the owner's phone.
+- Live ПУМБ debit 1₴ (07.10) produced TWO "Додати витрату" suggestions: Play vc21 and Rytm QA both have notification access and each posted one (in-process dedupe works). QA listener now stays silent when the Play app's listener is enabled.
 - Owner uploaded 2.4 (vc21) to Play; next bump vc22.
 
 ## Known gaps / pending work
