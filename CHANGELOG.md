@@ -1,6 +1,6 @@
 # Changelog
 
-- **PWA: stale Premium sheet + pointless web row (2026-10-07)** — Premium sheet still said "Скоро" on the earnings forecast (shipped) and the widget (shipped on Android); forecast now plain, widget badged "Android", subtitle "Що вже входить" (+ missing en `premium_subtitle`). Settings → «Веб-версія» ("open on a computer") hidden on hover/fine-pointer devices, i.e. when already on a computer. `sw.js` `v180`→`v181`. Hosting deployed.
+- **PWA: stale Premium sheet + pointless web row (2026-10-07)** — Premium sheet still said "Скоро" on the earnings forecast (shipped) and the widget (shipped on Android); forecast now plain, widget badged "Android", subtitle "Що вже входить" (en text updated too; a first attempt added a duplicate en key — lint failed but the chained merge+deploy ran anyway (#569); fixed in the follow-up, v182). Settings → «Веб-версія» ("open on a computer") hidden on hover/fine-pointer devices, i.e. when already on a computer. `sw.js` `v180`→`v181`. Hosting deployed.
 
 - **PWA: category chips usable with a mouse + history card spacing (2026-10-07)** — the frequent-category strip in the tx form scrolled only by touch (hidden scrollbar), so on desktop the chips past the edge were unreachable; on `(hover:hover) and (pointer:fine)` it now wraps. `.fin-history` had no bottom margin and sat glued to «Порада дня»; added 20px. `sw.js` `rytm-v179`→`v180`.
 
