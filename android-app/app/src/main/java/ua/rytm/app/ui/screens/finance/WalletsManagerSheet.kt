@@ -134,6 +134,8 @@ private fun WalletRow(
     onDelete: () -> Unit,
 ) {
     var nameText by remember(wallet.id) { mutableStateOf(wallet.name) }
+    // Auto-save has no button, so confirm it visibly once the rename lands.
+    var justSaved by remember(wallet.id) { mutableStateOf(false) }
     var currencyExpanded by rememberSaveable { mutableStateOf(false) }
     var colorExpanded by rememberSaveable { mutableStateOf(false) }
     val colorDescription = stringResource(R.string.wallet_color)
@@ -158,17 +160,23 @@ private fun WalletRow(
 
         OutlinedTextField(
             value = nameText,
-            onValueChange = { nameText = it },
+            onValueChange = { nameText = it; justSaved = false },
             modifier = Modifier.weight(1f),
             singleLine = true,
             label = { Text(stringResource(R.string.field_name)) },
+            supportingText = if (justSaved) { { Text(stringResource(R.string.field_autosaved), color = MaterialTheme.colorScheme.primary) } } else null,
             // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
         )
         // Commit on unfocus-equivalent: since Compose has no cheap onBlur here, save as the user types
         // (debounce-free, matches the field's small size/low write cost).
         androidx.compose.runtime.LaunchedEffect(nameText) {
             kotlinx.coroutines.delay(400)
-            if (nameText != wallet.name) onRename(nameText)
+            if (nameText != wallet.name) {
+                onRename(nameText)
+                justSaved = true
+                kotlinx.coroutines.delay(2000)
+                justSaved = false
+            }
         }
 
         ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.width(110.dp).heightIn(min = 56.dp)) {

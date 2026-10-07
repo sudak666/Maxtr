@@ -524,4 +524,5 @@
     <string name="bank_listener_blocked">Сповіщення Rytm вимкнено — пропозиції не з\'являться. Торкнись, щоб дозволити</string>
     <string name="bank_suggest_transfer">Переказ між рахунками %1$s?</string>
     <string name="bank_suggest_account">Рахунок %1$s · торкнись, щоб перевірити</string>
+    <string name="field_autosaved">Збережено ✓</string>
 </resources>
