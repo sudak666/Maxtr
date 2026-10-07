@@ -361,7 +361,7 @@
     <string name="settings_csv_import_save_failed">Could not save imported transactions</string>
     <string name="settings_csv_import_action">Import</string>
     <string name="settings_deleting_account">Deleting…</string>
-    <string name="settings_delete_account_body">This permanently deletes your data (wallets, transactions, debts, and shift calendar) and Google account. It cannot be undone.</string>
+    <string name="settings_delete_account_body">This permanently deletes your data (wallets, transactions, debts, and shift calendar) and your Rytm account. Your Google account itself is not affected. It cannot be undone.</string>
     <string name="settings_sign_out_title">Sign out</string>
     <string name="settings_sign_out_body">Sign out of your account?</string>
     <string name="settings_sign_out_action">Sign out</string>
