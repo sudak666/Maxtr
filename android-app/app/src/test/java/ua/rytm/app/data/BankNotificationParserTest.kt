@@ -52,6 +52,7 @@ class BankNotificationParserTest {
         assertFalse(s.isIncome)
         assertEquals(500.0, s.amount, 0.001)
         assertNull(s.merchant)
+        assertEquals("*5536", s.account)
     }
 
     @Test fun realPumbIncomeWithNegativeAvailable() {

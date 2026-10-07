@@ -515,4 +515,5 @@
     <string name="settings_privacy_row">Privacy policy</string>
     <string name="bank_listener_blocked">Rytm notifications are off — suggestions can\'t appear. Tap to allow</string>
     <string name="bank_suggest_transfer">Transfer between accounts %1$s?</string>
+    <string name="bank_suggest_account">Account %1$s · tap to check</string>
 </resources>

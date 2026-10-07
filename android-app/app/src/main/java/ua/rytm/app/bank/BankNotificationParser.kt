@@ -4,7 +4,7 @@ package ua.rytm.app.bank
  * A transaction guessed from a bank app's push. Never saved on its own — it
  * only pre-fills the new-transaction form the user confirms.
  */
-data class BankSuggestion(val isIncome: Boolean, val amount: Double, val currency: String, val merchant: String?)
+data class BankSuggestion(val isIncome: Boolean, val amount: Double, val currency: String, val merchant: String?, val account: String? = null)
 
 /**
  * Format-tolerant parser for Ukrainian bank pushes (Monobank, ПУМБ, Privat,
@@ -79,7 +79,9 @@ object BankNotificationParser {
                     !cardMask.containsMatchIn(line) && !line.startsWith("Картка", ignoreCase = true) &&
                     line.any { it.isLetter() }
             }
-        return BankSuggestion(isIncome, amount, currency, merchant)
+        // Card/account mask ("*5536"), shown on transfer suggestions as "*5536 → *3924".
+        val account = Regex("\\*\\d{2,4}").find(full)?.value
+        return BankSuggestion(isIncome, amount, currency, merchant, account)
     }
 
     /** Drops leading verbs ("Оплата", "Покупка в") so the comment reads as a place. */
