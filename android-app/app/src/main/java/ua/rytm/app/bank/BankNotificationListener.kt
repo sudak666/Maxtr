@@ -52,7 +52,10 @@ class BankNotificationListener : NotificationListenerService() {
         if (pair != null) {
             recent.remove(pair)
             NotificationManagerCompat.from(this).cancel("bank", pair.id)
-            suggest(this, suggestion.copy(merchant = null), pair.id, transfer = true)
+            val from = if (suggestion.isIncome) pair.s.account else suggestion.account
+            val to = if (suggestion.isIncome) suggestion.account else pair.s.account
+            val route = if (from != null && to != null) "$from → $to" else null
+            suggest(this, suggestion.copy(merchant = route), pair.id, transfer = true)
             return
         }
         val id = dedupeKey.hashCode()
@@ -104,10 +107,10 @@ class BankNotificationListener : NotificationListenerService() {
                 "${formatMoney(s.amount)} $symbol",
             )
             val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_launcher_monochrome) // the Rytm mark, not the reminder bell
                 .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
                 .setContentTitle(title)
-                .setContentText(s.merchant ?: context.getString(R.string.bank_suggest_tap))
+                .setContentText(s.merchant ?: s.account?.let { context.getString(R.string.bank_suggest_account, it) } ?: context.getString(R.string.bank_suggest_tap))
                 .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build()
