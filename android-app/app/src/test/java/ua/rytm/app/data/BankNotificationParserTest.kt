@@ -55,6 +55,14 @@ class BankNotificationParserTest {
         assertEquals("*5536", s.account)
     }
 
+    @Test fun realPumbKupivlia() {
+        val s = BankNotificationParser.parse(pumb, "Купівля", "26.00UAH\nProdukti KIYEV UA\n08-10-2026 15:54\nКартка: *7343\nДоступно: 538.40UAH")!!
+        assertFalse(s.isIncome)
+        assertEquals(26.0, s.amount, 0.001)
+        assertEquals("Produkti KIYEV UA", s.merchant)
+        assertEquals("*7343", s.account)
+    }
+
     @Test fun realPumbIncomeWithNegativeAvailable() {
         val s = BankNotificationParser.parse(pumb, "Надходження", "500.00UAH\n06-10-2026 22:11\nРахунок: *3924\nДоступно: -5135.82UAH")!!
         assertTrue(s.isIncome)

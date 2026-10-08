@@ -1803,3 +1803,6 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Shifts calendar collapsed to the current week (Android)**: `CalendarGrid` shows only the week containing today in the current month, with a "Показати весь місяць"/"Згорнути" toggle; other months show in full.
 - **Builds 2.3.3 (vc19) and 2.3.4 (vc20) (2026-10-04)**: vc19 = goal sync (#535); vc20 = vc19 + collapsed calendar. `.aab`s on Desktop, not uploaded yet. Next bump vc21.
 - **2.3.4 (vc20) uploaded to Play (2026-10-04)**, owner confirmed working. vc19 was never uploaded (superseded); its `.aab` deleted from Desktop.
+
+## 2026-10-08 — ПУМБ «Купівля» push not parsed
+- Live push from ПУМБ (title «Купівля», "26.00UAH / Produkti KIYEV UA / … / Картка: *7343 / Доступно: …") gave no suggestion: `expenseWords` had no «купівл», so direction was unknown → null. Added «купівл» to expense keywords and «купівля» to `cleanMerchant` verbs (else the title became the merchant). Regression test `realPumbKupivlia`. Diagnosed via adb `dumpsys notification --noredact`.
