@@ -52,7 +52,7 @@ object BankNotificationParser {
     private val amountAfter = Regex("([−\\-+]?)\\s*(\\d{1,3}(?:[ \\u00A0\\u202F]\\d{3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)\\s*$CUR", RegexOption.IGNORE_CASE)
     private val amountBefore = Regex("([−\\-+]?)\\s*$CUR\\s*(\\d{1,3}(?:[ \\u00A0\\u202F]\\d{3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)", RegexOption.IGNORE_CASE)
     private val balanceWords = Regex("(баланс|залишок|доступно|ліміт|balance|available|limit)\\s*:?\\s*$", RegexOption.IGNORE_CASE)
-    private val expenseWords = Regex("списан|оплат|покупк|платіж|зняття|переказ на|withdraw|purchase|payment", RegexOption.IGNORE_CASE)
+    private val expenseWords = Regex("списан|оплат|покупк|купівл|платіж|зняття|переказ на|withdraw|purchase|payment", RegexOption.IGNORE_CASE)
     private val incomeWords = Regex("зарахуван|поповнен|надходжен|переказ від|повернен|refund|received", RegexOption.IGNORE_CASE)
     private val senderLine = Regex("(^|\\n)\\s*від\\s*:", RegexOption.IGNORE_CASE)
     private val cashbackWords = Regex("кешбек|cashback", RegexOption.IGNORE_CASE)
@@ -106,6 +106,6 @@ object BankNotificationParser {
 
     /** Drops leading verbs ("Оплата", "Покупка в") so the comment reads as a place. */
     private fun cleanMerchant(s: String): String =
-        s.replace(Regex("^(оплата|покупка|списання|зарахування|поповнення|платіж|переказ)\\s*(в|у|на|від)?\\s*:?\\s*", RegexOption.IGNORE_CASE), "")
+        s.replace(Regex("^(оплата|покупка|купівля|списання|зарахування|поповнення|платіж|переказ)\\s*(в|у|на|від)?\\s*:?\\s*", RegexOption.IGNORE_CASE), "")
             .replace(Regex("^(від|в|у)\\s*:?\\s+", RegexOption.IGNORE_CASE), "").trim()
 }
