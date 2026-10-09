@@ -156,10 +156,12 @@ fun FinanceScreen(
     val canEdit = LocalCanEditProfile.current
     val launchApp = LocalContext.current.applicationContext as RytmApplication
     val launchAction by launchApp.pendingLaunchAction.collectAsState()
-    LaunchedEffect(launchAction, canEdit) {
+    LaunchedEffect(launchAction, canEdit, viewModel.loading) {
         // canEdit starts false until the role loads; on a cold start (tap on a
         // bank suggestion / widget "+") consuming the action now dropped it.
-        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit) {
+        // Also wait for wallets+history: opened earlier the prefill had no wallet
+        // and the alphabetically first category ("% …") instead of the frequent one.
+        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit && !viewModel.loading) {
             launchApp.pendingLaunchAction.value = null
             val prefill = launchApp.pendingPrefill.value
             launchApp.pendingPrefill.value = null
