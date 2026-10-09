@@ -1816,3 +1816,4 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Design polish 5 (auth, verified live): selected auth-mode tab is a neutral surfaceContainerHigh pill (purple fill competed with the Google and submit CTAs); «Забули пароль?» shown only on the login tab. Widget still not visually verified (not placed on the home screen).
 - Widget (verified live on the home screen): recent operations up to 8 rows (was 4, a tall widget sat a third empty); each row wrapped in one container so header+8 stays under Glance's 10-children cap.
 - Docs: session checkpoint 2026-10-10 (ANDROID_MIGRATION.md top, old one replaced), CLAUDE.md gained "Native Android — theme & UI gotchas".
+- Bumped to 2.4.3 / vc24 (Play already had vc23); AAB rebuilt to Desktop.
