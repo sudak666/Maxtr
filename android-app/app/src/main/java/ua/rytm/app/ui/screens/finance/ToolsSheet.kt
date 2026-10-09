@@ -153,7 +153,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         val expenseChange = vm.expenseChangePercent
         val categoryGrowth = vm.topExpenseGrowth
         if (expenseChange != null || categoryGrowth != null) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     expenseChange?.let {
                         Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
@@ -383,7 +383,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
                 // quick-action cards) instead of just dimming the stroke,
                 // for real consistency rather than a softer version of the
                 // same "outlined field" language.
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
                 Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
                     Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
