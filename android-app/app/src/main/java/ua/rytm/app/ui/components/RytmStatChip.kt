@@ -102,8 +102,10 @@ fun RytmStatChipRow(
     // (see the doc comment above) is untouched. Fixes a real live report: 3
     // short chips sat flush-left with dead space on the right, reading as
     // "off-center" rather than a deliberately left-aligned group.
+    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
     LazyRow(
-        modifier.fillMaxWidth(),
+        modifier.fillMaxWidth().fadingEdges(fadeState),
+        state = fadeState,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         content = content,
     )

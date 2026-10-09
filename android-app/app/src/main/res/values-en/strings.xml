@@ -101,7 +101,7 @@
     <string name="crypto_loading">Updating rates…</string><string name="crypto_error">Could not load cryptocurrency rates</string>
     <string name="action_collapse">Collapse</string><string name="shifts_show_month">Show whole month</string><string name="action_collapse_list">Collapse list</string><string name="action_view_all">View all</string>
     <string name="finance_estimated_balance">Estimated balance</string><string name="finance_total_balance">Total balance</string><string name="finance_conversion_note">The amount is converted to hryvnia using current wallet rates.</string>
-    <string name="finance_month_income">Income this month</string><string name="finance_month_expense">Expense this month</string><string name="finance_action_transaction">Transaction</string><string name="finance_history">Transaction history</string>
+    <string name="finance_month_income">Income</string><string name="finance_month_expense">Expenses</string><string name="finance_action_transaction">Transaction</string><string name="finance_history">Transaction history</string>
     <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
     <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>

@@ -1809,3 +1809,4 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Bumped to 2.4.2 / vc23 (ПУМБ «Купівля» fix); AAB built to Desktop for Play upload.
 - Bank-push prefill on cold start opened before wallets/history loaded → empty wallet, alphabetically-first category («% поповнення ПУМБ»). `FinanceScreen` now also waits for `!viewModel.loading`. Not device-verified (QA install signed out).
 - ПУМБ income push: title «Надходження» became the comment; added to `cleanMerchant` verbs, test asserts null merchant.
+- Design polish (live A51 audit): Settings title cleared status bar (+16dp top); horizontal chip rows fade at scrollable edges (`ui/components/FadingEdges.kt`) instead of a hard cut; gradient scrim under the floating bottom nav; hero mini-stats «Дохід»/«Витрати» (was wrapping to 2 lines). Verified on QA build.

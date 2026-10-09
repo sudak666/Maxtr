@@ -356,7 +356,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             item(key = "settings-title") {
-                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
             }
 
             item(key = "settings-search") {
