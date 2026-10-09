@@ -191,7 +191,7 @@
     <string name="auth_tagline">Finances, shifts, and debts in one place</string>
     <string name="auth_continue_google">Continue with Google</string>
     <string name="auth_or">OR</string>
-    <string name="auth_password">PASSWORD</string>
+    <string name="auth_password">Password</string>
     <string name="auth_email">Email</string>
     <string name="auth_show_password">Show password</string>
     <string name="auth_hide_password">Hide password</string>

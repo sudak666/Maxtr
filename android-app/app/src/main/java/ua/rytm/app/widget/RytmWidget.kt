@@ -92,11 +92,12 @@ class RytmWidgetReceiver : GlanceAppWidgetReceiver() {
 
 // Brand palette (matches the app's dark theme / light theme surfaces).
 private val Bg = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF242327))
-private val Tile = ColorProvider(day = Color(0xFFF3F1F8), night = Color(0xFF2E2D33))
-private val OnBg = ColorProvider(day = Color(0xFF1C1B1F), night = Color(0xFFF4F4F6))
+// Same neutral surfaces as the app theme (LightBg/DarkBg2), not a lavender tint.
+private val Tile = ColorProvider(day = Color(0xFFF4F3F1), night = Color(0xFF2C2B30))
+private val OnBg = ColorProvider(day = Color(0xFF1C1C1E), night = Color(0xFFE9E8EA))
 private val Muted = ColorProvider(day = Color(0xFF626269), night = Color(0xFF98979E))
 private val Accent = ColorProvider(day = Color(0xFF7C3AED), night = Color(0xFF8B5CF6))
-private val Track = ColorProvider(day = Color(0xFFE4E1EC), night = Color(0xFF3A3940))
+private val Track = ColorProvider(day = Color(0xFFE2E0DD), night = Color(0xFF38373D))
 private val Good = ColorProvider(day = Color(0xFF059669), night = Color(0xFF10B981))
 private val White = ColorProvider(Color.White)
 
