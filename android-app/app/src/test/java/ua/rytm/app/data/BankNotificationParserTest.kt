@@ -67,6 +67,7 @@ class BankNotificationParserTest {
         val s = BankNotificationParser.parse(pumb, "Надходження", "500.00UAH\n06-10-2026 22:11\nРахунок: *3924\nДоступно: -5135.82UAH")!!
         assertTrue(s.isIncome)
         assertEquals(500.0, s.amount, 0.001)
+        assertNull(s.merchant)
     }
 
     @Test fun monoPurchaseWithCashbackLineIsExpense() {
