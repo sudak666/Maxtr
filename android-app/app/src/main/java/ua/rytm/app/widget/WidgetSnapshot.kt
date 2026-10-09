@@ -31,7 +31,7 @@ data class WidgetSnapshot(
     data class RecentTx(val title: String, val date: LocalDate?, val signedAmount: String)
 
     companion object {
-        const val RECENT_CAP = 6
+        const val RECENT_CAP = 8
         private fun shiftCode(t: ShiftType) = t.code.ifBlank { t.name.take(1).uppercase() }.take(2)
 
         val SignedOut = WidgetSnapshot(signedIn = false, masked = true, balanceUah = 0.0, nextShift = null, monthForecastUah = 0.0)
