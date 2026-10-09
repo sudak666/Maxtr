@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens
+import androidx.compose.foundation.lazy.items
+import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.ui.layout.layout
 import androidx.core.net.toUri
 
@@ -375,18 +377,21 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             )
             }
             item(key = "settings-group-filter") {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                listOf(
+            // One scrollable row like Finance's filters: a FlowRow left «Вигляд» alone on a second line.
+            val groups = listOf(
                     "all" to stringResource(R.string.settings_group_all),
                     "account" to stringResource(R.string.settings_account),
                     "finance" to stringResource(R.string.settings_finance),
                     "security" to stringResource(R.string.settings_security),
                     "app" to stringResource(R.string.settings_appearance),
-                ).forEach { (key, label) ->
+            )
+            val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+            androidx.compose.foundation.lazy.LazyRow(
+                state = fadeState,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).fadingEdges(fadeState),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(groups) { (key, label) ->
                     FilterChip(
                         selected = settingsGroup == key,
                         onClick = { settingsGroup = key },

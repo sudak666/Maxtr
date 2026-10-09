@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.components.pressScale
 import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -166,16 +167,18 @@ fun DebtScreen(
             if (cd != null && canEdit) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
                 val collapse = viewModel.historyExpanded && !collapseButtonVisible
+                val fabPress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
+                        .pressScale(fabPress)
                         .shadow(10.dp, shape)
                         .clip(shape)
                         .background(
                             if (collapse) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
                             else Brush.linearGradient(listOf(ua.rytm.app.ui.theme.OrangeDark, ua.rytm.app.ui.theme.OrangeLight2)),
                         )
-                        .clickable(role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
+                        .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
                         .padding(horizontal = if (collapse || fabAtTop) 22.dp else 16.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,

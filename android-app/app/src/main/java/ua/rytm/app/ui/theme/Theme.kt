@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.theme
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchColors
@@ -34,9 +35,19 @@ private val DarkColors = darkColorScheme(
     // (reported live, screenshot: Finance's quick-action cards nearly
     // invisible). Pinned to the same tone as surfaceContainer, which is
     // already proven visible everywhere else it's used.
-    surfaceContainerLow = DarkBg2,
+    // One step off surfaceVariant on purpose: contentColorFor() matches colors by
+    // equality and hit surfaceVariant first, so every ModalBottomSheet (default
+    // container = surfaceContainerLow) got the muted onSurfaceVariant as its
+    // content color — grey sheet titles/values like disabled text.
+    surfaceContainerLow = Color(0xFF2C2B31),
     surfaceContainer = DarkBg2,
     surfaceContainerHigh = DarkBg3,
+    // Same as LightColors: no M3 baseline defaults leaking a purple tint.
+    surfaceContainerLowest = DarkBg,
+    surfaceContainerHighest = DarkBg3,
+    surfaceBright = DarkBg3,
+    surfaceDim = DarkBg,
+    surfaceTint = DarkBg1,
     // Was DarkBorder (#403F45) -- barely distinguishable from surface/
     // surfaceContainerHigh in practice, the same near-1:1-contrast gap
     // patched six separate times this session (Switch thumb, budget field,
@@ -76,9 +87,21 @@ private val LightColors = lightColorScheme(
     onSurface = LightText,
     surfaceVariant = LightBg2,
     onSurfaceVariant = LightMuted2,
-    surfaceContainerLow = LightBg2,
+    // One step off surfaceVariant on purpose: contentColorFor() matches colors by
+    // equality and hit surfaceVariant first, so every ModalBottomSheet (default
+    // container = surfaceContainerLow) got the muted onSurfaceVariant as its
+    // content color — grey sheet titles/values like disabled text.
+    surfaceContainerLow = Color(0xFFECECEB),
     surfaceContainer = LightBg2,
     surfaceContainerHigh = LightBg3,
+    // Pinned: left unset, M3's baseline purple-tinted defaults (#E6E0E9 highest,
+    // primary as tint) washed rows/cards lavender against the warm-neutral bg.
+    surfaceContainerLowest = LightBg1,
+    // Default Card container: white cards on the warm off-white background.
+    surfaceContainerHighest = LightBg1,
+    surfaceBright = LightBg1,
+    surfaceDim = LightBg2,
+    surfaceTint = LightBg1,
     // See DarkColors' `outline` doc comment -- same softened-hairline reasoning.
     outline = LightHairline,
     outlineVariant = LightBorder2,

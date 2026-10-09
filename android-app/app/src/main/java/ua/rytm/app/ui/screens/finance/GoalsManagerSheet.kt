@@ -200,8 +200,8 @@ private fun GoalRow(
             IconButton(
                 onClick = onDelete,
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f),
+                    contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
@@ -210,7 +210,7 @@ private fun GoalRow(
             Text(summary, style = MaterialTheme.typography.bodyMedium, color = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             Text("$percent%", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
-        Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
+        Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))) {
             Box(
                 Modifier.fillMaxWidth(progress.toFloat()).height(8.dp).background(
                     Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.PurpleLight2)),

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.components.pressScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -299,13 +300,15 @@ fun FinanceScreen(
                 val label = stringResource(R.string.transaction_new_title)
                 val fabAnimMs = if (LocalReducedMotion.current) 0 else 450
                 val fabPadding by animateDpAsState(if (collapsed) 16.dp else 22.dp, tween(fabAnimMs), label = "fabPadding")
+                val fabPress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
+                        .pressScale(fabPress)
                         .shadow(10.dp, shape, spotColor = ua.rytm.app.ui.theme.GreenLight2.copy(alpha = 0.5f))
                         .clip(shape)
                         .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
-                        .clickable(role = Role.Button, onClick = {
+                        .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = {
                             // LongPress, not VirtualKey/Confirm -- verified live on a
                             // real device (Samsung A51) that the lighter constants
                             // produce a barely-perceptible tick on this hardware.
