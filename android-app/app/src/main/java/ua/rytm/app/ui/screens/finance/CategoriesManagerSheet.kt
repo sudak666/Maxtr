@@ -114,12 +114,12 @@ fun CategoriesManagerSheet(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(RytmRadii.Input),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (expanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surfaceContainerLow,
+                        containerColor = if (expanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        // Explicit: the inherited color rendered every name muted, like disabled rows.
+                        contentColor = MaterialTheme.colorScheme.onSurface,
                     ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (expanded) MaterialTheme.colorScheme.primary.copy(alpha = 0.28f) else MaterialTheme.colorScheme.outlineVariant,
-                    ),
+                    // Filled rows like Budgets; the outline only marks the expanded one.
+                    border = if (expanded) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)) else null,
                 ) {
                 Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
