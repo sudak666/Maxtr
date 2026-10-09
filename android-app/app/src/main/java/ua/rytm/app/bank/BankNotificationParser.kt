@@ -106,6 +106,6 @@ object BankNotificationParser {
 
     /** Drops leading verbs ("Оплата", "Покупка в") so the comment reads as a place. */
     private fun cleanMerchant(s: String): String =
-        s.replace(Regex("^(оплата|покупка|купівля|списання|зарахування|поповнення|платіж|переказ)\\s*(в|у|на|від)?\\s*:?\\s*", RegexOption.IGNORE_CASE), "")
+        s.replace(Regex("^(оплата|покупка|купівля|списання|надходження|зарахування|поповнення|платіж|переказ)\\s*(в|у|на|від)?\\s*:?\\s*", RegexOption.IGNORE_CASE), "")
             .replace(Regex("^(від|в|у)\\s*:?\\s+", RegexOption.IGNORE_CASE), "").trim()
 }
