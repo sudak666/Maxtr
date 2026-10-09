@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -254,8 +255,10 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                 }
             }
 
+            val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
             LazyRow(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                state = fadeState,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).fadingEdges(fadeState),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(vm.wallets, key = { it.id }) { wallet ->
@@ -446,7 +449,8 @@ internal fun FilterRow(vm: FinanceViewModel) {
     )
     // One scrollable row (type, divider, period) instead of two stacked rows
     // — ~56dp more of the actual history above the fold.
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         items(types, key = { "t-${it.first}" }) { (value, label, icon) ->
             FilterChip(
                 selected = vm.typeFilter == value,

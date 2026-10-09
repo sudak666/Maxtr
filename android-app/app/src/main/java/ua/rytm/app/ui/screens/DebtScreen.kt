@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -279,7 +280,8 @@ fun DebtScreen(
 
 @Composable
 private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(viewModel.debts, key = { it.id }) { debt ->
             val index = viewModel.debts.indexOf(debt)
             val active = debt.id == viewModel.currentDebt?.id

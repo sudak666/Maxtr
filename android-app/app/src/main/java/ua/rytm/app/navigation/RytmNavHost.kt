@@ -1,5 +1,8 @@
 package ua.rytm.app.navigation
 
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
@@ -228,6 +231,16 @@ fun RytmNavHost() {
         Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance + 32.dp),
     )
     if (!mediumWidth) {
+        // Scrim under the floating capsule: list rows were visible, sharp,
+        // in the gap between the capsule and the gesture bar.
+        val scrimColor = MaterialTheme.colorScheme.background
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .windowInsetsBottomHeight(WindowInsets.navigationBars.add(WindowInsets(bottom = RytmDimens.BottomContentClearance / 2)))
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(scrimColor.copy(alpha = 0f), scrimColor.copy(alpha = 0.92f), scrimColor))),
+        )
         RytmBottomBar(
             navController = navController,
             modifier = Modifier.align(Alignment.BottomCenter),

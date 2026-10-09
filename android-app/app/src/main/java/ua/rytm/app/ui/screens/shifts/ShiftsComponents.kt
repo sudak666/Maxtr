@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.icons.Share
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -604,7 +605,8 @@ internal fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
 @Composable
 internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((String) -> Unit)?) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+        LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(types, key = { it.id }) { type ->
                 val accent = Color(type.colorHex)
                 val selected = type.id == brushTypeId
