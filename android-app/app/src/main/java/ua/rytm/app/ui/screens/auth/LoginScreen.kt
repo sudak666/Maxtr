@@ -236,7 +236,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         Text(stringResource(if (viewModel.authMode == AuthMode.LOGIN) R.string.auth_sign_in else R.string.auth_register), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
                     }
 
-                    TextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    // Only meaningful when signing in, not on the register tab.
+                    if (viewModel.authMode == AuthMode.LOGIN) TextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                     }
 
@@ -299,8 +300,10 @@ private fun AuthModeTab(label: String, selected: Boolean, enabled: Boolean, modi
         shape = RoundedCornerShape(RytmRadii.Pill),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-            contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+            // Neutral selected pill (iOS segmented-control style): a purple
+            // fill here competed with the Google and submit CTAs above/below it.
+            containerColor = if (selected) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent,
+            contentColor = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp),
     ) { Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1) }

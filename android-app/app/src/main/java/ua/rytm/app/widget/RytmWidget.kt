@@ -109,7 +109,8 @@ private val WEEK_HEIGHT = 88.dp
 private val RECENT_HEADER = 30.dp
 private val RECENT_ROW = 40.dp
 // Recent list Column holds header spacer+label + 2 children per row ≤ Glance's 10.
-private const val MAX_RECENT_ROWS = 4
+// Header + 8 rows = 9 children, under Glance's 10-per-container cap; 4 left a tall widget a third empty.
+private const val MAX_RECENT_ROWS = 8
 
 @Composable
 private fun WidgetContent(s: WidgetSnapshot) {
@@ -282,8 +283,10 @@ private fun RecentList(items: List<WidgetSnapshot.RecentTx>, masked: Boolean) {
     Column(GlanceModifier.fillMaxWidth()) {
     Spacer(GlanceModifier.height(14.dp))
     Text(context.getString(R.string.widget_recent), style = TextStyle(color = Muted, fontSize = 12.sp))
+    // One child per item (gap is the wrapper's top padding): a separate
+    // Spacer made it 2 children per row and blew Glance's 10-child cap.
     items.forEach { t ->
-        Spacer(GlanceModifier.height(6.dp))
+        Column(GlanceModifier.fillMaxWidth().padding(top = 6.dp)) {
         Row(GlanceModifier.fillMaxWidth().height(34.dp).background(Tile).cornerRadius(12.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(GlanceModifier.defaultWeight()) {
                 Text(t.title, style = TextStyle(color = OnBg, fontSize = 12.sp, fontWeight = FontWeight.Medium), maxLines = 1)
@@ -298,6 +301,7 @@ private fun RecentList(items: List<WidgetSnapshot.RecentTx>, masked: Boolean) {
                 ),
                 maxLines = 1,
             )
+        }
         }
     }
     }
