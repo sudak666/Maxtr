@@ -272,10 +272,14 @@ private fun ProfileRow(
         return
     }
 
+    // Whole inactive row switches; its card was surfaceContainerLow — the
+    // sheet's own color — so it rendered as bare text with no card.
     Surface(
+        onClick = onSwitch,
+        enabled = !isActive,
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
-        color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceContainerLow,
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = if (isActive) 2.dp else 0.dp,
     ) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -302,11 +306,9 @@ private fun ProfileRow(
                 // so the two never lined up between rows (flagged live,
                 // screenshot). Moved into this same status-line Row so both
                 // "Активний" and "Перемкнути" occupy the identical slot.
-                if (!isActive) {
-                    TextButton(onClick = onSwitch, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                        Text(stringResource(R.string.profile_switch), style = MaterialTheme.typography.labelSmall)
-                    }
-                }
+                // Plain label: the row itself is the button (a TextButton's 48dp
+                // min height pushed this line far below the name).
+                if (!isActive) Text(stringResource(R.string.profile_switch), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             }
         }
         if (profile.isShared) {

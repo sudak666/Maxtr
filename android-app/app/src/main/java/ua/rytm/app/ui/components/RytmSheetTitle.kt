@@ -26,8 +26,9 @@ fun RytmSheetTitle(
     text: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    centered: Boolean = false,
 ) {
-    Column(modifier.fillMaxWidth().padding(bottom = 4.dp)) {
+    Column(modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalAlignment = if (centered) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start) {
         Text(
             text,
             style = MaterialTheme.typography.headlineSmall,
