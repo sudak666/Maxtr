@@ -75,6 +75,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmSemantic
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
@@ -144,7 +145,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 RytmSheetTitle(
                     stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
                     modifier = Modifier.weight(1f),
@@ -279,7 +280,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 val categories = vm.categoriesByType[vm.formType].orEmpty()
                 val frequent = vm.formFrequentCategories
                 if (frequent.size >= 2) {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(frequent, key = { it }) { cat ->
                             androidx.compose.material3.FilterChip(
                                 selected = (vm.formCategory ?: categories.firstOrNull()) == cat,
@@ -330,7 +332,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             )
 
             if (vm.tags.isNotEmpty()) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+                LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(vm.tags) { tag ->
                         androidx.compose.material3.FilterChip(
                             selected = tag.id in vm.formSelectedTagIds,

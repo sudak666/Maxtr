@@ -32,6 +32,8 @@ fun RytmSheetTitle(
             text,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.ExtraBold,
+            // Explicit: inherited content color rendered the title muted grey, like a disabled label.
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.semantics { heading() },
         )
         if (subtitle != null) {
