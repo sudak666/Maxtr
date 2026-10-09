@@ -1807,3 +1807,4 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 ## 2026-10-08 — ПУМБ «Купівля» push not parsed
 - Live push from ПУМБ (title «Купівля», "26.00UAH / Produkti KIYEV UA / … / Картка: *7343 / Доступно: …") gave no suggestion: `expenseWords` had no «купівл», so direction was unknown → null. Added «купівл» to expense keywords and «купівля» to `cleanMerchant` verbs (else the title became the merchant). Regression test `realPumbKupivlia`. Diagnosed via adb `dumpsys notification --noredact`.
 - Bumped to 2.4.2 / vc23 (ПУМБ «Купівля» fix); AAB built to Desktop for Play upload.
+- Bank-push prefill on cold start opened before wallets/history loaded → empty wallet, alphabetically-first category («% поповнення ПУМБ»). `FinanceScreen` now also waits for `!viewModel.loading`. Not device-verified (QA install signed out).
