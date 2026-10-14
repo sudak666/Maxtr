@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -132,6 +133,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     }
     var scanSourceOpen by rememberSaveable { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val submitHaptics = rememberRytmHaptics()
+    val formLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val decimalSeparator = remember(formLocale) { java.text.DecimalFormatSymbols.getInstance(formLocale).decimalSeparator }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
@@ -258,7 +262,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     value = vm.formAmountText,
                     onValueChange = vm::onFormAmountChange,
                     label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
-                    placeholder = { Text("0.00") },
+                    placeholder = { Text("0${decimalSeparator}00") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     // The error used to be one generic line at the bottom of
@@ -323,7 +327,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 supportingText = {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(vm.formErrorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
-                        Text("${vm.formComment.length}/$TX_COMMENT_MAX")
+                        // Only near the limit: an always-on 0/500 is noise in a form opened daily.
+                        if (vm.formComment.length > TX_COMMENT_MAX - 100) Text("${vm.formComment.length}/$TX_COMMENT_MAX")
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -355,7 +360,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            Button(onClick = vm::submitForm, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
+            Button(onClick = { submitHaptics.confirm(); vm.submitForm() }, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
             }
         }
@@ -368,6 +373,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
     // semantic layer, whose light tones also clear 4.5:1 against this
     // segment's own tinted wash (#059669 on it was 3.43:1).
     val isDark = RytmSemantic.isDark
+    val typeHaptics = rememberRytmHaptics()
     val options = listOf(
         TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), RytmIcons.ArrowUpward, RytmSemantic.income),
         TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, RytmSemantic.expense),
@@ -391,7 +397,10 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
                         shape = RoundedCornerShape(RytmRadii.Input),
                     )
                     .semantics { selected = isSelected }
-                    .clickable(role = Role.RadioButton) { vm.onFormTypeChange(option.type) }
+                    .clickable(role = Role.RadioButton) {
+                        if (!isSelected) typeHaptics.tick()
+                        vm.onFormTypeChange(option.type)
+                    }
                     .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,

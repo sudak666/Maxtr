@@ -60,7 +60,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -74,7 +73,6 @@ import androidx.compose.ui.res.pluralStringResource
 import kotlinx.coroutines.launch
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
-import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.theme.onColorFor
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.components.RytmStatChip
@@ -131,7 +129,7 @@ import ua.rytm.app.ui.theme.tabularNums
 @Composable
 fun DebtScreen(
     viewModel: DebtViewModel = viewModel(
-        factory = DebtViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
+        factory = DebtViewModel.factory(ua.rytm.app.ui.rytmApp()),
     ),
 ) {
     val cd = viewModel.currentDebt
@@ -442,7 +440,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
         Card(shape = RoundedCornerShape(RytmRadii.Input), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, role = androidx.compose.ui.semantics.Role.Button, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

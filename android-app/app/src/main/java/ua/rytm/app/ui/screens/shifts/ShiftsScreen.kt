@@ -1,10 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
-import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.foundation.layout.navigationBarsPadding
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
 import ua.rytm.app.ui.icons.TipsAndUpdates
@@ -14,106 +9,50 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import ua.rytm.app.ui.ReducedMotionVisibility
 import ua.rytm.app.ui.motionAwareSpec
 import ua.rytm.app.ui.motionProgress
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.auth.FirebaseAuth
-import ua.rytm.app.data.DEFAULT_PROFILE_ID
-import ua.rytm.app.RytmApplication
-import ua.rytm.app.R
-import androidx.compose.ui.semantics.contentDescription
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.onColorFor
-import ua.rytm.app.ui.theme.RytmRadii
-import ua.rytm.app.ui.LocalCanEditProfile
-import ua.rytm.app.ui.LocalSnackbarHost
 import ua.rytm.app.ui.components.RytmDestructiveConfirm
-import ua.rytm.app.ui.components.formatLongDate
 import ua.rytm.app.ui.components.RytmStatChip
 import ua.rytm.app.ui.components.RytmStatChipRow
 import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.components.DatePickerField
-import ua.rytm.app.ui.theme.RytmDimens
-import ua.rytm.app.ui.RealtimeStateBanner
-import ua.rytm.app.ui.ScreenLoadErrorState
-import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.screens.finance.formatMoney
 import java.time.YearMonth
 import java.time.format.TextStyle
-import androidx.compose.foundation.layout.imePadding
-import ua.rytm.app.ui.components.RytmSheetTitle
-import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.ArrowBack
 import ua.rytm.app.ui.icons.BeachAccess
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.ChevronLeft
@@ -126,6 +65,64 @@ import ua.rytm.app.ui.icons.Style
 import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.theme.tabularNums
 import kotlinx.coroutines.launch
+import ua.rytm.app.ui.components.rememberRytmHaptics
+import ua.rytm.app.ui.components.RytmModalBottomSheet
+import androidx.compose.foundation.layout.navigationBarsPadding
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import ua.rytm.app.R
+import androidx.compose.ui.semantics.contentDescription
+import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.ui.LocalSnackbarHost
+import ua.rytm.app.ui.components.formatLongDate
+import ua.rytm.app.ui.theme.RytmDimens
+import ua.rytm.app.ui.RealtimeStateBanner
+import ua.rytm.app.ui.ScreenLoadErrorState
+import ua.rytm.app.ui.ScreenLoadingState
+import androidx.compose.foundation.layout.imePadding
+import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.ArrowBack
 
 // Implements SHIFTS_SCREEN_SPEC.md end to end as of step 39: hero metric,
 // chip stats, 6-month earnings chart, collapsible quick-fill (template +
@@ -135,21 +132,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun ShiftsScreen() {
     val canEdit = LocalCanEditProfile.current
-    val app = LocalContext.current.applicationContext as RytmApplication
-    val accountUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-    val profileId by app.activeProfileStore.activeProfileId(accountUid).collectAsState(initial = DEFAULT_PROFILE_ID)
-    val ownerUid by app.activeProfileStore.activeProfileOwnerUid(accountUid).collectAsState(initial = null)
-    val dataUid = ownerUid ?: accountUid
+    val app = ua.rytm.app.ui.rytmApp()
+    val session = ua.rytm.app.ui.LocalSession.current
+    val accountUid = session.accountUid ?: return
+    val profileId = session.profileId
+    val dataUid = session.ownerUid ?: accountUid
     val viewModel: ShiftsViewModel = viewModel(
         key = "$dataUid|$profileId",
         factory = ShiftsViewModel.factory(
             app.shiftsRepository, dataUid, profileId,
-            kotlinx.coroutines.flow.combine(app.financeRepository.transactions, app.financeRepository.currencyRates) { txs, rates ->
-                txs.asSequence()
-                    .filter { it.type == ua.rytm.app.ui.screens.finance.TxType.EXPENSE }
-                    .groupBy({ it.date }, { app.financeRepository.convertCurrency(it.amount, it.currency, "UAH", rates) })
-                    .mapValues { (_, v) -> v.sum() }
-            },
+            app.financeRepository.expensesUahByDate,
+            app.settingsStore, app.widgetSettingsSyncRepository, accountUid,
         ),
     )
     val stats = viewModel.monthStats
@@ -202,7 +195,10 @@ fun ShiftsScreen() {
         // The calendar is what this tab is opened for — it used to sit below
         // the stats, forecast and six-month chart, i.e. off-screen on a phone.
         item { MonthNav(viewModel) }
-        item { LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) viewModel::selectBrush else null) }
+        item {
+            val brushHaptics = rememberRytmHaptics()
+            LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) { id -> brushHaptics.tick(); viewModel.selectBrush(id) } else null)
+        }
         if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
@@ -348,7 +344,6 @@ fun ShiftsScreen() {
     // Must outlive the dialog: a scope remembered inside `if (editingGoal)` was
     // cancelled the moment "Готово" closed it, before DataStore wrote — the
     // goal never saved (reported live).
-    val goalScope = androidx.compose.runtime.rememberCoroutineScope()
     if (canEdit && editingGoal) {
         var text by rememberSaveable(editingGoal) {
             mutableStateOf(if (salaryGoal == 0.0) "" else java.math.BigDecimal.valueOf(salaryGoal).stripTrailingZeros().toPlainString())
@@ -375,10 +370,7 @@ fun ShiftsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let { goalScope.launch {
-                        app.settingsStore.setSalaryGoal(accountUid, it)
-                        runCatching { app.widgetSettingsSyncRepository.saveSalaryGoal(dataUid, profileId, it) }
-                    } }
+                    ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let(viewModel::saveSalaryGoal)
                     editingGoal = false
                 }) { Text(stringResource(R.string.action_done)) }
             },

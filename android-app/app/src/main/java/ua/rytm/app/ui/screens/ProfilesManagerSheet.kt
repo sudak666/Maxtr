@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.ProfileMeta
 import ua.rytm.app.ui.localizedDomainText
@@ -74,7 +73,7 @@ fun ProfilesManagerSheet(
     onSwitched: (String) -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val app = context.applicationContext as RytmApplication
+    val app = ua.rytm.app.ui.rytmApp()
     val viewModel: ProfilesManagerViewModel = viewModel(factory = ProfilesManagerViewModel.factory(app, uid))
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()

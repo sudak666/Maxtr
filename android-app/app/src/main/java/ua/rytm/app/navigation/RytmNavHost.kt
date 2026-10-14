@@ -61,13 +61,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.produceState
-import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.ui.LocalCanEditProfile
@@ -104,7 +102,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 @Composable
 fun RytmNavHost() {
     val navController = rememberNavController()
-    val app = LocalContext.current.applicationContext as RytmApplication
+    val app = ua.rytm.app.ui.rytmApp()
     // Widget "+" → make sure the Finance tab is showing; FinanceScreen then
     // opens the new-transaction sheet and consumes the action.
     val launchAction by app.pendingLaunchAction.collectAsState()
@@ -158,6 +156,7 @@ fun RytmNavHost() {
     }
     CompositionLocalProvider(
         LocalCanEditProfile provides canEdit,
+        ua.rytm.app.ui.LocalSession provides ua.rytm.app.ui.RytmSession(accountUid, profileId, ownerUid),
         LocalRealtimeState provides realtimeState,
         LocalRetryLoad provides ::refresh,
         LocalSnackbarHost provides snackbarHostState,

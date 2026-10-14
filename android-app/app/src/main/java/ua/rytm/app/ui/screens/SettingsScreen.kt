@@ -1,34 +1,15 @@
 package ua.rytm.app.ui.screens
-import androidx.compose.foundation.lazy.items
-import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.ui.layout.layout
-import androidx.core.net.toUri
-
-import android.Manifest
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.annotation.StringRes
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -37,68 +18,22 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
-import ua.rytm.app.R
-import ua.rytm.app.RytmApplication
-import ua.rytm.app.ui.LocalCanEditProfile
-import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.CsvImportError
 import ua.rytm.app.data.CsvImportErrorReason
-import ua.rytm.app.data.local.ThemePreference
-import ua.rytm.app.data.local.clearAllProfileScopedTables
-import ua.rytm.app.ui.screens.auth.AuthViewModel
-import ua.rytm.app.ui.screens.finance.BudgetsManagerSheet
-import ua.rytm.app.ui.screens.finance.AutoRulesManagerSheet
-import ua.rytm.app.ui.screens.finance.CategoriesManagerSheet
-import ua.rytm.app.ui.screens.finance.GoalsManagerSheet
-import ua.rytm.app.ui.screens.finance.RecurringManagerSheet
-import ua.rytm.app.ui.screens.finance.TagsManagerSheet
-import ua.rytm.app.ui.screens.finance.RatesManagerSheet
-import ua.rytm.app.ui.screens.finance.WalletsManagerSheet
-import ua.rytm.app.ui.screens.finance.WidgetsManagerSheet
-import ua.rytm.app.ui.screens.pin.PinSettingsSheet
-import ua.rytm.app.ui.screens.pin.PinViewModel
-import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
 import ua.rytm.app.ui.theme.Cyan
 import ua.rytm.app.ui.theme.Slate
 import ua.rytm.app.ui.theme.Teal
@@ -109,39 +44,88 @@ import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.OrangeDark
 import ua.rytm.app.ui.theme.Pink
-import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
+import ua.rytm.app.ui.icons.Public
+import ua.rytm.app.ui.icons.AccountBalance
+import ua.rytm.app.ui.icons.BrightnessAuto
+import ua.rytm.app.ui.icons.Check
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.DarkMode
+import ua.rytm.app.ui.icons.Description
+import ua.rytm.app.ui.icons.Language
+import ua.rytm.app.ui.icons.LightMode
+import ua.rytm.app.ui.icons.PrivacyTip
+import androidx.compose.foundation.lazy.items
+import ua.rytm.app.ui.components.fadingEdges
+import androidx.core.net.toUri
+
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import ua.rytm.app.R
+import ua.rytm.app.ui.LocalCanEditProfile
+import ua.rytm.app.data.local.ThemePreference
+import ua.rytm.app.data.local.clearAllProfileScopedTables
+import ua.rytm.app.ui.screens.auth.AuthViewModel
+import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
-import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.Public
-import ua.rytm.app.ui.icons.AccountBalance
 import ua.rytm.app.ui.icons.AccountBalanceWallet
-import ua.rytm.app.ui.icons.BrightnessAuto
 import ua.rytm.app.ui.icons.Category
-import ua.rytm.app.ui.icons.Check
-import ua.rytm.app.ui.icons.CheckCircle
-import ua.rytm.app.ui.icons.ChevronRight
-import ua.rytm.app.ui.icons.Clear
 import ua.rytm.app.ui.icons.CloudDone
 import ua.rytm.app.ui.icons.CurrencyExchange
-import ua.rytm.app.ui.icons.DarkMode
 import ua.rytm.app.ui.icons.DeleteForever
-import ua.rytm.app.ui.icons.Description
 import ua.rytm.app.ui.icons.Download
 import ua.rytm.app.ui.icons.Flag
 import ua.rytm.app.ui.icons.GridView
 import ua.rytm.app.ui.icons.Groups
-import ua.rytm.app.ui.icons.Language
-import ua.rytm.app.ui.icons.LightMode
 import ua.rytm.app.ui.icons.Lock
 import ua.rytm.app.ui.icons.Logout
 import ua.rytm.app.ui.icons.Notifications
 import ua.rytm.app.ui.icons.NotificationsActive
 import ua.rytm.app.ui.icons.PieChart
-import ua.rytm.app.ui.icons.PrivacyTip
 import ua.rytm.app.ui.icons.Repeat
 import ua.rytm.app.ui.icons.RestartAlt
 import ua.rytm.app.ui.icons.Search
@@ -150,7 +134,6 @@ import ua.rytm.app.ui.icons.Star
 import ua.rytm.app.ui.icons.Style
 import ua.rytm.app.ui.icons.Tune
 import ua.rytm.app.ui.icons.Upload
-import ua.rytm.app.ui.icons.UploadFile
 import ua.rytm.app.ui.icons.VisibilityOff
 
 // "Гаманці"/"Категорії"/"Типи змін"/"Бюджети"/"Теги"/"Регулярні платежі"/
@@ -171,22 +154,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val canEdit = LocalCanEditProfile.current
     val context = LocalContext.current
     val resources = LocalResources.current
-    val app = context.applicationContext as RytmApplication
+    val app = ua.rytm.app.ui.rytmApp()
     val scope = rememberCoroutineScope()
-    var walletsSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var categoriesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var tagsSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var recurringSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var autoRulesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var ratesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var widgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var shiftTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var pinSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var notifTypesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var profilesSheetOpen by rememberSaveable { mutableStateOf(false) }
-    var backupsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var pendingSignOut by rememberSaveable { mutableStateOf(false) }
     var premiumDialogOpen by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
@@ -201,8 +171,9 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
     val language by app.settingsStore.language.collectAsState(initial = "uk")
     val uid = authViewModel.currentUser?.uid
-    val activeProfileId by (if (uid != null) app.activeProfileStore.activeProfileId(uid) else flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
-    val activeProfileOwnerUid by (if (uid != null) app.activeProfileStore.activeProfileOwnerUid(uid) else flowOf(null)).collectAsState(initial = null)
+    val session = ua.rytm.app.ui.LocalSession.current
+    val activeProfileId = session.profileId
+    val activeProfileOwnerUid = session.ownerUid
     val pushPermissionDeniedMessage = stringResource(R.string.settings_push_permission_denied)
     val linkOpenFailedMessage = stringResource(R.string.settings_link_open_failed)
 
@@ -427,7 +398,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             badgeColor = SettingsGroupColors.Account,
                             title = stringResource(R.string.profiles_title),
                             subtitle = stringResource(R.string.settings_profiles_subtitle),
-                            onClick = { profilesSheetOpen = true },
+                            onClick = { openSheet = SettingsSheet.Profiles },
                         )
                         SettingsRow(
                             icon = RytmIcons.CloudDone,
@@ -438,7 +409,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                                 if (activeProfileOwnerUid != null) {
                                     pendingMessage = resources.getString(R.string.backups_shared_unavailable)
                                 } else {
-                                    backupsSheetOpen = true
+                                    openSheet = SettingsSheet.Backups
                                 }
                             },
                         )
@@ -483,7 +454,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         badgeColor = SettingsGroupColors.Security,
                         title = stringResource(R.string.pin_settings_title),
                         subtitle = stringResource(R.string.settings_pin_subtitle),
-                        onClick = { pinSheetOpen = true },
+                        onClick = { openSheet = SettingsSheet.Pin },
                     )
                 }
 
@@ -505,68 +476,14 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     // *which* alerts to send is meaningless before the device
                     // has even registered to receive any (see
                     // NotificationSettingsSheet's own doc comment).
-                    // Bank-push suggestions: system-level notification access is
-                    // the switch itself, so this opens that screen; the subtitle
-                    // shows whether it is currently granted (re-read on resume).
-                    val bankContext = LocalContext.current
-                    var bankEnabled by remember { mutableStateOf(ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)) }
-                    // Suggestions are themselves notifications: without POST_NOTIFICATIONS
-                    // they were dropped silently (found live — the listener got real ПУМБ
-                    // pushes, nothing appeared). Ask for it on the way to the system switch.
-                    fun openListenerSettings() {
-                        runCatching { bankContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
-                    }
-                    val bankNotifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { openListenerSettings() }
-                    val canPostNotifications = androidx.core.app.NotificationManagerCompat.from(bankContext).areNotificationsEnabled()
-                    // Prominent disclosure (Play User Data policy): say exactly what is
-                    // read and what is not before sending the user to the system switch.
-                    var bankDisclosureOpen by remember { mutableStateOf(false) }
-                    if (bankDisclosureOpen) {
-                        androidx.compose.material3.AlertDialog(
-                            onDismissRequest = { bankDisclosureOpen = false },
-                            title = { Text(stringResource(R.string.bank_disclosure_title)) },
-                            text = { Text(stringResource(R.string.bank_disclosure_body)) },
-                            confirmButton = {
-                                androidx.compose.material3.TextButton(onClick = {
-                                    bankDisclosureOpen = false
-                                    if (!canPostNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        bankNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                    } else openListenerSettings()
-                                }) { Text(stringResource(R.string.bank_disclosure_ok)) }
-                            },
-                            dismissButton = {
-                                androidx.compose.material3.TextButton(onClick = { bankDisclosureOpen = false }) { Text(stringResource(R.string.action_cancel)) }
-                            },
-                        )
-                    }
-                    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
-                        bankEnabled = ua.rytm.app.bank.BankNotificationListener.isEnabled(bankContext)
-                        onPauseOrDispose { }
-                    }
-                    SettingsRow(
-                        icon = RytmIcons.AccountBalance,
-                        badgeColor = SettingsGroupColors.Notifications,
-                        title = stringResource(R.string.bank_listener_title),
-                        subtitle = stringResource(
-                            when {
-                                bankEnabled && !canPostNotifications -> R.string.bank_listener_blocked
-                                bankEnabled -> R.string.bank_listener_on
-                                else -> R.string.bank_listener_off
-                            },
-                        ),
-                        onClick = {
-                            if (bankEnabled && !canPostNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                bankNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else bankDisclosureOpen = true
-                        },
-                    )
+                    BankSuggestionsRow()
                     if (displayedPushEnabled) {
                         SettingsRow(
                             icon = RytmIcons.NotificationsActive,
                             badgeColor = SettingsGroupColors.Notifications,
                             title = stringResource(R.string.settings_notification_types),
                             subtitle = stringResource(R.string.settings_notification_types_subtitle),
-                            onClick = { notifTypesSheetOpen = true },
+                            onClick = { openSheet = SettingsSheet.NotificationTypes },
                         )
                     }
                 }
@@ -586,13 +503,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 // user's font-scale setting.
                 ThemePreferenceSelector(
                     selected = themePreference,
-                    onSelect = { pref -> scope.launch { app.settingsStore.setThemePreference(pref) } },
+                    onSelect = settingsViewModel::setThemePreference,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 RoundedChoiceSelector(
                     labels = listOf(stringResource(R.string.settings_language_uk), stringResource(R.string.settings_language_en)),
                     selectedIndex = if (language == "en") 1 else 0,
-                    onSelect = { scope.launch { app.settingsStore.setLanguage(if (it == 0) "uk" else "en") } },
+                    onSelect = { settingsViewModel.setLanguage(if (it == 0) "uk" else "en") },
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
                 SettingsGroupCard {
@@ -603,7 +520,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
                         checked = hideAmounts,
                         enabled = true,
-                        onCheckedChange = { scope.launch { app.settingsStore.setHideAmounts(it) } },
+                        onCheckedChange = settingsViewModel::setHideAmounts,
                     )
                     SettingsToggleRow(
                         icon = RytmIcons.CloudDone,
@@ -612,7 +529,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         subtitle = stringResource(if (privacyCacheEnabled) R.string.settings_offline_cache_on else R.string.settings_offline_cache_off),
                         checked = privacyCacheEnabled,
                         enabled = true,
-                        onCheckedChange = { scope.launch { app.settingsStore.setPrivacyCacheEnabled(it) } },
+                        onCheckedChange = settingsViewModel::setPrivacyCacheEnabled,
                     )
                 }
             } }
@@ -624,153 +541,41 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             // piecewise so it looks identical.
             if (canEdit && financeVisible) {
                 item(key = "settings-finance-label") { SettingsSectionLabel(stringResource(R.string.settings_finance)) }
-                item(key = "settings-finance-0") { SettingsCardSegment(SegmentPosition.First) {
-                    SettingsRow(
-                        icon = RytmIcons.AccountBalanceWallet,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.wallets_title),
-                        subtitle = stringResource(R.string.settings_wallets_subtitle),
-                        onClick = { walletsSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-2") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Category,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.categories_title),
-                        subtitle = stringResource(R.string.settings_categories_subtitle),
-                        onClick = { categoriesSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-3") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.CurrencyExchange,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.rates_title),
-                        subtitle = stringResource(R.string.settings_rates_subtitle),
-                        onClick = { ratesSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-4") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.PieChart,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.budgets_title),
-                        subtitle = stringResource(R.string.settings_budgets_subtitle),
-                        onClick = { budgetsSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-5") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Sell,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.tags_title),
-                        subtitle = stringResource(R.string.settings_tags_subtitle),
-                        onClick = { tagsSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-6") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Flag,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.goals_title),
-                        subtitle = stringResource(R.string.settings_goals_subtitle),
-                        onClick = { goalsSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-7") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.GridView,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.widgets_title),
-                        subtitle = stringResource(R.string.settings_widgets_subtitle),
-                        onClick = { widgetsSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-8") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Repeat,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.recurring_title),
-                        subtitle = stringResource(R.string.settings_recurring_subtitle),
-                        onClick = { recurringSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-9") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Tune,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.auto_rules_title),
-                        subtitle = stringResource(R.string.settings_auto_rules_subtitle),
-                        onClick = { autoRulesSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-10") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Style,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.shift_types_title),
-                        subtitle = stringResource(R.string.settings_shift_types_subtitle),
-                        onClick = { shiftTypesSheetOpen = true },
-                    )
-                } }
-                item(key = "settings-finance-11") { SettingsCardSegment(SegmentPosition.Middle) {
-                    SettingsRow(
-                        icon = RytmIcons.Download,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.settings_csv_export),
-                        subtitle = stringResource(R.string.settings_csv_export_subtitle),
-                        onClick = { if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv") },
-                    )
-                } }
-                item(key = "settings-finance-12") { SettingsCardSegment(SegmentPosition.Last) {
-                    SettingsRow(
-                        icon = RytmIcons.Upload,
-                        badgeColor = SettingsGroupColors.Neutral,
-                        title = stringResource(R.string.settings_csv_import),
-                        subtitle = stringResource(R.string.settings_csv_import_subtitle),
-                        onClick = { if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
-                    )
-                } }
+                val financeRows = listOf(
+                    SettingsLink(RytmIcons.AccountBalanceWallet, R.string.wallets_title, R.string.settings_wallets_subtitle) { openSheet = SettingsSheet.Wallets },
+                    SettingsLink(RytmIcons.Category, R.string.categories_title, R.string.settings_categories_subtitle) { openSheet = SettingsSheet.Categories },
+                    SettingsLink(RytmIcons.CurrencyExchange, R.string.rates_title, R.string.settings_rates_subtitle) { openSheet = SettingsSheet.Rates },
+                    SettingsLink(RytmIcons.PieChart, R.string.budgets_title, R.string.settings_budgets_subtitle) { openSheet = SettingsSheet.Budgets },
+                    SettingsLink(RytmIcons.Sell, R.string.tags_title, R.string.settings_tags_subtitle) { openSheet = SettingsSheet.Tags },
+                    SettingsLink(RytmIcons.Flag, R.string.goals_title, R.string.settings_goals_subtitle) { openSheet = SettingsSheet.Goals },
+                    SettingsLink(RytmIcons.GridView, R.string.widgets_title, R.string.settings_widgets_subtitle) { openSheet = SettingsSheet.Widgets },
+                    SettingsLink(RytmIcons.Repeat, R.string.recurring_title, R.string.settings_recurring_subtitle) { openSheet = SettingsSheet.Recurring },
+                    SettingsLink(RytmIcons.Tune, R.string.auto_rules_title, R.string.settings_auto_rules_subtitle) { openSheet = SettingsSheet.AutoRules },
+                    SettingsLink(RytmIcons.Style, R.string.shift_types_title, R.string.settings_shift_types_subtitle) { openSheet = SettingsSheet.ShiftTypes },
+                    SettingsLink(RytmIcons.Download, R.string.settings_csv_export, R.string.settings_csv_export_subtitle) {
+                        if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
+                    },
+                    SettingsLink(RytmIcons.Upload, R.string.settings_csv_import, R.string.settings_csv_import_subtitle) {
+                        if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain"))
+                    },
+                )
+                financeRows.forEachIndexed { i, row ->
+                    val position = when (i) { 0 -> SegmentPosition.First; financeRows.lastIndex -> SegmentPosition.Last; else -> SegmentPosition.Middle }
+                    item(key = "settings-finance-${row.title}") { SettingsCardSegment(position) {
+                        SettingsRow(
+                            icon = row.icon,
+                            badgeColor = SettingsGroupColors.Neutral,
+                            title = stringResource(row.title),
+                            subtitle = stringResource(row.subtitle),
+                            onClick = row.onClick,
+                        )
+                    } }
+                }
             }
 
             // "Про застосунок" goes last, after every functional group.
             if (aboutVisible) { item(key = "settings-about") {
-                SettingsSectionLabel(stringResource(R.string.settings_about))
-                SettingsGroupCard {
-                    SettingsRow(
-                        icon = RytmIcons.Public,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.settings_web),
-                        subtitle = stringResource(R.string.settings_web_subtitle),
-                        onClick = { openExternalUrl("https://maxtr-c238f.web.app") },
-                    )
-                    // privacy.html/terms.html have no i18n of their own (standalone
-                    // static pages, not part of the app's string-resource system) —
-                    // legal_docs_en picks the -en.html sibling instead of silently
-                    // always opening the Ukrainian original regardless of app language.
-                    val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
-                    SettingsRow(
-                        icon = RytmIcons.Description,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.settings_terms_row),
-                        subtitle = stringResource(R.string.settings_terms_subtitle),
-                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") },
-                    )
-                    SettingsRow(
-                        icon = RytmIcons.PrivacyTip,
-                        badgeColor = SettingsGroupColors.About,
-                        title = stringResource(R.string.settings_privacy_row),
-                        subtitle = stringResource(R.string.settings_privacy_subtitle),
-                        onClick = { openExternalUrl(if (legalDocsEn) "https://maxtr-c238f.web.app/privacy-en.html" else "https://maxtr-c238f.web.app/privacy.html") },
-                    )
-                }
-                Text(
-                    stringResource(R.string.settings_about_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                )
+                AboutSection(onOpenUrl = ::openExternalUrl)
             } }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
                 item(key = "settings-search-empty") {
@@ -788,137 +593,26 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
-    if (walletsSheetOpen && uid != null) {
-        WalletsManagerSheet(
-            repository = app.financeRepository,
-            syncRepository = app.financeSyncRepository,
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            onDismiss = { walletsSheetOpen = false },
-        )
-    }
-    if (categoriesSheetOpen && uid != null) {
-        CategoriesManagerSheet(
-            repository = app.financeRepository,
-            syncRepository = app.categoriesSyncRepository,
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            onDismiss = { categoriesSheetOpen = false },
-        )
-    }
-    if (budgetsSheetOpen && uid != null) {
-        BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })
-    }
-    if (tagsSheetOpen && uid != null) {
-        TagsManagerSheet(repository = app.financeRepository, syncRepository = app.tagsSyncRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { tagsSheetOpen = false })
-    }
-    if (recurringSheetOpen) {
-        val accountUid = uid
-        if (accountUid != null) RecurringManagerSheet(
-            repository = app.financeRepository,
-            syncRepository = app.recurringSyncRepository,
-            uid = activeProfileOwnerUid ?: accountUid,
-            profileId = activeProfileId,
-            onDismiss = { recurringSheetOpen = false },
-        )
-    }
-    if (autoRulesSheetOpen && uid != null) {
-        AutoRulesManagerSheet(
-            repository = app.financeRepository,
-            sync = app.autoRulesSyncRepository,
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            onDismiss = { autoRulesSheetOpen = false },
-        )
-    }
-    if (goalsSheetOpen) {
-        val accountUid = uid
-        if (accountUid != null) GoalsManagerSheet(
-            repository = app.financeRepository,
-            syncRepository = app.goalsSyncRepository,
-            uid = activeProfileOwnerUid ?: accountUid,
-            profileId = activeProfileId,
-            onDismiss = { goalsSheetOpen = false },
-        )
-    }
-    if (widgetsSheetOpen && uid != null) {
-        WidgetsManagerSheet(
-            settingsStore = app.settingsStore,
-            syncRepository = app.widgetSettingsSyncRepository,
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            onDismiss = { widgetsSheetOpen = false },
-        )
-    }
-    if (ratesSheetOpen && uid != null) {
-        RatesManagerSheet(
-            uid = activeProfileOwnerUid ?: uid,
-            profileId = activeProfileId,
-            financeRepository = app.financeRepository,
-            syncRepository = app.currencyRatesSyncRepository,
-            settingsStore = app.settingsStore,
-            onDismiss = { ratesSheetOpen = false },
-        )
-    }
-    if (shiftTypesSheetOpen && uid != null) {
-        ShiftTypesManagerSheet(repository = app.shiftsRepository, uid = activeProfileOwnerUid ?: uid, profileId = activeProfileId, onDismiss = { shiftTypesSheetOpen = false })
-    }
-    if (notifTypesSheetOpen && uid != null) {
-        NotificationSettingsSheet(uid = activeProfileOwnerUid ?: uid, repository = app.pushRepository, profileId = activeProfileId, onDismiss = { notifTypesSheetOpen = false })
-    }
-    if (backupsSheetOpen && uid != null && activeProfileOwnerUid == null) {
-        BackupsSheet(uid = uid, profileId = activeProfileId, viewModel = settingsViewModel, onDismiss = { backupsSheetOpen = false })
-    }
-    if (profilesSheetOpen && uid != null) {
-        ProfilesManagerSheet(
+    if (uid != null) {
+        SettingsManagerSheets(
+            open = openSheet,
+            onClose = { openSheet = null },
             uid = uid,
-            onDismiss = { profilesSheetOpen = false },
-            onSwitched = {
-                profilesSheetOpen = false
-                pendingMessage = resources.getString(R.string.settings_profile_switched)
-            },
+            dataUid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            isSharedProfile = activeProfileOwnerUid != null,
+            settingsViewModel = settingsViewModel,
+            onProfileSwitched = { pendingMessage = resources.getString(R.string.settings_profile_switched) },
         )
-    }
-    if (pinSheetOpen && uid != null) {
-        // Same Activity-scoped viewModelStoreOwner as MainActivity's own PinViewModel
-        // — see that call site's comment for why they must resolve to one instance.
-        val activity = context as androidx.fragment.app.FragmentActivity
-        val pinViewModel: PinViewModel = viewModel(factory = PinViewModel.factory(app.pinStore, uid), viewModelStoreOwner = activity)
-        PinSettingsSheet(pinViewModel, onDismiss = { pinSheetOpen = false })
     }
 
     csvImportPreview?.let { preview ->
-        val importCount = pluralStringResource(R.plurals.settings_csv_operations, preview.transactions.size, preview.transactions.size)
-        val skippedCount = pluralStringResource(R.plurals.settings_csv_errors, preview.errors.size, preview.errors.size)
-        AlertDialog(
-            onDismissRequest = settingsViewModel::dismissImportPreview,
-            shape = RoundedCornerShape(RytmRadii.Sheet),
-            icon = {
-                Box(Modifier.size(52.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(RytmIcons.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                }
-            },
-            title = { Text(stringResource(R.string.settings_csv_import), fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
-                    preview.errors.take(10).forEach { error ->
-                        Text(csvImportErrorText(error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                    }
-                    if (preview.errors.size > 10) Text(stringResource(R.string.settings_csv_more_errors, preview.errors.size - 10), style = MaterialTheme.typography.bodySmall)
-                }
-            },
-            confirmButton = {
-                androidx.compose.material3.Button(enabled = !csvBusy && uid != null, onClick = {
-                    val accountUid = activeProfileOwnerUid ?: uid ?: return@Button
-                    settingsViewModel.confirmImport(accountUid, activeProfileId)
-                }, shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.settings_csv_import_action)) }
-            },
-            dismissButton = {
-                androidx.compose.material3.OutlinedButton(enabled = !csvBusy, onClick = settingsViewModel::dismissImportPreview, shape = RoundedCornerShape(RytmRadii.Control)) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
+        CsvImportPreviewDialog(
+            preview = preview,
+            busy = csvBusy,
+            canImport = uid != null,
+            onConfirm = { uid?.let { settingsViewModel.confirmImport(activeProfileOwnerUid ?: it, activeProfileId) } },
+            onDismiss = settingsViewModel::dismissImportPreview,
         )
     }
 
@@ -948,58 +642,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onDismiss = { pendingSignOut = false },
         )
     }
-    if (premiumDialogOpen) {
-        AlertDialog(
-            onDismissRequest = { premiumDialogOpen = false },
-            icon = {
-                Box(
-                    modifier = Modifier.size(52.dp).clip(CircleShape).background(
-                        Brush.linearGradient(listOf(OrangeDark, Pink)),
-                    ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(RytmIcons.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-                }
-            },
-            title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.settings_premium_body))
-                    PremiumPerkRow(
-                        icon = RytmIcons.CheckCircle,
-                        color = GreenDark,
-                        title = stringResource(R.string.settings_premium_free_title),
-                        subtitle = stringResource(R.string.settings_premium_free_body),
-                    )
-                    PremiumPerkRow(
-                        icon = RytmIcons.TrendingUp,
-                        color = GreenDark,
-                        title = stringResource(R.string.settings_premium_forecast_title),
-                        subtitle = stringResource(R.string.settings_premium_forecast_body),
-                    )
-                    PremiumPerkRow(
-                        icon = RytmIcons.CloudDone,
-                        color = GreenDark,
-                        title = stringResource(R.string.settings_premium_backup_title),
-                        subtitle = stringResource(R.string.settings_premium_backup_body),
-                    )
-                    PremiumPerkRow(
-                        icon = RytmIcons.GridView,
-                        color = GreenDark,
-                        title = stringResource(R.string.settings_premium_widget_title),
-                        subtitle = stringResource(R.string.settings_premium_widget_body),
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { premiumDialogOpen = false },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(RytmRadii.Row),
-                ) { Text(stringResource(R.string.action_done)) }
-            },
-        )
-    }
+    if (premiumDialogOpen) PremiumDialog(onDismiss = { premiumDialogOpen = false })
     if (pendingResetProfile && uid != null) {
         ua.rytm.app.ui.components.RytmDestructiveConfirm(
             title = stringResource(R.string.settings_reset_title),

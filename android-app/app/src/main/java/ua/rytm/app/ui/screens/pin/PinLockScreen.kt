@@ -38,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
-import ua.rytm.app.RytmApplication
 import ua.rytm.app.R
 import ua.rytm.app.data.local.clearAllProfileScopedTables
 import kotlinx.coroutines.launch
@@ -55,7 +54,7 @@ import ua.rytm.app.ui.icons.Fingerprint
 fun PinLockScreen(viewModel: PinViewModel) {
     val context = LocalContext.current
     val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
-    val app = context.applicationContext as RytmApplication
+    val app = ua.rytm.app.ui.rytmApp()
     val biometricOnboardingDismissed by app.settingsStore.biometricOnboardingDismissed(viewModel.uid).collectAsState(initial = true)
     val scope = rememberCoroutineScope()
     var forgotConfirm by remember { mutableStateOf(false) }
@@ -171,7 +170,7 @@ internal fun PinKeypad(
             Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { trailingSlot() }
             KeypadButton("0") { onDigit("0") }
             Box(
-                Modifier.size(64.dp).clip(CircleShape).clickable(onClick = onBackspace),
+                Modifier.size(64.dp).clip(CircleShape).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onBackspace),
                 contentAlignment = Alignment.Center,
             ) { Icon(RytmIcons.Backspace, contentDescription = stringResource(R.string.action_backspace), modifier = Modifier.size(26.dp)) }
         }
@@ -191,6 +190,7 @@ private fun KeypadButton(digit: String, onClick: () -> Unit) {
         Modifier.size(64.dp).border(2.dp, outlineColor, CircleShape).clickable(
             interactionSource = interactionSource,
             indication = null,
+            role = androidx.compose.ui.semantics.Role.Button,
             onClick = onClick,
         ),
         contentAlignment = Alignment.Center,

@@ -290,7 +290,7 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
                         modifier = Modifier
                             .size(RytmDimens.TouchTarget)
                             .clip(CircleShape)
-                            .clickable { onSelect(name) }
+                            .clickable(role = androidx.compose.ui.semantics.Role.Button) { onSelect(name) }
                             .padding(10.dp),
                     )
                 }

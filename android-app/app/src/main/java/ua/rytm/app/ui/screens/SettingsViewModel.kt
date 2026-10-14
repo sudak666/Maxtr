@@ -49,6 +49,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun consumeMessage() { message = null }
     fun postMessage(m: SettingsMessage) { message = m }
 
+    // Preference writes run here, not in the screen's scope, so they outlive
+    // a recreation (a language change recreates the Activity).
+    fun setThemePreference(pref: ua.rytm.app.data.local.ThemePreference) { viewModelScope.launch { app.settingsStore.setThemePreference(pref) } }
+    fun setLanguage(language: String) { viewModelScope.launch { app.settingsStore.setLanguage(language) } }
+    fun setHideAmounts(hidden: Boolean) { viewModelScope.launch { app.settingsStore.setHideAmounts(hidden) } }
+    fun setPrivacyCacheEnabled(enabled: Boolean) { viewModelScope.launch { app.settingsStore.setPrivacyCacheEnabled(enabled) } }
+
     var csvBusy by mutableStateOf(false)
         private set
     var csvImportPreview by mutableStateOf<CsvImportPreview?>(null)
