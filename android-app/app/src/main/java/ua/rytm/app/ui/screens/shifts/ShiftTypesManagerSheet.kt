@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -16,7 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -70,7 +70,7 @@ fun ShiftTypesManagerSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         // The scroll/inset/padding container lives here, not inside
         // ShiftTypesManagerContent -- see that composable's own doc
         // comment for why (nested verticalScroll crash when embedded in

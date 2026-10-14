@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -49,7 +50,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -240,7 +240,7 @@ fun ShiftsScreen() {
         // rather than its own sheet -- there's only ever one swipe-to-
         // dismiss surface active at a time.
         val quickFillSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        RytmModalBottomSheet(
             onDismissRequest = {
                 quickFillShowingShiftTypes = false
                 viewModel.toggleQuickFillExpanded()
@@ -307,7 +307,7 @@ fun ShiftsScreen() {
     val dateKey = viewModel.dayModalDateKey
     if (canEdit && dateKey != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
+        RytmModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 RytmSheetTitle(stringResource(R.string.shifts_choose))
                 // Was the raw `dateKey` (a "2026-08-25" ISO string) shown

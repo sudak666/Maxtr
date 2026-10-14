@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -68,7 +68,7 @@ fun BackupsSheet(
         if (viewModel.restoreSucceeded) { pendingRestore = null; viewModel.consumeRestoreSucceeded() }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LazyColumn(
             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.pressScale
 import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -36,7 +37,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -625,7 +625,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     val amountInvalid = submitted && parsePlainDebtAmount(amount) == null
     val balanceInvalid = submitted && balance.isNotBlank() && parsePlainDebtAmount(balance) == null
 
-    ModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
+    RytmModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             RytmSheetTitle(stringResource(R.string.debt_new_payment))
             OutlinedTextField(
