@@ -62,4 +62,8 @@ class QuickEntryParserTest {
     @Test fun shortWordsDoNotMatchWallets() {
         assertNull(QuickEntryParser.parse("на 50", wallets)!!.walletId)
     }
+
+    @Test fun latinTypedFindsCyrillicWallet() {
+        assertEquals("pumb", QuickEntryParser.parse("kava 65 pumb", wallets)!!.walletId)
+    }
 }

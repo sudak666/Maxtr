@@ -63,7 +63,7 @@
     <string name="profile_avatar_preset">Avatar preset</string>
     <string name="goals_title">Goals</string><string name="goals_description">Track savings for the things that matter</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
     <string name="goals_delete_title">Delete goal</string><string name="goals_delete_body">Delete this goal?</string>
-    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Reached</string>
+    <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_summary_done">%1$s / %2$s %3$s · Reached</string>
     <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
     <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
     <string name="wallet_label">Wallet</string>
@@ -558,4 +558,5 @@
     <string name="salary_allocation_apply">Move %1$s</string>
     <string name="salary_allocation_skip">Not now</string>
     <string name="salary_allocated">Moved to goals: %1$s ₴</string>
+    <string name="receipt_scan_short">Receipt</string>
 </resources>

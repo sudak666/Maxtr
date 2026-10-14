@@ -172,7 +172,7 @@ private fun GoalRow(
         previousDone = done
     }
     val summary = if (wallet != null) {
-        stringResource(if (done) R.string.goals_summary_done else R.string.goals_summary, savedClamped.toInt(), target.toInt(), wallet.currency)
+        stringResource(if (done) R.string.goals_summary_done else R.string.goals_summary, ua.rytm.app.ui.maskedAmount(formatMoney(savedClamped)), ua.rytm.app.ui.maskedAmount(formatMoney(target)), currencySymbol(wallet.currency))
     } else {
         stringResource(R.string.goals_choose_wallet)
     }

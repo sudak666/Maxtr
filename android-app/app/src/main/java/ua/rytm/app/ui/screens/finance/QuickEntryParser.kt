@@ -38,7 +38,8 @@ object QuickEntryParser {
     private fun matchesWallet(word: String, walletName: String): Boolean {
         if (word.length < 3) return false
         val nameWords = walletName.lowercase().split(Regex("""[\s\-_/]+""")).filter { it.isNotBlank() }
-        return nameWords.any { it.startsWith(word) || transliterated(it).startsWith(word) }
+        val latinTyped = transliterated(word)
+        return nameWords.any { it.startsWith(word) || transliterated(it).startsWith(word) || it.startsWith(latinTyped) }
     }
 
     private val latinToCyr = mapOf(

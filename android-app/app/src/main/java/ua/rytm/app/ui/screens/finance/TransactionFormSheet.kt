@@ -175,7 +175,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     ) {
                         Icon(RytmIcons.DocumentScanner, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.receipt_scan), maxLines = 1)
+                        Text(stringResource(R.string.receipt_scan_short), maxLines = 1)
                     }
                     // A new transaction only: one line or voice re-fills the whole form.
                     if (vm.editingTxId == null) {
