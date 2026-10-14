@@ -163,7 +163,7 @@ fun ProfileAppearanceCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy) { avatarDialog = true })
+            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (editing) {
                     OutlinedTextField(
@@ -248,7 +248,7 @@ private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, descr
 @Composable
 private fun AvatarOption(avatar: BuiltinAvatar, description: String, onClick: () -> Unit) {
     Box(
-        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(RytmRadii.Input)).background(Brush.linearGradient(avatar.colors)).clickable(onClick = onClick),
+        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(RytmRadii.Input)).background(Brush.linearGradient(avatar.colors)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { Icon(avatar.icon, contentDescription = description, tint = Color.White) }
 }

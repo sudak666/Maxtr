@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ua.rytm.app.data.ShiftsRepository
+import ua.rytm.app.data.WidgetSettingsSyncRepository
+import ua.rytm.app.data.local.SettingsStore
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -26,6 +28,9 @@ class ShiftsViewModel(
     private val uid: String,
     private val profileId: String,
     expensesUahByDateFlow: kotlinx.coroutines.flow.Flow<Map<String, Double>> = kotlinx.coroutines.flow.flowOf(emptyMap()),
+    private val settingsStore: SettingsStore? = null,
+    private val widgetSettingsSync: WidgetSettingsSyncRepository? = null,
+    private val accountUid: String = uid,
 ) : ViewModel() {
 
     companion object {
@@ -34,8 +39,11 @@ class ShiftsViewModel(
             uid: String,
             profileId: String,
             expensesUahByDateFlow: kotlinx.coroutines.flow.Flow<Map<String, Double>> = kotlinx.coroutines.flow.flowOf(emptyMap()),
+            settingsStore: SettingsStore? = null,
+            widgetSettingsSync: WidgetSettingsSyncRepository? = null,
+            accountUid: String = uid,
         ) = viewModelFactory {
-            initializer { ShiftsViewModel(repository, uid, profileId, expensesUahByDateFlow) }
+            initializer { ShiftsViewModel(repository, uid, profileId, expensesUahByDateFlow, settingsStore, widgetSettingsSync, accountUid) }
         }
     }
 
@@ -89,6 +97,12 @@ class ShiftsViewModel(
     fun consumeError() { errorMessageRes = null }
     private fun launchMutation(block: suspend () -> Unit) = viewModelScope.launch {
         runCatching { block() }.onFailure { errorMessageRes = R.string.common_save_failed }
+    }
+
+    /** Device-local goal first, then the shared profile copy (queued; server rejections reach SyncWriteErrors). */
+    fun saveSalaryGoal(amount: Double) = launchMutation {
+        settingsStore?.setSalaryGoal(accountUid, amount)
+        widgetSettingsSync?.saveSalaryGoal(uid, profileId, amount)
     }
 
     init {

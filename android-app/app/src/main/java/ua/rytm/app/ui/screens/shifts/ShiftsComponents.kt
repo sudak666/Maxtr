@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.icons.Share
 import androidx.compose.ui.res.pluralStringResource
@@ -424,6 +425,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(RytmRadii.Row)).clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
+                role = androidx.compose.ui.semantics.Role.Button,
                 onClick = vm::toggleQuickFillExpanded,
             ).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -534,7 +536,8 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         )
                     }
                     val autofillTitle = stringResource(R.string.shifts_autofill_future)
-                    Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = vm::setAutoFillEnabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+                    val autofillHaptics = rememberRytmHaptics()
+                    Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = { on -> autofillHaptics.toggle(on); vm.setAutoFillEnabled(on) }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                 }
                 ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
                     Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -723,6 +726,7 @@ internal fun shareMonthIcs(context: android.content.Context, viewModel: ShiftsVi
 
 @Composable
 internal fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
+    val dayHaptics = rememberRytmHaptics()
     val month = viewModel.visibleMonth
     val cells = monthCalendarCells(month)
     val todayKey = viewModel.today.toString()
@@ -773,7 +777,10 @@ internal fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
                             isWeekend = cell.isWeekend,
                             isOutsideMonth = !cell.isCurrentMonth,
                             enabled = canEdit,
-                            onClick = { viewModel.onDayTapped(dateKey) },
+                            onClick = {
+                                if (viewModel.brushTypeId != null) dayHaptics.tick()
+                                viewModel.onDayTapped(dateKey)
+                            },
                             modifier = Modifier.weight(1f),
                         )
                     }

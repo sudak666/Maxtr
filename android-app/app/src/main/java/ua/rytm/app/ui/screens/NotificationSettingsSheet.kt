@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -132,12 +133,13 @@ fun NotificationSettingsSheet(
 
 @Composable
 private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val haptics = rememberRytmHaptics()
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Column(Modifier.weight(1f).padding(end = 12.dp)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(modifier = Modifier.semantics { contentDescription = title }, checked = checked, onCheckedChange = onCheckedChange, enabled = enabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+        Switch(modifier = Modifier.semantics { contentDescription = title }, checked = checked, onCheckedChange = { on -> haptics.toggle(on); onCheckedChange(on) }, enabled = enabled, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
     }
 }
 

@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -167,8 +168,9 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                             Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
                         }
                         val enabled = item.key in config.enabled
+                        val haptics = rememberRytmHaptics()
                         // The label toggles too — a tap on the row text did nothing before.
-                        Column(Modifier.weight(1f).clickable { update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = 12.dp)) {
+                        Column(Modifier.weight(1f).clickable(role = androidx.compose.ui.semantics.Role.Switch) { haptics.toggle(!enabled); update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = 12.dp)) {
                             Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -180,7 +182,7 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         // flickering every time any one of them was tapped.
                         val widgetTitle = stringResource(item.title)
                         // TalkBack read these as a bare "switch, off" with no name.
-                        Switch(modifier = Modifier.semantics { contentDescription = widgetTitle }, checked = item.key in config.enabled, onCheckedChange = { on -> update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+                        Switch(modifier = Modifier.semantics { contentDescription = widgetTitle }, checked = item.key in config.enabled, onCheckedChange = { on -> haptics.toggle(on); update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                     }
                 }
             }

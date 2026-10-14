@@ -1,62 +1,94 @@
 package ua.rytm.app.ui.screens.finance
 
-import ua.rytm.app.ui.components.pressScale
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.focus.onFocusChanged
-import ua.rytm.app.ui.LocalReducedMotion
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import ua.rytm.app.ui.components.SwipeOpenThreshold
+import ua.rytm.app.ui.components.SwipeRevealWidth
+import ua.rytm.app.ui.components.SwipeReleaseAction
+import ua.rytm.app.ui.components.swipeReleaseAction
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import ua.rytm.app.ui.maskedAmount
+import ua.rytm.app.ui.components.RytmEmptyState
+import ua.rytm.app.ui.theme.RytmSemantic
+import ua.rytm.app.ui.theme.RytmInteraction
+import ua.rytm.app.ui.motionAwareSpec
+import ua.rytm.app.ui.icons.SwapHoriz
+import ua.rytm.app.ui.icons.Event
+import ua.rytm.app.ui.icons.AccountBalanceWallet
+import ua.rytm.app.ui.icons.Build
+import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.Flag
+import ua.rytm.app.ui.icons.PieChart
+import ua.rytm.app.ui.icons.Search
+import ua.rytm.app.ui.icons.TrendingDown
+import ua.rytm.app.ui.icons.TrendingUp
+import ua.rytm.app.ui.theme.tabularNums
+import ua.rytm.app.ui.components.pressScale
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.core.animateDpAsState
+import ua.rytm.app.ui.LocalReducedMotion
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -64,80 +96,43 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import ua.rytm.app.ui.components.SwipeOpenThreshold
-import ua.rytm.app.ui.components.SwipeRevealWidth
-import ua.rytm.app.ui.components.SwipeReleaseAction
-import ua.rytm.app.ui.components.swipeReleaseAction
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import ua.rytm.app.RytmApplication
 import ua.rytm.app.ui.LocalCanEditProfile
-import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
-import ua.rytm.app.data.DEFAULT_PROFILE_ID
-import ua.rytm.app.ui.components.RytmEmptyState
 import ua.rytm.app.ui.theme.RytmDimens
-import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.RytmRadii
-import ua.rytm.app.ui.theme.RytmInteraction
-import ua.rytm.app.ui.motionAwareSpec
 import ua.rytm.app.ui.RealtimeStateBanner
 import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.SwapHoriz
-import ua.rytm.app.ui.icons.Event
-import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
-import ua.rytm.app.ui.icons.Build
-import ua.rytm.app.ui.icons.Clear
-import ua.rytm.app.ui.icons.Delete
 import ua.rytm.app.ui.icons.ExpandLess
-import ua.rytm.app.ui.icons.Flag
-import ua.rytm.app.ui.icons.PieChart
-import ua.rytm.app.ui.icons.Search
-import ua.rytm.app.ui.icons.TrendingDown
-import ua.rytm.app.ui.icons.TrendingUp
-import ua.rytm.app.ui.theme.tabularNums
 
 // Implements FINANCE_SCREEN_SPEC.md end to end for this step: hero balance,
 // quick actions, search+filters, transaction list with swipe-to-delete, two
@@ -151,21 +146,21 @@ private const val TX_LIST_COLLAPSED_COUNT = 5 // mirrors js/analytics-csv.js's T
 @Composable
 fun FinanceScreen(
     viewModel: FinanceViewModel = viewModel(
-        factory = FinanceViewModel.factory(LocalContext.current.applicationContext as RytmApplication),
+        factory = FinanceViewModel.factory(ua.rytm.app.ui.rytmApp()),
     ),
 ) {
     val canEdit = LocalCanEditProfile.current
-    val launchApp = LocalContext.current.applicationContext as RytmApplication
-    val launchAction by launchApp.pendingLaunchAction.collectAsState()
+    val app = ua.rytm.app.ui.rytmApp()
+    val launchAction by app.pendingLaunchAction.collectAsState()
     LaunchedEffect(launchAction, canEdit, viewModel.loading) {
         // canEdit starts false until the role loads; on a cold start (tap on a
         // bank suggestion / widget "+") consuming the action now dropped it.
         // Also wait for wallets+history: opened earlier the prefill had no wallet
         // and the alphabetically first category ("% …") instead of the frequent one.
         if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit && !viewModel.loading) {
-            launchApp.pendingLaunchAction.value = null
-            val prefill = launchApp.pendingPrefill.value
-            launchApp.pendingPrefill.value = null
+            app.pendingLaunchAction.value = null
+            val prefill = app.pendingPrefill.value
+            app.pendingPrefill.value = null
             viewModel.openNewTransactionSheet(prefill)
         }
     }
@@ -190,12 +185,10 @@ fun FinanceScreen(
         }
     }
 
-    val app = LocalContext.current.applicationContext as RytmApplication
-    val accountUid = FirebaseAuth.getInstance().currentUser?.uid
-    val activeProfileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID))
-        .collectAsState(initial = DEFAULT_PROFILE_ID)
-    val activeProfileOwnerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null))
-        .collectAsState(initial = null)
+    val session = ua.rytm.app.ui.LocalSession.current
+    val accountUid = session.accountUid
+    val activeProfileId = session.profileId
+    val activeProfileOwnerUid = session.ownerUid
     val widgetConfig by app.settingsStore.financeWidgets.collectAsState(
         initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
     )
@@ -347,6 +340,8 @@ fun FinanceScreen(
         } else {
             filtered.take(TX_LIST_COLLAPSED_COUNT)
         }
+        // Each day header shows the whole day's net, not just the rows shown while collapsed.
+        val dayNets = remember(filtered, pendingDeleteId) { viewModel.dayNetsUah(filtered.filter { it.id != pendingDeleteId }) }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -392,8 +387,7 @@ fun FinanceScreen(
                     val shown = dayTxs.filter { it.id != pendingDeleteId }
                     item(key = "day-$date") {
                         AnimatedVisibility(visible = shown.isNotEmpty(), exit = fadeOut(tween(180)) + shrinkVertically(tween(220))) {
-                            // Whole day's net, not just the rows shown while collapsed.
-                            DayHeader(date, viewModel.netUah(filtered.filter { it.date == date && it.id != pendingDeleteId }))
+                            DayHeader(date, dayNets[date] ?: 0.0)
                         }
                     }
                 items(dayTxs, key = { it.id }) { tx ->

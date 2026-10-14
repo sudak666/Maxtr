@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import androidx.compose.ui.layout.layout
 import androidx.core.net.toUri
 import android.Manifest
@@ -415,7 +416,7 @@ internal fun SettingsRowScope.SettingsRow(
     titleColor: Color = Color.Unspecified,
 ) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control)).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SettingsIconBadge(icon, badgeColor)
@@ -437,12 +438,13 @@ internal fun SettingsRowScope.SettingsToggleRow(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val haptics = rememberRytmHaptics()
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control)).toggleable(
             value = checked,
             enabled = enabled,
             role = Role.Switch,
-            onValueChange = onCheckedChange,
+            onValueChange = { on -> haptics.toggle(on); onCheckedChange(on) },
         ).padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

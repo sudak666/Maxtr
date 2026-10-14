@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -458,6 +459,8 @@ class FinanceViewModel(
             if (formWalletId == formTargetWalletId) return TransferHint(isWarning = true)
             val srcCur = formWalletCurrency
             val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
+            // Same currency: "1,00 UAH -> 1,00 UAH" says nothing.
+            if (srcCur == targetCur) return null
             val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
@@ -581,44 +584,50 @@ class FinanceViewModel(
     val isSearchOrFilterActive: Boolean
         get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null
 
-    /** Mirrors renderFinance()'s filter chain: type -> period -> category -> search -> sort newest-first. */
-    val filteredTransactions: List<Transaction>
-        get() {
-            var result: List<Transaction> = transactions
+    /** Mirrors renderFinance()'s filter chain: type -> period -> category -> search -> sort newest-first.
+     *  Cached: it used to be a plain getter, re-filtering and re-sorting every row on each read. */
+    val filteredTransactions: List<Transaction> by derivedStateOf { computeFilteredTransactions() }
 
-            result = when (typeFilter) {
-                TxTypeFilter.ALL -> result
-                TxTypeFilter.INCOME -> result.filter { it.type == TxType.INCOME }
-                TxTypeFilter.EXPENSE -> result.filter { it.type == TxType.EXPENSE }
-                TxTypeFilter.TRANSFER -> result.filter { it.type == TxType.TRANSFER }
-            }
+    /** Net in UAH per date (transfers excluded) — the day headers' sums, one pass instead of one filter per day. */
+    fun dayNetsUah(txs: List<Transaction>): Map<String, Double> =
+        txs.groupBy { it.date }.mapValues { (_, day) -> netUah(day) }
 
-            result = when (periodFilter) {
-                PeriodFilter.DAY -> {
-                    val today = LocalDate.now().toString()
-                    result.filter { it.date == today }
-                }
-                PeriodFilter.MONTH -> result.filter { it.date.startsWith(currentMonthPrefix) }
-                PeriodFilter.ALL -> result
-            }
+    private fun computeFilteredTransactions(): List<Transaction> {
+        var result: List<Transaction> = transactions
 
-            categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
-
-            if (search.isNotBlank()) {
-                val q = search.trim().lowercase()
-                fun walletName(id: String?) = wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: ""
-                val tagNames = tags.associate { it.id to it.name }
-                // "#кава" finds the tag "кава"; a bare word matches tag names too.
-                val tagQuery = q.removePrefix("#")
-                result = result.filter { t ->
-                    listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
-                        .any { it.lowercase().contains(q) } ||
-                        (tagQuery.isNotEmpty() && t.tags.any { tagNames[it]?.lowercase()?.contains(tagQuery) == true })
-                }
-            }
-
-            return result.sortedByDescending { it.date }
+        result = when (typeFilter) {
+            TxTypeFilter.ALL -> result
+            TxTypeFilter.INCOME -> result.filter { it.type == TxType.INCOME }
+            TxTypeFilter.EXPENSE -> result.filter { it.type == TxType.EXPENSE }
+            TxTypeFilter.TRANSFER -> result.filter { it.type == TxType.TRANSFER }
         }
+
+        result = when (periodFilter) {
+            PeriodFilter.DAY -> {
+                val today = LocalDate.now().toString()
+                result.filter { it.date == today }
+            }
+            PeriodFilter.MONTH -> result.filter { it.date.startsWith(currentMonthPrefix) }
+            PeriodFilter.ALL -> result
+        }
+
+        categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
+
+        if (search.isNotBlank()) {
+            val q = search.trim().lowercase()
+            fun walletName(id: String?) = wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: ""
+            val tagNames = tags.associate { it.id to it.name }
+            // "#кава" finds the tag "кава"; a bare word matches tag names too.
+            val tagQuery = q.removePrefix("#")
+            result = result.filter { t ->
+                listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
+                    .any { it.lowercase().contains(q) } ||
+                    (tagQuery.isNotEmpty() && t.tags.any { tagNames[it]?.lowercase()?.contains(tagQuery) == true })
+            }
+        }
+
+        return result.sortedByDescending { it.date }
+    }
 }
 
 data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0)

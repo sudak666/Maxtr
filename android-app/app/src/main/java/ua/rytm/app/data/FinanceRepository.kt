@@ -83,6 +83,14 @@ class FinanceRepository(private val db: RytmDatabase) {
     /** currency code -> rate to UAH — mirrors AppState.currencyRates (js/core.js). */
     val currencyRates: Flow<Map<String, Double>> = db.currencyRateDao().observeAll().map { list -> list.associate { it.code to it.rateToUah } }
 
+    /** Expenses per date in UAH — the Shifts calendar's daily spending dots and insight. */
+    val expensesUahByDate: Flow<Map<String, Double>> = kotlinx.coroutines.flow.combine(transactions, currencyRates) { txs, rates ->
+        txs.asSequence()
+            .filter { it.type == ua.rytm.app.ui.screens.finance.TxType.EXPENSE }
+            .groupBy({ it.date }, { convertCurrency(it.amount, it.currency, "UAH", rates) })
+            .mapValues { (_, v) -> v.sum() }
+    }
+
     suspend fun seedIfEmpty() {
         if (db.walletDao().count() == 0) {
             db.walletDao().insertAll(

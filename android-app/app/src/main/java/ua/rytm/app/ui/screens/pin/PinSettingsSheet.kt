@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.pin
+import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -68,6 +69,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
     val activity = context as? FragmentActivity
     val hasPin by viewModel.hasPin.collectAsState(initial = null)
     val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+    val biometricHaptics = rememberRytmHaptics()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var setupStep by remember { mutableIntStateOf(0) }
     var removeConfirmationVisible by remember { mutableStateOf(false) }
@@ -107,7 +109,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
 
                 if (activity != null && biometricAvailable(activity)) {
                     Card(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Chart)).clickable { viewModel.setBiometricEnabled(!biometricEnabled) },
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Chart)).clickable(role = androidx.compose.ui.semantics.Role.Switch) { biometricHaptics.toggle(!biometricEnabled); viewModel.setBiometricEnabled(!biometricEnabled) },
                         shape = RoundedCornerShape(RytmRadii.Chart),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     ) {
