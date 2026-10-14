@@ -322,6 +322,7 @@ A design review plus several rounds of live-phone-screenshot feedback drove a re
 - **`contentColorFor()` matches by color equality**: if a container color equals `surfaceVariant`, its content becomes muted `onSurfaceVariant`. `surfaceContainerLow` is deliberately one step off `surfaceVariant` in `Theme.kt` for this reason (all ModalBottomSheets were rendering grey text). Never set two surface roles to the same value.
 - **Pin every M3 surface role** (`surfaceContainerLowest/Highest`, `surfaceBright/Dim`, `surfaceTint`) — unset ones fall back to M3 baseline purple (default `Card` = `surfaceContainerHighest`; light theme rows were lavender).
 - **Cards inside a sheet use `surfaceContainerHigh`**, never `surfaceContainerLow` (= the sheet's own color → invisible card).
+- **Always `RytmModalBottomSheet`, never raw `ModalBottomSheet`**: M3 1.4 makes content top padding depend on the sheet offset, so a ~screen-tall sheet bounces forever after a swipe up (2026-10-14). The wrapper pins `statusBarsPadding()` and zero content insets.
 - Horizontal chip rows: `LazyRow(state=…, modifier=Modifier.fadingEdges(state))`. Custom pill FABs: `pressScale(source)` + the same source in `clickable(interactionSource=…, indication=ripple())`. Delete icon buttons: tonal `error.copy(alpha=0.14f)` container + `error` content, not `errorContainer`.
 
 ### Native Android — live-device testing & perf (2026-09-27)

@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -30,7 +31,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -135,7 +135,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
-    ModalBottomSheet(onDismissRequest = vm::closeSheet, sheetState = sheetState) {
+    RytmModalBottomSheet(onDismissRequest = vm::closeSheet, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

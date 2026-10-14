@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.pin
+import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -22,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,7 +72,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
     var setupStep by remember { mutableIntStateOf(0) }
     var removeConfirmationVisible by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
+    RytmModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
