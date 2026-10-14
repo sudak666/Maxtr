@@ -284,7 +284,18 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     // the form, with no field highlighted at all.
                     isError = amountInvalid,
                     supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
-                        ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } },
+                        ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } }
+                        ?: vm.formSalaryMatch?.let { (expected, diff) ->
+                            {
+                                Text(
+                                    stringResource(
+                                        R.string.salary_match_hint,
+                                        ua.rytm.app.ui.maskedAmount("${formatMoney(expected)} ₴"),
+                                        ua.rytm.app.ui.maskedAmount((if (diff >= 0) "+" else "−") + formatMoney(kotlin.math.abs(diff)) + " ₴"),
+                                    ),
+                                )
+                            }
+                        },
                     modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
                     singleLine = true,
                 )

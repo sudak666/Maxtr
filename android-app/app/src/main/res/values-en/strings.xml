@@ -552,4 +552,10 @@
     <string name="month_summary_notification_hidden">Tap to see where the money went.</string>
     <string name="month_summary_tool">Month recap</string>
     <string name="finance_settle_line">To split equally: %1$s → %2$s %3$s</string>
+    <string name="salary_match_hint">Looks like last month\'s pay: shifts earned %1$s, difference %2$s</string>
+    <string name="salary_allocation_title">Split this pay across goals?</string>
+    <string name="salary_allocation_body">Amounts are paced to your goals\' dates — never more than half the pay. Each becomes a transfer to the goal\'s wallet; you can change them.</string>
+    <string name="salary_allocation_apply">Move %1$s</string>
+    <string name="salary_allocation_skip">Not now</string>
+    <string name="salary_allocated">Moved to goals: %1$s ₴</string>
 </resources>

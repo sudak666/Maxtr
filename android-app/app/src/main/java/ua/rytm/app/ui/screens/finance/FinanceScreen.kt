@@ -173,6 +173,9 @@ fun FinanceScreen(
             }
         }
     }
+    viewModel.salaryAllocation?.let { plan ->
+        SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
+    }
     if (viewModel.monthSummaryOpen) {
         MonthSummarySheet(viewModel.lastMonthSummary, onDismiss = { viewModel.monthSummaryOpen = false })
     }

@@ -562,4 +562,10 @@
     <string name="month_summary_notification_hidden">Торкніться, щоб подивитись, куди пішли гроші.</string>
     <string name="month_summary_tool">Підсумок місяця</string>
     <string name="finance_settle_line">Щоб порівну: %1$s → %2$s %3$s</string>
+    <string name="salary_match_hint">Схоже на зарплату за минулий місяць: за змінами %1$s, різниця %2$s</string>
+    <string name="salary_allocation_title">Розподілити зарплату на цілі?</string>
+    <string name="salary_allocation_body">Пропонуємо суми під дати ваших цілей — не більше половини зарплати. Кожна стане переказом на гаманець цілі; суми можна змінити.</string>
+    <string name="salary_allocation_apply">Перевести %1$s</string>
+    <string name="salary_allocation_skip">Не зараз</string>
+    <string name="salary_allocated">Переведено на цілі: %1$s ₴</string>
 </resources>

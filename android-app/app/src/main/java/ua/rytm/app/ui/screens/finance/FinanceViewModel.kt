@@ -69,6 +69,9 @@ class FinanceViewModel(
                         ShiftOutlook(
                             typicalPay = ua.rytm.app.ui.screens.shifts.EarningsForecast.typicalShiftPay(days, types, schedule),
                             remainingThisMonth = month.planned + month.fromSchedule,
+                            lastMonthEarned = ua.rytm.app.ui.screens.shifts.EarningsForecast.forMonth(
+                                java.time.YearMonth.now().minusMonths(1), LocalDate.now(), days, types, schedule,
+                            ).earned,
                         )
                     },
                     app.recurringSyncRepository,
@@ -208,6 +211,7 @@ class FinanceViewModel(
         repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         shiftOutlookFlow.onEach { shiftOutlook = it }.catch { }.launchIn(viewModelScope)
         repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
+        repository.goals.onEach { goals = it }.catch { }.launchIn(viewModelScope)
         auth.currentUser?.uid?.let { uid ->
             settingsStore?.dismissedSubscriptions(uid)?.onEach { dismissedSubscriptions = it }?.catch { }?.launchIn(viewModelScope)
             settingsStore?.monthSummarySeen(uid)?.onEach { monthSummarySeen = it }?.catch { }?.launchIn(viewModelScope)
@@ -299,6 +303,45 @@ class FinanceViewModel(
      * the shift type the user actually works most (EarningsForecast). Null
      * when there is no paid shift type or nothing typed yet.
      */
+    private var goals by mutableStateOf<List<Goal>>(emptyList())
+
+    /** A new income close to what last month's shifts earned: (expected, received − expected) in UAH. */
+    val formSalaryMatch: Pair<Double, Double>?
+        get() {
+            if (formType != TxType.INCOME || editingTxId != null) return null
+            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: return null
+            val expected = shiftOutlook.lastMonthEarned
+            val uah = toUah(amount, formWalletCurrency)
+            return if (SalaryAutopilot.matchesExpectedPay(uah, expected)) expected to (uah - expected) else null
+        }
+
+    /** After a payday income is saved: suggested transfers to goal wallets (SalaryAllocationSheet). */
+    var salaryAllocation by mutableStateOf<SalaryAllocation?>(null)
+
+    fun applySalaryAllocation(shares: List<SalaryAutopilot.GoalShare>) {
+        val plan = salaryAllocation ?: return
+        salaryAllocation = null
+        if (shares.isEmpty()) return
+        val me = auth.currentUser
+        viewModelScope.launch {
+            runCatching {
+                val (ownerUid, profileId) = activeProfilePath()
+                shares.forEach { share ->
+                    val tx = Transaction(
+                        id = java.util.UUID.randomUUID().toString(), type = TxType.TRANSFER, amount = share.amount,
+                        currency = plan.currency, date = LocalDate.now().toString(), walletId = plan.sourceWalletId,
+                        targetWalletId = share.walletId, targetAmount = share.amount, targetCurrency = plan.currency,
+                        category = "Внутрішній переказ", comment = null,
+                        createdBy = me?.uid, createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
+                    )
+                    syncRepository.saveTransaction(ownerUid, profileId, tx.toEntity())
+                    repository.upsertTransaction(tx)
+                }
+                pendingMessage = FinanceMessage(R.string.salary_allocated, listOf(formatMoney(shares.sumOf { it.amount })))
+            }.onFailure { pendingMessage = FinanceMessage(R.string.common_save_failed) }
+        }
+    }
+
     val formShiftCost: Double?
         get() {
             if (formType != TxType.EXPENSE) return null
@@ -598,6 +641,17 @@ class FinanceViewModel(
                     isTransfer -> FinanceMessage(R.string.transaction_transfer_done)
                     else -> FinanceMessage(R.string.transaction_added)
                 }
+                if (existing == null && toSave.type == TxType.INCOME &&
+                    SalaryAutopilot.matchesExpectedPay(toUah(toSave.amount, toSave.currency), shiftOutlook.lastMonthEarned)
+                ) {
+                    val shares = SalaryAutopilot.suggest(
+                        toSave.amount, toSave.walletId, toSave.currency, goals,
+                        walletCurrency = { id -> wallets.firstOrNull { it.id == id }?.currency },
+                        walletBalance = { id -> FinanceRepository.walletBalance(transactions + toSave, id) },
+                        today = LocalDate.now(),
+                    )
+                    if (shares.isNotEmpty()) salaryAllocation = SalaryAllocation(toSave.walletId, toSave.currency, shares, toSave.comment)
+                }
                 sheetVisible = false
             }.onFailure {
                 formErrorField = null
@@ -686,7 +740,10 @@ class FinanceViewModel(
     }
 }
 
-data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0)
+/** Payday suggestion: move these amounts from [sourceWalletId] to goal wallets. */
+data class SalaryAllocation(val sourceWalletId: String, val currency: String, val shares: List<SalaryAutopilot.GoalShare>, val comment: String?)
+
+data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0, val lastMonthEarned: Double = 0.0)
 
 data class MonthOutlook(val shiftsEarnings: Double, val recurringOut: Double, val recurringIn: Double) {
     val isEmpty: Boolean get() = shiftsEarnings <= 0 && recurringOut <= 0 && recurringIn <= 0
