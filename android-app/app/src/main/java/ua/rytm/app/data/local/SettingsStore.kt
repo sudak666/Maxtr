@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -158,6 +159,13 @@ class SettingsStore(private val context: Context) {
     // Local cache; synced with the finance doc's `salaryGoal` by
     // WidgetSettingsSyncRepository.
     private fun salaryGoalKey(uid: String) = doublePreferencesKey("salary_goal_$uid")
+
+    // Subscription suggestions the user said "no" to (SubscriptionDetector keys), per account.
+    private fun dismissedSubscriptionsKey(uid: String) = stringSetPreferencesKey("dismissed_subscriptions_$uid")
+    fun dismissedSubscriptions(uid: String): Flow<Set<String>> = context.settingsDataStore.data.map { it[dismissedSubscriptionsKey(uid)] ?: emptySet() }
+    suspend fun dismissSubscription(uid: String, key: String) {
+        context.settingsDataStore.edit { it[dismissedSubscriptionsKey(uid)] = (it[dismissedSubscriptionsKey(uid)] ?: emptySet()) + key }
+    }
     fun salaryGoal(uid: String): Flow<Double> = context.settingsDataStore.data.map { it[salaryGoalKey(uid)] ?: DEFAULT_SALARY_GOAL }
     suspend fun setSalaryGoal(uid: String, amount: Double) {
         context.settingsDataStore.edit { it[salaryGoalKey(uid)] = amount.coerceAtLeast(0.0) }

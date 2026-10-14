@@ -392,6 +392,11 @@ fun FinanceScreen(
                     onGoals = { goalsSheetOpen = true },
                 )
             }
+            if (canEdit && viewModel.subscriptionCandidates.isNotEmpty()) {
+                item(key = "subscription-suggestions") {
+                    SubscriptionSuggestionsCard(viewModel.subscriptionCandidates, viewModel::acceptSubscription, viewModel::dismissSubscription)
+                }
+            }
             item { HistoryHeader(viewModel, resultCount = displayedCount) }
             item { SearchField(viewModel) }
             item { FilterRow(viewModel) }

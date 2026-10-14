@@ -526,4 +526,14 @@
     <string name="quick_entry_next">Next</string>
     <string name="shortcut_expense">Expense</string>
     <string name="shortcut_income">Income</string>
+    <string name="subscription_title">Looks like a regular payment</string>
+    <string name="subscription_body">These expenses repeat with the same amount. Add them as recurring and the month outlook will count them ahead.</string>
+    <string name="subscription_pattern">%1$s · %2$s so far</string>
+    <string name="subscription_add">Add</string>
+    <string name="subscription_no">No</string>
+    <string name="subscription_added">«%1$s» added to recurring payments</string>
+    <plurals name="subscription_times">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
 </resources>

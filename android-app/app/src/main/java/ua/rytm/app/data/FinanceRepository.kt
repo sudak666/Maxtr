@@ -318,6 +318,23 @@ class FinanceRepository(private val db: RytmDatabase) {
         )
     }
 
+    /** A detected subscription (SubscriptionDetector) turned into a real recurring payment. */
+    suspend fun addRecurringFrom(c: ua.rytm.app.ui.screens.finance.SubscriptionDetector.Candidate) {
+        db.recurringDao().insert(
+            RecurringEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                type = TxType.EXPENSE.name,
+                amount = c.amount,
+                category = c.category,
+                walletId = c.walletId,
+                frequency = c.frequency,
+                nextDate = c.nextDate,
+                active = true,
+                comment = c.comment,
+            ),
+        )
+    }
+
     suspend fun deleteRecurring(id: String) {
         db.recurringDao().deleteById(id)
     }

@@ -45,6 +45,8 @@ class FinanceViewModel(
     private val activeProfileStore: ActiveProfileStore,
     private val savedState: SavedStateHandle = SavedStateHandle(),
     shiftOutlookFlow: kotlinx.coroutines.flow.Flow<ShiftOutlook> = kotlinx.coroutines.flow.flowOf(ShiftOutlook()),
+    private val recurringSync: ua.rytm.app.data.RecurringSyncRepository? = null,
+    private val settingsStore: ua.rytm.app.data.local.SettingsStore? = null,
 ) : ViewModel() {
 
     companion object {
@@ -69,6 +71,8 @@ class FinanceViewModel(
                             remainingThisMonth = month.planned + month.fromSchedule,
                         )
                     },
+                    app.recurringSyncRepository,
+                    app.settingsStore,
                 )
             }
         }
@@ -145,6 +149,30 @@ class FinanceViewModel(
     private var shiftOutlook by mutableStateOf(ShiftOutlook())
     private val typicalShiftPay: Double? get() = shiftOutlook.typicalPay
     private var recurring by mutableStateOf<List<Recurring>>(emptyList())
+    private var dismissedSubscriptions by mutableStateOf<Set<String>>(emptySet())
+
+    /** Repeating expenses that look like subscriptions, not yet recurring payments (SubscriptionDetector). */
+    val subscriptionCandidates: List<SubscriptionDetector.Candidate> by derivedStateOf {
+        SubscriptionDetector.detect(transactions, recurring, LocalDate.now(), dismissedSubscriptions)
+    }
+
+    fun acceptSubscription(c: SubscriptionDetector.Candidate) {
+        dismissedSubscriptions = dismissedSubscriptions + c.key // hide at once; the new recurring also covers it
+        viewModelScope.launch {
+            runCatching {
+                repository.addRecurringFrom(c)
+                val (ownerUid, profileId) = activeProfilePath()
+                recurringSync?.saveRecurringSnapshot(ownerUid, profileId)
+                pendingMessage = FinanceMessage(R.string.subscription_added, listOf(c.comment))
+            }.onFailure { pendingMessage = FinanceMessage(R.string.common_save_failed) }
+        }
+    }
+
+    fun dismissSubscription(c: SubscriptionDetector.Candidate) {
+        dismissedSubscriptions = dismissedSubscriptions + c.key
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch { runCatching { settingsStore?.dismissSubscription(uid, c.key) } }
+    }
 
     init {
         restoreDraft()
@@ -160,6 +188,9 @@ class FinanceViewModel(
         repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         shiftOutlookFlow.onEach { shiftOutlook = it }.catch { }.launchIn(viewModelScope)
         repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
+        auth.currentUser?.uid?.let { uid ->
+            settingsStore?.dismissedSubscriptions(uid)?.onEach { dismissedSubscriptions = it }?.catch { }?.launchIn(viewModelScope)
+        }
     }
 
     var search by mutableStateOf("")
