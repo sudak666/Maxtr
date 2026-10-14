@@ -536,4 +536,19 @@
         <item quantity="one">%d time</item>
         <item quantity="other">%d times</item>
     </plurals>
+    <string name="action_close">Close</string>
+    <string name="month_summary_title">Recap: %1$s</string>
+    <string name="month_summary_card_title">Month recap: %1$s</string>
+    <string name="month_summary_card_body">Spent %1$s — see where the money went</string>
+    <string name="month_summary_empty">No transactions this month.</string>
+    <string name="month_summary_saved">Left over +%1$s</string>
+    <string name="month_summary_overspent">Spent more than earned: −%1$s</string>
+    <string name="month_summary_spent_more">Spending %1$d%% higher than the month before</string>
+    <string name="month_summary_spent_less">Spending %1$d%% lower than the month before</string>
+    <string name="month_summary_top">Top categories</string>
+    <string name="month_summary_vs_previous">%1$s%% vs previous</string>
+    <string name="month_summary_biggest">Biggest expense: %1$s, %2$s</string>
+    <string name="month_summary_notification_body">Spent %1$s · earned %2$s. Tap to see more.</string>
+    <string name="month_summary_notification_hidden">Tap to see where the money went.</string>
+    <string name="month_summary_tool">Month recap</string>
 </resources>

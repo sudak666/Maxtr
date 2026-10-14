@@ -160,6 +160,15 @@ class SettingsStore(private val context: Context) {
     // WidgetSettingsSyncRepository.
     private fun salaryGoalKey(uid: String) = doublePreferencesKey("salary_goal_$uid")
 
+    // Last month whose recap (MonthSummary) was opened or closed, "yyyy-MM", per account.
+    private fun summarySeenKey(uid: String) = stringPreferencesKey("month_summary_seen_$uid")
+    fun monthSummarySeen(uid: String): Flow<String?> = context.settingsDataStore.data.map { it[summarySeenKey(uid)] }
+    suspend fun setMonthSummarySeen(uid: String, month: String) { context.settingsDataStore.edit { it[summarySeenKey(uid)] = month } }
+
+    private fun summaryNotifiedKey(uid: String) = stringPreferencesKey("month_summary_notified_$uid")
+    fun monthSummaryNotified(uid: String): Flow<String?> = context.settingsDataStore.data.map { it[summaryNotifiedKey(uid)] }
+    suspend fun setMonthSummaryNotified(uid: String, month: String) { context.settingsDataStore.edit { it[summaryNotifiedKey(uid)] = month } }
+
     // Subscription suggestions the user said "no" to (SubscriptionDetector keys), per account.
     private fun dismissedSubscriptionsKey(uid: String) = stringSetPreferencesKey("dismissed_subscriptions_$uid")
     fun dismissedSubscriptions(uid: String): Flow<Set<String>> = context.settingsDataStore.data.map { it[dismissedSubscriptionsKey(uid)] ?: emptySet() }

@@ -546,4 +546,19 @@
         <item quantity="many">%d разів</item>
         <item quantity="other">%d разу</item>
     </plurals>
+    <string name="action_close">Закрити</string>
+    <string name="month_summary_title">Підсумок: %1$s</string>
+    <string name="month_summary_card_title">Підсумок місяця: %1$s</string>
+    <string name="month_summary_card_body">Витрати %1$s — подивитись, куди пішли гроші</string>
+    <string name="month_summary_empty">За цей місяць операцій немає.</string>
+    <string name="month_summary_saved">Залишилось +%1$s</string>
+    <string name="month_summary_overspent">Витрачено більше, ніж заробили: −%1$s</string>
+    <string name="month_summary_spent_more">Витрати на %1$d%% більші, ніж місяцем раніше</string>
+    <string name="month_summary_spent_less">Витрати на %1$d%% менші, ніж місяцем раніше</string>
+    <string name="month_summary_top">Найбільші категорії</string>
+    <string name="month_summary_vs_previous">%1$s%% до попереднього</string>
+    <string name="month_summary_biggest">Найбільша витрата: %1$s, %2$s</string>
+    <string name="month_summary_notification_body">Витрати %1$s · дохід %2$s. Торкніться, щоб подивитись.</string>
+    <string name="month_summary_notification_hidden">Торкніться, щоб подивитись, куди пішли гроші.</string>
+    <string name="month_summary_tool">Підсумок місяця</string>
 </resources>

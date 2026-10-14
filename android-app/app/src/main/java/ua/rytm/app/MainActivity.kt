@@ -184,7 +184,8 @@ class MainActivity : FragmentActivity() {
         const val ACTION_NEW_EXPENSE = "new_expense"
         const val ACTION_NEW_INCOME = "new_income"
         const val ACTION_QUICK_ENTRY = "quick_entry"
+        const val ACTION_MONTH_SUMMARY = "month_summary"
         /** Actions FinanceScreen consumes (the nav host switches to Finance first). */
-        val FINANCE_ACTIONS = setOf(ACTION_NEW_TRANSACTION, ACTION_NEW_EXPENSE, ACTION_NEW_INCOME, ACTION_QUICK_ENTRY)
+        val FINANCE_ACTIONS = setOf(ACTION_NEW_TRANSACTION, ACTION_NEW_EXPENSE, ACTION_NEW_INCOME, ACTION_QUICK_ENTRY, ACTION_MONTH_SUMMARY)
     }
 }

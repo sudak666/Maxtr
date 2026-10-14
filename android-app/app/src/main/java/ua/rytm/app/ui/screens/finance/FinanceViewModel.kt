@@ -150,6 +150,26 @@ class FinanceViewModel(
     private val typicalShiftPay: Double? get() = shiftOutlook.typicalPay
     private var recurring by mutableStateOf<List<Recurring>>(emptyList())
     private var dismissedSubscriptions by mutableStateOf<Set<String>>(emptySet())
+    private var monthSummarySeen by mutableStateOf<String?>(null)
+
+    /** Last month's recap (MonthSummary). */
+    val lastMonthSummary: MonthSummary by derivedStateOf {
+        MonthSummary.compute(transactions, java.time.YearMonth.now().minusMonths(1)) { toUah(it.amount, it.currency) }
+    }
+    var monthSummaryOpen by mutableStateOf(false)
+
+    /** The recap card shows in a month's first week until it is opened or closed. */
+    val showMonthSummaryCard: Boolean
+        get() = LocalDate.now().dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
+
+    fun openMonthSummary() { monthSummaryOpen = true; markMonthSummarySeen() }
+
+    fun markMonthSummarySeen() {
+        val month = lastMonthSummary.month.toString()
+        monthSummarySeen = month
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch { runCatching { settingsStore?.setMonthSummarySeen(uid, month) } }
+    }
 
     /** Repeating expenses that look like subscriptions, not yet recurring payments (SubscriptionDetector). */
     val subscriptionCandidates: List<SubscriptionDetector.Candidate> by derivedStateOf {
@@ -190,6 +210,7 @@ class FinanceViewModel(
         repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
         auth.currentUser?.uid?.let { uid ->
             settingsStore?.dismissedSubscriptions(uid)?.onEach { dismissedSubscriptions = it }?.catch { }?.launchIn(viewModelScope)
+            settingsStore?.monthSummarySeen(uid)?.onEach { monthSummarySeen = it }?.catch { }?.launchIn(viewModelScope)
         }
     }
 

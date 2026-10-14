@@ -163,6 +163,7 @@ dependencies {
     implementation(libs.firebase.functions)
     implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
