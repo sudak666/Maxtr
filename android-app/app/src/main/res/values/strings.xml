@@ -69,7 +69,7 @@
     <string name="profile_avatar_preset">Варіант аватара</string>
     <string name="goals_title">Цілі</string><string name="goals_description">Відстежуйте накопичення на важливі покупки</string><string name="goals_empty">Немає цілей</string><string name="goals_add">Додати ціль</string>
     <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
-    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Досягнуто</string>
+    <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_summary_done">%1$s / %2$s %3$s · Досягнуто</string>
     <string name="goals_choose_wallet">Оберіть гаманець</string><string name="goals_default_name">Ціль</string>
     <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
     <string name="wallet_label">Гаманець</string>
@@ -525,4 +525,48 @@
     <string name="bank_suggest_transfer">Переказ між рахунками %1$s?</string>
     <string name="bank_suggest_account">Рахунок %1$s · торкнись, щоб перевірити</string>
     <string name="field_autosaved">Збережено ✓</string>
+    <string name="quick_entry_title">Швидкий ввід</string>
+    <string name="quick_entry_button">Голосом</string>
+    <string name="quick_entry_body">Сума, слово з назви гаманця і коментар. Плюс на початку або «зарплата» — це дохід. Нічого не збережеться без вашого підтвердження у формі.</string>
+    <string name="quick_entry_hint">Напр.: кава 65 моно</string>
+    <string name="quick_entry_no_amount">Не бачу суми — додайте число</string>
+    <string name="quick_entry_voice">Сказати голосом</string>
+    <string name="quick_entry_next">Далі</string>
+    <string name="shortcut_expense">Витрата</string>
+    <string name="shortcut_income">Дохід</string>
+    <string name="subscription_title">Схоже на регулярний платіж</string>
+    <string name="subscription_body">Ці витрати повторюються з однаковою сумою. Додайте їх до регулярних — і прогноз місяця врахує їх наперед.</string>
+    <string name="subscription_pattern">%1$s · уже %2$s</string>
+    <string name="subscription_add">Додати</string>
+    <string name="subscription_no">Ні</string>
+    <string name="subscription_added">«%1$s» додано до регулярних платежів</string>
+    <plurals name="subscription_times">
+        <item quantity="one">%d раз</item>
+        <item quantity="few">%d рази</item>
+        <item quantity="many">%d разів</item>
+        <item quantity="other">%d разу</item>
+    </plurals>
+    <string name="action_close">Закрити</string>
+    <string name="month_summary_title">Підсумок: %1$s</string>
+    <string name="month_summary_card_title">Підсумок місяця: %1$s</string>
+    <string name="month_summary_card_body">Витрати %1$s — подивитись, куди пішли гроші</string>
+    <string name="month_summary_empty">За цей місяць операцій немає.</string>
+    <string name="month_summary_saved">Залишилось +%1$s</string>
+    <string name="month_summary_overspent">Витрачено більше, ніж заробили: −%1$s</string>
+    <string name="month_summary_spent_more">Витрати на %1$d%% більші, ніж місяцем раніше</string>
+    <string name="month_summary_spent_less">Витрати на %1$d%% менші, ніж місяцем раніше</string>
+    <string name="month_summary_top">Найбільші категорії</string>
+    <string name="month_summary_vs_previous">%1$s%% до попереднього</string>
+    <string name="month_summary_biggest">Найбільша витрата: %1$s, %2$s</string>
+    <string name="month_summary_notification_body">Витрати %1$s · дохід %2$s. Торкніться, щоб подивитись.</string>
+    <string name="month_summary_notification_hidden">Торкніться, щоб подивитись, куди пішли гроші.</string>
+    <string name="month_summary_tool">Підсумок місяця</string>
+    <string name="finance_settle_line">Щоб порівну: %1$s → %2$s %3$s</string>
+    <string name="salary_match_hint">Схоже на зарплату за минулий місяць: за змінами %1$s, різниця %2$s</string>
+    <string name="salary_allocation_title">Розподілити зарплату на цілі?</string>
+    <string name="salary_allocation_body">Пропонуємо суми під дати ваших цілей — не більше половини зарплати. Кожна стане переказом на гаманець цілі; суми можна змінити.</string>
+    <string name="salary_allocation_apply">Перевести %1$s</string>
+    <string name="salary_allocation_skip">Не зараз</string>
+    <string name="salary_allocated">Переведено на цілі: %1$s ₴</string>
+    <string name="receipt_scan_short">Чек</string>
 </resources>

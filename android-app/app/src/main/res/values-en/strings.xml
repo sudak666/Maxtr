@@ -63,7 +63,7 @@
     <string name="profile_avatar_preset">Avatar preset</string>
     <string name="goals_title">Goals</string><string name="goals_description">Track savings for the things that matter</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
     <string name="goals_delete_title">Delete goal</string><string name="goals_delete_body">Delete this goal?</string>
-    <string name="goals_summary">%1$d / %2$d %3$s</string><string name="goals_summary_done">%1$d / %2$d %3$s · Reached</string>
+    <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_summary_done">%1$s / %2$s %3$s · Reached</string>
     <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
     <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
     <string name="wallet_label">Wallet</string>
@@ -517,4 +517,46 @@
     <string name="bank_suggest_transfer">Transfer between accounts %1$s?</string>
     <string name="bank_suggest_account">Account %1$s · tap to check</string>
     <string name="field_autosaved">Saved ✓</string>
+    <string name="quick_entry_title">Quick entry</string>
+    <string name="quick_entry_button">By voice</string>
+    <string name="quick_entry_body">Amount, a word from the wallet name and a note. A leading plus or «salary» makes it income. Nothing is saved until you confirm in the form.</string>
+    <string name="quick_entry_hint">e.g. coffee 65 mono</string>
+    <string name="quick_entry_no_amount">No amount found — add a number</string>
+    <string name="quick_entry_voice">Speak</string>
+    <string name="quick_entry_next">Next</string>
+    <string name="shortcut_expense">Expense</string>
+    <string name="shortcut_income">Income</string>
+    <string name="subscription_title">Looks like a regular payment</string>
+    <string name="subscription_body">These expenses repeat with the same amount. Add them as recurring and the month outlook will count them ahead.</string>
+    <string name="subscription_pattern">%1$s · %2$s so far</string>
+    <string name="subscription_add">Add</string>
+    <string name="subscription_no">No</string>
+    <string name="subscription_added">«%1$s» added to recurring payments</string>
+    <plurals name="subscription_times">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
+    <string name="action_close">Close</string>
+    <string name="month_summary_title">Recap: %1$s</string>
+    <string name="month_summary_card_title">Month recap: %1$s</string>
+    <string name="month_summary_card_body">Spent %1$s — see where the money went</string>
+    <string name="month_summary_empty">No transactions this month.</string>
+    <string name="month_summary_saved">Left over +%1$s</string>
+    <string name="month_summary_overspent">Spent more than earned: −%1$s</string>
+    <string name="month_summary_spent_more">Spending %1$d%% higher than the month before</string>
+    <string name="month_summary_spent_less">Spending %1$d%% lower than the month before</string>
+    <string name="month_summary_top">Top categories</string>
+    <string name="month_summary_vs_previous">%1$s%% vs previous</string>
+    <string name="month_summary_biggest">Biggest expense: %1$s, %2$s</string>
+    <string name="month_summary_notification_body">Spent %1$s · earned %2$s. Tap to see more.</string>
+    <string name="month_summary_notification_hidden">Tap to see where the money went.</string>
+    <string name="month_summary_tool">Month recap</string>
+    <string name="finance_settle_line">To split equally: %1$s → %2$s %3$s</string>
+    <string name="salary_match_hint">Looks like last month\'s pay: shifts earned %1$s, difference %2$s</string>
+    <string name="salary_allocation_title">Split this pay across goals?</string>
+    <string name="salary_allocation_body">Amounts are paced to your goals\' dates — never more than half the pay. Each becomes a transfer to the goal\'s wallet; you can change them.</string>
+    <string name="salary_allocation_apply">Move %1$s</string>
+    <string name="salary_allocation_skip">Not now</string>
+    <string name="salary_allocated">Moved to goals: %1$s ₴</string>
+    <string name="receipt_scan_short">Receipt</string>
 </resources>

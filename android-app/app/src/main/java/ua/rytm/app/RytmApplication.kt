@@ -71,6 +71,7 @@ class RytmApplication : Application() {
         // is a safe no-op when the channel already exists (same id, same
         // settings), so calling this on every cold start is fine.
         ensureNotificationChannel(this)
+        runCatching { ua.rytm.app.summary.MonthSummaryWorker.schedule(this) }
         startWidgetRefresh()
     }
 

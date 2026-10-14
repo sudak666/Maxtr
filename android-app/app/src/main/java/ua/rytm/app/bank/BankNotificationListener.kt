@@ -16,7 +16,7 @@ import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.ui.screens.finance.formatMoney
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
-data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null)
+data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null, val walletId: String? = null)
 
 /**
  * Reads ONLY the notifications of the bank apps in

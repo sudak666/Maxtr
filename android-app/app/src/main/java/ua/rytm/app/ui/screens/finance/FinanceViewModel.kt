@@ -45,6 +45,8 @@ class FinanceViewModel(
     private val activeProfileStore: ActiveProfileStore,
     private val savedState: SavedStateHandle = SavedStateHandle(),
     shiftOutlookFlow: kotlinx.coroutines.flow.Flow<ShiftOutlook> = kotlinx.coroutines.flow.flowOf(ShiftOutlook()),
+    private val recurringSync: ua.rytm.app.data.RecurringSyncRepository? = null,
+    private val settingsStore: ua.rytm.app.data.local.SettingsStore? = null,
 ) : ViewModel() {
 
     companion object {
@@ -67,8 +69,13 @@ class FinanceViewModel(
                         ShiftOutlook(
                             typicalPay = ua.rytm.app.ui.screens.shifts.EarningsForecast.typicalShiftPay(days, types, schedule),
                             remainingThisMonth = month.planned + month.fromSchedule,
+                            lastMonthEarned = ua.rytm.app.ui.screens.shifts.EarningsForecast.forMonth(
+                                java.time.YearMonth.now().minusMonths(1), LocalDate.now(), days, types, schedule,
+                            ).earned,
                         )
                     },
+                    app.recurringSyncRepository,
+                    app.settingsStore,
                 )
             }
         }
@@ -145,6 +152,50 @@ class FinanceViewModel(
     private var shiftOutlook by mutableStateOf(ShiftOutlook())
     private val typicalShiftPay: Double? get() = shiftOutlook.typicalPay
     private var recurring by mutableStateOf<List<Recurring>>(emptyList())
+    private var dismissedSubscriptions by mutableStateOf<Set<String>>(emptySet())
+    private var monthSummarySeen by mutableStateOf<String?>(null)
+
+    /** Last month's recap (MonthSummary). */
+    val lastMonthSummary: MonthSummary by derivedStateOf {
+        MonthSummary.compute(transactions, java.time.YearMonth.now().minusMonths(1)) { toUah(it.amount, it.currency) }
+    }
+    var monthSummaryOpen by mutableStateOf(false)
+
+    /** The recap card shows in a month's first week until it is opened or closed. */
+    val showMonthSummaryCard: Boolean
+        get() = LocalDate.now().dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
+
+    fun openMonthSummary() { monthSummaryOpen = true; markMonthSummarySeen() }
+
+    fun markMonthSummarySeen() {
+        val month = lastMonthSummary.month.toString()
+        monthSummarySeen = month
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch { runCatching { settingsStore?.setMonthSummarySeen(uid, month) } }
+    }
+
+    /** Repeating expenses that look like subscriptions, not yet recurring payments (SubscriptionDetector). */
+    val subscriptionCandidates: List<SubscriptionDetector.Candidate> by derivedStateOf {
+        SubscriptionDetector.detect(transactions, recurring, LocalDate.now(), dismissedSubscriptions)
+    }
+
+    fun acceptSubscription(c: SubscriptionDetector.Candidate) {
+        dismissedSubscriptions = dismissedSubscriptions + c.key // hide at once; the new recurring also covers it
+        viewModelScope.launch {
+            runCatching {
+                repository.addRecurringFrom(c)
+                val (ownerUid, profileId) = activeProfilePath()
+                recurringSync?.saveRecurringSnapshot(ownerUid, profileId)
+                pendingMessage = FinanceMessage(R.string.subscription_added, listOf(c.comment))
+            }.onFailure { pendingMessage = FinanceMessage(R.string.common_save_failed) }
+        }
+    }
+
+    fun dismissSubscription(c: SubscriptionDetector.Candidate) {
+        dismissedSubscriptions = dismissedSubscriptions + c.key
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch { runCatching { settingsStore?.dismissSubscription(uid, c.key) } }
+    }
 
     init {
         restoreDraft()
@@ -160,6 +211,11 @@ class FinanceViewModel(
         repository.budgets.onEach { budgets = it }.catch { markLoadFailed() }.launchIn(viewModelScope)
         shiftOutlookFlow.onEach { shiftOutlook = it }.catch { }.launchIn(viewModelScope)
         repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
+        repository.goals.onEach { goals = it }.catch { }.launchIn(viewModelScope)
+        auth.currentUser?.uid?.let { uid ->
+            settingsStore?.dismissedSubscriptions(uid)?.onEach { dismissedSubscriptions = it }?.catch { }?.launchIn(viewModelScope)
+            settingsStore?.monthSummarySeen(uid)?.onEach { monthSummarySeen = it }?.catch { }?.launchIn(viewModelScope)
+        }
     }
 
     var search by mutableStateOf("")
@@ -247,6 +303,45 @@ class FinanceViewModel(
      * the shift type the user actually works most (EarningsForecast). Null
      * when there is no paid shift type or nothing typed yet.
      */
+    private var goals by mutableStateOf<List<Goal>>(emptyList())
+
+    /** A new income close to what last month's shifts earned: (expected, received − expected) in UAH. */
+    val formSalaryMatch: Pair<Double, Double>?
+        get() {
+            if (formType != TxType.INCOME || editingTxId != null) return null
+            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: return null
+            val expected = shiftOutlook.lastMonthEarned
+            val uah = toUah(amount, formWalletCurrency)
+            return if (SalaryAutopilot.matchesExpectedPay(uah, expected)) expected to (uah - expected) else null
+        }
+
+    /** After a payday income is saved: suggested transfers to goal wallets (SalaryAllocationSheet). */
+    var salaryAllocation by mutableStateOf<SalaryAllocation?>(null)
+
+    fun applySalaryAllocation(shares: List<SalaryAutopilot.GoalShare>) {
+        val plan = salaryAllocation ?: return
+        salaryAllocation = null
+        if (shares.isEmpty()) return
+        val me = auth.currentUser
+        viewModelScope.launch {
+            runCatching {
+                val (ownerUid, profileId) = activeProfilePath()
+                shares.forEach { share ->
+                    val tx = Transaction(
+                        id = java.util.UUID.randomUUID().toString(), type = TxType.TRANSFER, amount = share.amount,
+                        currency = plan.currency, date = LocalDate.now().toString(), walletId = plan.sourceWalletId,
+                        targetWalletId = share.walletId, targetAmount = share.amount, targetCurrency = plan.currency,
+                        category = "Внутрішній переказ", comment = null,
+                        createdBy = me?.uid, createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
+                    )
+                    syncRepository.saveTransaction(ownerUid, profileId, tx.toEntity())
+                    repository.upsertTransaction(tx)
+                }
+                pendingMessage = FinanceMessage(R.string.salary_allocated, listOf(formatMoney(shares.sumOf { it.amount })))
+            }.onFailure { pendingMessage = FinanceMessage(R.string.common_save_failed) }
+        }
+    }
+
     val formShiftCost: Double?
         get() {
             if (formType != TxType.EXPENSE) return null
@@ -350,12 +445,16 @@ class FinanceViewModel(
         private set
     fun consumeMessage() { pendingMessage = null }
 
-    fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null) {
+    /** One-line / voice entry dialog (QuickEntryDialog); it only pre-fills the form. */
+    var quickEntryOpen by mutableStateOf(false)
+
+    fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null, type: TxType? = null) {
         editingTxId = null
-        formType = when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
+        formType = type ?: when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
         // A wallet named with the card's last digits ("ПУМБ 5536") wins; then same currency; then the first.
-        formWalletId = (walletForCard(prefill?.account, prefill?.bank)
+        formWalletId = (prefill?.walletId?.let { id -> wallets.firstOrNull { it.id == id } }
+            ?: walletForCard(prefill?.account, prefill?.bank)
             ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
         formTargetWalletId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != formWalletId }
             ?: wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()
@@ -542,6 +641,17 @@ class FinanceViewModel(
                     isTransfer -> FinanceMessage(R.string.transaction_transfer_done)
                     else -> FinanceMessage(R.string.transaction_added)
                 }
+                if (existing == null && toSave.type == TxType.INCOME &&
+                    SalaryAutopilot.matchesExpectedPay(toUah(toSave.amount, toSave.currency), shiftOutlook.lastMonthEarned)
+                ) {
+                    val shares = SalaryAutopilot.suggest(
+                        toSave.amount, toSave.walletId, toSave.currency, goals,
+                        walletCurrency = { id -> wallets.firstOrNull { it.id == id }?.currency },
+                        walletBalance = { id -> FinanceRepository.walletBalance(transactions + toSave, id) },
+                        today = LocalDate.now(),
+                    )
+                    if (shares.isNotEmpty()) salaryAllocation = SalaryAllocation(toSave.walletId, toSave.currency, shares, toSave.comment)
+                }
                 sheetVisible = false
             }.onFailure {
                 formErrorField = null
@@ -630,10 +740,38 @@ class FinanceViewModel(
     }
 }
 
-data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0)
+/** Payday suggestion: move these amounts from [sourceWalletId] to goal wallets. */
+data class SalaryAllocation(val sourceWalletId: String, val currency: String, val shares: List<SalaryAutopilot.GoalShare>, val comment: String?)
+
+data class ShiftOutlook(val typicalPay: Double? = null, val remainingThisMonth: Double = 0.0, val lastMonthEarned: Double = 0.0)
 
 data class MonthOutlook(val shiftsEarnings: Double, val recurringOut: Double, val recurringIn: Double) {
     val isEmpty: Boolean get() = shiftsEarnings <= 0 && recurringOut <= 0 && recurringIn <= 0
 }
 
 data class Contribution(val name: String, val isMe: Boolean, val income: Double, val expense: Double)
+
+/** "A pays B" so the month's expenses end up split equally between members. */
+data class Settlement(val from: String, val to: String, val amount: Double)
+
+/**
+ * Equal split of everyone's expenses: whoever paid less than the average owes
+ * the difference to whoever paid more. Greedy largest-debtor → largest-creditor,
+ * at most n-1 payments; amounts under 1 ₴ are rounding noise and dropped.
+ */
+fun settleEqually(contributions: List<Contribution>): List<Settlement> {
+    if (contributions.size < 2) return emptyList()
+    val share = contributions.sumOf { it.expense } / contributions.size
+    val debtors = contributions.map { it.name to share - it.expense }.filter { it.second >= 1 }.sortedByDescending { it.second }.toMutableList()
+    val creditors = contributions.map { it.name to it.expense - share }.filter { it.second >= 1 }.sortedByDescending { it.second }.toMutableList()
+    val out = mutableListOf<Settlement>()
+    while (debtors.isNotEmpty() && creditors.isNotEmpty()) {
+        val (d, owe) = debtors.first()
+        val (c, due) = creditors.first()
+        val pay = minOf(owe, due)
+        if (pay >= 1) out += Settlement(d, c, Math.round(pay * 100) / 100.0)
+        if (owe - pay < 1) debtors.removeAt(0) else debtors[0] = d to owe - pay
+        if (due - pay < 1) creditors.removeAt(0) else creditors[0] = c to due - pay
+    }
+    return out
+}

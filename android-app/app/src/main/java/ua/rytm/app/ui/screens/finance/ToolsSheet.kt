@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import ua.rytm.app.ui.icons.PieChart
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -90,6 +93,7 @@ import ua.rytm.app.ui.icons.TrendingUp
 fun ToolsSheet(
     repository: FinanceRepository,
     onDismiss: () -> Unit,
+    onOpenMonthSummary: (() -> Unit)? = null,
     viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(repository)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -100,6 +104,17 @@ fun ToolsSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             RytmSheetTitle(stringResource(R.string.tools_title))
+            onOpenMonthSummary?.let { open ->
+                androidx.compose.material3.OutlinedButton(
+                    onClick = open,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
+                ) {
+                    androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null)
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.month_summary_tool))
+                }
+            }
 
             AnalyticsSection(viewModel)
             FxRatesSection(viewModel)

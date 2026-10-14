@@ -157,12 +157,45 @@ fun FinanceScreen(
         // bank suggestion / widget "+") consuming the action now dropped it.
         // Also wait for wallets+history: opened earlier the prefill had no wallet
         // and the alphabetically first category ("% …") instead of the frequent one.
-        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit && !viewModel.loading) {
+        val action = launchAction
+        if (action in ua.rytm.app.MainActivity.FINANCE_ACTIONS && canEdit && !viewModel.loading) {
             app.pendingLaunchAction.value = null
-            val prefill = app.pendingPrefill.value
-            app.pendingPrefill.value = null
-            viewModel.openNewTransactionSheet(prefill)
+            when (action) {
+                ua.rytm.app.MainActivity.ACTION_QUICK_ENTRY -> viewModel.quickEntryOpen = true
+                ua.rytm.app.MainActivity.ACTION_MONTH_SUMMARY -> viewModel.openMonthSummary()
+                ua.rytm.app.MainActivity.ACTION_NEW_INCOME -> viewModel.openNewTransactionSheet(type = TxType.INCOME)
+                ua.rytm.app.MainActivity.ACTION_NEW_EXPENSE -> viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
+                else -> {
+                    val prefill = app.pendingPrefill.value
+                    app.pendingPrefill.value = null
+                    viewModel.openNewTransactionSheet(prefill)
+                }
+            }
         }
+    }
+    viewModel.salaryAllocation?.let { plan ->
+        SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
+    }
+    if (viewModel.monthSummaryOpen) {
+        MonthSummarySheet(viewModel.lastMonthSummary, onDismiss = { viewModel.monthSummaryOpen = false })
+    }
+    if (viewModel.quickEntryOpen) {
+        QuickEntryDialog(
+            wallets = viewModel.wallets,
+            onDismiss = { viewModel.quickEntryOpen = false },
+            onParsed = { result ->
+                viewModel.quickEntryOpen = false
+                viewModel.openNewTransactionSheet(
+                    ua.rytm.app.bank.TxPrefill(
+                        isIncome = result.isIncome,
+                        amount = result.amount,
+                        currency = viewModel.wallets.firstOrNull { it.id == result.walletId }?.currency ?: "UAH",
+                        comment = result.comment.ifBlank { null },
+                        walletId = result.walletId,
+                    ),
+                )
+            },
+        )
     }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
@@ -366,6 +399,16 @@ fun FinanceScreen(
                     onGoals = { goalsSheetOpen = true },
                 )
             }
+            if (viewModel.showMonthSummaryCard) {
+                item(key = "month-summary") {
+                    MonthSummaryCard(viewModel.lastMonthSummary, onOpen = viewModel::openMonthSummary, onClose = viewModel::markMonthSummarySeen)
+                }
+            }
+            if (canEdit && viewModel.subscriptionCandidates.isNotEmpty()) {
+                item(key = "subscription-suggestions") {
+                    SubscriptionSuggestionsCard(viewModel.subscriptionCandidates, viewModel::acceptSubscription, viewModel::dismissSubscription)
+                }
+            }
             item { HistoryHeader(viewModel, resultCount = displayedCount) }
             item { SearchField(viewModel) }
             item { FilterRow(viewModel) }
@@ -433,7 +476,11 @@ fun FinanceScreen(
         TransactionFormSheet(viewModel)
     }
     if (toolsSheetOpen) {
-        ToolsSheet(repository = app.financeRepository, onDismiss = { toolsSheetOpen = false })
+        ToolsSheet(
+            repository = app.financeRepository,
+            onDismiss = { toolsSheetOpen = false },
+            onOpenMonthSummary = { toolsSheetOpen = false; viewModel.openMonthSummary() },
+        )
     }
     if (budgetsSheetOpen && accountUid != null) {
         BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: accountUid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })
