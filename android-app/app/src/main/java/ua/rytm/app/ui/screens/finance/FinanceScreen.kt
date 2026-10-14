@@ -157,12 +157,38 @@ fun FinanceScreen(
         // bank suggestion / widget "+") consuming the action now dropped it.
         // Also wait for wallets+history: opened earlier the prefill had no wallet
         // and the alphabetically first category ("% …") instead of the frequent one.
-        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION && canEdit && !viewModel.loading) {
+        val action = launchAction
+        if (action in ua.rytm.app.MainActivity.FINANCE_ACTIONS && canEdit && !viewModel.loading) {
             app.pendingLaunchAction.value = null
-            val prefill = app.pendingPrefill.value
-            app.pendingPrefill.value = null
-            viewModel.openNewTransactionSheet(prefill)
+            when (action) {
+                ua.rytm.app.MainActivity.ACTION_QUICK_ENTRY -> viewModel.quickEntryOpen = true
+                ua.rytm.app.MainActivity.ACTION_NEW_INCOME -> viewModel.openNewTransactionSheet(type = TxType.INCOME)
+                ua.rytm.app.MainActivity.ACTION_NEW_EXPENSE -> viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
+                else -> {
+                    val prefill = app.pendingPrefill.value
+                    app.pendingPrefill.value = null
+                    viewModel.openNewTransactionSheet(prefill)
+                }
+            }
         }
+    }
+    if (viewModel.quickEntryOpen) {
+        QuickEntryDialog(
+            wallets = viewModel.wallets,
+            onDismiss = { viewModel.quickEntryOpen = false },
+            onParsed = { result ->
+                viewModel.quickEntryOpen = false
+                viewModel.openNewTransactionSheet(
+                    ua.rytm.app.bank.TxPrefill(
+                        isIncome = result.isIncome,
+                        amount = result.amount,
+                        currency = viewModel.wallets.firstOrNull { it.id == result.walletId }?.currency ?: "UAH",
+                        comment = result.comment.ifBlank { null },
+                        walletId = result.walletId,
+                    ),
+                )
+            },
+        )
     }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }

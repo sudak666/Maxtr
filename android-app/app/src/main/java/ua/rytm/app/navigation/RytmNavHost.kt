@@ -107,7 +107,7 @@ fun RytmNavHost() {
     // opens the new-transaction sheet and consumes the action.
     val launchAction by app.pendingLaunchAction.collectAsState()
     LaunchedEffect(launchAction) {
-        if (launchAction == ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION &&
+        if (launchAction in ua.rytm.app.MainActivity.FINANCE_ACTIONS &&
             navController.currentDestination?.route != RytmDestination.Finance.route
         ) {
             navController.navigate(RytmDestination.Finance.route) {

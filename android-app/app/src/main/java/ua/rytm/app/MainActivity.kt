@@ -60,6 +60,7 @@ class MainActivity : FragmentActivity() {
         window.decorView.post { window.setBackgroundDrawable(null) }
         val app = application as RytmApplication
         handleLaunchAction(intent)
+        ua.rytm.app.shortcuts.AppShortcuts.publish(this)
         setContent {
             // Nullable initial on purpose (same reasoning as `hasPin` below):
             // committing to a theme before DataStore is read guaranteed a
@@ -180,5 +181,10 @@ class MainActivity : FragmentActivity() {
     companion object {
         const val EXTRA_LAUNCH_ACTION = "ua.rytm.app.LAUNCH_ACTION"
         const val ACTION_NEW_TRANSACTION = "new_transaction"
+        const val ACTION_NEW_EXPENSE = "new_expense"
+        const val ACTION_NEW_INCOME = "new_income"
+        const val ACTION_QUICK_ENTRY = "quick_entry"
+        /** Actions FinanceScreen consumes (the nav host switches to Finance first). */
+        val FINANCE_ACTIONS = setOf(ACTION_NEW_TRANSACTION, ACTION_NEW_EXPENSE, ACTION_NEW_INCOME, ACTION_QUICK_ENTRY)
     }
 }

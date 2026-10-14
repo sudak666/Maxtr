@@ -350,12 +350,16 @@ class FinanceViewModel(
         private set
     fun consumeMessage() { pendingMessage = null }
 
-    fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null) {
+    /** One-line / voice entry dialog (QuickEntryDialog); it only pre-fills the form. */
+    var quickEntryOpen by mutableStateOf(false)
+
+    fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null, type: TxType? = null) {
         editingTxId = null
-        formType = when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
+        formType = type ?: when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
         // A wallet named with the card's last digits ("ПУМБ 5536") wins; then same currency; then the first.
-        formWalletId = (walletForCard(prefill?.account, prefill?.bank)
+        formWalletId = (prefill?.walletId?.let { id -> wallets.firstOrNull { it.id == id } }
+            ?: walletForCard(prefill?.account, prefill?.bank)
             ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
         formTargetWalletId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != formWalletId }
             ?: wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()

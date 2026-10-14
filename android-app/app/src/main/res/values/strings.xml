@@ -525,4 +525,13 @@
     <string name="bank_suggest_transfer">Переказ між рахунками %1$s?</string>
     <string name="bank_suggest_account">Рахунок %1$s · торкнись, щоб перевірити</string>
     <string name="field_autosaved">Збережено ✓</string>
+    <string name="quick_entry_title">Швидкий ввід</string>
+    <string name="quick_entry_button">Голосом</string>
+    <string name="quick_entry_body">Сума, слово з назви гаманця і коментар. Плюс на початку або «зарплата» — це дохід. Нічого не збережеться без вашого підтвердження у формі.</string>
+    <string name="quick_entry_hint">Напр.: кава 65 моно</string>
+    <string name="quick_entry_no_amount">Не бачу суми — додайте число</string>
+    <string name="quick_entry_voice">Сказати голосом</string>
+    <string name="quick_entry_next">Далі</string>
+    <string name="shortcut_expense">Витрата</string>
+    <string name="shortcut_income">Дохід</string>
 </resources>

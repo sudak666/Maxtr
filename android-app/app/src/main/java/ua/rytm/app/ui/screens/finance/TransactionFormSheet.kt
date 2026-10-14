@@ -92,6 +92,7 @@ import ua.rytm.app.ui.icons.ArrowDownward
 import ua.rytm.app.ui.icons.ArrowUpward
 import ua.rytm.app.ui.icons.CameraAlt
 import ua.rytm.app.ui.icons.DocumentScanner
+import ua.rytm.app.ui.icons.Mic
 import ua.rytm.app.ui.icons.PhotoLibrary
 import ua.rytm.app.ui.icons.SwapHoriz
 
@@ -165,15 +166,29 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 // One secondary action, not two filled Buttons competing with
                 // (and sitting above) the form's real primary action. Source
                 // choice moved into a small sheet, the platform-canonical shape.
-                OutlinedButton(
-                    onClick = { scanSourceOpen = true },
-                    enabled = !ocrBusy,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
-                    shape = RoundedCornerShape(RytmRadii.Row),
-                ) {
-                    Icon(RytmIcons.DocumentScanner, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.receipt_scan))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { scanSourceOpen = true },
+                        enabled = !ocrBusy,
+                        modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
+                        shape = RoundedCornerShape(RytmRadii.Row),
+                    ) {
+                        Icon(RytmIcons.DocumentScanner, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.receipt_scan), maxLines = 1)
+                    }
+                    // A new transaction only: one line or voice re-fills the whole form.
+                    if (vm.editingTxId == null) {
+                        OutlinedButton(
+                            onClick = { vm.quickEntryOpen = true },
+                            modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
+                            shape = RoundedCornerShape(RytmRadii.Row),
+                        ) {
+                            Icon(RytmIcons.Mic, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.quick_entry_button), maxLines = 1)
+                        }
+                    }
                 }
                 if (scanSourceOpen) {
                     // Cancel used to live in AlertDialog's own confirmButton

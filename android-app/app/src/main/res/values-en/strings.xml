@@ -517,4 +517,13 @@
     <string name="bank_suggest_transfer">Transfer between accounts %1$s?</string>
     <string name="bank_suggest_account">Account %1$s · tap to check</string>
     <string name="field_autosaved">Saved ✓</string>
+    <string name="quick_entry_title">Quick entry</string>
+    <string name="quick_entry_button">By voice</string>
+    <string name="quick_entry_body">Amount, a word from the wallet name and a note. A leading plus or «salary» makes it income. Nothing is saved until you confirm in the form.</string>
+    <string name="quick_entry_hint">e.g. coffee 65 mono</string>
+    <string name="quick_entry_no_amount">No amount found — add a number</string>
+    <string name="quick_entry_voice">Speak</string>
+    <string name="quick_entry_next">Next</string>
+    <string name="shortcut_expense">Expense</string>
+    <string name="shortcut_income">Income</string>
 </resources>

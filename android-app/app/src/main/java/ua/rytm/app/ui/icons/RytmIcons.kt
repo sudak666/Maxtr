@@ -439,6 +439,15 @@ private val _download by lazy { icon("Download",
 /** Lucide `download`. */
 val RytmIcons.Download: ImageVector get() = _download
 
+private val _mic by lazy { icon("Mic",
+        "M12,2 A3,3 0 0 1 15,5 V12 A3,3 0 0 1 9,12 V5 A3,3 0 0 1 12,2 Z",
+        "M19 10v2a7 7 0 0 1-14 0v-2",
+        "M12 19v3",
+) }
+
+/** Lucide `mic`. */
+val RytmIcons.Mic: ImageVector get() = _mic
+
 private val _edit by lazy { icon("Edit",
         "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
         "m15 5 4 4",

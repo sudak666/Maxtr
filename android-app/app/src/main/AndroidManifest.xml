@@ -6,6 +6,16 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Voice input for quick entry: find the system speech recognizer (Android 11+ package visibility). -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+    </queries>
+
     <application
         android:name=".RytmApplication"
         android:allowBackup="false"
@@ -28,6 +38,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".shortcuts.QuickEntryTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_quick"
+            android:label="@string/quick_entry_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!-- Reads only the bank apps listed in bank/BankNotificationParser.kt;
              active only after the user grants notification access. -->
