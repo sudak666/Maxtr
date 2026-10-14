@@ -551,4 +551,5 @@
     <string name="month_summary_notification_body">Spent %1$s · earned %2$s. Tap to see more.</string>
     <string name="month_summary_notification_hidden">Tap to see where the money went.</string>
     <string name="month_summary_tool">Month recap</string>
+    <string name="finance_settle_line">To split equally: %1$s → %2$s %3$s</string>
 </resources>

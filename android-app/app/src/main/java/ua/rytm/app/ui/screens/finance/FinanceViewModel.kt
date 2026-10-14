@@ -693,3 +693,28 @@ data class MonthOutlook(val shiftsEarnings: Double, val recurringOut: Double, va
 }
 
 data class Contribution(val name: String, val isMe: Boolean, val income: Double, val expense: Double)
+
+/** "A pays B" so the month's expenses end up split equally between members. */
+data class Settlement(val from: String, val to: String, val amount: Double)
+
+/**
+ * Equal split of everyone's expenses: whoever paid less than the average owes
+ * the difference to whoever paid more. Greedy largest-debtor → largest-creditor,
+ * at most n-1 payments; amounts under 1 ₴ are rounding noise and dropped.
+ */
+fun settleEqually(contributions: List<Contribution>): List<Settlement> {
+    if (contributions.size < 2) return emptyList()
+    val share = contributions.sumOf { it.expense } / contributions.size
+    val debtors = contributions.map { it.name to share - it.expense }.filter { it.second >= 1 }.sortedByDescending { it.second }.toMutableList()
+    val creditors = contributions.map { it.name to it.expense - share }.filter { it.second >= 1 }.sortedByDescending { it.second }.toMutableList()
+    val out = mutableListOf<Settlement>()
+    while (debtors.isNotEmpty() && creditors.isNotEmpty()) {
+        val (d, owe) = debtors.first()
+        val (c, due) = creditors.first()
+        val pay = minOf(owe, due)
+        if (pay >= 1) out += Settlement(d, c, Math.round(pay * 100) / 100.0)
+        if (owe - pay < 1) debtors.removeAt(0) else debtors[0] = d to owe - pay
+        if (due - pay < 1) creditors.removeAt(0) else creditors[0] = c to due - pay
+    }
+    return out
+}

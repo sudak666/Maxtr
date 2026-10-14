@@ -231,6 +231,14 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                             )
                         }
                     }
+                    // Who pays whom so this month's expenses are split equally.
+                    settleEqually(contributions).forEach { st ->
+                        Text(
+                            stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)} ₴")),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
 
