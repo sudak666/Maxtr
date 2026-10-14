@@ -6,11 +6,15 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 
-// One vocabulary for tactile feedback. confirm() stays LongPress: on the A51
-// the lighter Confirm/VirtualKey constants were barely perceptible.
+// One vocabulary for tactile feedback. Everything is LongPress: on the owner's
+// Samsung A51 the lighter types (ToggleOn/Off, SegmentTick, Confirm,
+// VirtualKey) were not felt at all (checked by hand 2026-10-14) — only
+// LongPress registers. Kept as separate calls so the strength can differ
+// per kind if a lighter type ever proves perceptible.
 class RytmHaptics(private val feedback: HapticFeedback) {
-    fun toggle(on: Boolean) = feedback.performHapticFeedback(if (on) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
-    fun tick() = feedback.performHapticFeedback(HapticFeedbackType.SegmentTick)
+    @Suppress("UNUSED_PARAMETER")
+    fun toggle(on: Boolean) = feedback.performHapticFeedback(HapticFeedbackType.LongPress)
+    fun tick() = feedback.performHapticFeedback(HapticFeedbackType.LongPress)
     fun confirm() = feedback.performHapticFeedback(HapticFeedbackType.LongPress)
 }
 
