@@ -529,7 +529,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
         onDelete = { viewModel.requestDeleteEntry(entry.id) },
         pendingConfirmation = viewModel.pendingDeleteEntryId == entry.id,
     ) {
-        DebtEntryContent(viewModel, entry, currency)
+        DebtEntryContent(viewModel, entry, currency, canEdit)
     }
 }
 
@@ -602,9 +602,17 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pen
 }
 
 @Composable
-private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currency: String) {
+private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean = true) {
     val editing = viewModel.entryEditId == entry.id
-    Card(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+    // The whole row opens the editor, not just the pencil: the round FAB can
+    // sit over the pencil of the row at its height.
+    Card(
+        onClick = { viewModel.toggleEntryEdit(entry.id) },
+        enabled = canEdit && !editing,
+        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.CardDefaults.cardColors(disabledContainerColor = androidx.compose.material3.CardDefaults.cardColors().containerColor, disabledContentColor = MaterialTheme.colorScheme.onSurface),
+    ) {
             Column(Modifier.padding(12.dp)) {
                 if (editing) {
                     var amount by remember(entry.id) { mutableStateOf(entry.amount) }
