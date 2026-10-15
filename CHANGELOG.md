@@ -1,5 +1,7 @@
 # Changelog
 
+- **Bump to 2.5.0 (vc25) + privacy note on voice input (2026-10-15)** — release of the audit fixes, sheet-bounce fix, haptics and the six new features (#582–#585). `privacy.html`/`privacy-en.html`: one paragraph — Quick entry's mic uses Android's system speech recognizer (usually Google), Rytm gets only the text, never stores/sends audio. Hosting deploy for the privacy pages.
+
 - **Android: six audit features + full screen pass (2026-10-15)** — from the audit's section 3.
   1. **Launcher shortcuts** (Витрата / Дохід / Швидкий ввід; dynamic via `AppShortcuts`, a static shortcuts.xml can't target the `.qa` suffix) and a **Quick Settings tile** (`QuickEntryTileService`) — new launch actions `new_expense`/`new_income`/`quick_entry`/`month_summary` in `MainActivity.FINANCE_ACTIONS`.
   2. **Quick entry** — one line or voice («кава 65 моно», «+25000 зарплата пумб») → pre-filled form, never auto-saved (`QuickEntryParser`, 9 tests; Latin ↔ Cyrillic wallet matching; `QuickEntryDialog` with `RecognizerIntent`, `<queries>` for Android 11+). Also a «Голосом» button next to «Чек» in the new-transaction form.
