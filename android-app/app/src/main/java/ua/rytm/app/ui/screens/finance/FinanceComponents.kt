@@ -544,6 +544,7 @@ internal fun TransactionRow(
     resetGeneration: Int,
     onDelete: () -> Boolean,
     onClick: () -> Unit,
+    onSwipeOpenChange: (Boolean) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -565,6 +566,10 @@ internal fun TransactionRow(
     LaunchedEffect(resetGeneration) {
         settleAt(0f)
     }
+    // Lets the screen hide its FAB while this row's delete button is showing.
+    val swipeOpen = offsetPx < 0f
+    LaunchedEffect(swipeOpen) { onSwipeOpenChange(swipeOpen) }
+    androidx.compose.runtime.DisposableEffect(tx.id) { onDispose { onSwipeOpenChange(false) } }
 
     Box(
         Modifier

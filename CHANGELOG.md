@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: FAB no longer covers rows (2026-10-15)** — owner picked option 1. Finance and Debt: the labelled FAB shrinks to the round "+" as soon as any visible list item overlaps its band (`rowUnderFab` from `LazyListState.layoutInfo`, band = 64dp above `BottomContentClearance + 16dp`), instead of only once the list scrolled; and it is hidden while a row is swiped open (`TransactionRow.onSwipeOpenChange`, `DebtEntrySwipeContainer.onSwipeChange` → a `mutableStateSetOf` of open rows), so the swipe-delete button is never under it. Verified on the A51: Finance shows the round + at rest and no FAB while a row is swiped open; Debt shows the round + (it still overlaps part of the lower row's edit pencil, as expected for option 1). 0 crashes.
+
 - **Bump to 2.5.0 (vc25) + privacy note on voice input (2026-10-15)** — release of the audit fixes, sheet-bounce fix, haptics and the six new features (#582–#585). `privacy.html`/`privacy-en.html`: one paragraph — Quick entry's mic uses Android's system speech recognizer (usually Google), Rytm gets only the text, never stores/sends audio. Hosting deploy for the privacy pages.
 
 - **Android: six audit features + full screen pass (2026-10-15)** — from the audit's section 3.

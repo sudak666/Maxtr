@@ -151,7 +151,22 @@ fun DebtScreen(
 
     // Same shrink-on-scroll behaviour as FinanceScreen's FAB: the wide
     // "Платіж" pill covered the history rows' edit pencils mid-scroll.
-    val fabAtTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    // Same rule as Finance: the labelled FAB shrinks to a round "+" once any
+    // list item sits in its band (it covered the rows' edit pencil), and it
+    // hides while a payment row is being swiped.
+    val fabDensity = LocalDensity.current
+    val fabBandBottomInset = with(fabDensity) { (RytmDimens.BottomContentClearance + 16.dp).roundToPx() }
+    val fabBandHeight = with(fabDensity) { 64.dp.roundToPx() }
+    val rowUnderFab by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val bandBottom = info.viewportEndOffset - fabBandBottomInset
+            val bandTop = bandBottom - fabBandHeight
+            info.visibleItemsInfo.any { it.offset < bandBottom && it.offset + it.size > bandTop }
+        }
+    }
+    val fabAtTop = !rowUnderFab
+    val swipedEntries = remember { androidx.compose.runtime.mutableStateSetOf<String>() }
 
     fun collapseHistory() {
         if (!viewModel.historyExpanded) return
@@ -162,7 +177,7 @@ fun DebtScreen(
     Scaffold(
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         floatingActionButton = {
-            if (cd != null && canEdit) {
+            if (cd != null && canEdit && swipedEntries.isEmpty()) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
                 val collapse = viewModel.historyExpanded && !collapseButtonVisible
                 val fabPress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
@@ -214,7 +229,7 @@ fun DebtScreen(
                     item { EmptyEntriesState() }
                 } else {
                     items(visibleEntries, key = { it.id }) { entry ->
-                        DebtEntryRow(viewModel, entry, cd.currency, canEdit)
+                        DebtEntryRow(viewModel, entry, cd.currency, canEdit) { open -> if (open) swipedEntries.add(entry.id.toString()) else swipedEntries.remove(entry.id.toString()) }
                     }
                 }
                 if (newestEntries.size > 3) {
@@ -507,9 +522,10 @@ private fun EmptyEntriesState() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean) {
+private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: String, canEdit: Boolean, onSwipeChange: (Boolean) -> Unit = {}) {
     DebtEntrySwipeContainer(
         canEdit = canEdit,
+        onSwipeChange = onSwipeChange,
         onDelete = { viewModel.requestDeleteEntry(entry.id) },
         pendingConfirmation = viewModel.pendingDeleteEntryId == entry.id,
     ) {
@@ -519,7 +535,7 @@ private fun DebtEntryRow(viewModel: DebtViewModel, entry: DebtEntry, currency: S
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pendingConfirmation: Boolean = false, content: @Composable () -> Unit) {
+internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pendingConfirmation: Boolean = false, onSwipeChange: (Boolean) -> Unit = {}, content: @Composable () -> Unit) {
     val haptics = LocalHapticFeedback.current
     val swipeThresholdPx = with(LocalDensity.current) { SwipeOpenThreshold.toPx() }
     var deleteCommitted by rememberSaveable { mutableStateOf(false) }
@@ -548,6 +564,9 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pen
     // (removed from the entries list) and this effect never runs a
     // meaningful reset; if it's cancelled, the entry is still there and
     // this snaps the row back to normal.
+    val swiping = dismissState.dismissDirection != SwipeToDismissBoxValue.Settled
+    LaunchedEffect(swiping) { onSwipeChange(swiping) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { onSwipeChange(false) } }
     LaunchedEffect(pendingConfirmation) {
         if (!pendingConfirmation && deleteCommitted) {
             deleteCommitted = false
