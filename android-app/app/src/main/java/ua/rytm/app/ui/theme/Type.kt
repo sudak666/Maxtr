@@ -2,6 +2,7 @@ package ua.rytm.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -68,20 +69,23 @@ const val TabularFigures = "tnum"
 /** [TextStyle] with tabular (fixed-width) digits — use for money values. */
 fun TextStyle.tabularNums(): TextStyle = copy(fontFeatureSettings = TabularFigures)
 
+// Hyphens.Auto: at a large system font a word that no longer fits its line
+// ("Push-сповіщення", "Заощаджено") was cut mid-word with no hyphen; Android's
+// hyphenator splits it at a syllable with "-" instead (2026-10-15, A51 at 2.0×).
 val Typography = Typography(
-    displayLarge = TextStyle(fontFamily = Inter, fontWeight = WeightMega, fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.5).sp), // --text-2xl
-    displayMedium = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 30.sp, lineHeight = 36.sp, letterSpacing = (-0.4).sp), // --text-xl
-    displaySmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp), // --text-lg
-    headlineLarge = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.2).sp),
-    headlineMedium = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp),
-    headlineSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 20.sp, lineHeight = 26.sp, letterSpacing = 0.sp),
-    titleLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp),
-    titleMedium = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.1.sp), // --text-md
-    titleSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp), // --text-base
-    bodyLarge = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = 0.15.sp),
-    bodyMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 15.sp, lineHeight = 21.sp, letterSpacing = 0.15.sp),
-    bodySmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 19.sp, letterSpacing = 0.15.sp), // --text-sm
-    labelLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.1.sp),
-    labelMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.2.sp), // --text-xs
-    labelSmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 13.sp, lineHeight = 17.sp, letterSpacing = 0.2.sp), // --text-2xs
+    displayLarge = TextStyle(fontFamily = Inter, fontWeight = WeightMega, fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.5).sp, hyphens = Hyphens.Auto), // --text-2xl
+    displayMedium = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 30.sp, lineHeight = 36.sp, letterSpacing = (-0.4).sp, hyphens = Hyphens.Auto), // --text-xl
+    displaySmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto), // --text-lg
+    headlineLarge = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto),
+    headlineMedium = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto),
+    headlineSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 20.sp, lineHeight = 26.sp, letterSpacing = 0.sp, hyphens = Hyphens.Auto),
+    titleLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp, hyphens = Hyphens.Auto),
+    titleMedium = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto), // --text-md
+    titleSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto), // --text-base
+    bodyLarge = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto),
+    bodyMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 15.sp, lineHeight = 21.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto),
+    bodySmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 19.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto), // --text-sm
+    labelLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto),
+    labelMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.2.sp, hyphens = Hyphens.Auto), // --text-xs
+    labelSmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 13.sp, lineHeight = 17.sp, letterSpacing = 0.2.sp, hyphens = Hyphens.Auto), // --text-2xs
 )

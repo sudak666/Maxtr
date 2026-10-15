@@ -135,6 +135,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     var scanSourceOpen by rememberSaveable { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val submitHaptics = rememberRytmHaptics()
+    val largeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f
     val formLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     val decimalSeparator = remember(formLocale) { java.text.DecimalFormatSymbols.getInstance(formLocale).decimalSeparator }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
@@ -173,9 +174,11 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
                         shape = RoundedCornerShape(RytmRadii.Row),
                     ) {
-                        Icon(RytmIcons.DocumentScanner, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.receipt_scan_short), maxLines = 1)
+                        if (!largeFont) {
+                            Icon(RytmIcons.DocumentScanner, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        ua.rytm.app.ui.components.FitText(stringResource(R.string.receipt_scan_short), style = MaterialTheme.typography.labelLarge)
                     }
                     // A new transaction only: one line or voice re-fills the whole form.
                     if (vm.editingTxId == null) {
@@ -184,9 +187,11 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                             modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
                             shape = RoundedCornerShape(RytmRadii.Row),
                         ) {
-                            Icon(RytmIcons.Mic, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.quick_entry_button), maxLines = 1)
+                            if (!largeFont) {
+                                Icon(RytmIcons.Mic, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            ua.rytm.app.ui.components.FitText(stringResource(R.string.quick_entry_button), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
@@ -400,6 +405,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
     // segment's own tinted wash (#059669 on it was 3.43:1).
     val isDark = RytmSemantic.isDark
     val typeHaptics = rememberRytmHaptics()
+    val largeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f
     val options = listOf(
         TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), RytmIcons.ArrowUpward, RytmSemantic.income),
         TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, RytmSemantic.expense),
@@ -431,15 +437,13 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(option.icon, contentDescription = null, tint = option.color, modifier = Modifier.size(19.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = option.label,
-                    color = option.color,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                )
+                // At a large system font the arrow ate the label ("Дохі"): the
+                // label alone carries the meaning, and it shrinks rather than cut.
+                if (!largeFont) {
+                    Icon(option.icon, contentDescription = null, tint = option.color, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
+                ua.rytm.app.ui.components.FitText(option.label, style = MaterialTheme.typography.labelLarge, color = option.color, fontWeight = FontWeight.Bold)
             }
         }
     }

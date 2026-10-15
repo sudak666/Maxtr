@@ -215,7 +215,7 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
                     Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
                 }
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                ua.rytm.app.ui.components.FitText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 maskedAmount(stringResource(R.string.finance_amount_uah, formatMoney(amount))),
@@ -236,7 +236,7 @@ private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier:
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
                     Icon(RytmIcons.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
                 }
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                ua.rytm.app.ui.components.FitText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text("$value%", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
         }

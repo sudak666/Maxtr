@@ -264,7 +264,7 @@ internal fun ForecastCard(current: MonthForecast, next: MonthForecast, goal: Dou
                 return@Column
             }
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(monthName(current), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                ua.rytm.app.ui.components.FitText(monthName(current), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(end = 8.dp))
                 Text(
                     maskedAmount(stringResource(R.string.forecast_month_total, formatMoney(current.total))),
                     style = MaterialTheme.typography.headlineSmall.tabularNums(),
@@ -350,13 +350,13 @@ internal fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             ) {
                 months.forEach { m ->
                     val isCur = m.yearMonth == curYm
-                    Text(
-                        m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale),
+                    ua.rytm.app.ui.components.FitText(
+                        m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale).trimEnd('.'),
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
                         fontWeight = if (isCur) FontWeight.Black else FontWeight.Bold,
                         color = if (isCur) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        minSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp),
                     )
                 }
             }
