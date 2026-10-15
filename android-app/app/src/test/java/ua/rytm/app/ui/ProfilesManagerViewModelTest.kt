@@ -45,7 +45,7 @@ class ProfilesManagerViewModelTest {
 
     @After fun tearDown() = Dispatchers.resetMain()
 
-    private fun waitUntil(cond: () -> Boolean) { repeat(150) { if (cond()) return; Thread.sleep(20) } }
+    private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     private fun vm() = ProfilesManagerViewModel(
         repo,

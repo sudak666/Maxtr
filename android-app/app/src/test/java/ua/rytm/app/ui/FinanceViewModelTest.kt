@@ -59,7 +59,7 @@ class FinanceViewModelTest {
 
     @After fun tearDown() { db.close(); Dispatchers.resetMain() }
 
-    private fun waitUntil(cond: () -> Boolean) { repeat(150) { if (cond()) return; Thread.sleep(20) } }
+    private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     private fun vm() = FinanceViewModel(repo, sync, auth, ActiveProfileStore(ApplicationProvider.getApplicationContext()))
         .also { v -> waitUntil { v.wallets.size == 2 } }

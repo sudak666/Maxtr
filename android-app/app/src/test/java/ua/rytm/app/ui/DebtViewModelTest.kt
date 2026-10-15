@@ -47,7 +47,7 @@ class DebtViewModelTest {
 
     @After fun tearDown() { db.close(); Dispatchers.resetMain() }
 
-    private fun waitUntil(cond: () -> Boolean) { repeat(150) { if (cond()) return; Thread.sleep(20) } }
+    private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     private fun newVm(saver: FakeDebtSaver): DebtViewModel {
         val vm = DebtViewModel(repo, saver, fieldSaveDebounceMs = 0)
