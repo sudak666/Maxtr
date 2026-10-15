@@ -42,7 +42,7 @@ class ShiftsViewModelTest {
 
     @After fun tearDown() { db.close(); Dispatchers.resetMain() }
 
-    private fun waitUntil(cond: () -> Boolean) { repeat(100) { if (cond()) return; Thread.sleep(20) } }
+    private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     @Test fun savingADaySelectionPersistsAndSyncs() {
         val vm = ShiftsViewModel(repo, "u", "default")

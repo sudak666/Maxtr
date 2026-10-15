@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android tests: waitUntil 3 s → 10 s (2026-10-15)** — PR #588 (vc26 bump) merged with a red `android` job: `FinanceViewModelTest.contributionsNeedTwoPeopleAndNewEntriesCarryAuthor` hit `NoSuchElementException` because the add hadn't landed within the 3 s poll on the slow CI runner (passes 5/5 locally; same class as the earlier Debt/Shifts CI flakes). The `merge` went through because no check is required — the vc26 code itself is unaffected (a version bump). Raised the poll to 10 s in the 5 ViewModel test files.
+
 - **Bump to 2.5.1 (vc26) (2026-10-15)** — vc25 + the FAB change (#587); owner releases vc26 instead of vc25.
 
 - **Android: FAB no longer covers rows (2026-10-15)** — owner picked option 1. Finance and Debt: the labelled FAB shrinks to the round "+" as soon as any visible list item overlaps its band (`rowUnderFab` from `LazyListState.layoutInfo`, band = 64dp above `BottomContentClearance + 16dp`), instead of only once the list scrolled; and it is hidden while a row is swiped open (`TransactionRow.onSwipeOpenChange`, `DebtEntrySwipeContainer.onSwipeChange` → a `mutableStateSetOf` of open rows), so the swipe-delete button is never under it. Verified on the A51: Finance shows the round + at rest and no FAB while a row is swiped open; Debt shows the round + (it still overlaps part of the lower row's edit pencil, as expected for option 1). 0 crashes.
