@@ -260,7 +260,21 @@ fun FinanceScreen(
     // M3 extended-FAB behaviour: full label at the top, shrinks to the round
     // icon FAB once the list is scrolled, so it stops covering rows (the
     // wide pill hid amounts/"Переглянути всі" mid-scroll, seen live on an A51).
-    val fabAtTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    // Collapse to the round "+" as soon as any list item sits in the FAB's
+    // band (its label covered amounts and the swipe-delete button), and hide
+    // it while a row is swiped open so the delete button is never under it.
+    val density = LocalDensity.current
+    val fabBandBottomInset = with(density) { (RytmDimens.BottomContentClearance + 16.dp).roundToPx() }
+    val fabBandHeight = with(density) { 64.dp.roundToPx() }
+    val rowUnderFab by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val bandBottom = info.viewportEndOffset - fabBandBottomInset
+            val bandTop = bandBottom - fabBandHeight
+            info.visibleItemsInfo.any { it.offset < bandBottom && it.offset + it.size > bandTop }
+        }
+    }
+    val swipedRows = remember { androidx.compose.runtime.mutableStateSetOf<String>() }
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
     val haptics = LocalHapticFeedback.current
@@ -316,13 +330,13 @@ fun FinanceScreen(
                     Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                     Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
-            } else if (canEdit && showFab) {
+            } else if (canEdit && showFab && swipedRows.isEmpty()) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
                 // At a large font scale or a short screen the extended FAB used
                 // to be hidden outright — removing the screen's primary action
                 // from exactly the users who need it most. M3's answer is to
                 // collapse it to a round icon FAB instead.
-                val collapsed = largeText || compactHeight || !fabAtTop
+                val collapsed = largeText || compactHeight || rowUnderFab
                 val label = stringResource(R.string.transaction_new_title)
                 val fabAnimMs = if (LocalReducedMotion.current) 0 else 450
                 val fabPadding by animateDpAsState(if (collapsed) 16.dp else 22.dp, tween(fabAnimMs), label = "fabPadding")
@@ -447,6 +461,7 @@ fun FinanceScreen(
                             resetGeneration = swipeResetGeneration,
                             onDelete = { requestDelete(tx) },
                             onClick = { viewModel.openEditTransactionSheet(tx) },
+                            onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
                         )
                     }
                 }
