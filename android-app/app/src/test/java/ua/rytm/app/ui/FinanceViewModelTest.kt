@@ -59,7 +59,17 @@ class FinanceViewModelTest {
 
     @After fun tearDown() { db.close(); Dispatchers.resetMain() }
 
-    private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
+    // filteredTransactions & co. are derivedStateOf: their cache refreshes when
+    // the global snapshot advances, which in the app every frame does. Unit
+    // tests have no frames, so advance it here (it used to read a stale empty
+    // list now and then — CI flake, #583..#591).
+    private fun waitUntil(cond: () -> Boolean) {
+        repeat(500) {
+            androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+            if (cond()) return
+            Thread.sleep(20)
+        }
+    }
 
     private fun vm() = FinanceViewModel(repo, sync, auth, ActiveProfileStore(ApplicationProvider.getApplicationContext()))
         .also { v -> waitUntil { v.wallets.size == 2 } }
