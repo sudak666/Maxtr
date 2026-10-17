@@ -30,6 +30,8 @@ import androidx.annotation.StringRes
 import ua.rytm.app.R
 
 data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
+/** Balance(s) right after the form's transaction; [target] is set only for a transfer. */
+data class FormBalanceAfter(val source: Double, val sourceCurrency: String, val target: Double?, val targetCurrency: String?)
 data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any> = emptyList())
 
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
@@ -565,6 +567,35 @@ class FinanceViewModel(
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
             return TransferHint(sourceText, targetText)
+        }
+
+    /**
+     * The wallet balance(s) right after the transaction being edited/entered, live
+     * from the form — like a bank's "balance after". An unparsable amount counts as 0;
+     * a new entry sorts last on its date.
+     */
+    val formBalanceAfter: FormBalanceAfter?
+        get() {
+            if (formWalletId.isBlank()) return null
+            val isTransfer = formType == TxType.TRANSFER
+            if (isTransfer && (formTargetWalletId.isBlank() || formTargetWalletId == formWalletId)) return null
+            val amount = parseMoneyInput(formAmountText)?.takeIf { it.isFinite() && it >= 0 } ?: 0.0
+            val srcCur = formWalletCurrency
+            val targetCur = if (isTransfer) wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH" else null
+            val existing = editingTxId?.let { id -> transactions.firstOrNull { it.id == id } }
+            val draft = Transaction(
+                id = existing?.id ?: "__draft__", type = formType, amount = amount, currency = srcCur,
+                date = formDate, walletId = formWalletId, category = "",
+                targetWalletId = if (isTransfer) formTargetWalletId else null,
+                targetAmount = targetCur?.let { convertSample(amount, srcCur, it) }, targetCurrency = targetCur,
+                createdAt = existing?.createdAt ?: Long.MAX_VALUE,
+            )
+            return FormBalanceAfter(
+                source = FinanceRepository.balanceAfter(transactions, formWalletId, draft),
+                sourceCurrency = srcCur,
+                target = targetCur?.let { FinanceRepository.balanceAfter(transactions, formTargetWalletId, draft) },
+                targetCurrency = targetCur,
+            )
         }
 
     fun submitForm() {
