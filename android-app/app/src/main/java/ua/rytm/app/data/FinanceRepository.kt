@@ -430,6 +430,18 @@ class FinanceRepository(private val db: RytmDatabase) {
             }
             return balance
         }
+
+        /**
+         * [walletId]'s balance right after [tx], in history order (date, then
+         * createdAt — the same order the list shows). [tx] may be unsaved: any
+         * stored copy with the same id is replaced by it.
+         */
+        fun balanceAfter(transactions: List<Transaction>, walletId: String, tx: Transaction): Double {
+            val upTo = transactions.filter { t ->
+                t.id != tx.id && (t.date < tx.date || (t.date == tx.date && t.createdAt <= tx.createdAt))
+            }
+            return walletBalance(upTo + tx, walletId)
+        }
     }
 
     // Mirrors js/color-picker.js's computeNextDate(dateStr, freq).

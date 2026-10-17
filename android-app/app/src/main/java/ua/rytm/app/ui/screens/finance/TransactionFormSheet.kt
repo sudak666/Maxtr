@@ -258,9 +258,12 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 TxType.TRANSFER -> stringResource(R.string.transaction_wallet_source)
             }
             WalletDropdown(label = walletLabel, wallets = vm.wallets, selectedId = vm.formWalletId, onSelect = vm::onFormWalletChange)
+            val balanceAfter = vm.formBalanceAfter
+            balanceAfter?.let { BalanceAfterLine(it.source, it.sourceCurrency) }
 
             if (vm.formType == TxType.TRANSFER) {
                 WalletDropdown(label = stringResource(R.string.transaction_wallet_target), wallets = vm.wallets, selectedId = vm.formTargetWalletId, onSelect = vm::onFormTargetWalletChange)
+                balanceAfter?.target?.let { BalanceAfterLine(it, balanceAfter.targetCurrency ?: "UAH") }
                 vm.formTransferHint?.let { hint ->
                     Text(
                         text = if (hint.isWarning) stringResource(R.string.transaction_wallet_same) else stringResource(R.string.transaction_conversion_hint, hint.sourceText, hint.targetText),
@@ -455,6 +458,18 @@ private data class TransactionTypeOption(
     val icon: ImageVector,
     val color: Color,
 )
+
+/** "Баланс після: 417,09 ₴" under a wallet field, as a bank statement shows it. */
+@Composable
+private fun BalanceAfterLine(balance: Double, currency: String) {
+    val sign = if (balance < 0) "−" else ""
+    Text(
+        text = stringResource(R.string.transaction_balance_after, ua.rytm.app.ui.maskedAmount("$sign${formatMoney(kotlin.math.abs(balance))} ${currencySymbol(currency)}")),
+        style = MaterialTheme.typography.bodySmall,
+        color = if (balance < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 16.dp),
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
