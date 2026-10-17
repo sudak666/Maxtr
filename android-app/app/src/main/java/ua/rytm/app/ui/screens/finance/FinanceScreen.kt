@@ -225,6 +225,7 @@ fun FinanceScreen(
     val widgetConfig by app.settingsStore.financeWidgets.collectAsState(
         initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
     )
+    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsState(initial = false)
     var toolsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -381,6 +382,8 @@ fun FinanceScreen(
         val filtered = viewModel.filteredTransactions
         val displayedCount = filtered.count { it.id != pendingDeleteId }
         val walletsById = remember(viewModel.wallets) { viewModel.wallets.associateBy { it.id } }
+        // Read only when the setting is on, so the running sum is never computed otherwise.
+        val balancesAfter = if (showBalanceAfter) viewModel.balancesAfter else emptyMap()
         val tagsById = remember(viewModel.tags) { viewModel.tags.associateBy { it.id } }
         val visible = if (viewModel.listExpanded || filtered.size <= TX_LIST_COLLAPSED_COUNT) {
             filtered
@@ -462,6 +465,7 @@ fun FinanceScreen(
                             onDelete = { requestDelete(tx) },
                             onClick = { viewModel.openEditTransactionSheet(tx) },
                             onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
+                            balanceAfter = if (showBalanceAfter) balancesAfter[tx.id] else null,
                         )
                     }
                 }

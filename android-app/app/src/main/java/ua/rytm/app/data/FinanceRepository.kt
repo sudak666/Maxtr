@@ -442,6 +442,24 @@ class FinanceRepository(private val db: RytmDatabase) {
             }
             return walletBalance(upTo + tx, walletId)
         }
+
+        /** Every transaction's [balanceAfter] for its own (source) wallet, in one pass. */
+        fun runningBalances(transactions: List<Transaction>): Map<String, Double> {
+            val balances = HashMap<String, Double>()
+            val out = HashMap<String, Double>(transactions.size)
+            transactions.sortedWith(compareBy<Transaction> { it.date }.thenBy { it.createdAt }).forEach { t ->
+                when (t.type) {
+                    TxType.INCOME -> balances.merge(t.walletId, t.amount, Double::plus)
+                    TxType.EXPENSE -> balances.merge(t.walletId, -t.amount, Double::plus)
+                    TxType.TRANSFER -> {
+                        balances.merge(t.walletId, -t.amount, Double::plus)
+                        t.targetWalletId?.let { balances.merge(it, t.targetAmount ?: t.amount, Double::plus) }
+                    }
+                }
+                out[t.id] = balances[t.walletId] ?: 0.0
+            }
+            return out
+        }
     }
 
     // Mirrors js/color-picker.js's computeNextDate(dateStr, freq).

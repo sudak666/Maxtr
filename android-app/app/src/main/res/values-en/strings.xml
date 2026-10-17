@@ -88,6 +88,8 @@
     <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
     <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
     <string name="transaction_balance_after">Balance after: %1$s</string>
+    <string name="settings_balance_after">Balance after each operation</string>
+    <string name="settings_balance_after_subtitle">Wallet balance under every amount in the history</string>
     <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
     <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
     <string name="validation_invalid_amount">Enter a valid amount</string><string name="validation_amount_too_large">Amount is too large</string>

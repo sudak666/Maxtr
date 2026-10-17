@@ -37,6 +37,7 @@ class SettingsStore(private val context: Context) {
     private val themePreferenceKey = stringPreferencesKey("theme_preference")
     private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
+    private val showBalanceAfterKey = booleanPreferencesKey("show_balance_after")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
     private val languageKey = stringPreferencesKey("language")
 
@@ -63,6 +64,10 @@ class SettingsStore(private val context: Context) {
 
     val hideAmounts: Flow<Boolean> = context.settingsDataStore.data.map { it[hideAmountsKey] ?: false }
     suspend fun setHideAmounts(hidden: Boolean) { context.settingsDataStore.edit { it[hideAmountsKey] = hidden } }
+
+    /** A small "balance after" under each history row's amount (bank-statement style). */
+    val showBalanceAfter: Flow<Boolean> = context.settingsDataStore.data.map { it[showBalanceAfterKey] ?: false }
+    suspend fun setShowBalanceAfter(show: Boolean) { context.settingsDataStore.edit { it[showBalanceAfterKey] = show } }
 
     val privacyCacheEnabled: Flow<Boolean> = context.settingsDataStore.data.map { it[privacyCacheKey] ?: true }
     suspend fun setPrivacyCacheEnabled(enabled: Boolean) { context.settingsDataStore.edit { it[privacyCacheKey] = enabled } }

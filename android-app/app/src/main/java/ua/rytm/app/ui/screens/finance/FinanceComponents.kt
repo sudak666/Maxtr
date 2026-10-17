@@ -545,6 +545,8 @@ internal fun TransactionRow(
     onDelete: () -> Boolean,
     onClick: () -> Unit,
     onSwipeOpenChange: (Boolean) -> Unit = {},
+    /** Wallet balance after this operation, shown small under the amount; null = off. */
+    balanceAfter: Double? = null,
 ) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -739,7 +741,17 @@ internal fun TransactionRow(
                     TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.expense
                     TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
-                Text(amountText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = amountColor)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(amountText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = amountColor)
+                    balanceAfter?.let { b ->
+                        Text(
+                            maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}"),
+                            style = MaterialTheme.typography.labelSmall.tabularNums(),
+                            color = if (b < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
             }
         }
     }
