@@ -31,6 +31,11 @@ class BalanceAfterTest {
         assertEquals(700.0, FinanceRepository.balanceAfter(history, "a", edited), 0.001)
     }
 
+    @Test fun runningBalancesMatchBalanceAfter() {
+        val running = FinanceRepository.runningBalances(history.shuffled(java.util.Random(1)))
+        history.forEach { t -> assertEquals(FinanceRepository.balanceAfter(history, t.walletId, t), running.getValue(t.id), 0.001) }
+    }
+
     @Test fun newEntrySortsLastOnItsDate() {
         val draft = tx("new", TxType.EXPENSE, 10.0, "2026-10-05", Long.MAX_VALUE)
         assertEquals(740.0, FinanceRepository.balanceAfter(history, "a", draft), 0.001)

@@ -54,6 +54,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setThemePreference(pref: ua.rytm.app.data.local.ThemePreference) { viewModelScope.launch { app.settingsStore.setThemePreference(pref) } }
     fun setLanguage(language: String) { viewModelScope.launch { app.settingsStore.setLanguage(language) } }
     fun setHideAmounts(hidden: Boolean) { viewModelScope.launch { app.settingsStore.setHideAmounts(hidden) } }
+    fun setShowBalanceAfter(show: Boolean) { viewModelScope.launch { app.settingsStore.setShowBalanceAfter(show) } }
     fun setPrivacyCacheEnabled(enabled: Boolean) { viewModelScope.launch { app.settingsStore.setPrivacyCacheEnabled(enabled) } }
 
     var csvBusy by mutableStateOf(false)

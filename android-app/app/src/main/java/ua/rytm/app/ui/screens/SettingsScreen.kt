@@ -168,6 +168,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvBusy = settingsViewModel.csvBusy
     val themePreference by app.settingsStore.themePreference.collectAsState(initial = ThemePreference.DARK)
     val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsState(initial = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
     val language by app.settingsStore.language.collectAsState(initial = "uk")
     val uid = authViewModel.currentUser?.uid
@@ -521,6 +522,15 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         checked = hideAmounts,
                         enabled = true,
                         onCheckedChange = settingsViewModel::setHideAmounts,
+                    )
+                    SettingsToggleRow(
+                        icon = RytmIcons.AccountBalanceWallet,
+                        badgeColor = SettingsGroupColors.Appearance,
+                        title = stringResource(R.string.settings_balance_after),
+                        subtitle = stringResource(R.string.settings_balance_after_subtitle),
+                        checked = showBalanceAfter,
+                        enabled = true,
+                        onCheckedChange = settingsViewModel::setShowBalanceAfter,
                     )
                     SettingsToggleRow(
                         icon = RytmIcons.CloudDone,

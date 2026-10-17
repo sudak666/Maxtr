@@ -729,6 +729,9 @@ class FinanceViewModel(
      *  Cached: it used to be a plain getter, re-filtering and re-sorting every row on each read. */
     val filteredTransactions: List<Transaction> by derivedStateOf { computeFilteredTransactions() }
 
+    /** Source-wallet balance right after each transaction (the history rows' optional "balance after"). */
+    val balancesAfter: Map<String, Double> by derivedStateOf { FinanceRepository.runningBalances(transactions) }
+
     /** Net in UAH per date (transfers excluded) — the day headers' sums, one pass instead of one filter per day. */
     fun dayNetsUah(txs: List<Transaction>): Map<String, Double> =
         txs.groupBy { it.date }.mapValues { (_, day) -> netUah(day) }
