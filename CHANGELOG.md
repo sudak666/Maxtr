@@ -1854,3 +1854,4 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 ## 2026-10-19 — Android: no offline-banner flash on cold start
 - `RealtimeStateBanner` (`ui/SyncUiState.kt`) now shows Offline/Error only after the state holds 2.5 s. Cause: Firestore's first listener snapshot comes from cache (`fromCache=true` → `RealtimeState.Offline`), the server snapshot ~1 s later, so the banner blinked on every launch.
 - Follow-up: `main` CI's android job went red after #595 on `FinanceViewModelTest.contributionsNeedTwoPeopleAndNewEntriesCarryAuthor` (NoSuchElementException on `.single()`; unrelated to #595, passes locally 3/3). `waitUntil` silently gave up after 10 s; now 30 s and throws a clear AssertionError on timeout. #595 was merged before its CI finished — wait for green next time.
+- Bumped Android to 2.5.3 (vc28) for a Play upload (offline-banner fix #595); AAB built locally and handed to the owner to upload.
