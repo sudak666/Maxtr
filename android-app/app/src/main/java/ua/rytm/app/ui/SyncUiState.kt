@@ -23,7 +23,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +61,18 @@ val LocalRetryLoad = staticCompositionLocalOf<() -> Unit> { {} }
  */
 @Composable
 fun RealtimeStateBanner() {
-    val state = LocalRealtimeState.current
+    val current = LocalRealtimeState.current
+    // Cold start: Firestore's first snapshot comes from the local cache
+    // (fromCache=true → Offline) and the server one ~a second later, so the
+    // banner used to flash on every launch. Show it only once the state has
+    // held for a moment; going back online hides it at once.
+    var state by remember { mutableStateOf<ProfileSyncCoordinator.RealtimeState>(ProfileSyncCoordinator.RealtimeState.Stopped) }
+    LaunchedEffect(current) {
+        val problem = current is ProfileSyncCoordinator.RealtimeState.Offline ||
+            current is ProfileSyncCoordinator.RealtimeState.Error
+        if (problem) delay(2500)
+        state = current
+    }
     val message: Int
     val icon = when (state) {
         ProfileSyncCoordinator.RealtimeState.Offline -> {

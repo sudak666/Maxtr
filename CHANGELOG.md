@@ -1850,3 +1850,6 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - Widget (verified live on the home screen): recent operations up to 8 rows (was 4, a tall widget sat a third empty); each row wrapped in one container so header+8 stays under Glance's 10-children cap.
 - Docs: session checkpoint 2026-10-10 (ANDROID_MIGRATION.md top, old one replaced), CLAUDE.md gained "Native Android — theme & UI gotchas".
 - Bumped to 2.4.3 / vc24 (Play already had vc23); AAB rebuilt to Desktop.
+
+## 2026-10-19 — Android: no offline-banner flash on cold start
+- `RealtimeStateBanner` (`ui/SyncUiState.kt`) now shows Offline/Error only after the state holds 2.5 s. Cause: Firestore's first listener snapshot comes from cache (`fromCache=true` → `RealtimeState.Offline`), the server snapshot ~1 s later, so the banner blinked on every launch.
