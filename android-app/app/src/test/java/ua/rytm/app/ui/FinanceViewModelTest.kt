@@ -64,11 +64,13 @@ class FinanceViewModelTest {
     // tests have no frames, so advance it here (it used to read a stale empty
     // list now and then — CI flake, #583..#591).
     private fun waitUntil(cond: () -> Boolean) {
-        repeat(500) {
+        repeat(1500) {
             androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
             if (cond()) return
             Thread.sleep(20)
         }
+        // Fail here, not on a later .single() with a bare NoSuchElementException.
+        throw AssertionError("waitUntil timed out after 30s")
     }
 
     private fun vm() = FinanceViewModel(repo, sync, auth, ActiveProfileStore(ApplicationProvider.getApplicationContext()))
