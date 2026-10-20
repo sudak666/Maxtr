@@ -5,16 +5,26 @@
     "noEmit": true,
     "target": "ES2022",
     "module": "CommonJS",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node"],
-    "typeRoots": ["../node_modules/@types"]
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "../node_modules/@types"
+    ]
   },
   "include": [
     "lib/pure.js",
     "lib/sweep.js",
-    "lib/backup.js"
+    "lib/backup.js",
+    "lib/account.js",
+    "index.js"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

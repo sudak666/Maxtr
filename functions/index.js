@@ -62,6 +62,10 @@ const TOKEN_INVALID_CODES = new Set([
 // precached alongside every other same-origin asset) — resolved by the
 // service worker against its own scope when it calls showNotification(),
 // see sw.js's onBackgroundMessage handler for the display side of this.
+/** @param {unknown} err */
+function errMessage(err) { return err instanceof Error ? err.message : String(err); }
+
+/** @type {Record<string, string>} */
 const NOTIF_ICONS = {
   daily: '/notif-icon-daily.png',
   budget: '/notif-icon-budget.png',
@@ -69,14 +73,20 @@ const NOTIF_ICONS = {
   debt: '/notif-icon-debt.png',
   weekly: '/notif-icon-daily.png',
 };
+/**
+ * @param {string} token @param {string} title @param {string} body
+ * @param {'daily'|'budget'|'recurring'|'debt'|'weekly'} type
+ * @returns {Promise<{ok: boolean, invalid: boolean}>}
+ */
 async function sendPush(token, title, body, type) {
   try {
     const icon = NOTIF_ICONS[type] || '/icon-192.png';
     await messaging.send({ token, notification: { title, body }, webpush: { fcmOptions: { link: '/' }, notification: { icon } } });
     return { ok: true, invalid: false };
-  } catch (err) {
+  } catch (e) {
+    const err = /** @type {{code?: string, message?: string}} */ (e);
     logger.warn('push send failed', { code: err.code, message: err.message });
-    return { ok: false, invalid: TOKEN_INVALID_CODES.has(err.code) };
+    return { ok: false, invalid: TOKEN_INVALID_CODES.has(err.code || '') };
   }
 }
 
@@ -126,7 +136,7 @@ exports.privatRates = onRequest({ cors: true }, async (req, res) => {
     res.set('Cache-Control', 'public, max-age=300');
     res.status(200).json(data);
   } catch (err) {
-    logger.warn('privatRates proxy failed', { message: err.message });
+    logger.warn('privatRates proxy failed', { message: errMessage(err) });
     res.status(502).json({ error: 'PrivatBank fetch failed' });
   }
 });
@@ -180,7 +190,7 @@ exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
   } catch (err) {
     if (err instanceof HttpsError) throw err;
     if (err instanceof backup.BackupError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
-    logger.error('backups callable failed', { uid, action: data.action, error: err.message });
+    logger.error('backups callable failed', { uid, action: data.action, error: errMessage(err) });
     throw new HttpsError('internal', 'backup failed');
   }
 });
@@ -199,7 +209,7 @@ exports.account = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
     logger.info('account deleted', { uid });
     return { ok: true };
   } catch (err) {
-    logger.error('account delete failed', { uid, error: err.message });
+    logger.error('account delete failed', { uid, error: errMessage(err) });
     throw new HttpsError('internal', 'delete failed');
   }
 });
