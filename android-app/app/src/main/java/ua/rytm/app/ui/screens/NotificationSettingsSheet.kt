@@ -128,6 +128,13 @@ fun NotificationSettingsSheet(
                 enabled = !viewModel.saving,
                 onCheckedChange = viewModel::onDebtAlertsChanged,
             )
+            NotifToggleRow(
+                title = stringResource(R.string.notifications_weekly_title),
+                subtitle = stringResource(R.string.notifications_weekly_subtitle),
+                checked = viewModel.weeklySummary,
+                enabled = !viewModel.saving,
+                onCheckedChange = viewModel::onWeeklySummaryChanged,
+            )
         }
     }
 }

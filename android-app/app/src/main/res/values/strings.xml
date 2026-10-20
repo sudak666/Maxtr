@@ -585,4 +585,6 @@
     <string name="month_report_share">Поділитися PDF-звітом</string>
     <string name="bank_quick_saved">Додано %1$s · %2$s</string>
     <string name="bank_quick_failed">Не вдалося зберегти тут</string>
+    <string name="notifications_weekly_title">Тиждень родини</string>
+    <string name="notifications_weekly_subtitle">Неділя, 19:00: хто скільки витратив за тиждень у спільному профілі й хто кому винен, щоб порівну</string>
 </resources>

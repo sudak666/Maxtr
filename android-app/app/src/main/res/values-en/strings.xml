@@ -575,4 +575,6 @@
     <string name="month_report_share">Share PDF report</string>
     <string name="bank_quick_saved">Added %1$s · %2$s</string>
     <string name="bank_quick_failed">Couldn’t save from here</string>
+    <string name="notifications_weekly_title">Family week</string>
+    <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
 </resources>

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { sweepProfile, sweepToken } = require('../functions/lib/sweep.js');
+const { sweepProfile, sweepToken, weeklySummaryBody } = require('../functions/lib/sweep.js');
 
 let passed = 0;
 async function test(name, fn) {
@@ -631,6 +631,41 @@ await test('sweepToken: a token doc with no token field is a no-op', async () =>
   // Should return without touching db.doc() at all.
   await sweepToken(db, async () => { throw new Error('should not send'); }, tokenDoc, NOW);
   assert.equal(db.getCalls.length, 0);
+});
+
+
+// 2026-07-19 is a Sunday; 19:30 UTC is past the 19:00 summary hour.
+const SUNDAY_EVENING = new Date('2026-07-19T19:30:00Z');
+const weekTx = [
+  { type: 'expense', amount: 3000, date: '2026-07-14', by: 'a', byName: 'Оля' },
+  { type: 'expense', amount: 1000, date: '2026-07-19', by: 'b', byName: 'Макс' },
+  { type: 'expense', amount: 9999, date: '2026-07-12', by: 'b', byName: 'Макс' }, // older than 7 days
+  { type: 'transfer', amount: 500, date: '2026-07-15', by: 'b', byName: 'Макс' },
+];
+
+await test('weeklySummaryBody: per-person last-7-days spending plus equal settle-up', async () => {
+  const body = weeklySummaryBody(weekTx, '2026-07-19', {});
+  assert.match(body, /Оля 3\s?000 ₴/);
+  assert.match(body, /Макс 1\s?000 ₴/);
+  assert.match(body, /Макс → Оля 1\s?000 ₴/);
+  assert.equal(weeklySummaryBody(weekTx.filter((t) => t.by === 'a'), '2026-07-19', {}), null);
+});
+
+await test('sweepProfile: sends the weekly family summary once, Sunday evening, only when enabled', async () => {
+  const financeData = { notifSettings: { weeklySummary: true, timeZone: 'UTC' }, data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {} };
+  const sent = [];
+  const sendPushFn = async (token, title, body, type) => { sent.push({ title, body, type }); return { ok: true, invalid: false }; };
+  const r = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, SUNDAY_EVENING, snap(financeData), snap({ debts: [] }), qsnap(weekTx));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].type, 'weekly');
+  assert.deepEqual(r.updates, { sentWeekly: '2026-07-19' });
+  const again = await sweepProfile(null, async () => { throw new Error('dup'); }, 'u1', 'default', 'tok1', { sentWeekly: '2026-07-19' }, SUNDAY_EVENING, snap(financeData), snap({ debts: [] }), qsnap(weekTx));
+  assert.equal(again.updates, null);
+  const early = await sweepProfile(null, async () => { throw new Error('early'); }, 'u1', 'default', 'tok1', {}, new Date('2026-07-19T15:00:00Z'), snap(financeData), snap({ debts: [] }), qsnap(weekTx));
+  assert.equal(early.updates, null);
+  const off = { ...financeData, notifSettings: { timeZone: 'UTC' } };
+  const offR = await sweepProfile(null, async () => { throw new Error('off'); }, 'u1', 'default', 'tok1', {}, SUNDAY_EVENING, snap(off), snap({ debts: [] }), qsnap(weekTx));
+  assert.equal(offR.updates, null);
 });
 
 console.log(`\n${passed} functions-sweep test(s) passed`);
