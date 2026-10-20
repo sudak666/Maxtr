@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: month PDF report (2026-10-20)** — audit feature 2/4. «Підсумок місяця» sheet → «Поділитися PDF-звітом»: A4 via platform `PdfDocument` (no library), title, income/expense/net, every expense category with a bar, all entries oldest-first (date, category or «A → B» for transfers, comment, signed amount); paginates with footer «Rytm · month · page». Built-in names translated like the screen; amounts shown even with hide-amounts on (explicit export, like CSV). Shared via the existing `exports/` FileProvider path. `MonthReport.build` unit-tested; **the drawing itself is untested** — Robolectric has no native PdfDocument (throws "document is closed") and no device was connected, check on the A51.
+
 - **Android: split one entry into categories (2026-10-20)** — audit feature 1/4. New income/expense form: «Розділити на категорії» adds rows (category + amount); the form's own category keeps the rest («Решта в …», red when ≤0). Saving writes one ordinary transaction per part (same date/wallet/comment/tags/author, `createdAt` +1ms each so order is stable) — no new field, so the PWA and older builds read them unchanged. Parts survive process death (draft slot 11). Validation: every part >0 and parts < total, else `split_invalid` on the amount field. Not split-aware: the budget-exceeded toast checks only the main category's entry. Tests: `splitSavesOneEntryPerPart`, `splitRejectsPartsNotBelowTotal`.
 
 - **Android: audit fixes, engineering register (2026-10-20)** — from the owner-requested full audit, every item in its defect register:
