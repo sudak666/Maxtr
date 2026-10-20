@@ -24,15 +24,15 @@
 // faithfully typing Firestore's real chained builder API isn't worth it
 // for a function that only ever calls `.doc(path).get()`/`.collection(path).get()`.
 
-/** @typedef {{enabled?: boolean, timeZone?: string, time?: string, budgetAlerts?: boolean, recurringAlerts?: boolean, debtAlerts?: boolean}} NotifSettings */
+/** @typedef {{enabled?: boolean, timeZone?: string, time?: string, budgetAlerts?: boolean, recurringAlerts?: boolean, debtAlerts?: boolean, weeklySummary?: boolean}} NotifSettings */
 /** @typedef {{id: string, currency?: string}} WalletLike */
-/** @typedef {{type?: string, category?: string, date?: string, amount?: number, currency?: string}} TransactionLike */
+/** @typedef {{type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
 /** @typedef {{id: string, dueDate?: string, name?: string}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
 /** @typedef {{debts?: DebtLike[]}} DebtDocData */
 /** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
-/** @typedef {{sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, sentDebt?: Record<string, boolean>}} ProfileState */
+/** @typedef {{sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, sentDebt?: Record<string, boolean>, sentWeekly?: string}} ProfileState */
 
 /** @typedef {{exists: boolean, data: () => FinanceDocData}} FinanceDocSnap */
 /** @typedef {{exists: boolean, data: () => DebtDocData}} DebtDocSnap */
@@ -41,7 +41,7 @@
 /** @typedef {{exists: boolean, data: () => ProfilesMetaData}} ProfilesMetaSnap */
 
 /** @typedef {{ok: boolean, invalid?: boolean}} PushResult */
-/** @typedef {(token: string, title: string, body: string, type: 'daily'|'budget'|'recurring'|'debt') => Promise<PushResult>} SendPushFn */
+/** @typedef {(token: string, title: string, body: string, type: 'daily'|'budget'|'recurring'|'debt'|'weekly') => Promise<PushResult>} SendPushFn */
 
 /** @typedef {{token?: string, sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, profileState?: Record<string, ProfileState>}} TokenDocData */
 /**
@@ -110,6 +110,49 @@ function dailyReminderNeeded(financeSnap, transactionsSnap, prevState, now) {
   const h = Number.isFinite(hRaw) ? hRaw : 21;
   const hasTodayTx = transactions.some((t) => t.date === today);
   return { needed: !hasTodayTx && localHour >= h, today };
+}
+
+const WEEKLY_SUMMARY_HOUR = 19;
+
+/**
+ * Sunday family summary for a shared profile: the last 7 days' spending per
+ * person who added entries (the `by`/`byName` fields — transfers excluded) and,
+ * like the Android settle-up card, who pays whom so it ends up equal.
+ * Null unless at least two people added an expense or income this week.
+ * @param {TransactionLike[]} transactions @param {string} today "YYYY-MM-DD" in the profile's zone
+ * @param {Record<string, number>} rates
+ * @returns {string|null}
+ */
+function weeklySummaryBody(transactions, today, rates) {
+  const end = Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, +today.slice(8, 10));
+  const from = new Date(end - 6 * 86400000).toISOString().slice(0, 10);
+  /** @type {Map<string, {name: string, expense: number}>} */
+  const people = new Map();
+  for (const t of transactions) {
+    if (!t || !t.by || t.type === 'transfer' || !t.date || t.date < from || t.date > today) continue;
+    const p = people.get(t.by) || { name: t.byName || '?', expense: 0 };
+    if (!p.name || p.name === '?') p.name = t.byName || '?';
+    if (t.type === 'expense') p.expense += toBase(t.amount || 0, t.currency || 'UAH', rates);
+    people.set(t.by, p);
+  }
+  if (people.size < 2) return null;
+  const list = [...people.values()];
+  const fmt = (/** @type {number} */ v) => `${Math.round(v).toLocaleString('uk-UA')} ₴`;
+  const parts = list.map((p) => `${p.name} ${fmt(p.expense)}`).join(', ');
+  // Equal split, greedy largest debtor → largest creditor (settleEqually on Android).
+  const share = list.reduce((s, p) => s + p.expense, 0) / list.length;
+  const debtors = list.map((p) => ({ n: p.name, v: share - p.expense })).filter((x) => x.v >= 1).sort((a, b) => b.v - a.v);
+  const creditors = list.map((p) => ({ n: p.name, v: p.expense - share })).filter((x) => x.v >= 1).sort((a, b) => b.v - a.v);
+  const settle = [];
+  while (debtors.length && creditors.length) {
+    const d = debtors[0]; const c = creditors[0];
+    const pay = Math.min(d.v, c.v);
+    if (pay >= 1) settle.push(`${d.n} → ${c.n} ${fmt(pay)}`);
+    d.v -= pay; c.v -= pay;
+    if (d.v < 1) debtors.shift();
+    if (c.v < 1) creditors.shift();
+  }
+  return `Витрати за тиждень: ${parts}.` + (settle.length ? ` Щоб порівну: ${settle.join(', ')}.` : '');
 }
 
 // Runs one profile's four checks (daily reminder, budget exceeded, upcoming
@@ -259,6 +302,21 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       if (res.invalid) tokenInvalid = true;
     }
     if (changed) updates.sentDebt = sent;
+  }
+
+  // 5. Sunday family summary (shared profiles with 2+ people adding entries),
+  // once per Sunday from WEEKLY_SUMMARY_HOUR local time.
+  if (!tokenInvalid && notif.weeklySummary) {
+    const today = todayStr(now, timeZone);
+    const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+    if (weekday === 0 && prevState.sentWeekly !== today && zonedDateParts(now, timeZone).hour >= WEEKLY_SUMMARY_HOUR) {
+      const body = weeklySummaryBody(transactions, today, rates);
+      if (body) {
+        const res = await sendPushFn(token, 'Тиждень родини', body, 'weekly');
+        if (res.ok) updates.sentWeekly = today;
+        if (res.invalid) tokenInvalid = true;
+      }
+    }
   }
 
   return { updates: Object.keys(updates).length ? updates : null, tokenInvalid };
@@ -476,4 +534,4 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   }
 }
 
-module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken };
+module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken, weeklySummaryBody };

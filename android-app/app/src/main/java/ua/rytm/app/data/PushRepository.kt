@@ -14,6 +14,8 @@ data class NotifSettings(
     val budgetAlerts: Boolean = false,
     val recurringAlerts: Boolean = false,
     val debtAlerts: Boolean = false,
+    /** Sunday family summary push for a shared profile (functions/lib/sweep.js step 5). */
+    val weeklySummary: Boolean = false,
 )
 
 // Mirrors js/notifications.js's enablePushNotifications()/disablePushNotifications()
@@ -40,6 +42,7 @@ class PushRepository(private val firestore: FirebaseFirestore) {
             budgetAlerts = notif["budgetAlerts"] as? Boolean ?: false,
             recurringAlerts = notif["recurringAlerts"] as? Boolean ?: false,
             debtAlerts = notif["debtAlerts"] as? Boolean ?: false,
+            weeklySummary = notif["weeklySummary"] as? Boolean ?: false,
         )
     }
 
@@ -77,6 +80,12 @@ class PushRepository(private val firestore: FirebaseFirestore) {
 
     suspend fun setDebtAlerts(uid: String, enabled: Boolean, profileId: String = DEFAULT_PROFILE_ID) {
         financeDocRef(uid, profileId).update(mapOf("notifSettings.debtAlerts" to enabled, "updatedAt" to System.currentTimeMillis())).await()
+    }
+
+    suspend fun setWeeklySummary(uid: String, enabled: Boolean, profileId: String = DEFAULT_PROFILE_ID) {
+        financeDocRef(uid, profileId).update(
+            mapOf("notifSettings.weeklySummary" to enabled, "notifSettings.timeZone" to TimeZone.getDefault().id, "updatedAt" to System.currentTimeMillis()),
+        ).await()
     }
 
     suspend fun enable(accountUid: String, @Suppress("UNUSED_PARAMETER") dataOwnerUid: String = accountUid, @Suppress("UNUSED_PARAMETER") profileId: String = DEFAULT_PROFILE_ID) {

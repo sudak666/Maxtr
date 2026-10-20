@@ -56,6 +56,8 @@ class NotificationSettingsViewModel(
         private set
     var debtAlerts by mutableStateOf(false)
         private set
+    var weeklySummary by mutableStateOf(false)
+        private set
 
     init {
         load()
@@ -72,6 +74,7 @@ class NotificationSettingsViewModel(
                 budgetAlerts = s.budgetAlerts
                 recurringAlerts = s.recurringAlerts
                 debtAlerts = s.debtAlerts
+                weeklySummary = s.weeklySummary
             }
             .onFailure { errorMessageRes = R.string.notifications_load_failed }
         loading = false
@@ -124,6 +127,12 @@ class NotificationSettingsViewModel(
         if (saving) return
         recurringAlerts = enabled
         save { repository.setRecurringAlerts(uid, enabled, profileId) }
+    }
+
+    fun onWeeklySummaryChanged(enabled: Boolean) {
+        if (saving) return
+        weeklySummary = enabled
+        save { repository.setWeeklySummary(uid, enabled, profileId) }
     }
 
     fun onDebtAlertsChanged(enabled: Boolean) {

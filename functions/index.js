@@ -67,6 +67,7 @@ const NOTIF_ICONS = {
   budget: '/notif-icon-budget.png',
   recurring: '/notif-icon-recurring.png',
   debt: '/notif-icon-debt.png',
+  weekly: '/notif-icon-daily.png',
 };
 async function sendPush(token, title, body, type) {
   try {
