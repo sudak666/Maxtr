@@ -167,6 +167,12 @@ const toggleDebtAlerts = async function(){
   checkDebtAlerts();
 };
 
+// Push-only (functions/lib/sweep.js step 5): no local twin, so no permission prompt here.
+const toggleWeeklySummary = function(){
+  AppState.notifSettings.weeklySummary=!AppState.notifSettings.weeklySummary;
+  saveNotifSettings(); renderNotifUI();
+};
+
 /** @returns {void} */
 export function populateNotifTimeSelects(){
   const h=/** @type {HTMLSelectElement | null} */ (document.getElementById('notif-time-hour'));
@@ -201,6 +207,8 @@ export function renderNotifUI(){
   if(rcb) rcb.checked=!!AppState.notifSettings.recurringAlerts;
   const dcb=/** @type {HTMLInputElement | null} */ (document.getElementById('notif-debt-checkbox'));
   if(dcb) dcb.checked=!!AppState.notifSettings.debtAlerts;
+  const wcb=/** @type {HTMLInputElement | null} */ (document.getElementById('notif-weekly-checkbox'));
+  if(wcb) wcb.checked=!!AppState.notifSettings.weeklySummary;
   const pcb=/** @type {HTMLInputElement | null} */ (document.getElementById('notif-push-checkbox'));
   const pk=pushEnabledKey();
   if(pcb) pcb.checked=!!(pk && localStorage.getItem(pk)==='1');
@@ -302,6 +310,7 @@ const FIELD_ACTIONS = {
   'toggle-budget-alerts': ()=>toggleBudgetAlerts(),
   'toggle-recurring-alerts': ()=>toggleRecurringAlerts(),
   'toggle-debt-alerts': ()=>toggleDebtAlerts(),
+  'toggle-weekly-summary': ()=>toggleWeeklySummary(),
   'update-notif-time': ()=>updateNotifTimeFromSelects(),
 };
 document.addEventListener('change', e=>{
