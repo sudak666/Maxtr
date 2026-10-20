@@ -1,5 +1,7 @@
 # Changelog
 
+- **Deploy hosting: design pass 2 (2026-10-20)** — after #617 merged; clean `origin/main` worktree.
+
 - **Design pass 2, Android + PWA (2026-10-20)** — owner asked for all six points:
   1. **"+" moved into the bottom bar**: the floating FABs covered the first history row's amount even at rest (seen on the A51). Android: new `PrimaryAction` holder + `ProvidePrimaryAction()`; `RytmBottomBar` shows a 60dp brand-gradient circle next to the (now `weight(1f)`) capsule, NavigationRail gets it as `header`; Finance/Debt register theirs (`enabled = canEdit` / `cd != null && canEdit`); the old FAB code, `showFab`/`rowUnderFab` bands and the scroll-hide experiment removed; Debt keeps a floating "Згорнути список" only. PWA: `.fin-fab` → 64px circle beside `.tabs` (capsule narrows via `:has(#nav-finance.active,#nav-debt.active)`), label hidden.
   2. **Filter chips**: one quiet style — `RytmFilterChip` (tonal `surfaceContainerHigh`, no outline, selected = primary 22%), 10 call sites; PWA `.filter-chip` same.
