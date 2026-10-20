@@ -23,7 +23,7 @@ import org.junit.Test
 import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 
-// Regenerated 2026-08-25 on a real device (Galaxy A51, SM-A515F, API 33)
+// Regenerated 2026-10-20 (again 2026-08-25 before) on a real device (Galaxy A51, SM-A515F, API 33)
 // via `:app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ua.rytm.app.ui.OnboardingGoldenTest`,
 // after the design-audit pass reworked OnboardingScreen (real HorizontalPager
 // + swipe, a Back button on pages 2-3, heightIn instead of a fixed 52dp
@@ -32,9 +32,9 @@ import ua.rytm.app.ui.theme.RytmTheme
 class OnboardingGoldenTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "777bcd62895304aa127ba678291caf0559b9c3b35d77dafe5ea44e73edb58dcf")
+    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "dc71936cc57818e539b5754eda8975af5e3a9ef0882444d8d6cb8c8f8dba1f80")
 
-    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "c3224ee3098d084510abbd7a8223ec1684698b224f7e98236976992a81d6f037")
+    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "5aef44d5221f95a3f7fbace4fbcf61ef08895c8b8619cd3117970e3ebe85363c")
 
     private fun verifyGolden(language: String, dark: Boolean, expected: String) {
         // Pixel hashes are only stable on the device they were recorded on
