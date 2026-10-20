@@ -107,7 +107,8 @@ private val White = ColorProvider(Color.White)
 private const val MASK = "••••••"
 private val TILE_HEIGHT = 92.dp
 // Vertical budget (dp) used to decide which extra sections fit.
-private val BASE_HEIGHT = 220.dp
+// +16dp for the "≈ X ₴ на день" line under the balance.
+private val BASE_HEIGHT = 236.dp
 private val WEEK_HEIGHT = 88.dp
 private val RECENT_HEADER = 30.dp
 private val RECENT_ROW = 40.dp
@@ -148,6 +149,13 @@ private fun WidgetContent(s: WidgetSnapshot) {
             style = TextStyle(color = OnBg, fontSize = if (compact) 22.sp else 28.sp, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
+        s.perDayUah?.let { perDay ->
+            Text(
+                context.getString(R.string.widget_per_day, if (s.masked) MASK else formatMoney(kotlin.math.floor(perDay))),
+                style = TextStyle(color = Muted, fontSize = WidgetCaptionSize),
+                maxLines = 1,
+            )
+        }
         if (!compact) {
             // Content stacks from the top; extra height buys more rows instead
             // of a blank gap (v2 pushed the tiles to the bottom of a tall widget).

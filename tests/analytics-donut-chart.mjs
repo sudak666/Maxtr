@@ -166,6 +166,9 @@ async function main() {
     // from the previous render) — render() must fully replace both
     // children together. ──
     const row = page.locator('.tx-item', { hasText: 'donut-test-expense' });
+    // Centre it first: at the bottom edge the floating nav/FAB catch the hover
+    // (the hero grew a "safe to spend" line and pushed the list down).
+    await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     await row.hover();
     await row.locator('.tx-swipe-delete').click();
     await page.waitForSelector('#ui-dialog', { state: 'visible' });

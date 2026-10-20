@@ -10,6 +10,18 @@ import java.time.YearMonth
  */
 object FinanceInsights {
 
+    /**
+     * "Safe to spend": a daily allowance until the month ends — (balance −
+     * recurring expenses still due this month) ÷ days left, today included.
+     * Expected shift pay is left out on purpose: it often lands next month.
+     * Null when the balance does not even cover the bills (the UI says so).
+     */
+    fun safeToSpendPerDay(balanceUah: Double, recurringOutUah: Double, today: LocalDate): Double? {
+        val daysLeft = YearMonth.from(today).lengthOfMonth() - today.dayOfMonth + 1
+        val free = balanceUah - recurringOutUah
+        return if (free <= 0) null else free / daysLeft
+    }
+
     /** Income or expense of [month] in UAH (transfers never count). */
     fun monthTotalUah(transactions: List<Transaction>, type: TxType, month: YearMonth, toUah: (Double, String) -> Double): Double {
         val prefix = month.toString()
@@ -101,10 +113,13 @@ object FinanceInsights {
         }
         categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
         if (search.isNotBlank()) {
-            val q = search.trim().lowercase()
+            // "кафе жовтень більше 200": month/date/amount words become filters (SmartSearch).
+            val smart = SmartSearch.parse(search, today)
+            if (smart.hasFilters) result = result.filter(smart::matches)
+            val q = smart.text.trim()
             // "#кава" finds the tag "кава"; a bare word matches tag names too.
             val tagQuery = q.removePrefix("#")
-            result = result.filter { t ->
+            if (q.isNotEmpty()) result = result.filter { t ->
                 listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
                     .any { it.lowercase().contains(q) } ||
                     (tagQuery.isNotEmpty() && t.tags.any { tagNames[it]?.lowercase()?.contains(tagQuery) == true })

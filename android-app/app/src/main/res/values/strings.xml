@@ -588,4 +588,16 @@
     <string name="notifications_weekly_title">Тиждень родини</string>
     <string name="notifications_weekly_subtitle">Неділя, 19:00: хто скільки витратив за тиждень у спільному профілі й хто кому винен, щоб порівну</string>
     <string name="categories_empty">Тут поки немає категорій. Додай першу нижче.</string>
+    <string name="finance_safe_to_spend">≈ %1$s ₴ на день до кінця місяця</string>
+    <string name="finance_safe_to_spend_none">Регулярні платежі цього місяця більші за баланс</string>
+    <string name="story_spent">Витрачено за %1$s</string>
+    <string name="story_top_category">Найбільше пішло на</string>
+    <string name="story_top_share">%1$s · %2$d%% усіх витрат</string>
+    <string name="story_biggest">Найбільша покупка</string>
+    <string name="story_saved">Залишилось</string>
+    <string name="story_overspent">Перевитрата</string>
+    <string name="story_count">Операцій за місяць: %1$d</string>
+    <string name="finance_search_what_month">«кафе жовтень»</string>
+    <string name="finance_search_what_amount">«більше 500»</string>
+    <string name="widget_per_day">≈ %1$s ₴ на день</string>
 </resources>

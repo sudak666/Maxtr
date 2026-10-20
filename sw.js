@@ -52,7 +52,7 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v184';
+const CACHE_NAME = 'rytm-v185';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -103,6 +103,7 @@ const STATIC_ASSETS = [
   './js/backups.js',
   './js/shift-money.js',
   './js/debt-pace.js',
+  './js/smart-insights.js',
   // Vendored Preact (js/debt.js's payoff-forecast widget — see CLAUDE.md's
   // "Preact adoption" note) — a real static import always loaded as part
   // of the core module graph (unlike js/vendor/tesseract/, which is only

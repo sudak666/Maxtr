@@ -60,6 +60,9 @@ jobs:
       - name: Run transaction validation tests
         run: node tests/tx-validation.mjs
 
+      - name: Run smart-insights tests
+        run: node tests/smart-insights.mjs
+
       - name: Run privacy-cache tests
         run: node tests/privacy-cache.mjs
 

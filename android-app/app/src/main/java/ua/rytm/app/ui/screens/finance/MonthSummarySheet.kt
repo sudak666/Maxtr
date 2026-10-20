@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,6 +92,7 @@ fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit, onSharePdf: 
                 Text(stringResource(R.string.month_summary_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 return@Column
             }
+            MonthStories(summary)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatTile(stringResource(R.string.tx_income), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
                 StatTile(stringResource(R.string.tx_expense), uah(summary.expense), RytmSemantic.expense, Modifier.weight(1f))
@@ -102,13 +104,7 @@ fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit, onSharePdf: 
                 fontWeight = FontWeight.Bold,
                 color = if (net >= 0) RytmSemantic.income else RytmSemantic.expense,
             )
-            summary.expenseChangePercent?.let { pct ->
-                Text(
-                    stringResource(if (pct >= 0) R.string.month_summary_spent_more else R.string.month_summary_spent_less, kotlin.math.abs(pct)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            // The month-over-month change lives on the first story card now.
             if (summary.topCategories.isNotEmpty()) {
                 Text(stringResource(R.string.month_summary_top), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 summary.topCategories.forEach { c ->
@@ -157,6 +153,73 @@ private fun StatTile(label: String, value: String, color: Color, modifier: Modif
         Column(Modifier.padding(14.dp)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
+        }
+    }
+}
+
+/**
+ * The month as 3–4 swipeable "story" cards, one big fact each (Spotify
+ * Wrapped / Revolut style), above the detailed figures. Expressive on purpose:
+ * the brand gradient is used here and nowhere else in the app.
+ */
+@Composable
+private fun MonthStories(summary: MonthSummary) {
+    data class Story(val label: String, val value: String, val caption: String?)
+    // "за вересень": Ukrainian months are lowercase mid-sentence; English keeps the capital.
+    val month = monthName(summary.month).let { if (LocalConfiguration.current.locales[0].language == "en") it else it.lowercase() }
+    val stories = buildList {
+        add(Story(
+            stringResource(R.string.story_spent, month), uah(summary.expense),
+            summary.expenseChangePercent?.let { pct -> stringResource(if (pct >= 0) R.string.month_summary_spent_more else R.string.month_summary_spent_less, kotlin.math.abs(pct)) },
+        ))
+        summary.topCategories.firstOrNull()?.let { c ->
+            val share = if (summary.expense > 0) Math.round(c.amount / summary.expense * 100).toInt() else 0
+            add(Story(stringResource(R.string.story_top_category), localizedDomainText(c.category), stringResource(R.string.story_top_share, uah(c.amount), share)))
+        }
+        summary.biggestExpense?.let { t ->
+            add(Story(
+                stringResource(R.string.story_biggest), maskedAmount("${formatMoney(t.amount)} ${currencySymbol(t.currency)}"),
+                t.comment?.takeIf { it.isNotBlank() } ?: localizedDomainText(t.category),
+            ))
+        }
+        val net = summary.net
+        add(Story(
+            stringResource(if (net >= 0) R.string.story_saved else R.string.story_overspent), uah(kotlin.math.abs(net)),
+            stringResource(R.string.story_count, summary.transactionCount),
+        ))
+    }
+    val pager = androidx.compose.foundation.pager.rememberPagerState { stories.size }
+    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        androidx.compose.foundation.pager.HorizontalPager(state = pager, pageSpacing = RytmSpacing.sm) { page ->
+            val st = stories[page]
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 150.dp)
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
+                        RoundedCornerShape(RytmRadii.Card),
+                    )
+                    .padding(RytmSpacing.xl),
+                verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterVertically),
+            ) {
+                Text(st.label, style = MaterialTheme.typography.titleSmall, color = Color.White.copy(alpha = 0.85f))
+                Text(st.value, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                st.caption?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            repeat(stories.size) { i ->
+                androidx.compose.foundation.layout.Box(
+                    Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(if (i == pager.currentPage) 8.dp else 6.dp)
+                        .background(
+                            if (i == pager.currentPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            androidx.compose.foundation.shape.CircleShape,
+                        ),
+                )
+            }
         }
     }
 }
