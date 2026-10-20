@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.data.FinanceRepository
+import ua.rytm.app.data.BuiltinCategories
 import ua.rytm.app.data.TransactionsSyncRepository
 import ua.rytm.app.data.local.ActiveProfileStore
 import ua.rytm.app.data.toEntity
@@ -157,15 +158,19 @@ class FinanceViewModel(
     private var dismissedSubscriptions by mutableStateOf<Set<String>>(emptySet())
     private var monthSummarySeen by mutableStateOf<String?>(null)
 
+    /** Today, as observable state so cached month totals roll over at midnight. */
+    private var today by mutableStateOf(LocalDate.now())
+    private val currentMonth: YearMonth get() = YearMonth.from(today)
+
     /** Last month's recap (MonthSummary). */
     val lastMonthSummary: MonthSummary by derivedStateOf {
-        MonthSummary.compute(transactions, java.time.YearMonth.now().minusMonths(1)) { toUah(it.amount, it.currency) }
+        MonthSummary.compute(transactions, currentMonth.minusMonths(1)) { toUah(it.amount, it.currency) }
     }
     var monthSummaryOpen by mutableStateOf(false)
 
     /** The recap card shows in a month's first week until it is opened or closed. */
     val showMonthSummaryCard: Boolean
-        get() = LocalDate.now().dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
+        get() = today.dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
 
     fun openMonthSummary() { monthSummaryOpen = true; markMonthSummarySeen() }
 
@@ -178,7 +183,7 @@ class FinanceViewModel(
 
     /** Repeating expenses that look like subscriptions, not yet recurring payments (SubscriptionDetector). */
     val subscriptionCandidates: List<SubscriptionDetector.Candidate> by derivedStateOf {
-        SubscriptionDetector.detect(transactions, recurring, LocalDate.now(), dismissedSubscriptions)
+        SubscriptionDetector.detect(transactions, recurring, today, dismissedSubscriptions)
     }
 
     fun acceptSubscription(c: SubscriptionDetector.Candidate) {
@@ -214,6 +219,12 @@ class FinanceViewModel(
         shiftOutlookFlow.onEach { shiftOutlook = it }.catch { }.launchIn(viewModelScope)
         repository.recurring.onEach { recurring = it }.catch { }.launchIn(viewModelScope)
         repository.goals.onEach { goals = it }.catch { }.launchIn(viewModelScope)
+        viewModelScope.launch {
+            while (true) {
+                delay(60_000)
+                LocalDate.now().let { if (it != today) today = it }
+            }
+        }
         auth.currentUser?.uid?.let { uid ->
             settingsStore?.dismissedSubscriptions(uid)?.onEach { dismissedSubscriptions = it }?.catch { }?.launchIn(viewModelScope)
             settingsStore?.monthSummarySeen(uid)?.onEach { monthSummarySeen = it }?.catch { }?.launchIn(viewModelScope)
@@ -278,27 +289,9 @@ class FinanceViewModel(
      * Shown as two separate facts, not folded into a projected balance: shift
      * pay often lands next month, so a single number would mislead.
      */
-    val monthOutlook: MonthOutlook
-        get() {
-            val today = LocalDate.now()
-            val end = java.time.YearMonth.now().atEndOfMonth()
-            var outgoing = 0.0
-            var incoming = 0.0
-            recurring.filter { it.active && it.amount > 0 }.forEach { r ->
-                val currency = wallets.firstOrNull { it.id == r.walletId }?.currency ?: "UAH"
-                var date = runCatching { LocalDate.parse(r.nextDate) }.getOrNull() ?: return@forEach
-                var guard = 0
-                while (!date.isAfter(end) && guard < 62) {
-                    if (!date.isBefore(today)) {
-                        val uah = toUah(r.amount, currency)
-                        if (r.type == TxType.EXPENSE) outgoing += uah else incoming += uah
-                    }
-                    date = when (r.frequency) { "daily" -> date.plusDays(1); "weekly" -> date.plusWeeks(1); else -> date.plusMonths(1) }
-                    guard++
-                }
-            }
-            return MonthOutlook(shiftsEarnings = shiftOutlook.remainingThisMonth, recurringOut = outgoing, recurringIn = incoming)
-        }
+    val monthOutlook: MonthOutlook by derivedStateOf {
+        FinanceInsights.monthOutlook(recurring, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, shiftOutlook.remainingThisMonth, ::toUah)
+    }
 
     /**
      * An expense priced in shifts of work ("≈ 1,4 зміни"), from the pay of
@@ -333,7 +326,7 @@ class FinanceViewModel(
                         id = java.util.UUID.randomUUID().toString(), type = TxType.TRANSFER, amount = share.amount,
                         currency = plan.currency, date = LocalDate.now().toString(), walletId = plan.sourceWalletId,
                         targetWalletId = share.walletId, targetAmount = share.amount, targetCurrency = plan.currency,
-                        category = "Внутрішній переказ", comment = null,
+                        category = BuiltinCategories.TRANSFER, comment = null,
                         createdBy = me?.uid, createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
                     )
                     syncRepository.saveTransaction(ownerUid, profileId, tx.toEntity())
@@ -353,37 +346,18 @@ class FinanceViewModel(
         }
 
     /** Most used categories of the form's type over the last 90 days — one-tap picks above the dropdown. */
-    val formFrequentCategories: List<String>
-        get() {
-            if (formType == TxType.TRANSFER) return emptyList()
-            val known = categoriesByType[formType].orEmpty().toSet()
-            val since = LocalDate.now().minusDays(90).toString()
-            return transactions.asSequence()
-                .filter { it.type == formType && it.date >= since && it.category in known }
-                .groupingBy { it.category }.eachCount()
-                .entries.sortedByDescending { it.value }.take(6).map { it.key }
-        }
+    val formFrequentCategories: List<String> by derivedStateOf {
+        FinanceInsights.frequentCategories(transactions, formType, categoriesByType[formType].orEmpty().toSet(), today.minusDays(90))
+    }
 
     /**
      * Shared profile, this month: income/expense per person who added the
      * entries. Shown only once at least two people have added something —
      * a solo profile never sees it.
      */
-    val monthContributions: List<Contribution>
-        get() {
-            val mine = auth.currentUser?.uid
-            val rows = transactions.filter { it.date.startsWith(currentMonthPrefix) && it.createdBy != null && it.type != TxType.TRANSFER }
-            val byPerson = rows.groupBy { it.createdBy!! }
-            if (byPerson.size < 2) return emptyList()
-            return byPerson.map { (uid, txs) ->
-                Contribution(
-                    name = txs.firstNotNullOfOrNull { it.createdByName } ?: "?",
-                    isMe = uid == mine,
-                    income = txs.filter { it.type == TxType.INCOME }.sumOf { toUah(it.amount, it.currency) },
-                    expense = txs.filter { it.type == TxType.EXPENSE }.sumOf { toUah(it.amount, it.currency) },
-                )
-            }.sortedByDescending { it.isMe }
-        }
+    val monthContributions: List<Contribution> by derivedStateOf {
+        FinanceInsights.contributions(transactions, currentMonth, auth.currentUser?.uid, ::toUah)
+    }
 
     /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
     fun netUah(txs: List<Transaction>): Double = txs.sumOf {
@@ -574,8 +548,9 @@ class FinanceViewModel(
      * from the form — like a bank's "balance after". An unparsable amount counts as 0;
      * a new entry sorts last on its date.
      */
-    val formBalanceAfter: FormBalanceAfter?
-        get() {
+    val formBalanceAfter: FormBalanceAfter? by derivedStateOf { computeFormBalanceAfter() }
+
+    private fun computeFormBalanceAfter(): FormBalanceAfter? {
             if (formWalletId.isBlank()) return null
             val isTransfer = formType == TxType.TRANSFER
             if (isTransfer && (formTargetWalletId.isBlank() || formTargetWalletId == formWalletId)) return null
@@ -596,7 +571,7 @@ class FinanceViewModel(
                 target = targetCur?.let { FinanceRepository.balanceAfter(transactions, formTargetWalletId, draft) },
                 targetCurrency = targetCur,
             )
-        }
+    }
 
     fun submitForm() {
         if (isSaving) return
@@ -607,7 +582,7 @@ class FinanceViewModel(
             date = formDate,
             walletId = formWalletId,
             targetWalletId = if (isTransfer) formTargetWalletId else null,
-            category = if (isTransfer) "Внутрішній переказ" else formCategory,
+            category = if (isTransfer) BuiltinCategories.TRANSFER else formCategory,
             subcategory = if (isTransfer) null else formSubcategory,
             comment = formComment.trim(),
         )
@@ -635,12 +610,12 @@ class FinanceViewModel(
         val existing = editingId?.let { id -> transactions.firstOrNull { it.id == id } }
         val me = auth.currentUser
         val toSave = (existing ?: Transaction(
-            id = java.util.UUID.randomUUID().toString(), type = formType, amount = amount, date = formDate, walletId = formWalletId, category = draft.category ?: "Інше",
+            id = java.util.UUID.randomUUID().toString(), type = formType, amount = amount, date = formDate, walletId = formWalletId, category = draft.category ?: BuiltinCategories.OTHER,
             createdBy = me?.uid,
             createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
         )).copy(
             type = formType, amount = amount, currency = srcCur,
-            category = draft.category ?: "Інше", subcategory = draft.subcategory,
+            category = draft.category ?: BuiltinCategories.OTHER, subcategory = draft.subcategory,
             walletId = formWalletId,
             targetWalletId = if (isTransfer) formTargetWalletId else null,
             targetAmount = targetAmount, targetCurrency = targetCurrency,
@@ -703,24 +678,15 @@ class FinanceViewModel(
     fun walletBalance(walletId: String): Double = FinanceRepository.walletBalance(transactions, walletId)
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
-    val totalBalanceUah: Double
-        get() = wallets.sumOf { w -> toUah(walletBalance(w.id), w.currency) }
+    val totalBalanceUah: Double by derivedStateOf { wallets.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
-    val isMultiCurrency: Boolean
-        get() = wallets.map { it.currency }.distinct().size > 1
+    val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 
-    private val currentMonthPrefix: String
-        get() = YearMonth.now().toString() // "2026-08"
+    private val currentMonthPrefix: String get() = currentMonth.toString() // "2026-08"
 
-    val monthIncomeUah: Double
-        get() = transactions
-            .filter { it.type == TxType.INCOME && it.date.startsWith(currentMonthPrefix) }
-            .sumOf { toUah(it.amount, it.currency) }
+    val monthIncomeUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions, TxType.INCOME, currentMonth, ::toUah) }
 
-    val monthExpenseUah: Double
-        get() = transactions
-            .filter { it.type == TxType.EXPENSE && it.date.startsWith(currentMonthPrefix) }
-            .sumOf { toUah(it.amount, it.currency) }
+    val monthExpenseUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions, TxType.EXPENSE, currentMonth, ::toUah) }
 
     val isSearchOrFilterActive: Boolean
         get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null
@@ -736,42 +702,12 @@ class FinanceViewModel(
     fun dayNetsUah(txs: List<Transaction>): Map<String, Double> =
         txs.groupBy { it.date }.mapValues { (_, day) -> netUah(day) }
 
-    private fun computeFilteredTransactions(): List<Transaction> {
-        var result: List<Transaction> = transactions
-
-        result = when (typeFilter) {
-            TxTypeFilter.ALL -> result
-            TxTypeFilter.INCOME -> result.filter { it.type == TxType.INCOME }
-            TxTypeFilter.EXPENSE -> result.filter { it.type == TxType.EXPENSE }
-            TxTypeFilter.TRANSFER -> result.filter { it.type == TxType.TRANSFER }
-        }
-
-        result = when (periodFilter) {
-            PeriodFilter.DAY -> {
-                val today = LocalDate.now().toString()
-                result.filter { it.date == today }
-            }
-            PeriodFilter.MONTH -> result.filter { it.date.startsWith(currentMonthPrefix) }
-            PeriodFilter.ALL -> result
-        }
-
-        categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
-
-        if (search.isNotBlank()) {
-            val q = search.trim().lowercase()
-            fun walletName(id: String?) = wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: ""
-            val tagNames = tags.associate { it.id to it.name }
-            // "#кава" finds the tag "кава"; a bare word matches tag names too.
-            val tagQuery = q.removePrefix("#")
-            result = result.filter { t ->
-                listOfNotNull(t.comment, t.category, t.subcategory, walletName(t.walletId), walletName(t.targetWalletId), t.currency, t.targetCurrency)
-                    .any { it.lowercase().contains(q) } ||
-                    (tagQuery.isNotEmpty() && t.tags.any { tagNames[it]?.lowercase()?.contains(tagQuery) == true })
-            }
-        }
-
-        return result.sortedByDescending { it.date }
-    }
+    private fun computeFilteredTransactions(): List<Transaction> =
+        FinanceInsights.filter(
+            transactions, typeFilter, periodFilter, categoryFilter, search, today,
+            walletName = { id -> wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: "" },
+            tagNames = tags.associate { it.id to it.name },
+        )
 }
 
 /** Payday suggestion: move these amounts from [sourceWalletId] to goal wallets. */

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,9 +63,9 @@ fun MonthSummaryCard(summary: MonthSummary, onOpen: () -> Unit, onClose: () -> U
         shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(start = RytmSpacing.lg, top = RytmSpacing.sm, bottom = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Icon(RytmIcons.PieChart, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(RytmSpacing.md))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.month_summary_card_title, monthName(summary.month)), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 Text(stringResource(R.string.month_summary_card_body, uah(summary.expense)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
@@ -81,7 +82,7 @@ fun MonthSummaryCard(summary: MonthSummary, onOpen: () -> Unit, onClose: () -> U
 fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit) {
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             RytmSheetTitle(stringResource(R.string.month_summary_title, monthName(summary.month)))

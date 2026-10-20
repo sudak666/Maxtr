@@ -1,5 +1,6 @@
 package ua.rytm.app.ui
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -93,7 +94,7 @@ fun RealtimeStateBanner() {
         ),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = RytmSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -129,9 +130,9 @@ fun ScreenLoadingState(rows: Int = 3) {
         repeat(rows) {
             Card(Modifier.fillMaxWidth()) {
                 Row(
-                    Modifier.fillMaxWidth().padding(12.dp),
+                    Modifier.fillMaxWidth().padding(RytmSpacing.md),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
                 ) {
                     Box(Modifier.size(34.dp).background(shimmer, CircleShape))
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -169,7 +170,7 @@ fun ScreenLoadErrorState() {
         ),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(start = 14.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+            Modifier.fillMaxWidth().padding(start = 14.dp, end = 6.dp, top = RytmSpacing.sm, bottom = RytmSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {

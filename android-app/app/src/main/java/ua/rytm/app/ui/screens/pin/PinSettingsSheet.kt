@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.pin
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -29,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,8 +68,8 @@ import ua.rytm.app.ui.icons.LockClock
 fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
-    val hasPin by viewModel.hasPin.collectAsState(initial = null)
-    val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+    val hasPin by viewModel.hasPin.collectAsStateWithLifecycle(initialValue = null)
+    val biometricEnabled by viewModel.biometricEnabled.collectAsStateWithLifecycle(initialValue = false)
     val biometricHaptics = rememberRytmHaptics()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var setupStep by remember { mutableIntStateOf(0) }
@@ -77,13 +78,13 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
     RytmModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+        modifier = Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.lg),
         shape = RoundedCornerShape(RytmRadii.Sheet),
         tonalElevation = 8.dp,
     ) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
@@ -98,9 +99,9 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(RytmRadii.Chart),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
                 ) {
-                    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalAlignment = Alignment.CenterVertically) {
                         Icon(RytmIcons.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Column(Modifier.padding(start = 12.dp)) {
+                        Column(Modifier.padding(start = RytmSpacing.md)) {
                             Text(stringResource(R.string.pin_protection_active), fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.pin_is_set), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -114,12 +115,12 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     ) {
                         Row(
-                            Modifier.fillMaxWidth().padding(16.dp),
+                            Modifier.fillMaxWidth().padding(RytmSpacing.lg),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(RytmIcons.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-                            Column(Modifier.padding(horizontal = 12.dp).weight(1f)) {
+                            Column(Modifier.padding(horizontal = RytmSpacing.md).weight(1f)) {
                                 Text(stringResource(R.string.pin_biometric_title), fontWeight = FontWeight.Bold)
                                 Text(stringResource(R.string.pin_biometric_toggle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -189,7 +190,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
 
 @Composable
 private fun PinDots(filled: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         repeat(6) { i ->
             val color = if (i < filled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
             Box(Modifier.size(if (i < filled) 14.dp else 12.dp).background(color, CircleShape))

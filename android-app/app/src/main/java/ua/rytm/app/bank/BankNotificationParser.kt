@@ -74,7 +74,7 @@ object BankNotificationParser {
             break
         }
         val amount = number?.replace(Regex("[ \\u00A0\\u202F]"), "")?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0 } ?: return null
-        val currency = currencyMap[cur!!.lowercase().trimEnd('.')] ?: "UAH"
+        val currency = cur?.lowercase()?.trimEnd('.')?.let { currencyMap[it] } ?: "UAH"
 
         val isIncome = when {
             sign == "+" -> true

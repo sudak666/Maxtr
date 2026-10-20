@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import kotlinx.coroutines.CancellationException
@@ -148,7 +149,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .imePadding()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -167,7 +168,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 // One secondary action, not two filled Buttons competing with
                 // (and sitting above) the form's real primary action. Source
                 // choice moved into a small sheet, the platform-canonical shape.
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     OutlinedButton(
                         onClick = { scanSourceOpen = true },
                         enabled = !ocrBusy,
@@ -176,7 +177,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     ) {
                         if (!largeFont) {
                             Icon(RytmIcons.DocumentScanner, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(RytmSpacing.sm))
                         }
                         ua.rytm.app.ui.components.FitText(stringResource(R.string.receipt_scan_short), style = MaterialTheme.typography.labelLarge)
                     }
@@ -189,7 +190,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         ) {
                             if (!largeFont) {
                                 Icon(RytmIcons.Mic, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
+                                Spacer(Modifier.width(RytmSpacing.sm))
                             }
                             ua.rytm.app.ui.components.FitText(stringResource(R.string.quick_entry_button), style = MaterialTheme.typography.labelLarge)
                         }
@@ -222,7 +223,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Icon(RytmIcons.CameraAlt, contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(RytmSpacing.sm))
                                     Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
                                 }
                                 TextButton(
@@ -230,10 +231,10 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Icon(RytmIcons.PhotoLibrary, contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(RytmSpacing.sm))
                                     Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
                                 }
-                                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                                HorizontalDivider(Modifier.padding(vertical = RytmSpacing.xs))
                                 TextButton(
                                     onClick = { scanSourceOpen = false },
                                     modifier = Modifier.fillMaxWidth(),
@@ -248,7 +249,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         confirmButton = {},
                     )
                 }
-                if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
+                if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
                 ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
 
@@ -273,7 +274,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 val amountInvalid = vm.formErrorField == TxFormField.AMOUNT
                 // A new entry starts in the amount field with the keyboard up —
                 // the first thing typed is always the sum.
@@ -307,7 +308,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
                     singleLine = true,
                 )
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     items(listOf(50.0, 100.0, 200.0, 500.0)) { amount ->
                         AssistChip(onClick = { vm.setFormAmount(amount) }, label = { Text(amount.toLong().toString()) })
                     }
@@ -319,7 +320,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 val frequent = vm.formFrequentCategories
                 if (frequent.size >= 2) {
                     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         items(frequent, key = { it }) { cat ->
                             androidx.compose.material3.FilterChip(
                                 selected = (vm.formCategory ?: categories.firstOrNull()) == cat,
@@ -372,7 +373,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             if (vm.tags.isNotEmpty()) {
                 val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-                LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     items(vm.tags) { tag ->
                         androidx.compose.material3.FilterChip(
                             selected = tag.id in vm.formSelectedTagIds,
@@ -416,7 +417,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
     ) {
         options.forEach { option ->
             val isSelected = vm.formType == option.type
@@ -436,7 +437,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
                         if (!isSelected) typeHaptics.tick()
                         vm.onFormTypeChange(option.type)
                     }
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                    .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.md),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -467,7 +468,7 @@ private fun BalanceAfterLine(balance: Double, currency: String) {
         text = stringResource(R.string.transaction_balance_after, ua.rytm.app.ui.maskedAmount("$sign${formatMoney(kotlin.math.abs(balance))} ${currencySymbol(currency)}")),
         style = MaterialTheme.typography.bodySmall,
         color = if (balance < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp),
+        modifier = Modifier.padding(start = RytmSpacing.lg),
     )
 }
 

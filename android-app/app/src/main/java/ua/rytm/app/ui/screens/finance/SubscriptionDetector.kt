@@ -33,7 +33,8 @@ object SubscriptionDetector {
         val covered = recurring.filter { it.active }.map { key(it.comment) }.filter { it.isNotEmpty() }.toSet()
         return transactions.asSequence()
             .filter { it.type == TxType.EXPENSE && !it.comment.isNullOrBlank() }
-            .groupBy { key(it.comment!!) }
+            .mapNotNull { t -> t.comment?.let { key(it) to t } }
+            .groupBy({ it.first }, { it.second })
             .filterKeys { it.length >= 2 && it !in covered && it !in dismissed }
             .mapNotNull { (k, txs) -> candidate(k, txs, recurring, today) }
             .sortedByDescending { it.occurrences }
@@ -64,7 +65,7 @@ object SubscriptionDetector {
         val next = if (frequency == "monthly") lastDate.plusMonths(1) else lastDate.plusWeeks(1)
         return Candidate(
             key = key,
-            comment = lastTx.comment!!.trim(),
+            comment = lastTx.comment.orEmpty().trim(),
             amount = lastTx.amount,
             currency = lastTx.currency,
             category = lastTx.category,

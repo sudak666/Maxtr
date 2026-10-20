@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.core.graphics.scale
 
 import android.graphics.Bitmap
@@ -162,7 +163,7 @@ fun ProfileAppearanceCard(
         shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.padding(RytmSpacing.lg), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (editing) {
@@ -174,7 +175,7 @@ fun ProfileAppearanceCard(
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.profile_nickname)) },
                     )
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                         OutlinedButton(
                             onClick = { draft = appearance.nickname; editing = false },
                             enabled = !busy,
@@ -209,7 +210,7 @@ fun ProfileAppearanceCard(
             onDismissRequest = { avatarDialog = false },
             title = { Text(stringResource(R.string.profile_choose_avatar)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         builtinAvatars.take(3).forEach { avatar -> AvatarOption(avatar, presetDescription) { avatarDialog = false; save(appearance.copy(avatar = "builtin:${avatar.id}"), avatarUpdated) } }
                     }

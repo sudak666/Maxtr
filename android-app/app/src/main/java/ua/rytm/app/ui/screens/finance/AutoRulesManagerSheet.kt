@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,8 +58,8 @@ import ua.rytm.app.ui.icons.Edit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
-    val rules by repository.autoRules.collectAsState(initial = emptyList())
-    val categories by repository.categoriesByType.collectAsState(initial = emptyMap())
+    val rules by repository.autoRules.collectAsStateWithLifecycle(initialValue = emptyList())
+    val categories by repository.categoriesByType.collectAsStateWithLifecycle(initialValue = emptyMap())
     var expandedId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var saving by rememberSaveable { mutableStateOf(false) }
@@ -78,7 +79,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
     }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.auto_rules_title), subtitle = stringResource(R.string.auto_rules_body))
             if (errorVisible) Text(stringResource(R.string.auto_rules_save_failed), color = MaterialTheme.colorScheme.error)
             if (rules.isEmpty()) Text(stringResource(R.string.auto_rules_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -88,7 +89,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         val isDraft = rule.keyword.isEmpty()
                         Column(Modifier.weight(1f)) {

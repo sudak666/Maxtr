@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.pin
 
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,9 +54,9 @@ import ua.rytm.app.ui.icons.Fingerprint
 @Composable
 fun PinLockScreen(viewModel: PinViewModel) {
     val context = LocalContext.current
-    val biometricEnabled by viewModel.biometricEnabled.collectAsState(initial = false)
+    val biometricEnabled by viewModel.biometricEnabled.collectAsStateWithLifecycle(initialValue = false)
     val app = ua.rytm.app.ui.rytmApp()
-    val biometricOnboardingDismissed by app.settingsStore.biometricOnboardingDismissed(viewModel.uid).collectAsState(initial = true)
+    val biometricOnboardingDismissed by app.settingsStore.biometricOnboardingDismissed(viewModel.uid).collectAsStateWithLifecycle(initialValue = true)
     val scope = rememberCoroutineScope()
     var forgotConfirm by remember { mutableStateOf(false) }
     var biometricOnboardingVisible by remember { mutableStateOf(false) }
@@ -70,9 +71,9 @@ fun PinLockScreen(viewModel: PinViewModel) {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(stringResource(R.string.pin_enter), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(RytmSpacing.xxl))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             repeat(6) { i ->
                 Box(
                     Modifier.size(16.dp).background(
@@ -84,7 +85,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
         }
 
         viewModel.errorMessageRes?.let { messageRes ->
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(RytmSpacing.lg))
             Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
 
@@ -106,7 +107,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
                 }
             },
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(RytmSpacing.xl))
         TextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
     }
 
@@ -160,13 +161,13 @@ internal fun PinKeypad(
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg)) {
         rows.forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xxl)) {
                 row.forEach { digit -> KeypadButton(digit) { onDigit(digit) } }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xxl), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) { trailingSlot() }
             KeypadButton("0") { onDigit("0") }
             Box(

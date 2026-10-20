@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.components
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -56,7 +57,7 @@ fun RytmDestructiveConfirm(
         title = { Text(title) },
         text = {
             if (busy) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                     Text(busyLabel)
                 }

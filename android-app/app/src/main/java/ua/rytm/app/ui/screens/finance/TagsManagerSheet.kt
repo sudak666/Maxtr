@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -67,8 +68,8 @@ fun TagsManagerSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         androidx.compose.foundation.layout.Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             RytmSheetTitle(stringResource(R.string.tags_title), subtitle = stringResource(R.string.tags_body))
 
@@ -84,14 +85,14 @@ fun TagsManagerSheet(
             }
 
             viewModel.tags.forEach { tag ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     Box(Modifier.size(20.dp).background(Color(tag.colorHex), CircleShape))
                     Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     IconButton(onClick = { viewModel.requestDelete(tag.id) }, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },

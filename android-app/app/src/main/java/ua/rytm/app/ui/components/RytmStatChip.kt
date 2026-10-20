@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.components
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,7 @@ fun RytmStatChip(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(
-            Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+            Modifier.padding(horizontal = RytmSpacing.md, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -106,7 +107,7 @@ fun RytmStatChipRow(
     LazyRow(
         modifier.fillMaxWidth().fadingEdges(fadeState),
         state = fadeState,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterHorizontally),
         content = content,
     )
 }

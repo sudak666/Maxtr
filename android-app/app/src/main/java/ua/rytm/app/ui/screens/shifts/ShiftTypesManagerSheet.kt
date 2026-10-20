@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -75,7 +76,7 @@ fun ShiftTypesManagerSheet(
         // ShiftTypesManagerContent -- see that composable's own doc
         // comment for why (nested verticalScroll crash when embedded in
         // Quick Fill's already-scrollable sheet).
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             ShiftTypesManagerContent(viewModel, showTitle = true)
         }
     }
@@ -112,7 +113,7 @@ fun ShiftTypesManagerSheet(
 // wrapper above supplies its own single scrollable container instead.
 @Composable
 fun ShiftTypesManagerContent(viewModel: ShiftTypesManagerViewModel, showTitle: Boolean = true) {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
         viewModel.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
         if (showTitle) RytmSheetTitle(stringResource(R.string.shift_types_title), subtitle = stringResource(R.string.shift_types_body))
 
@@ -173,8 +174,8 @@ private fun ShiftTypeRow(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             Box(Modifier.size(28.dp).background(Color(type.colorHex), CircleShape))
             Column(Modifier.weight(1f)) {
                 Text(localizedDomainText(type.name), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
@@ -205,7 +206,7 @@ private fun ShiftTypeRow(
                 if (nameText != type.name) onNameChange(nameText)
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
@@ -247,7 +248,7 @@ private fun ShiftTypeRow(
                     .heightIn(min = RytmDimens.TouchTarget),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ua.rytm.app.ui.components.RoundCheckbox(checked = type.isOff, modifier = Modifier.padding(end = 12.dp))
+                ua.rytm.app.ui.components.RoundCheckbox(checked = type.isOff, modifier = Modifier.padding(end = RytmSpacing.md))
                 Text(stringResource(R.string.shift_day_off_unpaid), style = MaterialTheme.typography.bodySmall)
             }
         }

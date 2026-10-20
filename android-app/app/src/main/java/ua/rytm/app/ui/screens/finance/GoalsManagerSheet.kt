@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -88,8 +89,8 @@ fun GoalsManagerSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             RytmSheetTitle(stringResource(R.string.goals_title), subtitle = stringResource(R.string.goals_description))
 
@@ -127,7 +128,7 @@ fun GoalsManagerSheet(
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {
                 Icon(RytmIcons.Add, contentDescription = null)
-                androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
                 Text(stringResource(R.string.goals_add))
             }
         }
@@ -183,8 +184,8 @@ private fun GoalRow(
         shape = RoundedCornerShape(RytmRadii.Input),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             Box(
                 Modifier.size(42.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center,

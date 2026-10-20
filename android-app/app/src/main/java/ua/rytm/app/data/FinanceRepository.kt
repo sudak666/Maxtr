@@ -301,7 +301,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // Mirrors js/settings-managers.js's addRecurring(): defaults to type=expense,
     // first expense category, first wallet, monthly, nextDate=today, active, amount=0.
     suspend fun addRecurring() {
-        val expenseCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name ?: "Інше"
+        val expenseCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name ?: BuiltinCategories.OTHER
         val walletId = db.walletDao().getAllOnce().firstOrNull()?.id ?: ""
         db.recurringDao().insert(
             RecurringEntity(
@@ -348,7 +348,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     // type resets category to the first category of the new type, same reasoning as
     // TransactionFormSheet's own type-switch category reset.
     suspend fun updateRecurringType(recurring: Recurring, type: TxType) {
-        val newCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == type.name }?.name ?: "Інше"
+        val newCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == type.name }?.name ?: BuiltinCategories.OTHER
         db.recurringDao().update(recurring.copy(type = type, category = newCategory).toEntity())
     }
 

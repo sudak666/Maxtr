@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -23,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,9 +72,9 @@ fun RatesManagerSheet(
     settingsStore: SettingsStore,
     onDismiss: () -> Unit,
 ) {
-    val rates by financeRepository.currencyRates.collectAsState(initial = emptyMap())
-    val source by settingsStore.ratesSource.collectAsState(initial = "nbu")
-    val updatedAt by settingsStore.ratesUpdatedAt.collectAsState(initial = null)
+    val rates by financeRepository.currencyRates.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val source by settingsStore.ratesSource.collectAsStateWithLifecycle(initialValue = "nbu")
+    val updatedAt by settingsStore.ratesUpdatedAt.collectAsStateWithLifecycle(initialValue = null)
     var busy by rememberSaveable { mutableStateOf(false) }
     @StringRes var messageRes by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
@@ -93,8 +94,8 @@ fun RatesManagerSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
             val numberFormat = remember(locale) { NumberFormat.getNumberInstance(locale).apply { minimumFractionDigits = 2; maximumFractionDigits = 4 } }
@@ -118,7 +119,7 @@ fun RatesManagerSheet(
                         Modifier.size(48.dp).background(GreenLight2.copy(alpha = 0.16f), CircleShape),
                         contentAlignment = Alignment.Center,
                     ) { Text("$", color = GreenLight2, fontWeight = FontWeight.Black) }
-                    Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                    Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
                         Text(stringResource(R.string.rates_usd_hero), style = androidx.compose.material3.MaterialTheme.typography.labelMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("${numberFormat.format(usdRate)} ₴", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
                         Text(updatedText, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
@@ -137,7 +138,7 @@ fun RatesManagerSheet(
             // problems: no more hugging the left edge with dead space
             // trailing it, and no forced-equal-width squeeze on the
             // asymmetric label.
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterHorizontally)) {
                 listOf("nbu" to R.string.rates_nbu, "privat" to R.string.rates_privat).forEach { (value, labelRes) ->
                     FilterChip(
                         selected = source == value,
@@ -158,7 +159,7 @@ fun RatesManagerSheet(
                     shape = RoundedCornerShape(RytmRadii.Row),
                     colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
-                    Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                    Row(Modifier.fillMaxWidth().padding(RytmSpacing.md), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                         Icon(RytmIcons.Info, contentDescription = null, tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
                         Text(stringResource(R.string.rates_privat_note), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                     }
@@ -167,7 +168,7 @@ fun RatesManagerSheet(
 
             Button(onClick = { refresh() }, enabled = !busy, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Icon(RytmIcons.Refresh, contentDescription = null)
-                Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh), modifier = Modifier.padding(start = 8.dp))
+                Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh), modifier = Modifier.padding(start = RytmSpacing.sm))
             }
             messageRes?.let {
                 val isError = it == R.string.rates_update_failed
@@ -197,7 +198,7 @@ fun RatesManagerSheet(
                         Box(Modifier.size(44.dp).background(tint.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
                             Text(currencyMark(code), color = tint, fontWeight = FontWeight.Black)
                         }
-                        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                        Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
                             Text(code, fontWeight = FontWeight.Bold)
                             Text(
                                 runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(code),

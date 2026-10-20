@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,17 +43,17 @@ fun SubscriptionSuggestionsCard(
         shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(RytmIcons.Repeat, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(RytmSpacing.sm))
                 Text(stringResource(R.string.subscription_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             }
             Text(stringResource(R.string.subscription_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             // Three at most; the rest show up once these are answered.
             candidates.take(3).forEach { c ->
                 val frequency = stringResource(if (c.frequency == "weekly") R.string.frequency_weekly else R.string.frequency_monthly)
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                     Text(
                         "${c.comment} · ${ua.rytm.app.ui.maskedAmount("${formatMoney(c.amount)} ${currencySymbol(c.currency)}")}",
                         style = MaterialTheme.typography.bodyLarge,
@@ -65,7 +66,7 @@ fun SubscriptionSuggestionsCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                         TextButton(onClick = { onDismiss(c) }, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
                             Text(stringResource(R.string.subscription_no))
                         }

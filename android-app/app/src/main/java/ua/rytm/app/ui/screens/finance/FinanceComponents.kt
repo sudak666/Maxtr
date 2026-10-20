@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +28,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
@@ -66,7 +68,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -182,7 +183,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     tint = trendColor,
                     modifier = Modifier.size(18.dp),
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(RytmSpacing.xs))
                 val sign = if (net > 0) "+" else if (net < 0) "−" else ""
                 Text(
                     text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
@@ -199,7 +200,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
                     if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
                 }
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 8.dp)) {
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = RytmSpacing.sm)) {
                     Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(
@@ -212,7 +213,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
 
             val contributions = vm.monthContributions
             if (contributions.isNotEmpty()) {
-                Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.padding(top = RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                     Text(stringResource(R.string.finance_contributions_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     contributions.forEach { c ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -247,17 +248,17 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     text = stringResource(R.string.finance_conversion_note),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = RytmSpacing.xs),
                 )
             }
 
             if (largeText) {
-                Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.fillMaxWidth())
                     MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.fillMaxWidth())
                 }
             } else {
-                Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.lg), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
                     MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
                 }
@@ -266,8 +267,8 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
             val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
             LazyRow(
                 state = fadeState,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).fadingEdges(fadeState),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = RytmSpacing.lg).fadingEdges(fadeState),
+                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
             ) {
                 items(vm.wallets, key = { it.id }) { wallet ->
                     WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id))
@@ -293,7 +294,7 @@ internal fun MiniStatCard(label: String, value: Double, positive: Boolean, modif
             .clip(shape)
             .background(Brush.linearGradient(listOf(tint.copy(alpha = 0.22f), tint.copy(alpha = 0.03f))))
             .border(1.dp, tint.copy(alpha = 0.28f), shape)
-            .padding(12.dp),
+            .padding(RytmSpacing.md),
     ) {
         Column {
             // Same icon-circle + label treatment as ToolsSheet's
@@ -313,7 +314,7 @@ internal fun MiniStatCard(label: String, value: Double, positive: Boolean, modif
                 style = MaterialTheme.typography.titleMedium.tabularNums(),
                 fontWeight = FontWeight.Bold,
                 color = valueColor,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = RytmSpacing.xs),
             )
         }
     }
@@ -322,12 +323,12 @@ internal fun MiniStatCard(label: String, value: Double, positive: Boolean, modif
 @Composable
 internal fun WalletChip(wallet: Wallet, balance: Double) {
     Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).background(Color(wallet.colorHex), CircleShape))
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(RytmSpacing.sm))
             Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(RytmSpacing.sm))
             Text(
                 maskedAmount("${formatMoney(balance)} ${currencySymbol(wallet.currency)}"),
                 style = MaterialTheme.typography.labelMedium,
@@ -351,15 +352,15 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
     val largeText = LocalDensity.current.fontScale >= 1.2f
     val columnCount = if (largeText) 1 else 3
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         actions.chunked(columnCount).forEach { rowActions ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 rowActions.forEach { action ->
                     val interactionSource = remember { MutableInteractionSource() }
                     val pressed by interactionSource.collectIsPressedAsState()
                     val scale by animateFloatAsState(
                         targetValue = if (pressed) RytmInteraction.ButtonPressedScale else 1f,
-                        animationSpec = motionAwareSpec(tween(100)),
+                        animationSpec = motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)),
                         label = "quick-action-press",
                     )
                     Card(
@@ -399,13 +400,13 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
                         }
                         if (columnCount == 1) {
                             Row(
-                                Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                                Modifier.fillMaxSize().padding(horizontal = RytmSpacing.lg),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
                             ) { tile() }
                         } else {
                             Column(
-                                Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                                Modifier.fillMaxSize().padding(horizontal = RytmSpacing.sm),
                                 verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) { tile() }
@@ -458,7 +459,7 @@ internal fun FilterRow(vm: FinanceViewModel) {
     // One scrollable row (type, divider, period) instead of two stacked rows
     // — ~56dp more of the actual history above the fold.
     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
         items(types, key = { "t-${it.first}" }) { (value, label, icon) ->
             FilterChip(
                 selected = vm.typeFilter == value,
@@ -468,7 +469,7 @@ internal fun FilterRow(vm: FinanceViewModel) {
             )
         }
         item(key = "divider") {
-            Box(Modifier.padding(horizontal = 4.dp).size(width = 1.dp, height = 24.dp).background(MaterialTheme.colorScheme.outlineVariant))
+            Box(Modifier.padding(horizontal = RytmSpacing.xs).size(width = 1.dp, height = 24.dp).background(MaterialTheme.colorScheme.outlineVariant))
         }
         items(periods, key = { "p-${it.first}" }) { (value, label) ->
             FilterChip(
@@ -493,7 +494,7 @@ internal fun DayHeader(date: String, netUah: Double) {
         else -> parsed.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", locale))
     }.replaceFirstChar { it.titlecase(locale) }
     Row(
-        Modifier.fillMaxWidth().padding(top = 4.dp).semantics(mergeDescendants = true) { heading() },
+        Modifier.fillMaxWidth().padding(top = RytmSpacing.xs).semantics(mergeDescendants = true) { heading() },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -562,7 +563,8 @@ internal fun TransactionRow(
     var pastDeleteThreshold by remember(tx.id) { mutableStateOf(false) }
 
     suspend fun settleAt(target: Float) {
-        animate(offsetPx, target, animationSpec = tween(180)) { value, _ -> offsetPx = value }
+        // Critically damped spring: physical settle, never overshoots past 0 into the delete zone.
+        animate(offsetPx, target, animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)) { value, _ -> offsetPx = value }
     }
 
     LaunchedEffect(resetGeneration) {
@@ -692,9 +694,9 @@ internal fun TransactionRow(
                     },
                 ),
         ) {
-            Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(RytmSpacing.md).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 CategoryIconBadge(tx.category, iconOverride = iconOverride)
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(RytmSpacing.md))
                 // Every Text below is single-line + ellipsized on purpose:
                 // this Column's width follows the Card's own width, which
                 // shrinks live while the row is being swiped (cardWidthDp
@@ -721,7 +723,7 @@ internal fun TransactionRow(
                     }
                     val rowTags = tx.tags.mapNotNull(tagLookup)
                     if (rowTags.isNotEmpty()) {
-                        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(Modifier.padding(top = RytmSpacing.xs), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                             rowTags.forEach { tag ->
                                 val color = Color(tag.colorHex)
                                 Box(
@@ -735,7 +737,7 @@ internal fun TransactionRow(
                         }
                     }
                 }
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(RytmSpacing.sm))
                 val (amountText, amountColor) = when (tx.type) {
                     TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.income
                     TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.expense

@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.icons.Share
@@ -62,7 +63,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -150,7 +150,7 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
             .clip(shape)
             .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             val goalSafe = goal.coerceAtLeast(1.0)
@@ -161,7 +161,7 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = RytmSpacing.md)
                     // 6% onSurface left the unfilled part of the bar at ~1.1:1
                     // (WCAG 1.4.11 wants 3:1 for meaningful non-text content).
                     .height(6.dp)
@@ -176,7 +176,7 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
                         .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = RytmSpacing.xs)) {
                 Text(
                     maskedAmount(stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), formatMoney(goal))),
                     style = MaterialTheme.typography.labelSmall,
@@ -219,11 +219,11 @@ internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .semantics(mergeDescendants = true) {}
             .heightIn(min = RytmDimens.TouchTarget)
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = RytmSpacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val accent = Color(type.colorHex)
-        ua.rytm.app.ui.components.RoundCheckbox(checked = checked, accent = accent, modifier = Modifier.padding(end = 12.dp))
+        ua.rytm.app.ui.components.RoundCheckbox(checked = checked, accent = accent, modifier = Modifier.padding(end = RytmSpacing.md))
         Text(localizedDomainText(type.name), modifier = Modifier.weight(1f))
     }
 }
@@ -264,7 +264,7 @@ internal fun ForecastCard(current: MonthForecast, next: MonthForecast, goal: Dou
                 return@Column
             }
             Row(verticalAlignment = Alignment.Bottom) {
-                ua.rytm.app.ui.components.FitText(monthName(current), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(end = 8.dp))
+                ua.rytm.app.ui.components.FitText(monthName(current), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(end = RytmSpacing.sm))
                 Text(
                     maskedAmount(stringResource(R.string.forecast_month_total, formatMoney(current.total))),
                     style = MaterialTheme.typography.headlineSmall.tabularNums(),
@@ -374,7 +374,7 @@ internal fun QuickFillLauncher(onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 10.dp),
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = RytmSpacing.lg, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -385,7 +385,7 @@ internal fun QuickFillLauncher(onClick: () -> Unit) {
             ) {
                 Icon(RytmIcons.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
             }
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
+            Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
                 Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
                 Text(
                     stringResource(R.string.shifts_quick_fill_hint),
@@ -427,7 +427,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 indication = null,
                 role = androidx.compose.ui.semantics.Role.Button,
                 onClick = vm::toggleQuickFillExpanded,
-            ).padding(horizontal = 8.dp),
+            ).padding(horizontal = RytmSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -455,8 +455,8 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
         }
         ReducedMotionVisibility(visible = vm.quickFillExpanded) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
             ) {
                 Text(
                     stringResource(R.string.shifts_fill_current_month),
@@ -494,7 +494,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
                 ) {
                     androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, shape = RoundedCornerShape(RytmRadii.Row)) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -524,10 +524,10 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
 
                 Row(
                     Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(RytmRadii.Control))
-                        .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 12.dp, vertical = 10.dp),
+                        .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = RytmSpacing.md, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                    Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
                         Text(stringResource(R.string.shifts_autofill_future), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         Text(
                             stringResource(R.string.shifts_autofill_body),
@@ -540,7 +540,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = { on -> autofillHaptics.toggle(on); vm.setAutoFillEnabled(on) }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                 }
                 ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
-                    Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.xs), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         LabeledDropdown(
                             label = stringResource(R.string.shift_type),
                             options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
@@ -609,7 +609,7 @@ internal fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
 internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((String) -> Unit)?) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-        LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             items(types, key = { it.id }) { type ->
                 val accent = Color(type.colorHex)
                 val selected = type.id == brushTypeId
@@ -624,7 +624,7 @@ internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: (
                             if (onSelect != null) Modifier.selectable(selected = selected, role = Role.RadioButton) { onSelect(type.id) }
                             else Modifier,
                         )
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -660,7 +660,7 @@ internal fun WeekdayHeaderRow() {
         weekdays.forEachIndexed { i, d ->
             Text(
                 stringResource(d),
-                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                modifier = Modifier.weight(1f).padding(vertical = RytmSpacing.sm),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -760,10 +760,10 @@ internal fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
                 },
             ) { _, dx -> total += dx }
         },
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
     ) {
         shownWeeks.forEach { week ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                 week.forEach { cell ->
                     val date = cell.date
                     if (date == null) {
@@ -848,7 +848,7 @@ internal fun DayCell(
             // border was pure redundant decoration.
             .clickable(enabled = enabled, onClickLabel = editLabel, role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = cellDescription }
-            .padding(4.dp),
+            .padding(RytmSpacing.xs),
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -883,7 +883,7 @@ internal fun DayCell(
                     Modifier
                         .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                         .background(markerColor.copy(alpha = 0.16f), RoundedCornerShape(RytmRadii.Pill))
-                        .padding(horizontal = 4.dp),
+                        .padding(horizontal = RytmSpacing.xs),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -915,7 +915,7 @@ internal fun DayCell(
                         // Solid fill + computed on-color: the old 22%-alpha
                         // wash put the token letter at 2.26-2.49:1.
                         .background(accent)
-                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                        .padding(horizontal = RytmSpacing.xs, vertical = 1.dp),
                 ) {
                     Text(type.displayCode, style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
                 }
@@ -941,10 +941,10 @@ internal fun SpendingInsightCard(insight: ShiftSpendingInsight) {
         shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(RytmIcons.TipsAndUpdates, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(RytmSpacing.sm))
                 Text(stringResource(R.string.shifts_insight_title), style = MaterialTheme.typography.titleSmall)
             }
             Text(

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.components
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,7 +79,7 @@ fun RytmEmptyState(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp),
+            modifier = Modifier.padding(horizontal = RytmSpacing.xxl),
         )
         if (actionLabel != null && onAction != null) {
             Button(

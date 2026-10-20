@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
@@ -100,8 +101,8 @@ fun ToolsSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
         ) {
             RytmSheetTitle(stringResource(R.string.tools_title))
             onOpenMonthSummary?.let { open ->
@@ -111,7 +112,7 @@ fun ToolsSheet(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
                 ) {
                     androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null)
-                    androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
                     Text(stringResource(R.string.month_summary_tool))
                 }
             }
@@ -130,7 +131,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.analytics_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             items(AnalyticsPeriod.entries.toList()) { p ->
                 FilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(periodLabels.getValue(p)) })
             }
@@ -169,7 +170,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
         val categoryGrowth = vm.topExpenseGrowth
         if (expenseChange != null || categoryGrowth != null) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
-                Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     expenseChange?.let {
                         Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
                     }
@@ -210,7 +211,7 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
         border = BorderStroke(1.dp, color.copy(alpha = 0.28f)),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f)),
     ) {
-        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
                     Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
@@ -231,7 +232,7 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
 @Composable
 private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
     Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input), border = BorderStroke(1.dp, color.copy(alpha = 0.28f)), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))) {
-        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
                     Icon(RytmIcons.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
@@ -313,7 +314,7 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
             CategoryIconBadge(category = category, size = 30.dp)
             Text(
                 localizedDomainText(category),
-                modifier = Modifier.padding(start = 8.dp).weight(1f),
+                modifier = Modifier.padding(start = RytmSpacing.sm).weight(1f),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -332,14 +333,14 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
 @Composable
 private fun FxRatesSection(vm: ToolsViewModel) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         Text(stringResource(R.string.rates_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val rates = vm.currencyRates.ifEmpty { SEED_RATES }
         if (rates.isEmpty()) {
             Text(stringResource(R.string.rates_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             rates.toList().sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.xs), verticalAlignment = Alignment.CenterVertically) {
                     val badge = when (code) {
                         "USD" -> "$" to TealDeep
                         "EUR" -> "€" to BlueLight2
@@ -366,10 +367,10 @@ private fun FxRatesSection(vm: ToolsViewModel) {
 @Composable
 private fun ConverterSection(vm: ToolsViewModel) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
         Text(stringResource(R.string.converter_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Text(stringResource(R.string.converter_from), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = vm.converterAmount,
                 onValueChange = vm::onConverterAmountChange,
@@ -385,7 +386,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
             }
         }
         Text(stringResource(R.string.converter_to), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Card(
                 modifier = Modifier.weight(1f).height(56.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
@@ -400,7 +401,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
                 // same "outlined field" language.
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
-                Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
+                Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = RytmSpacing.lg), contentAlignment = Alignment.CenterStart) {
                     Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
             }
@@ -434,7 +435,7 @@ private fun CurrencyDropdown(options: List<String>, selected: String, onSelect: 
 private fun SixMonthChartSection(vm: ToolsViewModel) {
     var metric by remember { mutableStateOf("balance") }
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.analytics_six_months), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val months = vm.sixMonthTotals
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import android.app.Activity
 import android.content.Intent
 import android.speech.RecognizerIntent
@@ -72,7 +73,7 @@ fun QuickEntryDialog(wallets: List<Wallet>, onDismiss: () -> Unit, onParsed: (Qu
         shape = RoundedCornerShape(RytmRadii.Sheet),
         title = { Text(stringResource(R.string.quick_entry_title), fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 Text(stringResource(R.string.quick_entry_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(
                     value = text,

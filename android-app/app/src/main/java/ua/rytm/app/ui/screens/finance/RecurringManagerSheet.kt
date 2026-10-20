@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
@@ -78,8 +79,8 @@ fun RecurringManagerSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             RytmSheetTitle(stringResource(R.string.recurring_title), subtitle = stringResource(R.string.recurring_body))
 
@@ -163,8 +164,8 @@ private fun RecurringRow(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Chart),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             CategoryIconBadge(r.category, iconOverride = iconOverride, size = 32.dp)
             Column(Modifier.weight(1f)) {
                 Text(if (r.type == TxType.INCOME) incomeLabel else expenseLabel, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
@@ -177,7 +178,7 @@ private fun RecurringRow(
         }
 
         if (expanded) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 DropdownField(
                     label = stringResource(R.string.tx_type),
                     options = listOf(incomeLabel, expenseLabel),
@@ -213,7 +214,7 @@ private fun RecurringRow(
 
             WalletDropdown(label = stringResource(R.string.wallet_label), wallets = wallets, selectedId = r.walletId, onSelect = onWalletChange)
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 DropdownField(
                     label = stringResource(R.string.frequency_label),
                     options = frequencyOptions.map { it.second },
@@ -239,7 +240,7 @@ private fun RecurringRow(
                     .heightIn(min = RytmDimens.TouchTarget),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ua.rytm.app.ui.components.RoundCheckbox(checked = r.active, modifier = Modifier.padding(end = 12.dp))
+                ua.rytm.app.ui.components.RoundCheckbox(checked = r.active, modifier = Modifier.padding(end = RytmSpacing.md))
                 Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodySmall)
             }
         }

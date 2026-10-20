@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -92,10 +93,10 @@ fun CategoriesManagerSheet(
     var openMenuId by rememberSaveable { mutableStateOf<String?>(null) }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             RytmSheetTitle(stringResource(R.string.categories_title), subtitle = stringResource(R.string.categories_body))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 FilterChip(selected = viewModel.activeType == TxType.EXPENSE, onClick = { viewModel.setType(TxType.EXPENSE) }, label = { Text(stringResource(R.string.tx_expense)) })
                 FilterChip(selected = viewModel.activeType == TxType.INCOME, onClick = { viewModel.setType(TxType.INCOME) }, label = { Text(stringResource(R.string.tx_income)) })
             }
@@ -172,7 +173,7 @@ fun CategoriesManagerSheet(
                             shape = RoundedCornerShape(RytmRadii.Control),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
                         ) {
-                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                                 Text(
                                     text = "${stringResource(R.string.subcategories_title)} · ${subs.size}",
                                     style = MaterialTheme.typography.labelLarge,
@@ -193,7 +194,7 @@ fun CategoriesManagerSheet(
                                 }
                                 Row(
                                     Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     OutlinedTextField(
@@ -212,7 +213,7 @@ fun CategoriesManagerSheet(
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
@@ -273,13 +274,13 @@ private fun CategoryIconPickerSheet(onDismiss: () -> Unit, onSelect: (String) ->
     val icons = PICKER_ICONS
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.category_icon_title))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(6),
                 modifier = Modifier.fillMaxWidth().height(320.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
             ) {
                 val entries = icons.entries.toList()
                 gridItems(entries) { (name, icon) ->

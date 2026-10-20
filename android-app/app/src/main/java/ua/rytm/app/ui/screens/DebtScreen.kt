@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.pressScale
 import ua.rytm.app.ui.components.fadingEdges
@@ -208,7 +209,7 @@ fun DebtScreen(
             modifier = Modifier.fillMaxSize(),
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = innerPadding.calculateBottomPadding() + RytmDimens.FabScreenBottomClearance),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
         ) {
             item { RealtimeStateBanner() }
             if (viewModel.loading) item { ScreenLoadingState() }
@@ -297,7 +298,7 @@ fun DebtScreen(
 @Composable
 private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         items(viewModel.debts, key = { it.id }) { debt ->
             val index = viewModel.debts.indexOf(debt)
             val active = debt.id == viewModel.currentDebt?.id
@@ -312,13 +313,13 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 ),
                 shape = RoundedCornerShape(RytmRadii.Pill),
             ) {
-                Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
+                Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
             }
         }
         if (canEdit) item {
             var addOpen by rememberSaveable { mutableStateOf(false) }
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
-                Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier)
                     Text(stringResource(R.string.debt_new_default), fontWeight = FontWeight.SemiBold)
                 }
@@ -380,7 +381,7 @@ private fun HeroBalance(cd: Debt) {
             .clip(shape)
             .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
         }
@@ -455,7 +456,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
         Card(shape = RoundedCornerShape(RytmRadii.Input), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, role = androidx.compose.ui.semantics.Role.Button, onClick = viewModel::toggleInfoPanel).padding(horizontal = 16.dp, vertical = 14.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, role = androidx.compose.ui.semantics.Role.Button, onClick = viewModel::toggleInfoPanel).padding(horizontal = RytmSpacing.lg, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -479,10 +480,10 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
 
             fun commit() { viewModel.updateInfo(name, note, currency, ua.rytm.app.ui.screens.finance.parseMoneyInput(startAmount) ?: 0.0, dueDate) }
 
-            Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 OutlinedTextField(value = name, onValueChange = { name = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.field_name)) })
                 OutlinedTextField(value = note, onValueChange = { note = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.note_label)) })
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     OutlinedTextField(value = startAmount, onValueChange = { startAmount = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text(stringResource(R.string.debt_start_amount)) })
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
@@ -500,7 +501,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     ) {
                         Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(16.dp))
                     }
-                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = RytmSpacing.sm))
                 }
             }
         }
@@ -515,7 +516,7 @@ private fun EmptyEntriesState() {
     // zero entries this empty-state text is the LAST list item, so it
     // sat directly behind the FAB with no clearance of its own (reported
     // live, screenshot: "Ще немає платежів" half-covered by the button).
-    Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.xxl), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(stringResource(R.string.debt_payments_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -613,13 +614,13 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
         modifier = Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(disabledContainerColor = androidx.compose.material3.CardDefaults.cardColors().containerColor, disabledContentColor = MaterialTheme.colorScheme.onSurface),
     ) {
-            Column(Modifier.padding(12.dp)) {
+            Column(Modifier.padding(RytmSpacing.md)) {
                 if (editing) {
                     var amount by remember(entry.id) { mutableStateOf(entry.amount) }
                     var balance by remember(entry.id) { mutableStateOf(entry.balance.toString()) }
                     var date by remember(entry.id) { mutableStateOf(entry.date) }
                     OutlinedTextField(value = amount, onValueChange = { amount = it; viewModel.updateEntryAmount(entry, it) }, singleLine = true, label = { Text(stringResource(R.string.amount_label)) }, modifier = Modifier.fillMaxWidth())
-                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.sm), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         OutlinedTextField(value = balance, onValueChange = { balance = it; viewModel.updateEntryBalance(entry, it) }, singleLine = true, label = { Text(stringResource(R.string.debt_balance)) }, modifier = Modifier.weight(1f))
                         DatePickerField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, label = stringResource(R.string.date_label), modifier = Modifier.weight(1f), allowEmpty = false)
                     }
@@ -651,7 +652,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     val balanceInvalid = submitted && balance.isNotBlank() && parsePlainDebtAmount(balance) == null
 
     RytmModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.debt_new_payment))
             OutlinedTextField(
                 value = amount,
@@ -683,7 +684,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 label = { Text(stringResource(R.string.debt_new_balance)) },
             )
             DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                 // Neither button set an explicit shape, so both fell back
                 // to M3's own hardcoded "full" (pill) default instead of
                 // this app's own RytmRadii.Row (16dp) most other in-dialog

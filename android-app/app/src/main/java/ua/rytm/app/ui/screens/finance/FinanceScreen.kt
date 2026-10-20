@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -98,7 +100,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -151,7 +152,7 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val app = ua.rytm.app.ui.rytmApp()
-    val launchAction by app.pendingLaunchAction.collectAsState()
+    val launchAction by app.pendingLaunchAction.collectAsStateWithLifecycle()
     LaunchedEffect(launchAction, canEdit, viewModel.loading) {
         // canEdit starts false until the role loads; on a cold start (tap on a
         // bank suggestion / widget "+") consuming the action now dropped it.
@@ -222,10 +223,10 @@ fun FinanceScreen(
     val accountUid = session.accountUid
     val activeProfileId = session.profileId
     val activeProfileOwnerUid = session.ownerUid
-    val widgetConfig by app.settingsStore.financeWidgets.collectAsState(
-        initial = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
+    val widgetConfig by app.settingsStore.financeWidgets.collectAsStateWithLifecycle(
+        initialValue = ua.rytm.app.data.local.FinanceWidgetsConfig(emptySet(), emptyList()),
     )
-    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsState(initial = false)
+    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsStateWithLifecycle(initialValue = false)
     var toolsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -324,8 +325,8 @@ fun FinanceScreen(
                         .clip(shape)
                         .background(MaterialTheme.colorScheme.primary)
                         .clickable(role = Role.Button, onClick = ::collapseTransactions)
-                        .padding(horizontal = 20.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(horizontal = RytmSpacing.xl, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
@@ -358,7 +359,7 @@ fun FinanceScreen(
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.openNewTransactionSheet()
                         })
-                        .padding(horizontal = fabPadding, vertical = 16.dp),
+                        .padding(horizontal = fabPadding, vertical = RytmSpacing.lg),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
@@ -402,7 +403,7 @@ fun FinanceScreen(
                 top = 16.dp,
                 bottom = innerPadding.calculateBottomPadding() + RytmDimens.FabScreenBottomClearance,
             ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
         ) {
             item { RealtimeStateBanner() }
             if (viewModel.loading) item { ScreenLoadingState() }
