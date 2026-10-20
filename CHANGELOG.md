@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android 2.6.0 (vc29) + version line in Settings (2026-10-20)** — bump for the Play release of the design passes and competitor features (Play had 2.5.3/vc28). Settings now ends with a small grey "Rytm 2.6.0 (29)" line (`BuildConfig.VERSION_NAME/CODE`), as most apps do — first thing support asks. Release AAB built locally (`bundleRelease`, 31 MB).
+
 - **Deploy hosting: design pass 2 (2026-10-20)** — after #617 merged; clean `origin/main` worktree.
 
 - **Design pass 2, Android + PWA (2026-10-20)** — owner asked for all six points:
