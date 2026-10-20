@@ -425,6 +425,16 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Build test APKs
         run: ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
+      # The system image download from dl.google.com has failed mid-zip on a
+      # runner ("Error on ZipFile unknown archive"); cache it and the AVD.
+      - name: Cache emulator system image + AVD
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            /usr/local/lib/android/sdk/system-images/android-34
+          key: avd-34-google_apis-x86_64-pixel_6
       - name: Instrumented tests (API 34 emulator)
         uses: reactivecircus/android-emulator-runner@v2
         with:
