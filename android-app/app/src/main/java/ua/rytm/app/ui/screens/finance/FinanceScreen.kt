@@ -241,55 +241,19 @@ fun FinanceScreen(
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    // The FAB should hide once the dashboard widgets (Goals/Top
-    // cryptocurrencies/Tip of the day, appended after the transaction list)
-    // scroll into view, so it doesn't sit on top of their content — this
-    // used to be a hardcoded `firstVisibleItemIndex <= 8`, which assumed a
-    // fixed item count before the widgets. That count actually varies with
-    // the loading/error banners, the category filter chip, the transaction
-    // row count, AND how many widgets are enabled — with fewer widgets
-    // enabled the list is shorter than index 8 even fully scrolled, so the
-    // FAB never hid at all (reported live). Checking each widget item's own
-    // stable key against what's actually visible is correct regardless of
-    // how many precede it.
-    val showFab by remember {
-        derivedStateOf {
-            listState.layoutInfo.visibleItemsInfo.none { (it.key as? String)?.startsWith("dashboard-widget-") == true }
-        }
-    }
     // The floating "Згорнути список" FAB exists so a user who scrolled deep
     // into a long expanded list can collapse it without scrolling all the
     // way back to the inline OutlinedButton (key "collapse-list-button")
     // that also does this. Showing both at once when that inline button is
     // still on screen just duplicates the same action twice in one
     // viewport (flagged live, screenshot: two "Згорнути список" controls
-    // stacked). Same visible-item-key technique as showFab above.
+    // stacked). Matched by the item's stable key.
     val collapseButtonVisible by remember {
         derivedStateOf {
             listState.layoutInfo.visibleItemsInfo.any { it.key == "collapse-list-button" }
         }
     }
-    // M3 extended-FAB behaviour: full label at the top, shrinks to the round
-    // icon FAB once the list is scrolled, so it stops covering rows (the
-    // wide pill hid amounts/"Переглянути всі" mid-scroll, seen live on an A51).
-    // Collapse to the round "+" as soon as any list item sits in the FAB's
-    // band (its label covered amounts and the swipe-delete button), and hide
-    // it while a row is swiped open so the delete button is never under it.
-    val density = LocalDensity.current
-    val fabBandBottomInset = with(density) { (RytmDimens.BottomContentClearance + 16.dp).roundToPx() }
-    val fabBandHeight = with(density) { 64.dp.roundToPx() }
-    val rowUnderFab by remember {
-        derivedStateOf {
-            val info = listState.layoutInfo
-            val bandBottom = info.viewportEndOffset - fabBandBottomInset
-            val bandTop = bandBottom - fabBandHeight
-            info.visibleItemsInfo.any { it.offset < bandBottom && it.offset + it.size > bandTop }
-        }
-    }
     val swipedRows = remember { androidx.compose.runtime.mutableStateSetOf<String>() }
-    val largeText = LocalDensity.current.fontScale >= 1.2f
-    val compactHeight = LocalConfiguration.current.screenHeightDp < 480
-    val haptics = LocalHapticFeedback.current
     val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
 
     fun collapseTransactions() {
@@ -321,6 +285,10 @@ fun FinanceScreen(
         return true
     }
 
+    // The "+" lives in the bottom bar now (PrimaryAction), not as a FAB over the rows.
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.transaction_new_title), enabled = canEdit) {
+        viewModel.openNewTransactionSheet()
+    }
     Scaffold(
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         // The host itself lives in RytmNavHost now — one per app.
@@ -341,55 +309,6 @@ fun FinanceScreen(
                 ) {
                     Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                     Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
-                }
-            } else if (canEdit && showFab && swipedRows.isEmpty()) {
-                val shape = RoundedCornerShape(RytmRadii.Pill)
-                // At a large font scale or a short screen the extended FAB used
-                // to be hidden outright — removing the screen's primary action
-                // from exactly the users who need it most. M3's answer is to
-                // collapse it to a round icon FAB instead.
-                val collapsed = largeText || compactHeight || rowUnderFab
-                val label = stringResource(R.string.transaction_new_title)
-                val fabAnimMs = if (LocalReducedMotion.current) 0 else 450
-                val fabPadding by animateDpAsState(if (collapsed) 16.dp else 22.dp, tween(fabAnimMs), label = "fabPadding")
-                val fabPress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = RytmDimens.BottomContentClearance)
-                        .pressScale(fabPress)
-                        // Brand color for the primary action on every tab (design pass
-                        // 2026-10-20): green here read as "add income" and clashed
-                        // with the form's purple "Додати запис". The tab's own color
-                        // stays in the bottom bar.
-                        .shadow(10.dp, shape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                        .clip(shape)
-                        .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)))
-                        .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = {
-                            // LongPress, not VirtualKey/Confirm -- verified live on a
-                            // real device (Samsung A51) that the lighter constants
-                            // produce a barely-perceptible tick on this hardware.
-                            // LongPress is the strongest tap-style constant the
-                            // public HapticFeedbackType API exposes.
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.openNewTransactionSheet()
-                        })
-                        .padding(horizontal = fabPadding, vertical = RytmSpacing.lg),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        RytmIcons.Add,
-                        contentDescription = if (collapsed) label else null,
-                        tint = Color.White,
-                    )
-                    // Label slides/fades out and the pill narrows together, instead
-                    // of snapping straight to the round "+" (owner: "оп і плюс").
-                    AnimatedVisibility(
-                        visible = !collapsed,
-                        enter = expandHorizontally(tween(fabAnimMs), expandFrom = Alignment.Start) + fadeIn(tween(fabAnimMs)),
-                        exit = shrinkHorizontally(tween(fabAnimMs), shrinkTowards = Alignment.Start) + fadeOut(tween(fabAnimMs / 2)),
-                    ) {
-                        Text(label, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(start = 10.dp))
-                    }
                 }
             }
         },
@@ -472,7 +391,8 @@ fun FinanceScreen(
                     ) {
                         TransactionRow(
                             tx = tx,
-                            walletName = { id -> id?.let(walletsById::get)?.name },
+                            // One wallet: naming it on every row says nothing.
+                            walletName = { id -> if (walletsById.size < 2) null else id?.let(walletsById::get)?.name },
                             tagLookup = tagsById::get,
                             iconOverride = viewModel.categoryIcons[tx.category],
                             canEdit = canEdit && pendingDeleteId == null,

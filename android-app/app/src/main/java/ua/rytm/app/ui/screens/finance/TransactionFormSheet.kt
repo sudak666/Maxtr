@@ -326,7 +326,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
                     LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         items(frequent, key = { it }) { cat ->
-                            androidx.compose.material3.FilterChip(
+                            ua.rytm.app.ui.components.RytmFilterChip(
                                 selected = (vm.form.category ?: categories.firstOrNull()) == cat,
                                 onClick = { vm.form.onCategoryChange(cat) },
                                 label = { Text(ua.rytm.app.ui.localizedDomainText(cat)) },
@@ -380,7 +380,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
                 LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     items(vm.tags) { tag ->
-                        androidx.compose.material3.FilterChip(
+                        ua.rytm.app.ui.components.RytmFilterChip(
                             selected = tag.id in vm.form.selectedTagIds,
                             onClick = { vm.form.toggleTag(tag.id) },
                             label = { Text(tag.name) },

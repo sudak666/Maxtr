@@ -1,5 +1,14 @@
 # Changelog
 
+- **Design pass 2, Android + PWA (2026-10-20)** — owner asked for all six points:
+  1. **"+" moved into the bottom bar**: the floating FABs covered the first history row's amount even at rest (seen on the A51). Android: new `PrimaryAction` holder + `ProvidePrimaryAction()`; `RytmBottomBar` shows a 60dp brand-gradient circle next to the (now `weight(1f)`) capsule, NavigationRail gets it as `header`; Finance/Debt register theirs (`enabled = canEdit` / `cd != null && canEdit`); the old FAB code, `showFab`/`rowUnderFab` bands and the scroll-hide experiment removed; Debt keeps a floating "Згорнути список" only. PWA: `.fin-fab` → 64px circle beside `.tabs` (capsule narrows via `:has(#nav-finance.active,#nav-debt.active)`), label hidden.
+  2. **Filter chips**: one quiet style — `RytmFilterChip` (tonal `surfaceContainerHigh`, no outline, selected = primary 22%), 10 call sites; PWA `.filter-chip` same.
+  3. **History rows**: title = category (transfers: "A → B"); the wallet moves to the muted second line ("ПУМБ · KOLO KIYEV UA") and only with 2+ wallets. PWA same (`metaLine`).
+  4. **Stat chips** (Debt/Shifts): soft primary-tint icon disc instead of a solid purple gradient (`RytmStatChip`, PWA `.chip-stat-icon`).
+  5. **Quick actions** 76→60dp (icon 26→21); PWA `.quick-actions` rows 76→60px; `DesignTokensTest` parity value updated.
+  6. **Light theme** checked on the A51 (QA, switched back to dark after): Finance, history, Debt, transaction form — contrast fine, amber warning and merchant badges readable.
+  CLAUDE.md nav/FAB convention updated. `sw.js` v185→v186. Unit tests (incl. `SpacingTokensTest`, which caught a raw `16.dp`) green; PWA rendered with a throwaway Playwright script.
+
 - **Deploy hosting: competitor features (2026-10-20)** — after #615 merged; clean `origin/main` worktree; live `index.html` has `.hero-safe`. One CI fix on the way: `tests/analytics-donut-chart.mjs` hovered a row that the taller hero had pushed under the floating nav — now scrolls it to centre first.
 
 - **Competitor-inspired features, Android + PWA (2026-10-20)** — owner asked for all five from the benchmark:

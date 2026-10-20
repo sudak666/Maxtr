@@ -13,7 +13,7 @@ class DesignTokensTest {
         assertEquals(22.dp, RytmRadii.Card)
         assertEquals(16.dp, RytmRadii.Row)
         assertEquals(32.dp, RytmRadii.Sheet)
-        assertEquals(76.dp, RytmDimens.QuickActionMinHeight)
+        assertEquals(60.dp, RytmDimens.QuickActionMinHeight) // PWA .quick-actions grid-auto-rows:60px
         assertEquals(60.dp, RytmDimens.SwipeReveal)
         assertEquals(30.dp, RytmDimens.SwipeThreshold)
         assertEquals(48.dp, RytmDimens.TouchTarget)

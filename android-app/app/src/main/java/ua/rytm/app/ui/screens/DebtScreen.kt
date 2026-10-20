@@ -151,23 +151,6 @@ fun DebtScreen(
         }
     }
 
-    // Same shrink-on-scroll behaviour as FinanceScreen's FAB: the wide
-    // "Платіж" pill covered the history rows' edit pencils mid-scroll.
-    // Same rule as Finance: the labelled FAB shrinks to a round "+" once any
-    // list item sits in its band (it covered the rows' edit pencil), and it
-    // hides while a payment row is being swiped.
-    val fabDensity = LocalDensity.current
-    val fabBandBottomInset = with(fabDensity) { (RytmDimens.BottomContentClearance + 16.dp).roundToPx() }
-    val fabBandHeight = with(fabDensity) { 64.dp.roundToPx() }
-    val rowUnderFab by remember {
-        derivedStateOf {
-            val info = listState.layoutInfo
-            val bandBottom = info.viewportEndOffset - fabBandBottomInset
-            val bandTop = bandBottom - fabBandHeight
-            info.visibleItemsInfo.any { it.offset < bandBottom && it.offset + it.size > bandTop }
-        }
-    }
-    val fabAtTop = !rowUnderFab
     val swipedEntries = remember { androidx.compose.runtime.mutableStateSetOf<String>() }
 
     fun collapseHistory() {
@@ -176,12 +159,16 @@ fun DebtScreen(
         scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
     }
 
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.debt_payment), enabled = cd != null && canEdit) {
+        viewModel.openNewEntrySheet()
+    }
     Scaffold(
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         floatingActionButton = {
-            if (cd != null && canEdit && swipedEntries.isEmpty()) {
+            // Only "Згорнути список" floats now; "+ Платіж" is the bottom bar's "+" (PrimaryAction).
+            val collapse = viewModel.historyExpanded && !collapseButtonVisible
+            if (cd != null && swipedEntries.isEmpty() && collapse) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
-                val collapse = viewModel.historyExpanded && !collapseButtonVisible
                 val fabPress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 Row(
                     modifier = Modifier
@@ -190,19 +177,14 @@ fun DebtScreen(
                         .shadow(10.dp, shape)
                         .clip(shape)
                         // Brand color on every tab's primary action (design pass 2026-10-20).
-                        .background(
-                            if (collapse) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
-                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
-                        )
-                        .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
-                        .padding(horizontal = if (collapse || fabAtTop) 22.dp else 16.dp, vertical = 16.dp),
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = ::collapseHistory)
+                        .padding(horizontal = 22.dp, vertical = RytmSpacing.lg),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val label = stringResource(if (collapse) R.string.action_collapse_list else R.string.debt_payment)
-                    val showLabel = collapse || fabAtTop
-                    Icon(if (collapse) RytmIcons.ExpandLess else RytmIcons.Add, contentDescription = if (showLabel) null else label, tint = Color.White)
-                    if (showLabel) Text(label, color = Color.White, fontWeight = FontWeight.Bold)
+                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = Color.White)
+                    Text(stringResource(R.string.action_collapse_list), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         },

@@ -36,11 +36,12 @@ object RytmDimens {
     val SheetVertical = 20.dp
     val HeroHorizontal = 24.dp
     val HeroVertical = 22.dp
-    val QuickActionMinHeight = 76.dp
+    // 76→60 (design pass 2): three tall tiles took more of the first screen than they earned.
+    val QuickActionMinHeight = 60.dp
     val TouchTarget = 48.dp
     val IconBadge = 34.dp
     val IconBadgeIcon = 17.dp
-    val QuickActionIcon = 26.dp
+    val QuickActionIcon = 21.dp
     val BottomNavRadius = 26.dp
     val TabIcon = 48.dp
     val TabGlyph = 23.dp

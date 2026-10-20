@@ -20,17 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import ua.rytm.app.ui.theme.Purple3
-import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.tabularNums
@@ -63,11 +58,12 @@ fun RytmStatChip(
             Box(
                 Modifier
                     .size(RytmDimens.IconBadge)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(PurpleDark, Purple3))),
+                    // Soft tint, like the category badges (design pass 2): a solid purple
+                    // gradient disc in every chip was the loudest thing on the screen.
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
             }
             Column(Modifier.padding(start = 9.dp)) {
                 Text(

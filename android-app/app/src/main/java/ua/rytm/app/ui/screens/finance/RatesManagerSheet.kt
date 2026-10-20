@@ -140,7 +140,7 @@ fun RatesManagerSheet(
             // asymmetric label.
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterHorizontally)) {
                 listOf("nbu" to R.string.rates_nbu, "privat" to R.string.rates_privat).forEach { (value, labelRes) ->
-                    FilterChip(
+                    ua.rytm.app.ui.components.RytmFilterChip(
                         selected = source == value,
                         onClick = {
                             if (source != value && !busy) scope.launch {
