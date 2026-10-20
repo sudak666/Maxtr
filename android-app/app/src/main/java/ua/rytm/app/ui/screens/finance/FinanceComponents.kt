@@ -167,7 +167,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(vm.totalBalanceUah))),
+                text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
                 // Tabular figures: proportional digits make the balance jitter
                 // horizontally as it changes.
                 style = MaterialTheme.typography.displayMedium.tabularNums(),

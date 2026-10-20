@@ -108,6 +108,10 @@ fun CategoriesManagerSheet(
                 }
             }
 
+            if (viewModel.categories.isEmpty()) {
+                Text(stringResource(R.string.categories_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
             viewModel.categories.forEach { (id, name) ->
                 val expanded = viewModel.expandedCategoryId == id
                 val subs = viewModel.subcategoriesFor(name)
