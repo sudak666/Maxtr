@@ -488,7 +488,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
    by filling the whole tile, so Операція/Інструменти/Бюджети/Цілі read as
    one consistent row instead of one loud tile plus three quiet ones. */
 .quick-action-icon{width:26px;height:26px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:var(--purple2);background:transparent;border:0;box-shadow:none;transition:transform .15s}
-.quick-action-primary .quick-action-icon{color:var(--green2);background:transparent;border:0;box-shadow:none}
+.quick-action-primary .quick-action-icon{color:var(--purple2);background:transparent;border:0;box-shadow:none}
 .quick-action-primary.finance-action-primary .quick-action-icon{background:transparent;box-shadow:none}
 .quick-action-icon .ico{width:26px;height:26px;margin-right:0}
 .quick-action:active{transform:scale(.97)}
@@ -538,7 +538,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
 .settings-row+.settings-row{border-top:1px dashed var(--border)}
 .settings-row-text{flex:1 1 auto;min-width:0}
-.settings-row-title{font-size:14.5px;font-weight:600;color:var(--text-strong)}
+.settings-row-title{font-size:14.5px;font-weight:500;color:var(--text-strong)}
 .settings-row-sub{font-size:13px;color:var(--muted);font-weight:400;margin-top:2px}
 .settings-search{position:relative;margin:-6px 0 18px}
 .settings-search input{width:100%;background:var(--bg1);border:1px solid var(--border);color:var(--text-strong);padding:12px 42px;border-radius:18px;font-size:15px;font-weight:700;outline:none}
@@ -581,8 +581,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── HERO METRIC + CHIP ROW (replaces a row of equal-weight stat cards
    with one primary number and a compact scrollable strip of the rest) ── */
-.hero-metric{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:var(--radius-card);padding:22px 24px;margin-bottom:12px;box-shadow:var(--shadow-raised);position:relative}
-.hero-metric::before,.hero-balance::before{
+.hero-metric{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-card);padding:22px 24px;margin-bottom:12px;position:relative}
+.hero-metric::before{display:none;
   content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
   background:var(--stroke-hero);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -613,7 +613,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
 .chip-stat-lbl{font-size:13px;font-weight:500;color:var(--muted)}
-.hero-balance{background:var(--surface-hero);border:1px solid transparent;background-clip:padding-box;border-radius:var(--radius-card);padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow-raised);position:relative}
+/* Design pass 2026-10-20 (owner-approved, same as Android): flat tonal
+   surface + hairline instead of gradient + glow; the card holds balance +
+   trend only, everything else sits below it as separate quiet blocks. */
+.hero-balance{margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+.hero-core{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-card);padding:22px 24px}
+.hero-core>:last-child{margin-bottom:0}
+.hero-balance>.hero-outlook{margin:0 4px}
+.hero-balance>.hero-contrib{margin:0;background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:12px 14px}
 .hero-balance-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 16px;line-height:1}
 .hero-balance-hint{font-size:13px;font-weight:700;color:var(--muted);line-height:1.35;margin:-10px 0 16px}
@@ -634,10 +641,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .wallet-chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .wallet-chip-name{font-size:13px;font-weight:700;color:var(--text-strong)}
 .wallet-chip-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.fin-mini-stat-row{display:flex;gap:10px;margin:14px 0}
+.fin-mini-stat-row{display:flex;gap:10px;margin:0}
 .fin-mini-stat{flex:1;min-width:0;border-radius:18px;padding:14px 16px}
-.fin-mini-stat.income{background:linear-gradient(135deg,rgba(16,185,129,.22),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.28)}
-.fin-mini-stat.expense{background:linear-gradient(135deg,rgba(239,68,68,.22),rgba(239,68,68,.03));border:1px solid rgba(239,68,68,.28)}
+/* Neutral surface; color only in the value and the small icon (design pass 2026-10-20). */
+.fin-mini-stat.income,.fin-mini-stat.expense{background:var(--bg1);border:1px solid var(--border)}
 .fin-mini-stat-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fin-mini-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800}
 .fin-mini-stat.income .fin-mini-stat-val{color:var(--green2)}
@@ -648,8 +655,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
    reading as a different component instead of a compact variant of it. */
 .fin-mini-stat-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:8px}
 .fin-mini-stat-icon .ico{width:15px;height:15px;margin-right:0}
-.fin-mini-stat.income .fin-mini-stat-icon{background:var(--green)}
-.fin-mini-stat.expense .fin-mini-stat-icon{background:var(--red)}
+.fin-mini-stat.income .fin-mini-stat-icon{background:rgba(16,185,129,.16);color:var(--green2)}
+.fin-mini-stat.expense .fin-mini-stat-icon{background:rgba(239,68,68,.16);color:var(--red2)}
 
 /* ── SALARY PROGRESS ── */
 .salary-progress{margin-top:8px}
@@ -1044,7 +1051,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   padding:0 20px 0 16px;
   transition:transform .15s,padding .25s ease;
 }
-.fin-fab.finance-fab{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 10px 22px rgba(16,185,129,.38)}
 /* Granular permissions (shared profiles): a viewer sees the same tabs and
    data as an editor, just can't add — hides every primary "add" entry
    point (matched by data-action, not just .fin-fab, since the Finance

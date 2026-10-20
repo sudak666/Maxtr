@@ -480,7 +480,9 @@ export function renderFinance(){
   if(bc){
     const walletCurrencies=new Set(AppState.wallets.map(w=>w.currency||'UAH'));
     const multiCurrency=walletCurrencies.size>1;
-    let html=`<div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
+    // Design pass 2026-10-20 (same as Android): the card holds balance + trend
+    // only; stats, wallets, outlook and contributions sit below it.
+    let html=`<div class="hero-core"><div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
     // Phantom-style net-change trend chip — same monthInc/monthExp figures
     // the two mini-stat cards below already show, just netted into one
     // signed number so the balance itself reads with an at-a-glance trend.
@@ -490,6 +492,7 @@ export function renderFinance(){
     const trendSign=monthNet>0?'+':monthNet<0?'−':'';
     html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${Math.abs(monthNet).toLocaleString('uk-UA')} грн</span> ${tr('finance_trend_this_month')}</div>`;
     if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
+    html+='</div>';
     // What is still coming before month end — shift pay placed/scheduled after
     // today and recurring occurrences — as separate facts, not a projected
     // balance (shift pay often lands next month). Same as Android's monthOutlook.
@@ -516,8 +519,6 @@ export function renderFinance(){
       contrib.sort((a,b)=>(b[0]===myUid?1:0)-(a[0]===myUid?1:0));
       contribHtml=`<div class="hero-contrib"><div class="hero-contrib-title">${tr('finance_contributions_title')}</div>${contrib.map(([uid,p])=>`<div class="hero-contrib-row"><span>${escapeHtml(p.name)}${uid===myUid?' '+tr('finance_contributions_you'):''}</span><span class="hero-contrib-val">+${Math.round(p.inc).toLocaleString('uk-UA')} · −${Math.round(p.exp).toLocaleString('uk-UA')} грн</span></div>`).join('')}</div>`;
     }
-    if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;
-    html+=contribHtml;
     html+=`<div class="fin-mini-stat-row">
       <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
       <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
@@ -527,6 +528,8 @@ export function renderFinance(){
       html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span></span>`;
     });
     html+='</div>';
+    if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;
+    html+=contribHtml;
     bc.innerHTML=html;
   }
 
