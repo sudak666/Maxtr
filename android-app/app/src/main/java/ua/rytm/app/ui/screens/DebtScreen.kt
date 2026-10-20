@@ -189,9 +189,10 @@ fun DebtScreen(
                         .pressScale(fabPress)
                         .shadow(10.dp, shape)
                         .clip(shape)
+                        // Brand color on every tab's primary action (design pass 2026-10-20).
                         .background(
                             if (collapse) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
-                            else Brush.linearGradient(listOf(ua.rytm.app.ui.theme.OrangeDark, ua.rytm.app.ui.theme.OrangeLight2)),
+                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
                         )
                         .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
                         .padding(horizontal = if (collapse || fabAtTop) 22.dp else 16.dp, vertical = 16.dp),

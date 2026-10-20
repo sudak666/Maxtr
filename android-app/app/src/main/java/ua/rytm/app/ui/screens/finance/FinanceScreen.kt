@@ -357,9 +357,13 @@ fun FinanceScreen(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
                         .pressScale(fabPress)
-                        .shadow(10.dp, shape, spotColor = ua.rytm.app.ui.theme.GreenLight2.copy(alpha = 0.5f))
+                        // Brand color for the primary action on every tab (design pass
+                        // 2026-10-20): green here read as "add income" and clashed
+                        // with the form's purple "Додати запис". The tab's own color
+                        // stays in the bottom bar.
+                        .shadow(10.dp, shape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         .clip(shape)
-                        .background(Brush.linearGradient(listOf(ua.rytm.app.ui.theme.GreenLight2, ua.rytm.app.ui.theme.GreenDeep)))
+                        .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)))
                         .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = {
                             // LongPress, not VirtualKey/Confirm -- verified live on a
                             // real device (Samsung A51) that the lighter constants
