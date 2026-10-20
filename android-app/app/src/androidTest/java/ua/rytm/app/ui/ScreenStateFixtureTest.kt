@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
@@ -18,7 +19,8 @@ class ScreenStateFixtureTest {
     @Test fun deterministicLoadingAndErrorFixturesRender() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         compose.setContent { RytmTheme { Column { ScreenLoadingState(); ScreenLoadErrorState() } } }
-        compose.onNodeWithText(context.getString(R.string.common_loading)).assertIsDisplayed()
+        // The skeleton has no visible text — its label is the content description.
+        compose.onNodeWithContentDescription(context.getString(R.string.common_loading)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.common_data_load_failed)).assertIsDisplayed()
     }
 
@@ -30,6 +32,8 @@ class ScreenStateFixtureTest {
                 CompositionLocalProvider(LocalRealtimeState provides ProfileSyncCoordinator.RealtimeState.Error("fixture")) { RealtimeStateBanner() }
             } }
         }
+        // Offline/error banners wait 2.5 s before showing (cold-start flash fix, #595).
+        compose.mainClock.advanceTimeBy(3_000)
         compose.onNodeWithText(context.getString(R.string.sync_status_offline)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.sync_status_error)).assertIsDisplayed()
     }
