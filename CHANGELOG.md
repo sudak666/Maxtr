@@ -1,5 +1,7 @@
 # Changelog
 
+- **Old orphan profiles deleted (2026-10-21)** — the owner ran `firebase firestore:delete -r` for `finance/shifts/debt/shared_members/backup_v2@{profile_mrahthxhgf1,01a10911…,e2e45bc0…}` (the agent's own bulk delete was blocked by the auto-mode classifier). Verified in the console: `max_tracker` now holds only the default profile and Stas (`@profile_mrajtq7mi1t`) plus `profiles_meta`.
+
 - **Demo profile removed (2026-10-21)** — QA switched back to Max, «Demo» deleted in Профілі; its orphaned Firestore docs (`finance`/`shifts`/`debt@f243777a90e04a08a08ca82575a521db` + transactions) deleted with `firebase firestore:delete -r` (owner allowed). Left alone on purpose: older orphan profile docs (`@profile_mrahthxhgf1`, `@01a10911…`, `@e2e45bc0…`, two with `shared_members`) — not in `profiles_meta`, but could be shared with other accounts; owner to decide.
 
 - **Deploy hosting: demo-found PWA fixes (2026-10-21)** — after #619 merged; clean `origin/main` worktree. Same session: temp scripts, screenshots and the local AAB removed; ANDROID_MIGRATION.md checkpoint rewritten for 2026-10-21.
