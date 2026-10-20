@@ -143,135 +143,139 @@ import ua.rytm.app.ui.theme.tabularNums
 
 @Composable
 internal fun HeroBalanceCard(vm: FinanceViewModel) {
-    // Matches the PWA's .hero-balance: a subtle bg1→bg2 diagonal gradient
-    // plus a soft brand-purple glow shadow (--surface-hero/--shadow-raised),
-    // not a flat Card — see ANDROID_MIGRATION.md visual-parity note.
+    // Design pass 2026-10-20: the hero holds one number and one line. It used
+    // to stack balance, month net, outlook, contributions, two tinted stat
+    // cards and the wallet chips inside one gradient card with a purple glow
+    // (5 levels at once; a shadow on a dark surface only muddies it). Now a
+    // flat tonal surface with a hairline, and the rest sits below it.
     val shape = MaterialTheme.shapes.large
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 16.dp,
-                shape = shape,
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-            )
-            .clip(shape)
-            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
-    ) {
-        Column(Modifier.padding(horizontal = RytmDimens.HeroHorizontal, vertical = RytmDimens.HeroVertical)) {
-            Text(
-                text = stringResource(if (vm.isMultiCurrency) R.string.finance_estimated_balance else R.string.finance_total_balance),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
-                // Tabular figures: proportional digits make the balance jitter
-                // horizontally as it changes.
-                style = MaterialTheme.typography.displayMedium.tabularNums(),
-                fontWeight = FontWeight.Black,
-            )
-
-            val net = vm.monthIncomeUah - vm.monthExpenseUah
-            val trendColor = RytmSemantic.signed(net)
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
-                Icon(
-                    imageVector = if (net < 0) RytmIcons.TrendingDown else RytmIcons.TrendingUp,
-                    contentDescription = null,
-                    tint = trendColor,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(RytmSpacing.xs))
-                val sign = if (net > 0) "+" else if (net < 0) "−" else ""
+    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape),
+        ) {
+            Column(Modifier.padding(horizontal = RytmDimens.HeroHorizontal, vertical = RytmDimens.HeroVertical)) {
                 Text(
-                    text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = trendColor,
-                    fontWeight = FontWeight.Bold,
+                    text = stringResource(if (vm.isMultiCurrency) R.string.finance_estimated_balance else R.string.finance_total_balance),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
+                Text(
+                    text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
+                    // Tabular figures: proportional digits make the balance jitter
+                    // horizontally as it changes.
+                    style = MaterialTheme.typography.displayMedium.tabularNums(),
+                    fontWeight = FontWeight.Black,
+                )
 
-            val outlook = vm.monthOutlook
-            if (!outlook.isEmpty) {
-                val parts = buildList {
-                    if (outlook.shiftsEarnings > 0) add(stringResource(R.string.finance_outlook_shifts, formatMoney(outlook.shiftsEarnings)))
-                    if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
-                    if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
-                }
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = RytmSpacing.sm)) {
-                    Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
-                    Spacer(Modifier.width(6.dp))
+                val net = vm.monthIncomeUah - vm.monthExpenseUah
+                val trendColor = RytmSemantic.signed(net)
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                    Icon(
+                        imageVector = if (net < 0) RytmIcons.TrendingDown else RytmIcons.TrendingUp,
+                        contentDescription = null,
+                        tint = trendColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(RytmSpacing.xs))
+                    val sign = if (net > 0) "+" else if (net < 0) "−" else ""
                     Text(
-                        stringResource(R.string.finance_outlook_prefix) + " " + maskedAmount(parts.joinToString(" · ")),
-                        style = MaterialTheme.typography.labelMedium,
+                        text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = trendColor,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (vm.isMultiCurrency) {
+                    Text(
+                        text = stringResource(R.string.finance_conversion_note),
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = RytmSpacing.xs),
                     )
                 }
             }
+        }
 
-            val contributions = vm.monthContributions
-            if (contributions.isNotEmpty()) {
-                Column(Modifier.padding(top = RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
-                    Text(stringResource(R.string.finance_contributions_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    contributions.forEach { c ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                if (c.isMe) stringResource(R.string.finance_contributions_me, c.name) else c.name,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Text(
-                                maskedAmount("+${formatMoney(c.income)} · −${formatMoney(c.expense)} ₴"),
-                                style = MaterialTheme.typography.bodySmall.tabularNums(),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    // Who pays whom so this month's expenses are split equally.
-                    settleEqually(contributions).forEach { st ->
+        if (largeText) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.fillMaxWidth())
+                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
+                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+            }
+        }
+
+        val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+        LazyRow(
+            state = fadeState,
+            modifier = Modifier.fillMaxWidth().fadingEdges(fadeState),
+            horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
+        ) {
+            items(vm.wallets, key = { it.id }) { wallet ->
+                WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id))
+            }
+        }
+
+        val outlook = vm.monthOutlook
+        if (!outlook.isEmpty) {
+            val parts = buildList {
+                if (outlook.shiftsEarnings > 0) add(stringResource(R.string.finance_outlook_shifts, formatMoney(outlook.shiftsEarnings)))
+                if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
+                if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
+            }
+            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(horizontal = RytmSpacing.xs)) {
+                Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    stringResource(R.string.finance_outlook_prefix) + " " + maskedAmount(parts.joinToString(" · ")),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        val contributions = vm.monthContributions
+        if (contributions.isNotEmpty()) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(RytmRadii.Input))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), RoundedCornerShape(RytmRadii.Input))
+                    .padding(RytmSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
+            ) {
+                Text(stringResource(R.string.finance_contributions_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                contributions.forEach { c ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(
-                            stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)} ₴")),
+                            if (c.isMe) stringResource(R.string.finance_contributions_me, c.name) else c.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            maskedAmount("+${formatMoney(c.income)} · −${formatMoney(c.expense)} ₴"),
+                            style = MaterialTheme.typography.bodySmall.tabularNums(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
-            }
-
-            if (vm.isMultiCurrency) {
-                Text(
-                    text = stringResource(R.string.finance_conversion_note),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = RytmSpacing.xs),
-                )
-            }
-
-            if (largeText) {
-                Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.fillMaxWidth())
-                    MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.fillMaxWidth())
-                }
-            } else {
-                Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.lg), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                    MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
-                }
-            }
-
-            val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-            LazyRow(
-                state = fadeState,
-                modifier = Modifier.fillMaxWidth().padding(top = RytmSpacing.lg).fadingEdges(fadeState),
-                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
-            ) {
-                items(vm.wallets, key = { it.id }) { wallet ->
-                    WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id))
+                // Who pays whom so this month's expenses are split equally.
+                settleEqually(contributions).forEach { st ->
+                    Text(
+                        stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)} ₴")),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
             }
         }
@@ -280,31 +284,20 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
 
 @Composable
 internal fun MiniStatCard(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
-    // Matches the PWA's .fin-mini-stat.income/.expense: a tinted
-    // green/red gradient wash + matching border, not a neutral surface —
-    // see ANDROID_MIGRATION.md visual-parity note.
-    // Wash tint and text tone are separate: the light-theme wash needs the
-    // brighter green/red to read as a tint at all, while the value on top of
-    // it needs the deeper tone to clear 4.5:1 against that wash.
-    val tint = if (positive) RytmSemantic.incomeWash else RytmSemantic.expenseWash
+    // Design pass 2026-10-20: neutral surface, color only in the value and the
+    // small icon. The green/red wash + matching border + colored text coded the
+    // same fact three times.
     val valueColor = if (positive) RytmSemantic.income else RytmSemantic.expense
     val shape = RoundedCornerShape(RytmRadii.Input)
     Box(
         modifier = modifier
-            .clip(shape)
-            .background(Brush.linearGradient(listOf(tint.copy(alpha = 0.22f), tint.copy(alpha = 0.03f))))
-            .border(1.dp, tint.copy(alpha = 0.28f), shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
             .padding(RytmSpacing.md),
     ) {
         Column {
-            // Same icon-circle + label treatment as ToolsSheet's
-            // AnalyticsTotalCard (income/expense-this-month, the same
-            // underlying figures) — this card used to render label+value
-            // only, reading as a different component instead of a compact
-            // variant of the same one; PWA's equivalent (.fin-mini-stat-icon)
-            // already got this fix, this one hadn't yet.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.size(22.dp).background(valueColor.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(22.dp).background(valueColor.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
                     Icon(if (positive) RytmIcons.TrendingUp else RytmIcons.TrendingDown, contentDescription = null, tint = valueColor, modifier = Modifier.size(13.dp))
                 }
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

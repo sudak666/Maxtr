@@ -37,6 +37,8 @@ val BlueLight2 = Color(0xFF2563EB)
 val OrangeDark = Color(0xFFF59E0B)
 val OrangeDark2 = Color(0xFFFBBF24)
 val OrangeLight2 = Color(0xFFC2760A)
+// Amber body text on light surfaces: OrangeLight2 is only ~3.3:1 on white.
+val AmberText = Color(0xFF92400E)
 
 val Pink = Color(0xFFEC4899)
 val Cyan = Color(0xFF06B6D4)

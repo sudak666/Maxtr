@@ -95,7 +95,7 @@
     <string name="transaction_wallet_same">Оберіть інший гаманець для переказу.</string><string name="transaction_conversion_hint">Орієнтовно за поточним курсом: %1$s → %2$s</string>
     <string name="transaction_balance_after">Баланс після операції: %1$s</string>
     <string name="settings_balance_after">Баланс після операції</string>
-    <string name="settings_balance_after_subtitle">Залишок гаманця під сумою кожної операції в історії</string>
+    <string name="settings_balance_after_subtitle">Залишок гаманця в рядках історії</string>
     <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
     <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
     <string name="validation_invalid_amount">Введіть коректну суму</string><string name="validation_amount_too_large">Сума завелика</string>
@@ -313,13 +313,13 @@
     <string name="settings_reset_profile">Скинути дані профілю</string>
     <string name="settings_reset_profile_subtitle">Очистити дані та почати спочатку</string>
     <string name="settings_delete_account">Видалити акаунт</string>
-    <string name="settings_delete_account_subtitle">Незворотно видаляє ваші дані та обліковий запис</string>
+    <string name="settings_delete_account_subtitle">Незворотно видаляє всі дані</string>
     <string name="settings_pin_subtitle">Захист застосунку кодом і біометрією</string>
     <string name="settings_notifications">Сповіщення</string>
     <string name="settings_push">Push-сповіщення</string>
-    <string name="settings_push_subtitle">Отримувати сповіщення на цьому пристрої</string>
+    <string name="settings_push_subtitle">На цьому пристрої</string>
     <string name="settings_notification_types">Типи сповіщень</string>
-    <string name="settings_notification_types_subtitle">Нагадування, бюджет, регулярні платежі, розрахунки, тиждень родини</string>
+    <string name="settings_notification_types_subtitle">Нагадування, бюджети, платежі та інше</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_light">Світла</string>
     <string name="settings_theme_dark">Темна</string>
@@ -327,7 +327,7 @@
     <string name="settings_language_uk">Українська</string>
     <string name="settings_language_en">English</string>
     <string name="settings_hide_amounts">Приховувати суми</string>
-    <string name="settings_hide_amounts_subtitle">Маскувати грошові значення на всіх екранах</string>
+    <string name="settings_hide_amounts_subtitle">Ховати суми на всіх екранах</string>
     <string name="settings_offline_cache">Офлайн-кеш</string>
     <string name="settings_offline_cache_on">Дані доступні без мережі</string>
     <string name="settings_offline_cache_off">Локальні дані очищаються після виходу</string>
@@ -465,7 +465,7 @@
     <string name="widget_week">Тиждень</string>
     <string name="widget_recent">Останні операції</string>
     <string name="settings_backups_title">Резервні копії</string>
-    <string name="settings_backups_subtitle">Щоденні копії в хмарі, відновлення на дату</string>
+    <string name="settings_backups_subtitle">Щоденні копії, відновлення на дату</string>
     <string name="backups_body">Rytm щодня зберігає копію цього профілю: 7 останніх і ще по одній на тиждень за місяць. Відновлення замінює поточні дані, але перед ним поточний стан теж зберігається копією.</string>
     <string name="backups_create">Створити копію зараз</string>
     <string name="backups_empty">Копій ще немає. Перша з’явиться вночі або після натискання кнопки вище.</string>
@@ -514,7 +514,7 @@
     <string name="bank_listener_label">Rytm: операції з банківських сповіщень</string>
     <string name="bank_listener_title">Операції з банківських сповіщень</string>
     <string name="bank_listener_on">Увімкнено: пропоную додати оплату з пушу банку</string>
-    <string name="bank_listener_off">Вимкнено. Читаю лише пуші банків, нічого не надсилаю</string>
+    <string name="bank_listener_off">Вимкнено · дані не покидають телефон</string>
     <string name="bank_suggest_expense">Додати витрату %1$s?</string>
     <string name="bank_suggest_income">Додати дохід %1$s?</string>
     <string name="bank_suggest_tap">Торкнись, щоб перевірити й зберегти</string>

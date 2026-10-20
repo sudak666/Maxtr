@@ -33,6 +33,14 @@ object RytmSemantic {
     val expense: Color
         @Composable @ReadOnlyComposable get() = if (isDark) RedDark2 else RedText
 
+    /**
+     * A heads-up that is not an error (a balance going below zero after this
+     * entry). Error red is kept for real validation errors. Dark: amber-400
+     * on the dark surfaces; light: amber-800, ~7:1 on white.
+     */
+    val warning: Color
+        @Composable @ReadOnlyComposable get() = if (isDark) OrangeDark2 else AmberText
+
     /** Tint used for the washed/gradient card backgrounds behind [income]. */
     val incomeWash: Color
         @Composable @ReadOnlyComposable get() = if (isDark) GreenDark2 else GreenDark
