@@ -1,5 +1,7 @@
 # Changelog
 
+- **Deploy hosting: competitor features (2026-10-20)** — after #615 merged; clean `origin/main` worktree; live `index.html` has `.hero-safe`. One CI fix on the way: `tests/analytics-donut-chart.mjs` hovered a row that the taller hero had pushed under the floating nav — now scrolls it to centre first.
+
 - **Competitor-inspired features, Android + PWA (2026-10-20)** — owner asked for all five from the benchmark:
   1. **Safe to spend** (Copilot/YNAB): `FinanceInsights.safeToSpendPerDay` = (balance − recurring expenses still due this month) ÷ days left incl. today; expected shift pay excluded (often lands next month); null → amber "bills exceed the balance". Line in the Finance hero; PWA `js/smart-insights.js` `safeToSpendPerDay` + `.hero-safe`.
   2. **Merchant badges** (monobank/Revolut): `MerchantBrands` (Android) / `MERCHANT_BRANDS` (PWA), 47 Ukrainian chains/services matched from the comment, then the entry's tags; expense rows show a monogram disc in the brand color instead of the category icon. Monograms on purpose — no company logos/artwork bundled, works offline. Light theme darkens light brand colors for contrast (Android).
