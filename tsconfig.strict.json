@@ -12,6 +12,7 @@
   },
   "include": [
     "js/tx-validation.js",
+    "js/smart-insights.js",
     "js/privacy-cache.js",
     "js/state.js",
     "js/receipt-ocr.js",

@@ -126,6 +126,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.SwapHoriz
 import ua.rytm.app.ui.icons.Event
+import ua.rytm.app.ui.icons.WarningAmber
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Build
@@ -188,6 +189,20 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                         color = trendColor,
                         fontWeight = FontWeight.Bold,
                     )
+                }
+                // Only with wallets: a fresh profile has nothing to divide yet.
+                if (vm.wallets.isNotEmpty()) {
+                    val perDay = vm.safeToSpendPerDay
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = RytmSpacing.sm)) {
+                        Icon(if (perDay == null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = if (perDay == null) stringResource(R.string.finance_safe_to_spend_none)
+                            else stringResource(R.string.finance_safe_to_spend, maskedAmount(formatMoney(kotlin.math.floor(perDay)))),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 if (vm.isMultiCurrency) {
                     Text(
@@ -431,6 +446,9 @@ internal fun SearchField(vm: FinanceViewModel) {
             stringResource(R.string.finance_search_what_category),
             stringResource(R.string.finance_search_what_tag),
             stringResource(R.string.finance_search_what_wallet),
+            // SmartSearch examples, so people find out they can type these.
+            stringResource(R.string.finance_search_what_month),
+            stringResource(R.string.finance_search_what_amount),
         ),
         clearDescription = stringResource(R.string.finance_clear_search),
     )
@@ -688,7 +706,10 @@ internal fun TransactionRow(
                 ),
         ) {
             Row(Modifier.padding(RytmSpacing.md).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                CategoryIconBadge(tx.category, iconOverride = iconOverride)
+                // A known merchant in the comment shows its monogram (MerchantBrands); else the category icon.
+                // Comment first (bank pushes put the merchant there), then the entry's tags ("Коло").
+                val brand = remember(tx.comment, tx.tags) { MerchantBrands.match(tx.comment) ?: tx.tags.firstNotNullOfOrNull { MerchantBrands.match(tagLookup(it)?.name) } }
+                if (brand != null && tx.type == TxType.EXPENSE) MerchantBadge(brand) else CategoryIconBadge(tx.category, iconOverride = iconOverride)
                 Spacer(Modifier.width(RytmSpacing.md))
                 // Every Text below is single-line + ellipsized on purpose:
                 // this Column's width follows the Card's own width, which

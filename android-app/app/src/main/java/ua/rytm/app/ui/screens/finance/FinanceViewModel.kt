@@ -563,6 +563,10 @@ class FinanceViewModel(
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
     val totalBalanceUah: Double by derivedStateOf { wallets.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
+    /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = bills exceed the balance. */
+    val safeToSpendPerDay: Double?
+        get() = FinanceInsights.safeToSpendPerDay(totalBalanceUah, monthOutlook.recurringOut, today)
+
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 
     private val currentMonthPrefix: String get() = currentMonth.toString() // "2026-08"

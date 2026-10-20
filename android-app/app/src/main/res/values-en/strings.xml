@@ -578,4 +578,16 @@
     <string name="notifications_weekly_title">Family week</string>
     <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
     <string name="categories_empty">No categories here yet. Add the first one below.</string>
+    <string name="finance_safe_to_spend">≈ %1$s ₴ a day until month end</string>
+    <string name="finance_safe_to_spend_none">Recurring payments this month exceed the balance</string>
+    <string name="story_spent">Spent in %1$s</string>
+    <string name="story_top_category">Most went to</string>
+    <string name="story_top_share">%1$s · %2$d%% of all spending</string>
+    <string name="story_biggest">Biggest purchase</string>
+    <string name="story_saved">Left over</string>
+    <string name="story_overspent">Overspent</string>
+    <string name="story_count">Transactions this month: %1$d</string>
+    <string name="finance_search_what_month">“cafe october”</string>
+    <string name="finance_search_what_amount">“over 500”</string>
+    <string name="widget_per_day">≈ %1$s ₴ a day</string>
 </resources>

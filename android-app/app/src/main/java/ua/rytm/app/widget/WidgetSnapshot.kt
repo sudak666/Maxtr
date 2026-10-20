@@ -25,6 +25,8 @@ data class WidgetSnapshot(
     val week: List<WeekDay> = emptyList(),
     /** Newest first, capped — the tall layout shows as many as fit. */
     val recent: List<RecentTx> = emptyList(),
+    /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = none or bills exceed the balance. */
+    val perDayUah: Double? = null,
 ) {
     data class NextShift(val date: LocalDate, val name: String, val code: String, val colorHex: Long)
     data class WeekDay(val date: LocalDate, val code: String?, val colorHex: Long)
@@ -46,6 +48,7 @@ data class WidgetSnapshot(
             schedule: AutoFillSchedule,
             masked: Boolean,
             salaryGoal: Double = 0.0,
+            recurring: List<ua.rytm.app.ui.screens.finance.Recurring> = emptyList(),
         ): WidgetSnapshot {
             val balance = wallets.sumOf { w ->
                 convertCurrencyAmount(FinanceRepository.walletBalance(transactions, w.id), w.currency, "UAH", rates)
@@ -81,7 +84,12 @@ data class WidgetSnapshot(
                             ua.rytm.app.ui.screens.finance.currencySymbol(t.currency),
                     )
                 }
-            return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal, week, recent)
+            val toUah: (Double, String) -> Double = { a, c -> convertCurrencyAmount(a, c, "UAH", rates) }
+            val bills = ua.rytm.app.ui.screens.finance.FinanceInsights.monthOutlook(
+                recurring, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, 0.0, toUah,
+            ).recurringOut
+            val perDay = if (wallets.isEmpty()) null else ua.rytm.app.ui.screens.finance.FinanceInsights.safeToSpendPerDay(balance, bills, today)
+            return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal, week, recent, perDay)
         }
 
         suspend fun load(
@@ -102,6 +110,7 @@ data class WidgetSnapshot(
                 shifts.autoFillSchedule.first(),
                 masked,
                 salaryGoal,
+                finance.recurring.first(),
             )
         }
     }
