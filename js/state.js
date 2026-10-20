@@ -116,7 +116,7 @@ export const AppState = {
   /** @type {Record<string, boolean>} */
   widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),
-  notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, timeZone:'UTC'},
+  notifSettings: {enabled:false, time:'21:00', budgetAlerts:false, recurringAlerts:false, debtAlerts:false, weeklySummary:false, timeZone:'UTC'},
   /** @type {string | null} */
   txCategoryFilter: null,
   /** @type {AutoRule[]} */

@@ -156,6 +156,7 @@
   setIcon('ic-notif-budget','warning');
   setIcon('ic-notif-recurring','repeat');
   setIcon('ic-notif-debt','bell');
+  setIcon('ic-notif-weekly','people');
   setIcon('ic-settings-appearance','sun');
   setIcon('ic-settings-privacy-cache','offline');
   setIcon('ic-settings-account','idCard');
@@ -283,6 +284,7 @@
       settings_notif_budget_title:'Бюджет перевищено', settings_notif_budget_hint:'Сповістимо, коли витрати за категорією перевищать місячний бюджет.',
       settings_notif_recurring_title:'Наближається платіж', settings_notif_recurring_hint:'Попередимо за день до автододавання повторюваної операції.',
       settings_notif_debt_title:'Наближається термін боргу', settings_notif_debt_hint:'Попередимо за день до дати, до якої треба віддати борг.',
+      settings_notif_weekly_title:'Тиждень родини', settings_notif_weekly_hint:'Неділя, 19:00: хто скільки витратив за тиждень у спільному профілі й хто кому винен, щоб порівну. Лише push.',
       settings_notif_push_title:'Push-сповіщення', settings_notif_push_hint:'Приходять навіть коли застосунок закрито.',
       notif_budget_title:'Бюджет перевищено', notif_budget_body:'Витрати за категорією "{category}" перевищили місячний бюджет.',
       notif_recurring_title:'Наближається платіж', notif_recurring_body:'Завтра автоматично додасться операція "{category}" на {amount}.',
@@ -579,6 +581,7 @@
       settings_notif_budget_title:'Budget exceeded', settings_notif_budget_hint:"We'll notify you when a category's spending goes over its monthly budget.",
       settings_notif_recurring_title:'Upcoming payment', settings_notif_recurring_hint:"We'll warn you a day before a recurring transaction auto-adds.",
       settings_notif_debt_title:'Debt due soon', settings_notif_debt_hint:"We'll warn you a day before a debt's due date.",
+      settings_notif_weekly_title:'Family week', settings_notif_weekly_hint:'Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even. Push only.',
       settings_notif_push_title:'Push notifications', settings_notif_push_hint:'Delivered even when the app is closed.',
       notif_budget_title:'Budget exceeded', notif_budget_body:'Spending in "{category}" has gone over its monthly budget.',
       notif_recurring_title:'Upcoming payment', notif_recurring_body:'Tomorrow "{category}" will be auto-added for {amount}.',
