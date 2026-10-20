@@ -88,3 +88,27 @@ fun motionProgress(key: Any?, durationMillis: Int): Float {
     }
     return progress.value
 }
+
+/**
+ * A money value that counts from its previous value to the new one (~450 ms,
+ * ease-out) instead of jumping. Interpolates a 0→1 progress, not the amount
+ * itself, so the final frame shows the exact Double (no Float rounding of
+ * kopecks on large balances). First composition and reduced motion: no animation.
+ */
+@Composable
+fun rememberAnimatedAmount(target: Double): Double {
+    val reduced = LocalReducedMotion.current
+    var from by androidx.compose.runtime.remember { androidx.compose.runtime.mutableDoubleStateOf(target) }
+    var to by androidx.compose.runtime.remember { androidx.compose.runtime.mutableDoubleStateOf(target) }
+    val progress = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(1f) }
+    androidx.compose.runtime.LaunchedEffect(target) {
+        if (target == to) return@LaunchedEffect
+        // Start from wherever the running animation currently is.
+        from = from + (to - from) * progress.value
+        to = target
+        if (reduced) { progress.snapTo(1f); return@LaunchedEffect }
+        progress.snapTo(0f)
+        progress.animateTo(1f, androidx.compose.animation.core.tween(450, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    return if (progress.value >= 1f) to else from + (to - from) * progress.value
+}
