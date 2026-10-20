@@ -11,7 +11,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -47,7 +46,7 @@ class FinanceViewModelTest {
     }
 
     @Before fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(mainThread)
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), RytmDatabase::class.java)
             .allowMainThreadQueries().build()
         repo = FinanceRepository(db)
@@ -57,16 +56,24 @@ class FinanceViewModelTest {
         }
     }
 
-    @After fun tearDown() { db.close(); Dispatchers.resetMain() }
+    @After fun tearDown() { db.close(); Dispatchers.resetMain(); mainThread.close() }
 
-    // filteredTransactions & co. are derivedStateOf: their cache refreshes when
-    // the global snapshot advances, which in the app every frame does. Unit
-    // tests have no frames, so advance it here (it used to read a stale empty
-    // list now and then — CI flake, #583..#591).
+    // A real single "main" thread, like the app's: the ViewModel's collectors
+    // write state there, and waitUntil reads there too. With Unconfined the
+    // collectors ran on Room's threads while the test thread read the
+    // derivedStateOf caches (filteredTransactions, monthOutlook…) at the same
+    // time — a read racing a write could cache a stale value for good (the
+    // CI/local flakes of #583..#591 and 2026-10-20).
+    @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+    private val mainThread = kotlinx.coroutines.newSingleThreadContext("test-main")
+
     private fun waitUntil(cond: () -> Boolean) {
         repeat(1500) {
-            androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
-            if (cond()) return
+            val ok = runBlocking(mainThread) {
+                androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                cond()
+            }
+            if (ok) return
             Thread.sleep(20)
         }
         // Fail here, not on a later .single() with a bare NoSuchElementException.
