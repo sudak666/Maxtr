@@ -28,7 +28,7 @@ export function safeToSpendPerDay(balance, bills, today){
 export const MERCHANT_BRANDS=[
   ['АТБ','АТБ','#E30613',['атб','atb']],['Сільпо','С','#FF6A13',['сільпо','silpo']],
   ['Novus','N','#00A651',['novus','новус']],['Фора','Ф','#E4002B',['фора','fora']],
-  ['Varus','V','#009639',['varus','варус']],['Metro','M','#003D7C',['metro cash','метро кеш','metro ']],
+  ['Varus','V','#009639',['varus','варус']],['Metro','M','#2F6DB5',['metro cash','метро кеш','metro ']],
   ['Auchan','A','#E2001A',['auchan','ашан']],['Коло','К','#2E7D32',['kolo ','коло ','kolo kiyev']],
   ['Велмарт','В','#0072BC',['velmart','велмарт']],['Таврія В','ТВ','#D71920',['tavria','таврія']],
   ['Епіцентр','Е','#F39200',['epicentr','епіцентр']],['Rozetka','R','#00A046',['rozetka','розетка']],
@@ -37,7 +37,7 @@ export const MERCHANT_BRANDS=[
   ['Uklon','U','#2F54EB',['uklon','уклон']],['Uber','U','#8A8A8A',['uber']],
   ['Нова пошта','НП','#DA291C',['nova poshta','нова пошта','novaposhta','nova pay']],['Укрпошта','УП','#FFC72C',['ukrposhta','укрпошта']],
   ["McDonald's",'M','#FFBC0D',['mcdonald','макдональдс','макдональц']],['KFC','KFC','#E4002B',['kfc']],
-  ['Пузата хата','ПХ','#8B5A2B',['puzata','пузата']],['Aroma Kava','AK','#6F4E37',['aroma kava','арома кава']],
+  ['Пузата хата','ПХ','#8B5A2B',['puzata','пузата']],['Aroma Kava','AK','#A0785A',['aroma kava','арома кава']],
   ['Львівські круасани','ЛК','#C8102E',['круасани','kruasany']],['WOG','W','#00843D',['wog']],
   ['OKKO','O','#E30613',['okko','окко']],['SOCAR','S','#0057B8',['socar']],['UPG','U','#FDB913',['upg']],
   ['Київстар','КС','#0090D7',['kyivstar','київстар']],['Vodafone','V','#E60000',['vodafone','водафон']],

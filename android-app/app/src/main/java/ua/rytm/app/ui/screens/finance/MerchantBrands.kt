@@ -88,8 +88,14 @@ object MerchantBrands {
 fun MerchantBadge(brand: MerchantBrands.Brand, size: Dp = 40.dp, modifier: Modifier = Modifier) {
     val color = Color(brand.color)
     // Yellow/light brand colors would vanish as text on the light theme.
-    val ink = if (!ua.rytm.app.ui.theme.RytmSemantic.isDark && color.luminance() > 0.45f) androidx.compose.ui.graphics.lerp(color, Color.Black, 0.5f) else color
-    Box(modifier.size(size).background(color.copy(alpha = 0.20f), CircleShape), contentAlignment = Alignment.Center) {
+    // …and very dark ones (Aroma Kava brown) would vanish on the dark theme.
+    val dark = ua.rytm.app.ui.theme.RytmSemantic.isDark
+    val ink = when {
+        !dark && color.luminance() > 0.45f -> androidx.compose.ui.graphics.lerp(color, Color.Black, 0.5f)
+        dark && color.luminance() < 0.08f -> androidx.compose.ui.graphics.lerp(color, Color.White, 0.45f)
+        else -> color
+    }
+    Box(modifier.size(size).background(ink.copy(alpha = 0.20f), CircleShape), contentAlignment = Alignment.Center) {
         Text(
             brand.monogram,
             color = ink,

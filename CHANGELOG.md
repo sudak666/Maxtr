@@ -1,5 +1,8 @@
 # Changelog
 
+- **Play: 2.6.0 (vc29) sent for review + new store screenshots (2026-10-21)** — via the owner's Chrome. Closed testing Track 1, release 23 (uk notes: 9 bullets); the owner uploaded the 31 MB AAB by hand (over the upload tool's limit). Only warning: no native debug symbols (harmless). 5 new phone screenshots (1080×2160, Play caps ratio at 2:1) shot on the A51 from a throwaway «Demo» profile with fake data — no real names/amounts on the public page. Both changes sent from «Огляд публікації» (review up to 7 days). Production still needs 12 opted-in testers (2 now).
+- **Two fixes found while staging the demo (2026-10-21, not in vc29)** — safe-to-spend line hidden on an empty profile (no balance, no bills → it showed a scary amber warning); dark-theme merchant badges lighten near-black brand colors (luminance < 0.08) so e.g. Aroma Kava stays readable; PWA same, Aroma Kava/Metro colors tweaked. `sw.js` v186→v187. Ship with the next Android version.
+
 - **Android 2.6.0 (vc29) + version line in Settings (2026-10-20)** — bump for the Play release of the design passes and competitor features (Play had 2.5.3/vc28). Settings now ends with a small grey "Rytm 2.6.0 (29)" line (`BuildConfig.VERSION_NAME/CODE`), as most apps do — first thing support asks. Release AAB built locally (`bundleRelease`, 31 MB).
 
 - **Deploy hosting: design pass 2 (2026-10-20)** — after #617 merged; clean `origin/main` worktree.
