@@ -365,7 +365,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
             ) {
                 items(groups) { (key, label) ->
-                    FilterChip(
+                    ua.rytm.app.ui.components.RytmFilterChip(
                         selected = settingsGroup == key,
                         onClick = { settingsGroup = key },
                         label = { Text(label) },

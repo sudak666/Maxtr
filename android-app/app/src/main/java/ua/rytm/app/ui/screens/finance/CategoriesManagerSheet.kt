@@ -97,8 +97,8 @@ fun CategoriesManagerSheet(
             RytmSheetTitle(stringResource(R.string.categories_title), subtitle = stringResource(R.string.categories_body))
 
             Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                FilterChip(selected = viewModel.activeType == TxType.EXPENSE, onClick = { viewModel.setType(TxType.EXPENSE) }, label = { Text(stringResource(R.string.tx_expense)) })
-                FilterChip(selected = viewModel.activeType == TxType.INCOME, onClick = { viewModel.setType(TxType.INCOME) }, label = { Text(stringResource(R.string.tx_income)) })
+                ua.rytm.app.ui.components.RytmFilterChip(selected = viewModel.activeType == TxType.EXPENSE, onClick = { viewModel.setType(TxType.EXPENSE) }, label = { Text(stringResource(R.string.tx_expense)) })
+                ua.rytm.app.ui.components.RytmFilterChip(selected = viewModel.activeType == TxType.INCOME, onClick = { viewModel.setType(TxType.INCOME) }, label = { Text(stringResource(R.string.tx_income)) })
             }
 
             viewModel.errorMessageRes?.let { messageRes ->

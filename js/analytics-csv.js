@@ -356,6 +356,10 @@ function txItemInnerHtml(t){
     ? `<span class="tx-conv-note" style="font-size:13px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency||'')})</span>` : '';
   const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:13px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
   const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
+  // Design pass 2: the wallet moves to the quiet second line ("ПУМБ · KOLO"), and only
+  // when there are 2+ wallets — a bold wallet chip on every row said little.
+  const walletText=(t.type!=='transfer' && AppState.wallets.length>1) ? (walletById(t.wallet||'')?.name||'') : '';
+  const metaLine=[walletText, t.comment||''].filter(Boolean).join(' · ');
   // Pencil dropped on purpose: tapping the row already opens edit (see the
   // click listener on the outer .tx-item node itself), so a second
   // always-visible edit button was pure duplication. Delete now lives
@@ -369,8 +373,8 @@ function txItemInnerHtml(t){
         <div class="tx-left-wrap">
           ${brand?`<div class="icon-badge merchant-badge" style="--badge-color:${brand.color}">${escapeHtml(brand.monogram)}</div>`:`<div class="icon-badge" style="--badge-color:${categoryColor(t.category||'')}">${catIcon}</div>`}
           <div class="tx-left">
-            <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${wBadge}${twBadge}</div>
-            ${t.comment?`<div class="tx-meta">${escapeHtml(t.comment)}</div>`:''}
+            <div class="tx-cat"><span>${escapeHtml(t.category)}${t.subcategory?' · '+escapeHtml(t.subcategory):''}</span>${t.type==='transfer'?wBadge+twBadge:''}</div>
+            ${metaLine?`<div class="tx-meta">${escapeHtml(metaLine)}</div>`:''}
             ${tagBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${tagBadges}</div>`:''}
           </div>
         </div>

@@ -133,7 +133,7 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             items(AnalyticsPeriod.entries.toList()) { p ->
-                FilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(periodLabels.getValue(p)) })
+                ua.rytm.app.ui.components.RytmFilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(periodLabels.getValue(p)) })
             }
         }
 
@@ -440,7 +440,7 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val months = vm.sixMonthTotals
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("balance" to R.string.analytics_balance_label, "income" to R.string.analytics_income_label, "expense" to R.string.analytics_expense_label).forEach { (key, labelRes) ->
-                FilterChip(
+                ua.rytm.app.ui.components.RytmFilterChip(
                     selected = metric == key,
                     onClick = { metric = key },
                     // FilterChip's label isn't centered within extra width

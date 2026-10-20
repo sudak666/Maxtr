@@ -415,7 +415,7 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
                         } else {
                             Column(
                                 Modifier.fillMaxSize().padding(horizontal = RytmSpacing.sm),
-                                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+                                verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) { tile() }
                         }
@@ -472,7 +472,7 @@ internal fun FilterRow(vm: FinanceViewModel) {
     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
     LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
         items(types, key = { "t-${it.first}" }) { (value, label, icon) ->
-            FilterChip(
+            ua.rytm.app.ui.components.RytmFilterChip(
                 selected = vm.typeFilter == value,
                 onClick = { vm.onTypeFilterChange(value) },
                 label = { Text(label) },
@@ -483,7 +483,7 @@ internal fun FilterRow(vm: FinanceViewModel) {
             Box(Modifier.padding(horizontal = RytmSpacing.xs).size(width = 1.dp, height = 24.dp).background(MaterialTheme.colorScheme.outlineVariant))
         }
         items(periods, key = { "p-${it.first}" }) { (value, label) ->
-            FilterChip(
+            ua.rytm.app.ui.components.RytmFilterChip(
                 selected = vm.periodFilter == value,
                 onClick = { vm.onPeriodFilterChange(value) },
                 label = { Text(label) },
@@ -722,18 +722,22 @@ internal fun TransactionRow(
                     val categoryLabel = localizedDomainText(tx.category)
                     val walletLabel = walletName(tx.walletId)?.let { localizedDomainText(it) }
                     val targetWalletLabel = walletName(tx.targetWalletId)?.let { localizedDomainText(it) }
-                    val catLine = buildString {
+                    // Design pass 2: the title is what the money was for; the wallet moves
+                    // to the quiet second line ("ПУМБ · KOLO KIYEV UA") instead of repeating
+                    // in bold on every row. A transfer's title is its route.
+                    val catLine = if (tx.type == TxType.TRANSFER && walletLabel != null && targetWalletLabel != null) "$walletLabel → $targetWalletLabel"
+                    else buildString {
                         append(categoryLabel)
                         tx.subcategory?.let { append(" · $it") }
-                        walletLabel?.let { append(" · $it") }
-                        if (tx.type == TxType.TRANSFER) {
-                            targetWalletLabel?.let { append(" → $it") }
-                        }
                     }
                     Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     // The date lives in the day header above.
-                    tx.comment?.takeIf { it.isNotBlank() }?.let { comment ->
-                        Text(comment, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val secondLine = listOfNotNull(
+                        walletLabel.takeIf { tx.type != TxType.TRANSFER },
+                        tx.comment?.takeIf { it.isNotBlank() },
+                    ).joinToString(" · ")
+                    if (secondLine.isNotEmpty()) {
+                        Text(secondLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     val rowTags = tx.tags.mapNotNull(tagLookup)
                     if (rowTags.isNotEmpty()) {

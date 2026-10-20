@@ -22,6 +22,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.clickable
+import ua.rytm.app.ui.components.pressScale
+import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Add
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import com.google.firebase.auth.FirebaseAuth
@@ -155,7 +161,9 @@ fun RytmNavHost() {
             snackbarHostState.showSnackbar(rejectedMessage)
         }
     }
+    val primaryAction = remember { ua.rytm.app.ui.components.PrimaryActionHolder() }
     CompositionLocalProvider(
+        ua.rytm.app.ui.components.LocalPrimaryAction provides primaryAction,
         LocalCanEditProfile provides canEdit,
         ua.rytm.app.ui.LocalSession provides ua.rytm.app.ui.RytmSession(accountUid, profileId, ownerUid),
         LocalRealtimeState provides realtimeState,
@@ -260,9 +268,11 @@ fun RytmNavHost() {
 private fun RytmNavigationRail(navController: androidx.navigation.NavHostController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
     NavigationRail(
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.safeDrawingPadding(),
+        header = { plus?.let { PrimaryPlusButton(it, size = 56.dp) } },
     ) {
         RytmDestination.entries.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
@@ -333,9 +343,11 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         // read as flush with the page (reported live). surfaceContainerHigh
         // (#38373D) is enough lighter to actually look raised.
         val barColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
+        val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(shape)
                 .background(barColor)
@@ -367,6 +379,45 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 )
             }
         }
+        // The screen's "+" sits next to the capsule instead of floating over
+        // the content (it covered the history amounts) — design pass 2.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = plus != null,
+            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandHorizontally(),
+            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkHorizontally(),
+        ) {
+            Row {
+                Spacer(Modifier.width(10.dp))
+                // Keep showing the last action during the exit animation.
+                val last = remember { androidx.compose.runtime.mutableStateOf(plus) }
+                if (plus != null) last.value = plus
+                last.value?.let { PrimaryPlusButton(it, size = if (compactHeight) 52.dp else 60.dp) }
+            }
+        }
+        }
+    }
+}
+
+@Composable
+private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, size: androidx.compose.ui.unit.Dp) {
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val press = remember { MutableInteractionSource() }
+    Box(
+        Modifier
+            .size(size)
+            .pressScale(press)
+            .shadow(10.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            .clip(CircleShape)
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)))
+            .clickable(interactionSource = press, indication = androidx.compose.material3.ripple(), role = Role.Button, onClickLabel = action.label) {
+                // LongPress: the lighter constants are barely felt on the A51 (see FinanceScreen).
+                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                action.onClick()
+            }
+            .semantics { contentDescription = action.label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(RytmIcons.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
     }
 }
 

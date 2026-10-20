@@ -481,7 +481,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 .stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stat-card:active{transform:scale(.98)}
-.quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:76px;gap:8px;padding:2px 0 14px;margin-bottom:6px}
+.quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:60px;gap:8px;padding:2px 0 14px;margin-bottom:6px}
 .quick-action{display:flex;min-width:0;align-items:center;justify-content:flex-start;gap:10px;height:100%;cursor:pointer;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-row);font-family:inherit;padding:0 16px;transition:transform .15s,border-color .2s,background .2s}
 /* Phantom-style: every action tile is the same neutral weight — the
    "primary" action is distinguished only by its icon color/gradient, not
@@ -609,7 +609,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .debt-forecast-done{color:var(--green2)}
 .chip-stat{display:flex;align-items:center;gap:9px;flex:0 0 auto;background:var(--bg1);border:1px solid transparent;box-shadow:0 4px 14px -6px rgba(var(--shadow-color),.28);border-radius:999px;padding:9px 16px 9px 9px;white-space:nowrap;transition:transform .12s}
 .chip-stat:active{transform:scale(.97)}
-.chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple3))}
+.chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--purple2);flex-shrink:0;background:color-mix(in srgb,var(--purple) 16%,transparent)}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
 .chip-stat-lbl{font-size:13px;font-weight:500;color:var(--muted)}
@@ -1059,6 +1059,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
    quick-actions row has its own separate open-new-tx-modal tile) rather
    than letting a tap open a form that firestore.rules will then reject
    anyway. See js/ui-widgets.js's applyProfileReadOnlyUI(). */
+/* Design pass 2 (same as Android): the screen's "+" is a round button next
+   to the nav capsule instead of a pill floating over the history amounts. */
+.fin-fab{right:14px;bottom:calc(25px + env(safe-area-inset-bottom));width:64px;height:64px;border-radius:50%;padding:0;z-index:201}
+.fin-fab .ico{margin-right:0}
+.fin-fab .fin-fab-label{display:none}
+body:not(.profile-readonly) .tabs:has(#nav-finance.active,#nav-debt.active){right:calc(14px + 64px + 10px)}
 body.profile-readonly .fin-fab,
 body.profile-readonly [data-action="open-new-tx-modal"],
 body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
@@ -1076,8 +1082,9 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .hist-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.filter-chip{padding:15px 16px;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s}
-.filter-chip.active{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple2)}
+/* Quiet tonal chips, no outline (design pass 2, same as Android RytmFilterChip). */
+.filter-chip{padding:15px 16px;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid transparent;background:var(--bg2);color:var(--muted);transition:all .15s}
+.filter-chip.active{border-color:transparent;background:rgba(139,92,246,.22);color:var(--text-strong)}
 .quick-amount-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .quick-amount-chip{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
 .quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
