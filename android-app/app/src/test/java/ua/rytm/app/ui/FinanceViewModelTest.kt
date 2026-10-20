@@ -81,11 +81,11 @@ class FinanceViewModelTest {
         // finishing (isSaving) — Room can emit the row before that flag drops.
         waitUntil { !isSaving }
         openNewTransactionSheet()
-        onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
-        onFormWalletChange(walletId)
-        onFormAmountChange(amount)
-        onFormCategoryChange(category)
-        onFormDateChange(LocalDate.now().toString())
+        form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        form.onWalletChange(walletId)
+        form.onAmountChange(amount)
+        form.onCategoryChange(category)
+        form.onDateChange(LocalDate.now().toString())
         submitForm()
     }
 
@@ -148,14 +148,14 @@ class FinanceViewModelTest {
 
     @Test fun amountFieldDropsLetters() {
         val vm = vm()
-        vm.onFormAmountChange("12.57coffee")
-        assertEquals("12.57", vm.formAmountText)
+        vm.form.onAmountChange("12.57coffee")
+        assertEquals("12.57", vm.form.amountText)
     }
 
     @Test fun invalidAmountShowsValidationError() {
         val vm = vm()
         vm.addExpense("uah", "")
-        assertEquals(R.string.validation_invalid_amount, vm.formErrorRes)
+        assertEquals(R.string.validation_invalid_amount, vm.form.errorRes)
         assertTrue(runBlocking { db.transactionDao().getAllOnce() }.isEmpty())
     }
 
@@ -172,12 +172,12 @@ class FinanceViewModelTest {
         val vm = vm()
         waitUntil { vm.tags.isNotEmpty() }
         vm.openNewTransactionSheet()
-        vm.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
-        vm.onFormWalletChange("uah")
-        vm.onFormAmountChange("5")
-        vm.onFormCategoryChange("Food")
-        vm.onFormDateChange(LocalDate.now().toString())
-        vm.toggleFormTag("t1")
+        vm.form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        vm.form.onWalletChange("uah")
+        vm.form.onAmountChange("5")
+        vm.form.onCategoryChange("Food")
+        vm.form.onDateChange(LocalDate.now().toString())
+        vm.form.toggleTag("t1")
         vm.submitForm()
         waitUntil { vm.filteredTransactions.size == 1 }
         vm.addExpense("uah", "7", category = "Fun")
@@ -194,8 +194,8 @@ class FinanceViewModelTest {
         coEvery { sync.saveTransaction(any(), any(), any()) } throws RuntimeException("offline")
         val vm = vm()
         vm.addExpense("uah", "5")
-        waitUntil { vm.formErrorRes != null }
-        assertEquals(R.string.transaction_save_failed, vm.formErrorRes)
+        waitUntil { vm.form.errorRes != null }
+        assertEquals(R.string.transaction_save_failed, vm.form.errorRes)
         assertTrue(runBlocking { db.transactionDao().getAllOnce() }.isEmpty())
     }
 
@@ -203,35 +203,35 @@ class FinanceViewModelTest {
     @Test fun splitSavesOneEntryPerPart() {
         val v = vm()
         v.openNewTransactionSheet()
-        v.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
-        v.onFormWalletChange("uah")
-        v.onFormAmountChange("1000")
-        v.onFormCategoryChange("Food")
-        v.onFormCommentChange("АТБ")
-        v.addSplitPart()
-        v.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "300"))
+        v.form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        v.form.onWalletChange("uah")
+        v.form.onAmountChange("1000")
+        v.form.onCategoryChange("Food")
+        v.form.onCommentChange("АТБ")
+        v.form.addSplitPart()
+        v.form.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "300"))
         v.submitForm()
         waitUntil { v.filteredTransactions.size == 2 }
         val byCat = v.filteredTransactions.associateBy { it.category }
         assertEquals(700.0, byCat.getValue("Food").amount, 0.001)
         assertEquals(300.0, byCat.getValue("Home").amount, 0.001)
         assertTrue(v.filteredTransactions.all { it.comment == "АТБ" && it.walletId == "uah" })
-        assertTrue(v.formSplits.isEmpty())
+        assertTrue(v.form.splits.isEmpty())
     }
 
     // Parts that eat the whole total are rejected and nothing is saved.
     @Test fun splitRejectsPartsNotBelowTotal() {
         val v = vm()
         v.openNewTransactionSheet()
-        v.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
-        v.onFormWalletChange("uah")
-        v.onFormAmountChange("100")
-        v.onFormCategoryChange("Food")
-        v.addSplitPart()
-        v.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "100"))
+        v.form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        v.form.onWalletChange("uah")
+        v.form.onAmountChange("100")
+        v.form.onCategoryChange("Food")
+        v.form.addSplitPart()
+        v.form.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "100"))
         v.submitForm()
-        assertEquals(R.string.split_invalid, v.formErrorRes)
-        assertTrue(v.sheetVisible)
+        assertEquals(R.string.split_invalid, v.form.errorRes)
+        assertTrue(v.form.sheetVisible)
     }
 
 }
