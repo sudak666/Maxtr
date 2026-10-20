@@ -588,6 +588,17 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             if (aboutVisible) { item(key = "settings-about") {
                 AboutSection(onOpenUrl = ::openExternalUrl)
             } }
+            // Small version line at the very end, like most apps — "which version do you
+            // have?" is the first support question.
+            if (aboutVisible) { item(key = "settings-version") {
+                Text(
+                    stringResource(R.string.settings_version, ua.rytm.app.BuildConfig.VERSION_NAME, ua.rytm.app.BuildConfig.VERSION_CODE),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = RytmSpacing.sm),
+                )
+            } }
             if (!accountVisible && !securityVisible && !notificationsVisible && !appearanceVisible && !aboutVisible && !financeVisible) {
                 item(key = "settings-search-empty") {
                 Column(

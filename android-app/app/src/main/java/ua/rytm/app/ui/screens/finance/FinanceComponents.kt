@@ -191,7 +191,9 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     )
                 }
                 // Only with wallets: a fresh profile has nothing to divide yet.
-                if (vm.wallets.isNotEmpty()) {
+                // Warn only when real bills exceed the balance; a fresh/empty profile shows nothing.
+                val perDayOrWarn = vm.safeToSpendPerDay != null || vm.monthOutlook.recurringOut > 0
+                if (vm.wallets.isNotEmpty() && perDayOrWarn) {
                     val perDay = vm.safeToSpendPerDay
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = RytmSpacing.sm)) {
                         Icon(if (perDay == null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))

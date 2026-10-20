@@ -522,8 +522,10 @@ export function renderFinance(){
     const contrib=Object.entries(people);
     // "Safe to spend" (same as Android's FinanceInsights.safeToSpendPerDay): bills
     // still due this month come out first; expected shift pay is not counted.
-    if(AppState.wallets.length){
-      const perDay=safeToSpendPerDay(bal, rec.out, now);
+    // Warn only when real bills exceed the balance; a fresh/empty profile shows nothing.
+    const perDayRaw=safeToSpendPerDay(bal, rec.out, now);
+    if(AppState.wallets.length && (perDayRaw!==null || rec.out>0)){
+      const perDay=perDayRaw;
       const safe=perDay===null
         ? `<div class="hero-safe hero-safe-warn">${window.Icon('warning')}${tr('finance_safe_to_spend_none')}</div>`
         : `<div class="hero-safe">${window.Icon('wallet')}<span>${tr('finance_safe_to_spend').replace('{v}', `<span class="hero-safe-val">${Math.floor(perDay).toLocaleString('uk-UA')}</span>`)}</span></div>`;
