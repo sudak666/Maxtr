@@ -67,6 +67,7 @@ fun writeMonthReportPdf(context: Context, report: MonthReport, walletName: (Stri
     val h1 = Paint(bold).apply { textSize = 18f }
     val h2 = Paint(bold).apply { textSize = 12f }
     val accent = 0xFF7C3AED.toInt()
+    val income = Paint(text).apply { color = 0xFF059669.toInt() }
     val line = Paint().apply { color = 0x1F000000; strokeWidth = 0.7f }
     val monthTitle = report.month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, java.util.Locale.getDefault())
         .replaceFirstChar { it.titlecase() } + " " + report.month.year
@@ -127,7 +128,7 @@ fun writeMonthReportPdf(context: Context, report: MonthReport, walletName: (Stri
         page.canvas.drawText(t.date.substring(8, 10) + "." + t.date.substring(5, 7), cols[0], y, muted)
         page.canvas.drawText(ellipsize(cat, text, 122f), cols[1], y, text)
         page.canvas.drawText(ellipsize(t.comment.orEmpty(), muted, pageW - margin - 100f - cols[2]), cols[2], y, muted)
-        right("$sign${formatMoney(t.amount)} ${currencySymbol(t.currency)}", text, y)
+        right("$sign${formatMoney(t.amount)} ${currencySymbol(t.currency)}", if (t.type == TxType.INCOME) income else text, y)
         page.canvas.drawLine(margin, y + 5f, pageW - margin, y + 5f, line)
         y += 16f
     }

@@ -558,6 +558,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
             value = localizedDomainText(selected),
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),

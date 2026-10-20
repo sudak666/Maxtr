@@ -319,7 +319,7 @@
     <string name="settings_push">Push-сповіщення</string>
     <string name="settings_push_subtitle">Отримувати сповіщення на цьому пристрої</string>
     <string name="settings_notification_types">Типи сповіщень</string>
-    <string name="settings_notification_types_subtitle">Нагадування, бюджет, регулярні платежі, розрахунки</string>
+    <string name="settings_notification_types_subtitle">Нагадування, бюджет, регулярні платежі, розрахунки, тиждень родини</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_light">Світла</string>
     <string name="settings_theme_dark">Темна</string>
