@@ -36,6 +36,12 @@ jobs:
       # `// @ts-check` pragma actually get type-checked. See CLAUDE.md's
       # TypeScript adoption section for why this repo is doing gradual,
       # per-file opt-in rather than a one-shot full conversion.
+      # functions/index.js is strict-checked and imports firebase-admin /
+      # firebase-functions — their types live in functions/node_modules.
+      - name: Install functions dependencies (types for the typecheck)
+        run: npm ci --ignore-scripts
+        working-directory: functions
+
       - name: Type-check opted-in files
         run: npm run typecheck
 
