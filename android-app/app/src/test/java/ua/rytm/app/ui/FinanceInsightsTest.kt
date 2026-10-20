@@ -66,4 +66,22 @@ class FinanceInsightsTest {
         assertEquals(listOf("A"), FinanceInsights.frequentCategories(txs, TxType.EXPENSE, setOf("A"), LocalDate.of(2026, 9, 1)))
         assertTrue(FinanceInsights.frequentCategories(txs, TxType.TRANSFER, setOf("A"), LocalDate.of(2026, 9, 1)).isEmpty())
     }
+
+    @Test fun monthReportListsAllCategoriesAndRowsOldestFirst() {
+        val txs = listOf(
+            tx("a", TxType.EXPENSE, 10.0, "2026-09-03", cat = "A"),
+            tx("b", TxType.EXPENSE, 50.0, "2026-09-01", cat = "B"),
+            tx("c", TxType.EXPENSE, 5.0, "2026-09-02", cat = "C"),
+            tx("d", TxType.EXPENSE, 1.0, "2026-09-02", cat = "D"),
+            tx("e", TxType.INCOME, 1.0, "2026-09-02", cur = "USD"),
+            tx("f", TxType.EXPENSE, 99.0, "2026-10-01", cat = "A"),
+        )
+        val r = ua.rytm.app.ui.screens.finance.MonthReport.build(txs, YearMonth.of(2026, 9)) { uah(it.amount, it.currency) }
+        assertEquals(listOf("B", "A", "C", "D"), r.categories.map { it.first })
+        assertEquals(66.0, r.expense, 0.001)
+        assertEquals(40.0, r.income, 0.001)
+        assertEquals("b", r.rows.first().id)
+        assertEquals(5, r.rows.size)
+    }
+
 }

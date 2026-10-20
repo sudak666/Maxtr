@@ -568,4 +568,9 @@
     <string name="split_remainder">Rest in “%1$s”: %2$s</string>
     <string name="split_invalid">Parts must be above 0 and add up to less than the total</string>
     <string name="split_saved">Transactions saved: %1$d</string>
+    <string name="month_report_title">Financial report · %1$s</string>
+    <string name="month_report_net">Net</string>
+    <string name="month_report_categories">Expenses by category</string>
+    <string name="month_report_entries">Transactions (%1$d)</string>
+    <string name="month_report_share">Share PDF report</string>
 </resources>

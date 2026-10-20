@@ -177,6 +177,13 @@ class FinanceViewModel(
     val showMonthSummaryCard: Boolean
         get() = today.dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
 
+    /** Everything the month's PDF report needs (MonthReport). */
+    fun monthReport(month: YearMonth): MonthReport = MonthReport.build(transactions, month) { toUah(it.amount, it.currency) }
+
+    fun walletDisplayName(id: String?): String = wallets.firstOrNull { it.id == id }?.name.orEmpty()
+
+    fun reportExportFailed() { pendingMessage = FinanceMessage(R.string.common_save_failed) }
+
     fun openMonthSummary() { monthSummaryOpen = true; markMonthSummarySeen() }
 
     fun markMonthSummarySeen() {

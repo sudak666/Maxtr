@@ -37,6 +37,7 @@ import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.icons.Clear
 import ua.rytm.app.ui.icons.PieChart
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Share
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.theme.RytmDimens
@@ -79,7 +80,7 @@ fun MonthSummaryCard(summary: MonthSummary, onOpen: () -> Unit, onClose: () -> U
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit) {
+fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit, onSharePdf: (() -> Unit)? = null) {
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
@@ -133,6 +134,17 @@ fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (!summary.isEmpty && onSharePdf != null) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onSharePdf,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
+                    shape = RoundedCornerShape(RytmRadii.Row),
+                ) {
+                    Icon(RytmIcons.Share, contentDescription = null)
+                    Spacer(Modifier.width(RytmSpacing.sm))
+                    Text(stringResource(R.string.month_report_share))
+                }
             }
             Spacer(Modifier.size(8.dp))
         }

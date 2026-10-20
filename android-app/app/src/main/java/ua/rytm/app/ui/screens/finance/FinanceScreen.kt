@@ -178,7 +178,17 @@ fun FinanceScreen(
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
     }
     if (viewModel.monthSummaryOpen) {
-        MonthSummarySheet(viewModel.lastMonthSummary, onDismiss = { viewModel.monthSummaryOpen = false })
+        val reportContext = androidx.compose.ui.platform.LocalContext.current
+        val shareTitle = androidx.compose.ui.res.stringResource(ua.rytm.app.R.string.month_report_share)
+        MonthSummarySheet(
+            viewModel.lastMonthSummary,
+            onDismiss = { viewModel.monthSummaryOpen = false },
+            onSharePdf = {
+                runCatching {
+                    shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.lastMonthSummary.month), viewModel::walletDisplayName, shareTitle)
+                }.onFailure { viewModel.reportExportFailed() }
+            },
+        )
     }
     if (viewModel.quickEntryOpen) {
         QuickEntryDialog(

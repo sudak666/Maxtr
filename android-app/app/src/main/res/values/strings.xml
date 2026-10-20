@@ -578,4 +578,9 @@
     <string name="split_remainder">Решта в «%1$s»: %2$s</string>
     <string name="split_invalid">Частини мають бути більші за 0 і разом менші за суму</string>
     <string name="split_saved">Збережено операцій: %1$d</string>
+    <string name="month_report_title">Фінансовий звіт · %1$s</string>
+    <string name="month_report_net">Різниця</string>
+    <string name="month_report_categories">Витрати за категоріями</string>
+    <string name="month_report_entries">Операції (%1$d)</string>
+    <string name="month_report_share">Поділитися PDF-звітом</string>
 </resources>
