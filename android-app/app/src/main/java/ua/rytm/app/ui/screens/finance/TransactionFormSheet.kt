@@ -125,8 +125,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             ocrMessage = null
             try {
                 val result = ocr.scan(context, uri)
-                result.amount?.let { vm.onFormAmountChange(it.toString()) }
-                result.date?.let(vm::onFormDateChange)
+                result.amount?.let { vm.form.onAmountChange(it.toString()) }
+                result.date?.let(vm.form::onDateChange)
                 ocrMessage = if (result.amount != null || result.date != null) ocrFound else ocrNotFound
             } catch (e: CancellationException) {
                 throw e
@@ -146,7 +146,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
-    RytmModalBottomSheet(onDismissRequest = vm::closeSheet, sheetState = sheetState) {
+    RytmModalBottomSheet(onDismissRequest = vm.form::close, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,17 +158,17 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 RytmSheetTitle(
-                    stringResource(if (vm.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
+                    stringResource(if (vm.form.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
                     modifier = Modifier.weight(1f),
                 )
                 // Always offered: it used to appear only while editing, so a
                 // half-filled new transaction had no visible way back.
-                TextButton(onClick = vm::closeSheet) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = vm.form::close) { Text(stringResource(R.string.action_cancel)) }
             }
 
             TypeSegmentedRow(vm)
 
-            if (vm.formType != TxType.TRANSFER) {
+            if (vm.form.type != TxType.TRANSFER) {
                 // One secondary action, not two filled Buttons competing with
                 // (and sitting above) the form's real primary action. Source
                 // choice moved into a small sheet, the platform-canonical shape.
@@ -186,7 +186,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         ua.rytm.app.ui.components.FitText(stringResource(R.string.receipt_scan_short), style = MaterialTheme.typography.labelLarge)
                     }
                     // A new transaction only: one line or voice re-fills the whole form.
-                    if (vm.editingTxId == null) {
+                    if (vm.form.editingTxId == null) {
                         OutlinedButton(
                             onClick = { vm.quickEntryOpen = true },
                             modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
@@ -257,17 +257,17 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
 
-            val walletLabel = when (vm.formType) {
+            val walletLabel = when (vm.form.type) {
                 TxType.INCOME -> stringResource(R.string.wallet_label)
                 TxType.EXPENSE -> stringResource(R.string.transaction_wallet_expense)
                 TxType.TRANSFER -> stringResource(R.string.transaction_wallet_source)
             }
-            WalletDropdown(label = walletLabel, wallets = vm.wallets, selectedId = vm.formWalletId, onSelect = vm::onFormWalletChange)
+            WalletDropdown(label = walletLabel, wallets = vm.wallets, selectedId = vm.form.walletId, onSelect = vm.form::onWalletChange)
             val balanceAfter = vm.formBalanceAfter
             balanceAfter?.let { BalanceAfterLine(it.source, it.sourceCurrency) }
 
-            if (vm.formType == TxType.TRANSFER) {
-                WalletDropdown(label = stringResource(R.string.transaction_wallet_target), wallets = vm.wallets, selectedId = vm.formTargetWalletId, onSelect = vm::onFormTargetWalletChange)
+            if (vm.form.type == TxType.TRANSFER) {
+                WalletDropdown(label = stringResource(R.string.transaction_wallet_target), wallets = vm.wallets, selectedId = vm.form.targetWalletId, onSelect = vm.form::onTargetWalletChange)
                 balanceAfter?.target?.let { BalanceAfterLine(it, balanceAfter.targetCurrency ?: "UAH") }
                 vm.formTransferHint?.let { hint ->
                     Text(
@@ -279,16 +279,16 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                val amountInvalid = vm.formErrorField == TxFormField.AMOUNT
+                val amountInvalid = vm.form.errorField == TxFormField.AMOUNT
                 // A new entry starts in the amount field with the keyboard up —
                 // the first thing typed is always the sum.
                 val amountFocus = remember { androidx.compose.ui.focus.FocusRequester() }
                 LaunchedEffect(Unit) {
-                    if (vm.editingTxId == null && vm.formAmountText.isEmpty()) runCatching { amountFocus.requestFocus() }
+                    if (vm.form.editingTxId == null && vm.form.amountText.isEmpty()) runCatching { amountFocus.requestFocus() }
                 }
                 OutlinedTextField(
-                    value = vm.formAmountText,
-                    onValueChange = vm::onFormAmountChange,
+                    value = vm.form.amountText,
+                    onValueChange = vm.form::onAmountChange,
                     label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
                     placeholder = { Text("0${decimalSeparator}00") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
@@ -296,7 +296,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     // The error used to be one generic line at the bottom of
                     // the form, with no field highlighted at all.
                     isError = amountInvalid,
-                    supportingText = vm.formErrorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
+                    supportingText = vm.form.errorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
                         ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } }
                         ?: vm.formSalaryMatch?.let { (expected, diff) ->
                             {
@@ -314,21 +314,21 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     items(listOf(50.0, 100.0, 200.0, 500.0)) { amount ->
-                        AssistChip(onClick = { vm.setFormAmount(amount) }, label = { Text(amount.toLong().toString()) })
+                        AssistChip(onClick = { vm.form.setAmount(amount) }, label = { Text(amount.toLong().toString()) })
                     }
                 }
             }
 
-            if (vm.formType != TxType.TRANSFER) {
-                val categories = vm.categoriesByType[vm.formType].orEmpty()
+            if (vm.form.type != TxType.TRANSFER) {
+                val categories = vm.categoriesByType[vm.form.type].orEmpty()
                 val frequent = vm.formFrequentCategories
                 if (frequent.size >= 2) {
                     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
                     LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         items(frequent, key = { it }) { cat ->
                             androidx.compose.material3.FilterChip(
-                                selected = (vm.formCategory ?: categories.firstOrNull()) == cat,
-                                onClick = { vm.onFormCategoryChange(cat) },
+                                selected = (vm.form.category ?: categories.firstOrNull()) == cat,
+                                onClick = { vm.form.onCategoryChange(cat) },
                                 label = { Text(ua.rytm.app.ui.localizedDomainText(cat)) },
                             )
                         }
@@ -338,26 +338,26 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     DropdownField(
                         label = stringResource(R.string.tx_category),
                         options = categories,
-                        selected = vm.formCategory ?: categories.first(),
-                        onSelect = vm::onFormCategoryChange,
+                        selected = vm.form.category ?: categories.first(),
+                        onSelect = vm.form::onCategoryChange,
                     )
                 }
                 if (vm.formSubcategoryOptions.isNotEmpty()) {
                     DropdownField(
                         label = stringResource(R.string.transaction_subcategory),
                         options = listOf("—") + vm.formSubcategoryOptions,
-                        selected = vm.formSubcategory ?: "—",
-                        onSelect = { vm.onFormSubcategoryChange(it.takeIf { s -> s != "—" }) },
+                        selected = vm.form.subcategory ?: "—",
+                        onSelect = { vm.form.onSubcategoryChange(it.takeIf { s -> s != "—" }) },
                     )
                 }
-                if (vm.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
+                if (vm.form.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
             }
 
-            DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
-            val commentInvalid = vm.formErrorField == TxFormField.COMMENT
+            DatePickerField(value = vm.form.date, onValueChange = vm.form::onDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
+            val commentInvalid = vm.form.errorField == TxFormField.COMMENT
             OutlinedTextField(
-                value = vm.formComment,
-                onValueChange = vm::onFormCommentChange,
+                value = vm.form.comment,
+                onValueChange = vm.form::onCommentChange,
                 label = { Text(stringResource(R.string.comment_label)) },
                 placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
                 isError = commentInvalid,
@@ -366,9 +366,9 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 // TalkBack as part of the field.
                 supportingText = {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(vm.formErrorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
+                        Text(vm.form.errorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
                         // Only near the limit: an always-on 0/500 is noise in a form opened daily.
-                        if (vm.formComment.length > TX_COMMENT_MAX - 100) Text("${vm.formComment.length}/$TX_COMMENT_MAX")
+                        if (vm.form.comment.length > TX_COMMENT_MAX - 100) Text("${vm.form.comment.length}/$TX_COMMENT_MAX")
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -381,8 +381,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     items(vm.tags) { tag ->
                         androidx.compose.material3.FilterChip(
-                            selected = tag.id in vm.formSelectedTagIds,
-                            onClick = { vm.toggleFormTag(tag.id) },
+                            selected = tag.id in vm.form.selectedTagIds,
+                            onClick = { vm.form.toggleTag(tag.id) },
                             label = { Text(tag.name) },
                         )
                     }
@@ -391,17 +391,17 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             // Only the errors that do not belong to a visible field land here
             // now; everything else is marked on the field itself.
-            if (vm.formErrorField == null || vm.formErrorField == TxFormField.WALLET ||
-                vm.formErrorField == TxFormField.TARGET_WALLET || vm.formErrorField == TxFormField.CATEGORY ||
-                vm.formErrorField == TxFormField.DATE
+            if (vm.form.errorField == null || vm.form.errorField == TxFormField.WALLET ||
+                vm.form.errorField == TxFormField.TARGET_WALLET || vm.form.errorField == TxFormField.CATEGORY ||
+                vm.form.errorField == TxFormField.DATE
             ) {
-                vm.formErrorRes?.let { errorRes ->
+                vm.form.errorRes?.let { errorRes ->
                     Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
             Button(onClick = { submitHaptics.confirm(); vm.submitForm() }, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
+                Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.form.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
             }
         }
     }
@@ -425,7 +425,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
         horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
     ) {
         options.forEach { option ->
-            val isSelected = vm.formType == option.type
+            val isSelected = vm.form.type == option.type
             Row(
                 modifier = Modifier
                     .weight(1f)
@@ -440,7 +440,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
                     .semantics { selected = isSelected }
                     .clickable(role = Role.RadioButton) {
                         if (!isSelected) typeHaptics.tick()
-                        vm.onFormTypeChange(option.type)
+                        vm.form.onTypeChange(option.type)
                     }
                     .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.md),
                 horizontalArrangement = Arrangement.Center,
@@ -474,41 +474,41 @@ private data class TransactionTypeOption(
 @Composable
 private fun SplitPartsEditor(vm: FinanceViewModel, categories: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-        vm.formSplits.forEachIndexed { index, part ->
+        vm.form.splits.forEachIndexed { index, part ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 Box(Modifier.weight(1.3f)) {
                     DropdownField(
                         label = stringResource(R.string.tx_category),
                         options = categories,
                         selected = part.category.takeIf { it in categories } ?: categories.first(),
-                        onSelect = { vm.updateSplitPart(index, part.copy(category = it)) },
+                        onSelect = { vm.form.updateSplitPart(index, part.copy(category = it)) },
                     )
                 }
                 OutlinedTextField(
                     value = part.amountText,
-                    onValueChange = { vm.updateSplitPart(index, part.copy(amountText = it)) },
+                    onValueChange = { vm.form.updateSplitPart(index, part.copy(amountText = it)) },
                     label = { Text(currencySymbol(vm.formWalletCurrency)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { vm.removeSplitPart(index) }, modifier = Modifier.size(RytmDimens.TouchTarget)) {
+                IconButton(onClick = { vm.form.removeSplitPart(index) }, modifier = Modifier.size(RytmDimens.TouchTarget)) {
                     Icon(RytmIcons.Close, contentDescription = stringResource(R.string.split_remove))
                 }
             }
         }
-        vm.formSplitRemainder?.let { rest ->
-            val main = ua.rytm.app.ui.localizedDomainText(vm.formCategory ?: categories.first())
+        vm.form.splitRemainder?.let { rest ->
+            val main = ua.rytm.app.ui.localizedDomainText(vm.form.category ?: categories.first())
             Text(
                 stringResource(R.string.split_remainder, main, ua.rytm.app.ui.maskedAmount("${formatMoney(rest)} ${currencySymbol(vm.formWalletCurrency)}")),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (rest > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
             )
         }
-        TextButton(onClick = vm::addSplitPart, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+        TextButton(onClick = vm.form::addSplitPart, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
             Icon(RytmIcons.Add, contentDescription = null)
             Spacer(Modifier.width(RytmSpacing.sm))
-            Text(stringResource(if (vm.formSplits.isEmpty()) R.string.split_add else R.string.split_add_part))
+            Text(stringResource(if (vm.form.splits.isEmpty()) R.string.split_add else R.string.split_add_part))
         }
     }
 }

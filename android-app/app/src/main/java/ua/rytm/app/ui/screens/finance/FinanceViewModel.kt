@@ -85,51 +85,6 @@ class FinanceViewModel(
             }
         }
 
-        private const val DRAFT_KEY = "tx_draft"
-    }
-
-    /**
-     * The half-typed transaction survives process death, not just rotation.
-     *
-     * A ViewModel without a SavedStateHandle dies with its process, and
-     * Android OEMs kill backgrounded processes aggressively — losing a
-     * half-entered expense is exactly the kind of thing Play Console tracks
-     * as a quality signal. Only the draft is persisted (all Strings), never
-     * the loaded data, which is re-read from Room anyway.
-     */
-    private fun persistDraft() {
-        savedState[DRAFT_KEY] = arrayListOf(
-            if (sheetVisible) "1" else "0",
-            editingTxId.orEmpty(),
-            formType.name,
-            formWalletId,
-            formTargetWalletId,
-            formAmountText,
-            formCategory.orEmpty(),
-            formSubcategory.orEmpty(),
-            formDate,
-            formComment,
-            formSelectedTagIds.joinToString("\u001f"),
-            formSplits.joinToString("\u001d") { it.category + "\u001e" + it.amountText },
-        )
-    }
-
-    private fun restoreDraft() {
-        val saved: ArrayList<String> = savedState[DRAFT_KEY] ?: return
-        if (saved.size < 11) return
-        sheetVisible = saved[0] == "1"
-        editingTxId = saved[1].takeIf { it.isNotEmpty() }
-        formType = runCatching { TxType.valueOf(saved[2]) }.getOrDefault(TxType.EXPENSE)
-        formWalletId = saved[3]
-        formTargetWalletId = saved[4]
-        formAmountText = saved[5]
-        formCategory = saved[6].takeIf { it.isNotEmpty() }
-        formSubcategory = saved[7].takeIf { it.isNotEmpty() }
-        formDate = saved[8]
-        formComment = saved[9]
-        formSelectedTagIds = saved[10].split("\u001f").filter { it.isNotEmpty() }
-        formSplits = saved.getOrNull(11).orEmpty().split("\u001d").filter { it.isNotEmpty() }
-            .map { it.split("\u001e").let { p -> SplitPart(p[0], p.getOrElse(1) { "" }) } }
     }
 
     var wallets by mutableStateOf<List<Wallet>>(emptyList())
@@ -217,7 +172,6 @@ class FinanceViewModel(
     }
 
     init {
-        restoreDraft()
         viewModelScope.launch { runCatching { repository.seedIfEmpty() }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; markLoadFailed() } }
         repository.wallets.onEach { wallets = it; walletsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.transactions.onEach { transactions = it; transactionsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
@@ -317,8 +271,8 @@ class FinanceViewModel(
     /** A new income close to what last month's shifts earned: (expected, received − expected) in UAH. */
     val formSalaryMatch: Pair<Double, Double>?
         get() {
-            if (formType != TxType.INCOME || editingTxId != null) return null
-            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: return null
+            if (form.type != TxType.INCOME || form.editingTxId != null) return null
+            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: return null
             val expected = shiftOutlook.lastMonthEarned
             val uah = toUah(amount, formWalletCurrency)
             return if (SalaryAutopilot.matchesExpectedPay(uah, expected)) expected to (uah - expected) else null
@@ -353,16 +307,17 @@ class FinanceViewModel(
 
     val formShiftCost: Double?
         get() {
-            if (formType != TxType.EXPENSE) return null
+            if (form.type != TxType.EXPENSE) return null
             val pay = typicalShiftPay?.takeIf { it > 0 } ?: return null
-            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: return null
+            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: return null
             return toUah(amount, formWalletCurrency) / pay
         }
 
     /** Most used categories of the form's type over the last 90 days — one-tap picks above the dropdown. */
-    val formFrequentCategories: List<String> by derivedStateOf {
-        FinanceInsights.frequentCategories(transactions, formType, categoriesByType[formType].orEmpty().toSet(), today.minusDays(90))
-    }
+    val formFrequentCategories: List<String> by derivedStateOf { frequentCategoriesOf(form.type) }
+
+    private fun frequentCategoriesOf(type: TxType): List<String> =
+        FinanceInsights.frequentCategories(transactions, type, categoriesByType[type].orEmpty().toSet(), today.minusDays(90))
 
     /**
      * Shared profile, this month: income/expense per person who added the
@@ -395,70 +350,17 @@ class FinanceViewModel(
     // readTransactionForm()/addTransaction()/editTransaction() in
     // js/finance.js (FINANCE_SCREEN_SPEC.md §9). ----
 
-    var sheetVisible by mutableStateOf(false)
-        private set
-    var editingTxId by mutableStateOf<String?>(null)
-        private set
+    /** The new/edit sheet's draft (TransactionFormState). */
+    val form = TransactionFormState(
+        savedState,
+        categoriesOf = { categoriesByType[it].orEmpty() },
+        frequentOf = { frequentCategoriesOf(it) },
+        autoRules = { autoRules },
+        onMessage = { pendingMessage = it },
+    )
 
-    var formType by mutableStateOf(TxType.EXPENSE)
-        private set
-    var formWalletId by mutableStateOf("")
-        private set
-    var formTargetWalletId by mutableStateOf("")
-        private set
-    var formAmountText by mutableStateOf("")
-        private set
-    var formCategory by mutableStateOf<String?>(null)
-        private set
-    var formSubcategory by mutableStateOf<String?>(null)
-        private set
-    var formDate by mutableStateOf(LocalDate.now().toString())
-        private set
-    var formComment by mutableStateOf("")
-        private set
-    var formSelectedTagIds by mutableStateOf<List<String>>(emptyList())
-        private set
-    @get:StringRes
-    var formErrorRes by mutableStateOf<Int?>(null)
-    /** Which field [formErrorRes] belongs to, so the form can mark it. */
-    var formErrorField by mutableStateOf<TxFormField?>(null)
-        private set
     var isSaving by mutableStateOf(false)
         private set
-
-    /** Extra categories of a split entry (new income/expense only). Empty = an ordinary entry. */
-    var formSplits by mutableStateOf<List<SplitPart>>(emptyList())
-        private set
-
-    val canSplit: Boolean get() = editingTxId == null && formType != TxType.TRANSFER
-
-    fun addSplitPart() {
-        val cats = categoriesByType[formType].orEmpty()
-        val used = formSplits.map { it.category }.toSet() + listOfNotNull(formCategory)
-        formSplits = formSplits + SplitPart(cats.firstOrNull { it !in used } ?: cats.firstOrNull().orEmpty(), "")
-        formErrorRes = null; formErrorField = null
-        persistDraft()
-    }
-    fun updateSplitPart(index: Int, part: SplitPart) {
-        formSplits = formSplits.toMutableList().also { if (index in it.indices) it[index] = part.copy(amountText = part.amountText.filter { c -> c.isDigit() || c == '.' || c == ',' || c == ' ' }) }
-        formErrorRes = null; formErrorField = null
-        persistDraft()
-    }
-    fun removeSplitPart(index: Int) {
-        formSplits = formSplits.filterIndexed { i, _ -> i != index }
-        persistDraft()
-    }
-
-    /** What stays in the form's own category: total minus the parts; null without a split. */
-    val formSplitRemainder: Double? by derivedStateOf {
-        if (formSplits.isEmpty()) null
-        else (parseMoneyInput(formAmountText) ?: 0.0) - formSplits.sumOf { parseMoneyInput(it.amountText) ?: 0.0 }
-    }
-
-    fun toggleFormTag(id: String) {
-        formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
-        persistDraft()
-    }
 
     var pendingMessage by mutableStateOf<FinanceMessage?>(null)
         private set
@@ -468,117 +370,41 @@ class FinanceViewModel(
     var quickEntryOpen by mutableStateOf(false)
 
     fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null, type: TxType? = null) {
-        editingTxId = null
-        formType = type ?: when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
+        val txType = type ?: when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
         // A wallet named with the card's last digits ("ПУМБ 5536") wins; then same currency; then the first.
-        formWalletId = (prefill?.walletId?.let { id -> wallets.firstOrNull { it.id == id } }
+        val walletId = (prefill?.walletId?.let { id -> wallets.firstOrNull { it.id == id } }
             ?: walletForCard(prefill?.account, prefill?.bank)
             ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
-        formTargetWalletId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != formWalletId }
-            ?: wallets.firstOrNull { it.id != formWalletId } ?: wallets.getOrNull(1))?.id.orEmpty()
-        formAmountText = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
-        // The type's most-used category, not the alphabetically first one.
-        formCategory = formFrequentCategories.firstOrNull() ?: categoriesByType[formType]?.firstOrNull()
-        formSubcategory = null
-        formDate = LocalDate.now().toString()
-        formComment = ""
-        formSelectedTagIds = emptyList()
-        formSplits = emptyList()
-        formErrorRes = null
-        formErrorField = null
-        sheetVisible = true
-        persistDraft()
+        val targetId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != walletId }
+            ?: wallets.firstOrNull { it.id != walletId } ?: wallets.getOrNull(1))?.id.orEmpty()
+        val amount = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
+        form.openNew(txType, walletId, targetId, amount)
         // Through the normal setter so keyword auto-rules pick the category.
-        prefill?.comment?.let { onFormCommentChange(it) }
+        prefill?.comment?.let { form.onCommentChange(it) }
     }
 
     private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? =
         ua.rytm.app.bank.WalletMatcher.forCard(wallets, mask, bankPackage)
 
-    fun openEditTransactionSheet(tx: Transaction) {
-        editingTxId = tx.id
-        formType = tx.type
-        formWalletId = tx.walletId
-        formTargetWalletId = tx.targetWalletId ?: wallets.getOrNull(1)?.id.orEmpty()
-        formAmountText = if (tx.amount == tx.amount.toLong().toDouble()) tx.amount.toLong().toString() else tx.amount.toString()
-        formCategory = tx.category
-        formSubcategory = tx.subcategory
-        formDate = tx.date
-        formComment = tx.comment.orEmpty()
-        formSelectedTagIds = tx.tags
-        formSplits = emptyList()
-        formErrorRes = null
-        formErrorField = null
-        sheetVisible = true
-        persistDraft()
-    }
-
-    fun closeSheet() { sheetVisible = false; persistDraft() }
-
-    fun onFormTypeChange(type: TxType) {
-        formType = type
-        formCategory = formFrequentCategories.firstOrNull() ?: categoriesByType[type]?.firstOrNull()
-        formSubcategory = null
-        // Parts were picked from the other type's categories.
-        formSplits = emptyList()
-        persistDraft()
-    }
-
-    fun onFormWalletChange(id: String) { formWalletId = id; persistDraft() }
-    fun onFormTargetWalletChange(id: String) { formTargetWalletId = id; persistDraft() }
-    fun onFormAmountChange(text: String) {
-        // Pasted/hardware-keyboard text could put letters into the amount field.
-        formAmountText = text.filter { it.isDigit() || it == '.' || it == ',' || it == ' ' || it == ' ' }
-        formErrorRes = null
-        formErrorField = null
-        persistDraft()
-    }
-    fun onFormCategoryChange(category: String) {
-        formCategory = category
-        formSubcategory = null
-        persistDraft()
-    }
-    fun onFormSubcategoryChange(sub: String?) { formSubcategory = sub; persistDraft() }
-    fun onFormDateChange(date: String) { formDate = date; persistDraft() }
-    fun onFormCommentChange(text: String) {
-        if (text.length <= TX_COMMENT_MAX) {
-            formComment = text
-            if (formType != TxType.TRANSFER) {
-                val rule = autoRules.firstOrNull { it.type.equals(formType.name, true) && it.keyword.isNotEmpty() && text.lowercase().contains(it.keyword.lowercase()) }
-                if (rule != null && rule.category in categoriesByType[formType].orEmpty() && formCategory != rule.category) {
-                    formCategory = rule.category
-                    formSubcategory = null
-                    pendingMessage = FinanceMessage(R.string.transaction_auto_category, listOf(rule.category))
-                }
-            }
-        }
-        persistDraft()
-    }
-    fun setFormDateToday() { formDate = LocalDate.now().toString(); persistDraft() }
-    fun setFormAmount(value: Double) {
-        formAmountText = if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
-        formErrorRes = null
-        formErrorField = null
-        persistDraft()
-    }
+    fun openEditTransactionSheet(tx: Transaction) = form.openEdit(tx, wallets.getOrNull(1)?.id.orEmpty())
 
     val formWalletCurrency: String
-        get() = wallets.firstOrNull { it.id == formWalletId }?.currency ?: "UAH"
+        get() = wallets.firstOrNull { it.id == form.walletId }?.currency ?: "UAH"
 
     val formSubcategoryOptions: List<String>
-        get() = subcategoriesByKey[subKey(formType.name, formCategory.orEmpty())].orEmpty()
+        get() = subcategoriesByKey[subKey(form.type.name, form.category.orEmpty())].orEmpty()
 
     val formTransferHint: TransferHint?
         get() {
-            if (formType != TxType.TRANSFER) return null
-            if (formWalletId.isBlank() || formTargetWalletId.isBlank()) return null
-            if (formWalletId == formTargetWalletId) return TransferHint(isWarning = true)
+            if (form.type != TxType.TRANSFER) return null
+            if (form.walletId.isBlank() || form.targetWalletId.isBlank()) return null
+            if (form.walletId == form.targetWalletId) return TransferHint(isWarning = true)
             val srcCur = formWalletCurrency
-            val targetCur = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
+            val targetCur = wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH"
             // Same currency: "1,00 UAH -> 1,00 UAH" says nothing.
             if (srcCur == targetCur) return null
-            val amount = parseMoneyInput(formAmountText)?.takeIf { it > 0 } ?: 1.0
+            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
@@ -593,43 +419,43 @@ class FinanceViewModel(
     val formBalanceAfter: FormBalanceAfter? by derivedStateOf { computeFormBalanceAfter() }
 
     private fun computeFormBalanceAfter(): FormBalanceAfter? {
-            if (formWalletId.isBlank()) return null
-            val isTransfer = formType == TxType.TRANSFER
-            if (isTransfer && (formTargetWalletId.isBlank() || formTargetWalletId == formWalletId)) return null
-            val amount = parseMoneyInput(formAmountText)?.takeIf { it.isFinite() && it >= 0 } ?: 0.0
+            if (form.walletId.isBlank()) return null
+            val isTransfer = form.type == TxType.TRANSFER
+            if (isTransfer && (form.targetWalletId.isBlank() || form.targetWalletId == form.walletId)) return null
+            val amount = parseMoneyInput(form.amountText)?.takeIf { it.isFinite() && it >= 0 } ?: 0.0
             val srcCur = formWalletCurrency
-            val targetCur = if (isTransfer) wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH" else null
-            val existing = editingTxId?.let { id -> transactions.firstOrNull { it.id == id } }
+            val targetCur = if (isTransfer) wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH" else null
+            val existing = form.editingTxId?.let { id -> transactions.firstOrNull { it.id == id } }
             val draft = Transaction(
-                id = existing?.id ?: "__draft__", type = formType, amount = amount, currency = srcCur,
-                date = formDate, walletId = formWalletId, category = "",
-                targetWalletId = if (isTransfer) formTargetWalletId else null,
+                id = existing?.id ?: "__draft__", type = form.type, amount = amount, currency = srcCur,
+                date = form.date, walletId = form.walletId, category = "",
+                targetWalletId = if (isTransfer) form.targetWalletId else null,
                 targetAmount = targetCur?.let { convertSample(amount, srcCur, it) }, targetCurrency = targetCur,
                 createdAt = existing?.createdAt ?: Long.MAX_VALUE,
             )
             return FormBalanceAfter(
-                source = FinanceRepository.balanceAfter(transactions, formWalletId, draft),
+                source = FinanceRepository.balanceAfter(transactions, form.walletId, draft),
                 sourceCurrency = srcCur,
-                target = targetCur?.let { FinanceRepository.balanceAfter(transactions, formTargetWalletId, draft) },
+                target = targetCur?.let { FinanceRepository.balanceAfter(transactions, form.targetWalletId, draft) },
                 targetCurrency = targetCur,
             )
     }
 
     fun submitForm() {
         if (isSaving) return
-        val amount = parseMoneyInput(formAmountText) ?: Double.NaN
-        val isTransfer = formType == TxType.TRANSFER
+        val amount = parseMoneyInput(form.amountText) ?: Double.NaN
+        val isTransfer = form.type == TxType.TRANSFER
         val draft = TransactionDraft(
             amount = amount,
-            date = formDate,
-            walletId = formWalletId,
-            targetWalletId = if (isTransfer) formTargetWalletId else null,
-            category = if (isTransfer) BuiltinCategories.TRANSFER else formCategory,
-            subcategory = if (isTransfer) null else formSubcategory,
-            comment = formComment.trim(),
+            date = form.date,
+            walletId = form.walletId,
+            targetWalletId = if (isTransfer) form.targetWalletId else null,
+            category = if (isTransfer) BuiltinCategories.TRANSFER else form.category,
+            subcategory = if (isTransfer) null else form.subcategory,
+            comment = form.comment.trim(),
         )
         val error = validateTransactionDraft(draft, isTransfer)
-        if (error != null) { formErrorField = error.field; formErrorRes = when (error) {
+        if (error != null) { form.showError(error.field, when (error) {
             TxValidationError.INVALID_AMOUNT -> R.string.validation_invalid_amount
             TxValidationError.AMOUNT_TOO_LARGE -> R.string.validation_amount_too_large
             TxValidationError.DATE_REQUIRED -> R.string.validation_date_required
@@ -638,13 +464,12 @@ class FinanceViewModel(
             TxValidationError.COMMENT_TOO_LONG -> R.string.validation_comment_too_long
             TxValidationError.CATEGORY_TOO_LONG -> R.string.validation_category_too_long
             TxValidationError.SAME_WALLETS -> R.string.validation_same_wallets
-        }; return }
+        }); return }
 
-        val splitParts = if (canSplit) formSplits else emptyList()
+        val splitParts = if (form.canSplit) form.splits else emptyList()
         val splitAmounts = splitParts.map { parseMoneyInput(it.amountText) ?: Double.NaN }
         if (splitParts.isNotEmpty() && (splitAmounts.any { !(it > 0) } || !(amount - splitAmounts.sum() > 0))) {
-            formErrorField = TxFormField.AMOUNT
-            formErrorRes = R.string.split_invalid
+            form.showError(TxFormField.AMOUNT, R.string.split_invalid)
             return
         }
 
@@ -652,25 +477,25 @@ class FinanceViewModel(
         var targetAmount: Double? = null
         var targetCurrency: String? = null
         if (isTransfer) {
-            targetCurrency = wallets.firstOrNull { it.id == formTargetWalletId }?.currency ?: "UAH"
+            targetCurrency = wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH"
             targetAmount = convertSample(amount, srcCur, targetCurrency)
         }
 
-        val editingId = editingTxId
+        val editingId = form.editingTxId
         val existing = editingId?.let { id -> transactions.firstOrNull { it.id == id } }
         val me = auth.currentUser
         val toSave = (existing ?: Transaction(
-            id = java.util.UUID.randomUUID().toString(), type = formType, amount = amount, date = formDate, walletId = formWalletId, category = draft.category ?: BuiltinCategories.OTHER,
+            id = java.util.UUID.randomUUID().toString(), type = form.type, amount = amount, date = form.date, walletId = form.walletId, category = draft.category ?: BuiltinCategories.OTHER,
             createdBy = me?.uid,
             createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
         )).copy(
-            type = formType, amount = amount - splitAmounts.sum(), currency = srcCur,
+            type = form.type, amount = amount - splitAmounts.sum(), currency = srcCur,
             category = draft.category ?: BuiltinCategories.OTHER, subcategory = draft.subcategory,
-            walletId = formWalletId,
-            targetWalletId = if (isTransfer) formTargetWalletId else null,
+            walletId = form.walletId,
+            targetWalletId = if (isTransfer) form.targetWalletId else null,
             targetAmount = targetAmount, targetCurrency = targetCurrency,
-            date = formDate, comment = draft.comment.ifBlank { null },
-            tags = formSelectedTagIds,
+            date = form.date, comment = draft.comment.ifBlank { null },
+            tags = form.selectedTagIds,
         )
         isSaving = true
         viewModelScope.launch {
@@ -717,11 +542,9 @@ class FinanceViewModel(
                     )
                     if (shares.isNotEmpty()) salaryAllocation = SalaryAllocation(toSave.walletId, toSave.currency, shares, toSave.comment)
                 }
-                formSplits = emptyList()
-                sheetVisible = false
+                form.finishSaved()
             }.onFailure {
-                formErrorField = null
-                formErrorRes = R.string.transaction_save_failed
+                form.showError(null, R.string.transaction_save_failed)
             }
             isSaving = false
         }

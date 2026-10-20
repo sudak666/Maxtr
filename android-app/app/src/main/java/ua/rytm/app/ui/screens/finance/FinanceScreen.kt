@@ -502,7 +502,7 @@ fun FinanceScreen(
         }
     }
 
-    if (viewModel.sheetVisible) {
+    if (viewModel.form.sheetVisible) {
         TransactionFormSheet(viewModel)
     }
     if (toolsSheetOpen) {
