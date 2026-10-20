@@ -572,4 +572,10 @@
     <string name="salary_allocation_skip">Не зараз</string>
     <string name="salary_allocated">Переведено на цілі: %1$s ₴</string>
     <string name="receipt_scan_short">Чек</string>
+    <string name="split_add">Розділити на категорії</string>
+    <string name="split_add_part">Ще категорія</string>
+    <string name="split_remove">Прибрати частину</string>
+    <string name="split_remainder">Решта в «%1$s»: %2$s</string>
+    <string name="split_invalid">Частини мають бути більші за 0 і разом менші за суму</string>
+    <string name="split_saved">Збережено операцій: %1$d</string>
 </resources>

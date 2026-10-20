@@ -562,4 +562,10 @@
     <string name="salary_allocation_skip">Not now</string>
     <string name="salary_allocated">Moved to goals: %1$s ₴</string>
     <string name="receipt_scan_short">Receipt</string>
+    <string name="split_add">Split into categories</string>
+    <string name="split_add_part">Another category</string>
+    <string name="split_remove">Remove part</string>
+    <string name="split_remainder">Rest in “%1$s”: %2$s</string>
+    <string name="split_invalid">Parts must be above 0 and add up to less than the total</string>
+    <string name="split_saved">Transactions saved: %1$d</string>
 </resources>

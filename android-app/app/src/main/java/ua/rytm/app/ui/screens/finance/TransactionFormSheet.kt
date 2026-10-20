@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -94,6 +96,8 @@ import ua.rytm.app.ui.icons.ArrowUpward
 import ua.rytm.app.ui.icons.CameraAlt
 import ua.rytm.app.ui.icons.DocumentScanner
 import ua.rytm.app.ui.icons.Mic
+import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.PhotoLibrary
 import ua.rytm.app.ui.icons.SwapHoriz
 
@@ -346,6 +350,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         onSelect = { vm.onFormSubcategoryChange(it.takeIf { s -> s != "—" }) },
                     )
                 }
+                if (vm.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
             }
 
             DatePickerField(value = vm.formDate, onValueChange = vm::onFormDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
@@ -461,6 +466,53 @@ private data class TransactionTypeOption(
 )
 
 /** "Баланс після: 417,09 ₴" under a wallet field, as a bank statement shows it. */
+/**
+ * One receipt, several categories: each part becomes its own entry with the
+ * same date/wallet/comment/tags; the form's own category keeps the rest.
+ * Plain entries on purpose — no new field, so the PWA and old builds read them as-is.
+ */
+@Composable
+private fun SplitPartsEditor(vm: FinanceViewModel, categories: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        vm.formSplits.forEachIndexed { index, part ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                Box(Modifier.weight(1.3f)) {
+                    DropdownField(
+                        label = stringResource(R.string.tx_category),
+                        options = categories,
+                        selected = part.category.takeIf { it in categories } ?: categories.first(),
+                        onSelect = { vm.updateSplitPart(index, part.copy(category = it)) },
+                    )
+                }
+                OutlinedTextField(
+                    value = part.amountText,
+                    onValueChange = { vm.updateSplitPart(index, part.copy(amountText = it)) },
+                    label = { Text(currencySymbol(vm.formWalletCurrency)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = { vm.removeSplitPart(index) }, modifier = Modifier.size(RytmDimens.TouchTarget)) {
+                    Icon(RytmIcons.Close, contentDescription = stringResource(R.string.split_remove))
+                }
+            }
+        }
+        vm.formSplitRemainder?.let { rest ->
+            val main = ua.rytm.app.ui.localizedDomainText(vm.formCategory ?: categories.first())
+            Text(
+                stringResource(R.string.split_remainder, main, ua.rytm.app.ui.maskedAmount("${formatMoney(rest)} ${currencySymbol(vm.formWalletCurrency)}")),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (rest > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+            )
+        }
+        TextButton(onClick = vm::addSplitPart, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+            Icon(RytmIcons.Add, contentDescription = null)
+            Spacer(Modifier.width(RytmSpacing.sm))
+            Text(stringResource(if (vm.formSplits.isEmpty()) R.string.split_add else R.string.split_add_part))
+        }
+    }
+}
+
 @Composable
 private fun BalanceAfterLine(balance: Double, currency: String) {
     val sign = if (balance < 0) "−" else ""
