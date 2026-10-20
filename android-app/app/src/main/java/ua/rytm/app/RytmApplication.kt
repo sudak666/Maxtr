@@ -121,6 +121,7 @@ class RytmApplication : Application() {
     val recurringSyncRepository: RecurringSyncRepository by lazy { RecurringSyncRepository(database, FirebaseFirestore.getInstance()) }
     val goalsSyncRepository: GoalsSyncRepository by lazy { GoalsSyncRepository(database, FirebaseFirestore.getInstance()) }
     val currencyRatesSyncRepository: CurrencyRatesSyncRepository by lazy { CurrencyRatesSyncRepository(database, FirebaseFirestore.getInstance()) }
+    val transactionsCsvRepository: ua.rytm.app.data.TransactionsCsvRepository by lazy { ua.rytm.app.data.TransactionsCsvRepository(database, FirebaseFirestore.getInstance()) }
     /** Process-lifetime scope for work that must outlive any single screen. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 

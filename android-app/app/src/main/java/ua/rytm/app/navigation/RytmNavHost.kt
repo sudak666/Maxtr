@@ -1,5 +1,7 @@
 package ua.rytm.app.navigation
 
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
@@ -43,7 +45,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,7 +106,7 @@ fun RytmNavHost() {
     val app = ua.rytm.app.ui.rytmApp()
     // Widget "+" → make sure the Finance tab is showing; FinanceScreen then
     // opens the new-transaction sheet and consumes the action.
-    val launchAction by app.pendingLaunchAction.collectAsState()
+    val launchAction by app.pendingLaunchAction.collectAsStateWithLifecycle()
     LaunchedEffect(launchAction) {
         if (launchAction in ua.rytm.app.MainActivity.FINANCE_ACTIONS &&
             navController.currentDestination?.route != RytmDestination.Finance.route
@@ -118,13 +119,13 @@ fun RytmNavHost() {
         }
     }
     val accountUid = FirebaseAuth.getInstance().currentUser?.uid
-    val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsState(initial = DEFAULT_PROFILE_ID)
-    val ownerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null)).collectAsState(initial = null)
+    val profileId by (accountUid?.let(app.activeProfileStore::activeProfileId) ?: flowOf(DEFAULT_PROFILE_ID)).collectAsStateWithLifecycle(initialValue = DEFAULT_PROFILE_ID)
+    val ownerUid by (accountUid?.let(app.activeProfileStore::activeProfileOwnerUid) ?: flowOf(null)).collectAsStateWithLifecycle(initialValue = null)
     // Starts read-only: a shared viewer briefly saw edit controls (FAB, swipe) before the role loaded.
     val canEdit by produceState(initialValue = false, accountUid, ownerUid, profileId) {
         value = accountUid?.let { app.profilesRepository.canEditProfile(it, ownerUid, profileId) } ?: false
     }
-    val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsState()
+    val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val reducedMotion = LocalReducedMotion.current
     val contentOffsetPx = with(LocalDensity.current) { 4.dp.roundToPx() }
@@ -424,7 +425,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
         // full row width instead of a fixed per-item share and can never
         // truncate, no matter how translations or font scale change later.
         if (selected) {
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(RytmSpacing.sm))
             Text(
                 stringResource(destination.labelRes),
                 style = MaterialTheme.typography.labelSmall,

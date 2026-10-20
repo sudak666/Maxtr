@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.layout.layout
 import android.net.Uri
 import androidx.annotation.StringRes
@@ -85,7 +87,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -166,11 +167,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val settingsViewModel: SettingsViewModel = viewModel()
     val csvImportPreview = settingsViewModel.csvImportPreview
     val csvBusy = settingsViewModel.csvBusy
-    val themePreference by app.settingsStore.themePreference.collectAsState(initial = ThemePreference.DARK)
-    val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
-    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsState(initial = false)
-    val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsState(initial = true)
-    val language by app.settingsStore.language.collectAsState(initial = "uk")
+    val themePreference by app.settingsStore.themePreference.collectAsStateWithLifecycle(initialValue = ThemePreference.DARK)
+    val hideAmounts by app.settingsStore.hideAmounts.collectAsStateWithLifecycle(initialValue = false)
+    val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsStateWithLifecycle(initialValue = false)
+    val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsStateWithLifecycle(initialValue = true)
+    val language by app.settingsStore.language.collectAsStateWithLifecycle(initialValue = "uk")
     val uid = authViewModel.currentUser?.uid
     val session = ua.rytm.app.ui.LocalSession.current
     val activeProfileId = session.profileId
@@ -201,7 +202,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     }
 
     val pushBusy = settingsViewModel.pushBusy
-    val pushEnabled by (if (uid != null) app.settingsStore.isPushEnabled(uid) else flowOf(false)).collectAsState(initial = false)
+    val pushEnabled by (if (uid != null) app.settingsStore.isPushEnabled(uid) else flowOf(false)).collectAsStateWithLifecycle(initialValue = false)
     val displayedPushEnabled = settingsViewModel.pendingPushEnabled ?: pushEnabled
     LaunchedEffect(pushEnabled) { settingsViewModel.settlePendingPush(pushEnabled) }
 
@@ -327,10 +328,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 end = RytmDimens.ContentHorizontal,
                 bottom = innerPadding.calculateBottomPadding() + RytmDimens.BottomContentClearance,
             ),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
         ) {
             item(key = "settings-title") {
-                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
+                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = RytmSpacing.lg, bottom = RytmSpacing.sm))
             }
 
             item(key = "settings-search") {
@@ -360,8 +361,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
             androidx.compose.foundation.lazy.LazyRow(
                 state = fadeState,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).fadingEdges(fadeState),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = RytmSpacing.sm).fadingEdges(fadeState),
+                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
             ) {
                 items(groups) { (key, label) ->
                     FilterChip(
@@ -505,13 +506,13 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 ThemePreferenceSelector(
                     selected = themePreference,
                     onSelect = settingsViewModel::setThemePreference,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(vertical = RytmSpacing.sm),
                 )
                 RoundedChoiceSelector(
                     labels = listOf(stringResource(R.string.settings_language_uk), stringResource(R.string.settings_language_en)),
                     selectedIndex = if (language == "en") 1 else 0,
                     onSelect = { settingsViewModel.setLanguage(if (it == 0) "uk" else "en") },
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(bottom = RytmSpacing.sm),
                 )
                 SettingsGroupCard {
                     SettingsToggleRow(
@@ -592,7 +593,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
                 ) {
                     Icon(RytmIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                     Text(stringResource(R.string.settings_search_empty), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

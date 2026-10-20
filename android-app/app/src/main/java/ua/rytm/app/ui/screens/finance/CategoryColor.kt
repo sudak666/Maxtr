@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.data.BuiltinCategories
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -190,7 +191,7 @@ private val CAT_ICON: Map<String, ImageVector> = mapOf(
         "Здоров'я" to RytmIcons.MonitorHeart,
         "Аптека" to RytmIcons.LocalPharmacy,
         "Цигарки" to RytmIcons.SmokingRooms,
-        "Внутрішній переказ" to RytmIcons.SwapHoriz,
+        BuiltinCategories.TRANSFER to RytmIcons.SwapHoriz,
     )
 
 // Keyword/substring match, tried after CAT_ICON's exact-name lookup and

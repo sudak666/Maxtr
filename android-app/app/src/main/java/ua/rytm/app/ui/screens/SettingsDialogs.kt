@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -156,7 +157,7 @@ fun PremiumDialog(onDismiss: () -> Unit) {
         },
         title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                 Text(stringResource(R.string.settings_premium_body))
                 PremiumPerkRow(RytmIcons.CheckCircle, GreenDark, stringResource(R.string.settings_premium_free_title), stringResource(R.string.settings_premium_free_body))
                 PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.settings_premium_forecast_title), stringResource(R.string.settings_premium_forecast_body))

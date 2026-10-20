@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,8 +84,8 @@ fun ProfilesManagerSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             RytmSheetTitle(stringResource(R.string.profiles_title), subtitle = stringResource(R.string.profiles_body))
 
@@ -96,7 +97,7 @@ fun ProfilesManagerSheet(
             }
 
             if (viewModel.loading) {
-                Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.lg), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             }
 
             viewModel.profiles.forEach { profile ->
@@ -115,7 +116,7 @@ fun ProfilesManagerSheet(
                 )
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
@@ -130,7 +131,7 @@ fun ProfilesManagerSheet(
             }
 
             Text(stringResource(R.string.profile_join_by_code), style = MaterialTheme.typography.labelLarge)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = joinCode,
                     onValueChange = { joinCode = it },
@@ -215,7 +216,7 @@ fun ProfilesManagerSheet(
             text = {
                 val members = viewModel.members
                 when {
-                    viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    viewModel.membersLoading -> Box(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.lg), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     members == null -> Text(stringResource(R.string.profile_members_not_shared))
                     else -> {
                         val currentUid = uid
@@ -223,7 +224,7 @@ fun ProfilesManagerSheet(
                         if (others.isEmpty()) {
                             Text(stringResource(R.string.profile_members_empty))
                         } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                                 others.forEach { memberUid ->
                                     val role = members.roles[memberUid] ?: "editor"
                                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -263,7 +264,7 @@ private fun ProfileRow(
 ) {
     if (renaming) {
         var text by remember(profile.id) { mutableStateOf(profile.name) }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.weight(1f), singleLine = true)
             IconButton(onClick = { onRename(text) }) { Icon(RytmIcons.Check, contentDescription = stringResource(R.string.action_save)) }
             IconButton(onClick = onCancelRename) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_cancel)) }
@@ -281,7 +282,7 @@ private fun ProfileRow(
         color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = if (isActive) 2.dp else 0.dp,
     ) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = RytmSpacing.md), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             // The "Перемкнути" TextButton + up to 4 IconButtons alongside
             // this column eat most of a narrow screen's width, and without

@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens
 
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +59,7 @@ fun BackupsSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val backups by remember(uid, profileId) { viewModel.backups(uid, profileId) }.collectAsState(initial = null)
+    val backups by remember(uid, profileId) { viewModel.backups(uid, profileId) }.collectAsStateWithLifecycle(initialValue = null)
     var pendingRestore by rememberSaveable { mutableStateOf<String?>(null) }
     val locale = LocalConfiguration.current.locales[0]
     val formatter = remember(locale) { DateTimeFormatter.ofPattern("d MMMM, HH:mm", locale) }
@@ -70,11 +71,11 @@ fun BackupsSheet(
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LazyColumn(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = RytmSpacing.xl),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
         ) {
             item(key = "header") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(bottom = 8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md), modifier = Modifier.padding(bottom = RytmSpacing.sm)) {
                     RytmSheetTitle(stringResource(R.string.settings_backups_title), subtitle = stringResource(R.string.backups_body))
                     Button(
                         onClick = { viewModel.createBackup(profileId) },
@@ -93,14 +94,14 @@ fun BackupsSheet(
             val list = backups
             when {
                 list == null -> item(key = "loading") {
-                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    Box(Modifier.fillMaxWidth().padding(RytmSpacing.xxl), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 }
                 list.isEmpty() -> item(key = "empty") {
                     Text(
                         stringResource(R.string.backups_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 16.dp),
+                        modifier = Modifier.padding(vertical = RytmSpacing.lg),
                     )
                 }
                 else -> items(list, key = { it.id }) { b ->
@@ -113,7 +114,7 @@ fun BackupsSheet(
                     )
                 }
             }
-            item(key = "bottom-space") { Box(Modifier.padding(bottom = 16.dp)) }
+            item(key = "bottom-space") { Box(Modifier.padding(bottom = RytmSpacing.lg)) }
         }
     }
 
@@ -145,9 +146,9 @@ private fun BackupRow(title: String, subtitle: String, restoring: Boolean, enabl
     Row(
         Modifier.fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(RytmRadii.Row))
-            .padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+            .padding(start = RytmSpacing.md, end = RytmSpacing.xs, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
     ) {
         Box(Modifier.size(38.dp).background(accent.copy(alpha = 0.14f), CircleShape), contentAlignment = Alignment.Center) {
             Icon(RytmIcons.CloudDone, contentDescription = null, tint = accent, modifier = Modifier.size(20.dp))
@@ -157,7 +158,7 @@ private fun BackupRow(title: String, subtitle: String, restoring: Boolean, enabl
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (restoring) {
-            CircularProgressIndicator(Modifier.padding(horizontal = 16.dp).size(20.dp), strokeWidth = 2.dp)
+            CircularProgressIndicator(Modifier.padding(horizontal = RytmSpacing.lg).size(20.dp), strokeWidth = 2.dp)
         } else {
             TextButton(onClick = onRestore, enabled = enabled) { Text(stringResource(R.string.backups_restore)) }
         }

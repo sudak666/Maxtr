@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.debt
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -78,7 +79,7 @@ fun DebtForecastCard(debt: Debt) {
             val burndownSummary = stringResource(R.string.debt_forecast_title) + ": " + seriesLabels.joinToString(", ")
             DebtBurndownCanvas(
                 series,
-                modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = 12.dp, bottom = 8.dp)
+                modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = RytmSpacing.md, bottom = RytmSpacing.sm)
                     .semantics { contentDescription = burndownSummary },
             )
             when {

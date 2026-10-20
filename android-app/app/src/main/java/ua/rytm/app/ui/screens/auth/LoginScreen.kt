@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens.auth
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.core.net.toUri
 
 import android.content.Intent
@@ -104,7 +105,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
         },
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).safeDrawingPadding().padding(24.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).safeDrawingPadding().padding(RytmSpacing.xxl),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -141,7 +142,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                 shape = RoundedCornerShape(RytmRadii.AuthCard),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
-                Column(modifier = Modifier.padding(horizontal = 22.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 22.dp, vertical = RytmSpacing.xxl), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                     Button(
                         onClick = { viewModel.signInWithGoogle(context) },
                         enabled = !viewModel.isSigningIn,
@@ -298,7 +299,7 @@ private fun AuthModeTab(label: String, selected: Boolean, enabled: Boolean, modi
         enabled = enabled,
         modifier = modifier.heightIn(min = 38.dp).padding(horizontal = 6.dp),
         shape = RoundedCornerShape(RytmRadii.Pill),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm),
         colors = ButtonDefaults.buttonColors(
             // Neutral selected pill (iOS segmented-control style): a purple
             // fill here competed with the Google and submit CTAs above/below it.

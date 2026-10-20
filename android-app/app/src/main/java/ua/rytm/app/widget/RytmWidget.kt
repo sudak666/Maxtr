@@ -95,6 +95,9 @@ private val Bg = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF242327
 // Same neutral surfaces as the app theme (LightBg/DarkBg2), not a lavender tint.
 private val Tile = ColorProvider(day = Color(0xFFF4F3F1), night = Color(0xFF2C2B30))
 private val OnBg = ColorProvider(day = Color(0xFF1C1C1E), night = Color(0xFFE9E8EA))
+// Smallest text on the widget: 12sp is the readable floor on a launcher (11sp
+// became illegible on the A51 at a large system font).
+private val WidgetCaptionSize = 12.sp
 private val Muted = ColorProvider(day = Color(0xFF626269), night = Color(0xFF98979E))
 private val Accent = ColorProvider(day = Color(0xFF7C3AED), night = Color(0xFF8B5CF6))
 private val Track = ColorProvider(day = Color(0xFFE2E0DD), night = Color(0xFF38373D))
@@ -139,7 +142,7 @@ private fun WidgetContent(s: WidgetSnapshot) {
             return@Column
         }
         Spacer(GlanceModifier.height(if (compact) 4.dp else 8.dp))
-        Text(context.getString(R.string.widget_balance), style = TextStyle(color = Muted, fontSize = 12.sp))
+        Text(context.getString(R.string.widget_balance), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize))
         Text(
             if (s.masked) MASK else context.getString(R.string.money_uah, formatMoney(s.balanceUah)),
             style = TextStyle(color = OnBg, fontSize = if (compact) 22.sp else 28.sp, fontWeight = FontWeight.Bold),
@@ -191,7 +194,7 @@ private fun Header(newTx: Action?) {
 private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier) {
     val context = LocalContext.current
     Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
-        Text(context.getString(R.string.widget_next_shift), style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+        Text(context.getString(R.string.widget_next_shift), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
         Spacer(GlanceModifier.height(6.dp))
         if (shift == null) {
             Text(context.getString(R.string.widget_no_shift), style = TextStyle(color = OnBg, fontSize = 13.sp), maxLines = 2)
@@ -207,7 +210,7 @@ private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier
             Spacer(GlanceModifier.width(8.dp))
             Column {
                 Text(dayLabel(context, shift.date), style = TextStyle(color = OnBg, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
-                Text(shift.name, style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+                Text(shift.name, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
             }
         }
     }
@@ -219,7 +222,7 @@ private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
     val locale = context.resources.configuration.locales[0]
     val month = LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) }
     Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
-        Text(month, style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+        Text(month, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
         Spacer(GlanceModifier.height(6.dp))
         Text(
             if (s.masked) MASK else "≈ " + formatMoney(s.monthForecastUah),
@@ -237,7 +240,7 @@ private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
             )
             if (!s.masked) {
                 Spacer(GlanceModifier.height(4.dp))
-                Text(context.getString(R.string.widget_goal_pct, (pct * 100).toInt()), style = TextStyle(color = Muted, fontSize = 11.sp), maxLines = 1)
+                Text(context.getString(R.string.widget_goal_pct, (pct * 100).toInt()), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
             }
         }
     }
@@ -251,14 +254,14 @@ private fun WeekStrip(week: List<WidgetSnapshot.WeekDay>) {
     // drops the rest — inlined into the root these sections vanished.
     Column(GlanceModifier.fillMaxWidth()) {
     Spacer(GlanceModifier.height(14.dp))
-    Text(context.getString(R.string.widget_week), style = TextStyle(color = Muted, fontSize = 12.sp))
+    Text(context.getString(R.string.widget_week), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize))
     Spacer(GlanceModifier.height(6.dp))
     Row(GlanceModifier.fillMaxWidth()) {
         week.forEachIndexed { i, d ->
             Column(GlanceModifier.defaultWeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     d.date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT_STANDALONE, locale).take(2).replaceFirstChar { it.titlecase(locale) },
-                    style = TextStyle(color = if (i == 0) Accent else Muted, fontSize = 11.sp, fontWeight = if (i == 0) FontWeight.Bold else FontWeight.Normal),
+                    style = TextStyle(color = if (i == 0) Accent else Muted, fontSize = WidgetCaptionSize, fontWeight = if (i == 0) FontWeight.Bold else FontWeight.Normal),
                 )
                 Spacer(GlanceModifier.height(4.dp))
                 Box(
@@ -267,7 +270,7 @@ private fun WeekStrip(week: List<WidgetSnapshot.WeekDay>) {
                 ) {
                     Text(
                         d.code ?: d.date.dayOfMonth.toString(),
-                        style = TextStyle(color = if (d.code != null) White else Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(color = if (d.code != null) White else Muted, fontSize = WidgetCaptionSize, fontWeight = FontWeight.Bold),
                         maxLines = 1,
                     )
                 }
@@ -282,21 +285,21 @@ private fun RecentList(items: List<WidgetSnapshot.RecentTx>, masked: Boolean) {
     val context = LocalContext.current
     Column(GlanceModifier.fillMaxWidth()) {
     Spacer(GlanceModifier.height(14.dp))
-    Text(context.getString(R.string.widget_recent), style = TextStyle(color = Muted, fontSize = 12.sp))
+    Text(context.getString(R.string.widget_recent), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize))
     // One child per item (gap is the wrapper's top padding): a separate
     // Spacer made it 2 children per row and blew Glance's 10-child cap.
     items.forEach { t ->
         Column(GlanceModifier.fillMaxWidth().padding(top = 6.dp)) {
         Row(GlanceModifier.fillMaxWidth().height(34.dp).background(Tile).cornerRadius(12.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(GlanceModifier.defaultWeight()) {
-                Text(t.title, style = TextStyle(color = OnBg, fontSize = 12.sp, fontWeight = FontWeight.Medium), maxLines = 1)
+                Text(t.title, style = TextStyle(color = OnBg, fontSize = WidgetCaptionSize, fontWeight = FontWeight.Medium), maxLines = 1)
             }
             Spacer(GlanceModifier.width(8.dp))
             Text(
                 if (masked) MASK else t.signedAmount,
                 style = TextStyle(
                     color = if (!masked && t.signedAmount.startsWith("+")) Good else OnBg,
-                    fontSize = 12.sp,
+                    fontSize = WidgetCaptionSize,
                     fontWeight = FontWeight.Bold,
                 ),
                 maxLines = 1,

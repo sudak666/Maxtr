@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,14 +50,14 @@ fun SalaryAllocationSheet(plan: SalaryAllocation, wallets: List<Wallet>, onApply
     val symbol = currencySymbol(plan.currency)
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             RytmSheetTitle(stringResource(R.string.salary_allocation_title))
             Text(stringResource(R.string.salary_allocation_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             plan.shares.forEach { share ->
                 val wallet = wallets.firstOrNull { it.id == share.walletId }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     Checkbox(checked = selected[share.goalId] == true, onCheckedChange = { selected[share.goalId] = it })
                     Text(
                         wallet?.let { localizedDomainText(it.name) } ?: "—",
@@ -76,7 +77,7 @@ fun SalaryAllocationSheet(plan: SalaryAllocation, wallets: List<Wallet>, onApply
                     )
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                 TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) { Text(stringResource(R.string.salary_allocation_skip)) }
                 Button(
                     onClick = { onApply(chosen) },

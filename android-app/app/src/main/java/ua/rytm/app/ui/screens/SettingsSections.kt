@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -123,6 +124,6 @@ fun AboutSection(onOpenUrl: (String) -> Unit) {
         stringResource(R.string.settings_about_summary),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+        modifier = Modifier.padding(top = RytmSpacing.sm, bottom = RytmSpacing.xs),
     )
 }

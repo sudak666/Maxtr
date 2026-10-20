@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +26,6 @@ import ua.rytm.app.data.BackupCreateResult
 import ua.rytm.app.data.BackupException
 import ua.rytm.app.data.BackupInfo
 import ua.rytm.app.data.CsvImportPreview
-import ua.rytm.app.data.TransactionsCsvRepository
 
 /** A snackbar message, resolved by the screen so it follows the in-app language. */
 sealed interface SettingsMessage {
@@ -42,7 +40,7 @@ sealed interface SettingsMessage {
 // buttons disabled. viewModelScope outlives both.
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as RytmApplication
-    private val csvRepository by lazy { TransactionsCsvRepository(app.database, FirebaseFirestore.getInstance()) }
+    private val csvRepository get() = app.transactionsCsvRepository
 
     var message by mutableStateOf<SettingsMessage?>(null)
         private set

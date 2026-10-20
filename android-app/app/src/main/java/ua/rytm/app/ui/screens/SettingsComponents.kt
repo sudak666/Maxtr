@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import androidx.compose.ui.layout.layout
 import androidx.core.net.toUri
@@ -52,7 +53,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -161,7 +161,7 @@ internal fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subt
         border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.22f)),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(RytmSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -170,7 +170,7 @@ internal fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subt
                 contentAlignment = Alignment.Center,
             ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp)) }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     badge?.let {
                         Text(
@@ -178,7 +178,7 @@ internal fun PremiumPerkRow(icon: ImageVector, color: Color, title: String, subt
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = color,
-                            modifier = Modifier.background(color.copy(alpha = 0.14f), RoundedCornerShape(RytmRadii.Pill)).padding(horizontal = 8.dp, vertical = 3.dp),
+                            modifier = Modifier.background(color.copy(alpha = 0.14f), RoundedCornerShape(RytmRadii.Pill)).padding(horizontal = RytmSpacing.sm, vertical = 3.dp),
                         )
                     }
                 }
@@ -221,7 +221,7 @@ internal fun SettingsSectionLabel(text: String) {
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 20.dp, bottom = 6.dp),
+        modifier = Modifier.padding(top = RytmSpacing.xl, bottom = 6.dp),
     )
 }
 
@@ -234,7 +234,7 @@ internal fun SettingsSectionLabel(text: String) {
 @Composable
 internal fun SettingsGroupCard(content: @Composable SettingsRowScope.() -> Unit) {
     Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xs)) {
             SettingsRowScope.content()
         }
     }
@@ -336,7 +336,7 @@ internal fun ThemePreferenceSelector(
         Triple(ThemePreference.SYSTEM, RytmIcons.BrightnessAuto, stringResource(R.string.settings_theme_system)),
     )
     Card(modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Chart)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xs, vertical = RytmSpacing.xs)) {
             options.forEachIndexed { index, (pref, icon, label) ->
                 val isSelected = pref == selected
                 Row(
@@ -345,13 +345,13 @@ internal fun ThemePreferenceSelector(
                         .clip(RoundedCornerShape(RytmRadii.Control))
                         .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent)
                         .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(pref) }
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                        .padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.md),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SettingsIconBadge(icon, SettingsGroupColors.Appearance)
                     Text(
                         label,
-                        modifier = Modifier.padding(start = 12.dp).weight(1f),
+                        modifier = Modifier.padding(start = RytmSpacing.md).weight(1f),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     )
@@ -378,7 +378,7 @@ internal fun RoundedChoiceSelector(
     val shape = RoundedCornerShape(RytmRadii.Pill)
     Row(
         modifier.fillMaxWidth().clip(shape).background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape).padding(4.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape).padding(RytmSpacing.xs),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         labels.forEachIndexed { index, label ->
@@ -416,11 +416,11 @@ internal fun SettingsRowScope.SettingsRow(
     titleColor: Color = Color.Unspecified,
 ) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick).padding(horizontal = 12.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick).padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SettingsIconBadge(icon, badgeColor)
-        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+        Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -445,12 +445,12 @@ internal fun SettingsRowScope.SettingsToggleRow(
             enabled = enabled,
             role = Role.Switch,
             onValueChange = { on -> haptics.toggle(on); onCheckedChange(on) },
-        ).padding(horizontal = 12.dp, vertical = 12.dp),
+        ).padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         SettingsIconBadge(icon, badgeColor)
-        Column(Modifier.padding(start = 12.dp, end = 12.dp).weight(1f)) {
+        Column(Modifier.padding(start = RytmSpacing.md, end = RytmSpacing.md).weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.onboarding
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -99,7 +100,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             // which page you were on.
             val pageStatus = stringResource(R.string.onboarding_page_status, page + 1, pages.size)
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
                 modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = pageStatus },
             ) {
                 pages.indices.forEach { index ->
@@ -112,7 +113,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(if (compactHeight) 8.dp else 20.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 if (page > 0) {
                     OutlinedButton(
                         onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } },

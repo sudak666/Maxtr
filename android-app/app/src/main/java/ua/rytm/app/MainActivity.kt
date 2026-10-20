@@ -1,5 +1,6 @@
 package ua.rytm.app
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +65,7 @@ class MainActivity : FragmentActivity() {
             // Nullable initial on purpose (same reasoning as `hasPin` below):
             // committing to a theme before DataStore is read guaranteed a
             // dark first frame for every light-theme user.
-            val themePreference by app.settingsStore.themePreference.collectAsState(initial = null)
+            val themePreference by app.settingsStore.themePreference.collectAsStateWithLifecycle(initialValue = null)
             val systemDark = isSystemInDarkTheme()
             val darkTheme = when (themePreference) {
                 ThemePreference.LIGHT -> false
@@ -73,7 +73,7 @@ class MainActivity : FragmentActivity() {
                 ThemePreference.SYSTEM -> systemDark
                 null -> systemDark
             }
-            val hideAmounts by app.settingsStore.hideAmounts.collectAsState(initial = false)
+            val hideAmounts by app.settingsStore.hideAmounts.collectAsStateWithLifecycle(initialValue = false)
             var language by remember { mutableStateOf<String?>(null) }
             val reducedMotion = rememberReducedMotion()
             SideEffect {
@@ -147,8 +147,8 @@ class MainActivity : FragmentActivity() {
                         // would flash the real app content for a frame before a PIN
                         // gate kicks in — a real gap for a security feature. Render
                         // nothing until the read actually completes.
-                        val hasPin by pinViewModel.hasPin.collectAsState(initial = null)
-                        val onboardingComplete by app.settingsStore.onboardingComplete.collectAsState(initial = null)
+                        val hasPin by pinViewModel.hasPin.collectAsStateWithLifecycle(initialValue = null)
+                        val onboardingComplete by app.settingsStore.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
                         when {
                             onboardingComplete == null -> {}
                             onboardingComplete == false -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {

@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.shifts
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
@@ -98,7 +100,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -146,7 +147,7 @@ fun ShiftsScreen() {
         ),
     )
     val stats = viewModel.monthStats
-    val salaryGoal by app.settingsStore.salaryGoal(accountUid).collectAsState(initial = ua.rytm.app.data.local.DEFAULT_SALARY_GOAL)
+    val salaryGoal by app.settingsStore.salaryGoal(accountUid).collectAsStateWithLifecycle(initialValue = ua.rytm.app.data.local.DEFAULT_SALARY_GOAL)
     var editingGoal by rememberSaveable { mutableStateOf(false) }
     // Which sub-view Quick Fill's single sheet is currently showing -- see
     // the ModalBottomSheet block below for why this replaced a second,
@@ -181,12 +182,12 @@ fun ShiftsScreen() {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = 16.dp,
+            start = RytmSpacing.lg,
+            end = RytmSpacing.lg,
+            top = RytmSpacing.lg,
             bottom = RytmDimens.BottomContentClearance,
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
     ) {
         item { RealtimeStateBanner() }
         if (viewModel.loading) item { ScreenLoadingState() }
@@ -203,7 +204,7 @@ fun ShiftsScreen() {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 WeekdayHeaderRow()
                 CalendarGrid(viewModel, canEdit)
             }
@@ -249,7 +250,7 @@ fun ShiftsScreen() {
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
                     .imePadding()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm),
             ) {
                 // AnimatedContent, not a bare if/else swap. A raw if/else
                 // here (tried first) reproduced a real bug live: tapping
@@ -284,7 +285,7 @@ fun ShiftsScreen() {
                                     stringResource(R.string.shift_types_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(start = 4.dp),
+                                    modifier = Modifier.padding(start = RytmSpacing.xs),
                                 )
                             }
                             ShiftTypesManagerContent(shiftTypesViewModel, showTitle = false)
@@ -304,7 +305,7 @@ fun ShiftsScreen() {
     if (canEdit && dateKey != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         RytmModalBottomSheet(onDismissRequest = viewModel::closeDayModal, sheetState = sheetState) {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(RytmSpacing.xl), verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                 RytmSheetTitle(stringResource(R.string.shifts_choose))
                 // Was the raw `dateKey` (a "2026-08-25" ISO string) shown
                 // straight to the user.
@@ -333,7 +334,7 @@ fun ShiftsScreen() {
                         onToggle = { viewModel.toggleDayModalType(type.id) },
                     )
                 }
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.sm), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                     TextButton(onClick = viewModel::closeDayModal) { Text(stringResource(R.string.action_cancel)) }
                     TextButton(onClick = viewModel::saveDayModal) { Text(stringResource(R.string.action_done)) }
                 }

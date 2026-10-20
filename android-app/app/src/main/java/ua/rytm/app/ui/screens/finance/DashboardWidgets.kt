@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,9 +80,9 @@ fun FinanceDashboardWidget(key: String, app: RytmApplication) {
 
 @Composable
 private fun GoalsDashboardWidget(app: RytmApplication) {
-    val goals by app.financeRepository.goals.collectAsState(initial = emptyList())
-    val wallets by app.financeRepository.wallets.collectAsState(initial = emptyList())
-    val transactions by app.financeRepository.transactions.collectAsState(initial = emptyList())
+    val goals by app.financeRepository.goals.collectAsStateWithLifecycle(initialValue = emptyList())
+    val wallets by app.financeRepository.wallets.collectAsStateWithLifecycle(initialValue = emptyList())
+    val transactions by app.financeRepository.transactions.collectAsStateWithLifecycle(initialValue = emptyList())
     if (goals.isEmpty()) return
     WidgetCard(stringResource(R.string.widget_goals), RytmIcons.Flag, GreenDark) {
         goals.forEach { goal ->
@@ -190,10 +191,10 @@ private fun Sparkline(values: List<Double>, color: Color, modifier: Modifier) {
 @Composable
 private fun WidgetCard(title: String, icon: ImageVector, color: Color, content: @Composable () -> Unit) {
     Card(shape = RoundedCornerShape(RytmRadii.Chart)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))
-                Text(title, Modifier.padding(start = 8.dp), fontWeight = FontWeight.Bold)
+                Text(title, Modifier.padding(start = RytmSpacing.sm), fontWeight = FontWeight.Bold)
             }
             content()
         }

@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.components
 
+import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,7 @@ fun RytmSheetTitle(
     subtitle: String? = null,
     centered: Boolean = false,
 ) {
-    Column(modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalAlignment = if (centered) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start) {
+    Column(modifier.fillMaxWidth().padding(bottom = RytmSpacing.xs), horizontalAlignment = if (centered) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start) {
         Text(
             text,
             style = MaterialTheme.typography.headlineSmall,

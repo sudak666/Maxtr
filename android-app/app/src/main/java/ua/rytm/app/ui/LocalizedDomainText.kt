@@ -1,5 +1,6 @@
 package ua.rytm.app.ui
 
+import ua.rytm.app.data.BuiltinCategories
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -20,8 +21,8 @@ fun builtInTextResource(value: String): Int? = when (value) {
     "Комунальні", "Utilities" -> R.string.builtin_category_utilities
     "Здоров'я", "Health" -> R.string.builtin_category_health
     "Розваги", "Entertainment" -> R.string.builtin_category_entertainment
-    "Інше", "Other" -> R.string.builtin_category_other
-    "Внутрішній переказ", "Internal transfer" -> R.string.builtin_category_transfer
+    BuiltinCategories.OTHER, "Other" -> R.string.builtin_category_other
+    BuiltinCategories.TRANSFER, "Internal transfer" -> R.string.builtin_category_transfer
     "Денна зміна", "Day shift" -> R.string.builtin_shift_day
     "Нічна зміна", "Night shift" -> R.string.builtin_shift_night
     "Вихідний", "Day off" -> R.string.builtin_shift_day_off

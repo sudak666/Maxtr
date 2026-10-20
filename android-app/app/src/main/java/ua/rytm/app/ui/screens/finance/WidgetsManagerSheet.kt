@@ -1,4 +1,6 @@
 package ua.rytm.app.ui.screens.finance
+import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.ui.semantics.contentDescription
@@ -38,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.zIndex
 import ua.rytm.app.ui.theme.RytmDimens
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,7 +74,7 @@ private val widgetDefs = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSettingsSyncRepository, uid: String, profileId: String, onDismiss: () -> Unit) {
-    val config by settingsStore.financeWidgets.collectAsState(initial = FinanceWidgetsConfig(emptySet(), emptyList()))
+    val config by settingsStore.financeWidgets.collectAsStateWithLifecycle(initialValue = FinanceWidgetsConfig(emptySet(), emptyList()))
     val scope = rememberCoroutineScope()
     var syncError by rememberSaveable { mutableStateOf(false) }
     var busy by rememberSaveable { mutableStateOf(false) }
@@ -102,7 +103,7 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
     if (draggingKey == null) localOrder = config.order
 
     RytmModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             RytmSheetTitle(stringResource(R.string.widgets_title), subtitle = stringResource(R.string.widgets_body))
             localOrder.mapNotNull { key -> widgetDefs.firstOrNull { it.key == key } }.forEach { item ->
                 key(item.key) {
@@ -110,14 +111,14 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                     val rowModifier = if (isDragging) {
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = RytmSpacing.sm)
                             .onSizeChanged { rowHeightPx = it.height.toFloat() }
                             .graphicsLayer { translationY = dragOffsetY }
                             .zIndex(1f)
                     } else {
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = RytmSpacing.sm)
                             .onSizeChanged { rowHeightPx = it.height.toFloat() }
                     }
                     Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
@@ -170,7 +171,7 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                         val enabled = item.key in config.enabled
                         val haptics = rememberRytmHaptics()
                         // The label toggles too — a tap on the row text did nothing before.
-                        Column(Modifier.weight(1f).clickable(role = androidx.compose.ui.semantics.Role.Switch) { haptics.toggle(!enabled); update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = 12.dp)) {
+                        Column(Modifier.weight(1f).clickable(role = androidx.compose.ui.semantics.Role.Switch) { haptics.toggle(!enabled); update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = RytmSpacing.md)) {
                             Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
                             Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
