@@ -77,6 +77,9 @@ class FinanceViewModelTest {
         .also { v -> waitUntil { v.wallets.size == 2 } }
 
     private fun FinanceViewModel.addExpense(walletId: String, amount: String, category: String = "Food") {
+        // submitForm() ignores a second save while the previous one is still
+        // finishing (isSaving) — Room can emit the row before that flag drops.
+        waitUntil { !isSaving }
         openNewTransactionSheet()
         onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
         onFormWalletChange(walletId)

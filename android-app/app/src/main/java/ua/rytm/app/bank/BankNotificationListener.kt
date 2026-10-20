@@ -14,6 +14,16 @@ import ua.rytm.app.R
 import ua.rytm.app.push.NOTIFICATION_CHANNEL_ID
 import ua.rytm.app.push.ensureNotificationChannel
 import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.TxType
+import ua.rytm.app.ui.builtInTextResource
+import ua.rytm.app.RytmApplication
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
 data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null, val walletId: String? = null)
@@ -102,12 +112,21 @@ class BankNotificationListener : NotificationListenerService() {
             )
         }
 
+        /** The activity intent that opens the form pre-filled from a suggestion's extras. */
+        fun formIntent(context: Context, extras: Intent): Intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            extras.extras?.let { putExtras(it) }
+            putExtra(MainActivity.EXTRA_LAUNCH_ACTION, MainActivity.ACTION_NEW_TRANSACTION)
+            removeExtra(BankQuickSaveReceiver.EXTRA_CATEGORY)
+            removeExtra(BankQuickSaveReceiver.EXTRA_NOTIFICATION_ID)
+        }
+
+        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
         private fun suggest(context: Context, s: BankSuggestion, id: Int, transfer: Boolean = false, targetAccount: String? = null, bank: String? = null, targetBank: String? = null) {
             if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
             ensureNotificationChannel(context)
-            val open = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                putExtra(MainActivity.EXTRA_LAUNCH_ACTION, MainActivity.ACTION_NEW_TRANSACTION)
+            val data = Intent().apply {
                 putExtra(EXTRA_PREFILL_INCOME, s.isIncome)
                 putExtra(EXTRA_PREFILL_AMOUNT, s.amount)
                 putExtra(EXTRA_PREFILL_CURRENCY, s.currency)
@@ -118,25 +137,50 @@ class BankNotificationListener : NotificationListenerService() {
                 putExtra(EXTRA_PREFILL_BANK, bank)
                 putExtra(EXTRA_PREFILL_TARGET_BANK, targetBank)
             }
-            val pending = PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val pending = PendingIntent.getActivity(context, id, formIntent(context, data), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val symbol = when (s.currency) { "USD" -> "$"; "EUR" -> "€"; else -> "₴" }
             val title = context.getString(
                 when { transfer -> R.string.bank_suggest_transfer; s.isIncome -> R.string.bank_suggest_income; else -> R.string.bank_suggest_expense },
                 "${formatMoney(s.amount)} $symbol",
             )
-            val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification_rytm) // the Rytm mark, not the reminder bell
-                .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
-                .setContentTitle(title)
-                .setContentText(s.merchant ?: s.account?.let { context.getString(R.string.bank_suggest_account, it) } ?: context.getString(R.string.bank_suggest_tap))
-                .setContentIntent(pending)
-                .setAutoCancel(true)
-                .build()
-            try {
-                NotificationManagerCompat.from(context).notify("bank", id, notification)
-            } catch (e: SecurityException) {
-                // POST_NOTIFICATIONS revoked — nothing to show.
+            val app = context.applicationContext as? RytmApplication
+            scope.launch {
+                // One-tap categories only where saving here can work: not for a
+                // transfer (two wallets to confirm), signed in, editable profile.
+                val quick = if (transfer || app == null) emptyList() else runCatching { quickCategoriesFor(app, s.isIncome) }.getOrDefault(emptyList())
+                val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_notification_rytm) // the Rytm mark, not the reminder bell
+                    .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
+                    .setContentTitle(title)
+                    .setContentText(s.merchant ?: s.account?.let { context.getString(R.string.bank_suggest_account, it) } ?: context.getString(R.string.bank_suggest_tap))
+                    .setContentIntent(pending)
+                    .setAutoCancel(true)
+                quick.forEachIndexed { i, category ->
+                    val save = Intent(context, BankQuickSaveReceiver::class.java).apply {
+                        action = BankQuickSaveReceiver.ACTION_SAVE
+                        putExtras(data)
+                        putExtra(BankQuickSaveReceiver.EXTRA_CATEGORY, category)
+                        putExtra(BankQuickSaveReceiver.EXTRA_NOTIFICATION_ID, id)
+                    }
+                    val savePending = PendingIntent.getBroadcast(context, id * 4 + i, save, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    builder.addAction(0, builtInTextResource(category)?.let(context::getString) ?: category, savePending)
+                }
+                try {
+                    NotificationManagerCompat.from(context).notify(BankQuickSaveReceiver.TAG, id, builder.build())
+                } catch (e: SecurityException) {
+                    // POST_NOTIFICATIONS revoked — nothing to show.
+                }
             }
+        }
+
+        private suspend fun quickCategoriesFor(app: RytmApplication, isIncome: Boolean): List<String> {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return emptyList()
+            val profileId = app.activeProfileStore.getActiveProfileId(uid)
+            val owner = app.activeProfileStore.getActiveProfileOwnerUid(uid)
+            if (!app.profilesRepository.canEditProfile(uid, owner, profileId)) return emptyList()
+            if (app.financeRepository.wallets.first().isEmpty()) return emptyList()
+            val cats = app.financeRepository.categoriesByType.first()[if (isIncome) TxType.INCOME else TxType.EXPENSE].orEmpty()
+            return BankQuickSaveReceiver.quickCategories(app.financeRepository.transactions.first(), cats, isIncome, LocalDate.now())
         }
     }
 }

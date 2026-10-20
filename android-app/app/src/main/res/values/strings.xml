@@ -583,4 +583,6 @@
     <string name="month_report_categories">Витрати за категоріями</string>
     <string name="month_report_entries">Операції (%1$d)</string>
     <string name="month_report_share">Поділитися PDF-звітом</string>
+    <string name="bank_quick_saved">Додано %1$s · %2$s</string>
+    <string name="bank_quick_failed">Не вдалося зберегти тут</string>
 </resources>

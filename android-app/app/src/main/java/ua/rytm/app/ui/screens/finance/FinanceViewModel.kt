@@ -301,7 +301,9 @@ class FinanceViewModel(
      * Shown as two separate facts, not folded into a projected balance: shift
      * pay often lands next month, so a single number would mislead.
      */
-    val monthOutlook: MonthOutlook by derivedStateOf {
+    // A plain getter on purpose: recurring is a short list, and derivedStateOf
+    // here went stale-forever when read off-composition in unit tests.
+    val monthOutlook: MonthOutlook get() = run {
         FinanceInsights.monthOutlook(recurring, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, shiftOutlook.remainingThisMonth, ::toUah)
     }
 
@@ -491,13 +493,8 @@ class FinanceViewModel(
         prefill?.comment?.let { onFormCommentChange(it) }
     }
 
-    /** Card digits in the name win ("ПУМБ 5536"); else the bank's name ("monobank"); mono pushes carry no card mask. */
-    private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? {
-        val digits = mask?.filter { it.isDigit() }?.takeIf { it.length >= 2 }
-        digits?.let { d -> wallets.firstOrNull { it.name.contains(d) }?.let { return it } }
-        val words = ua.rytm.app.bank.BankNotificationParser.bankWords(bankPackage)
-        return wallets.firstOrNull { w -> words.any { w.name.contains(it, ignoreCase = true) } }
-    }
+    private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? =
+        ua.rytm.app.bank.WalletMatcher.forCard(wallets, mask, bankPackage)
 
     fun openEditTransactionSheet(tx: Transaction) {
         editingTxId = tx.id
