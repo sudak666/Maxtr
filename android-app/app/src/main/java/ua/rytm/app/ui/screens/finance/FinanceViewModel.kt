@@ -301,7 +301,9 @@ class FinanceViewModel(
      * Shown as two separate facts, not folded into a projected balance: shift
      * pay often lands next month, so a single number would mislead.
      */
-    val monthOutlook: MonthOutlook by derivedStateOf {
+    // A plain getter on purpose: recurring is a short list, and derivedStateOf
+    // here went stale-forever when read off-composition in unit tests.
+    val monthOutlook: MonthOutlook get() = run {
         FinanceInsights.monthOutlook(recurring, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, shiftOutlook.remainingThisMonth, ::toUah)
     }
 
