@@ -573,4 +573,6 @@
     <string name="month_report_categories">Expenses by category</string>
     <string name="month_report_entries">Transactions (%1$d)</string>
     <string name="month_report_share">Share PDF report</string>
+    <string name="bank_quick_saved">Added %1$s · %2$s</string>
+    <string name="bank_quick_failed">Couldn’t save from here</string>
 </resources>

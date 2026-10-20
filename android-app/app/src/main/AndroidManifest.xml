@@ -71,6 +71,10 @@
         </service>
 
         <receiver
+            android:name=".bank.BankQuickSaveReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".widget.RytmWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_label">

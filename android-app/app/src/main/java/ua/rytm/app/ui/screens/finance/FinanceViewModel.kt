@@ -491,13 +491,8 @@ class FinanceViewModel(
         prefill?.comment?.let { onFormCommentChange(it) }
     }
 
-    /** Card digits in the name win ("ПУМБ 5536"); else the bank's name ("monobank"); mono pushes carry no card mask. */
-    private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? {
-        val digits = mask?.filter { it.isDigit() }?.takeIf { it.length >= 2 }
-        digits?.let { d -> wallets.firstOrNull { it.name.contains(d) }?.let { return it } }
-        val words = ua.rytm.app.bank.BankNotificationParser.bankWords(bankPackage)
-        return wallets.firstOrNull { w -> words.any { w.name.contains(it, ignoreCase = true) } }
-    }
+    private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? =
+        ua.rytm.app.bank.WalletMatcher.forCard(wallets, mask, bankPackage)
 
     fun openEditTransactionSheet(tx: Transaction) {
         editingTxId = tx.id
