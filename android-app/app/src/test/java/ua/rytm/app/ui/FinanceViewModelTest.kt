@@ -195,4 +195,40 @@ class FinanceViewModelTest {
         assertEquals(R.string.transaction_save_failed, vm.formErrorRes)
         assertTrue(runBlocking { db.transactionDao().getAllOnce() }.isEmpty())
     }
+
+    // One receipt, two categories: the part becomes its own entry, the form's category keeps the rest.
+    @Test fun splitSavesOneEntryPerPart() {
+        val v = vm()
+        v.openNewTransactionSheet()
+        v.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        v.onFormWalletChange("uah")
+        v.onFormAmountChange("1000")
+        v.onFormCategoryChange("Food")
+        v.onFormCommentChange("АТБ")
+        v.addSplitPart()
+        v.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "300"))
+        v.submitForm()
+        waitUntil { v.filteredTransactions.size == 2 }
+        val byCat = v.filteredTransactions.associateBy { it.category }
+        assertEquals(700.0, byCat.getValue("Food").amount, 0.001)
+        assertEquals(300.0, byCat.getValue("Home").amount, 0.001)
+        assertTrue(v.filteredTransactions.all { it.comment == "АТБ" && it.walletId == "uah" })
+        assertTrue(v.formSplits.isEmpty())
+    }
+
+    // Parts that eat the whole total are rejected and nothing is saved.
+    @Test fun splitRejectsPartsNotBelowTotal() {
+        val v = vm()
+        v.openNewTransactionSheet()
+        v.onFormTypeChange(ua.rytm.app.ui.screens.finance.TxType.EXPENSE)
+        v.onFormWalletChange("uah")
+        v.onFormAmountChange("100")
+        v.onFormCategoryChange("Food")
+        v.addSplitPart()
+        v.updateSplitPart(0, ua.rytm.app.ui.screens.finance.SplitPart("Home", "100"))
+        v.submitForm()
+        assertEquals(R.string.split_invalid, v.formErrorRes)
+        assertTrue(v.sheetVisible)
+    }
+
 }

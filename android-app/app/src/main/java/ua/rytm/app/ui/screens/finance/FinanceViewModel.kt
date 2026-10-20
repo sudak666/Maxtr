@@ -33,6 +33,8 @@ import ua.rytm.app.R
 data class TransferHint(val sourceText: String = "", val targetText: String = "", val isWarning: Boolean = false)
 /** Balance(s) right after the form's transaction; [target] is set only for a transfer. */
 data class FormBalanceAfter(val source: Double, val sourceCurrency: String, val target: Double?, val targetCurrency: String?)
+/** One extra category of a split entry; the form's own category takes the rest. */
+data class SplitPart(val category: String, val amountText: String)
 data class FinanceMessage(@StringRes val resource: Int, val arguments: List<Any> = emptyList())
 
 // Backed by Room via FinanceRepository (ANDROID_MIGRATION.md §2,
@@ -108,6 +110,7 @@ class FinanceViewModel(
             formDate,
             formComment,
             formSelectedTagIds.joinToString("\u001f"),
+            formSplits.joinToString("\u001d") { it.category + "\u001e" + it.amountText },
         )
     }
 
@@ -125,6 +128,8 @@ class FinanceViewModel(
         formDate = saved[8]
         formComment = saved[9]
         formSelectedTagIds = saved[10].split("\u001f").filter { it.isNotEmpty() }
+        formSplits = saved.getOrNull(11).orEmpty().split("\u001d").filter { it.isNotEmpty() }
+            .map { it.split("\u001e").let { p -> SplitPart(p[0], p.getOrElse(1) { "" }) } }
     }
 
     var wallets by mutableStateOf<List<Wallet>>(emptyList())
@@ -412,6 +417,35 @@ class FinanceViewModel(
     var isSaving by mutableStateOf(false)
         private set
 
+    /** Extra categories of a split entry (new income/expense only). Empty = an ordinary entry. */
+    var formSplits by mutableStateOf<List<SplitPart>>(emptyList())
+        private set
+
+    val canSplit: Boolean get() = editingTxId == null && formType != TxType.TRANSFER
+
+    fun addSplitPart() {
+        val cats = categoriesByType[formType].orEmpty()
+        val used = formSplits.map { it.category }.toSet() + listOfNotNull(formCategory)
+        formSplits = formSplits + SplitPart(cats.firstOrNull { it !in used } ?: cats.firstOrNull().orEmpty(), "")
+        formErrorRes = null; formErrorField = null
+        persistDraft()
+    }
+    fun updateSplitPart(index: Int, part: SplitPart) {
+        formSplits = formSplits.toMutableList().also { if (index in it.indices) it[index] = part.copy(amountText = part.amountText.filter { c -> c.isDigit() || c == '.' || c == ',' || c == ' ' }) }
+        formErrorRes = null; formErrorField = null
+        persistDraft()
+    }
+    fun removeSplitPart(index: Int) {
+        formSplits = formSplits.filterIndexed { i, _ -> i != index }
+        persistDraft()
+    }
+
+    /** What stays in the form's own category: total minus the parts; null without a split. */
+    val formSplitRemainder: Double? by derivedStateOf {
+        if (formSplits.isEmpty()) null
+        else (parseMoneyInput(formAmountText) ?: 0.0) - formSplits.sumOf { parseMoneyInput(it.amountText) ?: 0.0 }
+    }
+
     fun toggleFormTag(id: String) {
         formSelectedTagIds = if (id in formSelectedTagIds) formSelectedTagIds - id else formSelectedTagIds + id
         persistDraft()
@@ -441,6 +475,7 @@ class FinanceViewModel(
         formDate = LocalDate.now().toString()
         formComment = ""
         formSelectedTagIds = emptyList()
+        formSplits = emptyList()
         formErrorRes = null
         formErrorField = null
         sheetVisible = true
@@ -468,6 +503,7 @@ class FinanceViewModel(
         formDate = tx.date
         formComment = tx.comment.orEmpty()
         formSelectedTagIds = tx.tags
+        formSplits = emptyList()
         formErrorRes = null
         formErrorField = null
         sheetVisible = true
@@ -480,6 +516,8 @@ class FinanceViewModel(
         formType = type
         formCategory = formFrequentCategories.firstOrNull() ?: categoriesByType[type]?.firstOrNull()
         formSubcategory = null
+        // Parts were picked from the other type's categories.
+        formSplits = emptyList()
         persistDraft()
     }
 
@@ -598,6 +636,14 @@ class FinanceViewModel(
             TxValidationError.SAME_WALLETS -> R.string.validation_same_wallets
         }; return }
 
+        val splitParts = if (canSplit) formSplits else emptyList()
+        val splitAmounts = splitParts.map { parseMoneyInput(it.amountText) ?: Double.NaN }
+        if (splitParts.isNotEmpty() && (splitAmounts.any { !(it > 0) } || !(amount - splitAmounts.sum() > 0))) {
+            formErrorField = TxFormField.AMOUNT
+            formErrorRes = R.string.split_invalid
+            return
+        }
+
         val srcCur = formWalletCurrency
         var targetAmount: Double? = null
         var targetCurrency: String? = null
@@ -614,7 +660,7 @@ class FinanceViewModel(
             createdBy = me?.uid,
             createdByName = me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
         )).copy(
-            type = formType, amount = amount, currency = srcCur,
+            type = formType, amount = amount - splitAmounts.sum(), currency = srcCur,
             category = draft.category ?: BuiltinCategories.OTHER, subcategory = draft.subcategory,
             walletId = formWalletId,
             targetWalletId = if (isTransfer) formTargetWalletId else null,
@@ -628,6 +674,14 @@ class FinanceViewModel(
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.saveTransaction(ownerUid, profileId, toSave.toEntity())
                 repository.upsertTransaction(toSave)
+                splitParts.forEachIndexed { i, part ->
+                    val extra = toSave.copy(
+                        id = java.util.UUID.randomUUID().toString(), amount = splitAmounts[i],
+                        category = part.category, subcategory = null, createdAt = toSave.createdAt + i + 1,
+                    )
+                    syncRepository.saveTransaction(ownerUid, profileId, extra.toEntity())
+                    repository.upsertTransaction(extra)
+                }
             }.onSuccess {
                 val budgetFeedback = if (toSave.type == TxType.EXPENSE) {
                     budgetExceededFeedback(
@@ -643,6 +697,7 @@ class FinanceViewModel(
                 pendingMessage = budgetFeedback?.let {
                     FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoney(it.spent), formatMoney(it.limit)))
                 } ?: when {
+                    splitParts.isNotEmpty() -> FinanceMessage(R.string.split_saved, listOf(splitParts.size + 1))
                     existing != null -> FinanceMessage(R.string.transaction_updated)
                     isTransfer -> FinanceMessage(R.string.transaction_transfer_done)
                     else -> FinanceMessage(R.string.transaction_added)
@@ -658,6 +713,7 @@ class FinanceViewModel(
                     )
                     if (shares.isNotEmpty()) salaryAllocation = SalaryAllocation(toSave.walletId, toSave.currency, shares, toSave.comment)
                 }
+                formSplits = emptyList()
                 sheetVisible = false
             }.onFailure {
                 formErrorField = null

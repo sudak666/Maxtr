@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: split one entry into categories (2026-10-20)** — audit feature 1/4. New income/expense form: «Розділити на категорії» adds rows (category + amount); the form's own category keeps the rest («Решта в …», red when ≤0). Saving writes one ordinary transaction per part (same date/wallet/comment/tags/author, `createdAt` +1ms each so order is stable) — no new field, so the PWA and older builds read them unchanged. Parts survive process death (draft slot 11). Validation: every part >0 and parts < total, else `split_invalid` on the amount field. Not split-aware: the budget-exceeded toast checks only the main category's entry. Tests: `splitSavesOneEntryPerPart`, `splitRejectsPartsNotBelowTotal`.
+
 - **Android: audit fixes, engineering register (2026-10-20)** — from the owner-requested full audit, every item in its defect register:
   1. `collectAsState` → `collectAsStateWithLifecycle` everywhere (32 calls; new `lifecycle-runtime-compose` dep). Flows stop collecting in the background.
   2. FinanceViewModel: per-recomposition getters (`monthContributions`, `monthOutlook`, `monthIncome/ExpenseUah`, `totalBalanceUah`, `isMultiCurrency`, `formFrequentCategories`, `formBalanceAfter`) → `derivedStateOf`. A `today` state ticks once a minute so cached month totals roll over at midnight (they used `YearMonth.now()` inside getters before).
