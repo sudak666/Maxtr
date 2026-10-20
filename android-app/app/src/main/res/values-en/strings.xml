@@ -89,7 +89,7 @@
     <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
     <string name="transaction_balance_after">Balance after: %1$s</string>
     <string name="settings_balance_after">Balance after each operation</string>
-    <string name="settings_balance_after_subtitle">Wallet balance under every amount in the history</string>
+    <string name="settings_balance_after_subtitle">Wallet balance in history rows</string>
     <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
     <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
     <string name="validation_invalid_amount">Enter a valid amount</string><string name="validation_amount_too_large">Amount is too large</string>
@@ -307,13 +307,13 @@
     <string name="settings_reset_profile">Reset profile data</string>
     <string name="settings_reset_profile_subtitle">Clear data and start over</string>
     <string name="settings_delete_account">Delete account</string>
-    <string name="settings_delete_account_subtitle">Permanently deletes your data and account</string>
+    <string name="settings_delete_account_subtitle">Permanently deletes all data</string>
     <string name="settings_pin_subtitle">Protect the app with a code and biometrics</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_push">Push notifications</string>
-    <string name="settings_push_subtitle">Receive notifications on this device</string>
+    <string name="settings_push_subtitle">On this device</string>
     <string name="settings_notification_types">Notification types</string>
-    <string name="settings_notification_types_subtitle">Reminders, budgets, recurring payments, debts, family week</string>
+    <string name="settings_notification_types_subtitle">Reminders, budgets, payments and more</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
@@ -321,7 +321,7 @@
     <string name="settings_language_uk">Українська</string>
     <string name="settings_language_en">English</string>
     <string name="settings_hide_amounts">Hide amounts</string>
-    <string name="settings_hide_amounts_subtitle">Mask monetary values on every screen</string>
+    <string name="settings_hide_amounts_subtitle">Hide amounts on every screen</string>
     <string name="settings_offline_cache">Offline cache</string>
     <string name="settings_offline_cache_on">Data is available offline</string>
     <string name="settings_offline_cache_off">Local data is cleared after sign-out</string>
@@ -338,8 +338,8 @@
     <string name="settings_tags_subtitle">Labels for transactions</string>
     <string name="settings_goals_subtitle">Wallet savings goals</string>
     <string name="settings_widgets_subtitle">What appears on the Finance tab</string>
-    <string name="settings_recurring_subtitle">Create scheduled transactions automatically</string>
-    <string name="settings_auto_rules_subtitle">Choose a category from a comment keyword</string>
+    <string name="settings_recurring_subtitle">Entries on a schedule</string>
+    <string name="settings_auto_rules_subtitle">Category from a comment keyword</string>
     <string name="settings_shift_types_subtitle">Pay, hours, and colors for the shift calendar</string>
     <string name="settings_csv_export">Export CSV</string>
     <string name="settings_csv_export_subtitle">Save all financial transactions</string>
@@ -459,7 +459,7 @@
     <string name="widget_week">This week</string>
     <string name="widget_recent">Recent operations</string>
     <string name="settings_backups_title">Backups</string>
-    <string name="settings_backups_subtitle">Daily cloud copies, restore to a date</string>
+    <string name="settings_backups_subtitle">Daily copies, restore to a date</string>
     <string name="backups_body">Rytm saves a copy of this profile every day: the last 7, plus one per week for a month. Restoring replaces the current data, but the current state is saved as a copy first.</string>
     <string name="backups_create">Back up now</string>
     <string name="backups_empty">No backups yet. The first one appears overnight or when you tap the button above.</string>
@@ -506,7 +506,7 @@
     <string name="bank_listener_label">Rytm: transactions from bank notifications</string>
     <string name="bank_listener_title">Transactions from bank notifications</string>
     <string name="bank_listener_on">On: I suggest adding payments from bank pushes</string>
-    <string name="bank_listener_off">Off. Reads bank pushes only, sends nothing anywhere</string>
+    <string name="bank_listener_off">Off · data never leaves the phone</string>
     <string name="bank_suggest_expense">Add expense %1$s?</string>
     <string name="bank_suggest_income">Add income %1$s?</string>
     <string name="bank_suggest_tap">Tap to check and save</string>

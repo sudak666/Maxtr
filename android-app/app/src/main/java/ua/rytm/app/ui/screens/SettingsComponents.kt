@@ -421,7 +421,7 @@ internal fun SettingsRowScope.SettingsRow(
     ) {
         SettingsIconBadge(icon, badgeColor)
         Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = titleColor)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = titleColor)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
@@ -451,7 +451,7 @@ internal fun SettingsRowScope.SettingsToggleRow(
     ) {
         SettingsIconBadge(icon, badgeColor)
         Column(Modifier.padding(start = RytmSpacing.md, end = RytmSpacing.md).weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(

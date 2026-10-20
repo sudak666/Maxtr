@@ -6,6 +6,7 @@ import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -188,9 +189,10 @@ fun DebtScreen(
                         .pressScale(fabPress)
                         .shadow(10.dp, shape)
                         .clip(shape)
+                        // Brand color on every tab's primary action (design pass 2026-10-20).
                         .background(
                             if (collapse) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
-                            else Brush.linearGradient(listOf(ua.rytm.app.ui.theme.OrangeDark, ua.rytm.app.ui.theme.OrangeLight2)),
+                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
                         )
                         .clickable(interactionSource = fabPress, indication = androidx.compose.material3.ripple(), role = Role.Button, onClick = if (collapse) ::collapseHistory else viewModel::openNewEntrySheet)
                         .padding(horizontal = if (collapse || fabAtTop) 22.dp else 16.dp, vertical = 16.dp),
@@ -372,14 +374,10 @@ private fun HeroBalance(cd: Debt) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 16.dp,
-                shape = shape,
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-            )
-            .clip(shape)
-            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant))),
+            // Flat tonal surface + hairline (design pass 2026-10-20): a glow
+            // shadow on a dark background only muddies the card.
+            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape),
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

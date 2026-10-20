@@ -420,39 +420,46 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
         TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, RytmSemantic.expense),
         TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), RytmIcons.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
     )
+    // A segmented control (design pass 2026-10-20): one quiet track, only the
+    // selected segment filled. Three permanently tinted outlined buttons were
+    // loud, and the selected "Витрата" with its red 2dp border read as an error.
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(RytmRadii.Input))
+            .padding(RytmSpacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
     ) {
         options.forEach { option ->
             val isSelected = vm.form.type == option.type
+            val fill by androidx.compose.animation.animateColorAsState(
+                if (isSelected) option.color.copy(alpha = 0.18f) else Color.Transparent,
+                animationSpec = ua.rytm.app.ui.motionAwareSpec(androidx.compose.animation.core.tween(160)),
+                label = "segment",
+            )
+            val content = if (isSelected) option.color else MaterialTheme.colorScheme.onSurfaceVariant
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 52.dp)
-                    .clip(RoundedCornerShape(RytmRadii.Input))
-                    .background(option.color.copy(alpha = if (isSelected) 0.20f else 0.08f))
-                    .border(
-                        width = if (isSelected) 2.dp else 1.dp,
-                        color = option.color.copy(alpha = if (isSelected) 0.75f else 0.28f),
-                        shape = RoundedCornerShape(RytmRadii.Input),
-                    )
+                    .heightIn(min = RytmDimens.TouchTarget)
+                    .clip(RoundedCornerShape(RytmRadii.Control))
+                    .background(fill)
                     .semantics { selected = isSelected }
                     .clickable(role = Role.RadioButton) {
                         if (!isSelected) typeHaptics.tick()
                         vm.form.onTypeChange(option.type)
                     }
-                    .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.md),
+                    .padding(horizontal = RytmSpacing.sm, vertical = 10.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // At a large system font the arrow ate the label ("Дохі"): the
                 // label alone carries the meaning, and it shrinks rather than cut.
                 if (!largeFont) {
-                    Icon(option.icon, contentDescription = null, tint = option.color, modifier = Modifier.size(19.dp))
+                    Icon(option.icon, contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                 }
-                ua.rytm.app.ui.components.FitText(option.label, style = MaterialTheme.typography.labelLarge, color = option.color, fontWeight = FontWeight.Bold)
+                ua.rytm.app.ui.components.FitText(option.label, style = MaterialTheme.typography.labelLarge, color = content, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium)
             }
         }
     }
@@ -519,7 +526,7 @@ private fun BalanceAfterLine(balance: Double, currency: String) {
     Text(
         text = stringResource(R.string.transaction_balance_after, ua.rytm.app.ui.maskedAmount("$sign${formatMoney(kotlin.math.abs(balance))} ${currencySymbol(currency)}")),
         style = MaterialTheme.typography.bodySmall,
-        color = if (balance < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        color = if (balance < 0) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = RytmSpacing.lg),
     )
 }
