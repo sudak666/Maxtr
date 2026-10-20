@@ -338,8 +338,8 @@
     <string name="settings_tags_subtitle">Labels for transactions</string>
     <string name="settings_goals_subtitle">Wallet savings goals</string>
     <string name="settings_widgets_subtitle">What appears on the Finance tab</string>
-    <string name="settings_recurring_subtitle">Create scheduled transactions automatically</string>
-    <string name="settings_auto_rules_subtitle">Choose a category from a comment keyword</string>
+    <string name="settings_recurring_subtitle">Entries on a schedule</string>
+    <string name="settings_auto_rules_subtitle">Category from a comment keyword</string>
     <string name="settings_shift_types_subtitle">Pay, hours, and colors for the shift calendar</string>
     <string name="settings_csv_export">Export CSV</string>
     <string name="settings_csv_export_subtitle">Save all financial transactions</string>

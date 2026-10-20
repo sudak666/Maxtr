@@ -344,8 +344,8 @@
     <string name="settings_tags_subtitle">Мітки для операцій</string>
     <string name="settings_goals_subtitle">Накопичення на гаманці з ціллю</string>
     <string name="settings_widgets_subtitle">Що показувати на вкладці «Фінанси»</string>
-    <string name="settings_recurring_subtitle">Автоматичне створення операцій за розкладом</string>
-    <string name="settings_auto_rules_subtitle">Категорія за ключовим словом у коментарі</string>
+    <string name="settings_recurring_subtitle">Операції за розкладом</string>
+    <string name="settings_auto_rules_subtitle">Категорія за словом у коментарі</string>
     <string name="settings_shift_types_subtitle">Оплата, години та кольори для графіка змін</string>
     <string name="settings_csv_export">Експорт CSV</string>
     <string name="settings_csv_export_subtitle">Зберегти всі фінансові операції</string>
