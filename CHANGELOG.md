@@ -1,5 +1,7 @@
 # Changelog
 
+- **Demo profile removed (2026-10-21)** — QA switched back to Max, «Demo» deleted in Профілі; its orphaned Firestore docs (`finance`/`shifts`/`debt@f243777a90e04a08a08ca82575a521db` + transactions) deleted with `firebase firestore:delete -r` (owner allowed). Left alone on purpose: older orphan profile docs (`@profile_mrahthxhgf1`, `@01a10911…`, `@e2e45bc0…`, two with `shared_members`) — not in `profiles_meta`, but could be shared with other accounts; owner to decide.
+
 - **Deploy hosting: demo-found PWA fixes (2026-10-21)** — after #619 merged; clean `origin/main` worktree. Same session: temp scripts, screenshots and the local AAB removed; ANDROID_MIGRATION.md checkpoint rewritten for 2026-10-21.
 
 - **Play: 2.6.0 (vc29) sent for review + new store screenshots (2026-10-21)** — via the owner's Chrome. Closed testing Track 1, release 23 (uk notes: 9 bullets); the owner uploaded the 31 MB AAB by hand (over the upload tool's limit). Only warning: no native debug symbols (harmless). 5 new phone screenshots (1080×2160, Play caps ratio at 2:1) shot on the A51 from a throwaway «Demo» profile with fake data — no real names/amounts on the public page. Both changes sent from «Огляд публікації» (review up to 7 days). Production still needs 12 opted-in testers (2 now).
