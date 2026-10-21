@@ -19,7 +19,9 @@ import ua.rytm.app.R
 // already-persisted Firebase session, gated in MainActivity between the Auth
 // gate and the main nav. isUnlocked resets to false on every process start
 // (in-memory only, not persisted) — same "lock on every app open" semantic
-// as the PWA's per-page-load AppState.pinUnlocked.
+// as the PWA's per-page-load AppState.pinUnlocked — and also after the app
+// spent more than RELOCK_GRACE_MS in the background (onAppBackgrounded/
+// onAppForegrounded, driven by MainActivity's lifecycle).
 class PinViewModel(
     private val pinStore: PinRepository,
     val uid: String,
@@ -30,6 +32,25 @@ class PinViewModel(
         fun factory(pinStore: PinRepository, uid: String) = viewModelFactory {
             initializer { PinViewModel(pinStore, uid) }
         }
+
+        /** Time in the background after which the app re-locks (short trips — camera, share sheet — don't). */
+        const val RELOCK_GRACE_MS = 60_000L
+    }
+
+    private var backgroundedAt = 0L
+
+    /** Activity went to the background (ON_STOP). */
+    fun onAppBackgrounded(now: Long = System.currentTimeMillis()) {
+        if (isUnlocked) backgroundedAt = now
+    }
+
+    /** Activity came back (ON_START): re-lock if it was away longer than [RELOCK_GRACE_MS]. */
+    fun onAppForegrounded(now: Long = System.currentTimeMillis()) {
+        if (backgroundedAt > 0 && now - backgroundedAt >= RELOCK_GRACE_MS) {
+            isUnlocked = false
+            pinInput = ""
+        }
+        backgroundedAt = 0L
     }
 
     // Nullable so callers can distinguish "still reading DataStore" from

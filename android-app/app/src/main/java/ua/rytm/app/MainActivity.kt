@@ -148,6 +148,33 @@ class MainActivity : FragmentActivity() {
                         // gate kicks in — a real gap for a security feature. Render
                         // nothing until the read actually completes.
                         val hasPin by pinViewModel.hasPin.collectAsStateWithLifecycle(initialValue = null)
+                        // Re-lock after a longer trip to the background, not only on a
+                        // cold process start.
+                        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+                        DisposableEffect(lifecycleOwner, pinViewModel) {
+                            val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                                when (event) {
+                                    androidx.lifecycle.Lifecycle.Event.ON_STOP -> if (!isChangingConfigurations) pinViewModel.onAppBackgrounded()
+                                    androidx.lifecycle.Lifecycle.Event.ON_START -> pinViewModel.onAppForegrounded()
+                                    else -> {}
+                                }
+                            }
+                            lifecycleOwner.lifecycle.addObserver(observer)
+                            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                        }
+                        // With a PIN on, keep balances out of the Recents thumbnail. API 33+
+                        // can drop just the thumbnail (screenshots keep working - the owner's
+                        // bug reports are screenshots); older versions only have FLAG_SECURE.
+                        LaunchedEffect(hasPin) {
+                            val secure = hasPin == true
+                            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                                setRecentsScreenshotEnabled(!secure)
+                            } else if (secure) {
+                                window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                            } else {
+                                window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                            }
+                        }
                         val onboardingComplete by app.settingsStore.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
                         when {
                             onboardingComplete == null -> {}
