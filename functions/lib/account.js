@@ -11,8 +11,14 @@
  * the data went BEFORE the Auth account, so a failed re-login left an
  * account with its data already gone.
  *
+ * The Firebase project is shared with other apps (DoRytm keeps
+ * users/{uid}/habits|tasks, Vchasno keeps vchasnoUsers/{uid}) under the same
+ * sign-in. Their data is never touched; when it exists, `keepAuth` tells the
+ * caller to leave the shared Auth user in place too.
+ *
  * @param {any} db firebase-admin Firestore
  * @param {string} uid
+ * @returns {Promise<{keepAuth: boolean}>}
  */
 async function deleteAccountData(db, uid) {
   // Shared profiles this account joined: take it off the owners' member
@@ -30,8 +36,20 @@ async function deleteAccountData(db, uid) {
     await ref.set({ members, roles, updatedAt: Date.now() }, { merge: true });
   }
 
+  const otherApps = await Promise.all([
+    db.collection(`users/${uid}/habits`).limit(1).get().then((/** @type {any} */ s) => !s.empty),
+    db.collection(`users/${uid}/tasks`).limit(1).get().then((/** @type {any} */ s) => !s.empty),
+    db.doc(`vchasnoUsers/${uid}`).get().then((/** @type {any} */ s) => s.exists),
+  ]);
+  const keepAuth = otherApps.some(Boolean);
+
   // Every profile, every subcollection (transactions, backups + chunks).
-  await db.recursiveDelete(db.doc(`users/${uid}`));
+  if (keepAuth) {
+    await db.recursiveDelete(db.collection(`users/${uid}/max_tracker`));
+    await db.recursiveDelete(db.collection(`users/${uid}/backups`));
+  } else {
+    await db.recursiveDelete(db.doc(`users/${uid}`));
+  }
 
   const invites = await db.collection('profile_invites').where('ownerUid', '==', uid).get();
   await Promise.all([
@@ -39,6 +57,7 @@ async function deleteAccountData(db, uid) {
     db.doc(`push_tokens/${uid}`).delete(),
     db.doc(`error_reports/${uid}`).delete(),
   ]);
+  return { keepAuth };
 }
 
 module.exports = { deleteAccountData };

@@ -25,6 +25,8 @@ function fakeDb(seed) {
     docs,
     doc: docRef,
     collection: (col) => ({
+      path: col,
+      limit: () => ({ get: async () => ({ empty: ![...docs.keys()].some((p) => p.startsWith(col + '/')) }) }),
       where: (field, _op, value) => ({
         get: async () => ({
           docs: [...docs.keys()]
@@ -55,7 +57,8 @@ const db = fakeDb({
   'users/u2/max_tracker/finance': { keep: true },
 });
 
-await deleteAccountData(db, uid);
+const res1 = await deleteAccountData(db, uid);
+assert.equal(res1.keepAuth, false, 'no other app data -> Auth user may go');
 
 const left = [...db.docs.keys()];
 assert.ok(!left.some((p) => p.startsWith(`users/${uid}/`)), 'every doc under the account is gone (incl. 700 tx, other profiles, backups)');
@@ -64,4 +67,21 @@ assert.ok(!db.docs.has('profile_invites/ABC') && db.docs.has('profile_invites/KE
 assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').members, ['o1'], 'removed from joined shared profile');
 assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').roles, {}, 'role entry removed');
 assert.ok(db.docs.has('users/o1/max_tracker/finance@sh') && db.docs.has('users/u2/max_tracker/finance'), "other accounts' data untouched");
+
+// AUDIT_2026-10 P2-03: another app of this project (DoRytm, Vchasno) shares the sign-in.
+const db2 = fakeDb({
+  'users/u3/max_tracker/finance': { a: 1 },
+  'users/u3/max_tracker/finance/transactions/t1': { id: 1 },
+  'users/u3/backups/default_1': { x: 1 },
+  'users/u3/habits/h1': { name: 'run' },
+  'users/u3/tasks/k1': { name: 'buy' },
+});
+const res2 = await deleteAccountData(db2, 'u3');
+assert.equal(res2.keepAuth, true, 'other app data -> keep the shared Auth user');
+assert.ok(!db2.docs.has('users/u3/max_tracker/finance') && !db2.docs.has('users/u3/max_tracker/finance/transactions/t1') && !db2.docs.has('users/u3/backups/default_1'), 'Rytm data gone');
+assert.ok(db2.docs.has('users/u3/habits/h1') && db2.docs.has('users/u3/tasks/k1'), 'DoRytm habits/tasks untouched');
+
+const db3 = fakeDb({ 'users/u4/max_tracker/finance': { a: 1 }, 'vchasnoUsers/u4': { data: '{}' } });
+assert.equal((await deleteAccountData(db3, 'u4')).keepAuth, true, 'Vchasno backup -> keep Auth');
+assert.ok(db3.docs.has('vchasnoUsers/u4') && !db3.docs.has('users/u4/max_tracker/finance'), 'Vchasno data untouched, Rytm data gone');
 console.log('functions-account: OK');

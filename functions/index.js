@@ -204,9 +204,11 @@ exports.account = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
   if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
   if ((req.data || {}).action !== 'delete') throw new HttpsError('invalid-argument', 'unknown action');
   try {
-    await deleteAccountData(db, uid);
-    await getAuth().deleteUser(uid);
-    logger.info('account deleted', { uid });
+    const { keepAuth } = await deleteAccountData(db, uid);
+    // The sign-in is shared with other apps of this project; keep it while
+    // one of them still holds data for this uid.
+    if (!keepAuth) await getAuth().deleteUser(uid);
+    logger.info('account deleted', { uid, keepAuth });
     return { ok: true };
   } catch (err) {
     logger.error('account delete failed', { uid, error: errMessage(err) });
