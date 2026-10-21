@@ -20,7 +20,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebas
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { setDoc, deleteDoc, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { setDoc, deleteDoc, doc, getDoc, getDocs, collection, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
@@ -279,6 +279,19 @@ await check('viewer cannot delete a transaction under profY', deleteDoc(doc(asC,
 
 await check('viewer can still leave the profile despite being read-only', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), updatedAt: Date.now() }), 'allow');
 await check('after leaving, former viewer can no longer read profY\'s finance doc', getDoc(doc(asC, financeDocPathY)), 'deny');
+
+// AUDIT_2026-10 P2-02: leave -> rejoin must not turn a viewer back into an editor.
+await check('ex-viewer cannot rewrite roles while rejoining', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), roles: { [uidC]: 'editor' }, updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'deny');
+await check('ex-viewer can rejoin with their still-valid invite', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'allow');
+await check('rejoined ex-viewer is still a viewer (cannot write finance)', setDoc(doc(asC, financeDocPathY), { wallets: [{ id: 'w3' }], updatedAt: Date.now() }), 'deny');
+await check('rejoined viewer cannot strip their own role while leaving', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), roles: {}, updatedAt: Date.now() }), 'deny');
+await check('rejoined viewer can leave again', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), updatedAt: Date.now() }), 'allow');
+await testEnv.withSecurityRulesDisabled(ctx => updateDoc(doc(ctx.firestore(), `profile_invites/${CODE_Y}`), { expiresAt: Date.now() - 1000 }));
+await check('an expired (already-redeemed) invite is no re-entry ticket', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'deny');
+
+// AUDIT_2026-10 P2-01: invite codes are readable by exact id only, never listable.
+await check('a signed-in stranger cannot list profile_invites', getDocs(collection(asB, 'profile_invites')), 'deny');
+await check('a signed-in user can still get an invite by its exact code', getDoc(doc(asB, `profile_invites/${CODE_Y}`)), 'allow');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 await testEnv.cleanup();
