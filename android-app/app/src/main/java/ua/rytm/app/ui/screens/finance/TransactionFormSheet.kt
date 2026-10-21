@@ -112,9 +112,13 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val ocr = remember { ReceiptOcrRepository() }
-    var ocrBusy by rememberSaveable { mutableStateOf(false) }
+    // Plain remember: the scan's coroutine dies with the composition, so a
+    // saved `true` would leave the button disabled forever after a rotation.
+    var ocrBusy by remember { mutableStateOf(false) }
     var ocrMessage by rememberSaveable { mutableStateOf<String?>(null) }
-    var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    // Saveable: the camera app often outlives our process, and the photo's
+    // URI must survive that to be processed when we come back.
+    var cameraUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
     val ocrFound = stringResource(R.string.receipt_found)
     val ocrNotFound = stringResource(R.string.receipt_not_found)
     val ocrFailed = stringResource(R.string.receipt_failed)
@@ -125,7 +129,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             ocrMessage = null
             try {
                 val result = ocr.scan(context, uri)
-                result.amount?.let { vm.form.onAmountChange(it.toString()) }
+                result.amount?.let(vm.form::setAmount)
                 result.date?.let(vm.form::onDateChange)
                 ocrMessage = if (result.amount != null || result.date != null) ocrFound else ocrNotFound
             } catch (e: CancellationException) {

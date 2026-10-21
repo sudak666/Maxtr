@@ -421,6 +421,8 @@
     <string name="settings_csv_error_date">invalid date</string>
     <string name="settings_csv_error_same_wallets">transfer wallets must differ</string>
     <string name="settings_csv_error_transfer_amount">invalid transfer amount</string>
+    <string name="settings_csv_error_amount_large">amount is too large</string>
+    <string name="settings_csv_error_text_long">comment or category is too long</string>
     <string name="builtin_wallet_card">Card</string><string name="builtin_wallet_cash">Cash</string>
     <string name="builtin_category_salary">Salary</string><string name="builtin_category_bonus">Bonus</string><string name="builtin_category_side_job">Side job</string>
     <string name="builtin_category_groceries">Groceries</string><string name="builtin_category_cafe">Cafe</string><string name="builtin_category_transport">Transport</string><string name="builtin_category_shopping">Shopping</string><string name="builtin_category_utilities">Utilities</string><string name="builtin_category_health">Health</string><string name="builtin_category_entertainment">Entertainment</string><string name="builtin_category_other">Other</string><string name="builtin_category_transfer">Internal transfer</string>

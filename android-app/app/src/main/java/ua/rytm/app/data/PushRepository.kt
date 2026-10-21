@@ -99,6 +99,24 @@ class PushRepository(private val firestore: FirebaseFirestore) {
         firestore.collection("push_tokens").document(accountUid).delete().await()
     }
 
+    /**
+     * Sign-out: stop this device's pushes. The token doc is per account (one
+     * device at a time), so it is removed only while it still holds THIS
+     * device's token — another device that registered later keeps its pushes.
+     * Best-effort and time-boxed: sign-out must work offline too.
+     */
+    suspend fun releaseOnSignOut(accountUid: String) {
+        kotlinx.coroutines.withTimeoutOrNull(5_000) {
+            runCatching {
+                val messaging = FirebaseMessaging.getInstance()
+                val local = messaging.token.await()
+                val ref = firestore.collection("push_tokens").document(accountUid)
+                if (ref.get().await().getString("token") == local) ref.delete().await()
+                messaging.deleteToken().await()
+            }
+        }
+    }
+
     // Called from RytmMessagingService.onNewToken() — FCM can rotate the
     // token at any point (reinstall, app-data restore, token expiry),
     // independent of the user's own enable/disable action. Deliberately does

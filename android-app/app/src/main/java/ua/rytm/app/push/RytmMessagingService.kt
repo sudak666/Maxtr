@@ -47,6 +47,8 @@ class RytmMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val notification = message.notification ?: return
+        // A push still in flight for an account that just signed out.
+        if (FirebaseAuth.getInstance().currentUser == null) return
         showNotification(this, notification.title ?: getString(R.string.app_name), notification.body ?: "")
     }
 }

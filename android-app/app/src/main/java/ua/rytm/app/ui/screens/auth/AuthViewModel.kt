@@ -206,6 +206,7 @@ class AuthViewModel : ViewModel() {
             // "offline cache" is on; ProfileSyncCoordinator wipes it if a
             // different account signs in next.
             app.profileSyncCoordinator.stopRealtimeSync()
+            auth.currentUser?.uid?.let { app.pushRepository.releaseOnSignOut(it) }
             auth.signOut()
         }
     }
