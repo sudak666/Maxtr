@@ -25,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import ua.rytm.app.data.local.ThemePreference
 import ua.rytm.app.navigation.RytmNavHost
 import ua.rytm.app.ui.screens.auth.AuthViewModel
@@ -118,6 +119,12 @@ class MainActivity : FragmentActivity() {
                         // ShiftsViewModel never got created. seedIfEmpty() is idempotent
                         // (checks count()==0 first), so calling it for every synced
                         // domain before syncing is a safe, correct fix.
+                        // Sign-out releases this device's push token; re-register it
+                        // for an account that has push turned on (also heals a token
+                        // that drifted while the app was closed).
+                        LaunchedEffect(uid) {
+                            if (app.settingsStore.isPushEnabled(uid).first()) runCatching { app.pushRepository.enable(uid) }
+                        }
                         LaunchedEffect(uid) {
                             app.profileSyncCoordinator.loadOnSignIn(uid)
                         }

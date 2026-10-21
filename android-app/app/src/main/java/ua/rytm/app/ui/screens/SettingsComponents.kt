@@ -198,6 +198,8 @@ internal fun csvImportErrorText(error: CsvImportError): String {
         CsvImportErrorReason.INVALID_DATE -> stringResource(R.string.settings_csv_error_date)
         CsvImportErrorReason.SAME_WALLETS -> stringResource(R.string.settings_csv_error_same_wallets)
         CsvImportErrorReason.INVALID_TRANSFER_AMOUNT -> stringResource(R.string.settings_csv_error_transfer_amount)
+        CsvImportErrorReason.AMOUNT_TOO_LARGE -> stringResource(R.string.settings_csv_error_amount_large)
+        CsvImportErrorReason.TEXT_TOO_LONG -> stringResource(R.string.settings_csv_error_text_long)
     }
     return stringResource(R.string.settings_csv_error_row, error.row, reason)
 }

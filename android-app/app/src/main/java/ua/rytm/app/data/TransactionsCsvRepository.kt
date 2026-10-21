@@ -7,7 +7,22 @@ import ua.rytm.app.data.local.TransactionEntity
 import java.time.LocalDate
 import java.util.UUID
 
-enum class CsvImportErrorReason { TOO_FEW_COLUMNS, UNKNOWN_TYPE, UNKNOWN_WALLET, INVALID_AMOUNT, INVALID_DATE, SAME_WALLETS, INVALID_TRANSFER_AMOUNT }
+enum class CsvImportErrorReason { TOO_FEW_COLUMNS, UNKNOWN_TYPE, UNKNOWN_WALLET, INVALID_AMOUNT, INVALID_DATE, SAME_WALLETS, INVALID_TRANSFER_AMOUNT, AMOUNT_TOO_LARGE, TEXT_TOO_LONG }
+
+/**
+ * The limits firestore.rules enforces on a transaction (and the PWA's import
+ * checks via validateTransactionDraft). A row past them would be saved to Room
+ * and then rejected by the server together with its whole 450-row batch.
+ */
+internal fun csvRowLimitError(amount: Double, targetAmount: Double?, category: String, subcategory: String?, comment: String): CsvImportErrorReason? =
+    when (ua.rytm.app.ui.screens.finance.validateTransactionDraft(
+        ua.rytm.app.ui.screens.finance.TransactionDraft(amount = amount, date = "2000-01-01", walletId = "w", category = category, subcategory = subcategory, comment = comment),
+        isTransfer = false,
+    )) {
+        ua.rytm.app.ui.screens.finance.TxValidationError.AMOUNT_TOO_LARGE -> CsvImportErrorReason.AMOUNT_TOO_LARGE
+        ua.rytm.app.ui.screens.finance.TxValidationError.COMMENT_TOO_LONG, ua.rytm.app.ui.screens.finance.TxValidationError.CATEGORY_TOO_LONG -> CsvImportErrorReason.TEXT_TOO_LONG
+        else -> if (targetAmount != null && !isStoredAmountValid(targetAmount)) CsvImportErrorReason.AMOUNT_TOO_LARGE else null
+    }
 data class CsvImportError(val row: Int, val reason: CsvImportErrorReason, val detail: String? = null)
 data class CsvImportPreview(val transactions: List<TransactionEntity>, val errors: List<CsvImportError>)
 
@@ -78,6 +93,7 @@ class TransactionsCsvRepository(
             if (targetWallet?.id == wallet.id) { reject(CsvImportErrorReason.SAME_WALLETS); return@forEachIndexed }
             val targetAmount = if (type == "TRANSFER") row[8].csvNumber() else null
             if (type == "TRANSFER" && (targetAmount == null || targetAmount <= 0.0)) { reject(CsvImportErrorReason.INVALID_TRANSFER_AMOUNT); return@forEachIndexed }
+            csvRowLimitError(amount, targetAmount, row[2].trim(), row[3].trim().ifBlank { null }, row[10].trim())?.let { reject(it); return@forEachIndexed }
             val now = System.currentTimeMillis()
             valid += TransactionEntity(
                 id = "tx_${now}_${UUID.randomUUID()}", createdAt = now + index, type = type,
@@ -106,7 +122,8 @@ class TransactionsCsvRepository(
 private fun csvEscape(value: String): String =
     if (value.any { it == ';' || it == '"' || it == '\n' || it == '\r' }) "\"${value.replace("\"", "\"\"")}\"" else value
 
-private fun Double.toCsvNumber() = toString().replace('.', ',')
+// Plain digits, never Kotlin's 1.5E7 scientific form (spreadsheets show it as text).
+internal fun Double.toCsvNumber(): String = java.math.BigDecimal.valueOf(this).stripTrailingZeros().toPlainString().replace('.', ',')
 private fun String.csvNumber(): Double? = replace(',', '.').trim().toDoubleOrNull()?.takeIf { it.isFinite() }
 
 internal fun parseCsv(input: String): List<List<String>> {
