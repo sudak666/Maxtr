@@ -118,4 +118,32 @@ class PinViewModelTest {
         vm.forgotPin { cleared = true }; advanceUntilIdle()
         assertTrue(cleared); assertTrue(repo.removed); assertTrue(signedOut)
     }
+
+    // AUDIT_2026-10 P2-04: re-lock after a longer stay in the background.
+    @Test fun relocksAfterGracePeriodInBackground() = test {
+        val vm = PinViewModel(FakePinRepository("1234"), "u")
+        vm.type("1234"); advanceUntilIdle()
+        vm.onAppBackgrounded(now = 1_000L)
+        vm.onAppForegrounded(now = 1_000L + PinViewModel.RELOCK_GRACE_MS)
+        assertFalse(vm.isUnlocked)
+    }
+
+    @Test fun shortTripToBackgroundKeepsUnlocked() = test {
+        val vm = PinViewModel(FakePinRepository("1234"), "u")
+        vm.type("1234"); advanceUntilIdle()
+        vm.onAppBackgrounded(now = 1_000L)
+        vm.onAppForegrounded(now = 1_000L + PinViewModel.RELOCK_GRACE_MS - 1)
+        assertTrue(vm.isUnlocked)
+        // A later long trip still re-locks: the short one must not leave a stale timestamp.
+        vm.onAppBackgrounded(now = 100_000L)
+        vm.onAppForegrounded(now = 100_000L + PinViewModel.RELOCK_GRACE_MS)
+        assertFalse(vm.isUnlocked)
+    }
+
+    @Test fun foregroundWithoutBackgroundDoesNothing() = test {
+        val vm = PinViewModel(FakePinRepository("1234"), "u")
+        vm.type("1234"); advanceUntilIdle()
+        vm.onAppForegrounded(now = Long.MAX_VALUE)
+        assertTrue(vm.isUnlocked)
+    }
 }

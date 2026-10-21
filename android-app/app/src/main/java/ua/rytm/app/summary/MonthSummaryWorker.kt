@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
  * On the 1st–3rd of a month, once: a local "your September in money" notification
  * opening the recap sheet. Local on purpose — a server push would also reach the
  * PWA, which has no recap screen. Follows the in-app push toggle as consent and
- * leaves the sums out when "hide amounts" is on.
+ * leaves the sums out when "hide amounts" or a PIN is on.
  */
 class MonthSummaryWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
@@ -51,7 +51,7 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
 
         val locale = app.resources.configuration.locales[0] ?: Locale.getDefault()
         val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) }
-        val hidden = app.settingsStore.hideAmounts.first()
+        val hidden = shouldHideAmounts(app.settingsStore.hideAmounts.first(), app.pinStore.hasPin(uid).first())
         val body = if (hidden) app.getString(R.string.month_summary_notification_hidden)
         else app.getString(R.string.month_summary_notification_body, "${formatMoney(summary.expense, locale)} ₴", "${formatMoney(summary.income, locale)} ₴")
         val open = PendingIntent.getActivity(
@@ -68,6 +68,7 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
             .setContentText(body)
             .setContentIntent(open)
             .setAutoCancel(true)
+            .setVisibility(if (hidden) NotificationCompat.VISIBILITY_PRIVATE else NotificationCompat.VISIBILITY_PUBLIC)
             .build()
         val canPost = android.os.Build.VERSION.SDK_INT < 33 ||
             ContextCompat.checkSelfPermission(app, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -80,6 +81,9 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
     companion object {
         private const val NOTIFICATION_ID = 4107
         private const val WORK_NAME = "month-summary"
+
+        /** Sums stay out of the notification when hidden in-app or behind a PIN (it shows on the lock screen), same rule as the widget. */
+        fun shouldHideAmounts(hideAmounts: Boolean, hasPin: Boolean) = hideAmounts || hasPin
 
         fun schedule(context: Context) {
             val request = PeriodicWorkRequestBuilder<MonthSummaryWorker>(12, TimeUnit.HOURS).build()
