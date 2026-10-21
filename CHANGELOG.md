@@ -1,5 +1,7 @@
 # Changelog
 
+- **Play: 2.6.1 (vc30) uploaded by the owner (2026-10-21)** — manually from the Desktop AAB; Desktop copy removed afterwards.
+
 - **Deploy hosting + AAB 2.6.1 (2026-10-21)** — after #623 merged (CI: one `TagsManagerViewModelTest` flake on the `android` job, passed on rerun — same Unconfined-Main race family as the earlier FinanceViewModel flakes, not fixed yet). Clean `origin/main` worktree deploy. `bundleRelease` → `Rytm-2.6.1-vc30.aab` on the owner's Desktop; NOT uploaded — 2.6.0 is still in Google review, upload on the owner's word.
 
 - **2.6.1 (vc30): owner's live check of 2.6.0, Android + PWA (2026-10-21)** — owner sent 15 phone screenshots; fixes:
