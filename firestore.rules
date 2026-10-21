@@ -134,11 +134,18 @@ service cloud.firestore {
           && !(request.auth.uid in resource.data.members)
           && request.resource.data.members == resource.data.members.concat([request.auth.uid])
           && request.resource.data.updatedAt is number
+          // Only members/updatedAt/lastJoinInviteCode may change — a joiner
+          // must never rewrite `roles` (owner-only), so a downgraded viewer
+          // who leaves and rejoins stays a viewer.
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt', 'lastJoinInviteCode'])
           && ('lastJoinInviteCode' in request.resource.data)
           && request.resource.data.lastJoinInviteCode is string
           && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.ownerUid == uid
           && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.profileId == (document.split('@').size() > 1 ? document.split('@')[1] : 'default')
-          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.usedBy == request.auth.uid)
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.usedBy == request.auth.uid
+          // A redeemed invite stays usedBy==self forever; without an expiry
+          // check it would be a permanent re-entry ticket after leaving.
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.expiresAt > request.time.toMillis())
         ||
         // A non-owner member *leaving* shared_members@{profileId}: only
         // allowed to remove exactly their own uid, nothing else changes.
@@ -146,7 +153,8 @@ service cloud.firestore {
           && request.auth.uid != uid
           && (request.auth.uid in resource.data.members)
           && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])
-          && request.resource.data.updatedAt is number)
+          && request.resource.data.updatedAt is number
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt']))
       );
     }
 
@@ -228,7 +236,11 @@ service cloud.firestore {
     // the profile's own owner (redeeming your own invite would be a
     // meaningless no-op at best).
     match /profile_invites/{code} {
-      allow read: if request.auth != null;
+      // get only: clients always read an invite by its exact code. `list`
+      // would hand every signed-in user every live code (and with it,
+      // editor access to strangers' shared profiles).
+      allow get: if request.auth != null;
+      allow list: if false;
       allow create: if request.auth != null
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.createdBy == request.auth.uid
