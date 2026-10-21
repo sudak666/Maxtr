@@ -325,6 +325,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Cloud backups (functions/lib/backup.js): metadata is readable by the
+    // owner only; every write — and the payload chunks entirely — stay
+    // Admin-SDK-only, so a client (or a shared-profile member) can neither
+    // forge nor tamper with a snapshot.
+    match /users/{uid}/backups/{backupId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
     // Deny everything else by default (including the old shared
     // max_tracker/{doc} path used before per-user auth was added — its
     // one-time recovery window is closed, see git history for details).
