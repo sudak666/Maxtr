@@ -1,5 +1,7 @@
 # Changelog
 
+- **Deploy firestore:rules (2026-10-21)** — after #626 merged; from a clean `origin/main` worktree (26b2194), `firebase deploy --only firestore:rules --project maxtr-c238f` → released. Invite listing and viewer self-upgrade are now closed in production.
+
 - **Rules: invite codes not listable, roles not rewritable on join/leave (2026-10-21)** — from `AUDIT_2026-10.md` (added in this PR). P2-01 🔴: `profile_invites` had `allow read` (= get + list), so any signed-in user could list every live code and join a stranger's shared profile as editor (proven on the emulator) → `allow get` + `allow list: if false` (both clients read invites by exact id only). P2-02: the non-owner join/leave branches of `shared_members` didn't restrict `roles`, and a redeemed invite stays `usedBy==self` forever, so a downgraded viewer could leave (stripping their role) and rejoin as editor → join/leave limited via `diff().affectedKeys().hasOnly(...)`, join also needs the invite's `expiresAt` in the future. `tests/firestore-rules.mjs` +11 checks (103/103 on the emulator; 7 of them fail on the old rules). Gotcha: on this Windows box the emulator needs Android Studio's JBR (system JDK 17 is too old for current firebase-tools).
 
 - **Play: 2.6.1 (vc30) uploaded by the owner (2026-10-21)** — manually from the Desktop AAB; Desktop copy removed afterwards.
