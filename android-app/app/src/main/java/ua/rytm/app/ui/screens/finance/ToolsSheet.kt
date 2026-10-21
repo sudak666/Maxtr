@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.Canvas
@@ -131,7 +132,8 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.analytics_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        val periodRowState = androidx.compose.foundation.lazy.rememberLazyListState()
+        LazyRow(state = periodRowState, modifier = Modifier.fadingEdges(periodRowState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             items(AnalyticsPeriod.entries.toList()) { p ->
                 ua.rytm.app.ui.components.RytmFilterChip(selected = vm.period == p, onClick = { vm.onPeriodChange(p) }, label = { Text(periodLabels.getValue(p)) })
             }
@@ -172,7 +174,12 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     expenseChange?.let {
-                        Text(stringResource(if (it <= 0) R.string.analytics_spending_less else R.string.analytics_spending_more, kotlin.math.abs(it)), style = MaterialTheme.typography.bodySmall, color = if (it <= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
+                        // Same ±5% band as the PWA: a 3% swing is noise, not a trend.
+                        when {
+                            it <= -5 -> Text(stringResource(R.string.analytics_spending_less, -it), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.income, fontWeight = FontWeight.SemiBold)
+                            it >= 5 -> Text(stringResource(R.string.analytics_spending_more, it), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
+                            else -> Text(stringResource(R.string.analytics_spending_same), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                     categoryGrowth?.let { (category, percent) ->
                         Text(stringResource(R.string.analytics_top_growth, localizedDomainText(category), percent), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
@@ -239,7 +246,7 @@ private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier:
                 }
                 ua.rytm.app.ui.components.FitText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("$value%", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
+            Text("$value%".replace('-', '−'), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
         }
     }
 }

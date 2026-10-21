@@ -59,7 +59,7 @@ function renderShiftModalOptions(selectedIds){
   }
   AppState.shiftTypes.forEach(t=>{
     const checked=selectedIds.includes(t.id)?'checked':'';
-    const desc=t.isOff?tr('shifts_rest'):`${t.amount?t.amount.toLocaleString('uk-UA')+' грн':'—'}${t.hours?' · '+t.hours+' '+tr('shifts_hours_short'):''}`;
+    const desc=t.isOff?tr('shifts_rest'):`${t.amount?money(t.amount)+' ₴':'—'}${t.hours?' · '+t.hours+' '+tr('shifts_hours_short'):''}`;
     const label=document.createElement('label');
     label.className='chk-row';
     label.style.setProperty('--row-color', t.color||'#8b5cf6');
@@ -247,7 +247,7 @@ export function renderCalendar(){
   // Update stats
   /** @param {string} id @param {string|number} v */
   const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
-  S('total-salary',earn.toLocaleString('uk-UA')+' грн');
+  S('total-salary',money(earn)+' ₴');
   S('total-hours',hrs);
   S('count-shifts',cShifts);
   S('count-off',cOff);
@@ -270,7 +270,7 @@ export function renderCalendar(){
   const bar=document.getElementById('salary-bar');
   const lbl=document.getElementById('salary-bar-label');
   if(bar) bar.style.width=pct+'%';
-  if(lbl) lbl.textContent=`${realPct}% ${tr('shifts_goal_progress')} ${AppState.salaryGoal.toLocaleString('uk-UA')} грн`;
+  if(lbl) lbl.textContent=`${realPct}% ${tr('shifts_goal_progress')} ${money(AppState.salaryGoal)} ₴`;
   const editBtn=document.getElementById('salary-goal-edit-btn');
   if(editBtn) editBtn.setAttribute('aria-label', tr('shifts_goal_edit_title'));
 }
@@ -321,7 +321,7 @@ export function renderIncomeChart(){
     wrap.className='chart-bar-wrap';
     const earn=vals[i];
     wrap.innerHTML=`
-      <div class="chart-bar" style="height:${pct}%;background:${isCur?'var(--purple)':'rgba(139,92,246,.35)'}" data-tip="${earn.toLocaleString('uk-UA')} грн"></div>
+      <div class="chart-bar" style="height:${pct}%;background:${isCur?'var(--purple)':'rgba(139,92,246,.35)'}" data-tip="${money(earn)} ₴"></div>
       <div class="chart-bar-label" style="${isCur?'color:var(--purple2);font-weight:800':''}">${label}</div>`;
     container.appendChild(wrap);
   });
@@ -400,7 +400,7 @@ export function renderFinanceChart(){
   const forecastVal=vals[vals.length-1]+avgDelta;
 
   /** @param {number} v */
-  const fmt=v=>Math.round(v).toLocaleString('uk-UA')+' грн';
+  const fmt=v=>money(Math.round(v))+' ₴';
   const totalEl=document.getElementById('fin-chart-total');
   if(totalEl) totalEl.textContent=fmt(vals[vals.length-1]);
 

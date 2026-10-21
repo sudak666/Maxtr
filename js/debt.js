@@ -372,7 +372,7 @@ function renderDebtForecast(cd, currentBalance){
     return;
   }
   const paymentsLeft=Math.max(1, Math.ceil(currentBalance/avgDown));
-  const avgStr=Math.round(avgDown).toLocaleString('uk-UA')+' '+cur;
+  const avgStr=money(Math.round(avgDown))+' '+cur;
   let finish='';
   if(pace && pace.typicalGapDays){
     const d=new Date(Date.now()+pace.typicalGapDays*paymentsLeft*86400000);
@@ -427,9 +427,9 @@ export function renderDebt(){
   const paid=(cd.startAmount||0)-currentBalance;
   /** @param {string} id @param {string|number} v */
   const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
-  S('debt-start-val',(cd.startAmount||0).toLocaleString('uk-UA')+' '+cur);
-  S('debt-balance-val',currentBalance.toLocaleString('uk-UA')+' '+cur);
-  S('debt-paid-val',paid.toLocaleString('uk-UA')+' '+cur);
+  S('debt-start-val',money((cd.startAmount||0))+' '+cur);
+  S('debt-balance-val',money(currentBalance)+' '+cur);
+  S('debt-paid-val',money(paid)+' '+cur);
   S('debt-count-val',cd.entries.length);
   renderDebtDueChip(cd);
   renderDebtProgress(cd,paid);
@@ -467,7 +467,7 @@ export function renderDebt(){
       <button class="debt-row-edit debt-row-edit-active" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
     ` : `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view debt-amount-val">${escapeHtml(entry.amount??'')}</div></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view debt-amount-val">${(entry.balance??0).toLocaleString('uk-UA')}</div></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view debt-amount-val">${money((entry.balance??0))}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${entry.date?escapeHtml(entry.date):'—'}</div></div>
       <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
@@ -475,7 +475,7 @@ export function renderDebt(){
     row.innerHTML=`
       <div class="debt-row-inner">
         ${fieldsHtml}
-        ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${expected.toLocaleString('uk-UA')} ${cur} — ${tr('debt_discrepancy')} ${(entry.balance-expected).toLocaleString('uk-UA')} ${cur}</div>`:''}
+        ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${money(expected)} ${cur} — ${tr('debt_discrepancy')} ${money((entry.balance-expected))} ${cur}</div>`:''}
       </div>
       <button class="debt-row-swipe-delete" data-action="delete-debt-entry" data-id="${entry.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;

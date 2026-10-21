@@ -107,8 +107,11 @@ private val White = ColorProvider(Color.White)
 private const val MASK = "••••••"
 private val TILE_HEIGHT = 92.dp
 // Vertical budget (dp) used to decide which extra sections fit.
-// +16dp for the "≈ X ₴ на день" line under the balance.
-private val BASE_HEIGHT = 236.dp
+// +16dp for the "≈ X ₴ на день" line under the balance. Measured on the A51
+// (2026-10-21): header+balance+tiles really take ~232dp plus the 14dp bottom
+// padding — 236 let a 3-row widget squeeze in one recent row that was then
+// cut in half by the widget's edge.
+private val BASE_HEIGHT = 248.dp
 private val WEEK_HEIGHT = 88.dp
 private val RECENT_HEADER = 30.dp
 private val RECENT_ROW = 40.dp
@@ -228,7 +231,9 @@ private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier
 private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]
-    val month = LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) }
+    // "Прогноз · жовтень": the figure counts planned shifts too, so it differs
+    // from the Shifts tab's earned-so-far number and must say so.
+    val month = context.getString(R.string.widget_forecast_month, LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).lowercase(locale))
     Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
         Text(month, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
         Spacer(GlanceModifier.height(6.dp))

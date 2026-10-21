@@ -51,7 +51,7 @@ function renderGoalsManagerList(){
       const done=target>0 && saved>=target;
       const pct=target>0?Math.min(100,Math.round(saved/target*100)):0;
       const summary=w
-        ? `${saved.toLocaleString('uk-UA')} / ${target.toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}${done?' · '+tr('goals_reached'):''}`
+        ? `${money(saved)} / ${money(target)} ${currencySymbol(w.currency||'UAH')}${done?' · '+tr('goals_reached'):''}`
         : tr('goals_need_wallet');
       const row=document.createElement('div');
       row.className='mgr-row goal-manager-card';
@@ -149,7 +149,7 @@ export function renderGoals(){
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:4px;gap:8px">
         <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="--badge-color:${w.color}">${window.Icon(w.icon||'card')}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(w.name)}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span></span>
-        <span class="goal-widget-val" style="color:${color};white-space:nowrap">${saved.toLocaleString('uk-UA')} / ${target.toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span>
+        <span class="goal-widget-val" style="color:${color};white-space:nowrap">${money(saved)} / ${money(target)} ${currencySymbol(w.currency||'UAH')}</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
       ${done?`<div style="font-size:13px;color:var(--green2);font-weight:700;margin-top:3px">${tr('goals_reached')}</div>`:''}

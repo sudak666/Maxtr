@@ -21,7 +21,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0' y1='0' x2='512' y2='512' gradientUnits='userSpaceOnUse'><stop offset='0' stop-color='%239a6cf7'/><stop offset='1' stop-color='%236528c9'/></linearGradient><linearGradient id='coin' x1='322' y1='84' x2='390' y2='152' gradientUnits='userSpaceOnUse'><stop offset='0' stop-color='%23fbbf24'/><stop offset='1' stop-color='%23f59e0b'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(%23bg)'/><rect x='148' y='260' width='56' height='122' rx='14' fill='white'/><rect x='228' y='200' width='56' height='182' rx='14' fill='white'/><rect x='308' y='142' width='56' height='240' rx='14' fill='white'/><circle cx='356' cy='118' r='38' fill='url(%23coin)' stroke='white' stroke-width='5'/><path d='M356 100v36M347 122c0 6 4 10 9 10s9-3 9-8-4-7-9-8-9-4-9-9 4-8 9-8 9 3 9 8' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <script src="./js/sw-register.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -575,7 +575,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .widget-reorder-btn:disabled{opacity:.3;cursor:default}
 .widget-reorder-btn:not(:disabled):hover{border-color:var(--purple2);color:var(--purple2)}
 .stat-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
+.stat-val{font-family:inherit;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:13px;color:var(--muted);margin-top:4px;font-weight:400}
 .stat-big{grid-column:span 2}
 
@@ -590,7 +590,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   pointer-events:none;
 }
 .hero-metric-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-metric-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:800;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 0;line-height:1}
+.hero-metric-val{font-family:inherit;font-variant-numeric:tabular-nums;font-size:36px;font-weight:800;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 0;line-height:1}
 .chip-stat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
 .chip-stat-row::-webkit-scrollbar{display:none}
 .debt-progress-wrap{margin-bottom:14px}
@@ -611,7 +611,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .chip-stat:active{transform:scale(.97)}
 .chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--purple2);flex-shrink:0;background:color-mix(in srgb,var(--purple) 16%,transparent)}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
-.chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:'JetBrains Mono',monospace}
+.chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:inherit;font-variant-numeric:tabular-nums}
 .chip-stat-lbl{font-size:13px;font-weight:500;color:var(--muted)}
 /* Design pass 2026-10-20 (owner-approved, same as Android): flat tonal
    surface + hairline instead of gradient + glow; the card holds balance +
@@ -624,15 +624,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .merchant-badge{font-size:12px;font-weight:900;letter-spacing:-.02em}
 .hero-balance>.hero-contrib{margin:0;background:var(--bg1);border:1px solid var(--border);border-radius:18px;padding:12px 14px}
 .hero-balance-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero-balance-val{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 16px;line-height:1}
+.hero-balance-val{font-family:inherit;font-variant-numeric:tabular-nums;font-size:36px;font-weight:900;letter-spacing:-.02em;color:var(--text-strong);margin:6px 0 16px;line-height:1}
 .hero-balance-hint{font-size:13px;font-weight:700;color:var(--muted);line-height:1.35;margin:-10px 0 16px}
-.hero-contrib{margin:-6px 0 16px;display:flex;flex-direction:column;gap:4px;font-size:13px}.hero-contrib-title{color:var(--muted);font-weight:700}.hero-contrib-row{display:flex;justify-content:space-between;gap:8px;font-weight:600}.hero-contrib-val{color:var(--muted);font-family:'JetBrains Mono',monospace}
+.hero-contrib{margin:-6px 0 16px;display:flex;flex-direction:column;gap:4px;font-size:13px}.hero-contrib-title{color:var(--muted);font-weight:700}.hero-contrib-row{display:flex;justify-content:space-between;gap:8px;font-weight:600}.hero-contrib-val{color:var(--muted);font-family:inherit;font-variant-numeric:tabular-nums}
 .hero-outlook{display:flex;gap:6px;align-items:flex-start}.hero-outlook .ico{width:14px;height:14px;flex:0 0 auto;margin-top:2px}
 .tx-shift-cost{font-size:13px;color:var(--muted);margin-top:6px}
 /* Phantom-style trend chip next to the balance number — this month's net
    change (income − expense), derived from the same figures already shown
    in the two mini-stat cards below, not a separate calculation. */
-.hero-balance-trend{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:800;padding:4px 10px 4px 8px;border-radius:999px;margin:-4px 0 16px;font-family:'JetBrains Mono',monospace}
+.hero-balance-trend{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:800;padding:4px 10px 4px 8px;border-radius:999px;margin:-4px 0 16px;font-family:inherit;font-variant-numeric:tabular-nums}
 .hero-balance-trend .ico{width:12px;height:12px;margin-right:0}
 .hero-balance-trend.positive{color:var(--green2);background:rgba(16,185,129,.14)}
 .hero-balance-trend.negative{color:var(--red2);background:rgba(239,68,68,.14)}
@@ -642,13 +642,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .wallet-chip{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:7px 14px 7px 10px;white-space:nowrap}
 .wallet-chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .wallet-chip-name{font-size:13px;font-weight:700;color:var(--text-strong)}
-.wallet-chip-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.wallet-chip-val{font-size:13px;font-weight:700;font-family:inherit;font-variant-numeric:tabular-nums}
 .fin-mini-stat-row{display:flex;gap:10px;margin:0}
 .fin-mini-stat{flex:1;min-width:0;border-radius:18px;padding:14px 16px}
 /* Neutral surface; color only in the value and the small icon (design pass 2026-10-20). */
 .fin-mini-stat.income,.fin-mini-stat.expense{background:var(--bg1);border:1px solid var(--border)}
 .fin-mini-stat-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fin-mini-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800}
+.fin-mini-stat-val{font-family:inherit;font-variant-numeric:tabular-nums;font-size:18px;font-weight:800}
 .fin-mini-stat.income .fin-mini-stat-val{color:var(--green2)}
 .fin-mini-stat.expense .fin-mini-stat-val{color:var(--red2)}
 /* Same "pastel card + solid icon circle" DNA as .stat-card/.stat-icon
@@ -783,7 +783,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 .day-cell.has-shifts:hover{background:var(--bg3)}
 
 .day-header{display:flex;justify-content:space-between;align-items:center}
-.day-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--muted2)}
+.day-num{font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;color:var(--muted2)}
 .day-num.weekend-num{color:var(--red2)}
 
 .badge{font-size:13px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:999px;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -855,7 +855,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 .fin-chart-toggle-btn{flex:1;padding:9px 8px;border:none;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
 .fin-chart-toggle-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
 .fin-chart-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
-.fin-chart-total{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--text-strong)}
+.fin-chart-total{font-family:inherit;font-variant-numeric:tabular-nums;font-size:24px;font-weight:800;color:var(--text-strong)}
 .fin-chart-trend{font-size:13.5px;font-weight:800;padding:3px 9px;border-radius:999px;display:flex;align-items:center;gap:3px}
 .fin-chart-trend.up{color:var(--green2);background:rgba(16,185,129,.14)}
 .fin-chart-trend.down{color:var(--red2);background:rgba(239,68,68,.14)}
@@ -1255,9 +1255,9 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .tx-cat{font-size:14px;font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tx-meta{font-size:13px;color:var(--muted);font-weight:400;margin-top:1px}
 .tx-day-header{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);padding:10px 4px 2px;flex-shrink:0}
-.tx-day-net{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+.tx-day-net{font-family:inherit;font-variant-numeric:tabular-nums;font-variant-numeric:tabular-nums}
 .tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-.tx-amount{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;white-space:nowrap}
+.tx-amount{font-family:inherit;font-variant-numeric:tabular-nums;font-size:15px;font-weight:700;white-space:nowrap}
 .tx-amount.income{color:var(--green2)}
 .tx-amount.expense{color:var(--red2)}
 .tx-amount.transfer{color:var(--blue2)}
@@ -1567,7 +1567,7 @@ body.amounts-hidden #fx-converter-result{
 /* One shared "this row is an unfilled draft" treatment — any manager entity
    added via "+ Add X" but never given a real keyword/amount/category used to
    fall back to formatting its empty fields as if they were real content
-   (rules_keyword_placeholder shown as a title, "0 грн" read as a real amount).
+   (rules_keyword_placeholder shown as a title, "0 ₴" read as a real amount).
    Apply .mgr-row-draft to the row instead of inventing a per-manager fallback. */
 .mgr-row-draft .cat-row-name{font-style:italic;font-weight:600;color:var(--muted)}
 
@@ -1840,7 +1840,7 @@ body.amounts-hidden #fx-converter-result{
     <!-- Статистика -->
     <div class="hero-metric">
       <div class="hero-metric-label" data-i18n="shifts_stat_earned">Заробіток за місяць</div>
-      <div class="hero-metric-val" id="total-salary">0 грн</div>
+      <div class="hero-metric-val" id="total-salary">0 ₴</div>
       <div class="salary-progress">
         <div class="salary-bar-wrap"><div class="salary-bar-fill" id="salary-bar" style="width:0%"></div></div>
         <div class="salary-goal-row">
@@ -2129,7 +2129,7 @@ body.amounts-hidden #fx-converter-result{
           <label data-i18n="debt_currency">Валюта</label>
           <select id="debt-currency" data-action="update-debt-info">
             <option value="у.о.">у.о.</option>
-            <option value="грн">грн</option>
+            <option value="грн">₴</option>
             <option value="$">$</option>
             <option value="€">€</option>
             <option value="£">£</option>
@@ -2571,7 +2571,7 @@ body.amounts-hidden #fx-converter-result{
         <div class="transfer-rate-hint" id="transfer-rate-hint" aria-live="polite"></div>
       </div>
       <div class="fg">
-        <label id="fin-amount-label">Сума (грн)</label>
+        <label id="fin-amount-label">Сума (₴)</label>
         <input type="number" id="fin-amount" data-action="update-transfer-hint" inputmode="decimal" placeholder="0.00" min="0.01" step="0.01">
         <div id="fin-shift-cost" class="tx-shift-cost" hidden></div>
         <div class="quick-amount-row" aria-label="Швидкі суми">
@@ -2774,7 +2774,7 @@ body.amounts-hidden #fx-converter-result{
         <button type="button" class="fin-chart-toggle-btn" data-action="set-fin-chart-series" data-series="expense" data-i18n="finance_chart_expense">Витрата</button>
       </div>
       <div class="fin-chart-head">
-        <div class="fin-chart-total" id="fin-chart-total">0 грн</div>
+        <div class="fin-chart-total" id="fin-chart-total">0 ₴</div>
         <div class="fin-chart-trend" id="fin-chart-trend"></div>
       </div>
       <div class="fin-chart-wrap" id="fin-chart-wrap">

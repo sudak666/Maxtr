@@ -26,7 +26,7 @@ class MonthSummaryTest {
             tx("6", TxType.EXPENSE, 1000.0, "2026-08-20"),
             tx("7", TxType.EXPENSE, 1000.0, "2026-10-01"),
         )
-        val s = MonthSummary.compute(txs, YearMonth.of(2026, 9), toUah)
+        val s = MonthSummary.compute(txs, YearMonth.of(2026, 9), toUah = toUah)
         assertEquals(20000.0, s.income, 0.01)
         assertEquals(1910.0, s.expense, 0.01)
         assertEquals(18090.0, s.net, 0.01)
@@ -38,9 +38,20 @@ class MonthSummaryTest {
     }
 
     @Test fun emptyMonth() {
-        val s = MonthSummary.compute(emptyList(), YearMonth.of(2026, 9), toUah)
+        val s = MonthSummary.compute(emptyList(), YearMonth.of(2026, 9), toUah = toUah)
         assertTrue(s.isEmpty)
         assertNull(s.expenseChangePercent)
         assertNull(s.biggestExpense)
+    }
+
+    @Test fun monthInProgressComparesSameDaysOfPreviousMonth() {
+        val txs = listOf(
+            tx("1", TxType.EXPENSE, 100.0, "2026-09-05"),
+            tx("2", TxType.EXPENSE, 900.0, "2026-09-25"),
+            tx("3", TxType.EXPENSE, 100.0, "2026-10-04"),
+        )
+        val s = MonthSummary.compute(txs, YearMonth.of(2026, 10), upToDay = 21, toUah = toUah)
+        assertEquals(100.0, s.previousExpense, 0.01)
+        assertEquals(0, s.expenseChangePercent)
     }
 }

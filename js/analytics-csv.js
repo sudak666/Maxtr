@@ -144,9 +144,9 @@ function renderAnalytics(){
     const netColor=net>=0?'var(--green)':'var(--red)';
     const rateColor=savingsRate>=0?'var(--green)':'var(--red)';
     statsBox.innerHTML=`
-      <div class="stat-card"><span class="stat-icon" style="background:var(--green);color:#fff">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${totalIncome.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon" style="background:var(--red);color:#fff">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${totalExpense.toLocaleString('uk-UA')} грн</div></div>
-      <div class="stat-card"><span class="stat-icon" style="background:${netColor};color:#fff">${window.Icon('diffArrows')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${net.toLocaleString('uk-UA')} грн</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:var(--green);color:#fff">${window.Icon('trendUp')}</span><div class="stat-label">${tr('analytics_income')}</div><div class="stat-val" style="color:var(--green2);font-size:18px">${money(totalIncome)} ₴</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:var(--red);color:#fff">${window.Icon('cart')}</span><div class="stat-label">${tr('analytics_expense')}</div><div class="stat-val" style="color:var(--red2);font-size:18px">${money(totalExpense)} ₴</div></div>
+      <div class="stat-card"><span class="stat-icon" style="background:${netColor};color:#fff">${window.Icon('diffArrows')}</span><div class="stat-label">${tr('analytics_net')}</div><div class="stat-val" style="color:${net>=0?'var(--green2)':'var(--red2)'};font-size:18px">${money(net)} ₴</div></div>
       <div class="stat-card"><span class="stat-icon" style="background:${rateColor};color:#fff">${window.Icon('target')}</span><div class="stat-label">${tr('analytics_savings_rate')}</div><div class="stat-val" style="color:${savingsRate>=0?'var(--green2)':'var(--red2)'};font-size:18px">${savingsRate}%</div></div>
     `;
   }
@@ -218,7 +218,7 @@ function renderAnalytics(){
         return `var(--bg1) ${startPct}% ${startPct+gap}%, ${color} ${startPct+gap}% ${endPct-gap}%, var(--bg1) ${endPct-gap}% ${endPct}%`;
       }).join(', ');
       donut.style.background=`conic-gradient(${stops})`;
-      render(h(AnalyticsDonut, { empty:false, totalStr: totalExpense.toLocaleString('uk-UA'), label: tr('finance_amount_prefix') }), donut);
+      render(h(AnalyticsDonut, { empty:false, totalStr: money(totalExpense), label: tr('finance_amount_prefix') }), donut);
     }
     // Retrigger the CSS entrance animation on every data change, not just
     // the first paint — a CSS animation only fires once for an element that
@@ -241,7 +241,7 @@ function renderAnalytics(){
       return `<div class="analytics-cat-row">
         <div class="analytics-cat-top">
           <span class="analytics-cat-name"><span class="icon-badge icon-badge-sm" style="--badge-color:${color};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span>${escapeHtml(cat)}</span></span>
-          <span class="analytics-cat-amt">${amt.toLocaleString('uk-UA')} грн · ${pct}%</span>
+          <span class="analytics-cat-amt">${money(amt)} ₴ · ${pct}%</span>
         </div>
         <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
       </div>`;
@@ -345,15 +345,15 @@ function dayLabel(date){
 function txItemInnerHtml(t){
   const cur=currencySymbol(t.currency||'UAH');
   let cls='',amtStr='';
-  if(t.type==='income')   {cls='income';  amtStr=`+${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-  if(t.type==='expense')  {cls='expense'; amtStr=`−${t.amount.toLocaleString('uk-UA')} ${cur}`;}
-  if(t.type==='transfer') {cls='transfer';amtStr=`${t.amount.toLocaleString('uk-UA')} ${cur}`;}
+  if(t.type==='income')   {cls='income';  amtStr=`+${money(t.amount)} ${cur}`;}
+  if(t.type==='expense')  {cls='expense'; amtStr=`−${money(t.amount)} ${cur}`;}
+  if(t.type==='transfer') {cls='transfer';amtStr=`${money(t.amount)} ${cur}`;}
   const catIcon=window.Icon(categoryIcon(t.category||''));
   // A known merchant in the comment (or a tag) shows its monogram (smart-insights.js).
   const brand=t.type==='expense' ? (matchMerchant(t.comment) || (t.tags||[]).map(id=>matchMerchant(AppState.tags.find(g=>g.id===id)?.name)).find(Boolean) || null) : null;
   const wBadge=walletBadge(t.wallet||'');
   const convNote=(t.targetWallet&&t.targetCurrency&&t.targetCurrency!==t.currency)
-    ? `<span class="tx-conv-note" style="font-size:13px;color:var(--muted)">(${(t.targetAmount||0).toLocaleString('uk-UA')} ${currencySymbol(t.targetCurrency||'')})</span>` : '';
+    ? `<span class="tx-conv-note" style="font-size:13px;color:var(--muted)">(${money((t.targetAmount||0))} ${currencySymbol(t.targetCurrency||'')})</span>` : '';
   const twBadge=t.targetWallet?`<span style="color:var(--muted2);font-size:13px">→</span>${walletBadge(t.targetWallet)}${convNote}`:'';
   const tagBadges=(t.tags||[]).map(tagBadge).filter(Boolean).join('');
   // Design pass 2: the wallet moves to the quiet second line ("ПУМБ · KOLO"), and only
@@ -489,7 +489,7 @@ export function renderFinance(){
     const multiCurrency=walletCurrencies.size>1;
     // Design pass 2026-10-20 (same as Android): the card holds balance + trend
     // only; stats, wallets, outlook and contributions sit below it.
-    let html=`<div class="hero-core"><div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${bal.toLocaleString('uk-UA')} грн</div>`;
+    let html=`<div class="hero-core"><div class="hero-balance-label">${tr(multiCurrency?'finance_total_balance_approx':'finance_total_balance')}</div><div class="hero-balance-val">${multiCurrency?'≈ ':''}${money(bal)} ₴</div>`;
     // Phantom-style net-change trend chip — same monthInc/monthExp figures
     // the two mini-stat cards below already show, just netted into one
     // signed number so the balance itself reads with an at-a-glance trend.
@@ -497,7 +497,7 @@ export function renderFinance(){
     const trendCls=monthNet>0?'positive':monthNet<0?'negative':'neutral';
     const trendIcon=monthNet<0?'trendDown':'trendUp';
     const trendSign=monthNet>0?'+':monthNet<0?'−':'';
-    html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${Math.abs(monthNet).toLocaleString('uk-UA')} грн</span> ${tr('finance_trend_this_month')}</div>`;
+    html+=`<div class="hero-balance-trend ${trendCls}">${window.Icon(trendIcon)}<span class="hero-balance-trend-val">${trendSign}${money(Math.abs(monthNet))} ₴</span> ${tr('finance_trend_this_month')}</div>`;
     if(multiCurrency) html+=`<div class="hero-balance-hint">${tr('finance_total_balance_hint')}</div>`;
     html+='%%SAFE%%</div>';
     // What is still coming before month end — shift pay placed/scheduled after
@@ -507,9 +507,9 @@ export function renderFinance(){
     const rec=recurringUntilMonthEnd(now, AppState.recurring, (amount, wallet)=>toBase(amount, walletById(wallet||'')?.currency||'UAH'));
     /** @type {string[]} */
     const outlook=[];
-    if(shiftsLeft>0) outlook.push(tr('finance_outlook_shifts').replace('{v}', shiftsLeft.toLocaleString('uk-UA')));
-    if(rec.inc>0) outlook.push(tr('finance_outlook_recurring_in').replace('{v}', Math.round(rec.inc).toLocaleString('uk-UA')));
-    if(rec.out>0) outlook.push(tr('finance_outlook_recurring_out').replace('{v}', Math.round(rec.out).toLocaleString('uk-UA')));
+    if(shiftsLeft>0) outlook.push(tr('finance_outlook_shifts').replace('{v}', money(shiftsLeft)));
+    if(rec.inc>0) outlook.push(tr('finance_outlook_recurring_in').replace('{v}', money(Math.round(rec.inc))));
+    if(rec.out>0) outlook.push(tr('finance_outlook_recurring_out').replace('{v}', money(Math.round(rec.out))));
     // Shared profile: who added what this month — shown once ≥2 people have entries.
     /** @type {Record<string, {name: string, inc: number, exp: number}>} */
     const people={};
@@ -528,7 +528,7 @@ export function renderFinance(){
       const perDay=perDayRaw;
       const safe=perDay===null
         ? `<div class="hero-safe hero-safe-warn">${window.Icon('warning')}${tr('finance_safe_to_spend_none')}</div>`
-        : `<div class="hero-safe">${window.Icon('wallet')}<span>${tr('finance_safe_to_spend').replace('{v}', `<span class="hero-safe-val">${Math.floor(perDay).toLocaleString('uk-UA')}</span>`)}</span></div>`;
+        : `<div class="hero-safe">${window.Icon('wallet')}<span>${tr('finance_safe_to_spend').replace('{v}', `<span class="hero-safe-val">${money(Math.floor(perDay))}</span>`)}</span></div>`;
       html=html.replace('%%SAFE%%', safe);
     }else{
       html=html.replace('%%SAFE%%', '');
@@ -537,15 +537,15 @@ export function renderFinance(){
     if(contrib.length>=2){
       const myUid=AppState.currentUser?.uid;
       contrib.sort((a,b)=>(b[0]===myUid?1:0)-(a[0]===myUid?1:0));
-      contribHtml=`<div class="hero-contrib"><div class="hero-contrib-title">${tr('finance_contributions_title')}</div>${contrib.map(([uid,p])=>`<div class="hero-contrib-row"><span>${escapeHtml(p.name)}${uid===myUid?' '+tr('finance_contributions_you'):''}</span><span class="hero-contrib-val">+${Math.round(p.inc).toLocaleString('uk-UA')} · −${Math.round(p.exp).toLocaleString('uk-UA')} грн</span></div>`).join('')}</div>`;
+      contribHtml=`<div class="hero-contrib"><div class="hero-contrib-title">${tr('finance_contributions_title')}</div>${contrib.map(([uid,p])=>`<div class="hero-contrib-row"><span>${escapeHtml(p.name)}${uid===myUid?' '+tr('finance_contributions_you'):''}</span><span class="hero-contrib-val">+${money(Math.round(p.inc))} · −${money(Math.round(p.exp))} ₴</span></div>`).join('')}</div>`;
     }
     html+=`<div class="fin-mini-stat-row">
-      <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${monthInc.toLocaleString('uk-UA')} грн</div></div>
-      <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${monthExp.toLocaleString('uk-UA')} грн</div></div>
+      <div class="fin-mini-stat income"><span class="fin-mini-stat-icon">${window.Icon('trendUp')}</span><div class="fin-mini-stat-label">${tr('finance_month_income')}</div><div class="fin-mini-stat-val">+${money(monthInc)} ₴</div></div>
+      <div class="fin-mini-stat expense"><span class="fin-mini-stat-icon">${window.Icon('cart')}</span><div class="fin-mini-stat-label">${tr('finance_month_expense')}</div><div class="fin-mini-stat-val">−${money(monthExp)} ₴</div></div>
     </div>`;
     html+='<div class="wallet-chip-row">';
     AppState.wallets.forEach(w=>{
-      html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${(wb[w.id]||0).toLocaleString('uk-UA')} ${currencySymbol(w.currency||'UAH')}</span></span>`;
+      html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${money((wb[w.id]||0))} ${currencySymbol(w.currency||'UAH')}</span></span>`;
     });
     html+='</div>';
     if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;
@@ -640,7 +640,7 @@ export function renderFinance(){
   const existingById=new Map();
   lc.querySelectorAll(':scope > .tx-item').forEach(node=>{ const el=/** @type {HTMLElement} */ (node); if(el.dataset.txId) existingById.set(el.dataset.txId, el); });
 
-  // Day headers ("Сьогодні · −245 грн") — reused by date the same way rows
+  // Day headers ("Сьогодні · −245 ₴") — reused by date the same way rows
   // are reused by id, so an unrelated re-render never rebuilds them. The
   // net is the whole day's (from `filtered`), not just the rows shown.
   /** @type {Map<string, HTMLElement>} */
@@ -671,7 +671,7 @@ export function renderFinance(){
         header.setAttribute('aria-level','3');
       }
       const net=dayNet[t.date]||0;
-      const netHtml=net?`<span class="tx-day-net">${net>0?'+':'−'}${Math.abs(Math.round(net*100)/100).toLocaleString('uk-UA')} грн</span>`:'';
+      const netHtml=net?`<span class="tx-day-net">${net>0?'+':'−'}${money(Math.abs(Math.round(net*100)/100))} ₴</span>`:'';
       header.innerHTML=`<span>${escapeHtml(dayLabel(t.date))}</span>${netHtml}`;
       if(prevNode){ if(prevNode.nextSibling!==header) lc.insertBefore(header, prevNode.nextSibling); }
       else if(lc.firstChild!==header) lc.insertBefore(header, lc.firstChild);

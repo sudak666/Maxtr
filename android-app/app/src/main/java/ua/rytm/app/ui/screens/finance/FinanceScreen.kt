@@ -181,11 +181,13 @@ fun FinanceScreen(
         val reportContext = androidx.compose.ui.platform.LocalContext.current
         val shareTitle = androidx.compose.ui.res.stringResource(ua.rytm.app.R.string.month_report_share)
         MonthSummarySheet(
-            viewModel.lastMonthSummary,
+            viewModel.shownMonthSummary,
             onDismiss = { viewModel.monthSummaryOpen = false },
+            onPrevMonth = { viewModel.shiftSummaryMonth(-1) },
+            onNextMonth = if (viewModel.canShowNextSummaryMonth) ({ viewModel.shiftSummaryMonth(1) }) else null,
             onSharePdf = {
                 runCatching {
-                    shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.lastMonthSummary.month), viewModel::walletDisplayName, shareTitle)
+                    shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.shownMonthSummary.month), viewModel::walletDisplayName, shareTitle)
                 }.onFailure { viewModel.reportExportFailed() }
             },
         )
@@ -352,7 +354,7 @@ fun FinanceScreen(
             }
             if (viewModel.showMonthSummaryCard) {
                 item(key = "month-summary") {
-                    MonthSummaryCard(viewModel.lastMonthSummary, onOpen = viewModel::openMonthSummary, onClose = viewModel::markMonthSummarySeen)
+                    MonthSummaryCard(viewModel.lastMonthSummary, onOpen = { viewModel.openMonthSummary(lastMonth = true) }, onClose = viewModel::markMonthSummarySeen)
                 }
             }
             if (canEdit && viewModel.subscriptionCandidates.isNotEmpty()) {

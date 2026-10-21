@@ -7,6 +7,7 @@
 // `include`, no explicit import needed for ambient .d.ts declarations) or
 // tsc reports "Cannot find name".
 declare function tr(key: string): string;
+declare function money(v: number): string;
 declare function Icon(name: string): string;
 declare function setIcon(id: string, name: string): void;
 declare function translateStaticDOM(): void;

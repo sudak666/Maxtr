@@ -23,11 +23,16 @@ data class MonthSummary(
 
     companion object {
         /** All sums in UAH via [toUah]; transfers move money between wallets and are left out. */
-        fun compute(transactions: List<Transaction>, month: YearMonth, toUah: (Transaction) -> Double): MonthSummary {
+        /** [upToDay]: for the month in progress, the previous month is cut to the
+         * same days (1–21 Oct vs 1–21 Sep), or a fresh month always looks "cheaper". */
+        fun compute(transactions: List<Transaction>, month: YearMonth, upToDay: Int? = null, toUah: (Transaction) -> Double): MonthSummary {
             val prefix = month.toString()
             val previousPrefix = month.minusMonths(1).toString()
             val current = transactions.filter { it.date.startsWith(prefix) && it.type != TxType.TRANSFER }
-            val previousExpenses = transactions.filter { it.date.startsWith(previousPrefix) && it.type == TxType.EXPENSE }
+            val previousCutoff = upToDay?.let { "$previousPrefix-%02d".format(minOf(it, month.minusMonths(1).lengthOfMonth())) }
+            val previousExpenses = transactions.filter {
+                it.date.startsWith(previousPrefix) && it.type == TxType.EXPENSE && (previousCutoff == null || it.date.take(10) <= previousCutoff)
+            }
             val expenses = current.filter { it.type == TxType.EXPENSE }
             val previousByCategory = previousExpenses.groupBy { it.category }.mapValues { (_, l) -> l.sumOf(toUah) }
             val top = expenses.groupBy { it.category }
