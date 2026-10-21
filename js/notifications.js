@@ -265,7 +265,7 @@ function checkRecurringAlerts(){
     if(r.active===false || r.nextDate!==tomorrowStr || !r.amount) return;
     const shownKey=`mxRecurAlert_${r.id}_${tomorrowStr}`;
     if(localStorage.getItem(shownKey)) return;
-    const amountStr=r.amount.toLocaleString('uk-UA')+' '+currencySymbol(walletCurrency(r.wallet));
+    const amountStr=money(r.amount)+' '+currencySymbol(walletCurrency(r.wallet));
     showLocalNotification(tr('notif_recurring_title'), tr('notif_recurring_body').replace('{category}',r.category||tr('cat_other')).replace('{amount}',amountStr));
     localStorage.setItem(shownKey,'1');
   });

@@ -291,7 +291,7 @@ export async function addTransaction(){
     if(date.startsWith(mPrefix)){
       const limit=AppState.budgets[cat];
       const spent=AppState.transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(mPrefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
-      if(spent>=limit){ toastMsg=`Бюджет «${cat}» перевищено: ${spent.toLocaleString('uk-UA')}/${limit.toLocaleString('uk-UA')} грн`; toastIcon='warning'; }
+      if(spent>=limit){ toastMsg=`Бюджет «${cat}» перевищено: ${money(spent)}/${money(limit)} ₴`; toastIcon='warning'; }
       else if(spent>=limit*0.9){ toastMsg=`Бюджет «${cat}»: ${Math.round(spent/limit*100)}% витрачено`; toastIcon='warning'; }
     }
   }

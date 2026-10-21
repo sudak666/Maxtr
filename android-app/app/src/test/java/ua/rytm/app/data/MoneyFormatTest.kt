@@ -27,4 +27,12 @@ class MoneyFormatTest {
         assertEquals("1,234,567.89", formatMoney(1_234_567.89, Locale.US))
         assertEquals("1 234 567,89", formatMoney(1_234_567.89, Locale.forLanguageTag("uk-UA")))
     }
+
+    @Test fun kopecksAlwaysTwoDigitsWholeAmountsShort() {
+        val uk = Locale.forLanguageTag("uk-UA")
+        assertEquals("319,20", formatMoney(319.2, uk))
+        assertEquals("35", formatMoney(35.0, uk))
+        assertEquals("−31,90", formatMoney(-31.9, uk))
+        assertEquals("116,94", formatMoney(116.94, uk))
+    }
 }

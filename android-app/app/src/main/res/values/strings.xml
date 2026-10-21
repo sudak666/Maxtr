@@ -55,7 +55,7 @@
     <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
     <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
     <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string>
-    <string name="rates_per_unit">грн за 1 %1$s</string><string name="rates_dashboard_subtitle">Актуальні значення відносно гривні</string><string name="rates_usd_hero">1 долар США</string><string name="rates_current">Поточні курси</string>
+    <string name="rates_per_unit">₴ за 1 %1$s</string><string name="rates_dashboard_subtitle">Актуальні значення відносно гривні</string><string name="rates_usd_hero">1 долар США</string><string name="rates_current">Поточні курси</string>
     <string name="profile_load_failed">Не вдалося завантажити профіль</string>
     <string name="profile_save_failed">Не вдалося зберегти профіль</string>
     <string name="profile_invalid_image">Оберіть коректне зображення</string>
@@ -81,7 +81,7 @@
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
     <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
-    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s грн середнє</string><string name="analytics_maximum_uah">%1$s грн максимум</string>
+    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s ₴ середнє</string><string name="analytics_maximum_uah">%1$s ₴ максимум</string>
     <string name="analytics_difference">Різниця</string><string name="analytics_savings_rate">Заощаджено</string>
     <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
     <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$d%%</string>
@@ -103,7 +103,7 @@
     <string name="validation_date_required">Оберіть дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Оберіть гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s грн/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (грн)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s ₴/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуйте ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_reorder">Перетягнути, щоб змінити порядок</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -115,7 +115,7 @@
     <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
     <string name="finance_empty_cta">Додати першу операцію</string>
-    <string name="finance_amount_uah">%1$s грн</string><string name="finance_amount_uah_estimated">≈ %1$s грн</string><string name="finance_month_net">%1$s%2$s грн цього місяця</string><string name="finance_signed_uah">%1$s%2$s грн</string>
+    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ цього місяця</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Категорії</string><string name="categories_body">Свої категорії доходів і витрат, з підкатегоріями всередині.</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
     <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
@@ -130,12 +130,12 @@
     <string-array name="finance_tips"><item>Відкладай хоча б 10% доходу одразу після отримання, а не «з залишку» в кінці місяця.</item><item>Перед великою покупкою зачекай 24 години — імпульсивне бажання часто минає.</item><item>Створи резерв на 3–6 місяців витрат, щоб несподівані події не руйнували бюджет.</item><item>Автоматизуй заощадження: регулярний переказ працює краще за силу волі.</item><item>Раз на тиждень переглядай підписки й регулярні платежі.</item><item>Плануй нерегулярні витрати заздалегідь окремими категоріями.</item><item>Порівнюй знижку не з початковою ціною, а з реальною потребою в покупці.</item></string-array>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
-    <string name="money_uah">%1$s грн</string>
+    <string name="money_uah">%1$s ₴</string>
     <string name="shifts_choose">Оберіть зміни</string>
     <string name="shifts_earned_month">Заробіток за місяць</string>
-    <string name="shifts_goal_progress">%1$d%% від цілі %2$s грн</string>
+    <string name="shifts_goal_progress">%1$d%% від цілі %2$s ₴</string>
     <string name="shifts_goal_edit_title">Ціль заробітку</string>
-    <string name="shifts_goal_edit_label">Сума, грн</string>
+    <string name="shifts_goal_edit_label">Сума, ₴</string>
     <string name="shifts_hours_short">год</string>
     <string name="shifts_count">Змін</string>
     <string name="shifts_days_off">Вихідних</string>
@@ -193,7 +193,7 @@
     <string name="shift_type_delete_title">Видалити тип зміни</string>
     <string name="shift_type_delete_body">Видалити цей тип зміни? Він буде знятий з усіх днів календаря.</string>
     <string name="shift_day_off">Вихідний</string>
-    <string name="shift_type_summary">%1$s грн · %2$s год</string>
+    <string name="shift_type_summary">%1$s ₴ · %2$s год</string>
     <string name="shift_pay">Оплата</string>
     <string name="shift_hours">Години</string>
     <string name="shift_day_off_unpaid">Вихідний (без оплати)</string>
@@ -412,7 +412,7 @@
     <string name="transaction_delete_failed">Не вдалося видалити операцію</string><string name="transaction_deleted">Видалено</string><string name="action_undo">Скасувати</string>
     <string name="common_deleted">Видалено</string>
     <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
-    <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s грн</string>
+    <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s ₴</string>
     <string name="transaction_updated">Запис оновлено</string>
     <string name="transaction_transfer_done">Переказ виконано</string>
     <string name="transaction_added">Запис додано</string>
@@ -443,14 +443,14 @@
     <string name="shifts_no_types">Ще немає типів змін — створіть перший.</string>
     <string name="action_copy_code">Копіювати код</string>
     <string name="forecast_title">Прогноз заробітку</string>
-    <string name="forecast_month_total">≈ %1$s грн</string>
+    <string name="forecast_month_total">≈ %1$s ₴</string>
     <string name="forecast_earned">зароблено %1$s</string>
     <string name="forecast_planned">заплановано %1$s</string>
     <string name="forecast_schedule">за графіком %1$s</string>
-    <string name="forecast_goal_reached">Ціль %1$s грн буде досягнуто</string>
-    <string name="forecast_goal_short">До цілі бракує %1$s грн</string>
-    <plurals name="forecast_goal_shifts"><item quantity="one">До цілі бракує %1$s грн ≈ ще %2$d зміна</item><item quantity="few">До цілі бракує %1$s грн ≈ ще %2$d зміни</item><item quantity="many">До цілі бракує %1$s грн ≈ ще %2$d змін</item><item quantity="other">До цілі бракує %1$s грн ≈ ще %2$d зміни</item></plurals>
-    <string name="forecast_next_month">%1$s: ≈ %2$s грн</string>
+    <string name="forecast_goal_reached">Ціль %1$s ₴ буде досягнуто</string>
+    <string name="forecast_goal_short">До цілі бракує %1$s ₴</string>
+    <plurals name="forecast_goal_shifts"><item quantity="one">До цілі бракує %1$s ₴ ≈ ще %2$d зміна</item><item quantity="few">До цілі бракує %1$s ₴ ≈ ще %2$d зміни</item><item quantity="many">До цілі бракує %1$s ₴ ≈ ще %2$d змін</item><item quantity="other">До цілі бракує %1$s ₴ ≈ ще %2$d зміни</item></plurals>
+    <string name="forecast_next_month">%1$s: ≈ %2$s ₴</string>
     <string name="forecast_empty">Додай зміни в календар або ввімкни автозаповнення — і тут з’явиться прогноз.</string>
     <string name="widget_label">Rytm</string>
     <string name="widget_description">Баланс, найближча зміна і прогноз заробітку</string>
@@ -500,14 +500,14 @@
         <item quantity="other">≈ %d зміни роботи</item>
     </plurals>
     <string name="finance_outlook_prefix">До кінця місяця:</string>
-    <string name="finance_outlook_shifts">+%1$s грн за змінами</string>
-    <string name="finance_outlook_recurring_in">+%1$s грн регулярні надходження</string>
-    <string name="finance_outlook_recurring_out">−%1$s грн регулярні платежі</string>
+    <string name="finance_outlook_shifts">+%1$s ₴ за змінами</string>
+    <string name="finance_outlook_recurring_in">+%1$s ₴ регулярні надходження</string>
+    <string name="finance_outlook_recurring_out">−%1$s ₴ регулярні платежі</string>
     <string name="auth_email_placeholder">you@example.com</string>
     <string name="shifts_insight_title">Інсайт за 90 днів</string>
     <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d%% більше</string>
     <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d%% менше</string>
-    <string name="shifts_insight_detail">≈ %1$s грн на день у зміну проти %2$s грн у вихідний</string>
+    <string name="shifts_insight_detail">≈ %1$s ₴ на день у зміну проти %2$s ₴ у вихідний</string>
     <string name="finance_contributions_title">Хто скільки цього місяця</string>
     <string name="finance_contributions_me">%1$s (ти)</string>
     <string name="shifts_export_calendar">Експорт у календар</string>
@@ -601,4 +601,8 @@
     <string name="finance_search_what_amount">«більше 500»</string>
     <string name="widget_per_day">≈ %1$s ₴ на день</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
+    <string name="analytics_spending_same">Витрати на рівні попереднього періоду</string>
+    <string name="month_summary_prev">Попередній місяць</string>
+    <string name="month_summary_next">Наступний місяць</string>
+    <string name="widget_forecast_month">Прогноз · %1$s</string>
 </resources>

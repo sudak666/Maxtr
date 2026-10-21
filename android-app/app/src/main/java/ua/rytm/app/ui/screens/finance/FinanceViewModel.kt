@@ -128,6 +128,20 @@ class FinanceViewModel(
     }
     var monthSummaryOpen by mutableStateOf(false)
 
+    /** Month shown in the recap sheet: last month in a month's first week
+     * (matches the recap card), the month so far after that; the sheet's
+     * arrows move it. */
+    var summaryMonth by mutableStateOf(YearMonth.now())
+        private set
+    val shownMonthSummary: MonthSummary by derivedStateOf {
+        if (summaryMonth == currentMonth.minusMonths(1)) lastMonthSummary
+        else MonthSummary.compute(transactions, summaryMonth, upToDay = today.dayOfMonth.takeIf { summaryMonth == currentMonth }) { toUah(it.amount, it.currency) }
+    }
+    val canShowNextSummaryMonth: Boolean get() = summaryMonth < currentMonth
+    fun shiftSummaryMonth(by: Long) {
+        summaryMonth = summaryMonth.plusMonths(by).coerceAtMost(currentMonth)
+    }
+
     /** The recap card shows in a month's first week until it is opened or closed. */
     val showMonthSummaryCard: Boolean
         get() = today.dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
@@ -139,7 +153,11 @@ class FinanceViewModel(
 
     fun reportExportFailed() { pendingMessage = FinanceMessage(R.string.common_save_failed) }
 
-    fun openMonthSummary() { monthSummaryOpen = true; markMonthSummarySeen() }
+    fun openMonthSummary(lastMonth: Boolean = today.dayOfMonth <= 7) {
+        summaryMonth = if (lastMonth) currentMonth.minusMonths(1) else currentMonth
+        monthSummaryOpen = true
+        if (lastMonth) markMonthSummarySeen()
+    }
 
     fun markMonthSummarySeen() {
         val month = lastMonthSummary.month.toString()

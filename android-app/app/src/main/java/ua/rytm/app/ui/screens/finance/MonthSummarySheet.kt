@@ -5,6 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.ChevronLeft
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -81,21 +84,33 @@ fun MonthSummaryCard(summary: MonthSummary, onOpen: () -> Unit, onClose: () -> U
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonthSummarySheet(summary: MonthSummary, onDismiss: () -> Unit, onSharePdf: (() -> Unit)? = null) {
+fun MonthSummarySheet(
+    summary: MonthSummary,
+    onDismiss: () -> Unit,
+    onSharePdf: (() -> Unit)? = null,
+    onPrevMonth: (() -> Unit)? = null,
+    onNextMonth: (() -> Unit)? = null,
+) {
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            RytmSheetTitle(stringResource(R.string.month_summary_title, monthName(summary.month)))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { RytmSheetTitle(stringResource(R.string.month_summary_title, monthName(summary.month))) }
+                if (onPrevMonth != null) {
+                    androidx.compose.material3.IconButton(onClick = onPrevMonth) { Icon(RytmIcons.ChevronLeft, contentDescription = stringResource(R.string.month_summary_prev)) }
+                    androidx.compose.material3.IconButton(onClick = { onNextMonth?.invoke() }, enabled = onNextMonth != null) { Icon(RytmIcons.ChevronRight, contentDescription = stringResource(R.string.month_summary_next)) }
+                }
+            }
             if (summary.isEmpty) {
                 Text(stringResource(R.string.month_summary_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 return@Column
             }
             MonthStories(summary)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile(stringResource(R.string.tx_income), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
-                StatTile(stringResource(R.string.tx_expense), uah(summary.expense), RytmSemantic.expense, Modifier.weight(1f))
+                StatTile(stringResource(R.string.analytics_income_label), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
+                StatTile(stringResource(R.string.analytics_expense_label), uah(summary.expense), RytmSemantic.expense, Modifier.weight(1f))
             }
             val net = summary.net
             Text(

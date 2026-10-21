@@ -346,14 +346,14 @@ export const CURRENCY_LIST=['UAH','USD','EUR','GBP','PLN'];
 
 /** @type {Record<string, {symbol: string}>} */
 const CURRENCY_META={
-  UAH:{symbol:'грн'}, USD:{symbol:'$'}, EUR:{symbol:'€'}, GBP:{symbol:'£'}, PLN:{symbol:'zł'},
+  UAH:{symbol:'₴'}, USD:{symbol:'$'}, EUR:{symbol:'€'}, GBP:{symbol:'£'}, PLN:{symbol:'zł'},
 };
 
 /** @type {Record<string, number>} */
 export const SEED_RATES={USD:41, EUR:44, GBP:51, PLN:10.5};
 
 /** @param {string} code */
-export function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || 'грн'; }
+export function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || '₴'; }
 
 /**
  * @param {number} amount

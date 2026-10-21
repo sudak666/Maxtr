@@ -1,5 +1,14 @@
 # Changelog
 
+- **2.6.1 (vc30): owner's live check of 2.6.0, Android + PWA (2026-10-21)** — owner sent 15 phone screenshots; fixes:
+  1. **Money format**: kopecks always two digits (`319,20`, was `319,2`), whole amounts stay short (`35`). Android `formatMoney()` (+ `MoneyFormatTest`); PWA new global `money(v)` (`js/classic-globals.js`, declared in eslint/`types/globals.d.ts`) replacing 53 `.toLocaleString('uk-UA')` money call sites.
+  2. **₴ everywhere** instead of «грн» in uk texts (27 Android strings, PWA templates/i18n, `CURRENCY_META.UAH.symbol`). English keeps "UAH". Debt's stored `currency:'грн'` value untouched (display label only).
+  3. **Tools parity**: Android savings rate rounded like the PWA (−1,92 % → −2 %, was truncated to −1 %), typographic minus; expense-change insight uses the PWA's ±5 % "about the same" band (`analytics_spending_same`); period chips get fading edges (the "Весь час" chip existed but sat off-screen).
+  4. **Month summary**: shows the month in progress after the first week (last month in days 1–7, like the recap card), ‹ › arrows to move between months; the in-progress month compares with the same days of the previous month (`MonthSummary.compute(upToDay=)`, + test). Stat tiles say «Дохід/Витрати».
+  5. **Widget**: forecast tile reads «Прогноз · жовтень» (it includes planned shifts, so it differs from the Shifts tab's earned-so-far); `BASE_HEIGHT` 236→248dp — measured on the A51 (launcher reports 667dp for a 5-row widget, matches the real size), the old estimate let a 3-row widget squeeze in a half-cut recent row.
+  6. **PWA**: amounts drop JetBrains Mono for the body font with `tabular-nums` (matches Android); the font is no longer loaded. `sw.js` v187→v188.
+  Verified: Android unit tests, QA build on the A51 (history `−319,20 ₴`, Tools −2 % / «на рівні», summary arrows Oct↔Sep); PWA build/typecheck/lint. The widget change is verified by measurement only — the QA widget isn't on the home screen.
+
 - **Old orphan profiles deleted (2026-10-21)** — the owner ran `firebase firestore:delete -r` for `finance/shifts/debt/shared_members/backup_v2@{profile_mrahthxhgf1,01a10911…,e2e45bc0…}` (the agent's own bulk delete was blocked by the auto-mode classifier). Verified in the console: `max_tracker` now holds only the default profile and Stas (`@profile_mrajtq7mi1t`) plus `profiles_meta`.
 
 - **Demo profile removed (2026-10-21)** — QA switched back to Max, «Demo» deleted in Профілі; its orphaned Firestore docs (`finance`/`shifts`/`debt@f243777a90e04a08a08ca82575a521db` + transactions) deleted with `firebase firestore:delete -r` (owner allowed). Left alone on purpose: older orphan profile docs (`@profile_mrahthxhgf1`, `@01a10911…`, `@e2e45bc0…`, two with `shared_members`) — not in `profiles_meta`, but could be shared with other accounts; owner to decide.

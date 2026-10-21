@@ -144,7 +144,7 @@ function renderShiftTypesList(){
   if(!AppState.shiftTypes.length){ box.innerHTML=`<div class="mgr-empty">${tr('shifts_types_empty')}</div>`; return; }
   AppState.shiftTypes.forEach(t=>{
     const open=AppState.expandedShiftTypeId===t.id;
-    const summary=t.isOff ? tr('shifts_rest') : `${(t.amount||0).toLocaleString('uk-UA')} грн · ${t.hours||0} ${tr('shifts_hours_short')}`;
+    const summary=t.isOff ? tr('shifts_rest') : `${money((t.amount||0))} ₴ · ${t.hours||0} ${tr('shifts_hours_short')}`;
     const row=document.createElement('div');
     row.className='mgr-row';
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
@@ -545,7 +545,7 @@ export function renderFxWidget(){
       symbol: currencySymbol(code),
       title: code,
       sub: tr('fx_name_'+code.toLowerCase()),
-      rateStr: `${rate.toLocaleString('uk-UA')} грн`,
+      rateStr: `${money(rate)} ₴`,
     });
   });
   render(h(Fragment, null, rows), box);
@@ -577,7 +577,7 @@ export function renderFxConverter(){
   const amount=parseFloat(amountEl.value)||0;
   const from=fromEl.value||'UAH', to=toEl.value||'UAH';
   const result=convertCurrency(amount, from, to);
-  resultEl.textContent=`${result.toLocaleString('uk-UA')} ${currencySymbol(to)}`;
+  resultEl.textContent=`${money(result)} ${currencySymbol(to)}`;
 }
 
 const swapFxConverter = function(){
@@ -647,14 +647,14 @@ function renderCategoriesList(){
         <button type="button" class="icon-badge icon-badge-sm cat-icon-btn" style="--badge-color:${categoryColor(name)}" data-action="open-category-icon-picker" data-idx="${idx}" aria-label="${tr('cat_icon_pick_title')}">${window.Icon(categoryIcon(name))}</button>
         <button type="button" class="cat-row-body" data-action="toggle-subcat-panel" data-idx="${idx}">
           <span class="cat-row-name">${escapeHtml(name)}</span>
-          <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${catMonthTotal(AppState.catMgrType,name).toLocaleString('uk-UA')} ${tr('cat_this_month')}</span>
+          <span class="cat-row-sub">${open?'▾':'▸'} ${tr('cat_subcat_short')}${subs.length?` (${subs.length})`:''} · ${money(catMonthTotal(AppState.catMgrType,name))} ${tr('cat_this_month')}</span>
         </button>
         <button class="mgr-del" data-action="open-cat-action-menu" data-idx="${idx}" aria-label="${tr('a11y_more')}">${window.Icon('more')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${subMonthTotal(AppState.catMgrType,name,s).toLocaleString('uk-UA')} ${tr('cat_this_month')}<button data-action="delete-subcategory" data-idx="${idx}" data-si="${si}" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
+          ${subs.length?subs.map((s,si)=>`<span class="subchip">${escapeHtml(s)} · ${money(subMonthTotal(AppState.catMgrType,name,s))} ${tr('cat_this_month')}<button data-action="delete-subcategory" data-idx="${idx}" data-si="${si}" aria-label="${tr('a11y_remove')}">${window.Icon('xmark')}</button></span>`).join(''):`<span class="mgr-empty" style="padding:2px 0">${tr('cat_no_subcats')}</span>`}
         </div>
         <button type="button" class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px;font-size:13px">${window.Icon('plus')}${tr('cat_subcategory')}</button>
       </div>`:''}`;
@@ -876,7 +876,7 @@ function renderBudgetsManagerList(){
         <span class="icon-badge icon-badge-sm" style="--badge-color:${categoryColor(name)}">${window.Icon(categoryIcon(name))}</span>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${escapeHtml(name)}</span>
-          <span class="cat-row-sub budget-row-limit">${val>0?val.toLocaleString('uk-UA')+' грн':tr('budgets_no_limit')}</span>
+          <span class="cat-row-sub budget-row-limit">${val>0?money(val)+' ₴':tr('budgets_no_limit')}</span>
         </div>
         <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-budget-edit" data-cat="${escapeHtml(name)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
       </div>
@@ -918,10 +918,10 @@ export function renderBudgets(){
     row.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:4px;gap:8px">
         <span style="display:flex;align-items:center;gap:8px;color:var(--text-strong);min-width:0"><span class="icon-badge icon-badge-sm" style="--badge-color:${categoryColor(cat)};flex-shrink:0">${window.Icon(categoryIcon(cat))}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(cat)}</span></span>
-        <span class="budget-widget-val" style="color:${color};white-space:nowrap">${spent.toLocaleString('uk-UA')} / ${limit.toLocaleString('uk-UA')} грн</span>
+        <span class="budget-widget-val" style="color:${color};white-space:nowrap">${money(spent)} / ${money(limit)} ₴</span>
       </div>
       <div class="salary-bar-wrap"><div class="salary-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      ${over?`<div class="budget-widget-val" style="font-size:13px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${(spent-limit).toLocaleString('uk-UA')} грн</div>`:''}
+      ${over?`<div class="budget-widget-val" style="font-size:13px;color:var(--red2);font-weight:700;margin-top:3px">${tr('budgets_over_by')} ${money((spent-limit))} ₴</div>`:''}
     `;
     box.appendChild(row);
   });
@@ -955,7 +955,7 @@ function renderRecurringList(){
     const paused=r.active===false;
     const freqLabel=tr(FREQ_LABEL_KEY[r.frequency]||'recurring_monthly');
     const isDraft=!r.amount||!r.category;
-    const summary=isDraft ? tr('recurring_draft_label') : `${escapeHtml(r.category||'')} · ${(r.amount||0).toLocaleString('uk-UA')} грн`;
+    const summary=isDraft ? tr('recurring_draft_label') : `${escapeHtml(r.category||'')} · ${money((r.amount||0))} ₴`;
     const nextDateFmt=r.nextDate?r.nextDate.split('-').reverse().join('.'):'';
     const row=document.createElement('div');
     row.className='mgr-row'+(paused?' recur-paused':'')+(isDraft?' mgr-row-draft':'');

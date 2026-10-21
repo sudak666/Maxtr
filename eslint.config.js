@@ -63,6 +63,7 @@ export default [
         // Bare classic-globals.js functions (see types/globals.d.ts --
         // real window.* properties called bare, not ES module exports).
         tr: "readonly",
+        money: "readonly",
         Icon: "readonly",
         setIcon: "readonly",
         translateStaticDOM: "readonly",

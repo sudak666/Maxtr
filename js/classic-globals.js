@@ -320,7 +320,7 @@
       finance_chart_net:'Баланс', finance_chart_income:'Дохід', finance_chart_expense:'Витрата',
       finance_chart_forecast:'Прогноз', finance_chart_forecast_tip:'прогноз', finance_chart_avg:'Середнє',
       finance_chart_best:'Найкращий', finance_chart_worst:'Найгірший',
-      finance_total_balance:'Загальний баланс (у грн)', finance_total_balance_approx:'Орієнтовний баланс (у грн)', finance_total_balance_hint:'Сума перерахована в гривню за поточними курсами гаманців.',
+      finance_total_balance:'Загальний баланс (у ₴)', finance_total_balance_approx:'Орієнтовний баланс (у ₴)', finance_total_balance_hint:'Сума перерахована в гривню за поточними курсами гаманців.',
       finance_trend_this_month:'цього місяця',
       finance_month_income:'Дохід цього місяця', finance_month_expense:'Витрата цього місяця',
       finance_type_income:'+ Дохід', finance_type_expense:'− Витрата', finance_type_transfer:'⇄ Переказ',
@@ -357,7 +357,7 @@
       shifts_brush_hint:'Порада: обери тип зміни вище, щоб проставляти дні одним дотиком', shifts_brush_active_hint:'Режим пензлика: дотик до дня додає або прибирає цю зміну. Торкнись типу ще раз, щоб вийти',
       shifts_export_calendar:'Експорт у календар',
       debt_forecast_finish:'У такому темпі ≈ до {date}',
-      finance_outlook_prefix:'До кінця місяця:', finance_outlook_shifts:'+{v} грн за змінами', finance_outlook_recurring_in:'+{v} грн регулярні надходження', finance_outlook_recurring_out:'−{v} грн регулярні платежі', tx_shift_cost:'≈ {v} зміни роботи', tx_shift_cost_tiny:'Менше 0,1 зміни роботи',
+      finance_outlook_prefix:'До кінця місяця:', finance_outlook_shifts:'+{v} ₴ за змінами', finance_outlook_recurring_in:'+{v} ₴ регулярні надходження', finance_outlook_recurring_out:'−{v} ₴ регулярні платежі', tx_shift_cost:'≈ {v} зміни роботи', tx_shift_cost_tiny:'Менше 0,1 зміни роботи',
       auth_err_invalid_email:'Некоректний email.', auth_err_user_not_found:'Користувача не знайдено.',
       auth_err_wrong_password:'Невірний пароль.', auth_err_invalid_credential:'Невірний email або пароль.',
       auth_err_email_in_use:'Цей email вже зареєстровано.', auth_err_weak_password:'Пароль надто простий (мінімум 6 символів).',
@@ -394,9 +394,9 @@
       shifts_apply:'Застосувати', shifts_types_btn:'Типи змін', shifts_clear_month:'Очистити місяць',
       shift_types_desc:'Оплата, тривалість і колір кожного типу зміни для календаря.',
       shifts_today:'Сьогодні', shifts_hint:'Натисни на день щоб редагувати зміни', shifts_goal_progress:'від цілі',
-      shifts_goal_edit_title:'Ціль заробітку', shifts_goal_edit_prompt:'Сума, грн',
+      shifts_goal_edit_title:'Ціль заробітку', shifts_goal_edit_prompt:'Сума, ₴',
       shifts_pick_title:'Оберіть зміни', shifts_add_type:'Додати тип зміни',
-      shifts_types_empty:'Немає типів змін', shifts_type_pay:'Оплата, грн', shifts_type_hours:'Години', shifts_type_off_label:'вихідний',
+      shifts_types_empty:'Немає типів змін', shifts_type_pay:'Оплата, ₴', shifts_type_hours:'Години', shifts_type_off_label:'вихідний',
       shifts_default_name:'Зміна', shifts_add_type_prompt:'Назва типу зміни:', shifts_new_type_default:'Нова зміна',
       shifts_delete_type_confirm:'Видалити цей тип зміни? Його буде прибрано з усіх днів, де він був позначений.', shifts_delete_type_title:'Видалити тип',
       shifts_rest:'Відпочинок', shifts_hours_short:'год',
@@ -474,7 +474,7 @@
       goals_add:'Додати ціль', goals_add_confirm:'Додати', goals_empty:'Немає цілей', goals_target:'Ціль', goals_target_date:'Дата (необов\'язково)',
       goals_reached:'Ціль досягнуто!', goals_added:'Ціль додано', goals_need_wallet:'Спочатку додай гаманець',
       goals_delete_confirm:'Видалити цю ціль?', goals_delete_title:'Видалення цілі',
-      cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'грн цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
+      cat_empty:'Немає категорій', cat_subcat_short:'Підкат.', cat_this_month:'₴ цього міс.', cat_drag_title:'Перетягни, щоб змінити порядок',
       cat_no_subcats:'Немає підкатегорій', cat_subcategory:'Підкатегорія',
       cat_add_subcat_prompt:'Назва підкатегорії:', cat_add_subcat_title:'Нова підкатегорія', cat_subcat_exists:'Така підкатегорія вже є',
       cat_delete_subcat_confirm:'Видалити цю підкатегорію? Старі операції збережуть свою назву.', cat_delete_subcat_title:'Видалити підкатегорію',
@@ -482,7 +482,7 @@
       cat_delete_confirm:'Видалити категорію? Старі операції збережуть свою назву.', cat_delete_title:'Видалити категорію',
       cat_act_edit:'Редагувати', cat_act_show_tx:'Показати транзакції', cat_act_delete:'Видалити категорію',
       cat_showing:'Показано:', cat_add:'Додати категорію',
-      budgets_empty:'Немає категорій витрат', budgets_limit_label:'Ліміт/міс, грн', budgets_over_by:'Перевищено на',
+      budgets_empty:'Немає категорій витрат', budgets_limit_label:'Ліміт/міс, ₴', budgets_over_by:'Перевищено на',
       budgets_title:'Бюджети по категоріях', budgets_desc:'Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.',
       budgets_no_limit:'Без ліміту',
       recurring_empty:'Немає повторюваних операцій', recurring_type:'Тип', recurring_amount:'Сума',
@@ -865,6 +865,9 @@
   };
   window.currentLang='uk';
   try{ var savedLang=localStorage.getItem('mxLang'); if(savedLang==='en'||savedLang==='uk') window.currentLang=savedLang; }catch(e){}
+  // Money for display: whole amounts stay short ("35"), anything with kopecks
+  // always gets two digits ("319,20") — same rule as Android's formatMoney().
+  window.money=function(v){ const n=Number(v)||0; const whole=Math.abs(n*100-Math.round(n)*100)<0.5; return n.toLocaleString('uk-UA',{minimumFractionDigits:whole?0:2,maximumFractionDigits:2}); };
   window.tr=function(key){ return (I18N[window.currentLang]&&I18N[window.currentLang][key]) || I18N.uk[key] || key; };
   window.translateStaticDOM=function(){
     document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=window.tr(el.getAttribute('data-i18n')); });

@@ -93,13 +93,13 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     val totalIncome: Double get() = periodTransactions().filter { it.type == TxType.INCOME }.sumOf { it.inBase() }
     val totalExpense: Double get() = periodTransactions().filter { it.type == TxType.EXPENSE }.sumOf { it.inBase() }
     val difference: Double get() = totalIncome - totalExpense
-    val savingsRate: Int get() = if (totalIncome > 0) ((difference / totalIncome) * 100).toInt() else 0
+    val savingsRate: Int get() = if (totalIncome > 0) kotlin.math.round((difference / totalIncome) * 100).toInt() else 0 // rounded like the PWA (−1,92 → −2)
 
     val expenseChangePercent: Int?
         get() {
             val previous = previousPeriodTransactions()?.filter { it.type == TxType.EXPENSE }?.sumOf { it.inBase() } ?: return null
             if (previous <= 0) return null
-            return (((totalExpense - previous) / previous) * 100).toInt()
+            return kotlin.math.round(((totalExpense - previous) / previous) * 100).toInt()
         }
 
     val topExpenseGrowth: Pair<String, Int>?
