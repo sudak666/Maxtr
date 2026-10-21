@@ -1,5 +1,7 @@
 # Changelog
 
+- **Deploy hosting + AAB 2.6.1 (2026-10-21)** — after #623 merged (CI: one `TagsManagerViewModelTest` flake on the `android` job, passed on rerun — same Unconfined-Main race family as the earlier FinanceViewModel flakes, not fixed yet). Clean `origin/main` worktree deploy. `bundleRelease` → `Rytm-2.6.1-vc30.aab` on the owner's Desktop; NOT uploaded — 2.6.0 is still in Google review, upload on the owner's word.
+
 - **2.6.1 (vc30): owner's live check of 2.6.0, Android + PWA (2026-10-21)** — owner sent 15 phone screenshots; fixes:
   1. **Money format**: kopecks always two digits (`319,20`, was `319,2`), whole amounts stay short (`35`). Android `formatMoney()` (+ `MoneyFormatTest`); PWA new global `money(v)` (`js/classic-globals.js`, declared in eslint/`types/globals.d.ts`) replacing 53 `.toLocaleString('uk-UA')` money call sites.
   2. **₴ everywhere** instead of «грн» in uk texts (27 Android strings, PWA templates/i18n, `CURRENCY_META.UAH.symbol`). English keeps "UAH". Debt's stored `currency:'грн'` value untouched (display label only).
