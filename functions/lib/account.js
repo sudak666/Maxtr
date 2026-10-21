@@ -11,9 +11,8 @@
  * the data went BEFORE the Auth account, so a failed re-login left an
  * account with its data already gone.
  *
- * The Firebase project is shared with other apps (DoRytm keeps
- * users/{uid}/habits|tasks, Vchasno keeps vchasnoUsers/{uid}) under the same
- * sign-in. Their data is never touched; when it exists, `keepAuth` tells the
+ * The Firebase project is shared with DoRytm (users/{uid}/habits|tasks)
+ * under the same sign-in. Their data is never touched; when it exists, `keepAuth` tells the
  * caller to leave the shared Auth user in place too.
  *
  * @param {any} db firebase-admin Firestore
@@ -39,7 +38,6 @@ async function deleteAccountData(db, uid) {
   const otherApps = await Promise.all([
     db.collection(`users/${uid}/habits`).limit(1).get().then((/** @type {any} */ s) => !s.empty),
     db.collection(`users/${uid}/tasks`).limit(1).get().then((/** @type {any} */ s) => !s.empty),
-    db.doc(`vchasnoUsers/${uid}`).get().then((/** @type {any} */ s) => s.exists),
   ]);
   const keepAuth = otherApps.some(Boolean);
 

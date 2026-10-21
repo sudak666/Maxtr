@@ -68,7 +68,7 @@ assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').members, 
 assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').roles, {}, 'role entry removed');
 assert.ok(db.docs.has('users/o1/max_tracker/finance@sh') && db.docs.has('users/u2/max_tracker/finance'), "other accounts' data untouched");
 
-// AUDIT_2026-10 P2-03: another app of this project (DoRytm, Vchasno) shares the sign-in.
+// AUDIT_2026-10 P2-03: another app of this project (DoRytm) shares the sign-in.
 const db2 = fakeDb({
   'users/u3/max_tracker/finance': { a: 1 },
   'users/u3/max_tracker/finance/transactions/t1': { id: 1 },
@@ -81,7 +81,4 @@ assert.equal(res2.keepAuth, true, 'other app data -> keep the shared Auth user')
 assert.ok(!db2.docs.has('users/u3/max_tracker/finance') && !db2.docs.has('users/u3/max_tracker/finance/transactions/t1') && !db2.docs.has('users/u3/backups/default_1'), 'Rytm data gone');
 assert.ok(db2.docs.has('users/u3/habits/h1') && db2.docs.has('users/u3/tasks/k1'), 'DoRytm habits/tasks untouched');
 
-const db3 = fakeDb({ 'users/u4/max_tracker/finance': { a: 1 }, 'vchasnoUsers/u4': { data: '{}' } });
-assert.equal((await deleteAccountData(db3, 'u4')).keepAuth, true, 'Vchasno backup -> keep Auth');
-assert.ok(db3.docs.has('vchasnoUsers/u4') && !db3.docs.has('users/u4/max_tracker/finance'), 'Vchasno data untouched, Rytm data gone');
 console.log('functions-account: OK');
