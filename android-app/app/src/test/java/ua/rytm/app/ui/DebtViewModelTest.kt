@@ -4,6 +4,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -45,14 +47,26 @@ class DebtViewModelTest {
         repo = DebtRepository(db)
     }
 
-    @After fun tearDown() { db.close(); Dispatchers.resetMain() }
+    private val vms = mutableListOf<DebtViewModel>()
+
+    // Each test's ViewModel scope is cancelled and the process-wide
+    // LocalWriteLock is free again before the next test: a leftover save
+    // still holding it made later tests wait past their 10 s budget (CI flake).
+    @After fun tearDown() {
+        vms.forEach { it.viewModelScope.cancel() }
+        waitUntil { !ua.rytm.app.data.LocalWriteLock.mutex.isLocked }
+        db.close(); Dispatchers.resetMain()
+    }
 
     private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     private fun newVm(saver: FakeDebtSaver): DebtViewModel {
-        val vm = DebtViewModel(repo, saver, fieldSaveDebounceMs = 0)
+        val vm = DebtViewModel(repo, saver, fieldSaveDebounceMs = 0).also { vms += it }
         vm.addDebt("Loan", "Debt")
-        waitUntil { vm.currentDebt != null }
+        // Wait for the add's own save to finish, not just the Room row: a test
+        // that flips `saver.fail` earlier made THAT save fail and roll the new
+        // debt back (failedSaveRollsBack saw currentDebt == null).
+        waitUntil { vm.currentDebt != null && saver.saves >= 1 && !vm.saving }
         return vm
     }
 
