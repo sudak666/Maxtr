@@ -57,7 +57,8 @@ private fun monthName(month: YearMonth): String {
 }
 
 @Composable
-private fun uah(amount: Double): String = maskedAmount("${formatMoney(amount)} ₴")
+// No-break space: "−1 190,93" and "₴" were split across lines (P5).
+private fun uah(amount: Double): String = maskedAmount("${formatMoney(amount)} ₴")
 
 /** Shown on Finance in the first week of a month until opened or closed. */
 @Composable

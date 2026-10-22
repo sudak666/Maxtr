@@ -4,7 +4,6 @@ import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -215,8 +214,9 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
     Card(
         modifier = modifier,
         shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.28f)),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f)),
+        // P5: neutral tile like the rest of the app; color only in the value
+        // and icon badge (the tinted wash + border coded the same fact 3×).
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
         Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -238,7 +238,7 @@ private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon
 
 @Composable
 private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input), border = BorderStroke(1.dp, color.copy(alpha = 0.28f)), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))) {
+    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
         Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
@@ -291,13 +291,15 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
             )
             chartEntries.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
-                val gap = minOf(3f, sweep * 0.18f)
+                // Butt caps: a round cap adds stroke/2 past each end (~8° here),
+                // so neighbouring segments overlapped despite the gap (P5).
+                val gap = minOf(2f, sweep * 0.18f)
                 drawArc(
                     color = categoryColor(cat),
                     startAngle = startAngle + gap / 2,
                     sweepAngle = (sweep - gap).coerceAtLeast(0.6f) * progress,
                     useCenter = false,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    style = Stroke(width = stroke, cap = StrokeCap.Butt),
                     topLeft = Offset(stroke / 2, stroke / 2),
                     size = Size(size.width - stroke, size.height - stroke),
                 )
