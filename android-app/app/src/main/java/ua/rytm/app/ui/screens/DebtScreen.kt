@@ -44,7 +44,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -466,7 +465,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
                 DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
-                TextButton(onClick = viewModel::requestDeleteCurrentDebt) {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
                     // Was a bare Icon, no enclosing shape -- every other
                     // delete affordance in the app (Tags/Categories/
                     // Profiles list rows, Settings' "Скинути дані
@@ -602,7 +601,7 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                         OutlinedTextField(value = balance, onValueChange = { balance = it; viewModel.updateEntryBalance(entry, it) }, singleLine = true, label = { Text(stringResource(R.string.debt_balance)) }, modifier = Modifier.weight(1f))
                         DatePickerField(value = date, onValueChange = { date = it; viewModel.updateEntryDate(entry, it) }, label = stringResource(R.string.date_label), modifier = Modifier.weight(1f), allowEmpty = false)
                     }
-                    TextButton(onClick = { viewModel.toggleEntryEdit(entry.id) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.toggleEntryEdit(entry.id) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {

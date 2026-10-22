@@ -34,6 +34,13 @@ object RytmSemantic {
         @Composable @ReadOnlyComposable get() = if (isDark) RedDarkText else RedText
 
     /**
+     * Purple text on a surface (links, text buttons, "now" labels).
+     * Dark #B39DFB 5.12:1 on cards; light #7C3AED 5.70:1 on white.
+     */
+    val link: Color
+        @Composable @ReadOnlyComposable get() = if (isDark) PurpleLinkDark else MaterialTheme.colorScheme.primary
+
+    /**
      * A heads-up that is not an error (a balance going below zero after this
      * entry). Error red is kept for real validation errors. Dark: amber-400
      * on the dark surfaces; light: amber-800, ~7:1 on white.

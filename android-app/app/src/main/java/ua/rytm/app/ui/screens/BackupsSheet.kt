@@ -22,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -160,7 +159,7 @@ private fun BackupRow(title: String, subtitle: String, restoring: Boolean, enabl
         if (restoring) {
             CircularProgressIndicator(Modifier.padding(horizontal = RytmSpacing.lg).size(20.dp), strokeWidth = 2.dp)
         } else {
-            TextButton(onClick = onRestore, enabled = enabled) { Text(stringResource(R.string.backups_restore)) }
+            ua.rytm.app.ui.components.RytmTextButton(onClick = onRestore, enabled = enabled) { Text(stringResource(R.string.backups_restore)) }
         }
     }
 }

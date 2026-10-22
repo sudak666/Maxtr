@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -111,7 +110,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
             Button(onClick = { persist { expandedId = repository.addAutoRule().id } }, enabled = !saving, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row)) {
                 Icon(RytmIcons.Add, null); Text(stringResource(R.string.auto_rules_add))
             }
-            TextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
+            ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
         }
     }
     pendingDelete?.let { id ->

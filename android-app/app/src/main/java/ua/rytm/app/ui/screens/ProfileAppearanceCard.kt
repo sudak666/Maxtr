@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -220,7 +219,7 @@ fun ProfileAppearanceCard(
                     Button(onClick = { avatarDialog = false; imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.profile_upload_photo)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { avatarDialog = false }) { Text(stringResource(R.string.action_done)) } },
+            confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = { avatarDialog = false }) { Text(stringResource(R.string.action_done)) } },
         )
     }
 }
@@ -241,7 +240,7 @@ private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, descr
         when {
             bitmap != null -> Image(bitmap, contentDescription = description, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
             builtin != null -> Icon(builtin.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-            else -> Text(fallback.trim().firstOrNull()?.uppercase() ?: "?", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+            else -> Text(fallback.trim().firstOrNull()?.uppercase() ?: "?", fontWeight = FontWeight.ExtraBold, color = ua.rytm.app.ui.theme.RytmSemantic.link)
         }
     }
 }

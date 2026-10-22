@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -124,7 +123,7 @@ fun ProfilesManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(enabled = newName.isNotBlank() && !viewModel.loading, onClick = { viewModel.addProfile(newName); newName = "" }) {
+                ua.rytm.app.ui.components.RytmTextButton(enabled = newName.isNotBlank() && !viewModel.loading, onClick = { viewModel.addProfile(newName); newName = "" }) {
                     Icon(RytmIcons.Add, contentDescription = null)
                     Text(stringResource(R.string.action_add))
                 }
@@ -139,7 +138,7 @@ fun ProfilesManagerSheet(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                TextButton(enabled = joinCode.isNotBlank() && !viewModel.joining, onClick = { viewModel.joinByCode(joinCode); joinCode = "" }) {
+                ua.rytm.app.ui.components.RytmTextButton(enabled = joinCode.isNotBlank() && !viewModel.joining, onClick = { viewModel.joinByCode(joinCode); joinCode = "" }) {
                     Text(stringResource(R.string.profile_join))
                 }
             }
@@ -151,11 +150,11 @@ fun ProfilesManagerSheet(
             onDismissRequest = viewModel::consumeInviteCode,
             title = { Text(stringResource(R.string.profile_invite_code)) },
             text = { Text(stringResource(R.string.profile_invite_body, code)) },
-            confirmButton = { TextButton(onClick = viewModel::consumeInviteCode) { Text(stringResource(R.string.action_done)) } },
+            confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::consumeInviteCode) { Text(stringResource(R.string.action_done)) } },
             // The code had to be retyped by hand into a messenger before.
             dismissButton = {
                 val context = androidx.compose.ui.platform.LocalContext.current
-                TextButton(onClick = {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = {
                     val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
                     clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("Rytm", code))
                 }) { Text(stringResource(R.string.action_copy_code)) }
@@ -233,7 +232,7 @@ fun ProfilesManagerSheet(
                                         // identifier available, same as js/color-picker.js's own
                                         // renderSharedMembersList().
                                         Text(memberUid.take(8) + "…", style = MaterialTheme.typography.bodyMedium)
-                                        TextButton(onClick = { viewModel.toggleMemberRole(memberUid, role) }) {
+                                        ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.toggleMemberRole(memberUid, role) }) {
                                             Text(stringResource(if (role == "viewer") R.string.profile_role_viewer else R.string.profile_role_editor))
                                         }
                                     }
@@ -243,7 +242,7 @@ fun ProfilesManagerSheet(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = viewModel::closeMembersManager) { Text(stringResource(R.string.action_done)) } },
+            confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::closeMembersManager) { Text(stringResource(R.string.action_done)) } },
         )
     }
 }
@@ -297,7 +296,7 @@ private fun ProfileRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                if (isActive) Text(stringResource(R.string.profile_active), style = MaterialTheme.typography.labelSmall, color = ua.rytm.app.ui.theme.RytmSemantic.link)
                 if (profile.isShared) Text(stringResource(R.string.profile_shared), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                 // Was a trailing TextButton in the outer Row, vertically
                 // centered against the WHOLE row -- for the active row
@@ -308,7 +307,7 @@ private fun ProfileRow(
                 // "Активний" and "Перемкнути" occupy the identical slot.
                 // Plain label: the row itself is the button (a TextButton's 48dp
                 // min height pushed this line far below the name).
-                if (!isActive) Text(stringResource(R.string.profile_switch), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                if (!isActive) Text(stringResource(R.string.profile_switch), style = MaterialTheme.typography.labelSmall, color = ua.rytm.app.ui.theme.RytmSemantic.link)
             }
         }
         if (profile.isShared) {

@@ -93,7 +93,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
@@ -335,8 +334,8 @@ fun ShiftsScreen() {
                     )
                 }
                 Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.sm), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
-                    TextButton(onClick = viewModel::closeDayModal) { Text(stringResource(R.string.action_cancel)) }
-                    TextButton(onClick = viewModel::saveDayModal) { Text(stringResource(R.string.action_done)) }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::closeDayModal) { Text(stringResource(R.string.action_cancel)) }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::saveDayModal) { Text(stringResource(R.string.action_done)) }
                 }
             }
         }
@@ -370,12 +369,12 @@ fun ShiftsScreen() {
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = {
                     ua.rytm.app.ui.screens.finance.parseMoneyInput(text)?.let(viewModel::saveSalaryGoal)
                     editingGoal = false
                 }) { Text(stringResource(R.string.action_done)) }
             },
-            dismissButton = { TextButton(onClick = { editingGoal = false }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = { editingGoal = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }

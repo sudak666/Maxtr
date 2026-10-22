@@ -18,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
@@ -78,7 +77,7 @@ fun SalaryAllocationSheet(plan: SalaryAllocation, wallets: List<Wallet>, onApply
                 }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
-                TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) { Text(stringResource(R.string.salary_allocation_skip)) }
+                ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) { Text(stringResource(R.string.salary_allocation_skip)) }
                 Button(
                     onClick = { onApply(chosen) },
                     enabled = chosen.isNotEmpty(),

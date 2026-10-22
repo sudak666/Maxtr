@@ -102,7 +102,7 @@ fun DebtForecastCard(debt: Debt) {
                 Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.xs, bottom = RytmSpacing.sm)) {
                     Text(startLabel, style = axis, color = axisColor, maxLines = 1, modifier = Modifier.weight(historyShare))
                     Row(Modifier.weight(1f - historyShare)) {
-                        Text(stringResource(R.string.debt_forecast_now), style = axis, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.debt_forecast_now), style = axis, color = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.weight(1f))
                         Text(finishLabel ?: "0 ${debt.currency}", style = axis, color = axisColor, maxLines = 1)
                     }
                 }
@@ -110,7 +110,7 @@ fun DebtForecastCard(debt: Debt) {
                 Text(startLabel, style = axis, color = axisColor, modifier = Modifier.padding(top = RytmSpacing.xs, bottom = RytmSpacing.sm))
             }
             when {
-                currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = ua.rytm.app.ui.theme.RytmSemantic.link, fontWeight = FontWeight.SemiBold)
                 avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())

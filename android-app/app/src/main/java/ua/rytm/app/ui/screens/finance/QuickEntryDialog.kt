@@ -20,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -103,6 +102,6 @@ fun QuickEntryDialog(wallets: List<Wallet>, onDismiss: () -> Unit, onParsed: (Qu
         confirmButton = {
             Button(onClick = ::submit, enabled = text.isNotBlank(), shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.quick_entry_next)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        dismissButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

@@ -70,7 +70,9 @@ object RytmRadii {
     val Control = 14.dp
     val Row = 16.dp
     val Input = 18.dp
-    val Chart = 20.dp
+    // Was 20dp: one radius per role, not 18/20/22 for the same kind of
+    // card (P5). Chart/widget/settings-group cards now match Card.
+    val Chart = 22.dp
     val Card = 22.dp
     val AuthCard = 24.dp
     val Sheet = 32.dp

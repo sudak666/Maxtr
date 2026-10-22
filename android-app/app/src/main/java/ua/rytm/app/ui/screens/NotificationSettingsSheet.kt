@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,7 +74,7 @@ fun NotificationSettingsSheet(
             viewModel.errorMessageRes?.let { messageRes ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                    TextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) }
                 }
             }
 
