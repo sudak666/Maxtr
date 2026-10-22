@@ -13,6 +13,7 @@ import { renderProfileUI } from './goals-profile.js';
 import { renderNotifUI } from './notifications.js';
 import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm } from './ui-widgets.js';
+import { clearSensitiveLocalCacheForAccount } from './privacy-cache.js';
 
 /** @param {string} mode */
 const setAuthMode = function(mode){
@@ -153,6 +154,9 @@ const resetPassword = async function(){
 
 const signOutUser = async function(){
   if(!(await uiConfirm(tr('auth_signout_confirm'),{title:tr('auth_signout_title'),okText:tr('auth_signout_ok')}))) return;
+  // The offline cache is a convenience for the signed-in user only; leaving
+  // it behind would keep transactions and balances readable in this browser.
+  if(AppState.currentUser) clearSensitiveLocalCacheForAccount(AppState.currentUser.uid, AppState.profilesMeta);
   await signOut(auth);
 };
 
