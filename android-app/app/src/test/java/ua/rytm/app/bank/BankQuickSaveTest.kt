@@ -10,8 +10,26 @@ import java.time.LocalDate
 
 class BankQuickSaveTest {
     private val today = LocalDate.of(2026, 10, 20)
-    private fun tx(cat: String, type: TxType = TxType.EXPENSE, date: String = "2026-10-10") =
-        Transaction(id = cat + date + Math.random(), type = type, amount = 1.0, date = date, walletId = "w", category = cat)
+    private fun tx(cat: String, type: TxType = TxType.EXPENSE, date: String = "2026-10-10", comment: String? = null) =
+        Transaction(id = cat + date + Math.random(), type = type, amount = 1.0, date = date, walletId = "w", category = cat, comment = comment)
+
+    @Test fun quickCategoriesPutRuleThenMerchantHistoryFirst() {
+        val cats = listOf("Продукти", "Здоров'я", "Кафе", "Інше")
+        val txs = listOf(tx("Продукти"), tx("Продукти"), tx("Кафе"), tx("Здоров'я", comment = "Apteka AGP 12 KIYEV UA"))
+        // Same chain, another branch → its past category leads.
+        assertEquals(listOf("Здоров'я", "Продукти", "Кафе"), BankQuickSaveReceiver.quickCategories(txs, cats, false, today, merchant = "Apteka AGP 56 KIYEV UA"))
+        // An auto-rule beats history; unknown rule categories are dropped.
+        val rules = listOf("apteka" to "Кафе", "fora" to "Видалена")
+        assertEquals(listOf("Кафе", "Здоров'я", "Продукти"), BankQuickSaveReceiver.quickCategories(txs, cats, false, today, "Apteka AGP 56", rules))
+        assertEquals(listOf("Продукти", "Кафе", "Здоров'я"), BankQuickSaveReceiver.quickCategories(txs, cats, false, today, "Fora KIYEV UA", rules))
+    }
+
+    @Test fun merchantKeyIsFirstWord() {
+        assertEquals("apteka", BankQuickSaveReceiver.merchantKey("Apteka AGP 56 KIYEV UA"))
+        assertNull(BankQuickSaveReceiver.merchantKey("UA"))
+        assertNull(BankQuickSaveReceiver.merchantKey("12345 shop"))
+        assertNull(BankQuickSaveReceiver.merchantKey(null))
+    }
 
     @Test fun quickCategoriesPreferFrequentThenTopUp() {
         val txs = listOf(tx("Кафе"), tx("Кафе"), tx("Транспорт"), tx("Старе", date = "2026-01-01"))

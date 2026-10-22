@@ -147,7 +147,7 @@ class BankNotificationListener : NotificationListenerService() {
             scope.launch {
                 // One-tap categories only where saving here can work: not for a
                 // transfer (two wallets to confirm), signed in, editable profile.
-                val quick = if (transfer || app == null) emptyList() else runCatching { quickCategoriesFor(app, s.isIncome) }.getOrDefault(emptyList())
+                val quick = if (transfer || app == null) emptyList() else runCatching { quickCategoriesFor(app, s.isIncome, s.merchant) }.getOrDefault(emptyList())
                 val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notification_rytm) // the Rytm mark, not the reminder bell
                     .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
@@ -173,14 +173,18 @@ class BankNotificationListener : NotificationListenerService() {
             }
         }
 
-        private suspend fun quickCategoriesFor(app: RytmApplication, isIncome: Boolean): List<String> {
+        private suspend fun quickCategoriesFor(app: RytmApplication, isIncome: Boolean, merchant: String?): List<String> {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return emptyList()
             val profileId = app.activeProfileStore.getActiveProfileId(uid)
             val owner = app.activeProfileStore.getActiveProfileOwnerUid(uid)
             if (!app.profilesRepository.canEditProfile(uid, owner, profileId)) return emptyList()
             if (app.financeRepository.wallets.first().isEmpty()) return emptyList()
             val cats = app.financeRepository.categoriesByType.first()[if (isIncome) TxType.INCOME else TxType.EXPENSE].orEmpty()
-            return BankQuickSaveReceiver.quickCategories(app.financeRepository.transactions.first(), cats, isIncome, LocalDate.now())
+            val typeName = (if (isIncome) TxType.INCOME else TxType.EXPENSE).name
+            val rules = app.financeRepository.autoRules.first()
+                .filter { it.type.equals(typeName, ignoreCase = true) }
+                .map { it.keyword to it.category }
+            return BankQuickSaveReceiver.quickCategories(app.financeRepository.transactions.first(), cats, isIncome, LocalDate.now(), merchant, rules)
         }
     }
 }
