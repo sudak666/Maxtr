@@ -403,13 +403,19 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                 remoteChanged(domain, error, snapshot?.metadata?.isFromCache() == true, gone = snapshot != null && !snapshot.exists())
             }
         } + finance.collection("transactions").addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
-            if (snapshot?.metadata?.hasPendingWrites() == true) return@addSnapshotListener
+            val pending = snapshot?.metadata?.hasPendingWrites() == true
             val fromCache = snapshot?.metadata?.isFromCache() == true
             val gone = snapshot != null && snapshot.isEmpty
             // Steady state: apply just the changed docs. The initial snapshots,
             // errors, offline and "everything deleted" keep the full path above.
+            // A snapshot that also carries this device's unacknowledged writes is
+            // NOT skipped here: document changes are counted from the previous
+            // delivered snapshot, so another device's change arriving together
+            // with our pending write would otherwise never reach Room. Only our
+            // own pending docs are left out — Room already has them.
             if (snapshot != null && error == null && initialSnapshotsRemaining == 0 && !fromCache && !gone) {
                 val changes = snapshot.getDocumentChanges(MetadataChanges.EXCLUDE)
+                    .filterNot { it.document.metadata.hasPendingWrites() }
                 if (generation != listenerGeneration) return@addSnapshotListener
                 _realtimeState.value = RealtimeState.Listening
                 if (changes.isEmpty()) return@addSnapshotListener
@@ -427,6 +433,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
                 }
                 return@addSnapshotListener
             }
+            if (pending) return@addSnapshotListener
             remoteChanged(SyncDomain.TRANSACTIONS, error, fromCache, gone = gone)
         }
     }
