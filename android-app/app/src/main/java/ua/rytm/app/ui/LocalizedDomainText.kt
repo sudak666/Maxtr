@@ -49,3 +49,24 @@ fun builtInTextResource(value: String): Int? = when (value) {
 
 @Composable
 fun localizedDomainText(value: String): String = builtInTextResource(value)?.let { stringResource(it) } ?: value
+
+/**
+ * Calendar token for a shift type. Built-in types carry Cyrillic codes on the
+ * wire (Д/Д+/Н/Нр/Нп/В, shared with the PWA), which read as stray letters in
+ * the English UI. Only built-in names get translated codes; a user's own code
+ * is shown as typed.
+ */
+@Composable
+fun localizedShiftCode(name: String, code: String): String {
+    if (builtInTextResource(name) == null) return code
+    val res = when (code) {
+        "Д", "D" -> R.string.builtin_shift_code_day
+        "Д+", "D+" -> R.string.builtin_shift_code_day_plus
+        "Н", "N" -> R.string.builtin_shift_code_night
+        "НР", "Нр", "NE", "Ne" -> R.string.builtin_shift_code_night_early
+        "НП", "Нп", "NL", "Nl" -> R.string.builtin_shift_code_night_late
+        "В", "O" -> R.string.builtin_shift_code_off
+        else -> null
+    }
+    return res?.let { stringResource(it) } ?: code
+}

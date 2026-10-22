@@ -141,10 +141,9 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            // Flat tonal surface + hairline (design pass 2026-10-20): a glow
-            // shadow on a dark background only muddies the card.
-            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape),
+            // Borderless tonal surface, same level as the Finance/Debt heroes
+            // (P5 #6): grey-on-grey with a hairline read as muddy in light.
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -624,7 +623,7 @@ internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: (
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        type.displayCode,
+                        ua.rytm.app.ui.localizedShiftCode(type.name, type.displayCode),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         color = if (selected) onColorFor(accent) else accent,
@@ -639,7 +638,17 @@ internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: (
                 }
             }
         }
-        if (onSelect != null) {
+        // P5 #9: the idle "pick a type above" tip permanently took two lines.
+        // Show it only until the brush has been used once on this device.
+        val prefs = androidx.compose.ui.platform.LocalContext.current.getSharedPreferences("rytm_ui_hints", android.content.Context.MODE_PRIVATE)
+        var brushHintSeen by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(prefs.getBoolean("shifts_brush_used", false)) }
+        androidx.compose.runtime.LaunchedEffect(brushTypeId) {
+            if (brushTypeId != null && !brushHintSeen) {
+                prefs.edit().putBoolean("shifts_brush_used", true).apply()
+                brushHintSeen = true
+            }
+        }
+        if (onSelect != null && (brushTypeId != null || !brushHintSeen)) {
             Text(
                 stringResource(if (brushTypeId != null) R.string.shifts_brush_active_hint else R.string.shifts_brush_hint),
                 style = MaterialTheme.typography.labelSmall,
@@ -913,7 +922,7 @@ internal fun DayCell(
                         .background(accent)
                         .padding(horizontal = RytmSpacing.xs, vertical = 1.dp),
                 ) {
-                    Text(type.displayCode, style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
+                    Text(ua.rytm.app.ui.localizedShiftCode(type.name, type.displayCode), style = MaterialTheme.typography.labelSmall, color = onColorFor(accent), fontWeight = FontWeight.Black)
                 }
             }
             // The model allows any number of shifts per day; the cell silently

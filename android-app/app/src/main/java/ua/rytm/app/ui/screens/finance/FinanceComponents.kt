@@ -2,7 +2,6 @@ package ua.rytm.app.ui.screens.finance
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -267,8 +266,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(RytmRadii.Input))
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), RoundedCornerShape(RytmRadii.Input))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(RytmRadii.Input))
                     .padding(RytmSpacing.md),
                 verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
             ) {
@@ -314,37 +312,6 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
             fontWeight = FontWeight.Bold,
             color = valueColor,
         )
-    }
-}
-
-@Composable
-internal fun MiniStatCard(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
-    // Design pass 2026-10-20: neutral surface, color only in the value and the
-    // small icon. The green/red wash + matching border + colored text coded the
-    // same fact three times.
-    val valueColor = if (positive) RytmSemantic.income else RytmSemantic.expense
-    val shape = RoundedCornerShape(RytmRadii.Input)
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
-            .padding(RytmSpacing.md),
-    ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.size(22.dp).background(valueColor.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(if (positive) RytmIcons.TrendingUp else RytmIcons.TrendingDown, contentDescription = null, tint = valueColor, modifier = Modifier.size(13.dp))
-                }
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Text(
-                text = maskedAmount(stringResource(R.string.finance_signed_uah, if (value == 0.0) "" else if (positive) "+" else "−", formatMoney(value))),
-                style = MaterialTheme.typography.titleMedium.tabularNums(),
-                fontWeight = FontWeight.Bold,
-                color = valueColor,
-                modifier = Modifier.padding(top = RytmSpacing.xs),
-            )
-        }
     }
 }
 
