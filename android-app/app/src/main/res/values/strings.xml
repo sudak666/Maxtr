@@ -464,7 +464,7 @@
     <string name="widget_today">Сьогодні</string>
     <string name="widget_tomorrow">Завтра</string>
     <string name="widget_goal_pct">%1$d%% цілі</string>
-    <string name="widget_week">Тиждень</string>
+    <string name="widget_week">Найближчі 7 днів</string>
     <string name="widget_recent">Останні операції</string>
     <string name="settings_backups_title">Резервні копії</string>
     <string name="settings_backups_subtitle">Щоденні копії, відновлення на дату</string>
