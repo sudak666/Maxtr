@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -108,7 +107,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
             },
         )
         Spacer(Modifier.height(RytmSpacing.xl))
-        TextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
+        ua.rytm.app.ui.components.RytmTextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
     }
 
     if (forgotConfirm) ua.rytm.app.ui.components.RytmDestructiveConfirm(
@@ -131,8 +130,8 @@ fun PinLockScreen(viewModel: PinViewModel) {
         title = { Text(stringResource(R.string.pin_biometric_title)) },
         text = { Text(stringResource(R.string.pin_biometric_body)) },
         confirmButton = {
-            TextButton(onClick = {
-                val activity = context as? FragmentActivity ?: return@TextButton
+            ua.rytm.app.ui.components.RytmTextButton(onClick = {
+                val activity = context as? FragmentActivity ?: return@RytmTextButton
                 showBiometricPrompt(activity) {
                     viewModel.setBiometricEnabled(true)
                     viewModel.unlockWithBiometric()
@@ -142,7 +141,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
             }) { Text(stringResource(R.string.action_enable)) }
         },
         dismissButton = {
-            TextButton(onClick = {
+            ua.rytm.app.ui.components.RytmTextButton(onClick = {
                 biometricOnboardingVisible = false
                 scope.launch { app.settingsStore.setBiometricOnboardingDismissed(viewModel.uid, true) }
             }) { Text(stringResource(R.string.action_not_now)) }

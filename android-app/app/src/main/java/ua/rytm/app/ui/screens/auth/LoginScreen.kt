@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -238,8 +237,8 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     }
 
                     // Only meaningful when signing in, not on the register tab.
-                    if (viewModel.authMode == AuthMode.LOGIN) TextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    if (viewModel.authMode == AuthMode.LOGIN) ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.resetPassword(email) }, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text(stringResource(R.string.auth_forgot_password), color = ua.rytm.app.ui.theme.RytmSemantic.link, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                     }
 
                     val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
@@ -249,7 +248,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     )
 
                     if (BuildConfig.USE_FIREBASE_EMULATOR) {
-                        TextButton(onClick = viewModel::signInAnonymouslyForTesting, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::signInAnonymouslyForTesting, enabled = !viewModel.isSigningIn, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                             Text(stringResource(R.string.auth_emulator_sign_in))
                         }
                     }
@@ -330,7 +329,7 @@ private fun TermsFooter(onTerms: () -> Unit, onPrivacy: () -> Unit) {
     val terms = stringResource(R.string.terms_title)
     val and = stringResource(R.string.common_and)
     val privacy = stringResource(R.string.privacy_title)
-    val linkStyle = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+    val linkStyle = SpanStyle(color = ua.rytm.app.ui.theme.RytmSemantic.link, fontWeight = FontWeight.SemiBold)
     Text(
         text = buildAnnotatedString {
             append("$prefix ")

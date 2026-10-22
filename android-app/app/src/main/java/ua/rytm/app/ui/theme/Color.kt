@@ -11,6 +11,10 @@ val PurpleDark = Color(0xFF8B5CF6) // --purple (dark theme accent)
 val PurpleDark2 = Color(0xFFA78BFA) // --purple2 (dark)
 val Purple3 = Color(0xFF6D28D9) // --purple3
 val PurpleLight2 = Color(0xFF7C3AED) // --purple2 (light theme)
+// Purple used as TEXT (links, text buttons) in dark theme: brand #8B5CF6 is
+// only 2.78:1 on the #38373D cards and 3.66:1 on the page. #B39DFB: 5.12:1 on
+// cards, 7.39:1 on the page. Fills (buttons, FAB) keep `primary`.
+val PurpleLinkDark = Color(0xFFB39DFB)
 
 // --- Semantic colors ---
 val GreenDark = Color(0xFF10B981)

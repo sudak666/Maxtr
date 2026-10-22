@@ -39,7 +39,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
@@ -221,7 +220,7 @@ internal fun SettingsSectionLabel(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
+        color = ua.rytm.app.ui.theme.RytmSemantic.link,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = RytmSpacing.xl, bottom = 6.dp),
     )

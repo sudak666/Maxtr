@@ -36,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -167,7 +166,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 )
                 // Always offered: it used to appear only while editing, so a
                 // half-filled new transaction had no visible way back.
-                TextButton(onClick = vm.form::close) { Text(stringResource(R.string.action_cancel)) }
+                ua.rytm.app.ui.components.RytmTextButton(onClick = vm.form::close) { Text(stringResource(R.string.action_cancel)) }
             }
 
             TypeSegmentedRow(vm)
@@ -220,7 +219,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         title = { Text(stringResource(R.string.receipt_scan)) },
                         text = {
                             Column {
-                                TextButton(
+                                ua.rytm.app.ui.components.RytmTextButton(
                                     onClick = {
                                         scanSourceOpen = false
                                         val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
@@ -234,7 +233,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     Spacer(Modifier.width(RytmSpacing.sm))
                                     Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
                                 }
-                                TextButton(
+                                ua.rytm.app.ui.components.RytmTextButton(
                                     onClick = { scanSourceOpen = false; galleryLauncher.launch("image/*") },
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
@@ -243,7 +242,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                     Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
                                 }
                                 HorizontalDivider(Modifier.padding(vertical = RytmSpacing.xs))
-                                TextButton(
+                                ua.rytm.app.ui.components.RytmTextButton(
                                     onClick = { scanSourceOpen = false },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
@@ -516,7 +515,7 @@ private fun SplitPartsEditor(vm: FinanceViewModel, categories: List<String>) {
                 color = if (rest > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
             )
         }
-        TextButton(onClick = vm.form::addSplitPart, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+        ua.rytm.app.ui.components.RytmTextButton(onClick = vm.form::addSplitPart, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
             Icon(RytmIcons.Add, contentDescription = null)
             Spacer(Modifier.width(RytmSpacing.sm))
             Text(stringResource(if (vm.form.splits.isEmpty()) R.string.split_add else R.string.split_add_part))

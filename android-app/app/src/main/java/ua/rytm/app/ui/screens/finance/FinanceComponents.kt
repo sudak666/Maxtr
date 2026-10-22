@@ -65,7 +65,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -175,12 +174,14 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
 
                 val net = vm.monthIncomeUah - vm.monthExpenseUah
                 val trendColor = RytmSemantic.signed(net)
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                // Top-aligned: at large font the line wraps and a centered icon
+                // floated between the two lines (P5, 200% check).
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 6.dp)) {
                     Icon(
                         imageVector = if (net < 0) RytmIcons.TrendingDown else RytmIcons.TrendingUp,
                         contentDescription = null,
                         tint = trendColor,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 18.sp.toDp() }),
                     )
                     Spacer(Modifier.width(RytmSpacing.xs))
                     val sign = if (net > 0) "+" else if (net < 0) "−" else ""
@@ -196,8 +197,8 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                 val perDayOrWarn = vm.safeToSpendPerDay != null || vm.monthOutlook.recurringOut > 0
                 if (vm.wallets.isNotEmpty() && perDayOrWarn) {
                     val perDay = vm.safeToSpendPerDay
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = RytmSpacing.sm)) {
-                        Icon(if (perDay == null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = RytmSpacing.sm)) {
+                        Icon(if (perDay == null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 16.sp.toDp() }))
                         Spacer(Modifier.width(6.dp))
                         Text(
                             text = if (perDay == null) stringResource(R.string.finance_safe_to_spend_none)
@@ -293,7 +294,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     Text(
                         stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)} ₴")),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = ua.rytm.app.ui.theme.RytmSemantic.link,
                     )
                 }
             }

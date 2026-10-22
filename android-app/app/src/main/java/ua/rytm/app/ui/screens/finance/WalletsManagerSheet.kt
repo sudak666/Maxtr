@@ -26,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -165,7 +164,7 @@ private fun WalletRow(
             modifier = Modifier.weight(1f),
             singleLine = true,
             label = { Text(stringResource(R.string.field_name)) },
-            supportingText = if (justSaved) { { Text(stringResource(R.string.field_autosaved), color = MaterialTheme.colorScheme.primary) } } else null,
+            supportingText = if (justSaved) { { Text(stringResource(R.string.field_autosaved), color = ua.rytm.app.ui.theme.RytmSemantic.link) } } else null,
             // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
         )
         // Commit on unfocus-equivalent: since Compose has no cheap onBlur here, save as the user types

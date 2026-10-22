@@ -28,7 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -143,7 +142,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     Text(stringResource(R.string.pin_remove))
                 }
             } else {
-                Text(stringResource(R.string.pin_setup_step, setupStep + 1), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.pin_setup_step, setupStep + 1), style = MaterialTheme.typography.labelMedium, color = ua.rytm.app.ui.theme.RytmSemantic.link, fontWeight = FontWeight.Bold)
                 Text(stringResource(if (setupStep == 0) R.string.pin_new else R.string.pin_confirm), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 val activeLength = if (setupStep == 0) viewModel.newPin.length else viewModel.confirmPin.length
                 PinDots(activeLength)
@@ -151,7 +150,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     onDigit = if (setupStep == 0) viewModel::setNewPinDigit else viewModel::setConfirmPinDigit,
                     onBackspace = if (setupStep == 0) viewModel::newPinBackspace else viewModel::confirmPinBackspace,
                     trailingSlot = {
-                        if (setupStep == 1) TextButton(onClick = { viewModel.resetPinEntryFields(); setupStep = 0 }) {
+                        if (setupStep == 1) ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.resetPinEntryFields(); setupStep = 0 }) {
                             Icon(RytmIcons.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     },

@@ -17,7 +17,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,7 +66,7 @@ fun SubscriptionSuggestionsCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
-                        TextButton(onClick = { onDismiss(c) }, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = { onDismiss(c) }, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
                             Text(stringResource(R.string.subscription_no))
                         }
                         Button(onClick = { onAccept(c) }, shape = RoundedCornerShape(RytmRadii.Control), modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {

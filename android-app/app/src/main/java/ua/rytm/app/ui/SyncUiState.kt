@@ -22,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -181,7 +180,7 @@ fun ScreenLoadErrorState() {
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = retry) {
+            ua.rytm.app.ui.components.RytmTextButton(onClick = retry) {
                 Icon(RytmIcons.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(
                     stringResource(R.string.action_retry),

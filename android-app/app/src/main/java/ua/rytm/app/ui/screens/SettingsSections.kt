@@ -54,7 +54,7 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
             title = { Text(stringResource(R.string.bank_disclosure_title)) },
             text = { Text(stringResource(R.string.bank_disclosure_body)) },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = {
                     bankDisclosureOpen = false
                     if (!canPostNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         bankNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -62,7 +62,7 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
                 }) { Text(stringResource(R.string.bank_disclosure_ok)) }
             },
             dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { bankDisclosureOpen = false }) { Text(stringResource(R.string.action_cancel)) }
+                ua.rytm.app.ui.components.RytmTextButton(onClick = { bankDisclosureOpen = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }

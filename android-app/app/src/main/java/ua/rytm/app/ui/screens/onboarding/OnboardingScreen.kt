@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -75,7 +74,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onComplete) { Text(stringResource(R.string.action_skip)) }
+            ua.rytm.app.ui.components.RytmTextButton(onClick = onComplete) { Text(stringResource(R.string.action_skip)) }
         }
         // A real HorizontalPager: the only way forward used to be the Next
         // button — no swipe, no way back.

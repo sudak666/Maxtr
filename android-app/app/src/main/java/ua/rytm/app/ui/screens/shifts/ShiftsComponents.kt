@@ -56,7 +56,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
@@ -495,7 +494,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }
-                    TextButton(
+                    ua.rytm.app.ui.components.RytmTextButton(
                         onClick = { clearMonthConfirmVisible = true },
                         colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) {
@@ -695,7 +694,7 @@ internal fun MonthNav(viewModel: ShiftsViewModel) {
             modifier = Modifier.weight(1f),
         )
         androidx.compose.animation.AnimatedVisibility(visible = !onCurrentMonth) {
-            TextButton(
+            ua.rytm.app.ui.components.RytmTextButton(
                 onClick = viewModel::goToToday,
                 shape = RoundedCornerShape(RytmRadii.Pill),
                 colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
@@ -795,7 +794,7 @@ internal fun CalendarGrid(viewModel: ShiftsViewModel, canEdit: Boolean) {
             }
         }
         if (collapsible) {
-            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            ua.rytm.app.ui.components.RytmTextButton(onClick = { expanded = !expanded }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text(stringResource(if (expanded) R.string.action_collapse else R.string.shifts_show_month))
             }
         }
