@@ -31,7 +31,7 @@ object RytmSemantic {
 
     /** Expense text on a plain surface. Dark 5.65:1, light 8.3:1. */
     val expense: Color
-        @Composable @ReadOnlyComposable get() = if (isDark) RedDark2 else RedText
+        @Composable @ReadOnlyComposable get() = if (isDark) RedDarkText else RedText
 
     /**
      * A heads-up that is not an error (a balance going below zero after this
