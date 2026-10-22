@@ -187,7 +187,7 @@
     <string name="shift_type_delete_title">Delete shift type</string>
     <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
     <string name="shift_day_off">Day off</string>
-    <string name="shift_type_summary">%1$s UAH · %2$s hr</string>
+    <string name="shift_type_summary">UAH %1$s · %2$s hr</string>
     <string name="shift_pay">Pay</string>
     <string name="shift_hours">Hours</string>
     <string name="shift_day_off_unpaid">Day off (unpaid)</string>
@@ -494,14 +494,14 @@
         <item quantity="other">≈ %d shifts of work</item>
     </plurals>
     <string name="finance_outlook_prefix">Until month end:</string>
-    <string name="finance_outlook_shifts">+%1$s UAH from shifts</string>
-    <string name="finance_outlook_recurring_in">+%1$s UAH recurring income</string>
-    <string name="finance_outlook_recurring_out">−%1$s UAH recurring payments</string>
+    <string name="finance_outlook_shifts">+UAH %1$s from shifts</string>
+    <string name="finance_outlook_recurring_in">+UAH %1$s recurring income</string>
+    <string name="finance_outlook_recurring_out">−UAH %1$s recurring payments</string>
     <string name="auth_email_placeholder">you@example.com</string>
     <string name="shifts_insight_title">90-day insight</string>
     <string name="shifts_insight_more">You spend %1$d%% more on shift days</string>
     <string name="shifts_insight_less">You spend %1$d%% less on shift days</string>
-    <string name="shifts_insight_detail">≈ %1$s UAH a day on shifts vs %2$s UAH on days off</string>
+    <string name="shifts_insight_detail">≈ UAH %1$s a day on shifts vs UAH %2$s on days off</string>
     <string name="finance_contributions_title">Who added what this month</string>
     <string name="finance_contributions_me">%1$s (you)</string>
     <string name="shifts_export_calendar">Export to calendar</string>
@@ -562,7 +562,7 @@
     <string name="salary_allocation_body">Amounts are paced to your goals\' dates — never more than half the pay. Each becomes a transfer to the goal\'s wallet; you can change them.</string>
     <string name="salary_allocation_apply">Move %1$s</string>
     <string name="salary_allocation_skip">Not now</string>
-    <string name="salary_allocated">Moved to goals: %1$s ₴</string>
+    <string name="salary_allocated">Moved to goals: UAH %1$s</string>
     <string name="receipt_scan_short">Receipt</string>
     <string name="split_add">Split into categories</string>
     <string name="split_add_part">Another category</string>
@@ -580,7 +580,7 @@
     <string name="notifications_weekly_title">Family week</string>
     <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
     <string name="categories_empty">No categories here yet. Add the first one below.</string>
-    <string name="finance_safe_to_spend">≈ %1$s ₴ a day until month end</string>
+    <string name="finance_safe_to_spend">≈ UAH %1$s a day until month end</string>
     <string name="finance_safe_to_spend_none">Recurring payments this month exceed the balance</string>
     <string name="story_spent">Spent in %1$s</string>
     <string name="story_top_category">Most went to</string>
@@ -591,10 +591,12 @@
     <string name="story_count">Transactions this month: %1$d</string>
     <string name="finance_search_what_month">“cafe october”</string>
     <string name="finance_search_what_amount">“over 500”</string>
-    <string name="widget_per_day">≈ %1$s ₴ a day</string>
+    <string name="widget_per_day">≈ UAH %1$s a day</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
     <string name="analytics_spending_same">Spending is about the same as the previous period</string>
     <string name="month_summary_prev">Previous month</string>
     <string name="month_summary_next">Next month</string>
     <string name="widget_forecast_month">Forecast · %1$s</string>
+    <string name="builtin_shift_code_day">D</string><string name="builtin_shift_code_day_plus">D+</string><string name="builtin_shift_code_night">N</string><string name="builtin_shift_code_night_early">Ne</string><string name="builtin_shift_code_night_late">Nl</string><string name="builtin_shift_code_off">O</string>
+    <string name="settings_danger_zone">Danger zone</string>
 </resources>

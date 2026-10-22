@@ -607,4 +607,6 @@
     <string name="month_summary_prev">Попередній місяць</string>
     <string name="month_summary_next">Наступний місяць</string>
     <string name="widget_forecast_month">Прогноз · %1$s</string>
+    <string name="builtin_shift_code_day">Д</string><string name="builtin_shift_code_day_plus">Д+</string><string name="builtin_shift_code_night">Н</string><string name="builtin_shift_code_night_early">Нр</string><string name="builtin_shift_code_night_late">Нп</string><string name="builtin_shift_code_off">В</string>
+    <string name="settings_danger_zone">Небезпечна зона</string>
 </resources>

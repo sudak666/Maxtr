@@ -269,10 +269,15 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
+    // A phone in landscape is ~410dp tall: "+" plus four icon+label items
+    // overflowed and clipped "Налаштування" (P5 #3). There only the selected
+    // item keeps its label and the badges shrink, as in the bottom capsule.
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 480
+    val badge = if (compactHeight) 40.dp else RytmDimens.TabIcon
     NavigationRail(
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.safeDrawingPadding(),
-        header = { plus?.let { PrimaryPlusButton(it, size = 56.dp) } },
+        header = { plus?.let { PrimaryPlusButton(it, size = if (compactHeight) 48.dp else 56.dp) } },
     ) {
         RytmDestination.entries.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
@@ -288,7 +293,7 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                 icon = {
                     Box(
                         Modifier
-                            .size(RytmDimens.TabIcon)
+                            .size(badge)
                             .clip(CircleShape)
                             .background(
                                 if (selected) Brush.linearGradient(destination.activeGradient)
@@ -305,6 +310,7 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                     }
                 },
                 label = { Text(stringResource(destination.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                alwaysShowLabel = !compactHeight,
             )
         }
     }

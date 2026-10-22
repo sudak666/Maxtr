@@ -422,28 +422,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             subtitle = stringResource(R.string.settings_free_plan),
                             onClick = { premiumDialogOpen = true },
                         )
-                        SettingsRow(
-                            icon = RytmIcons.RestartAlt,
-                            badgeColor = MaterialTheme.colorScheme.error,
-                            title = stringResource(R.string.settings_reset_profile),
-                            subtitle = stringResource(R.string.settings_reset_profile_subtitle),
-                            onClick = {
-                                if (activeProfileOwnerUid != null) {
-                                    pendingMessage = resources.getString(R.string.settings_reset_shared_error)
-                                } else {
-                                    pendingResetProfile = true
-                                }
-                            },
-                            titleColor = MaterialTheme.colorScheme.error,
-                        )
-                        SettingsRow(
-                            icon = RytmIcons.DeleteForever,
-                            badgeColor = MaterialTheme.colorScheme.error,
-                            title = stringResource(R.string.settings_delete_account),
-                            subtitle = stringResource(R.string.settings_delete_account_subtitle),
-                            onClick = { pendingDeleteAccount = true },
-                            titleColor = MaterialTheme.colorScheme.error,
-                        )
                     }
                 }
             } }
@@ -585,6 +563,36 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             }
 
             // "Про застосунок" goes last, after every functional group.
+            // P5 #8: destructive actions sit in their own group at the bottom
+            // instead of between Profiles and Backups in "Акаунт".
+            if (uid != null && accountVisible) { item(key = "settings-danger") {
+                SettingsSectionLabel(stringResource(R.string.settings_danger_zone))
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = RytmIcons.RestartAlt,
+                        badgeColor = MaterialTheme.colorScheme.error,
+                        title = stringResource(R.string.settings_reset_profile),
+                        subtitle = stringResource(R.string.settings_reset_profile_subtitle),
+                        onClick = {
+                            if (activeProfileOwnerUid != null) {
+                                pendingMessage = resources.getString(R.string.settings_reset_shared_error)
+                            } else {
+                                pendingResetProfile = true
+                            }
+                        },
+                        titleColor = MaterialTheme.colorScheme.error,
+                    )
+                    SettingsRow(
+                        icon = RytmIcons.DeleteForever,
+                        badgeColor = MaterialTheme.colorScheme.error,
+                        title = stringResource(R.string.settings_delete_account),
+                        subtitle = stringResource(R.string.settings_delete_account_subtitle),
+                        onClick = { pendingDeleteAccount = true },
+                        titleColor = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } }
+
             if (aboutVisible) { item(key = "settings-about") {
                 AboutSection(onOpenUrl = ::openExternalUrl)
             } }
