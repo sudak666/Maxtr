@@ -6,7 +6,6 @@ import ua.rytm.app.ui.components.fadingEdges
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -356,10 +355,9 @@ private fun HeroBalance(cd: Debt) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            // Flat tonal surface + hairline (design pass 2026-10-20): a glow
-            // shadow on a dark background only muddies the card.
-            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape),
+            // Borderless tonal surface, same level as the Finance hero (P5):
+            // grey-on-grey with a hairline read as muddy in light theme.
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

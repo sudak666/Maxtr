@@ -327,6 +327,10 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         modifier
             .fillMaxWidth()
             .wrapContentHeight()
+            // P5: content scrolling under the floating pill showed through the
+            // gap beside the "+" (half-cut amounts). Fade the page into the
+            // background behind the bar instead of letting it peek through.
+            .background(Brush.verticalGradient(0f to Color.Transparent, 0.18f to MaterialTheme.colorScheme.background))
             .navigationBarsPadding()
             .padding(
                 horizontal = RytmDimens.BottomNavHorizontal,

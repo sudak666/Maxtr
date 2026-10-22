@@ -58,6 +58,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -155,8 +156,9 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape),
+                // P5: one borderless tonal surface, the same level as history
+                // rows. The hairline + grey-on-grey read as muddy in light.
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
         ) {
             Column(Modifier.padding(horizontal = RytmDimens.HeroHorizontal, vertical = RytmDimens.HeroVertical)) {
                 Text(
@@ -206,6 +208,20 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                         )
                     }
                 }
+                // P5: income/expense live inside the hero as one quiet row
+                // instead of two more bordered cards competing with the balance.
+                HorizontalDivider(Modifier.padding(vertical = RytmSpacing.md), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                if (largeText) {
+                    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                        HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true)
+                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false)
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth()) {
+                        HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
+                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+                    }
+                }
                 if (vm.isMultiCurrency) {
                     Text(
                         text = stringResource(R.string.finance_conversion_note),
@@ -214,18 +230,6 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                         modifier = Modifier.padding(top = RytmSpacing.xs),
                     )
                 }
-            }
-        }
-
-        if (largeText) {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.fillMaxWidth())
-                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.fillMaxWidth())
-            }
-        } else {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                MiniStatCard(label = stringResource(R.string.finance_month_income), value = vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                MiniStatCard(label = stringResource(R.string.finance_month_expense), value = vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
             }
         }
 
@@ -296,6 +300,20 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
+    val valueColor = if (positive) RytmSemantic.income else RytmSemantic.expense
+    Column(modifier) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = maskedAmount(stringResource(R.string.finance_signed_uah, if (value == 0.0) "" else if (positive) "+" else "−", formatMoney(value))),
+            style = MaterialTheme.typography.titleMedium.tabularNums(),
+            fontWeight = FontWeight.Bold,
+            color = valueColor,
+        )
     }
 }
 
