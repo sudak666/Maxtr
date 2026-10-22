@@ -103,7 +103,33 @@ fun RytmStatChipRow(
     LazyRow(
         modifier.fillMaxWidth().fadingEdges(fadeState),
         state = fadeState,
-        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterHorizontally),
+        horizontalArrangement = FillOrScrollArrangement,
         content = content,
     )
+}
+
+/**
+ * P5: centering left the short Shifts row with ~64dp side margins, off the
+ * 16dp grid every other block uses, while flush-left left dead space on the
+ * right (the earlier live report). When the chips fit, the outer chips now sit
+ * on the content edges and the leftover space is shared between them; when they
+ * don't fit, it's a plain 8dp-spaced scrolling row as before.
+ */
+private val FillOrScrollArrangement = object : Arrangement.Horizontal {
+    override val spacing = RytmSpacing.sm
+
+    override fun androidx.compose.ui.unit.Density.arrange(
+        totalSize: Int,
+        sizes: IntArray,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        outPositions: IntArray,
+    ) {
+        val gap = spacing.roundToPx()
+        val used = sizes.sum() + gap * (sizes.size - 1).coerceAtLeast(0)
+        if (used >= totalSize || sizes.size < 2) {
+            with(Arrangement.spacedBy(spacing)) { arrange(totalSize, sizes, layoutDirection, outPositions) }
+        } else {
+            with(Arrangement.SpaceBetween) { arrange(totalSize, sizes, layoutDirection, outPositions) }
+        }
+    }
 }
