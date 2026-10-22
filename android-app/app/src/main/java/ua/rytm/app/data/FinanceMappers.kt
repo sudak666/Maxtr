@@ -61,6 +61,7 @@ fun RecurringEntity.toDomain() = Recurring(
     nextDate = nextDate,
     active = active,
     comment = comment,
+    anchorDay = anchorDay,
 )
 
 fun Recurring.toEntity() = RecurringEntity(
@@ -73,4 +74,5 @@ fun Recurring.toEntity() = RecurringEntity(
     nextDate = nextDate,
     active = active,
     comment = comment,
+    anchorDay = anchorDay,
 )

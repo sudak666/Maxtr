@@ -12,7 +12,7 @@ import { PALETTE, canEditActiveProfile, convertCurrency, currencySymbol, localDa
 import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
-import { TX_AMOUNT_MAX, TX_COMMENT_MAX, validateTransactionDraft } from './tx-validation.js';
+import { TX_AMOUNT_MAX, TX_COMMENT_MAX, isOverBudget, validateTransactionDraft } from './tx-validation.js';
 import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 import { scanReceiptImage } from './receipt-ocr.js';
 
@@ -291,7 +291,7 @@ export async function addTransaction(){
     if(date.startsWith(mPrefix)){
       const limit=AppState.budgets[cat];
       const spent=AppState.transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&t.date&&t.date.startsWith(mPrefix))?s+toBase(t.amount,t.currency||'UAH'):s,0);
-      if(spent>=limit){ toastMsg=`Бюджет «${cat}» перевищено: ${money(spent)}/${money(limit)} ₴`; toastIcon='warning'; }
+      if(isOverBudget(spent,limit)){ toastMsg=`Бюджет «${cat}» перевищено: ${money(spent)}/${money(limit)} ₴`; toastIcon='warning'; }
       else if(spent>=limit*0.9){ toastMsg=`Бюджет «${cat}»: ${Math.round(spent/limit*100)}% витрачено`; toastIcon='warning'; }
     }
   }

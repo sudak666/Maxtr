@@ -12,7 +12,7 @@ data class ReceiptParseResult(val amount: Double?, val date: String?, val rawTex
 private val receiptDateRegex = Regex("\\b(\\d{1,2})[./-](\\d{1,2})[./-](\\d{2,4})\\b")
 private val decimalRegex = Regex("\\d[\\d ]*[.,]\\d{2}\\b")
 private val integerRegex = Regex("\\b\\d+\\b")
-private val totalKeywordRegex = Regex("(сума|разом|усього|всього|до\\s*сплати|к\\s*сплате|итого|total|amount\\s*due|grand\\s*total)", RegexOption.IGNORE_CASE)
+private val totalKeywordRegex = Regex("(сума|разом|усього|всього|іт[оo]г[оo]|до\\s*сплати|к\\s*сплате|итого|total|amount\\s*due|grand\\s*total)", RegexOption.IGNORE_CASE)
 
 fun parseReceiptText(text: String): ReceiptParseResult {
     val dateMatch = receiptDateRegex.find(text)
@@ -21,6 +21,8 @@ fun parseReceiptText(text: String): ReceiptParseResult {
         val month = values[2].toIntOrNull() ?: return@let null
         var year = values[3].toIntOrNull() ?: return@let null
         if (values[3].length == 2) year += 2000
+        // Same window as js/receipt-ocr.js: an OCR misread year is worse than none.
+        if (year !in 2000..2100) return@let null
         runCatching { java.time.LocalDate.of(year, month, day).toString() }.getOrNull()
     }
     val amountText = dateMatch?.let { text.replaceRange(it.range, " ") } ?: text

@@ -37,4 +37,10 @@ class DebtPaceTest {
     @Test fun noPaydownsNoPace() {
         assertNull(DebtPaceCalc.compute(1000.0, listOf(e(1000.0, "a"), e(1100.0, "b"))))
     }
+
+    // AUDIT_2026-10 P4-03: gaps 30 and 31 -> median 30.5 rounds to 31, same as the PWA's Math.round.
+    @Test fun evenGapCountRoundsHalfUp() {
+        val pace = DebtPaceCalc.compute(1000.0, listOf(e(900.0, "01.01.2026"), e(800.0, "31.01.2026"), e(700.0, "03.03.2026")))!!
+        assertEquals(31L, pace.typicalGapDays)
+    }
 }

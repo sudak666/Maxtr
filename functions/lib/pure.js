@@ -109,4 +109,14 @@ async function mapWithConcurrency(items, limit, fn) {
   return results;
 }
 
-module.exports = { SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency };
+/**
+ * Spent past the budget limit, compared in kopecks (float sums like
+ * 16.1 + 70.2 = 86.30000000000001 must not exceed an 86.30 limit).
+ * Same rule as js/tx-validation.js's isOverBudget().
+ * @param {number} spent @param {number} limit
+ */
+function isOverBudget(spent, limit) {
+  return Math.round(spent * 100) > Math.round(limit * 100);
+}
+
+module.exports = { isOverBudget, SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency };

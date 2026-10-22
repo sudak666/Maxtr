@@ -31,6 +31,9 @@ data class RecurringEntity(
     val nextDate: String, // "yyyy-MM-dd"
     val active: Boolean,
     val comment: String,
+    // Day of month a monthly entry is due on (remote field `day`); null for
+    // entries created before it existed -> nextDate's own day is used.
+    val anchorDay: Int? = null,
 )
 
 @Dao

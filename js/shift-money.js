@@ -61,9 +61,31 @@ export function remainingShiftPay(today, shifts, types, schedule) {
 }
 
 /**
+ * The occurrence after `dateStr`. Monthly entries keep their day of month
+ * (`day`, falling back to the date's own day) and clamp it to short months:
+ * the 31st runs 31.01 -> 28.02 -> 31.03, never drifting to the 28th or
+ * spilling into March. Same rule as Android's nextRecurringDate().
+ * @param {string} dateStr yyyy-mm-dd
+ * @param {string|undefined} freq
+ * @param {number|undefined} [day]
+ * @returns {string}
+ */
+export function nextRecurringDate(dateStr, freq, day) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  let next;
+  if (freq === 'daily') next = new Date(y, m - 1, d + 1);
+  else if (freq === 'weekly') next = new Date(y, m - 1, d + 7);
+  else {
+    const anchor = Number.isInteger(day) && Number(day) >= 1 && Number(day) <= 31 ? Number(day) : d;
+    next = new Date(y, m, Math.min(anchor, new Date(y, m + 1, 0).getDate()));
+  }
+  return key(next);
+}
+
+/**
  * Active recurring occurrences due from today to month end, split by direction (UAH).
  * @param {Date} today
- * @param {{type: string, amount: number, active?: boolean, nextDate: string, frequency?: string, wallet?: string}[]} recurring
+ * @param {{type: string, amount: number, active?: boolean, nextDate: string, frequency?: string, wallet?: string, day?: number}[]} recurring
  * @param {(amount: number, wallet: string|undefined) => number} toUah
  */
 export function recurringUntilMonthEnd(today, recurring, toUah) {
@@ -72,16 +94,14 @@ export function recurringUntilMonthEnd(today, recurring, toUah) {
   let out = 0, inc = 0;
   recurring.forEach((r) => {
     if (r.active === false || !r.nextDate || !(Number(r.amount) > 0)) return;
-    const d = new Date(r.nextDate + 'T00:00:00');
+    let date = r.nextDate;
     let guard = 0;
-    while (key(d) <= endKey && guard < 62) {
-      if (key(d) >= todayKey) {
+    while (date <= endKey && guard < 62) {
+      if (date >= todayKey) {
         const v = toUah(Number(r.amount), r.wallet);
         if (r.type === 'expense') out += v; else inc += v;
       }
-      if (r.frequency === 'daily') d.setDate(d.getDate() + 1);
-      else if (r.frequency === 'weekly') d.setDate(d.getDate() + 7);
-      else d.setMonth(d.getMonth() + 1);
+      date = nextRecurringDate(date, r.frequency, r.day);
       guard++;
     }
   });
