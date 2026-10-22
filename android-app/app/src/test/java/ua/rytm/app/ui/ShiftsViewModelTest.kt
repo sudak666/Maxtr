@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -40,12 +42,20 @@ class ShiftsViewModelTest {
         runBlocking { repo.seedFreshProfileDefaults() }
     }
 
-    @After fun tearDown() { db.close(); Dispatchers.resetMain() }
+    private val vms = mutableListOf<ShiftsViewModel>()
+    private fun newVm() = ShiftsViewModel(repo, "u", "default").also { vms += it }
+
+    // See DebtViewModelTest: free the process-wide LocalWriteLock between tests.
+    @After fun tearDown() {
+        vms.forEach { it.viewModelScope.cancel() }
+        waitUntil { !ua.rytm.app.data.LocalWriteLock.mutex.isLocked }
+        db.close(); Dispatchers.resetMain()
+    }
 
     private fun waitUntil(cond: () -> Boolean) { repeat(500) { if (cond()) return; Thread.sleep(20) } }
 
     @Test fun savingADaySelectionPersistsAndSyncs() {
-        val vm = ShiftsViewModel(repo, "u", "default")
+        val vm = newVm()
         waitUntil { vm.shiftTypes.isNotEmpty() }
         val type = vm.shiftTypes.first()
         vm.openDayModal("2026-09-01")
@@ -58,7 +68,7 @@ class ShiftsViewModelTest {
 
     @Test fun failedSyncRollsBackTheDay() {
         coEvery { sync.saveShiftDays(any(), any()) } throws RuntimeException("offline")
-        val vm = ShiftsViewModel(repo, "u", "default")
+        val vm = newVm()
         waitUntil { vm.shiftTypes.isNotEmpty() }
         vm.openDayModal("2026-09-02")
         vm.toggleDayModalType(vm.shiftTypes.first().id)
