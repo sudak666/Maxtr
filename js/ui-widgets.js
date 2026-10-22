@@ -153,6 +153,18 @@ export function setupAccessibleClickableDivs(root){
 export function setupAccessibleSettingsRows(){ setupAccessibleClickableDivs(); }
 
 /**
+ * A wallet/tag/shift-type color from synced data, safe to put into a
+ * style="" attribute. A shared-profile editor can write any string there;
+ * only a plain #hex color gets through, anything else falls back.
+ * @param {unknown} c
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+export function safeColor(c, fallback='#8b5cf6'){
+  return typeof c==='string' && /^#[0-9a-f]{3,8}$/i.test(c) ? c : fallback;
+}
+
+/**
  * @param {string} hex
  * @param {number} a
  * @returns {string}

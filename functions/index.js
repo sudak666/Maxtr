@@ -125,7 +125,9 @@ exports.notificationSweep = onSchedule('every 60 minutes', async () => {
 // same-origin request — no CORS headers needed on the response at all.
 const PRIVAT_RATES_URL = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5';
 
-exports.privatRates = onRequest({ cors: true }, async (req, res) => {
+// Fixed upstream URL, no client input, so not an open proxy; maxInstances only
+// caps what a flood of anonymous calls could cost.
+exports.privatRates = onRequest({ cors: true, maxInstances: 2 }, async (req, res) => {
   try {
     const upstream = await fetch(PRIVAT_RATES_URL);
     if (!upstream.ok) {

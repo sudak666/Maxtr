@@ -15,7 +15,7 @@ import { renderBudgets, renderFxConverter, renderFxWidget } from './settings-man
 import { validateTransactionDraft } from './tx-validation.js';
 import { safetyBackup } from './backups.js';
 import { recurringUntilMonthEnd, remainingShiftPay } from './shift-money.js';
-import { emptyStateHtml, escapeHtml, showToast, syncClickableA11yState, uiAlert, uiConfirm, recordsLabel } from './ui-widgets.js';
+import { emptyStateHtml, escapeHtml, recordsLabel, safeColor, showToast, syncClickableA11yState, uiAlert, uiConfirm } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/analytics-csv.js is served unbundled (GitHub Pages) or bundled by
 // Vite (dist/, Firebase Hosting) — same reasoning as js/debt.js's own
@@ -545,7 +545,7 @@ export function renderFinance(){
     </div>`;
     html+='<div class="wallet-chip-row">';
     AppState.wallets.forEach(w=>{
-      html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${w.color}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${money((wb[w.id]||0))} ${currencySymbol(w.currency||'UAH')}</span></span>`;
+      html+=`<span class="wallet-chip"><span class="wallet-chip-dot" style="background:${safeColor(w.color)}"></span><span class="wallet-chip-name">${escapeHtml(w.name)}</span><span class="wallet-chip-val">${money((wb[w.id]||0))} ${currencySymbol(w.currency||'UAH')}</span></span>`;
     });
     html+='</div>';
     if(outlook.length) html+=`<div class="hero-balance-hint hero-outlook">${window.Icon('calendar')}${tr('finance_outlook_prefix')} <span class="hero-outlook-val">${outlook.join(' · ')}</span></div>`;

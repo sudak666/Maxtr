@@ -503,7 +503,7 @@ class FinanceRepository(private val db: RytmDatabase) {
                     targetWalletId = null,
                     targetAmount = null,
                     targetCurrency = null,
-                    category = r.category,
+                    category = r.category.ifBlank { BuiltinCategories.OTHER },
                     subcategory = null,
                     // "повторювана" — matches js/state.js's I18N.uk.recurring_comment_tag exactly.
                     comment = (if (r.comment.isNotBlank()) r.comment + " · " else "") + "повторювана",
