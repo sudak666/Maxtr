@@ -145,13 +145,42 @@ class BankQuickSaveReceiver : BroadcastReceiver() {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         /**
-         * Up to three one-tap categories for a suggestion: the type's most used
-         * ones over 90 days, topped up from its category list. Empty → no buttons.
+         * Up to three one-tap categories for a suggestion, best guess first:
+         * 1) a matching auto-rule keyword in the merchant text,
+         * 2) what this merchant was filed under before (most often first),
+         * 3) the type's most used ones over 90 days, 4) its category list.
+         * Only real categories of the type survive. Empty → no buttons.
          */
-        fun quickCategories(transactions: List<Transaction>, categories: List<String>, isIncome: Boolean, today: LocalDate): List<String> {
+        fun quickCategories(
+            transactions: List<Transaction>,
+            categories: List<String>,
+            isIncome: Boolean,
+            today: LocalDate,
+            merchant: String? = null,
+            rules: List<Pair<String, String>> = emptyList(), // keyword to category, same type
+        ): List<String> {
             val type = if (isIncome) TxType.INCOME else TxType.EXPENSE
-            val frequent = FinanceInsights.frequentCategories(transactions, type, categories.toSet(), today.minusDays(90), limit = 3)
-            return (frequent + categories).distinct().take(3)
+            val known = categories.toSet()
+            val text = merchant?.lowercase().orEmpty()
+            val byRule = if (text.isEmpty()) emptyList() else
+                rules.filter { (k, _) -> k.isNotBlank() && text.contains(k.lowercase()) }.map { it.second }
+            val key = merchantKey(merchant)
+            val byMerchant = if (key == null) emptyList() else transactions
+                .filter { it.type == type && merchantKey(it.comment) == key }
+                .groupingBy { it.category }.eachCount()
+                .entries.sortedByDescending { it.value }.map { it.key }
+            val frequent = FinanceInsights.frequentCategories(transactions, type, known, today.minusDays(90), limit = 3)
+            return (byRule + byMerchant).filter { it in known }.plus(frequent).plus(categories).distinct().take(3)
+        }
+
+        /**
+         * The merchant's first word, e.g. "Apteka AGP 56 KIYEV UA" → "apteka",
+         * so the same chain matches across branches. Saved quick-adds keep the
+         * merchant as the comment. Too short or numeric → no match.
+         */
+        internal fun merchantKey(text: String?): String? {
+            val w = text?.trim()?.split(' ')?.filter { it.isNotEmpty() }?.firstOrNull()?.lowercase() ?: return null
+            return w.takeIf { it.length >= 3 && it.any(Char::isLetter) }
         }
     }
 }
