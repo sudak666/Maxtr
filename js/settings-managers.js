@@ -14,7 +14,7 @@ import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
 import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
-import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, safeColor, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/settings-managers.js is served unbundled (GitHub Pages) or bundled by
 // Vite (dist/, Firebase Hosting) — same reasoning as js/debt.js's own
@@ -295,7 +295,7 @@ function renderWidgetsList(){
     const w=defByKey[key]; if(!w) return '';
     return `
     <div class="settings-row" style="cursor:default">
-      <span class="icon-badge" style="--badge-color:${w.color}">${window.Icon(w.icon)}</span>
+      <span class="icon-badge" style="--badge-color:${safeColor(w.color)}">${window.Icon(w.icon)}</span>
       <div class="settings-row-text">
         <div class="settings-row-title">${tr(w.titleKey)}</div>
         <div class="settings-row-sub">${tr(w.subKey)}</div>

@@ -7,7 +7,7 @@ import { AppState } from './state.js';
 import { monthIcs } from './shift-money.js';
 import { saveConfigLocal, saveLocal, scheduleSave } from './color-picker.js';
 import { canEditActiveProfile, shiftType, toBase } from './core.js';
-import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { csSync, emptyStateHtml, escapeHtml, hexA, initSheetDrag, safeColor, showToast, uiConfirm, uiPrompt } from './ui-widgets.js';
 
 // Cold-start only: called once from js/app-init.js's init() when there was
 // no local config cache to paint from instantly — same pattern and same
@@ -184,7 +184,7 @@ export function renderCalendar(){
       const on=t.id===brushTypeId;
       const inner=`<div class="leg-dot" style="background:${hexA(t.color,on?1:.25)};border:1px solid ${hexA(t.color,.6)}"></div>${escapeHtml(t.name)}`;
       return canPaint
-        ? `<button type="button" class="leg-item leg-brush${on?' active':''}" data-action="pick-brush" data-id="${escapeHtml(t.id)}" aria-pressed="${on}" style="--leg-color:${t.color}">${inner}</button>`
+        ? `<button type="button" class="leg-item leg-brush${on?' active':''}" data-action="pick-brush" data-id="${escapeHtml(t.id)}" aria-pressed="${on}" style="--leg-color:${safeColor(t.color)}">${inner}</button>`
         : `<div class="leg-item">${inner}</div>`;
     }).join('')+(canPaint?`<div class="leg-hint${brushTypeId?' active':''}">${tr(brushTypeId?'shifts_brush_active_hint':'shifts_brush_hint')}</div>`:'');
   }
@@ -230,7 +230,8 @@ export function renderCalendar(){
     ds.forEach(id=>{
       const t=shiftType(id);
       if(!t) return; // unknown/removed type — skip gracefully
-      badges+=`<div class="shift-token" style="background:${t.color};border:1px solid ${t.color};color:${calendarBadgeOnColor(t.color)}" aria-label="${escapeHtml(t.name)}">${escapeHtml(shiftCode(t))}</div>`;
+      const tc=safeColor(t.color);
+      badges+=`<div class="shift-token" style="background:${tc};border:1px solid ${tc};color:${calendarBadgeOnColor(tc)}" aria-label="${escapeHtml(t.name)}">${escapeHtml(shiftCode(t))}</div>`;
       if(!outsideMonth){
         earn+=t.amount||0; hrs+=t.hours||0;
         if(t.isOff) cOff++; else cShifts++;

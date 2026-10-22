@@ -66,6 +66,9 @@ jobs:
       - name: Run privacy-cache tests
         run: node tests/privacy-cache.mjs
 
+      - name: Run safe-color tests
+        run: node tests/safe-color.mjs
+
       - name: Run Cloud Function sweep tests
         run: node tests/functions-sweep.mjs
 

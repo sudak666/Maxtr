@@ -13,7 +13,7 @@ import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
 import { TX_AMOUNT_MAX, TX_COMMENT_MAX, isOverBudget, validateTransactionDraft } from './tx-validation.js';
-import { csSync, enhanceSelect, escapeHtml, hexA, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
+import { csSync, enhanceSelect, escapeHtml, hexA, safeColor, setupAccessibleClickableDivs, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 import { scanReceiptImage } from './receipt-ocr.js';
 
 /** @returns {void} */
@@ -413,7 +413,7 @@ export function setTxFilter(f){
 export function walletBadge(id){
   const w=walletById(id);
   const name=w?w.name:'—';
-  const color=w?(w.color||'#8b5cf6'):'#7b709a';
+  const color=w?safeColor(w.color):'#7b709a';
   const icon=w?(w.icon||'card'):'card';
   return `<span class="wallet-tag" style="background:${hexA(color,.12)};color:${color};border:1px solid ${hexA(color,.28)}">${window.Icon(icon)}<span class="wallet-tag-name">${escapeHtml(name)}</span></span>`;
 }
@@ -425,7 +425,8 @@ export function walletBadge(id){
 export function tagBadge(id){
   const t=AppState.tags.find(x=>x.id===id);
   if(!t) return '';
-  return `<span class="wallet-tag" style="background:${hexA(t.color,.12)};color:${t.color};border:1px solid ${hexA(t.color,.28)}">${window.Icon('tag')}<span class="wallet-tag-name">${escapeHtml(t.name)}</span></span>`;
+  const color=safeColor(t.color);
+  return `<span class="wallet-tag" style="background:${hexA(color,.12)};color:${color};border:1px solid ${hexA(color,.28)}">${window.Icon('tag')}<span class="wallet-tag-name">${escapeHtml(t.name)}</span></span>`;
 }
 
 const openTagsManager = function(){

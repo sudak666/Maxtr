@@ -110,6 +110,9 @@ android {
 
     // Robolectric tests need merged resources (R.string lookups, Room in-memory).
     testOptions { unitTests.isIncludeAndroidResources = true }
+    // Exported Room schemas as debug-only assets: RytmMigrationPathTest (Robolectric)
+    // builds old DB versions from them. Never part of release/qa builds.
+    sourceSets.getByName("debug").assets.srcDir("$projectDir/schemas")
     buildFeatures {
         compose = true
         buildConfig = true
@@ -185,4 +188,5 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("io.mockk:mockk:1.14.6")
     testImplementation("androidx.test:core:1.7.0")
+    testImplementation(libs.androidx.room.testing)
 }

@@ -647,7 +647,9 @@ async function processRecurring(){
       const t={
         id:`rec_${r.id}_${r.nextDate}`, createdAt:Date.now()+added, type:r.type, amount:r.amount, currency:walletCurrency(r.wallet), category:r.category||'Інше',
         wallet:r.wallet, targetWallet:null, targetAmount:null, targetCurrency:null, date:r.nextDate,
-        comment:(r.comment?r.comment+' · ':'')+tr('recurring_comment_tag')
+        // Stored data, not UI text: the same fixed tag as Android writes, so the
+        // occurrence doc (same id on every client) doesn't flip language.
+        comment:(r.comment?r.comment+' · ':'')+'повторювана'
       };
       if(!AppState.transactions.some(x=>String(x.id)===t.id)) AppState.transactions.unshift(t);
       newTx.push(t);
