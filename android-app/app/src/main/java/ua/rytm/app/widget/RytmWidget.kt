@@ -172,15 +172,20 @@ private fun WidgetContent(s: WidgetSnapshot) {
             // ~70dp empty on sizes where the week fits but no recent row).
             // Own Column: the root is near Glance's 10-children cap.
             Column(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                var used = BASE_HEIGHT
+                val showWeek = height >= used + WEEK_HEIGHT && s.week.isNotEmpty()
+                if (showWeek) used += WEEK_HEIGHT
+                val rows = ((height - used - RECENT_HEADER) / RECENT_ROW).toInt().coerceIn(0, minOf(s.recent.size, MAX_RECENT_ROWS))
+                // A single weighted gap put the whole remainder between the
+                // tiles and the week (owner's resize check). With 2+ sections
+                // the remainder is split before each one, so no gap dominates;
+                // the tiles alone stay top-anchored.
+                if (showWeek || rows > 0) Spacer(GlanceModifier.defaultWeight())
                 Row(GlanceModifier.fillMaxWidth()) {
                     ShiftTile(s.nextShift, narrow, GlanceModifier.defaultWeight())
                     Spacer(GlanceModifier.width(8.dp))
                     ForecastTile(s, narrow, GlanceModifier.defaultWeight())
                 }
-                var used = BASE_HEIGHT
-                val showWeek = height >= used + WEEK_HEIGHT && s.week.isNotEmpty()
-                if (showWeek) used += WEEK_HEIGHT
-                val rows = ((height - used - RECENT_HEADER) / RECENT_ROW).toInt().coerceIn(0, minOf(s.recent.size, MAX_RECENT_ROWS))
                 if (showWeek) {
                     Spacer(GlanceModifier.defaultWeight())
                     WeekStrip(s.week)
