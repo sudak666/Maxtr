@@ -75,7 +75,14 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     private fun previousPeriodTransactions(): List<Transaction>? {
         val now = YearMonth.now()
         return when (period) {
-            AnalyticsPeriod.MONTH -> transactions.filter { it.date.startsWith(now.minusMonths(1).toString()) }
+            // Month-to-date vs the same days of last month, like the month
+            // summary: against the whole previous month a 22-day October read
+            // "на рівні" here while the summary said "+5%" (P5, live screenshots).
+            AnalyticsPeriod.MONTH -> {
+                val prev = now.minusMonths(1)
+                val cutoff = "$prev-%02d".format(minOf(java.time.LocalDate.now().dayOfMonth, prev.lengthOfMonth()))
+                transactions.filter { it.date.startsWith(prev.toString()) && it.date.take(10) <= cutoff }
+            }
             AnalyticsPeriod.PREV -> transactions.filter { it.date.startsWith(now.minusMonths(2).toString()) }
             AnalyticsPeriod.M3 -> {
                 val from = now.minusMonths(5).atDay(1).toString()
@@ -110,7 +117,7 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
             return currentByCategory.mapNotNull { (category, amount) ->
                 val previousAmount = previousByCategory[category] ?: return@mapNotNull null
                 if (previousAmount <= 0 || amount <= previousAmount) return@mapNotNull null
-                category to (((amount - previousAmount) / previousAmount) * 100).toInt()
+                category to Math.round((amount - previousAmount) / previousAmount * 100).toInt() // rounded like the month summary (1346 vs 1347 seen live)
             }.maxByOrNull { it.second }
         }
 
