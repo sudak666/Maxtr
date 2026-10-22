@@ -1,5 +1,7 @@
 # Changelog
 
+- **P5 design review (2026-10-22)** — `AUDIT_2026-10.md` section 8. Screenshots from the owner's A51 on real data (light/dark, uk/en, font 1.3, landscape, one video); not committed (personal finances). Verdict: decent but generic, not dated; top-10 issues with files. Preview of fixes #1 (scrim behind the floating nav — content peeked between pill and "+") and #2 (borderless finance hero with inline income/expense) built and checked on the A51, kept only on local branch `claude/p5-design-preview`; QA reinstalled from `main` afterwards. Gotchas: double BACK from the sheet exits the app — blind taps landed in Samsung Messages (screenshots deleted); guard every adb tap on `mCurrentFocus`. The app's theme/language are in-app settings, not system uimode/app-locale.
+
 - **Play: 2.6.2 (vc31) passed Google review (2026-10-22)** — closed testing Track 1, uploaded by the owner. Next AAB is vc32 (so far only the recurring blank-category fallback from #640 is Android-side); no rebuild until something more substantial accumulates.
 
 - **Deploy functions + hosting (2026-10-22)** — after #640 merged (its `android` job failed once on `DebtViewModelTest.failedSaveRollsBack`, unrelated, green on rerun — the known Unconfined-Main race flake family). Clean `origin/main` worktree (d531dda): PWA `safeColor` + recurring tag parity live (sw v192); `privatRates` redeployed with `maxInstances: 2`. Android recurring-category fallback ships with the next AAB (vc32).
