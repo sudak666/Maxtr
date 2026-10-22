@@ -441,6 +441,10 @@ private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, s
 // collapses everything to a snap under reduced-motion, same as before.
 @Composable
 private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compact: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    // At ~2x font the one visible label grew wide enough to squeeze the
+    // other tabs' icons to a few pixels (P5, 200% check). There every tab is
+    // icon-only; the selected one keeps its fill and TalkBack name.
+    val hugeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.5f
     val accent = destination.activeGradient.first()
     val backgroundColor by animateColorAsState(
         targetValue = if (selected) accent.copy(alpha = 0.16f) else Color.Transparent,
@@ -476,7 +480,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
             // one of four tabs had any text/description). Describe the icon
             // exactly when there's no visible label — never both, which read
             // the name twice.
-            contentDescription = if (selected) null else stringResource(destination.labelRes),
+            contentDescription = if (selected && !hugeFont) null else stringResource(destination.labelRes),
             tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
         )
@@ -485,7 +489,7 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
         // so a long Ukrainian word like "Налаштування" always gets the
         // full row width instead of a fixed per-item share and can never
         // truncate, no matter how translations or font scale change later.
-        if (selected) {
+        if (selected && !hugeFont) {
             Spacer(Modifier.width(RytmSpacing.sm))
             Text(
                 stringResource(destination.labelRes),

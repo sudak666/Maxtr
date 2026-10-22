@@ -75,7 +75,7 @@
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · paused</string>
     <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
     <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
-    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string><string name="analytics_balance_label">Balance</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">UAH %1$s average</string><string name="analytics_maximum_uah">UAH %1$s maximum</string>
+    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string><string name="analytics_balance_label">Balance</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">%1$s ₴ average</string><string name="analytics_maximum_uah">%1$s ₴ maximum</string>
     <string name="analytics_difference">Difference</string><string name="analytics_savings_rate">Savings rate</string>
     <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
     <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$d%%</string>
@@ -97,7 +97,7 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
-    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">UAH %1$s/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_summary">%1$s ₴/month</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
     <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
     <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
     <string name="action_reorder">Drag to reorder</string><string name="widgets_sync_failed">Could not sync widget settings</string>
@@ -109,7 +109,7 @@
     <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>
     <string name="finance_empty_cta">Add your first transaction</string>
-    <string name="finance_amount_uah">UAH %1$s</string><string name="finance_amount_uah_estimated">≈ UAH %1$s</string><string name="finance_month_net">%1$sUAH %2$s this month</string><string name="finance_signed_uah">%1$sUAH %2$s</string>
+    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ this month</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Categories</string><string name="categories_body">Your own income and expense categories, with subcategories inside.</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
     <string name="subcategory_delete_title">Delete subcategory</string><string name="subcategory_delete_body">Delete subcategory “%1$s”?</string><string name="category_icon_title">Category icon</string>
@@ -124,10 +124,10 @@
     <string-array name="finance_tips"><item>Save at least 10% of income as soon as you receive it, not from what remains at month-end.</item><item>Wait 24 hours before a large purchase; impulsive desire often passes.</item><item>Build an emergency fund covering 3–6 months of expenses.</item><item>Automate savings: a recurring transfer works better than willpower.</item><item>Review subscriptions and recurring payments once a week.</item><item>Plan irregular expenses in advance with separate categories.</item><item>Compare a discount with your actual need, not the original price.</item></string-array>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
-    <string name="money_uah">UAH %1$s</string>
+    <string name="money_uah">%1$s ₴</string>
     <string name="shifts_choose">Choose shifts</string>
     <string name="shifts_earned_month">Pay for the month</string>
-    <string name="shifts_goal_progress">%1$d%% of the UAH %2$s goal</string>
+    <string name="shifts_goal_progress">%1$d%% of the %2$s ₴ goal</string>
     <string name="shifts_goal_edit_title">Earnings goal</string>
     <string name="shifts_goal_edit_label">Amount, UAH</string>
     <string name="shifts_hours_short">hr</string>
@@ -187,7 +187,7 @@
     <string name="shift_type_delete_title">Delete shift type</string>
     <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
     <string name="shift_day_off">Day off</string>
-    <string name="shift_type_summary">UAH %1$s · %2$s hr</string>
+    <string name="shift_type_summary">%1$s ₴ · %2$s hr</string>
     <string name="shift_pay">Pay</string>
     <string name="shift_hours">Hours</string>
     <string name="shift_day_off_unpaid">Day off (unpaid)</string>
@@ -406,7 +406,7 @@
     <string name="transaction_delete_failed">Could not delete the transaction</string><string name="transaction_deleted">Deleted</string><string name="action_undo">Undo</string>
     <string name="common_deleted">Deleted</string>
     <string name="transaction_auto_category">Category selected automatically: %1$s</string>
-    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: UAH %2$s / UAH %3$s</string>
+    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: %2$s ₴ / %3$s ₴</string>
     <string name="transaction_updated">Entry updated</string>
     <string name="transaction_transfer_done">Transfer completed</string>
     <string name="transaction_added">Entry added</string>
@@ -439,14 +439,14 @@
     <string name="shifts_no_types">No shift types yet — create the first one.</string>
     <string name="action_copy_code">Copy code</string>
     <string name="forecast_title">Earnings forecast</string>
-    <string name="forecast_month_total">≈ UAH %1$s</string>
+    <string name="forecast_month_total">≈ %1$s ₴</string>
     <string name="forecast_earned">earned %1$s</string>
     <string name="forecast_planned">planned %1$s</string>
     <string name="forecast_schedule">by schedule %1$s</string>
-    <string name="forecast_goal_reached">Goal of UAH %1$s will be reached</string>
-    <string name="forecast_goal_short">UAH %1$s short of the goal</string>
-    <plurals name="forecast_goal_shifts"><item quantity="one">UAH %1$s short of the goal ≈ %2$d more shift</item><item quantity="other">UAH %1$s short of the goal ≈ %2$d more shifts</item></plurals>
-    <string name="forecast_next_month">%1$s: ≈ UAH %2$s</string>
+    <string name="forecast_goal_reached">Goal of %1$s ₴ will be reached</string>
+    <string name="forecast_goal_short">%1$s ₴ short of the goal</string>
+    <plurals name="forecast_goal_shifts"><item quantity="one">%1$s ₴ short of the goal ≈ %2$d more shift</item><item quantity="other">%1$s ₴ short of the goal ≈ %2$d more shifts</item></plurals>
+    <string name="forecast_next_month">%1$s: ≈ %2$s ₴</string>
     <string name="forecast_empty">Add shifts to the calendar or turn on autofill to see a forecast here.</string>
     <string name="widget_label">Rytm</string>
     <string name="widget_description">Balance, next shift and earnings forecast</string>
@@ -494,14 +494,14 @@
         <item quantity="other">≈ %d shifts of work</item>
     </plurals>
     <string name="finance_outlook_prefix">Until month end:</string>
-    <string name="finance_outlook_shifts">+UAH %1$s from shifts</string>
-    <string name="finance_outlook_recurring_in">+UAH %1$s recurring income</string>
-    <string name="finance_outlook_recurring_out">−UAH %1$s recurring payments</string>
+    <string name="finance_outlook_shifts">+%1$s ₴ from shifts</string>
+    <string name="finance_outlook_recurring_in">+%1$s ₴ recurring income</string>
+    <string name="finance_outlook_recurring_out">−%1$s ₴ recurring payments</string>
     <string name="auth_email_placeholder">you@example.com</string>
     <string name="shifts_insight_title">90-day insight</string>
     <string name="shifts_insight_more">You spend %1$d%% more on shift days</string>
     <string name="shifts_insight_less">You spend %1$d%% less on shift days</string>
-    <string name="shifts_insight_detail">≈ UAH %1$s a day on shifts vs UAH %2$s on days off</string>
+    <string name="shifts_insight_detail">≈ %1$s ₴ a day on shifts vs %2$s ₴ on days off</string>
     <string name="finance_contributions_title">Who added what this month</string>
     <string name="finance_contributions_me">%1$s (you)</string>
     <string name="shifts_export_calendar">Export to calendar</string>
@@ -562,7 +562,7 @@
     <string name="salary_allocation_body">Amounts are paced to your goals\' dates — never more than half the pay. Each becomes a transfer to the goal\'s wallet; you can change them.</string>
     <string name="salary_allocation_apply">Move %1$s</string>
     <string name="salary_allocation_skip">Not now</string>
-    <string name="salary_allocated">Moved to goals: UAH %1$s</string>
+    <string name="salary_allocated">Moved to goals: %1$s ₴</string>
     <string name="receipt_scan_short">Receipt</string>
     <string name="split_add">Split into categories</string>
     <string name="split_add_part">Another category</string>
@@ -580,7 +580,7 @@
     <string name="notifications_weekly_title">Family week</string>
     <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
     <string name="categories_empty">No categories here yet. Add the first one below.</string>
-    <string name="finance_safe_to_spend">≈ UAH %1$s a day until month end</string>
+    <string name="finance_safe_to_spend">≈ %1$s ₴ a day until month end</string>
     <string name="finance_safe_to_spend_none">Recurring payments this month exceed the balance</string>
     <string name="story_spent">Spent in %1$s</string>
     <string name="story_top_category">Most went to</string>
@@ -591,7 +591,7 @@
     <string name="story_count">Transactions this month: %1$d</string>
     <string name="finance_search_what_month">“cafe october”</string>
     <string name="finance_search_what_amount">“over 500”</string>
-    <string name="widget_per_day">≈ UAH %1$s a day</string>
+    <string name="widget_per_day">≈ %1$s ₴ a day</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
     <string name="analytics_spending_same">Spending is about the same as the previous period</string>
     <string name="month_summary_prev">Previous month</string>

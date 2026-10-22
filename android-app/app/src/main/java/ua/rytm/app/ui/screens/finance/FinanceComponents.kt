@@ -317,7 +317,7 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
 
 @Composable
 internal fun WalletChip(wallet: Wallet, balance: Double) {
-    Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+    Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
         Row(Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).background(Color(wallet.colorHex), CircleShape))
@@ -372,7 +372,7 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
                         // uses with no border whatsoever. Matches here too,
                         // and sidesteps the outline-contrast question
                         // entirely by not drawing an outline.
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
                         interactionSource = interactionSource,
                     ) {
                         // Three across: icon over label, so "Інструменти" never truncates
@@ -417,7 +417,7 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
 @Composable
 internal fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

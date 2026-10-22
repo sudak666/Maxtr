@@ -56,10 +56,10 @@ fun localizedDomainText(value: String): String = builtInTextResource(value)?.let
  * the English UI. Only built-in names get translated codes; a user's own code
  * is shown as typed.
  */
-@Composable
-fun localizedShiftCode(name: String, code: String): String {
-    if (builtInTextResource(name) == null) return code
-    val res = when (code) {
+@StringRes
+fun builtInShiftCodeResource(name: String, code: String): Int? {
+    if (builtInTextResource(name) == null) return null
+    return when (code) {
         "Д", "D" -> R.string.builtin_shift_code_day
         "Д+", "D+" -> R.string.builtin_shift_code_day_plus
         "Н", "N" -> R.string.builtin_shift_code_night
@@ -68,5 +68,12 @@ fun localizedShiftCode(name: String, code: String): String {
         "В", "O" -> R.string.builtin_shift_code_off
         else -> null
     }
-    return res?.let { stringResource(it) } ?: code
 }
+
+@Composable
+fun localizedShiftCode(name: String, code: String): String =
+    builtInShiftCodeResource(name, code)?.let { stringResource(it) } ?: code
+
+/** Same as [localizedShiftCode] for the Glance widget, which has no Compose resources. */
+fun localizedShiftCode(context: android.content.Context, name: String, code: String): String =
+    builtInShiftCodeResource(name, code)?.let { context.getString(it) } ?: code

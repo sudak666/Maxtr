@@ -27,7 +27,7 @@ private val DarkColors = darkColorScheme(
     surface = DarkBg1,
     onSurface = DarkText,
     surfaceVariant = DarkBg2,
-    onSurfaceVariant = DarkMuted2,
+    onSurfaceVariant = DarkMutedText,
     // surfaceContainerLow was never part of this app's own deliberate
     // 3-tier surface system (surface/surfaceContainer/surfaceContainerHigh
     // below) -- left to M3's default tonal-palette derivation, which reads

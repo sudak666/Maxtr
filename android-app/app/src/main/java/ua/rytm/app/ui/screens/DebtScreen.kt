@@ -432,7 +432,7 @@ private fun dueChipInfo(cd: Debt): String? {
 @Composable
 private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
     Column(Modifier.fillMaxWidth()) {
-        Card(shape = RoundedCornerShape(RytmRadii.Input), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+        Card(shape = RoundedCornerShape(RytmRadii.Input), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Input)).clickable(enabled = canEdit, role = androidx.compose.ui.semantics.Role.Button, onClick = viewModel::toggleInfoPanel).padding(horizontal = RytmSpacing.lg, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,

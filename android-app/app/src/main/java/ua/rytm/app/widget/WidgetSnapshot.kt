@@ -29,7 +29,7 @@ data class WidgetSnapshot(
     val perDayUah: Double? = null,
 ) {
     data class NextShift(val date: LocalDate, val name: String, val code: String, val colorHex: Long)
-    data class WeekDay(val date: LocalDate, val code: String?, val colorHex: Long)
+    data class WeekDay(val date: LocalDate, val code: String?, val colorHex: Long, val name: String = "")
     data class RecentTx(val title: String, val date: LocalDate?, val signedAmount: String)
 
     companion object {
@@ -66,7 +66,7 @@ data class WidgetSnapshot(
             val week = (0L until 7L).map { i ->
                 val d = today.plusDays(i)
                 val t = shiftsByDate[d.toString()].orEmpty().mapNotNull { byId[it] }.firstOrNull { !it.isOff }
-                WeekDay(d, t?.let { shiftCode(it) }, t?.colorHex ?: 0)
+                WeekDay(d, t?.let { shiftCode(it) }, t?.colorHex ?: 0, t?.name.orEmpty())
             }
             val recent = transactions
                 .sortedWith(compareByDescending<Transaction> { it.date }.thenByDescending { it.createdAt })

@@ -216,7 +216,7 @@ private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier
                 GlanceModifier.size(30.dp).cornerRadius(9.dp).background(ColorProvider(Color(shift.colorHex))),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(shift.code, style = TextStyle(color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
+                Text(ua.rytm.app.ui.localizedShiftCode(context, shift.name, shift.code), style = TextStyle(color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
             }
             Spacer(GlanceModifier.width(8.dp))
             Column {
@@ -282,7 +282,7 @@ private fun WeekStrip(week: List<WidgetSnapshot.WeekDay>) {
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        d.code ?: d.date.dayOfMonth.toString(),
+                        d.code?.let { ua.rytm.app.ui.localizedShiftCode(context, d.name, it) } ?: d.date.dayOfMonth.toString(),
                         style = TextStyle(color = if (d.code != null) White else Muted, fontSize = WidgetCaptionSize, fontWeight = FontWeight.Bold),
                         maxLines = 1,
                     )

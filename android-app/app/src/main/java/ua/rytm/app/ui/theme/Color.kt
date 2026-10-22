@@ -29,6 +29,9 @@ val RedDark = Color(0xFFEF4444)
 val RedDark2 = Color(0xFFF87171)
 val RedLight2 = Color(0xFFDC2626)
 val RedText = Color(0xFF991B1B)
+// Dark-theme expense text: #F87171 measured 4.26:1 on the #38373D card —
+// below AA for the 16sp amounts. #FA8A8A is 5.09:1 (P5 contrast pass).
+val RedDarkText = Color(0xFFFA8A8A)
 
 val BlueDark = Color(0xFF3B82F6)
 val BlueDark2 = Color(0xFF60A5FA)
@@ -54,6 +57,9 @@ val DarkText = Color(0xFFE9E8EA)
 val DarkTextStrong = Color(0xFFFFFFFF)
 val DarkMuted = Color(0xFF96959C)
 val DarkMuted2 = Color(0xFF98979E)
+// Dark onSurfaceVariant: #98979E is only 3.97:1 on the #38373D card where
+// most secondary text sits. #A8A7AE: 4.94:1 on cards, 7.13:1 on the page.
+val DarkMutedText = Color(0xFFA8A7AE)
 // Midpoint between DarkBorder2 (#525158, outlineVariant) and DarkMuted2
 // (#98979E) -- see Theme.kt's `outline` doc comment for why this exists as
 // its own token instead of reusing either.
