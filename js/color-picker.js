@@ -8,7 +8,7 @@ import { nextRecurringDate } from './shift-money.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, walletCurrency } from './core.js';
+import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, updateDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
 import { batchWriteTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
@@ -338,6 +338,40 @@ function fbSetStatus(type, text){
   tx.textContent=text;
 }
 
+// What each synced doc's fields looked like when this client last loaded or
+// saved them (stable JSON per field). fbSaveNow writes only fields that differ,
+// so a save never replaces a field another device (Android, a shared-profile
+// member) changed meanwhile unless this client changed the same field too.
+/** @type {Record<string, Record<string, string>>} */
+let syncedFields={shifts:{}, finance:{}, debt:{}};
+
+/** @param {any} v @returns {string} JSON with object keys sorted, so key order never reads as a change */
+function stableJson(v){
+  if(v===undefined) return 'undefined';
+  if(v===null || typeof v!=='object') return JSON.stringify(v);
+  if(Array.isArray(v)) return '['+v.map(stableJson).join(',')+']';
+  return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stableJson(v[k])).join(',')+'}';
+}
+
+/** @param {any} data @returns {Record<string, string>} */
+function fieldSnapshot(data){
+  /** @type {Record<string, string>} */
+  const out={};
+  if(data) Object.keys(data).forEach(k=>{ if(k!=='updatedAt') out[k]=stableJson(data[k]); });
+  return out;
+}
+
+/** The fields this client owns in each synced doc. */
+function syncedPayloads(){
+  return {
+    shifts: {data:AppState.shifts, shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule},
+    // Transactions are their own docs in the `transactions` subcollection
+    // (js/firebase-sync.js), written by whatever mutates them — never here.
+    finance: {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, salaryGoal: AppState.salaryGoal},
+    debt: {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}},
+  };
+}
+
 async function fbSaveNow(){
   if(!AppState.currentUser) return;
   fbSetStatus('loading',tr('sync_saving'));
@@ -358,18 +392,26 @@ async function fbSaveNow(){
       if(!overwrite){ await fbLoadNow(); return; }
     }
     const now=Date.now();
-    await Promise.all([
-      setDoc(userDoc('shifts'),  {data:AppState.shifts, shiftTypes: AppState.shiftTypes, autoFillSchedule: AppState.autoFillSchedule, updatedAt:now}, {merge:false}),
-      // No `data`/transactions array here anymore — each transaction is its
-      // own doc in the `transactions` subcollection (see the TRANSACTIONS
-      // SUBCOLLECTION section of js/firebase-sync.js) and is written
-      // directly by whatever function mutates it, not batched into this
-      // whole-finance-doc rewrite. `{merge:false}` replacing the whole doc
-      // is exactly what drops any stale legacy `data` field for an
-      // already-migrated account, with no extra cleanup code needed.
-      setDoc(userDoc('finance'), {wallets: AppState.wallets, categories: AppState.categories, budgets: AppState.budgets, subcategories: AppState.subcategories, categoryIcons: AppState.categoryIcons, currencyRates: AppState.currencyRates, tags: AppState.tags, autoRules: AppState.autoRules, recurring: AppState.recurring, goals: AppState.goals, profile: AppState.profile, subscription: AppState.subscription, widgets: AppState.widgets, widgetOrder: AppState.widgetOrder, notifSettings: AppState.notifSettings, catBackfillDone: AppState.catBackfillDone, catLegacyMerged: AppState.catLegacyMerged, txMigrated: AppState.txMigrated, salaryGoal: AppState.salaryGoal, updatedAt:now}, {merge:false}),
-      setDoc(userDoc('debt'),    {data:{debts: AppState.debts, currentDebtId: AppState.currentDebtId}, updatedAt:now}, {merge:false}),
-    ]);
+    const payloads=syncedPayloads();
+    const exists={shifts:sChk.exists(), finance:fChk.exists(), debt:dChk.exists()};
+    /** @type {Record<string, Record<string, string>>} */
+    const next={shifts:{}, finance:{}, debt:{}};
+    await Promise.all(/** @type {('shifts'|'finance'|'debt')[]} */ (['shifts','finance','debt']).map(name=>{
+      /** @type {Record<string, any>} */
+      const payload=payloads[name];
+      next[name]=fieldSnapshot(payload);
+      // A missing doc is created whole; an existing one gets only the fields
+      // that changed. updateDoc replaces each named top-level field as a
+      // whole (no deep merge, so a key removed from a map is removed) and
+      // leaves every other field alone — including any this client doesn't know.
+      if(!exists[name]) return setDoc(userDoc(name), {...payload, updatedAt:now});
+      /** @type {Record<string, any>} */
+      const changed={};
+      Object.keys(payload).forEach(k=>{ if(next[name][k]!==syncedFields[name][k]) changed[k]=payload[k]; });
+      if(!Object.keys(changed).length) return null;
+      return updateDoc(userDoc(name), {...changed, updatedAt:now});
+    }));
+    syncedFields=next;
     AppState.lastKnownUpdatedAt={shifts:now, finance:now, debt:now};
     fbSetStatus('ok',tr('sync_saved'));
   }catch(e){
@@ -536,6 +578,7 @@ export async function fbLoadNow(){
     saveConfigLocal();
     const recurAdded=await processRecurring();
     const autoFillAdded=processAutoFillShifts();
+    syncedFields={shifts:fieldSnapshot(sData), finance:fieldSnapshot(fData), debt:fieldSnapshot(dS.exists()?dS.data():null)};
     AppState.lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
       finance: fS.exists()?(fS.data().updatedAt||0):0,
