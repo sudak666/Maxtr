@@ -72,4 +72,12 @@ test('accepts a well-formed transfer between two different wallets', () => {
   assert.equal(validateTransactionDraft({ ...baseDraft, wt: 'wallet2' }, true), '');
 });
 
+// AUDIT_2026-10 P1-05: exactly at the limit is not over it, despite float sums.
+{
+  const { isOverBudget } = await import('../js/tx-validation.js');
+  if (isOverBudget(16.1 + 70.2, 86.3)) throw new Error('86.30 spent on an 86.30 limit counted as over');
+  if (!isOverBudget(86.31, 86.3)) throw new Error('86.31 on an 86.30 limit not counted as over');
+  passed++;
+}
+
 console.log(`\n${passed} tx-validation test(s) passed`);

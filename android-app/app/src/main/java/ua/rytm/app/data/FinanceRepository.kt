@@ -314,6 +314,7 @@ class FinanceRepository(private val db: RytmDatabase) {
                 nextDate = java.time.LocalDate.now().toString(),
                 active = true,
                 comment = "",
+                anchorDay = java.time.LocalDate.now().dayOfMonth,
             ),
         )
     }
@@ -331,6 +332,7 @@ class FinanceRepository(private val db: RytmDatabase) {
                 nextDate = c.nextDate,
                 active = true,
                 comment = c.comment,
+                anchorDay = runCatching { java.time.LocalDate.parse(c.nextDate).dayOfMonth }.getOrNull(),
             ),
         )
     }
@@ -365,7 +367,8 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateRecurringNextDate(recurring: Recurring, nextDate: String) {
-        db.recurringDao().update(recurring.copy(nextDate = nextDate).toEntity())
+        val day = runCatching { java.time.LocalDate.parse(nextDate).dayOfMonth }.getOrNull()
+        db.recurringDao().update(recurring.copy(nextDate = nextDate, anchorDay = day).toEntity())
     }
 
     suspend fun updateRecurringActive(recurring: Recurring, active: Boolean) {
@@ -462,15 +465,6 @@ class FinanceRepository(private val db: RytmDatabase) {
         }
     }
 
-    // Mirrors js/color-picker.js's computeNextDate(dateStr, freq).
-    private fun computeNextDate(dateStr: String, frequency: String): String {
-        val d = java.time.LocalDate.parse(dateStr)
-        return when (frequency) {
-            "daily" -> d.plusDays(1)
-            "weekly" -> d.plusWeeks(1)
-            else -> d.plusMonths(1) // monthly (default)
-        }.toString()
-    }
 
     // Mirrors js/color-picker.js's processRecurring(): materializes every active
     // recurring entry whose nextDate has fallen due (today or earlier) into a real
@@ -516,7 +510,7 @@ class FinanceRepository(private val db: RytmDatabase) {
                     tags = "",
                     createdAt = System.currentTimeMillis() + added,
                 )
-                nextDate = computeNextDate(nextDate, r.frequency)
+                nextDate = nextRecurringDate(java.time.LocalDate.parse(nextDate), r.frequency, r.anchorDay).toString()
                 added++
                 guard++
             }

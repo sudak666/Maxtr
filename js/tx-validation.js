@@ -29,6 +29,16 @@ export const TX_DATE_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
  * @property {string} comment
  */
 
+/**
+ * Spent past the budget limit, compared in kopecks: 16.10 + 70.20 summed as
+ * floats is 86.30000000000001, which must not count as over an 86.30 limit.
+ * Same rule as Android's isOverBudget() and functions/lib/pure.js.
+ * @param {number} spent @param {number} limit
+ */
+export function isOverBudget(spent, limit){
+  return Math.round(spent * 100) > Math.round(limit * 100);
+}
+
 // draft comes from readTransactionForm() in js/finance.js. isTransfer is
 // passed in explicitly (AppState.currentFinanceType==='transfer' at the
 // call site) rather than read off AppState, so this function stays pure

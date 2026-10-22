@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
         SubcategoryEntity::class, BudgetEntity::class, TagEntity::class, RecurringEntity::class,
         CategoryIconEntity::class, GoalEntity::class, CurrencyRateEntity::class, AutoFillScheduleEntity::class, AutoRuleEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
 )
 abstract class RytmDatabase : RoomDatabase() {

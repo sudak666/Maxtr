@@ -75,6 +75,7 @@ data class Recurring(
     val nextDate: String, // "yyyy-MM-dd"
     val active: Boolean,
     val comment: String,
+    val anchorDay: Int? = null,
 )
 
 // Mirrors AppState.goals (js/state.js) — progress is computed live against

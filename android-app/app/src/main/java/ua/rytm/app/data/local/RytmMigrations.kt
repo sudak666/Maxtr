@@ -31,5 +31,10 @@ object RytmMigrations {
                 db.execSQL("ALTER TABLE `transactions` ADD COLUMN `createdByName` TEXT")
             }
         },
+        object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `recurring` ADD COLUMN `anchorDay` INTEGER")
+            }
+        },
     )
 }

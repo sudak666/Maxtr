@@ -76,6 +76,8 @@ function normalizeDate(m){
   if(y.length === 2) y = '20' + y;
   const dn = Number(d), mn = Number(mo), yn = Number(y);
   if(mn < 1 || mn > 12 || dn < 1 || dn > 31 || yn < 2000 || yn > 2100) return null;
+  // A real calendar day (31.02 is not), same as Android's LocalDate check.
+  if(new Date(yn, mn - 1, dn).getDate() !== dn) return null;
   return `${y}-${String(mn).padStart(2, '0')}-${String(dn).padStart(2, '0')}`;
 }
 

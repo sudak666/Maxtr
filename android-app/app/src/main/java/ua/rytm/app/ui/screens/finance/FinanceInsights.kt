@@ -51,7 +51,7 @@ object FinanceInsights {
                     val uah = toUah(r.amount, currency)
                     if (r.type == TxType.EXPENSE) outgoing += uah else incoming += uah
                 }
-                date = when (r.frequency) { "daily" -> date.plusDays(1); "weekly" -> date.plusWeeks(1); else -> date.plusMonths(1) }
+                date = ua.rytm.app.data.nextRecurringDate(date, r.frequency, r.anchorDay)
                 guard++
             }
         }

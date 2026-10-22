@@ -91,4 +91,10 @@ test('handles empty/undefined input without throwing', () => {
   assert.deepEqual(parseReceiptText(undefined), { amount: null, date: null, rawText: '' });
 });
 
+// AUDIT_2026-10 P4-04: an impossible calendar date (31.02) is dropped, same as Android.
+test('drops an impossible calendar date and reads the "Ітого" line', () => {
+  assert.equal(parseReceiptText('31.02.2026\nСума 10,00').date, null);
+  assert.equal(parseReceiptText('Хліб 250,00\nІтого 120,00').amount, 120);
+});
+
 console.log(`\n${passed} passed`);

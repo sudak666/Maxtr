@@ -29,7 +29,7 @@ object DebtPaceCalc {
         val typical = median(recent.map { it.first })
         val dates = recent.mapNotNull { parseDate(it.second) }.sorted()
         val gaps = dates.zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b) }.filter { it > 0 }
-        return DebtPace(typical, if (gaps.size >= 2) median(gaps.map { it.toDouble() }).toLong() else null)
+        return DebtPace(typical, if (gaps.size >= 2) Math.round(median(gaps.map { it.toDouble() })) else null)
     }
 
     private fun median(v: List<Double>): Double {

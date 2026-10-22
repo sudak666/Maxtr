@@ -14,4 +14,10 @@ class BudgetFeedbackTest {
         assertEquals(110.0, feedback.spent, 0.0)
         assertEquals(100.0, feedback.limit, 0.0)
     }
+
+    // AUDIT_2026-10 P1-05: float sums exactly at the limit are not over it.
+    @Test fun exactlyAtLimitIsNotOver() {
+        assertNull(budgetExceededFeedback("Їжа", 86.3, listOf(16.1), 70.2))
+        assertEquals(86.31, budgetExceededFeedback("Їжа", 86.3, listOf(16.1), 70.21)!!.spent, 0.0001)
+    }
 }

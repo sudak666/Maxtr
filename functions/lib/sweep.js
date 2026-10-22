@@ -51,7 +51,7 @@
  * @property {{delete: () => Promise<any>, set: (data: any, opts?: any) => Promise<any>}} ref
  */
 
-const { toBase, zonedDateParts, todayStr, monthPrefix } = require('./pure');
+const { toBase, zonedDateParts, todayStr, monthPrefix, isOverBudget } = require('./pure');
 
 const DCOL = 'max_tracker';
 
@@ -262,7 +262,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
         }
         return s;
       }, 0);
-      if (spent > limit) {
+      if (isOverBudget(spent, limit)) {
         const res = await sendPushFn(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`, 'budget');
         if (res.ok) { sent[key] = true; changed = true; }
         if (res.invalid) tokenInvalid = true;

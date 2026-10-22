@@ -44,7 +44,7 @@ class RecurringSyncRepository(private val db: RytmDatabase, private val firestor
     }
 }
 
-private fun RecurringEntity.toRemoteMap(): Map<String, Any?> = mapOf(
+private fun RecurringEntity.toRemoteMap(): Map<String, Any?> = listOfNotNull<Pair<String, Any?>>(
     "id" to id,
     "type" to type.lowercase(),
     "amount" to amount,
@@ -54,7 +54,8 @@ private fun RecurringEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "nextDate" to nextDate,
     "active" to active,
     "comment" to comment,
-)
+    anchorDay?.let { "day" to it },
+).toMap()
 
 private fun parseRemoteRecurring(m: Map<*, *>): RecurringEntity? {
     val id = m["id"] as? String ?: return null
@@ -75,5 +76,6 @@ private fun parseRemoteRecurring(m: Map<*, *>): RecurringEntity? {
         nextDate = nextDate,
         active = m["active"] as? Boolean ?: true,
         comment = m["comment"] as? String ?: "",
+        anchorDay = (m["day"] as? Number)?.toInt()?.takeIf { it in 1..31 },
     )
 }

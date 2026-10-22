@@ -1,6 +1,6 @@
 // Plain-node tests for js/shift-money.js (no DOM/AppState). Run: node tests/shift-money.mjs
 import assert from 'node:assert/strict';
-import { typicalShiftPay, remainingShiftPay, recurringUntilMonthEnd } from '../js/shift-money.js';
+import { typicalShiftPay, remainingShiftPay, recurringUntilMonthEnd, nextRecurringDate } from '../js/shift-money.js';
 
 const types = [
   { id: 'd', amount: 1000 },
@@ -41,4 +41,17 @@ import { monthIcs } from '../js/shift-money.js';
   assert.ok(ics.includes('UID:rytm-20261005-d@rytm.app'));
   assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\n') && ics.endsWith('END:VCALENDAR\r\n'));
   console.log('shift-money ics: OK');
+}
+
+// AUDIT_2026-10 P3-04/P4-01: monthly dates keep their day, clamped to short months.
+// The same table is in Android's RecurringScheduleTest — both must agree.
+{
+  const chain = (start, n, day) => { const out = []; let d = start; for (let i = 0; i < n; i++) { d = nextRecurringDate(d, 'monthly', day); out.push(d); } return out; };
+  assert.deepEqual(chain('2026-01-31', 4, 31), ['2026-02-28', '2026-03-31', '2026-04-30', '2026-05-31']);
+  assert.deepEqual(chain('2028-01-30', 2, 30), ['2028-02-29', '2028-03-30']);
+  assert.deepEqual(chain('2026-01-29', 2), ['2026-02-28', '2026-03-28']); // no anchor stored: old entries keep their current day
+  assert.equal(nextRecurringDate('2026-12-31', 'monthly', 31), '2027-01-31');
+  assert.equal(nextRecurringDate('2026-02-28', 'daily'), '2026-03-01');
+  assert.equal(nextRecurringDate('2026-12-29', 'weekly'), '2027-01-05');
+  console.log('shift-money recurring dates: OK');
 }
