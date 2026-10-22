@@ -130,6 +130,9 @@ private fun WidgetContent(s: WidgetSnapshot) {
     )
     val height = LocalSize.current.height
     val compact = height < 160.dp
+    // Two tiles side by side get ~125dp each below ~320dp: "Денна зм…",
+    // "Прогноз · жовте…" (P5 widget check on the A51).
+    val narrow = LocalSize.current.width < 320.dp
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -163,18 +166,30 @@ private fun WidgetContent(s: WidgetSnapshot) {
             // Content stacks from the top; extra height buys more rows instead
             // of a blank gap (v2 pushed the tiles to the bottom of a tall widget).
             Spacer(GlanceModifier.height(12.dp))
-            Row(GlanceModifier.fillMaxWidth()) {
-                ShiftTile(s.nextShift, GlanceModifier.defaultWeight())
-                Spacer(GlanceModifier.width(8.dp))
-                ForecastTile(s, GlanceModifier.defaultWeight())
+            // Sections still appear only when they fully fit, but the height
+            // left over after the last one is now shared between the sections
+            // instead of sitting as a blank band at the bottom (P5: up to
+            // ~70dp empty on sizes where the week fits but no recent row).
+            // Own Column: the root is near Glance's 10-children cap.
+            Column(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                Row(GlanceModifier.fillMaxWidth()) {
+                    ShiftTile(s.nextShift, narrow, GlanceModifier.defaultWeight())
+                    Spacer(GlanceModifier.width(8.dp))
+                    ForecastTile(s, narrow, GlanceModifier.defaultWeight())
+                }
+                var used = BASE_HEIGHT
+                val showWeek = height >= used + WEEK_HEIGHT && s.week.isNotEmpty()
+                if (showWeek) used += WEEK_HEIGHT
+                val rows = ((height - used - RECENT_HEADER) / RECENT_ROW).toInt().coerceIn(0, minOf(s.recent.size, MAX_RECENT_ROWS))
+                if (showWeek) {
+                    Spacer(GlanceModifier.defaultWeight())
+                    WeekStrip(s.week)
+                }
+                if (rows > 0) {
+                    Spacer(GlanceModifier.defaultWeight())
+                    RecentList(s.recent.take(rows), s.masked)
+                }
             }
-            var used = BASE_HEIGHT
-            if (height >= used + WEEK_HEIGHT && s.week.isNotEmpty()) {
-                WeekStrip(s.week)
-                used += WEEK_HEIGHT
-            }
-            val rows = ((height - used - RECENT_HEADER) / RECENT_ROW).toInt().coerceIn(0, minOf(s.recent.size, MAX_RECENT_ROWS))
-            if (rows > 0) RecentList(s.recent.take(rows), s.masked)
         }
     }
 }
@@ -202,7 +217,7 @@ private fun Header(newTx: Action?) {
 }
 
 @Composable
-private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier) {
+private fun ShiftTile(shift: WidgetSnapshot.NextShift?, narrow: Boolean, modifier: GlanceModifier) {
     val context = LocalContext.current
     Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
         Text(context.getString(R.string.widget_next_shift), style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
@@ -221,19 +236,20 @@ private fun ShiftTile(shift: WidgetSnapshot.NextShift?, modifier: GlanceModifier
             Spacer(GlanceModifier.width(8.dp))
             Column {
                 Text(dayLabel(context, shift.date), style = TextStyle(color = OnBg, fontSize = 13.sp, fontWeight = FontWeight.Bold), maxLines = 1)
-                Text(shift.name, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
+                Text(ua.rytm.app.ui.builtInTextResource(shift.name)?.let { context.getString(it) } ?: shift.name, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = if (narrow) 2 else 1)
             }
         }
     }
 }
 
 @Composable
-private fun ForecastTile(s: WidgetSnapshot, modifier: GlanceModifier) {
+private fun ForecastTile(s: WidgetSnapshot, narrow: Boolean, modifier: GlanceModifier) {
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]
     // "Прогноз · жовтень": the figure counts planned shifts too, so it differs
     // from the Shifts tab's earned-so-far number and must say so.
-    val month = context.getString(R.string.widget_forecast_month, LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).lowercase(locale))
+    val month = if (narrow) context.getString(R.string.widget_forecast_short)
+        else context.getString(R.string.widget_forecast_month, LocalDate.now().month.getDisplayName(JavaTextStyle.FULL_STANDALONE, locale).lowercase(locale))
     Column(modifier.height(TILE_HEIGHT).background(Tile).cornerRadius(16.dp).padding(10.dp)) {
         Text(month, style = TextStyle(color = Muted, fontSize = WidgetCaptionSize), maxLines = 1)
         Spacer(GlanceModifier.height(6.dp))

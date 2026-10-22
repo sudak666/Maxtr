@@ -610,4 +610,5 @@
     <string name="builtin_shift_code_day">Д</string><string name="builtin_shift_code_day_plus">Д+</string><string name="builtin_shift_code_night">Н</string><string name="builtin_shift_code_night_early">Нр</string><string name="builtin_shift_code_night_late">Нп</string><string name="builtin_shift_code_off">В</string>
     <string name="settings_danger_zone">Небезпечна зона</string>
     <string name="debt_forecast_now">зараз</string>
+    <string name="widget_forecast_short">Прогноз</string>
 </resources>

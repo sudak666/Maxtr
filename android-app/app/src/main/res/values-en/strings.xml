@@ -600,4 +600,5 @@
     <string name="builtin_shift_code_day">D</string><string name="builtin_shift_code_day_plus">D+</string><string name="builtin_shift_code_night">N</string><string name="builtin_shift_code_night_early">Ne</string><string name="builtin_shift_code_night_late">Nl</string><string name="builtin_shift_code_off">O</string>
     <string name="settings_danger_zone">Danger zone</string>
     <string name="debt_forecast_now">now</string>
+    <string name="widget_forecast_short">Forecast</string>
 </resources>
