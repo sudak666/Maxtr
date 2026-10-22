@@ -77,11 +77,38 @@ fun DebtForecastCard(debt: Debt) {
             }
             val seriesLabels = series.map { maskedAmount(formatMoney(it)) }
             val burndownSummary = stringResource(R.string.debt_forecast_title) + ": " + seriesLabels.joinToString(", ")
+            // P5 #7: the chart used to show only the paid part — a nearly flat
+            // line that said nothing. It now continues as a dashed projection
+            // down to zero at the current pace. The x-axis is not to scale:
+            // history keeps at least a third of the width so it stays readable
+            // even when hundreds of payments remain.
+            val left = if (currentBalance > 0 && avgDown > 0) max(1, ceil(currentBalance / avgDown).roundToInt()) else 0
+            val historyShare = if (left == 0) 1f else (series.size.toFloat() / (series.size + left)).coerceIn(0.35f, 0.8f)
             DebtBurndownCanvas(
                 series,
-                modifier = Modifier.fillMaxWidth().height(76.dp).padding(top = RytmSpacing.md, bottom = RytmSpacing.sm)
+                historyShare = historyShare,
+                modifier = Modifier.fillMaxWidth().height(84.dp).padding(top = RytmSpacing.md)
                     .semantics { contentDescription = burndownSummary },
             )
+            val finishLabel = pace?.typicalGapDays?.takeIf { left > 0 }?.let { gap ->
+                val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+                java.time.LocalDate.now().plusDays(gap * left).format(java.time.format.DateTimeFormatter.ofPattern("LLL yyyy", locale))
+            }
+            val axis = MaterialTheme.typography.labelSmall
+            val axisColor = MaterialTheme.colorScheme.onSurfaceVariant
+            val startLabel = maskedAmount("${formatMoney(start)} ${debt.currency}")
+            if (left > 0) {
+                // "now" sits at the junction of the solid and dashed parts.
+                Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.xs, bottom = RytmSpacing.sm)) {
+                    Text(startLabel, style = axis, color = axisColor, maxLines = 1, modifier = Modifier.weight(historyShare))
+                    Row(Modifier.weight(1f - historyShare)) {
+                        Text(stringResource(R.string.debt_forecast_now), style = axis, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                        Text(finishLabel ?: "0 ${debt.currency}", style = axis, color = axisColor, maxLines = 1)
+                    }
+                }
+            } else {
+                Text(startLabel, style = axis, color = axisColor, modifier = Modifier.padding(top = RytmSpacing.xs, bottom = RytmSpacing.sm))
+            }
             when {
                 currentBalance <= 0 -> Text(stringResource(R.string.debt_paid_off), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -105,7 +132,7 @@ fun DebtForecastCard(debt: Debt) {
 }
 
 @Composable
-private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
+private fun DebtBurndownCanvas(series: List<Double>, historyShare: Float, modifier: Modifier) {
     val lineColor = MaterialTheme.colorScheme.primary
     val fillColor = lineColor.copy(alpha = 0.34f)
     val transparent = lineColor.copy(alpha = 0f)
@@ -117,8 +144,9 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
         val maxV = max(series.max(), 1.0)
         val minV = min(series.min(), 0.0)
         val span = (maxV - minV).let { if (it == 0.0) 1.0 else it }
+        val historyW = w * historyShare
 
-        fun xAt(i: Int) = (w * i / (series.size - 1))
+        fun xAt(i: Int) = (historyW * i / (series.size - 1))
         fun yAt(v: Double): Float {
             val target = (h * (1 - (v - minV) / span)).toFloat()
             return h + (target - h) * progress
@@ -142,6 +170,18 @@ private fun DebtBurndownCanvas(series: List<Double>, modifier: Modifier) {
         // ToolsSheet chart already used dp.toPx() correctly.
         drawPath(linePath, color = lineColor, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
 
+        if (historyShare < 1f) {
+            val end = Offset(w, yAt(0.0))
+            drawLine(
+                color = lineColor.copy(alpha = 0.6f),
+                start = points.last(),
+                end = end,
+                strokeWidth = 2.dp.toPx(),
+                cap = StrokeCap.Round,
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx())),
+            )
+            drawCircle(color = lineColor.copy(alpha = 0.6f), radius = 3.dp.toPx(), center = end)
+        }
         drawCircle(color = lineColor, radius = 4.dp.toPx(), center = points.last())
     }
 }

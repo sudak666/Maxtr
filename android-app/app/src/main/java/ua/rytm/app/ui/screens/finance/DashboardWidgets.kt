@@ -69,10 +69,20 @@ data class CryptoQuote(val symbol: String, val price: Double, val change: Double
 fun FinanceDashboardWidget(key: String, app: RytmApplication) {
     when (key) {
         "goals" -> GoalsDashboardWidget(app)
-        "dailyTip" -> WidgetCard(stringResource(R.string.widget_tip), RytmIcons.TipsAndUpdates, BlueDark) {
+        // P5 #10: one quiet line instead of a titled card — the tip is a
+        // nudge, not content that should outweigh the history above it.
+        "dailyTip" -> {
             val tips = stringArrayResource(R.array.finance_tips)
             val day = System.currentTimeMillis() / 86_400_000L
-            Text(tips[(day % tips.size).toInt()], color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xs), verticalAlignment = Alignment.Top) {
+                Icon(RytmIcons.TipsAndUpdates, stringResource(R.string.widget_tip), tint = BlueDark, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                Text(
+                    tips[(day % tips.size).toInt()],
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = RytmSpacing.sm),
+                )
+            }
         }
         "cryptoTop" -> CryptoDashboardWidget(app)
     }
@@ -160,13 +170,12 @@ private fun CryptoRow(quote: CryptoQuote) {
         // Solid brand fill with a computed on-color: the coin letter used to
         // be #F7931A on a 16%-alpha wash, i.e. 2.30:1 on a light surface.
         val coinColor = if (quote.symbol == "BTC") BitcoinOrange else EthereumBlue
-        Box(Modifier.size(34.dp).background(coinColor, CircleShape), contentAlignment = Alignment.Center) {
-            Text(quote.symbol.first().toString(), color = onColorFor(coinColor), fontWeight = FontWeight.Bold)
+        // P5 #10: one compact line per coin (was a 34dp badge + two-line label).
+        Box(Modifier.size(24.dp).background(coinColor, CircleShape), contentAlignment = Alignment.Center) {
+            Text(quote.symbol.first().toString(), color = onColorFor(coinColor), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
         }
-        Column(Modifier.padding(start = 10.dp).weight(1f)) {
-            Text(quote.symbol, fontWeight = FontWeight.SemiBold)
-            Text("${if (positive) "+" else ""}$changeText%", color = trend, style = MaterialTheme.typography.bodySmall)
-        }
+        Text(quote.symbol, Modifier.padding(start = RytmSpacing.sm), fontWeight = FontWeight.SemiBold)
+        Text("${if (positive) "+" else ""}$changeText%", Modifier.padding(start = RytmSpacing.sm).weight(1f), color = trend, style = MaterialTheme.typography.bodySmall)
         Sparkline(quote.spark, trend, Modifier.size(60.dp, 24.dp))
         Text(priceText, Modifier.padding(start = 10.dp), fontWeight = FontWeight.Bold)
     }
