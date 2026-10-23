@@ -313,17 +313,9 @@ service cloud.firestore {
         && request.resource.data.updatedAt is number;
     }
 
-    // DoRytm (separate Android app, same Firebase project) — habits/tasks
-    // sync. Independent of max_tracker's doc-name allowlist above: each
-    // habit/task is its own document, keyed by a client-generated syncId,
-    // under the same users/{uid} owner. Deployed for
-    // github.com/sudak666/habit-tracker's cloud sync feature.
-    match /users/{uid}/habits/{habitId} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    match /users/{uid}/tasks/{taskId} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
+    // DoRytm's habits/tasks used to sync here too; since 2026-10 DoRytm has its own Firebase
+    // project (dorytm-app, rules in the habit-tracker repo), so users/{uid}/habits and tasks fall
+    // through to the deny-all below.
 
     // Cloud backups (functions/lib/backup.js): metadata is readable by the
     // owner only; every write — and the payload chunks entirely — stay
