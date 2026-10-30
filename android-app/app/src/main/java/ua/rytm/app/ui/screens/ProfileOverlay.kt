@@ -7,9 +7,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,15 +46,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import ua.rytm.app.R
@@ -59,6 +67,12 @@ import ua.rytm.app.data.ProfileAppearance
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.LocalSession
 import ua.rytm.app.ui.icons.Close
+import ua.rytm.app.ui.icons.CloudDone
+import ua.rytm.app.ui.icons.Groups
+import ua.rytm.app.ui.icons.Lock
+import ua.rytm.app.ui.icons.Settings
+import ua.rytm.app.ui.icons.Star
+import ua.rytm.app.ui.icons.VisibilityOff
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.rytmApp
 import ua.rytm.app.ui.theme.RytmSpacing
@@ -167,6 +181,24 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
     val density = LocalDensity.current
     val topInset = WindowInsets.statusBars.getTop(density).toFloat()
     val email = FirebaseAuth.getInstance().currentUser?.email.orEmpty()
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val hideAmounts by app.settingsStore.hideAmounts.collectAsStateWithLifecycle(initialValue = false)
+    val backupsUnavailable = stringResource(R.string.backups_shared_unavailable)
+    val profileSwitched = stringResource(R.string.settings_profile_switched)
+    var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
+    var premiumOpen by rememberSaveable { mutableStateOf(false) }
+
+    SettingsManagerSheets(
+        open = openSheet,
+        onClose = { openSheet = null },
+        uid = uid,
+        dataUid = dataOwnerUid,
+        profileId = session.profileId,
+        isSharedProfile = session.ownerUid != null,
+        settingsViewModel = settingsViewModel,
+        onProfileSwitched = { onMessage(profileSwitched) },
+    )
+    if (premiumOpen) PremiumDialog(onDismiss = { premiumOpen = false })
 
     BoxWithConstraints(
         Modifier.fillMaxSize().onGloballyPositioned { overlayOrigin = it.positionInRoot() },
@@ -209,16 +241,37 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
                 avatarRequest = avatarRequest,
             )
             Spacer(Modifier.height(RytmSpacing.md))
-            Text(
-                stringResource(R.string.nav_settings),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .clickable { onOpenSettings(); close() }
-                    .padding(RytmSpacing.lg),
-            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+                ProfileTile(RytmIcons.Groups, R.string.profiles_title, R.string.settings_profiles_subtitle, Modifier.weight(1f)) { openSheet = SettingsSheet.Profiles }
+                ProfileTile(RytmIcons.Lock, R.string.pin_settings_title, R.string.settings_pin_subtitle, Modifier.weight(1f)) { openSheet = SettingsSheet.Pin }
+            }
+            Spacer(Modifier.height(RytmSpacing.md))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+                ProfileTile(RytmIcons.CloudDone, R.string.settings_backups_title, R.string.settings_backups_subtitle, Modifier.weight(1f)) {
+                    if (session.ownerUid != null) onMessage(backupsUnavailable) else openSheet = SettingsSheet.Backups
+                }
+                ProfileTile(RytmIcons.Star, R.string.settings_premium, R.string.settings_free_plan, Modifier.weight(1f)) { premiumOpen = true }
+            }
+            Spacer(Modifier.height(RytmSpacing.md))
+            SettingsGroupCard {
+                SettingsToggleRow(
+                    icon = RytmIcons.VisibilityOff,
+                    badgeColor = SettingsGroupColors.Appearance,
+                    title = stringResource(R.string.settings_hide_amounts),
+                    subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
+                    checked = hideAmounts,
+                    enabled = true,
+                    onCheckedChange = settingsViewModel::setHideAmounts,
+                )
+                SettingsRow(
+                    icon = RytmIcons.Settings,
+                    badgeColor = SettingsGroupColors.Appearance,
+                    title = stringResource(R.string.nav_settings),
+                    subtitle = stringResource(R.string.profile_panel_settings_subtitle),
+                    onClick = { onOpenSettings(); close() },
+                )
+            }
+            Spacer(Modifier.height(RytmSpacing.lg))
         }
 
         val anchor = state.anchor?.translate(-overlayOrigin)
@@ -237,5 +290,21 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
                 .clickable(role = androidx.compose.ui.semantics.Role.Button) { avatarRequest++ },
             size = with(density) { sizePx.toDp() },
         )
+    }
+}
+
+@Composable
+private fun ProfileTile(icon: ImageVector, title: Int, subtitle: Int, modifier: Modifier, onClick: () -> Unit) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+            .padding(RytmSpacing.lg),
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.height(RytmSpacing.md))
+        Text(stringResource(title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(stringResource(subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }

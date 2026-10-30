@@ -601,4 +601,5 @@
     <string name="settings_danger_zone">Danger zone</string>
     <string name="debt_forecast_now">now</string>
     <string name="widget_forecast_short">Forecast</string>
+    <string name="profile_panel_settings_subtitle">Theme, language, categories, wallets</string>
 </resources>

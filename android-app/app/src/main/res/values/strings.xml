@@ -611,4 +611,5 @@
     <string name="settings_danger_zone">Небезпечна зона</string>
     <string name="debt_forecast_now">зараз</string>
     <string name="widget_forecast_short">Прогноз</string>
+    <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
 </resources>

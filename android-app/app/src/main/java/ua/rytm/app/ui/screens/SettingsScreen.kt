@@ -158,7 +158,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var pendingSignOut by rememberSaveable { mutableStateOf(false) }
-    var premiumDialogOpen by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
     var pendingResetProfile by rememberSaveable { mutableStateOf(false) }
     var settingsSearch by rememberSaveable { mutableStateOf("") }
@@ -167,7 +166,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvImportPreview = settingsViewModel.csvImportPreview
     val csvBusy = settingsViewModel.csvBusy
     val themePreference by app.settingsStore.themePreference.collectAsStateWithLifecycle(initialValue = ThemePreference.DARK)
-    val hideAmounts by app.settingsStore.hideAmounts.collectAsStateWithLifecycle(initialValue = false)
     val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsStateWithLifecycle(initialValue = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsStateWithLifecycle(initialValue = true)
     val language by app.settingsStore.language.collectAsStateWithLifecycle(initialValue = "uk")
@@ -393,50 +391,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         subtitle = stringResource(R.string.settings_sign_out_subtitle),
                         onClick = { pendingSignOut = true },
                     )
-                    if (uid != null) {
-                        SettingsRow(
-                            icon = RytmIcons.Groups,
-                            badgeColor = SettingsGroupColors.Account,
-                            title = stringResource(R.string.profiles_title),
-                            subtitle = stringResource(R.string.settings_profiles_subtitle),
-                            onClick = { openSheet = SettingsSheet.Profiles },
-                        )
-                        SettingsRow(
-                            icon = RytmIcons.CloudDone,
-                            badgeColor = SettingsGroupColors.Account,
-                            title = stringResource(R.string.settings_backups_title),
-                            subtitle = stringResource(R.string.settings_backups_subtitle),
-                            onClick = {
-                                if (activeProfileOwnerUid != null) {
-                                    pendingMessage = resources.getString(R.string.backups_shared_unavailable)
-                                } else {
-                                    openSheet = SettingsSheet.Backups
-                                }
-                            },
-                        )
-                        SettingsRow(
-                            icon = RytmIcons.Star,
-                            badgeColor = SettingsGroupColors.Account,
-                            title = stringResource(R.string.settings_premium),
-                            subtitle = stringResource(R.string.settings_free_plan),
-                            onClick = { premiumDialogOpen = true },
-                        )
-                    }
                 }
-            } }
-
-            if (uid != null && securityVisible) { item(key = "settings-security") {
-                SettingsSectionLabel(stringResource(R.string.settings_security))
-                SettingsGroupCard {
-                    SettingsRow(
-                        icon = RytmIcons.Lock,
-                        badgeColor = SettingsGroupColors.Security,
-                        title = stringResource(R.string.pin_settings_title),
-                        subtitle = stringResource(R.string.settings_pin_subtitle),
-                        onClick = { openSheet = SettingsSheet.Pin },
-                    )
-                }
-
             } }
 
             if (uid != null && notificationsVisible) { item(key = "settings-notifications") {
@@ -492,15 +447,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     modifier = Modifier.padding(bottom = RytmSpacing.sm),
                 )
                 SettingsGroupCard {
-                    SettingsToggleRow(
-                        icon = RytmIcons.VisibilityOff,
-                        badgeColor = SettingsGroupColors.Appearance,
-                        title = stringResource(R.string.settings_hide_amounts),
-                        subtitle = stringResource(R.string.settings_hide_amounts_subtitle),
-                        checked = hideAmounts,
-                        enabled = true,
-                        onCheckedChange = settingsViewModel::setHideAmounts,
-                    )
                     SettingsToggleRow(
                         icon = RytmIcons.AccountBalanceWallet,
                         badgeColor = SettingsGroupColors.Appearance,
@@ -671,7 +617,6 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             onDismiss = { pendingSignOut = false },
         )
     }
-    if (premiumDialogOpen) PremiumDialog(onDismiss = { premiumDialogOpen = false })
     if (pendingResetProfile && uid != null) {
         ua.rytm.app.ui.components.RytmDestructiveConfirm(
             title = stringResource(R.string.settings_reset_title),

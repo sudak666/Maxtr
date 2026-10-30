@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android profile panel filled (2026-10-30)** — Profiles, PIN, Backups, Premium tiles and the hide-amounts toggle moved from Settings to the panel (sheets reused via `SettingsManagerSheets`); their Settings rows are gone. Sign-out stays in Settings: `AuthViewModel` is nav-entry scoped there and moving it was not safely testable on the real account. Checked on A51: panel, Profiles sheet, back.
+
 - **Android profile panel: swipe-to-open + transparent panel (2026-10-30)** — left swipe anywhere on Finance pulls the panel in (`profileSwipeToOpen`, rows/chips keep their own gestures); the panel has no surface of its own. Gotcha: QA runs on the owner's REAL account; a test swipe deleted a real tx (owner re-added it). Never test destructive gestures on live data.
 
 - **Android: PUMB-style profile panel (2026-10-30, unmerged)** — avatar in the Finance hero opens a full-screen overlay (`ui/screens/ProfileOverlay.kt`); one `progress` Animatable drives panel slide, scrim and avatar flight, so a horizontal drag anywhere scrubs it (works on 3-button nav; no predictive-back manifest flag). `ProfileAppearanceCard` gained `showAvatar`/`avatarRequest`. Builds (`assembleQa`); NOT yet tried on a device: wireless adb was off.
