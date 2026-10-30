@@ -1,6 +1,6 @@
 # Changelog
 
-- **Android transaction form: pinned submit, collapsed extras (2026-10-30)** — from the UX audit: the submit button sits outside the scroll, above the keyboard; date/comment/tags/split are behind one row for a new entry and auto-show when filled or editing. Checked visually on A51 without saving.
+- **Android transaction form: pinned submit, collapsed extras (2026-10-30)** — from the UX audit: the submit button sits outside the scroll, above the keyboard; date/comment/tags/split are behind one row for a new entry and auto-show when filled or editing. Checked on A51 on the test account: empty submit error, save, opening an entry for edit (all fields shown).
 
 - **Android profile panel filled (2026-10-30)** — Profiles, PIN, Backups, Premium tiles and the hide-amounts toggle moved from Settings to the panel (sheets reused via `SettingsManagerSheets`); their Settings rows are gone. Sign-out stays in Settings: `AuthViewModel` is nav-entry scoped there and moving it was not safely testable on the real account. Checked on A51: panel, Profiles sheet, back.
 
