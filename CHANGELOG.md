@@ -1,5 +1,7 @@
 # Changelog
 
+- **2.6.5 (vc34) built (2026-10-30)** — profile panel, transaction form, first-run flow, UX polish (#659-#663). Version bump only; `clean bundleRelease testDebugUnitTest`, Desktop `Rytm-2.6.5-vc34.aab`. Not checked by hand: large font, receipt, voice.
+
 - **Android profile panel perf (2026-10-30)** — panel swipe missed 56-74% of frames vs 26-30% for a Finance scroll (4 runs each, A51, load ~20); progress is now read only in `graphicsLayer`, giving 29-37%. Runs happened on the owner's real account by mistake (QA had been switched back); only panel swipes and scrolls ran, 595 entries and the balance unchanged. Check the account on screen before any device run.
 
 - **Android UX polish (2026-10-30)** — new entry defaults to the wallet of the latest transaction (was always the first); 39 uk strings moved to informal «ти»; outlook line reads «ще +X ₴ за зміни». #661 merged with all 5 checks green.
