@@ -33,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +51,8 @@ import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Delete
@@ -89,7 +93,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable(onClickLabel = stringResource(R.string.action_edit), role = androidx.compose.ui.semantics.Role.Button, enabled = !saving, onClick = { expandedId = if (expandedId == rule.id) null else rule.id }), verticalAlignment = Alignment.CenterVertically) {
                         val isDraft = rule.keyword.isEmpty()
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -100,7 +104,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                             )
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
-                        IconButton(onClick = { expandedId = if (expandedId == rule.id) null else rule.id }, enabled = !saving) { Icon(RytmIcons.Edit, stringResource(R.string.action_edit)) }
+                        Icon(if (expandedId == rule.id) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, stringResource(R.string.action_delete)) }
                     }
                     if (expandedId == rule.id) RuleEditor(rule, categories, onUpdate = { persist { repository.updateAutoRule(it) } })

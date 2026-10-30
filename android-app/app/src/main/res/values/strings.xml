@@ -614,4 +614,5 @@
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
     <string name="transaction_more_fields">Дата, коментар, теги</string>
     <string name="finance_starting_balance">Початковий баланс</string>
+    <string name="subcategory_add">Додати підкатегорію</string>
 </resources>

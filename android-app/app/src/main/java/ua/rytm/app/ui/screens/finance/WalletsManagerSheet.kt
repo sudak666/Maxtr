@@ -57,6 +57,10 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.Delete
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 
 // Implements FINANCE_SCREEN_SPEC.md §10 — 1:1 with js/settings-managers.js's
 // wallets-modal: inline-editable name, currency dropdown, palette picker, two-guard
@@ -138,64 +142,84 @@ private fun WalletRow(
     var justSaved by remember(wallet.id) { mutableStateOf(false) }
     var currencyExpanded by rememberSaveable { mutableStateOf(false) }
     var colorExpanded by rememberSaveable { mutableStateOf(false) }
+    var expanded by rememberSaveable(wallet.id) { mutableStateOf(false) }
     val colorDescription = stringResource(R.string.wallet_color)
 
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-        Box {
-            IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
+    // Fields, currency menus and red bins on every row read as one big form:
+    // the list only reads, editing opens on the row that was tapped.
+    androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                    .clickable(onClickLabel = stringResource(R.string.action_edit), role = androidx.compose.ui.semantics.Role.Button) { expanded = !expanded }
+                    .heightIn(min = RytmDimens.TouchTarget),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
+            ) {
                 Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
+                Text(ua.rytm.app.ui.localizedDomainText(wallet.name), style = MaterialTheme.typography.bodyLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text(wallet.currency, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
-                PALETTE.chunked(4).forEach { colors ->
-                    Row {
-                        colors.forEach { color ->
-                            IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
-                                Box(Modifier.size(28.dp).background(Color(color), CircleShape))
+            if (expanded) {
+                OutlinedTextField(
+                    value = nameText,
+                    onValueChange = { nameText = it; justSaved = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.field_name)) },
+                    supportingText = if (justSaved) { { Text(stringResource(R.string.field_autosaved), color = ua.rytm.app.ui.theme.RytmSemantic.link) } } else null,
+                    // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
+                )
+                // Commit on unfocus-equivalent: since Compose has no cheap onBlur here, save as the user types
+                // (debounce-free, matches the field's small size/low write cost).
+                androidx.compose.runtime.LaunchedEffect(nameText) {
+                    kotlinx.coroutines.delay(400)
+                    if (nameText != wallet.name) {
+                        onRename(nameText)
+                        justSaved = true
+                        kotlinx.coroutines.delay(2000)
+                        justSaved = false
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                    Box {
+                        IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
+                            Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
+                        }
+                        DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
+                            PALETTE.chunked(4).forEach { colors ->
+                                Row {
+                                    colors.forEach { color ->
+                                        IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
+                                            Box(Modifier.size(28.dp).background(Color(color), CircleShape))
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+                    ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                        OutlinedTextField(
+                            value = wallet.currency,
+                            onValueChange = {},
+                            readOnly = true,
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.field_currency)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        )
+                        ExposedDropdownMenu(expanded = currencyExpanded, onDismissRequest = { currencyExpanded = false }) {
+                            CURRENCY_LIST.forEach { code ->
+                                DropdownMenuItem(text = { Text(code) }, onClick = { onCurrencyChange(code); currencyExpanded = false })
+                            }
+                        }
+                    }
+                    IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
                 }
             }
         }
-
-        OutlinedTextField(
-            value = nameText,
-            onValueChange = { nameText = it; justSaved = false },
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            label = { Text(stringResource(R.string.field_name)) },
-            supportingText = if (justSaved) { { Text(stringResource(R.string.field_autosaved), color = ua.rytm.app.ui.theme.RytmSemantic.link) } } else null,
-            // Live-save on every keystroke, matching the PWA's inline <input> with no separate "Save".
-        )
-        // Commit on unfocus-equivalent: since Compose has no cheap onBlur here, save as the user types
-        // (debounce-free, matches the field's small size/low write cost).
-        androidx.compose.runtime.LaunchedEffect(nameText) {
-            kotlinx.coroutines.delay(400)
-            if (nameText != wallet.name) {
-                onRename(nameText)
-                justSaved = true
-                kotlinx.coroutines.delay(2000)
-                justSaved = false
-            }
-        }
-
-        ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.width(110.dp).heightIn(min = 56.dp)) {
-            OutlinedTextField(
-                value = wallet.currency,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                label = { Text(stringResource(R.string.field_currency)) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            )
-            ExposedDropdownMenu(expanded = currencyExpanded, onDismissRequest = { currencyExpanded = false }) {
-                CURRENCY_LIST.forEach { code ->
-                    DropdownMenuItem(text = { Text(code) }, onClick = { onCurrencyChange(code); currencyExpanded = false })
-                }
-            }
-        }
-
-        IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
     }
 }

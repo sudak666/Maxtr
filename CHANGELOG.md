@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android managers: tap the row, no pencils (2026-10-31)** — budgets, goals, recurring, shift types and auto rules expand by tapping the row; a quiet chevron replaces the edit icon. Delete buttons stay. Wallets: the list only reads (dot, name, currency); name, colour, currency and delete open on the tapped row. Categories: the row toggles subcategories (no chevron), the add field opens from «Додати підкатегорію».
+
 - **2.6.5 (vc34) built (2026-10-30)** — profile panel, transaction form, first-run flow, UX polish (#659-#663). Version bump only; `clean bundleRelease testDebugUnitTest`, Desktop `Rytm-2.6.5-vc34.aab`. Not checked by hand: large font, receipt, voice.
 
 - **Android profile panel perf (2026-10-30)** — panel swipe missed 56-74% of frames vs 26-30% for a Finance scroll (4 runs each, A51, load ~20); progress is now read only in `graphicsLayer`, giving 29-37%. Runs happened on the owner's real account by mistake (QA had been switched back); only panel swipes and scrolls ran, 595 entries and the balance unchanged. Check the account on screen before any device run.
