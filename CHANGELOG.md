@@ -1,6 +1,6 @@
 # Changelog
 
-- **Android managers: tap the row, no pencils (2026-10-31)** — budgets, goals, recurring, shift types and auto rules expand by tapping the row; a quiet chevron replaces the edit icon. Delete buttons stay.
+- **Android managers: tap the row, no pencils (2026-10-31)** — budgets, goals, recurring, shift types and auto rules expand by tapping the row; a quiet chevron replaces the edit icon. Delete buttons stay. Wallets: the list only reads (dot, name, currency); name, colour, currency and delete open on the tapped row.
 
 - **2.6.5 (vc34) built (2026-10-30)** — profile panel, transaction form, first-run flow, UX polish (#659-#663). Version bump only; `clean bundleRelease testDebugUnitTest`, Desktop `Rytm-2.6.5-vc34.aab`. Not checked by hand: large font, receipt, voice.
 
