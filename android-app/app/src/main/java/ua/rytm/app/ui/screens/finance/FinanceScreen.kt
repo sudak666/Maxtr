@@ -362,14 +362,22 @@ fun FinanceScreen(
                 }
             }
             item { HistoryHeader(viewModel, resultCount = displayedCount) }
-            item { SearchField(viewModel) }
-            item { FilterRow(viewModel) }
+            // Nothing to search yet: on an empty account these pushed the first action below the fold.
+            val hasHistory = filtered.isNotEmpty() || viewModel.isSearchOrFilterActive
+            if (hasHistory) item { SearchField(viewModel) }
+            if (hasHistory) item { FilterRow(viewModel) }
             viewModel.categoryFilter?.let { cat ->
                 item { CategoryFilterChip(cat, onClear = viewModel::clearCategoryFilter) }
             }
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
-                item { EmptyState(isSearching = viewModel.isSearchOrFilterActive, canEdit = canEdit, onAddFirst = viewModel::openNewTransactionSheet) }
+                item {
+                    val startingBalanceComment = androidx.compose.ui.res.stringResource(R.string.finance_starting_balance)
+                    EmptyState(isSearching = viewModel.isSearchOrFilterActive, canEdit = canEdit) {
+                        viewModel.openNewTransactionSheet(type = TxType.INCOME)
+                        viewModel.form.onCommentChange(startingBalanceComment)
+                    }
+                }
             } else {
                 // Was a lambda per row doing firstOrNull over every wallet and
                 // every tag — O(rows x wallets) on each recomposition, and four

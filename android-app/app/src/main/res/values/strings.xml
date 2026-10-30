@@ -113,8 +113,8 @@
     <string name="finance_month_income">Дохід</string><string name="finance_month_expense">Витрати</string><string name="finance_action_transaction">Операція</string><string name="finance_history">Історія операцій</string>
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
     <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
-    <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Додай перший дохід або витрату, щоб побачити баланс, історію та аналітику.</string>
-    <string name="finance_empty_cta">Додати першу операцію</string>
+    <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Почни з суми, яка в тебе є зараз. Потім записуй доходи й витрати.</string>
+    <string name="finance_empty_cta">Вказати поточний баланс</string>
     <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ цього місяця</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Категорії</string><string name="categories_body">Свої категорії доходів і витрат, з підкатегоріями всередині.</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
@@ -613,4 +613,5 @@
     <string name="widget_forecast_short">Прогноз</string>
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
     <string name="transaction_more_fields">Дата, коментар, теги</string>
+    <string name="finance_starting_balance">Початковий баланс</string>
 </resources>

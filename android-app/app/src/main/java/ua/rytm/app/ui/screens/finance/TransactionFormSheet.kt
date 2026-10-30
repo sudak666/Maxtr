@@ -330,7 +330,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             if (vm.form.type != TxType.TRANSFER) {
                 val categories = vm.categoriesByType[vm.form.type].orEmpty()
-                val frequent = vm.formFrequentCategories
+                // A new account has no history yet: without chips the default category went unnoticed.
+                val frequent = vm.formFrequentCategories.takeIf { it.size >= 2 } ?: categories.take(6)
                 if (frequent.size >= 2) {
                     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
                     LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
