@@ -107,8 +107,8 @@
     <string name="finance_month_income">Income</string><string name="finance_month_expense">Expenses</string><string name="finance_action_transaction">Transaction</string><string name="finance_history">Transaction history</string>
     <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
     <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
-    <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Add your first income or expense to see balance, history, and analytics.</string>
-    <string name="finance_empty_cta">Add your first transaction</string>
+    <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Start with what you have now, then log income and expenses.</string>
+    <string name="finance_empty_cta">Set current balance</string>
     <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ this month</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Categories</string><string name="categories_body">Your own income and expense categories, with subcategories inside.</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
@@ -603,4 +603,5 @@
     <string name="widget_forecast_short">Forecast</string>
     <string name="profile_panel_settings_subtitle">Theme, language, categories, wallets</string>
     <string name="transaction_more_fields">Date, comment, tags</string>
+    <string name="finance_starting_balance">Starting balance</string>
 </resources>
