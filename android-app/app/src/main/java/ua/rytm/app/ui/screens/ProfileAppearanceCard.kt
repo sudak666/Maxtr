@@ -98,7 +98,10 @@ fun ProfileAppearanceCard(
     email: String,
     repository: ProfileAppearanceRepository,
     onMessage: (String) -> Unit,
+    showAvatar: Boolean = true,
+    avatarRequest: Int = 0,
 ) {
+    val overlay = LocalProfileOverlay.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var appearance by remember(uid, dataOwnerUid, profileId) { mutableStateOf(ProfileAppearance()) }
@@ -116,16 +119,18 @@ fun ProfileAppearanceCard(
 
     LaunchedEffect(uid, dataOwnerUid, profileId) {
         runCatching { repository.load(dataOwnerUid, profileId) }
-            .onSuccess { appearance = it; draft = it.nickname }
+            .onSuccess { appearance = it; draft = it.nickname; overlay.appearance = it }
             .onFailure { onMessage(loadFailed) }
     }
+
+    LaunchedEffect(avatarRequest) { if (avatarRequest > 0) avatarDialog = true }
 
     fun save(next: ProfileAppearance, success: String) {
         if (busy) return
         busy = true
         scope.launch {
             runCatching { repository.save(dataOwnerUid, profileId, next) }
-                .onSuccess { appearance = next; draft = next.nickname; onMessage(success) }
+                .onSuccess { appearance = next; draft = next.nickname; overlay.appearance = next; onMessage(success) }
                 .onFailure { onMessage(saveFailed) }
             busy = false
         }
@@ -163,7 +168,9 @@ fun ProfileAppearanceCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(modifier = Modifier.padding(RytmSpacing.lg), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-            ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
+            if (showAvatar) {
+                ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
+            }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (editing) {
                     OutlinedTextField(
@@ -225,21 +232,21 @@ fun ProfileAppearanceCard(
 }
 
 @Composable
-private fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, description: String, modifier: Modifier) {
+internal fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, description: String, modifier: Modifier, size: androidx.compose.ui.unit.Dp = 64.dp) {
     val builtin = builtinAvatars.firstOrNull { appearance.avatar == "builtin:${it.id}" }
     val bytes = remember(appearance.avatar) {
         appearance.avatar.takeIf { it.startsWith("data:image/") }?.substringAfter("base64,")?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
     }
     val bitmap = remember(bytes) { bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() } }
     Box(
-        modifier = modifier.size(64.dp).clip(CircleShape).background(
+        modifier = modifier.size(size).clip(CircleShape).background(
             builtin?.let { Brush.linearGradient(it.colors) } ?: Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surfaceVariant)),
         ).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         when {
             bitmap != null -> Image(bitmap, contentDescription = description, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
-            builtin != null -> Icon(builtin.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+            builtin != null -> Icon(builtin.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(size * 0.44f))
             else -> Text(fallback.trim().firstOrNull()?.uppercase() ?: "?", fontWeight = FontWeight.ExtraBold, color = ua.rytm.app.ui.theme.RytmSemantic.link)
         }
     }

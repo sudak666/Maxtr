@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import ua.rytm.app.ui.screens.profileSwipeToOpen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.composable
@@ -162,6 +163,7 @@ fun RytmNavHost() {
         }
     }
     val primaryAction = remember { ua.rytm.app.ui.components.PrimaryActionHolder() }
+    val profileOverlay = remember { ua.rytm.app.ui.screens.ProfileOverlayState() }
     CompositionLocalProvider(
         ua.rytm.app.ui.components.LocalPrimaryAction provides primaryAction,
         LocalCanEditProfile provides canEdit,
@@ -169,6 +171,7 @@ fun RytmNavHost() {
         LocalRealtimeState provides realtimeState,
         LocalRetryLoad provides ::refresh,
         LocalSnackbarHost provides snackbarHostState,
+        ua.rytm.app.ui.screens.LocalProfileOverlay provides profileOverlay,
     ) {
     // Width adaptivity. The app previously reacted to screen HEIGHT
     // (`screenHeightDp < 480`) and font scale, but never to width: on a
@@ -214,7 +217,9 @@ fun RytmNavHost() {
             },
             popExitTransition = { ExitTransition.None },
         ) {
-            composable(RytmDestination.Finance.route) { FinanceScreen() }
+            composable(RytmDestination.Finance.route) {
+                Box(Modifier.fillMaxSize().profileSwipeToOpen()) { FinanceScreen() }
+            }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }
@@ -254,6 +259,16 @@ fun RytmNavHost() {
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
+    ua.rytm.app.ui.screens.ProfileOverlay(
+        onOpenSettings = {
+            navController.navigate(RytmDestination.Settings.route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        },
+        onMessage = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
+    )
     }
     }
     }
