@@ -604,4 +604,5 @@
     <string name="profile_panel_settings_subtitle">Theme, language, categories, wallets</string>
     <string name="transaction_more_fields">Date, comment, tags</string>
     <string name="finance_starting_balance">Starting balance</string>
+    <string name="subcategory_add">Add subcategory</string>
 </resources>

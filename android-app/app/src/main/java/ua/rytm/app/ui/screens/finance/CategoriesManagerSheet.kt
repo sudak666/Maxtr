@@ -54,6 +54,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import ua.rytm.app.R
+import ua.rytm.app.ui.icons.Add
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.focusRequester
 import ua.rytm.app.ui.localizedDomainText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
@@ -84,6 +87,7 @@ fun CategoriesManagerSheet(
     onDismiss: () -> Unit,
     viewModel: CategoriesManagerViewModel = viewModel(factory = CategoriesManagerViewModel.factory(repository, syncRepository, uid, profileId)),
 ) {
+    var addingSub by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var newName by rememberSaveable { mutableStateOf("") }
     var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -127,7 +131,15 @@ fun CategoriesManagerSheet(
                     border = if (expanded) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)) else null,
                 ) {
                 Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val subsLabel = stringResource(R.string.subcategories_title)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 52.dp)
+                            .clip(RoundedCornerShape(RytmRadii.Control))
+                            .clickable(onClickLabel = subsLabel, role = Role.Button) { newSubName = ""; addingSub = false; viewModel.toggleExpanded(id) },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         val iconAction = stringResource(R.string.category_change_icon, localizedDomainText(name))
                         Box(
                             Modifier
@@ -149,9 +161,6 @@ fun CategoriesManagerSheet(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                        }
-                        IconButton(onClick = { newSubName = ""; viewModel.toggleExpanded(id) }) {
-                            Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = stringResource(R.string.subcategories_title))
                         }
                         Box {
                             IconButton(onClick = { openMenuId = id }) {
@@ -177,7 +186,7 @@ fun CategoriesManagerSheet(
                             shape = RoundedCornerShape(RytmRadii.Control),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
                         ) {
-                            Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                            Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                                 Text(
                                     text = "${stringResource(R.string.subcategories_title)} · ${subs.size}",
                                     style = MaterialTheme.typography.labelLarge,
@@ -196,19 +205,30 @@ fun CategoriesManagerSheet(
                                         }
                                     }
                                 }
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    OutlinedTextField(
-                                        value = newSubName,
-                                        onValueChange = { newSubName = it },
-                                        label = { Text(stringResource(R.string.subcategory_label)) },
-                                        modifier = Modifier.weight(1f),
-                                        singleLine = true,
-                                    )
-                                    Button(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = "" }, enabled = newSubName.isNotBlank(), shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.action_add)) }
+                                if (addingSub) {
+                                    val subFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+                                    LaunchedEffect(Unit) { runCatching { subFocus.requestFocus() } }
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        OutlinedTextField(
+                                            value = newSubName,
+                                            onValueChange = { newSubName = it },
+                                            label = { Text(stringResource(R.string.subcategory_label)) },
+                                            modifier = Modifier.weight(1f).focusRequester(subFocus),
+                                            singleLine = true,
+                                        )
+                                        ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.addSubcategory(name, newSubName); newSubName = ""; addingSub = false }, enabled = newSubName.isNotBlank()) { Text(stringResource(R.string.action_add)) }
+                                    }
+                                } else {
+                                    // A field in every open card was heavy for an occasional action.
+                                    ua.rytm.app.ui.components.RytmTextButton(onClick = { addingSub = true }) {
+                                        Icon(RytmIcons.Add, contentDescription = null)
+                                        Spacer(Modifier.size(RytmSpacing.sm))
+                                        Text(stringResource(R.string.subcategory_add))
+                                    }
                                 }
                             }
                         }
