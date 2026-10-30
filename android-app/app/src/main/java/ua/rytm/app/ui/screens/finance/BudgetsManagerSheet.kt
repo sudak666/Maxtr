@@ -26,6 +26,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,8 @@ import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.BudgetsSyncRepository
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.Edit
@@ -97,16 +101,14 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
         shape = MaterialTheme.shapes.large,
     ) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable(onClickLabel = stringResource(R.string.action_edit), role = androidx.compose.ui.semantics.Role.Button, onClick = onToggleEdit), verticalAlignment = Alignment.CenterVertically) {
             CategoryIconBadge(category, iconOverride = iconOverride, size = 32.dp)
             Spacer(Modifier.width(RytmSpacing.sm))
             Column(Modifier.weight(1f)) {
                 Text(localizedDomainText(category), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onToggleEdit) {
-                Icon(if (expanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit))
-            }
+            Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         if (expanded) {
