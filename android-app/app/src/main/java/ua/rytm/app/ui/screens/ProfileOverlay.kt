@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -55,7 +54,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -204,9 +202,13 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
         Modifier.fillMaxSize().onGloballyPositioned { overlayOrigin = it.positionInRoot() },
     ) {
         val widthPx = constraints.maxWidth.toFloat()
-        val progress = state.progress.value
         // No panel surface of its own: the cards float over the dimmed screen.
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f * progress)))
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = state.progress.value }
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f)),
+        )
         Column(
             Modifier
                 .fillMaxSize()
@@ -274,21 +276,28 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
             Spacer(Modifier.height(RytmSpacing.lg))
         }
 
-        val anchor = state.anchor?.translate(-overlayOrigin)
-        val sizePx = with(density) { lerp(EntryAvatarSize.toPx(), PanelAvatarSize.toPx(), progress) }
+        // Everything moving is read in graphicsLayer, not in composition: a
+        // per-frame recomposition of this panel missed twice the frames of a scroll.
+        val panelSizePx = with(density) { PanelAvatarSize.toPx() }
+        val entryScale = EntryAvatarSize / PanelAvatarSize
         val targetCenter = Offset(widthPx / 2f, topInset + with(density) { (48.dp + 16.dp + PanelAvatarSize / 2).toPx() })
+        val anchor = state.anchor?.translate(-overlayOrigin)
         val startCenter = anchor?.center ?: Offset(widthPx, targetCenter.y)
-        val centerX = lerp(startCenter.x, targetCenter.x, progress)
-        val centerY = lerp(startCenter.y, targetCenter.y, progress)
         ProfileAvatar(
             state.appearance,
             state.appearance.nickname.ifBlank { email },
             stringResource(R.string.profile_avatar),
             Modifier
-                .offset { IntOffset((centerX - sizePx / 2).toInt(), (centerY - sizePx / 2).toInt()) }
+                .graphicsLayer {
+                    val p = state.progress.value
+                    translationX = lerp(startCenter.x, targetCenter.x, p) - panelSizePx / 2
+                    translationY = lerp(startCenter.y, targetCenter.y, p) - panelSizePx / 2
+                    scaleX = lerp(entryScale, 1f, p)
+                    scaleY = scaleX
+                }
                 .clip(CircleShape)
                 .clickable(role = androidx.compose.ui.semantics.Role.Button) { avatarRequest++ },
-            size = with(density) { sizePx.toDp() },
+            size = PanelAvatarSize,
         )
     }
 }

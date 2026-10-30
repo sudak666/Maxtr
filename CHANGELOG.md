@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android profile panel perf (2026-10-30)** — panel swipe missed 56-74% of frames vs 26-30% for a Finance scroll (4 runs each, A51, load ~20); progress is now read only in `graphicsLayer`, giving 29-37%. Runs happened on the owner's real account by mistake (QA had been switched back); only panel swipes and scrolls ran, 595 entries and the balance unchanged. Check the account on screen before any device run.
+
 - **Android UX polish (2026-10-30)** — new entry defaults to the wallet of the latest transaction (was always the first); 39 uk strings moved to informal «ти»; outlook line reads «ще +X ₴ за зміни». #661 merged with all 5 checks green.
 
 - **Android first run (2026-10-30)** — empty Finance CTA now opens an income form prefilled with the comment «Початковий баланс» (no schema change: balances are derived from transactions, so it is a plain income and counts in that month's income); the form shows the first categories as chips until there is history. #660 merged with all 5 checks green.
