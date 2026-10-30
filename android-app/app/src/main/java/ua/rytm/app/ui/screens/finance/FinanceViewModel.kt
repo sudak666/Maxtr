@@ -387,13 +387,17 @@ class FinanceViewModel(
     /** One-line / voice entry dialog (QuickEntryDialog); it only pre-fills the form. */
     var quickEntryOpen by mutableStateOf(false)
 
+    private fun lastUsedWallet(): Wallet? =
+        transactions.maxWithOrNull(compareBy({ it.date }, { it.createdAt }))?.let { tx -> wallets.firstOrNull { it.id == tx.walletId } }
+
     fun openNewTransactionSheet(prefill: ua.rytm.app.bank.TxPrefill? = null, type: TxType? = null) {
         val txType = type ?: when { prefill?.isTransfer == true -> TxType.TRANSFER; prefill?.isIncome == true -> TxType.INCOME; else -> TxType.EXPENSE }
         // A bank suggestion lands in a wallet of the same currency when there is one.
         // A wallet named with the card's last digits ("ПУМБ 5536") wins; then same currency; then the first.
         val walletId = (prefill?.walletId?.let { id -> wallets.firstOrNull { it.id == id } }
             ?: walletForCard(prefill?.account, prefill?.bank)
-            ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } } ?: wallets.firstOrNull())?.id.orEmpty()
+            ?: prefill?.let { p -> wallets.firstOrNull { it.currency == p.currency } }
+            ?: lastUsedWallet() ?: wallets.firstOrNull())?.id.orEmpty()
         val targetId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != walletId }
             ?: wallets.firstOrNull { it.id != walletId } ?: wallets.getOrNull(1))?.id.orEmpty()
         val amount = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()

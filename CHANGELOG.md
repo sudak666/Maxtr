@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android UX polish (2026-10-30)** — new entry defaults to the wallet of the latest transaction (was always the first); 39 uk strings moved to informal «ти»; outlook line reads «ще +X ₴ за зміни». #661 merged with all 5 checks green.
+
 - **Android first run (2026-10-30)** — empty Finance CTA now opens an income form prefilled with the comment «Початковий баланс» (no schema change: balances are derived from transactions, so it is a plain income and counts in that month's income); the form shows the first categories as chips until there is history. #660 merged with all 5 checks green.
 
 - **Android transaction form: pinned submit, collapsed extras (2026-10-30)** — from the UX audit: the submit button sits outside the scroll, above the keyboard; date/comment/tags/split are behind one row for a new entry and auto-show when filled or editing. Checked on A51 on the test account: empty submit error, save, opening an entry for edit (all fields shown).
