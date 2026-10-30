@@ -612,4 +612,5 @@
     <string name="debt_forecast_now">зараз</string>
     <string name="widget_forecast_short">Прогноз</string>
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
+    <string name="transaction_more_fields">Дата, коментар, теги</string>
 </resources>

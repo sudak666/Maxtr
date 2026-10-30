@@ -149,13 +149,19 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::processReceipt) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
+    var moreOpen by rememberSaveable { mutableStateOf(false) }
+    val openedDate = remember { vm.form.date }
+    val showMore = moreOpen || vm.form.editingTxId != null || vm.form.comment.isNotEmpty() ||
+        vm.form.selectedTagIds.isNotEmpty() || vm.form.splits.isNotEmpty() || vm.form.date != openedDate ||
+        vm.form.errorField == TxFormField.COMMENT
+
     RytmModalBottomSheet(onDismissRequest = vm.form::close, sheetState = sheetState) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding()) {
         Column(
             modifier = Modifier
+                .weight(1f, fill = false)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .imePadding()
                 .padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -353,45 +359,56 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         onSelect = { vm.form.onSubcategoryChange(it.takeIf { s -> s != "—" }) },
                     )
                 }
-                if (vm.form.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
+                if (showMore && vm.form.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
             }
 
-            DatePickerField(value = vm.form.date, onValueChange = vm.form::onDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
-            val commentInvalid = vm.form.errorField == TxFormField.COMMENT
-            OutlinedTextField(
-                value = vm.form.comment,
-                onValueChange = vm.form::onCommentChange,
-                label = { Text(stringResource(R.string.comment_label)) },
-                placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
-                isError = commentInvalid,
-                // The counter used to be a loose Text under the field: not
-                // aligned to M3's own supporting-text metrics, and not read by
-                // TalkBack as part of the field.
-                supportingText = {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(vm.form.errorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
-                        // Only near the limit: an always-on 0/500 is noise in a form opened daily.
-                        if (vm.form.comment.length > TX_COMMENT_MAX - 100) Text("${vm.form.comment.length}/$TX_COMMENT_MAX")
-                    }
-                },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); vm.submitForm() }),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            // Daily entries need amount and category only. Anything already
+            // filled (editing, voice, receipt) stays visible.
+            if (showMore) {
+                DatePickerField(value = vm.form.date, onValueChange = vm.form::onDateChange, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
+                val commentInvalid = vm.form.errorField == TxFormField.COMMENT
+                OutlinedTextField(
+                    value = vm.form.comment,
+                    onValueChange = vm.form::onCommentChange,
+                    label = { Text(stringResource(R.string.comment_label)) },
+                    placeholder = { Text(stringResource(R.string.transaction_comment_hint)) },
+                    isError = commentInvalid,
+                    // The counter used to be a loose Text under the field: not
+                    // aligned to M3's own supporting-text metrics, and not read by
+                    // TalkBack as part of the field.
+                    supportingText = {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(vm.form.errorRes?.takeIf { commentInvalid }?.let { stringResource(it) } ?: "")
+                            // Only near the limit: an always-on 0/500 is noise in a form opened daily.
+                            if (vm.form.comment.length > TX_COMMENT_MAX - 100) Text("${vm.form.comment.length}/$TX_COMMENT_MAX")
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); vm.submitForm() }),
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
-            if (vm.tags.isNotEmpty()) {
-                val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-                LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    items(vm.tags) { tag ->
-                        ua.rytm.app.ui.components.RytmFilterChip(
-                            selected = tag.id in vm.form.selectedTagIds,
-                            onClick = { vm.form.toggleTag(tag.id) },
-                            label = { Text(tag.name) },
-                        )
+                if (vm.tags.isNotEmpty()) {
+                    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                        items(vm.tags) { tag ->
+                            ua.rytm.app.ui.components.RytmFilterChip(
+                                selected = tag.id in vm.form.selectedTagIds,
+                                onClick = { vm.form.toggleTag(tag.id) },
+                                label = { Text(tag.name) },
+                            )
+                        }
                     }
                 }
+            } else {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = { moreOpen = true }, modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget)) {
+                    Text(stringResource(R.string.transaction_more_fields))
+                }
             }
-
+        }
+        // Pinned outside the scroll: it used to sit below every field, out of
+        // sight behind the keyboard, on the form opened most often.
+        Column(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             // Only the errors that do not belong to a visible field land here
             // now; everything else is marked on the field itself.
             if (vm.form.errorField == null || vm.form.errorField == TxFormField.WALLET ||
@@ -406,6 +423,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
             Button(onClick = { submitHaptics.confirm(); vm.submitForm() }, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.form.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
             }
+        }
         }
     }
 }
