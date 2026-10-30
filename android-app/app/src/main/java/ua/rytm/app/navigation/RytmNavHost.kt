@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import ua.rytm.app.ui.screens.profileSwipeToOpen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.composable
@@ -216,7 +217,9 @@ fun RytmNavHost() {
             },
             popExitTransition = { ExitTransition.None },
         ) {
-            composable(RytmDestination.Finance.route) { FinanceScreen() }
+            composable(RytmDestination.Finance.route) {
+                Box(Modifier.fillMaxSize().profileSwipeToOpen()) { FinanceScreen() }
+            }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }

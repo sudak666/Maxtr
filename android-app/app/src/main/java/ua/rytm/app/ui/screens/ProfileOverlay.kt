@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
@@ -67,6 +66,7 @@ import ua.rytm.app.ui.theme.RytmSpacing
 private val EntryAvatarSize = 36.dp
 private val PanelAvatarSize = 112.dp
 private const val DismissBelowProgress = 0.7f
+private const val OpenAboveProgress = 0.3f
 
 /** The profile panel's state; lives in RytmNavHost so the Finance entry avatar and the panel share it. */
 class ProfileOverlayState {
@@ -74,10 +74,39 @@ class ProfileOverlayState {
     var visible by mutableStateOf(false)
         internal set
     internal var anchor by mutableStateOf<Rect?>(null)
+    internal var dragging by mutableStateOf(false)
     internal val progress = Animatable(0f)
 }
 
 val LocalProfileOverlay = compositionLocalOf { ProfileOverlayState() }
+
+/**
+ * Left swipe anywhere on the host pulls the panel in under the finger. Runs
+ * after its children, so swipe-to-delete rows and chip rows keep their gestures.
+ */
+@Composable
+fun Modifier.profileSwipeToOpen(): Modifier {
+    val state = LocalProfileOverlay.current
+    val scope = rememberCoroutineScope()
+    val duration = if (LocalReducedMotion.current) 0 else 320
+    return pointerInput(state) {
+        fun release(open: Boolean) {
+            state.dragging = false
+            scope.launch {
+                state.progress.animateTo(if (open) 1f else 0f, tween(duration, easing = FastOutSlowInEasing))
+                if (!open) state.visible = false
+            }
+        }
+        detectHorizontalDragGestures(
+            onDragStart = { state.dragging = true; state.visible = true },
+            onDragEnd = { release(state.progress.value >= OpenAboveProgress) },
+            onDragCancel = { release(false) },
+        ) { change, dragAmount ->
+            change.consume()
+            scope.launch { state.progress.snapTo((state.progress.value - dragAmount / size.width).coerceIn(0f, 1f)) }
+        }
+    }
+}
 
 /** Top-right of the Finance hero; flies into the panel on open and back on dismiss. */
 @Composable
@@ -121,7 +150,7 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
         }
     }
     LaunchedEffect(state.visible) {
-        if (state.visible) state.progress.animateTo(1f, tween(duration, easing = FastOutSlowInEasing))
+        if (state.visible && !state.dragging) state.progress.animateTo(1f, tween(duration, easing = FastOutSlowInEasing))
     }
     if (!state.visible || uid == null || dataOwnerUid == null) return
 
@@ -144,12 +173,12 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
     ) {
         val widthPx = constraints.maxWidth.toFloat()
         val progress = state.progress.value
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f * progress)))
+        // No panel surface of its own: the cards float over the dimmed screen.
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f * progress)))
         Column(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { translationX = (1f - state.progress.value) * widthPx }
-                .background(MaterialTheme.colorScheme.background)
                 .pointerInput(widthPx) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
