@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android profile card: tap to edit (2026-10-31)** — the name row opens editing with a chevron instead of a pencil; the field and buttons sit below at full width.
+
 - **Android converter: no «З»/«В» labels (2026-10-31)** — the order of the fields and the swap button already show the direction.
 
 - **Android wallets: open card polish (2026-10-31)** — the header dot is the colour picker in an open card (the second dot is gone), delete is a text button at the bottom, the title follows the name field as you type. Budgets: decimal keyboard, Done saves and collapses the row.
