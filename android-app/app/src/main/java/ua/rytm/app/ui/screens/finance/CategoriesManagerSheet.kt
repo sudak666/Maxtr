@@ -189,12 +189,6 @@ fun CategoriesManagerSheet(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
                         ) {
                             Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                                Text(
-                                    text = "${stringResource(R.string.subcategories_title)} · ${subs.size}",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
                                 if (subs.isNotEmpty()) {
                                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                         items(subs) { sub ->
