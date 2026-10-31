@@ -54,7 +54,7 @@
     <string name="rates_privat_note">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</string>
     <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
     <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
-    <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string>
+    <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string><string name="rates_dashboard_subtitle">Актуальні значення відносно гривні</string><string name="rates_current">Поточні курси</string>
     <string name="profile_load_failed">Не вдалося завантажити профіль</string>
     <string name="profile_save_failed">Не вдалося зберегти профіль</string>
     <string name="profile_invalid_image">Обери коректне зображення</string>

@@ -48,7 +48,7 @@
     <string name="rates_privat_note">PrivatBank provides cash rates only for USD/EUR; other currencies use NBU rates.</string>
     <string name="rates_updating">Updating…</string><string name="rates_refresh">Update online</string>
     <string name="rates_updated">Rates updated</string><string name="rates_update_failed">Could not update rates</string>
-    <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string>
+    <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string><string name="rates_dashboard_subtitle">Current values against the hryvnia</string><string name="rates_current">Current rates</string>
     <string name="profile_load_failed">Could not load profile</string>
     <string name="profile_save_failed">Could not save profile</string>
     <string name="profile_invalid_image">Choose a valid image</string>
