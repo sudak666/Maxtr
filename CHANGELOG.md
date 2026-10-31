@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android profile card: clipped letters (2026-10-31)** — the row's rounded clip cut the first letters of the name and email; padding inside the clip fixes it, same for auto-rule rows. Not in the 2.6.7 AAB.
+
 - **2.6.7 (vc36) AAB built (2026-10-31)** — `bundleRelease` through #676 (manager delete placement, debt rows). Handed to the owner; 2.6.6 was still in Play review at the time.
 
 - **Android debt: no pencil on payment rows (2026-10-31)** — the row already opened the editor on tap and swiped to delete, so the pencil is gone; «Новий розрахунок» focuses the name field. Review's shift presets skipped: «2 через 2» etc. are already in the dropdown.

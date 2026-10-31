@@ -181,7 +181,9 @@ fun ProfileAppearanceCard(
                         .clickable(enabled = !busy, onClickLabel = stringResource(R.string.profile_edit_nickname), role = androidx.compose.ui.semantics.Role.Button) {
                             draft = appearance.nickname
                             editing = !editing
-                        },
+                        }
+                        // Keeps the text off the clip's rounded corners, which cut its first letters.
+                        .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.xs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {

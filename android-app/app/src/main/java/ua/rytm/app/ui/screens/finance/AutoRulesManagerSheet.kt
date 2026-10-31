@@ -93,7 +93,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    Row(Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable(onClickLabel = stringResource(R.string.action_edit), role = androidx.compose.ui.semantics.Role.Button, enabled = !saving, onClick = { expandedId = if (expandedId == rule.id) null else rule.id }), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).clickable(onClickLabel = stringResource(R.string.action_edit), role = androidx.compose.ui.semantics.Role.Button, enabled = !saving, onClick = { expandedId = if (expandedId == rule.id) null else rule.id }).padding(start = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                         val isDraft = rule.keyword.isEmpty()
                         Column(Modifier.weight(1f)) {
                             Text(
