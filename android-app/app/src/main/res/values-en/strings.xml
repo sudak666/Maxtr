@@ -79,7 +79,7 @@
     <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
     <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$d%%</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
-    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="converter_from">From</string><string name="converter_to">To</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
+    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
     <string name="receipt_scan">Scan receipt</string>

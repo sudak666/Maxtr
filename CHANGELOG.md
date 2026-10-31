@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android converter: no «З»/«В» labels (2026-10-31)** — the order of the fields and the swap button already show the direction.
+
 - **Android wallets: open card polish (2026-10-31)** — the header dot is the colour picker in an open card (the second dot is gone), delete is a text button at the bottom, the title follows the name field as you type. Budgets: decimal keyboard, Done saves and collapses the row.
 
 - **Android categories: one subcategory counter (2026-10-31)** — removed the label inside the open card; the row already shows it.
