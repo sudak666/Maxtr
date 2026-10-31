@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android categories: one subcategory counter (2026-10-31)** — removed the label inside the open card; the row already shows it.
+
 - **Android rates: no success line (2026-10-31)** — the green «Курси оновлено» repeated the last-updated line, which already changes on success; only a failure shows a message now. No Snackbar: it would sit behind the modal sheet.
 
 - **Android rates sheet cleanup (2026-10-31)** — removed the USD hero card that repeated the list, moved the last-updated line under the refresh button, made rate rows neutral with plain `41,00 ₴` amounts; colour stays on the currency badge. Not checked on a device.
