@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.data.FinancialMonth
 import java.time.YearMonth
 
 /** A month in money, compared with the month before (the "Wrapped"-style recap). */
@@ -23,15 +24,14 @@ data class MonthSummary(
 
     companion object {
         /** All sums in UAH via [toUah]; transfers move money between wallets and are left out. */
-        /** [upToDay]: for the month in progress, the previous month is cut to the
+        /** [upToDay]: for the month in progress (its day number), the previous month is cut to the
          * same days (1–21 Oct vs 1–21 Sep), or a fresh month always looks "cheaper". */
         fun compute(transactions: List<Transaction>, month: YearMonth, upToDay: Int? = null, toUah: (Transaction) -> Double): MonthSummary {
-            val prefix = month.toString()
-            val previousPrefix = month.minusMonths(1).toString()
-            val current = transactions.filter { it.date.startsWith(prefix) && it.type != TxType.TRANSFER }
-            val previousCutoff = upToDay?.let { "$previousPrefix-%02d".format(minOf(it, month.minusMonths(1).lengthOfMonth())) }
+            val previous = month.minusMonths(1)
+            val current = transactions.filter { FinancialMonth.contains(month, it.date) && it.type != TxType.TRANSFER }
+            val previousCutoff = upToDay?.let { FinancialMonth.cutoff(previous, it).toString() }
             val previousExpenses = transactions.filter {
-                it.date.startsWith(previousPrefix) && it.type == TxType.EXPENSE && (previousCutoff == null || it.date.take(10) <= previousCutoff)
+                FinancialMonth.contains(previous, it.date) && it.type == TxType.EXPENSE && (previousCutoff == null || it.date.take(10) <= previousCutoff)
             }
             val expenses = current.filter { it.type == TxType.EXPENSE }
             val previousByCategory = previousExpenses.groupBy { it.category }.mapValues { (_, l) -> l.sumOf(toUah) }

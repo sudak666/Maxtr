@@ -21,10 +21,52 @@ import androidx.compose.ui.unit.dp
 import androidx.annotation.StringRes
 import ua.rytm.app.R
 import ua.rytm.app.ui.icons.AccountBalance
+import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Description
 import ua.rytm.app.ui.icons.PrivacyTip
 import ua.rytm.app.ui.icons.Public
 import ua.rytm.app.ui.icons.RytmIcons
+
+/** Picks the day the user's month starts (1 = calendar month). */
+@Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    SettingsRow(
+        icon = RytmIcons.AccountBalanceWallet,
+        badgeColor = SettingsGroupColors.Appearance,
+        title = stringResource(R.string.settings_month_start),
+        subtitle = if (startDay == 1) stringResource(R.string.settings_month_start_calendar) else stringResource(R.string.settings_month_start_day, startDay),
+        onClick = { open = true },
+    )
+    if (!open) return
+    ua.rytm.app.ui.components.RytmModalBottomSheet(onDismissRequest = { open = false }) {
+        Text(stringResource(R.string.settings_month_start_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = RytmSpacing.lg))
+        Text(
+            stringResource(R.string.settings_month_start_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = RytmSpacing.sm),
+        )
+        (1..ua.rytm.app.data.FinancialMonth.MAX_START_DAY).chunked(7).forEach { week ->
+            androidx.compose.foundation.layout.Row(Modifier.padding(horizontal = RytmSpacing.md)) {
+                week.forEach { day ->
+                    val selected = day == startDay
+                    androidx.compose.material3.TextButton(
+                        onClick = { onPick(day); open = false },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            containerColor = if (selected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
+                            contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                        ),
+                    ) { Text(day.toString()) }
+                }
+            }
+        }
+        androidx.compose.foundation.layout.Spacer(Modifier.padding(bottom = RytmSpacing.lg))
+    }
+}
 
 /** One tappable Settings row described as data (the Finance group is a list of these). */
 class SettingsLink(val icon: ImageVector, @StringRes val title: Int, @StringRes val subtitle: Int, val onClick: () -> Unit)

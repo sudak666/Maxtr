@@ -166,6 +166,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvImportPreview = settingsViewModel.csvImportPreview
     val csvBusy = settingsViewModel.csvBusy
     val themePreference by app.settingsStore.themePreference.collectAsStateWithLifecycle(initialValue = ThemePreference.DARK)
+    val financialMonthStart by app.settingsStore.financialMonthStart.collectAsStateWithLifecycle(initialValue = 1)
     val showBalanceAfter by app.settingsStore.showBalanceAfter.collectAsStateWithLifecycle(initialValue = false)
     val privacyCacheEnabled by app.settingsStore.privacyCacheEnabled.collectAsStateWithLifecycle(initialValue = true)
     val language by app.settingsStore.language.collectAsStateWithLifecycle(initialValue = "uk")
@@ -447,6 +448,10 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     modifier = Modifier.padding(bottom = RytmSpacing.sm),
                 )
                 SettingsGroupCard {
+                    FinancialMonthRow(
+                        startDay = financialMonthStart,
+                        onPick = { day -> (activeProfileOwnerUid ?: uid)?.let { settingsViewModel.setFinancialMonthStart(it, activeProfileId, day) } },
+                    )
                     SettingsToggleRow(
                         icon = RytmIcons.AccountBalanceWallet,
                         badgeColor = SettingsGroupColors.Appearance,

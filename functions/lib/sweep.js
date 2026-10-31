@@ -51,7 +51,7 @@
  * @property {{delete: () => Promise<any>, set: (data: any, opts?: any) => Promise<any>}} ref
  */
 
-const { toBase, zonedDateParts, todayStr, monthPrefix, isOverBudget } = require('./pure');
+const { toBase, zonedDateParts, todayStr, financialMonth, isOverBudget } = require('./pure');
 
 const DCOL = 'max_tracker';
 
@@ -222,7 +222,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
   // dailyReminderNeeded() now, computed independently the same way).
   const timeZone = notif.timeZone || 'UTC';
   const tomorrow = todayStr(new Date(now.getTime() + 86400000), timeZone);
-  const mPrefix = monthPrefix(now, timeZone);
+  const month = financialMonth(todayStr(now, timeZone), f.monthStartDay);
 
   const { sentBudget, sentRecurring, sentDebt } = prevState;
   const updates = {};
@@ -254,10 +254,10 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     for (const [cat, limit] of Object.entries(budgets)) {
       if (tokenInvalid) break;
       if (!(limit > 0) || !(categories.expense || []).includes(cat)) continue;
-      const key = `${mPrefix}_${cat}`;
+      const key = `${month.key}_${cat}`;
       if (sent[key]) continue;
       const spent = transactions.reduce((/** @type {number} */ s, /** @type {TransactionLike} */ t) => {
-        if (t.type === 'expense' && t.category === cat && t.date && t.date.startsWith(mPrefix)) {
+        if (t.type === 'expense' && t.category === cat && t.date && t.date.slice(0, 10) >= month.from && t.date.slice(0, 10) < month.until) {
           return s + toBase(t.amount || 0, t.currency || 'UAH', rates);
         }
         return s;

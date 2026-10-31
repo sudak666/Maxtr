@@ -87,6 +87,11 @@
     <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
     <string name="transaction_wallet_same">Choose a different destination wallet.</string><string name="transaction_conversion_hint">Estimated at the current rate: %1$s → %2$s</string>
     <string name="transaction_balance_after">Balance after: %1$s</string>
+    <string name="settings_month_start">Month start</string>
+    <string name="settings_month_start_calendar">Calendar month, from the 1st</string>
+    <string name="settings_month_start_day">From day %1$d</string>
+    <string name="settings_month_start_title">Financial month start</string>
+    <string name="settings_month_start_hint">Budgets, statistics and recaps count the month from this day, such as payday. A month is named after the one it starts in.</string>
     <string name="settings_balance_after">Balance after each operation</string>
     <string name="settings_balance_after_subtitle">Wallet balance in history rows</string>
     <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>

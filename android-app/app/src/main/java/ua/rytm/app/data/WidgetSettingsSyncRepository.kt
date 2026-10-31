@@ -20,6 +20,8 @@ class WidgetSettingsSyncRepository(
 
     suspend fun syncOnSignIn(uid: String, profileId: String) {
         val snapshot = ref(uid, profileId).get().await()
+        // Per profile; a profile that never set it uses the calendar month.
+        settingsStore.setFinancialMonthStart(((snapshot.get("monthStartDay") as? Number)?.toInt() ?: 1).coerceIn(1, FinancialMonth.MAX_START_DAY))
         val widgets = snapshot.get("widgets") as? Map<*, *>
         if (widgets != null) {
             val enabled = FINANCE_WIDGET_KEYS.filter { widgets[it] != false }.toSet()
@@ -37,6 +39,11 @@ class WidgetSettingsSyncRepository(
         } else {
             saveSalaryGoal(uid, profileId, settingsStore.salaryGoal(accountUid).first())
         }
+    }
+
+    suspend fun saveFinancialMonthStart(uid: String, profileId: String, day: Int) {
+        settingsStore.setFinancialMonthStart(day)
+        ref(uid, profileId).setFields(mapOf("monthStartDay" to day, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
     suspend fun saveSalaryGoal(uid: String, profileId: String, amount: Double) {

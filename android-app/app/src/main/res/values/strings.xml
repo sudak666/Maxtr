@@ -93,6 +93,11 @@
     <string name="transaction_wallet_expense">Звідки списати</string><string name="transaction_wallet_source">Звідки переказати</string><string name="transaction_wallet_target">Куди переказати</string>
     <string name="transaction_wallet_same">Обери інший гаманець для переказу.</string><string name="transaction_conversion_hint">Орієнтовно за поточним курсом: %1$s → %2$s</string>
     <string name="transaction_balance_after">Баланс після операції: %1$s</string>
+    <string name="settings_month_start">Початок місяця</string>
+    <string name="settings_month_start_calendar">Календарний місяць, з 1-го числа</string>
+    <string name="settings_month_start_day">З %1$d-го числа</string>
+    <string name="settings_month_start_title">Початок фінансового місяця</string>
+    <string name="settings_month_start_hint">Бюджети, статистика й підсумки рахуватимуть місяць від цього дня, наприклад від дня зарплати. Місяць має назву того, в якому починається.</string>
     <string name="settings_balance_after">Баланс після операції</string>
     <string name="settings_balance_after_subtitle">Залишок гаманця в рядках історії</string>
     <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>

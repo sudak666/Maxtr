@@ -77,6 +77,22 @@ function monthPrefix(d, timeZone) {
   return zonedDateParts(d, timeZone).dateStr.slice(0, 7);
 }
 
+/**
+ * The financial month holding `today` ("yyyy-MM-dd"): starts on `startDay`,
+ * named after the calendar month it starts in. Mirrors Android's FinancialMonth.
+ * @param {string} today
+ * @param {unknown} startDay
+ * @returns {{key: string, from: string, until: string}} `until` is exclusive.
+ */
+function financialMonth(today, startDay) {
+  const n = Number(startDay);
+  const day = Number.isInteger(n) && n >= 1 && n <= 28 ? n : 1;
+  const y = +today.slice(0, 4);
+  const m = +today.slice(5, 7) - 1 - (+today.slice(8, 10) < day ? 1 : 0);
+  const iso = (/** @type {number} */ month) => new Date(Date.UTC(y, month, day)).toISOString().slice(0, 10);
+  return { key: iso(m).slice(0, 7), from: iso(m), until: iso(m + 1) };
+}
+
 // Runs fn(item, index) over items with at most `limit` in flight at once,
 // resolving to the same shape as Promise.allSettled (never rejects itself).
 // notificationSweep used a bare Promise.allSettled over every push_tokens
@@ -119,4 +135,4 @@ function isOverBudget(spent, limit) {
   return Math.round(spent * 100) > Math.round(limit * 100);
 }
 
-module.exports = { isOverBudget, SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency };
+module.exports = { isOverBudget, SEED_RATES, convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, financialMonth, mapWithConcurrency };
