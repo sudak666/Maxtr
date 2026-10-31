@@ -17,7 +17,7 @@
     <string name="action_apply">Застосувати</string>
     <string name="action_add">Додати</string>
     <string name="tags_title">Теги</string>
-    <string name="tags_body">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька.</string>
+    <string name="tags_body">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька. Щоб видалити, змахни вліво.</string>
     <string name="tags_empty">Немає тегів</string>
     <string name="tags_name">Назва тега</string>
     <string name="tags_delete_title">Видалити тег</string>

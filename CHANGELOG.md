@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android managers: delete moved out of card headers (2026-10-31)** — goals, recurring, auto-rules and shift types: delete is now a text button (`RytmCardDeleteButton`) at the bottom of the open card, away from the chevron, same as wallets. Tags: swipe left (reuses `DebtEntrySwipeContainer`, confirm dialog stays), TalkBack custom action, hint in the sheet subtitle. Recurring «Активна» is a Switch. Review's keyboard auto-open skipped: the form has several fields and a keyboard popping on every expand hides the card. `assembleQa` + unit tests green; not tried on a device (adb not connected).
+
 - **2.6.6 (vc35) sent to Play (2026-10-31)** — final AAB built from `0934216` (through #673), uploaded by the owner, status «Зміни на перевірці». Next bump vc36. Gotcha: #667 was merged with red Android CI because the command merged regardless of checks, and a regex took neighbouring strings from one-line `strings.xml` entries; #668 fixed `main`. Merge commands must be gated on the check result.
 
 - **Android profile card: tap to edit (2026-10-31)** — the name row opens editing with a chevron instead of a pencil; the field and buttons sit below at full width.

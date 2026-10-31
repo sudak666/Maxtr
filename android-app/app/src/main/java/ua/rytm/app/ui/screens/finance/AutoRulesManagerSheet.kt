@@ -105,9 +105,11 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                             Text(stringResource(if (rule.type == "income") R.string.tx_income else R.string.tx_expense), style = MaterialTheme.typography.bodySmall)
                         }
                         Icon(if (expandedId == rule.id) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        IconButton(onClick = { pendingDelete = rule.id }, enabled = !saving, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, stringResource(R.string.action_delete)) }
                     }
-                    if (expandedId == rule.id) RuleEditor(rule, categories, onUpdate = { persist { repository.updateAutoRule(it) } })
+                    if (expandedId == rule.id) {
+                        RuleEditor(rule, categories, onUpdate = { persist { repository.updateAutoRule(it) } })
+                        ua.rytm.app.ui.components.RytmCardDeleteButton(onClick = { pendingDelete = rule.id }, enabled = !saving)
+                    }
                 }
                 }
             }
