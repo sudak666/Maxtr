@@ -1,5 +1,7 @@
 # Changelog
 
+- **2.6.7 (vc36) AAB built (2026-10-31)** — `bundleRelease` through #676 (manager delete placement, debt rows). Handed to the owner; 2.6.6 was still in Play review at the time.
+
 - **Android debt: no pencil on payment rows (2026-10-31)** — the row already opened the editor on tap and swiped to delete, so the pencil is gone; «Новий розрахунок» focuses the name field. Review's shift presets skipped: «2 через 2» etc. are already in the dropdown.
 
 - **Android managers: delete moved out of card headers (2026-10-31)** — goals, recurring, auto-rules and shift types: delete is now a text button (`RytmCardDeleteButton`) at the bottom of the open card, away from the chevron, same as wallets. Tags: swipe left (reuses `DebtEntrySwipeContainer`, confirm dialog stays), TalkBack custom action, hint in the sheet subtitle. Recurring «Активна» is a Switch. Review's keyboard auto-open skipped: the form has several fields and a keyboard popping on every expand hides the card. `assembleQa` + unit tests green; not tried on a device (adb not connected).
