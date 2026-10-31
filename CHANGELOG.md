@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android rates sheet cleanup (2026-10-31)** — removed the USD hero card that repeated the list, moved the last-updated line under the refresh button, made rate rows neutral with plain `41,00 ₴` amounts; colour stays on the currency badge. Not checked on a device.
+
 - **2.6.6 (vc35) (2026-10-31)** — carries the managers cleanup (#665), which vc34 lacks; vc34 was never uploaded. Categories: the add-category row is pinned below the list (it sat under the navigation bar), and the open card is tracked by name, because a sync re-creates category ids with new UUIDs and collapsed it after adding a subcategory. Cause found by reading the code; not rechecked on a device (none connected).
 
 - **Android managers: tap the row, no pencils (2026-10-31)** — budgets, goals, recurring, shift types and auto rules expand by tapping the row; a quiet chevron replaces the edit icon. Delete buttons stay. Wallets: the list only reads (dot, name, currency); name, colour, currency and delete open on the tapped row. Categories: the row toggles subcategories (no chevron), the add field opens from «Додати підкатегорію».

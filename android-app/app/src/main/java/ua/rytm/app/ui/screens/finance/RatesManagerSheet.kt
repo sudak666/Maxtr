@@ -102,28 +102,10 @@ fun RatesManagerSheet(
             val updatedText = updatedAt?.let {
                 stringResource(R.string.rates_updated_at, DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it)))
             } ?: stringResource(R.string.rates_never_updated)
-            val usdRate = rates["USD"] ?: SEED_RATES.getValue("USD")
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     RytmSheetTitle(stringResource(R.string.rates_title), subtitle = stringResource(R.string.rates_dashboard_subtitle))
-                }
-            }
-
-            Card(
-                shape = RoundedCornerShape(RytmRadii.Card),
-                colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
-            ) {
-                Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(48.dp).background(GreenLight2.copy(alpha = 0.16f), CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) { Text("$", color = GreenLight2, fontWeight = FontWeight.Black) }
-                    Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
-                        Text(stringResource(R.string.rates_usd_hero), style = androidx.compose.material3.MaterialTheme.typography.labelMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${numberFormat.format(usdRate)} ₴", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
-                        Text(updatedText, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
                 }
             }
 
@@ -170,6 +152,8 @@ fun RatesManagerSheet(
                 Icon(RytmIcons.Refresh, contentDescription = null)
                 Text(stringResource(if (busy) R.string.rates_updating else R.string.rates_refresh), modifier = Modifier.padding(start = RytmSpacing.sm))
             }
+            // Belongs to the whole list, not to one currency.
+            Text(updatedText, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             messageRes?.let {
                 val isError = it == R.string.rates_update_failed
                 Text(
@@ -191,8 +175,7 @@ fun RatesManagerSheet(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(RytmRadii.Input),
-                    colors = CardDefaults.cardColors(containerColor = tint.copy(alpha = 0.09f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, tint.copy(alpha = 0.24f)),
+                    colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(44.dp).background(tint.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
@@ -207,10 +190,8 @@ fun RatesManagerSheet(
                                 maxLines = 1,
                             )
                         }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(numberFormat.format(value), style = androidx.compose.material3.MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = tint)
-                            Text(stringResource(R.string.rates_per_unit, code), style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        // Red or green digits would read as loss or gain; colour stays on the badge.
+                        Text("${numberFormat.format(value)} ₴", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }
