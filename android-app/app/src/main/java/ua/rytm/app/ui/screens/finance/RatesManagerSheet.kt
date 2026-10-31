@@ -86,7 +86,7 @@ fun RatesManagerSheet(
             busy = true
             messageRes = null
             runCatching { syncRepository.refreshOnline(uid, profileId, selectedSource == "privat") }
-                .onSuccess { settingsStore.setRatesUpdatedAt(it); messageRes = R.string.rates_updated }
+                .onSuccess { settingsStore.setRatesUpdatedAt(it); messageRes = null }
                 .onFailure { messageRes = R.string.rates_update_failed }
             busy = false
         }
@@ -155,10 +155,9 @@ fun RatesManagerSheet(
             // Belongs to the whole list, not to one currency.
             Text(updatedText, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             messageRes?.let {
-                val isError = it == R.string.rates_update_failed
                 Text(
                     stringResource(it),
-                    color = if (isError) androidx.compose.material3.MaterialTheme.colorScheme.error else GreenLight2,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
                     style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
                 )
