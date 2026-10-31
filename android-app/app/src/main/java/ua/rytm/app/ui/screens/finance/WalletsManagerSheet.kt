@@ -158,8 +158,30 @@ private fun WalletRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
             ) {
-                Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
-                Text(ua.rytm.app.ui.localizedDomainText(wallet.name), style = MaterialTheme.typography.bodyLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                // In an open card the dot itself is the colour picker.
+                Box {
+                    Box(
+                        Modifier
+                            .size(RytmDimens.TouchTarget)
+                            .clip(CircleShape)
+                            .then(if (expanded) Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button) { colorExpanded = true }.semantics { contentDescription = colorDescription } else Modifier),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
+                    }
+                        DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
+                            PALETTE.chunked(4).forEach { colors ->
+                                Row {
+                                    colors.forEach { color ->
+                                        IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
+                                            Box(Modifier.size(28.dp).background(Color(color), CircleShape))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                }
+                Text(ua.rytm.app.ui.localizedDomainText(if (expanded) nameText else wallet.name), style = MaterialTheme.typography.bodyLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Text(wallet.currency, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -184,40 +206,25 @@ private fun WalletRow(
                         justSaved = false
                     }
                 }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    Box {
-                        IconButton(onClick = { colorExpanded = true }, modifier = Modifier.size(RytmDimens.TouchTarget).semantics { contentDescription = colorDescription }) {
-                            Box(Modifier.size(28.dp).background(Color(wallet.colorHex), CircleShape))
-                        }
-                        DropdownMenu(expanded = colorExpanded, onDismissRequest = { colorExpanded = false }) {
-                            PALETTE.chunked(4).forEach { colors ->
-                                Row {
-                                    colors.forEach { color ->
-                                        IconButton(onClick = { onColorChange(color); colorExpanded = false }, modifier = Modifier.semantics { contentDescription = colorDescription }) {
-                                            Box(Modifier.size(28.dp).background(Color(color), CircleShape))
-                                        }
-                                    }
-                                }
-                            }
+                ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    OutlinedTextField(
+                        value = wallet.currency,
+                        onValueChange = {},
+                        readOnly = true,
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.field_currency)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                    )
+                    ExposedDropdownMenu(expanded = currencyExpanded, onDismissRequest = { currencyExpanded = false }) {
+                        CURRENCY_LIST.forEach { code ->
+                            DropdownMenuItem(text = { Text(code) }, onClick = { onCurrencyChange(code); currencyExpanded = false })
                         }
                     }
-                    ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
-                        OutlinedTextField(
-                            value = wallet.currency,
-                            onValueChange = {},
-                            readOnly = true,
-                            singleLine = true,
-                            label = { Text(stringResource(R.string.field_currency)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                        )
-                        ExposedDropdownMenu(expanded = currencyExpanded, onDismissRequest = { currencyExpanded = false }) {
-                            CURRENCY_LIST.forEach { code ->
-                                DropdownMenuItem(text = { Text(code) }, onClick = { onCurrencyChange(code); currencyExpanded = false })
-                            }
-                        }
-                    }
-                    IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
+                }
+                // Apart from the fields, so it can't be hit while editing them.
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                    androidx.compose.material3.TextButton(onClick = onDelete, colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_delete)) }
                 }
             }
         }

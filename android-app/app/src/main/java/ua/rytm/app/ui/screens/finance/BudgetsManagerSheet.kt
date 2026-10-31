@@ -118,6 +118,15 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 onValueChange = { limitText = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+                ),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = {
+                    val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(limitText) ?: 0.0
+                    if (parsed != limit) onLimitChange(parsed)
+                    onToggleEdit()
+                }),
                 label = { Text(stringResource(R.string.budgets_monthly_limit)) },
                 // Used to override unfocusedBorderColor to onSurfaceVariant
                 // here (default `outline` was invisible in light theme at

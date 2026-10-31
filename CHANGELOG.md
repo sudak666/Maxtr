@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android wallets: open card polish (2026-10-31)** — the header dot is the colour picker in an open card (the second dot is gone), delete is a text button at the bottom, the title follows the name field as you type. Budgets: decimal keyboard, Done saves and collapses the row.
+
 - **Android categories: one subcategory counter (2026-10-31)** — removed the label inside the open card; the row already shows it.
 
 - **Android rates: no success line (2026-10-31)** — the green «Курси оновлено» repeated the last-updated line, which already changes on success; only a failure shows a message now. No Snackbar: it would sit behind the modal sheet.
