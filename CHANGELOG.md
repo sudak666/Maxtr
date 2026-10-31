@@ -1,5 +1,7 @@
 # Changelog
 
+- **2.6.8 (vc37) AAB built (2026-10-31)** — vc36 was already taken in Play; includes #678. Copied to the owner's Desktop.
+
 - **Android profile card: clipped letters (2026-10-31)** — the row's rounded clip cut the first letters of the name and email; padding inside the clip fixes it, same for auto-rule rows. Not in the 2.6.7 AAB.
 
 - **2.6.7 (vc36) AAB built (2026-10-31)** — `bundleRelease` through #676 (manager delete placement, debt rows). Handed to the owner; 2.6.6 was still in Play review at the time.
