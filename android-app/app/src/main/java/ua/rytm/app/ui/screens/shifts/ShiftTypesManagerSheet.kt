@@ -185,7 +185,6 @@ private fun ShiftTypeRow(
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -252,6 +251,8 @@ private fun ShiftTypeRow(
                 ua.rytm.app.ui.components.RoundCheckbox(checked = type.isOff, modifier = Modifier.padding(end = RytmSpacing.md))
                 Text(stringResource(R.string.shift_day_off_unpaid), style = MaterialTheme.typography.bodySmall)
             }
+
+            ua.rytm.app.ui.components.RytmCardDeleteButton(onClick = onDelete)
         }
     }
     }

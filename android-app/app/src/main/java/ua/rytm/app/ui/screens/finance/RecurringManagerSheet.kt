@@ -176,7 +176,6 @@ private fun RecurringRow(
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            IconButton(onClick = onDelete, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         if (expanded) {
@@ -237,14 +236,16 @@ private fun RecurringRow(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .toggleable(value = r.active, role = Role.Checkbox, onValueChange = onActiveChange)
+                    .toggleable(value = r.active, role = Role.Switch, onValueChange = onActiveChange)
                     .semantics(mergeDescendants = true) {}
                     .heightIn(min = RytmDimens.TouchTarget),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ua.rytm.app.ui.components.RoundCheckbox(checked = r.active, modifier = Modifier.padding(end = RytmSpacing.md))
-                Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.recurring_active), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                androidx.compose.material3.Switch(checked = r.active, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
             }
+
+            ua.rytm.app.ui.components.RytmCardDeleteButton(onClick = onDelete)
         }
     }
     }

@@ -25,7 +25,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -199,13 +198,6 @@ private fun GoalRow(
                 Text((wallet?.name?.let { localizedDomainText(it) } ?: stringResource(R.string.goals_default_name)) + if (goal.targetDate.isNotBlank()) " · ${goal.targetDate}" else "", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             }
             Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            IconButton(
-                onClick = onDelete,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f),
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-            ) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -258,6 +250,8 @@ private fun GoalRow(
                 delay(400)
                 if (dateText != goal.targetDate) onTargetDateChange(dateText)
             }
+
+            ua.rytm.app.ui.components.RytmCardDeleteButton(onClick = onDelete)
         }
     }
     }

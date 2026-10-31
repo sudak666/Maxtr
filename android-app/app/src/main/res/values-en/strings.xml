@@ -11,7 +11,7 @@
     <string name="action_apply">Apply</string>
     <string name="action_add">Add</string>
     <string name="tags_title">Tags</string>
-    <string name="tags_body">Freeform labels on transactions, separate from categories — a transaction can have several.</string>
+    <string name="tags_body">Freeform labels on transactions, separate from categories — a transaction can have several. Swipe left to delete.</string>
     <string name="tags_empty">No tags</string>
     <string name="tags_name">Tag name</string>
     <string name="tags_delete_title">Delete tag</string>

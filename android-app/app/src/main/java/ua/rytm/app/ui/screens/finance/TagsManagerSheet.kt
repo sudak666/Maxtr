@@ -49,7 +49,9 @@ import androidx.compose.ui.text.input.ImeAction
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Close
-import ua.rytm.app.ui.icons.Delete
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 
 // Mirrors js/finance.js's tags-modal — see TagsManagerViewModel's doc comment for scope.
 @androidx.compose.material3.ExperimentalMaterial3Api
@@ -84,10 +86,28 @@ fun TagsManagerSheet(
             }
 
             viewModel.tags.forEach { tag ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    Box(Modifier.size(20.dp).background(Color(tag.colorHex), CircleShape))
-                    Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { viewModel.requestDelete(tag.id) }, colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.14f), contentColor = MaterialTheme.colorScheme.error)) { Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.action_delete)) }
+                val deleteLabel = stringResource(R.string.action_delete)
+                // key: a row's swipe state must not pass to its neighbour when a tag is removed.
+                androidx.compose.runtime.key(tag.id) {
+                    ua.rytm.app.ui.screens.DebtEntrySwipeContainer(
+                        canEdit = true,
+                        onDelete = { viewModel.requestDelete(tag.id) },
+                        pendingConfirmation = viewModel.pendingDeleteId == tag.id,
+                    ) {
+                        // Swipe has no TalkBack equivalent, hence the custom action.
+                        androidx.compose.material3.Surface(
+                            modifier = Modifier.fillMaxWidth().semantics {
+                                customActions = listOf(CustomAccessibilityAction(deleteLabel) { viewModel.requestDelete(tag.id); true })
+                            },
+                            shape = MaterialTheme.shapes.large,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ) {
+                            Row(Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget).padding(horizontal = RytmSpacing.lg), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                                Box(Modifier.size(20.dp).background(Color(tag.colorHex), CircleShape))
+                                Text(tag.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
 
