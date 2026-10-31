@@ -1,5 +1,7 @@
 # Changelog
 
+- **2.6.6 (vc35) sent to Play (2026-10-31)** — final AAB built from `0934216` (through #673), uploaded by the owner, status «Зміни на перевірці». Next bump vc36. Gotcha: #667 was merged with red Android CI because the command merged regardless of checks, and a regex took neighbouring strings from one-line `strings.xml` entries; #668 fixed `main`. Merge commands must be gated on the check result.
+
 - **Android profile card: tap to edit (2026-10-31)** — the name row opens editing with a chevron instead of a pencil; the field and buttons sit below at full width.
 
 - **Android converter: no «З»/«В» labels (2026-10-31)** — the order of the fields and the swap button already show the direction.
