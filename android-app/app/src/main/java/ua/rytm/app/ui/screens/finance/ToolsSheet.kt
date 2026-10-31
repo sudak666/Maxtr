@@ -378,7 +378,6 @@ private fun ConverterSection(vm: ToolsViewModel) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
     Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
         Text(stringResource(R.string.converter_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-        Text(stringResource(R.string.converter_from), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = vm.converterAmount,
@@ -394,7 +393,6 @@ private fun ConverterSection(vm: ToolsViewModel) {
                 Icon(RytmIcons.SwapHoriz, contentDescription = stringResource(R.string.converter_swap), tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
-        Text(stringResource(R.string.converter_to), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Card(
                 modifier = Modifier.weight(1f).height(56.dp),
