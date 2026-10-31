@@ -47,8 +47,8 @@ class CategoriesManagerViewModel(
 
     // Mirrors js/state.js's AppState.expandedCatIdx — which category row (by id,
     // not index — Android's list isn't positionally stable the way the PWA's
-    // array is) currently shows its subcategory panel expanded.
-    var expandedCategoryId by mutableStateOf<String?>(null)
+    // array is) currently shows its subcategory panel expanded. By name: a sync re-creates ids.
+    var expandedCategoryName by mutableStateOf<String?>(null)
         private set
     var subcategoriesByKey by mutableStateOf<Map<String, List<String>>>(emptyMap())
         private set
@@ -56,7 +56,7 @@ class CategoriesManagerViewModel(
         private set
     // The category name currently showing the icon-picker sheet — null when
     // closed. Mirrors js/settings-managers.js's catIconPickIdx (an index
-    // there; a name here, same reasoning as expandedCategoryId above for why
+    // there; a name here, same reasoning as expandedCategoryName above for why
     // Android uses a stable key instead of a positional index).
     var iconPickerCategory by mutableStateOf<String?>(null)
         private set
@@ -88,11 +88,11 @@ class CategoriesManagerViewModel(
     fun setType(type: TxType) {
         activeType = type
         categories = allByType[type].orEmpty()
-        expandedCategoryId = null
+        expandedCategoryName = null
     }
 
-    fun toggleExpanded(id: String) {
-        expandedCategoryId = if (expandedCategoryId == id) null else id
+    fun toggleExpanded(name: String) {
+        expandedCategoryName = if (expandedCategoryName == name) null else name
     }
 
     fun subcategoriesFor(categoryName: String): List<String> =

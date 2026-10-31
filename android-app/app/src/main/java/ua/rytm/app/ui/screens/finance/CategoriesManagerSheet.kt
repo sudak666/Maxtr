@@ -97,7 +97,9 @@ fun CategoriesManagerSheet(
     var openMenuId by rememberSaveable { mutableStateOf<String?>(null) }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+            // The add row stays pinned: at the end of a long list it sat under the navigation bar.
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             RytmSheetTitle(stringResource(R.string.categories_title), subtitle = stringResource(R.string.categories_body))
 
             Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
@@ -117,7 +119,7 @@ fun CategoriesManagerSheet(
             }
 
             viewModel.categories.forEach { (id, name) ->
-                val expanded = viewModel.expandedCategoryId == id
+                val expanded = viewModel.expandedCategoryName == name
                 val subs = viewModel.subcategoriesFor(name)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -137,7 +139,7 @@ fun CategoriesManagerSheet(
                             .fillMaxWidth()
                             .heightIn(min = 52.dp)
                             .clip(RoundedCornerShape(RytmRadii.Control))
-                            .clickable(onClickLabel = subsLabel, role = Role.Button) { newSubName = ""; addingSub = false; viewModel.toggleExpanded(id) },
+                            .clickable(onClickLabel = subsLabel, role = Role.Button) { newSubName = ""; addingSub = false; viewModel.toggleExpanded(name) },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         val iconAction = stringResource(R.string.category_change_icon, localizedDomainText(name))
@@ -235,6 +237,7 @@ fun CategoriesManagerSheet(
                     }
                 }
                 }
+            }
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
