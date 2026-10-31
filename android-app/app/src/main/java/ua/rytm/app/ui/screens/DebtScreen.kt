@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.material3.Card
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -311,7 +312,11 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 AlertDialog(
                     onDismissRequest = { addOpen = false },
                     title = { Text(stringResource(R.string.debt_new_default)) },
-                    text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }) },
+                    text = {
+                        val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+                        OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
+                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                    },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
                         Button(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
@@ -608,7 +613,6 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                             Text("${parsePlainDebtAmount(entry.amount)?.let { ua.rytm.app.ui.screens.finance.formatMoney(it) } ?: entry.amount} $currency", fontWeight = FontWeight.SemiBold)
                             Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { viewModel.toggleEntryEdit(entry.id) }) { Icon(RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit)) }
                     }
                 }
             }
