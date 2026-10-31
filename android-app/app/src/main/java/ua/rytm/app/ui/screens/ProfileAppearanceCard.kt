@@ -74,7 +74,8 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.DarkMode
 import ua.rytm.app.ui.icons.Diamond
-import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.Favorite
 import ua.rytm.app.ui.icons.LightMode
 import ua.rytm.app.ui.icons.Person
@@ -167,46 +168,54 @@ fun ProfileAppearanceCard(
         shape = RoundedCornerShape(RytmRadii.Card),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Row(modifier = Modifier.padding(RytmSpacing.lg), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-            if (showAvatar) {
-                ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
-            }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (editing) {
-                    OutlinedTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !busy,
-                        singleLine = true,
-                        placeholder = { Text(stringResource(R.string.profile_nickname)) },
-                    )
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
-                        OutlinedButton(
-                            onClick = { draft = appearance.nickname; editing = false },
-                            enabled = !busy,
-                            shape = RoundedCornerShape(RytmRadii.Row),
-                        ) { Text(stringResource(R.string.action_cancel)) }
-                        Button(
-                            onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) },
-                            enabled = !busy && draft.trim() != appearance.nickname,
-                            shape = RoundedCornerShape(RytmRadii.Row),
-                        ) { Text(stringResource(R.string.action_save)) }
-                    }
-                } else {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+                if (showAvatar) {
+                    ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
+                }
+                // Same as the manager lists: the row opens editing, a quiet chevron hints at it.
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(RytmRadii.Control))
+                        .clickable(enabled = !busy, onClickLabel = stringResource(R.string.profile_edit_nickname), role = androidx.compose.ui.semantics.Role.Button) {
+                            draft = appearance.nickname
+                            editing = !editing
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = appearance.nickname.ifBlank { stringResource(R.string.profile_nickname) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f),
                         )
-                        IconButton(onClick = { editing = true }, enabled = !busy) {
-                            Icon(RytmIcons.Edit, stringResource(R.string.profile_edit_nickname))
-                        }
+                        Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    Icon(if (editing) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (editing) {
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !busy,
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.profile_nickname)) },
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
+                    OutlinedButton(
+                        onClick = { draft = appearance.nickname; editing = false },
+                        enabled = !busy,
+                        shape = RoundedCornerShape(RytmRadii.Row),
+                    ) { Text(stringResource(R.string.action_cancel)) }
+                    Button(
+                        onClick = { editing = false; save(appearance.copy(nickname = draft.trim()), nicknameSaved) },
+                        enabled = !busy && draft.trim() != appearance.nickname,
+                        shape = RoundedCornerShape(RytmRadii.Row),
+                    ) { Text(stringResource(R.string.action_save)) }
+                }
             }
         }
     }
