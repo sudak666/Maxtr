@@ -13,7 +13,10 @@ import java.util.zip.ZipInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 
 data class StatementRow(val date: String, val time: String, val details: String, val amount: Double)
-data class Statement(val cardLast4: String?, val rows: List<StatementRow>)
+const val MONO_PACKAGE = "com.ftband.mono"
+const val PUMB_PACKAGE = "com.fuib.android.spot.online"
+
+data class Statement(val cardLast4: String?, val rows: List<StatementRow>, val bankPackage: String = MONO_PACKAGE, val totals: BankTotals? = null)
 
 /**
  * Reads monobank's card statement. The file is named .xls but is a real xlsx:
@@ -84,7 +87,7 @@ fun Statement.toTransactions(
     createdBy: String?,
     createdByName: String?,
 ): List<TransactionEntity> {
-    val wallet = WalletMatcher.pick(wallets, cardLast4, "com.ftband.mono", "UAH") ?: wallets.firstOrNull() ?: return emptyList()
+    val wallet = WalletMatcher.pick(wallets, cardLast4, bankPackage, "UAH") ?: wallets.firstOrNull() ?: return emptyList()
     val ids = existing.mapTo(HashSet()) { it.id }
     val taken = existing.groupingBy { Triple(it.type, it.date.take(10), it.amount) }.eachCount().toMutableMap()
     return rows.mapNotNull { row ->

@@ -363,7 +363,7 @@
     <string name="settings_csv_export">Експорт CSV</string>
     <string name="settings_csv_export_subtitle">Зберегти всі фінансові операції</string>
     <string name="settings_csv_import">Імпорт CSV</string>
-    <string name="settings_csv_import_subtitle">Експорт Rytm або виписка monobank</string>
+    <string name="settings_csv_import_subtitle">Експорт Rytm, виписка monobank чи ПУМБ</string>
     <string name="settings_search_empty">Нічого не знайдено</string>
     <string name="settings_search_empty_body">Спробуй інший пошуковий запит</string>
     <string name="settings_push_enabled">Push-сповіщення увімкнено</string>
@@ -631,4 +631,5 @@
     <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
     <string name="onboarding_first_expense">Додати першу витрату</string>
     <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
+    <string name="statement_totals_gap">Рядки виписки не збігаються з підсумками банку: списання %1$s, зарахування %2$s. Частина операцій може бути скасована, перевір їх після імпорту.</string>
 </resources>

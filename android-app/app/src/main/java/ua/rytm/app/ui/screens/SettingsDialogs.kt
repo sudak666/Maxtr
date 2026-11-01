@@ -126,6 +126,13 @@ fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: 
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
+                preview.totalsGap?.let { (debits, credits) ->
+                    Text(
+                        stringResource(R.string.statement_totals_gap, ua.rytm.app.ui.screens.finance.formatMoney(debits), ua.rytm.app.ui.screens.finance.formatMoney(credits)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 preview.errors.take(10).forEach { error ->
                     Text(csvImportErrorText(error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }

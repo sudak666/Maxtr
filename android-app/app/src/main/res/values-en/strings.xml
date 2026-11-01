@@ -357,7 +357,7 @@
     <string name="settings_csv_export">Export CSV</string>
     <string name="settings_csv_export_subtitle">Save all financial transactions</string>
     <string name="settings_csv_import">Import CSV</string>
-    <string name="settings_csv_import_subtitle">Rytm export or monobank statement</string>
+    <string name="settings_csv_import_subtitle">Rytm export, monobank or PUMB statement</string>
     <string name="settings_search_empty">Nothing found</string>
     <string name="settings_search_empty_body">Try another search query</string>
     <string name="settings_push_enabled">Push notifications enabled</string>
@@ -621,4 +621,5 @@
     <string name="debt_direction_owe">I owe</string><string name="debt_direction_owed">Owed to me</string><string name="debt_owed_balance">Owed to you</string><string name="debt_received">Received</string>
     <string name="onboarding_first_expense">Add first expense</string>
     <string name="bank_auto_save_title">Save familiar operations automatically</string><string name="bank_auto_save_hint">After 3 operations from a merchant in one category. You can undo from the notification.</string>
+    <string name="statement_totals_gap">Statement rows differ from the bank totals: debits %1$s, credits %2$s. Some operations may be cancelled, check them after importing.</string>
 </resources>
