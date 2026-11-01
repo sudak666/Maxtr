@@ -496,7 +496,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
                     },
                     SettingsLink(RytmIcons.Upload, R.string.settings_csv_import, R.string.settings_csv_import_subtitle) {
-                        if (!csvBusy) csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain"))
+                        if (!csvBusy) csvImportLauncher.launch(arrayOf("*/*"))
                     },
                 )
                 financeRows.forEachIndexed { i, row ->

@@ -357,7 +357,7 @@
     <string name="settings_csv_export">Export CSV</string>
     <string name="settings_csv_export_subtitle">Save all financial transactions</string>
     <string name="settings_csv_import">Import CSV</string>
-    <string name="settings_csv_import_subtitle">Add transactions from a Rytm export</string>
+    <string name="settings_csv_import_subtitle">Rytm export or monobank statement</string>
     <string name="settings_search_empty">Nothing found</string>
     <string name="settings_search_empty_body">Try another search query</string>
     <string name="settings_push_enabled">Push notifications enabled</string>

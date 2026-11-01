@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.flow.first
+import ua.rytm.app.data.toTransactions
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import com.google.firebase.auth.FirebaseAuth
@@ -95,9 +97,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         csvBusy = true
         viewModelScope.launch {
             try {
-                val text = withContext(Dispatchers.IO) {
-                    app.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                val bytes = withContext(Dispatchers.IO) { app.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+                if (bytes != null && ua.rytm.app.data.MonobankStatement.isXlsx(bytes)) {
+                    val me = FirebaseAuth.getInstance().currentUser
+                    val finance = app.financeRepository
+                    val new = withContext(Dispatchers.Default) { ua.rytm.app.data.MonobankStatement.parse(bytes) }.toTransactions(
+                        finance.wallets.first(), finance.transactions.first(), finance.categoriesByType.first(),
+                        me?.uid, me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
+                    )
+                    if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty) else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList())
+                    return@launch
                 }
+                val text = bytes?.toString(Charsets.UTF_8)
                 if (text == null) {
                     message = SettingsMessage.Text(R.string.settings_csv_read_failed)
                     return@launch
