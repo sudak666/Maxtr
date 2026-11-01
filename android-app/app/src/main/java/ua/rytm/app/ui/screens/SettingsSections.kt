@@ -140,7 +140,7 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
         val autoSave by store.bankAutoSave.collectAsState(initial = false)
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         androidx.compose.foundation.layout.Row(
-            androidx.compose.ui.Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            androidx.compose.ui.Modifier.fillMaxWidth().padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.weight(1f)) {
