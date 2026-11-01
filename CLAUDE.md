@@ -55,7 +55,7 @@ There is now a root `package.json` and a Vite build step (see "Build tooling" un
 ### Layout
 - `index.html` — markup, CSS, four classic `<script src>` tags plus `js/app.js` as the module-graph entry point (see "`index.html` script structure" below).
 - `js/` — app logic, native ES modules (27 as of 2026-10) (no bundler needed for the source tree — browser resolves relative `import`s directly). See "`js/` module layout" below.
-- `functions/` — separate Node 20 npm project (Cloud Functions v2, `firebase-admin`+`firebase-functions`), deployed independently.
+- `functions/` — separate Node 22 npm project (Cloud Functions v2, `firebase-admin`+`firebase-functions`), deployed independently.
 - `firebase.json` / `firestore.rules` / `manifest.json` — Hosting, Firestore rules, PWA manifest.
 - `sw.js` — the single service worker: PWA asset caching (network-first HTML, cache-first everything else) **and** FCM background push display, merged into one file because a scope can only have one active SW (there is no separate `firebase-messaging-sw.js` — don't recreate one). `FIREBASE_SDK_ASSETS` precaches the exact gstatic SDK URLs `index.html` statically imports (a static ES module import is all-or-nothing) — if the pinned SDK version in `index.html` changes, update this list and bump `CACHE_NAME`. `STATIC_ASSETS` lists every same-origin file needed for a cold offline start — add any new `js/*.js` file here too.
   **Review trap:** any PR that changes a file listed in `STATIC_ASSETS` or `FIREBASE_SDK_ASSETS` must include a root `sw.js` `CACHE_NAME` bump in the same commit/PR. Do not rely only on the `dist/` hash; already-installed PWA/TWA clients and the GitHub Pages mirror need the checked-in service worker byte to change.

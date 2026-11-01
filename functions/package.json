@@ -1,7 +1,7 @@
 {
   "name": "rytm-functions",
   "description": "Scheduled push-notification sweep for Rytm (budget/recurring/daily reminders while the app is closed).",
-  "engines": { "node": "20" },
+  "engines": { "node": "22" },
   "main": "index.js",
   "scripts": {
     "deploy": "firebase deploy --only functions"
