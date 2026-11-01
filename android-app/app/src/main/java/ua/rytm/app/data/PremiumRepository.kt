@@ -38,7 +38,7 @@ data class PremiumOffer(val details: ProductDetails, val offerToken: String, val
  * QA and debug builds cannot buy, because Play sells to ua.rytm.app only.
  */
 class PremiumRepository(context: Context, private val settings: SettingsStore, private val scope: CoroutineScope) {
-    private val gated = BuildConfig.BUILD_TYPE == "release"
+    private val gated = GATE_ENABLED && BuildConfig.BUILD_TYPE == "release"
     private val owned = MutableStateFlow<Boolean?>(null)
     private val _offers = MutableStateFlow<List<PremiumOffer>>(emptyList())
     val offers: StateFlow<List<PremiumOffer>> = _offers.asStateFlow()
@@ -98,5 +98,7 @@ class PremiumRepository(context: Context, private val settings: SettingsStore, p
 
     companion object {
         const val PRODUCT_ID = "rytm_premium"
+        // Off until the merchant account and the Play product exist (owner, 2026-11-01).
+        const val GATE_ENABLED = false
     }
 }
