@@ -238,6 +238,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) settingsViewModel.exportCsv(uri, language)
     }
+    var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
     val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) settingsViewModel.readImport(uri)
     }
@@ -495,6 +496,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     SettingsLink(RytmIcons.Download, R.string.settings_csv_export, R.string.settings_csv_export_subtitle) {
                         if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
                     },
+                    SettingsLink(RytmIcons.AccountBalance, R.string.settings_monobank, R.string.settings_monobank_subtitle) { monobankSheetOpen = true },
                     SettingsLink(RytmIcons.Upload, R.string.settings_csv_import, R.string.settings_csv_import_subtitle) {
                         if (!csvBusy) csvImportLauncher.launch(arrayOf("*/*"))
                     },
@@ -584,6 +586,17 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             isSharedProfile = activeProfileOwnerUid != null,
             settingsViewModel = settingsViewModel,
             onProfileSwitched = { pendingMessage = resources.getString(R.string.settings_profile_switched) },
+        )
+    }
+
+    if (monobankSheetOpen && uid != null) {
+        ua.rytm.app.ui.screens.finance.MonobankManagerSheet(
+            uid = activeProfileOwnerUid ?: uid,
+            profileId = activeProfileId,
+            repository = app.monobankRepository,
+            syncCoordinator = app.monobankSyncCoordinator,
+            financeRepository = app.financeRepository,
+            onDismiss = { monobankSheetOpen = false },
         )
     }
 

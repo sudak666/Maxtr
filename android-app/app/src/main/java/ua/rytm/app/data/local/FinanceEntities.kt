@@ -39,8 +39,7 @@ data class TransactionEntity(
     val comment: String?,
     val tags: String, // comma-joined; "" when empty
     val createdAt: Long,
-    // Legacy: set only by the removed Monobank import (2026-09-27). Kept so the
-    // Room schema (v16) needs no table-rebuild migration; nothing writes it now.
+    // The bank's statement id: Monobank sync skips what it already imported.
     val monobankId: String? = null,
     // Who added it (uid + display name at write time) — powers per-member
     // contributions in a shared profile. Null for older rows.

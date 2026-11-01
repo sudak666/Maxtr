@@ -125,6 +125,8 @@ class RytmApplication : Application() {
     val transactionsCsvRepository: ua.rytm.app.data.TransactionsCsvRepository by lazy { ua.rytm.app.data.TransactionsCsvRepository(database, FirebaseFirestore.getInstance()) }
     /** Process-lifetime scope for work that must outlive any single screen. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val monobankRepository: ua.rytm.app.data.MonobankRepository by lazy { ua.rytm.app.data.MonobankRepository(database, com.google.firebase.firestore.FirebaseFirestore.getInstance(), com.google.firebase.auth.FirebaseAuth.getInstance()) }
+    val monobankSyncCoordinator: ua.rytm.app.data.MonobankSyncCoordinator by lazy { ua.rytm.app.data.MonobankSyncCoordinator(monobankRepository, appScope) }
 
     /**
      * One-shot action requested from outside the UI (home-screen widget "+").
