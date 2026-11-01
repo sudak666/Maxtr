@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,9 +82,20 @@ fun WalletsManagerSheet(
     ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollState = rememberScrollState()
+    var createOpen by rememberSaveable { mutableStateOf(false) }
+    var revealNewWallet by remember { mutableStateOf(false) }
+
+    // A new wallet lands at the end of the list, which may be off screen.
+    androidx.compose.runtime.LaunchedEffect(viewModel.wallets.size) {
+        if (!revealNewWallet) return@LaunchedEffect
+        revealNewWallet = false
+        androidx.compose.runtime.withFrameNanos { }
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(scrollState).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.wallets_title), subtitle = stringResource(R.string.wallets_body))
 
             viewModel.errorMessageRes?.let { messageRes ->
@@ -112,12 +124,22 @@ fun WalletsManagerSheet(
                 )
             }
 
-            val newWalletName = stringResource(R.string.wallet_new_default)
-            androidx.compose.material3.Button(onClick = { viewModel.addWallet(newWalletName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+            androidx.compose.material3.Button(onClick = { createOpen = true }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Icon(RytmIcons.Add, contentDescription = null)
                 Text(stringResource(R.string.wallet_add))
             }
         }
+    }
+
+    if (createOpen) {
+        WalletCreateDialog(
+            onDismiss = { createOpen = false },
+            onCreate = { name, currency, kind, opening ->
+                revealNewWallet = true
+                viewModel.addWallet(name, currency, kind, opening)
+                createOpen = false
+            },
+        )
     }
 
     viewModel.pendingDeleteId?.let {
@@ -127,6 +149,101 @@ fun WalletsManagerSheet(
             onConfirm = viewModel::confirmDelete,
             onDismiss = viewModel::cancelDelete,
         )
+    }
+}
+
+/** Nothing is saved until the user confirms, so a stray tap leaves no placeholder wallet. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WalletCreateDialog(onDismiss: () -> Unit, onCreate: (name: String, currency: String, kind: String, openingBalance: Double) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var currency by rememberSaveable { mutableStateOf("UAH") }
+    var kind by rememberSaveable { mutableStateOf("card") }
+    var openingText by rememberSaveable { mutableStateOf("") }
+    var currencyExpanded by remember { mutableStateOf(false) }
+    val opening = if (openingText.isBlank()) 0.0 else openingText.replace(',', '.').toDoubleOrNull()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.wallet_new_default)) },
+        text = {
+            val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.field_name)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Sentences),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                )
+                WalletCurrencyField(currency, currencyExpanded, { currencyExpanded = it }) { currency = it }
+                WalletKindChips(kind) { kind = it }
+                OutlinedTextField(
+                    value = openingText,
+                    onValueChange = { openingText = it },
+                    singleLine = true,
+                    isError = opening == null,
+                    label = { Text(stringResource(R.string.wallet_opening_balance)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            androidx.compose.runtime.LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        },
+        confirmButton = {
+            androidx.compose.material3.Button(
+                onClick = { opening?.let { onCreate(name, currency, kind, it) } },
+                enabled = name.isNotBlank() && opening != null,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row),
+            ) { Text(stringResource(R.string.action_add)) }
+        },
+        dismissButton = {
+            androidx.compose.material3.OutlinedButton(onClick = onDismiss, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WalletCurrencyField(currency: String, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onPick: (String) -> Unit) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpandedChange, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedTextField(
+            value = currency,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(stringResource(R.string.field_currency)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+            CURRENCY_LIST.forEach { code ->
+                DropdownMenuItem(text = { Text(code) }, onClick = { onPick(code); onExpandedChange(false) })
+            }
+        }
+    }
+}
+
+/** The hint only appears for the kinds it is true of. */
+@Composable
+private fun WalletKindChips(selected: String, onSelect: (String) -> Unit) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+        WALLET_KINDS.forEach { kind ->
+            androidx.compose.material3.FilterChip(
+                selected = selected == kind,
+                onClick = { onSelect(kind) },
+                label = {
+                    Text(
+                        stringResource(when (kind) { "cash" -> R.string.wallet_kind_cash; "deposit" -> R.string.wallet_kind_deposit; "credit" -> R.string.wallet_kind_credit; else -> R.string.wallet_kind_card }),
+                        maxLines = 1,
+                    )
+                },
+            )
+        }
+    }
+    if (selected == "deposit" || selected == "credit") {
+        Text(stringResource(R.string.wallet_kind_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -209,22 +326,7 @@ private fun WalletRow(
                         justSaved = false
                     }
                 }
-                ExposedDropdownMenuBox(expanded = currencyExpanded, onExpandedChange = { currencyExpanded = it }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    OutlinedTextField(
-                        value = wallet.currency,
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.field_currency)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = currencyExpanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                    )
-                    ExposedDropdownMenu(expanded = currencyExpanded, onDismissRequest = { currencyExpanded = false }) {
-                        CURRENCY_LIST.forEach { code ->
-                            DropdownMenuItem(text = { Text(code) }, onClick = { onCurrencyChange(code); currencyExpanded = false })
-                        }
-                    }
-                }
+                WalletCurrencyField(wallet.currency, currencyExpanded, { currencyExpanded = it }, onCurrencyChange)
                 WalletAccountingFields(wallet, onUpdate)
                 // Apart from the fields, so it can't be hit while editing them.
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
@@ -251,21 +353,7 @@ private fun WalletAccountingFields(wallet: Wallet, onUpdate: (Wallet) -> Unit) {
         val amount = if (openingText.isBlank()) 0.0 else openingText.replace(',', '.').toDoubleOrNull()
         if (amount != null && amount != wallet.openingBalance) onUpdate(wallet.copy(openingBalance = amount))
     }
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
-        WALLET_KINDS.forEach { kind ->
-            androidx.compose.material3.FilterChip(
-                selected = wallet.kind == kind,
-                onClick = { onUpdate(wallet.copy(kind = kind)) },
-                label = {
-                    Text(
-                        stringResource(when (kind) { "cash" -> R.string.wallet_kind_cash; "deposit" -> R.string.wallet_kind_deposit; "credit" -> R.string.wallet_kind_credit; else -> R.string.wallet_kind_card }),
-                        maxLines = 1,
-                    )
-                },
-            )
-        }
-    }
-    Text(stringResource(R.string.wallet_kind_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    WalletKindChips(wallet.kind) { onUpdate(wallet.copy(kind = it)) }
     WalletSwitch(R.string.wallet_in_capital, R.string.wallet_in_capital_hint, wallet.inCapital) { onUpdate(wallet.copy(inCapital = it)) }
     WalletSwitch(R.string.wallet_in_stats, R.string.wallet_in_stats_hint, wallet.inStats) { onUpdate(wallet.copy(inStats = it)) }
 }

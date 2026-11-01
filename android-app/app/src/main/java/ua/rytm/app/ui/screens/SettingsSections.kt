@@ -29,6 +29,9 @@ import ua.rytm.app.ui.icons.Description
 import ua.rytm.app.ui.icons.PrivacyTip
 import ua.rytm.app.ui.icons.Public
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.CalendarMonth
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 /** Picks the day the user's month starts (1 = calendar month). */
 @Composable
@@ -36,7 +39,7 @@ import ua.rytm.app.ui.icons.RytmIcons
 internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
     SettingsRow(
-        icon = RytmIcons.AccountBalanceWallet,
+        icon = RytmIcons.CalendarMonth,
         badgeColor = SettingsGroupColors.Appearance,
         title = stringResource(R.string.settings_month_start),
         subtitle = if (startDay == 1) stringResource(R.string.settings_month_start_calendar) else stringResource(R.string.settings_month_start_day, startDay),
@@ -47,6 +50,8 @@ internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> 
         onDismissRequest = { open = false },
         sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
+        // The content insets are zero (RytmModalBottomSheet), so a sheet keeps itself above the nav bar.
+        androidx.compose.foundation.layout.Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()).navigationBarsPadding()) {
         Text(stringResource(R.string.settings_month_start_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = RytmSpacing.lg))
         Text(
             stringResource(R.string.settings_month_start_hint),
@@ -71,6 +76,7 @@ internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> 
             }
         }
         androidx.compose.foundation.layout.Spacer(Modifier.padding(bottom = RytmSpacing.lg))
+        }
     }
 }
 

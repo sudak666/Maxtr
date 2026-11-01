@@ -216,11 +216,11 @@ internal fun rememberSettingsKeywords(vararg @StringRes ids: Int): List<String> 
 }
 
 @Composable
-internal fun SettingsSectionLabel(text: String) {
+internal fun SettingsSectionLabel(text: String, color: androidx.compose.ui.graphics.Color = ua.rytm.app.ui.theme.RytmSemantic.link) {
     Text(
         text,
         style = MaterialTheme.typography.labelMedium,
-        color = ua.rytm.app.ui.theme.RytmSemantic.link,
+        color = color,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = RytmSpacing.xl, bottom = 6.dp),
     )

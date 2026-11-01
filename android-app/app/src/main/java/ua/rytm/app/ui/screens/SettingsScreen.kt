@@ -495,12 +495,12 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     SettingsLink(RytmIcons.Repeat, R.string.recurring_title, R.string.settings_recurring_subtitle) { openSheet = SettingsSheet.Recurring },
                     SettingsLink(RytmIcons.Tune, R.string.auto_rules_title, R.string.settings_auto_rules_subtitle) { openSheet = SettingsSheet.AutoRules },
                     SettingsLink(RytmIcons.Style, R.string.shift_types_title, R.string.settings_shift_types_subtitle) { openSheet = SettingsSheet.ShiftTypes },
-                    SettingsLink(RytmIcons.Download, R.string.settings_csv_export, R.string.settings_csv_export_subtitle) {
-                        if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
-                    },
                     SettingsLink(RytmIcons.AccountBalance, R.string.settings_monobank, R.string.settings_monobank_subtitle) { if (app.premiumRepository.isPremium.value) monobankSheetOpen = true else paywallOpen = true },
                     SettingsLink(RytmIcons.Upload, R.string.settings_csv_import, R.string.settings_csv_import_subtitle) {
                         if (!csvBusy) csvImportLauncher.launch(arrayOf("*/*"))
+                    },
+                    SettingsLink(RytmIcons.Download, R.string.settings_csv_export, R.string.settings_csv_export_subtitle) {
+                        if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
                     },
                 )
                 financeRows.forEachIndexed { i, row ->
@@ -521,7 +521,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             // P5 #8: destructive actions sit in their own group at the bottom
             // instead of between Profiles and Backups in "Акаунт".
             if (uid != null && accountVisible) { item(key = "settings-danger") {
-                SettingsSectionLabel(stringResource(R.string.settings_danger_zone))
+                SettingsSectionLabel(stringResource(R.string.settings_danger_zone), color = MaterialTheme.colorScheme.error)
                 SettingsGroupCard {
                     SettingsRow(
                         icon = RytmIcons.RestartAlt,

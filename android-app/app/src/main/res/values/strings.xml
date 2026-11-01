@@ -32,9 +32,9 @@
     <string name="wallet_kind_card">Картка</string>
     <string name="wallet_kind_deposit">Депозит</string>
     <string name="wallet_kind_credit">Кредит</string>
-    <string name="wallet_in_capital">Враховувати в капіталі</string>
+    <string name="wallet_in_capital">Рахувати в загальному балансі</string>
     <string name="wallet_in_capital_hint">Коли вимкнено, залишок не входить у загальний баланс.</string>
-    <string name="wallet_in_stats">Враховувати в обліку</string>
+    <string name="wallet_in_stats">Рахувати в статистиці й бюджетах</string>
     <string name="wallet_in_stats_hint">Коли вимкнено, операції не входять у підсумки, статистику й бюджети за всі періоди. Баланс рахунку не зміниться.</string>
     <string name="wallet_add">Додати гаманець</string>
     <string name="wallet_delete_title">Видалити гаманець</string>
@@ -360,10 +360,10 @@
     <string name="settings_recurring_subtitle">Операції за розкладом</string>
     <string name="settings_auto_rules_subtitle">Категорія за словом у коментарі</string>
     <string name="settings_shift_types_subtitle">Оплата, години та кольори для графіка змін</string>
-    <string name="settings_csv_export">Експорт CSV</string>
-    <string name="settings_csv_export_subtitle">Зберегти всі фінансові операції</string>
-    <string name="settings_csv_import">Імпорт CSV</string>
-    <string name="settings_csv_import_subtitle">Експорт Rytm, виписка monobank чи ПУМБ</string>
+    <string name="settings_csv_export">Експорт операцій</string>
+    <string name="settings_csv_export_subtitle">Зберегти всі операції у файл CSV</string>
+    <string name="settings_csv_import">Імпорт операцій</string>
+    <string name="settings_csv_import_subtitle">З файлу: виписка monobank чи ПУМБ або збережений CSV</string>
     <string name="settings_search_empty">Нічого не знайдено</string>
     <string name="settings_search_empty_body">Спробуй інший пошуковий запит</string>
     <string name="settings_push_enabled">Push-сповіщення увімкнено</string>
@@ -537,6 +537,8 @@
     <string name="bank_disclosure_body">Rytm читатиме лише сповіщення банківських застосунків (monobank, ПУМБ, Приват24 та ін.), щоб запропонувати додати операцію із сумою та назвою продавця.\n\n• Сповіщення інших застосунків не читаються.\n• Текст розбирається лише на телефоні, нікуди не надсилається й не зберігається.\n• Операція зберігається тільки твоєю дією: після перевірки у формі або натисканням кнопки категорії в самому сповіщенні (таке збереження можна скасувати протягом 10 хвилин).\n\nДалі відкриються налаштування Android: увімкни там Rytm. Вимкнути можна будь-коли там само.</string>
     <string name="bank_disclosure_ok">До налаштувань</string>
     <string name="debt_forecast_finish">У такому темпі ≈ до %1$s</string>
+    <string name="debt_forecast_finish_range">Залежно від темпу ≈ %1$d–%2$d</string>
+    <string name="debt_forecast_what_if">Якщо платити %1$s ≈ до %2$s</string>
     <string name="settings_terms_row">Умови використання</string>
     <string name="settings_privacy_row">Політика конфіденційності</string>
     <string name="bank_listener_blocked">Сповіщення Rytm вимкнено — пропозиції не з\'являться. Торкнись, щоб дозволити</string>
@@ -658,5 +660,5 @@
     <string name="settings_monobank_subtitle">Підтягувати операції з карток і банок автоматично</string>
     <string name="premium_body">Облік безкоштовний. Преміум бере на себе ручну роботу.</string><string name="premium_active">Усе це зараз доступно безкоштовно.</string><string name="premium_sync_title">Синхронізація Monobank</string><string name="premium_sync_body">Операції підтягуються з банку самі.</string><string name="premium_import_title">Імпорт виписок</string><string name="premium_import_body">monobank і ПУМБ за кілька дотиків.</string><string name="premium_auto_title">Автозапис операцій</string><string name="premium_auto_body">Знайомі покупки записуються самі.</string><string name="premium_pdf_title">PDF-звіт</string><string name="premium_pdf_body">Підсумок місяця одним файлом.</string><string name="premium_unavailable">Підписка зараз недоступна. Спробуй пізніше.</string><string name="premium_monthly">%1$s на місяць</string><string name="premium_yearly">%1$s на рік</string><string name="premium_trial">14 днів безкоштовно, далі %1$s</string><string name="premium_required">Імпорт виписок доступний у Преміум</string><string name="premium_plan_active">Усе відкрито</string>
     <string name="debt_repayment">Повернення</string><string name="debt_new_repayment">Нове повернення</string><string name="debt_repayment_amount">Сума повернення</string><string name="debt_totals">Я винен: %1$s · Мені винні: %2$s</string>
-    <string name="wallet_kind_hint">Не входить у суму «на день» для депозиту й кредиту.</string>
+    <string name="wallet_kind_hint">Цей рахунок не входить у суму «на день».</string>
 </resources>
