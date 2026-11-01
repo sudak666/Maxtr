@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: wallet form, settings and debt forecast polish (2026-11-01)** — from the owner's screenshots. «Додати гаманець» now opens a dialog (name, currency, kind, opening balance) and saves only on confirm; it used to write a silent «Новий гаманець» at the bottom of the list. The month-start sheet lacked `navigationBarsPadding`, so days 22–28 sat under the system nav bar (`RytmModalBottomSheet` has zero content insets, each sheet handles this itself). Settings: Monobank, import, export in that order, «Імпорт/Експорт операцій», red danger label, calendar icon for month start. The wallet kind hint shows only for deposit/credit, the two switches are renamed. The debt details row has a chevron, the last standalone pencil. The debt forecast shows a year range when the last 3 payments (median) and the last 6 disagree, plus a what-if line at about twice the typical payment. Checked on the A51 with a QA build: month sheet, dialog, Settings, chevron. Not seen live: the forecast lines (the QA account's debt has no payments, unit tests only) and saving a wallet through the dialog. PWA unchanged. No version bump, no APK built for the owner.
+
 - **2.6.8 (vc37) AAB built (2026-10-31)** — vc36 was already taken in Play; includes #678. Copied to the owner's Desktop.
 
 - **Android profile card: clipped letters (2026-10-31)** — the row's rounded clip cut the first letters of the name and email; padding inside the clip fixes it, same for auto-rule rows. Not in the 2.6.7 AAB.

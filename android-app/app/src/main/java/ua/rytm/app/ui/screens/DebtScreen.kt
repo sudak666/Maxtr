@@ -116,9 +116,8 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.CheckCircle
-import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.Delete
-import ua.rytm.app.ui.icons.Edit
+import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.Event
 import ua.rytm.app.ui.icons.ExpandLess
 import ua.rytm.app.ui.icons.Receipt
@@ -465,14 +464,8 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(stringResource(R.string.debt_details), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                // Was a filled primaryContainer circle around this pencil —
-                // every per-payment row's own edit pencil just below (see
-                // DebtEntryContent's IconButton) is a bare icon with no
-                // circle. Same "edit" action, two different visual
-                // treatments a few hundred px apart on the same screen
-                // (reported live via screenshot). Bare icon matches the
-                // row-level convention already established on this exact tab.
-                if (canEdit) Icon(if (viewModel.infoExpanded) RytmIcons.Close else RytmIcons.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                // The row itself is the control; the chevron only shows its state.
+                if (canEdit) Icon(if (viewModel.infoExpanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
         ReducedMotionVisibility(visible = viewModel.infoExpanded) {

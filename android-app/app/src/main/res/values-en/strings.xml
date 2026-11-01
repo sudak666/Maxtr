@@ -28,7 +28,7 @@
     <string name="wallet_kind_credit">Credit</string>
     <string name="wallet_in_capital">Count in total balance</string>
     <string name="wallet_in_capital_hint">When off, this balance is left out of the total.</string>
-    <string name="wallet_in_stats">Count in statistics</string>
+    <string name="wallet_in_stats">Count in statistics and budgets</string>
     <string name="wallet_in_stats_hint">When off, entries are left out of totals, statistics and budgets for all periods. The wallet balance stays the same.</string>
     <string name="wallet_add">Add wallet</string>
     <string name="wallet_delete_title">Delete wallet</string>
@@ -354,10 +354,10 @@
     <string name="settings_recurring_subtitle">Entries on a schedule</string>
     <string name="settings_auto_rules_subtitle">Category from a comment keyword</string>
     <string name="settings_shift_types_subtitle">Pay, hours, and colors for the shift calendar</string>
-    <string name="settings_csv_export">Export CSV</string>
-    <string name="settings_csv_export_subtitle">Save all financial transactions</string>
-    <string name="settings_csv_import">Import CSV</string>
-    <string name="settings_csv_import_subtitle">Rytm export, monobank or PUMB statement</string>
+    <string name="settings_csv_export">Export transactions</string>
+    <string name="settings_csv_export_subtitle">Save all transactions to a CSV file</string>
+    <string name="settings_csv_import">Import transactions</string>
+    <string name="settings_csv_import_subtitle">From a file: monobank or PUMB statement, or a saved CSV</string>
     <string name="settings_search_empty">Nothing found</string>
     <string name="settings_search_empty_body">Try another search query</string>
     <string name="settings_push_enabled">Push notifications enabled</string>
@@ -529,6 +529,8 @@
     <string name="bank_disclosure_body">Rytm will read only notifications from banking apps (monobank, PUMB, Privat24 and others) to suggest adding a transaction with the amount and merchant.\n\n• Other apps\' notifications are never read.\n• The text is parsed on this phone only — never sent anywhere or stored.\n• A transaction is saved only by your action: after checking it in the form, or by tapping a category button in the notification itself (that can be undone for 10 minutes).\n\nAndroid settings open next: turn Rytm on there. You can turn it off any time in the same place.</string>
     <string name="bank_disclosure_ok">Open settings</string>
     <string name="debt_forecast_finish">At this pace ≈ by %1$s</string>
+    <string name="debt_forecast_finish_range">Depending on the pace ≈ %1$d–%2$d</string>
+    <string name="debt_forecast_what_if">Paying %1$s ≈ by %2$s</string>
     <string name="settings_terms_row">Terms of use</string>
     <string name="settings_privacy_row">Privacy policy</string>
     <string name="bank_listener_blocked">Rytm notifications are off — suggestions can\'t appear. Tap to allow</string>
@@ -648,5 +650,5 @@
     <string name="settings_monobank_subtitle">Import card and jar transactions automatically</string>
     <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">All of this is free for now.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB in a few taps.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
-    <string name="wallet_kind_hint">A deposit or credit account is left out of the daily allowance.</string>
+    <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
 </resources>

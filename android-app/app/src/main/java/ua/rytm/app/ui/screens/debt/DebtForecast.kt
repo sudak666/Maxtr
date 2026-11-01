@@ -119,11 +119,24 @@ fun DebtForecastCard(debt: Debt) {
                     Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     // At the user's real cadence: payments left × median gap between them.
                     pace?.typicalGapDays?.let { gap ->
-                        val finish = java.time.LocalDate.now().plusDays(gap * paymentsLeft)
+                        val today = java.time.LocalDate.now()
                         val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
                         // "листопада 2071": format-style (genitive) month after "до".
-                        val label = finish.format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy", locale))
-                        Text(stringResource(R.string.debt_forecast_finish, label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val monthYear = java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy", locale)
+                        val finish = DebtPaceCalc.finishDate(currentBalance, avgDown, gap, today)
+                        val latestFinish = DebtPaceCalc.finishDate(currentBalance, pace.recentPayment, gap, today)
+                        val finishText = if (finish.year == latestFinish.year) {
+                            stringResource(R.string.debt_forecast_finish, finish.format(monthYear))
+                        } else {
+                            stringResource(R.string.debt_forecast_finish_range, minOf(finish.year, latestFinish.year), maxOf(finish.year, latestFinish.year))
+                        }
+                        Text(finishText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val whatIf = DebtPaceCalc.whatIfPayment(avgDown)
+                        Text(
+                            stringResource(R.string.debt_forecast_what_if, maskedAmount("${formatMoney(whatIf)} ${debt.currency}"), DebtPaceCalc.finishDate(currentBalance, whatIf, gap, today).format(monthYear)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }

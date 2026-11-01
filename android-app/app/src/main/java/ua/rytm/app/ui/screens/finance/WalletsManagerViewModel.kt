@@ -54,11 +54,11 @@ class WalletsManagerViewModel(
 
     private val addThrottle = TapThrottle()
 
-    fun addWallet(name: String) {
+    fun addWallet(name: String, currency: String, kind: String, openingBalance: Double) {
         if (!addThrottle.allow()) return
         val color = PALETTE[wallets.size % PALETTE.size]
         mutateAndSync {
-            repository.addWallet(Wallet(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = color, currency = "UAH"))
+            repository.addWallet(Wallet(id = java.util.UUID.randomUUID().toString(), name = name.trim(), colorHex = color, currency = currency, kind = kind, openingBalance = openingBalance))
         }
     }
 
