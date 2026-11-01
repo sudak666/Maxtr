@@ -24,7 +24,7 @@ internal fun csvRowLimitError(amount: Double, targetAmount: Double?, category: S
         else -> if (targetAmount != null && !isStoredAmountValid(targetAmount)) CsvImportErrorReason.AMOUNT_TOO_LARGE else null
     }
 data class CsvImportError(val row: Int, val reason: CsvImportErrorReason, val detail: String? = null)
-data class CsvImportPreview(val transactions: List<TransactionEntity>, val errors: List<CsvImportError>, val totalsGap: Pair<Double, Double>? = null)
+data class CsvImportPreview(val transactions: List<TransactionEntity>, val errors: List<CsvImportError>, val totalsGap: Pair<Double, Double>? = null, val wallets: List<ua.rytm.app.ui.screens.finance.Wallet> = emptyList())
 
 internal data class CsvDialect(val header: List<String>, val income: String, val expense: String, val transfer: String)
 

@@ -632,4 +632,5 @@
     <string name="onboarding_first_expense">Додати першу витрату</string>
     <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
     <string name="statement_totals_gap">Рядки виписки не збігаються з підсумками банку: списання %1$s, зарахування %2$s. Частина операцій може бути скасована, перевір їх після імпорту.</string>
+    <string name="statement_confirm">Імпортувати %1$s? Те, що вже є в обліку, буде пропущено.</string><string name="statement_wallet">Гаманець</string>
 </resources>
