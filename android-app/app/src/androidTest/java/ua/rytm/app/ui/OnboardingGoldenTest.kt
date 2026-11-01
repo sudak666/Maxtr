@@ -49,7 +49,7 @@ class OnboardingGoldenTest {
                 LocalConfiguration provides configuration,
                 LocalDensity provides Density(density = 3f, fontScale = 1f),
             ) {
-                Box(Modifier.size(360.dp, 640.dp)) { RytmTheme(darkTheme = dark) { OnboardingScreen {} } }
+                Box(Modifier.size(360.dp, 640.dp)) { RytmTheme(darkTheme = dark) { OnboardingScreen(onComplete = {}) } }
             }
         }
         compose.waitForIdle()

@@ -31,7 +31,7 @@ class OnboardingScreenTest {
         compose.onNodeWithText(context.getString(R.string.onboarding_shifts_title)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.action_next)).performClick()
         compose.onNodeWithText(context.getString(R.string.onboarding_security_title)).assertIsDisplayed()
-        compose.onNodeWithText(context.getString(R.string.action_done)).performClick()
+        compose.onNodeWithText(context.getString(R.string.onboarding_first_expense)).performClick()
 
         compose.runOnIdle { assertEquals(true, completed) }
     }

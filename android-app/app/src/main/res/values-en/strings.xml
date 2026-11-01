@@ -619,4 +619,5 @@
     <string name="finance_starting_balance">Starting balance</string>
     <string name="subcategory_add">Add subcategory</string>
     <string name="debt_direction_owe">I owe</string><string name="debt_direction_owed">Owed to me</string><string name="debt_owed_balance">Owed to you</string><string name="debt_received">Received</string>
+    <string name="onboarding_first_expense">Add first expense</string>
 </resources>

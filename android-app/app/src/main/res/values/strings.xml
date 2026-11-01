@@ -629,4 +629,5 @@
     <string name="finance_starting_balance">Початковий баланс</string>
     <string name="subcategory_add">Додати підкатегорію</string>
     <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
+    <string name="onboarding_first_expense">Додати першу витрату</string>
 </resources>

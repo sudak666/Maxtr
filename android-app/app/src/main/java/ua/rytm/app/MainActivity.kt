@@ -186,7 +186,10 @@ class MainActivity : FragmentActivity() {
                         when {
                             onboardingComplete == null -> {}
                             onboardingComplete == false -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
-                                OnboardingScreen(onComplete = {
+                                OnboardingScreen(onAddFirstExpense = {
+                                    app.pendingLaunchAction.value = ACTION_NEW_EXPENSE
+                                    lifecycleScope.launch { app.settingsStore.setOnboardingComplete(true) }
+                                }, onComplete = {
                                     lifecycleScope.launch { app.settingsStore.setOnboardingComplete(true) }
                                 })
                             }

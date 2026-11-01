@@ -53,7 +53,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 private data class OnboardingPage(val icon: ImageVector, @StringRes val title: Int, @StringRes val body: Int)
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
+fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> Unit) {
     val pages = remember {
         listOf(
             OnboardingPage(RytmIcons.AccountBalanceWallet, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
@@ -122,13 +122,13 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 }
                 Button(
                     onClick = {
-                        if (page == pages.lastIndex) onComplete()
+                        if (page == pages.lastIndex) (onAddFirstExpense ?: onComplete)()
                         else scope.launch { pagerState.animateScrollToPage(page + 1) }
                     },
                     // heightIn: a fixed 52dp clipped the label at large fonts.
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                     shape = RoundedCornerShape(RytmRadii.Row),
-                ) { Text(stringResource(if (page == pages.lastIndex) R.string.action_done else R.string.action_next)) }
+                ) { Text(stringResource(if (page == pages.lastIndex) R.string.onboarding_first_expense else R.string.action_next)) }
             }
         }
     }
