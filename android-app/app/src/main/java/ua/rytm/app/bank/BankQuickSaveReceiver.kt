@@ -138,6 +138,7 @@ class BankQuickSaveReceiver : BroadcastReceiver() {
         const val TAG = "bank"
         const val ACTION_SAVE = "ua.rytm.app.bank.QUICK_SAVE"
         const val ACTION_UNDO = "ua.rytm.app.bank.QUICK_UNDO"
+        private const val AUTO_SAVE_MIN_HISTORY = 3
         const val EXTRA_CATEGORY = "ua.rytm.app.bank.CATEGORY"
         const val EXTRA_NOTIFICATION_ID = "ua.rytm.app.bank.NOTIFICATION_ID"
         const val EXTRA_TX_ID = "ua.rytm.app.bank.TX_ID"
@@ -171,6 +172,19 @@ class BankQuickSaveReceiver : BroadcastReceiver() {
                 .entries.sortedByDescending { it.value }.map { it.key }
             val frequent = FinanceInsights.frequentCategories(transactions, type, known, today.minusDays(90), limit = 3)
             return (byRule + byMerchant).filter { it in known }.plus(frequent).plus(categories).distinct().take(3)
+        }
+
+        /**
+         * The category to file a merchant under without asking: it has at least
+         * [AUTO_SAVE_MIN_HISTORY] past operations of this type, all in one
+         * category that still exists. Any mixed history means no auto-save.
+         */
+        internal fun confidentCategory(transactions: List<Transaction>, categories: List<String>, isIncome: Boolean, merchant: String?): String? {
+            val key = merchantKey(merchant) ?: return null
+            val type = if (isIncome) TxType.INCOME else TxType.EXPENSE
+            val past = transactions.filter { it.type == type && merchantKey(it.comment) == key }
+            if (past.size < AUTO_SAVE_MIN_HISTORY) return null
+            return past.map { it.category }.distinct().singleOrNull()?.takeIf { it in categories }
         }
 
         /**
