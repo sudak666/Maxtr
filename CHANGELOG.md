@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: release 2.7.0 (vc38)
+
+AAB built locally for the owner's Play upload. Includes every Android change of this day; Premium gate off. New: pdfbox-android and Play Billing, so Play will see the BILLING permission.
+
 ## 2026-11-01: PWA catches up with Android
 
 Wallet opening balance, kind and switches are editable; subcategory limits in the budgets manager and local alerts; debt direction select; last debt deletable; manager delete buttons are red text instead of trash icons (swipe keeps its icon). Still Android-only: statement import (needs zip/PDF parsing in the browser), Monobank, Premium, setting the month start day, debt wording. `sw.js` v197->v198.
