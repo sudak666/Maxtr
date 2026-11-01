@@ -23,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -107,10 +106,10 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
         loading = false
     }
 
-    ModalBottomSheet(onDismissRequest = { if (!busy) onDismiss() }, sheetState = sheet) {
+    ua.rytm.app.ui.components.RytmModalBottomSheet(onDismissRequest = { if (!busy) onDismiss() }, sheetState = sheet) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(ua.rytm.app.ui.theme.RytmSpacing.xl),
+            verticalArrangement = Arrangement.spacedBy(ua.rytm.app.ui.theme.RytmSpacing.md),
         ) {
             RytmSheetTitle("Monobank")
             when {
@@ -149,7 +148,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     Text(mono.clientName.ifBlank { stringResource(R.string.monobank_connected) }, fontWeight = FontWeight.SemiBold)
                     mono.accounts.forEach { account ->
                         Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(Modifier.fillMaxWidth().padding(ua.rytm.app.ui.theme.RytmSpacing.md), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(account.label)
                                 val walletName = mono.mapping[account.id]?.let { id -> wallets.firstOrNull { it.id == id }?.name }
                                 Text(walletName?.let { localizedDomainText(it) } ?: stringResource(R.string.monobank_unmapped, account.currency))
