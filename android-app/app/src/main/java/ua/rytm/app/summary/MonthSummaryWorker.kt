@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
 import ua.rytm.app.MainActivity
 import ua.rytm.app.R
+import ua.rytm.app.ui.screens.finance.forStats
 import ua.rytm.app.RytmApplication
 import ua.rytm.app.push.NOTIFICATION_CHANNEL_ID
 import ua.rytm.app.push.ensureNotificationChannel
@@ -46,7 +47,7 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
         if (app.settingsStore.monthSummaryNotified(uid).first() == month.toString()) return Result.success()
 
         val rates = app.financeRepository.currencyRates.first()
-        val summary = MonthSummary.compute(app.financeRepository.transactions.first(), month) {
+        val summary = MonthSummary.compute(app.financeRepository.transactions.first().forStats(app.financeRepository.wallets.first()), month) {
             app.financeRepository.convertCurrency(it.amount, it.currency, "UAH", rates)
         }
         if (summary.isEmpty) return Result.success()

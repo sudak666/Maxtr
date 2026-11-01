@@ -50,8 +50,8 @@ data class WidgetSnapshot(
             salaryGoal: Double = 0.0,
             recurring: List<ua.rytm.app.ui.screens.finance.Recurring> = emptyList(),
         ): WidgetSnapshot {
-            val balance = wallets.sumOf { w ->
-                convertCurrencyAmount(FinanceRepository.walletBalance(transactions, w.id), w.currency, "UAH", rates)
+            val balance = wallets.filter { it.inCapital }.sumOf { w ->
+                convertCurrencyAmount(FinanceRepository.walletBalance(transactions, w.id, w.openingBalance), w.currency, "UAH", rates)
             }
             val byId = types.associateBy { it.id }
             val next = shiftsByDate.entries

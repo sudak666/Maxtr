@@ -125,7 +125,7 @@ class FinanceViewModel(
 
     /** Last month's recap (MonthSummary). */
     val lastMonthSummary: MonthSummary by derivedStateOf {
-        MonthSummary.compute(transactions, currentMonth.minusMonths(1)) { toUah(it.amount, it.currency) }
+        MonthSummary.compute(transactions.forStats(wallets), currentMonth.minusMonths(1)) { toUah(it.amount, it.currency) }
     }
     var monthSummaryOpen by mutableStateOf(false)
 
@@ -136,7 +136,7 @@ class FinanceViewModel(
         private set
     val shownMonthSummary: MonthSummary by derivedStateOf {
         if (summaryMonth == currentMonth.minusMonths(1)) lastMonthSummary
-        else MonthSummary.compute(transactions, summaryMonth, upToDay = monthDay.takeIf { summaryMonth == currentMonth }) { toUah(it.amount, it.currency) }
+        else MonthSummary.compute(transactions.forStats(wallets), summaryMonth, upToDay = monthDay.takeIf { summaryMonth == currentMonth }) { toUah(it.amount, it.currency) }
     }
     val canShowNextSummaryMonth: Boolean get() = summaryMonth < currentMonth
     fun shiftSummaryMonth(by: Long) {
@@ -148,7 +148,7 @@ class FinanceViewModel(
         get() = monthDay <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
 
     /** Everything the month's PDF report needs (MonthReport). */
-    fun monthReport(month: YearMonth): MonthReport = MonthReport.build(transactions, month) { toUah(it.amount, it.currency) }
+    fun monthReport(month: YearMonth): MonthReport = MonthReport.build(transactions.forStats(wallets), month) { toUah(it.amount, it.currency) }
 
     fun walletDisplayName(id: String?): String = wallets.firstOrNull { it.id == id }?.name.orEmpty()
 
@@ -344,7 +344,7 @@ class FinanceViewModel(
      * a solo profile never sees it.
      */
     val monthContributions: List<Contribution> by derivedStateOf {
-        FinanceInsights.contributions(transactions, currentMonth, auth.currentUser?.uid, ::toUah)
+        FinanceInsights.contributions(transactions.forStats(wallets), currentMonth, auth.currentUser?.uid, ::toUah)
     }
 
     /** Income minus expense in UAH (transfers excluded) — the per-day header total. */
@@ -457,9 +457,9 @@ class FinanceViewModel(
                 createdAt = existing?.createdAt ?: Long.MAX_VALUE,
             )
             return FormBalanceAfter(
-                source = FinanceRepository.balanceAfter(transactions, form.walletId, draft),
+                source = FinanceRepository.balanceAfter(transactions, form.walletId, draft, openingOf(form.walletId)),
                 sourceCurrency = srcCur,
-                target = targetCur?.let { FinanceRepository.balanceAfter(transactions, form.targetWalletId, draft) },
+                target = targetCur?.let { FinanceRepository.balanceAfter(transactions, form.targetWalletId, draft, openingOf(form.targetWalletId)) },
                 targetCurrency = targetCur,
             )
     }
@@ -538,8 +538,8 @@ class FinanceViewModel(
                 val budgetFeedback = if (toSave.type == TxType.EXPENSE) {
                     budgetExceededFeedback(
                         category = toSave.category,
-                        limit = budgets[toSave.category],
-                        existingMonthAmountsUah = transactions.asSequence()
+                        limit = budgets[toSave.category].takeIf { wallets.none { w -> w.id == toSave.walletId && !w.inStats } },
+                        existingMonthAmountsUah = transactions.forStats(wallets).asSequence()
                             .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && ua.rytm.app.data.FinancialMonth.contains(currentMonth, it.date) }
                             .map { toUah(it.amount, it.currency) }
                             .toList(),
@@ -560,7 +560,7 @@ class FinanceViewModel(
                     val shares = SalaryAutopilot.suggest(
                         toSave.amount, toSave.walletId, toSave.currency, goals,
                         walletCurrency = { id -> wallets.firstOrNull { it.id == id }?.currency },
-                        walletBalance = { id -> FinanceRepository.walletBalance(transactions + toSave, id) },
+                        walletBalance = { id -> FinanceRepository.walletBalance(transactions + toSave, id, openingOf(id)) },
                         today = LocalDate.now(),
                     )
                     if (shares.isNotEmpty()) salaryAllocation = SalaryAllocation(toSave.walletId, toSave.currency, shares, toSave.comment)
@@ -581,10 +581,11 @@ class FinanceViewModel(
     }
 
     /** Per-wallet balance in the wallet's own currency - mirrors computeWalletBalances(). */
-    fun walletBalance(walletId: String): Double = FinanceRepository.walletBalance(transactions, walletId)
+    private fun openingOf(walletId: String?): Double = wallets.firstOrNull { it.id == walletId }?.openingBalance ?: 0.0
+    fun walletBalance(walletId: String): Double = FinanceRepository.walletBalance(transactions, walletId, openingOf(walletId))
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
-    val totalBalanceUah: Double by derivedStateOf { wallets.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
+    val totalBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
     /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = bills exceed the balance. */
     val safeToSpendPerDay: Double?
@@ -593,9 +594,9 @@ class FinanceViewModel(
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 
 
-    val monthIncomeUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions, TxType.INCOME, currentMonth, ::toUah) }
+    val monthIncomeUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions.forStats(wallets), TxType.INCOME, currentMonth, ::toUah) }
 
-    val monthExpenseUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions, TxType.EXPENSE, currentMonth, ::toUah) }
+    val monthExpenseUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions.forStats(wallets), TxType.EXPENSE, currentMonth, ::toUah) }
 
     val isSearchOrFilterActive: Boolean
         get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null
@@ -605,7 +606,7 @@ class FinanceViewModel(
     val filteredTransactions: List<Transaction> by derivedStateOf { computeFilteredTransactions() }
 
     /** Source-wallet balance right after each transaction (the history rows' optional "balance after"). */
-    val balancesAfter: Map<String, Double> by derivedStateOf { FinanceRepository.runningBalances(transactions) }
+    val balancesAfter: Map<String, Double> by derivedStateOf { FinanceRepository.runningBalances(transactions, wallets.associate { it.id to it.openingBalance }) }
 
     /** Net in UAH per date (transfers excluded) — the day headers' sums, one pass instead of one filter per day. */
     fun dayNetsUah(txs: List<Transaction>): Map<String, Double> =

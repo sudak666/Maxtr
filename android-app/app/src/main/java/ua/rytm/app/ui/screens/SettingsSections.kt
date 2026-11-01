@@ -40,7 +40,10 @@ internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> 
         onClick = { open = true },
     )
     if (!open) return
-    ua.rytm.app.ui.components.RytmModalBottomSheet(onDismissRequest = { open = false }) {
+    ua.rytm.app.ui.components.RytmModalBottomSheet(
+        onDismissRequest = { open = false },
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
         Text(stringResource(R.string.settings_month_start_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = RytmSpacing.lg))
         Text(
             stringResource(R.string.settings_month_start_hint),

@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -106,6 +107,7 @@ fun WalletsManagerSheet(
                     onRename = { viewModel.renameWallet(wallet, it) },
                     onCurrencyChange = { viewModel.changeCurrency(wallet, it) },
                     onColorChange = { viewModel.changeColor(wallet, it) },
+                    onUpdate = viewModel::update,
                     onDelete = { viewModel.requestDelete(wallet.id) },
                 )
             }
@@ -135,6 +137,7 @@ private fun WalletRow(
     onRename: (String) -> Unit,
     onCurrencyChange: (String) -> Unit,
     onColorChange: (Long) -> Unit,
+    onUpdate: (Wallet) -> Unit,
     onDelete: () -> Unit,
 ) {
     var nameText by remember(wallet.id) { mutableStateOf(wallet.name) }
@@ -222,11 +225,57 @@ private fun WalletRow(
                         }
                     }
                 }
+                WalletAccountingFields(wallet, onUpdate)
                 // Apart from the fields, so it can't be hit while editing them.
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     androidx.compose.material3.TextButton(onClick = onDelete, colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_delete)) }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WalletAccountingFields(wallet: Wallet, onUpdate: (Wallet) -> Unit) {
+    var openingText by remember(wallet.id) { mutableStateOf(if (wallet.openingBalance == 0.0) "" else wallet.openingBalance.toString()) }
+    OutlinedTextField(
+        value = openingText,
+        onValueChange = { openingText = it },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        label = { Text(stringResource(R.string.wallet_opening_balance)) },
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+    )
+    androidx.compose.runtime.LaunchedEffect(openingText) {
+        kotlinx.coroutines.delay(400)
+        val amount = if (openingText.isBlank()) 0.0 else openingText.replace(',', '.').toDoubleOrNull()
+        if (amount != null && amount != wallet.openingBalance) onUpdate(wallet.copy(openingBalance = amount))
+    }
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+        WALLET_KINDS.forEach { kind ->
+            androidx.compose.material3.FilterChip(
+                selected = wallet.kind == kind,
+                onClick = { onUpdate(wallet.copy(kind = kind)) },
+                label = {
+                    Text(
+                        stringResource(when (kind) { "cash" -> R.string.wallet_kind_cash; "deposit" -> R.string.wallet_kind_deposit; "credit" -> R.string.wallet_kind_credit; else -> R.string.wallet_kind_card }),
+                        maxLines = 1,
+                    )
+                },
+            )
+        }
+    }
+    WalletSwitch(R.string.wallet_in_capital, R.string.wallet_in_capital_hint, wallet.inCapital) { onUpdate(wallet.copy(inCapital = it)) }
+    WalletSwitch(R.string.wallet_in_stats, R.string.wallet_in_stats_hint, wallet.inStats) { onUpdate(wallet.copy(inStats = it)) }
+}
+
+@Composable
+private fun WalletSwitch(@androidx.annotation.StringRes title: Int, @androidx.annotation.StringRes hint: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(title), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
     }
 }

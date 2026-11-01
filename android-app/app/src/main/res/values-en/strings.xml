@@ -21,6 +21,15 @@
     <string name="wallets_body">Cards, cash, and other accounts your money moves between.</string>
     <string name="wallets_empty">No wallets</string>
     <string name="wallet_new_default">New wallet</string>
+    <string name="wallet_opening_balance">Opening balance</string>
+    <string name="wallet_kind_cash">Cash</string>
+    <string name="wallet_kind_card">Card</string>
+    <string name="wallet_kind_deposit">Deposit</string>
+    <string name="wallet_kind_credit">Credit</string>
+    <string name="wallet_in_capital">Count in total balance</string>
+    <string name="wallet_in_capital_hint">When off, this balance is left out of the total.</string>
+    <string name="wallet_in_stats">Count in statistics</string>
+    <string name="wallet_in_stats_hint">When off, entries are left out of totals, statistics and budgets for all periods. The wallet balance stays the same.</string>
     <string name="wallet_add">Add wallet</string>
     <string name="wallet_delete_title">Delete wallet</string>
     <string name="wallet_delete_body">Delete this wallet?</string>

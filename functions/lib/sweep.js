@@ -25,8 +25,8 @@
 // for a function that only ever calls `.doc(path).get()`/`.collection(path).get()`.
 
 /** @typedef {{enabled?: boolean, timeZone?: string, time?: string, budgetAlerts?: boolean, recurringAlerts?: boolean, debtAlerts?: boolean, weeklySummary?: boolean}} NotifSettings */
-/** @typedef {{id: string, currency?: string}} WalletLike */
-/** @typedef {{type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
+/** @typedef {{inStats?: boolean, id: string, currency?: string}} WalletLike */
+/** @typedef {{wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
 /** @typedef {{id: string, dueDate?: string, name?: string}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
@@ -206,6 +206,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     : (Array.isArray(f.data) ? f.data : []);
   const wallets = Array.isArray(f.wallets) ? f.wallets : [];
   const budgets = f.budgets || {};
+  const offStats = new Set(wallets.filter((/** @type {WalletLike} */ w) => w.inStats === false).map((/** @type {WalletLike} */ w) => w.id));
   const categories = f.categories || {};
   const recurring = Array.isArray(f.recurring) ? f.recurring : [];
   const rates = f.currencyRates || {};
@@ -257,7 +258,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       const key = `${month.key}_${cat}`;
       if (sent[key]) continue;
       const spent = transactions.reduce((/** @type {number} */ s, /** @type {TransactionLike} */ t) => {
-        if (t.type === 'expense' && t.category === cat && t.date && t.date.slice(0, 10) >= month.from && t.date.slice(0, 10) < month.until) {
+        if (t.type === 'expense' && t.category === cat && t.date && t.date.slice(0, 10) >= month.from && t.date.slice(0, 10) < month.until && !offStats.has(t.wallet)) {
           return s + toBase(t.amount || 0, t.currency || 'UAH', rates);
         }
         return s;

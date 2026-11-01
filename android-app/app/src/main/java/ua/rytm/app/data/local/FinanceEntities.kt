@@ -1,5 +1,6 @@
 package ua.rytm.app.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Index
@@ -16,6 +17,10 @@ data class WalletEntity(
     val colorHex: Long,
     val currency: String,
     val icon: String = "card",
+    @ColumnInfo(defaultValue = "card") val kind: String = "card",
+    @ColumnInfo(defaultValue = "0") val openingBalance: Double = 0.0,
+    @ColumnInfo(defaultValue = "1") val inCapital: Boolean = true,
+    @ColumnInfo(defaultValue = "1") val inStats: Boolean = true,
 )
 
 @Entity(tableName = "transactions", indices = [Index(value = ["monobankId"], unique = true)])

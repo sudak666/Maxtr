@@ -67,6 +67,10 @@ private fun WalletEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "color" to colorHexToWebString(colorHex),
     "icon" to icon,
     "currency" to currency,
+    "kind" to kind,
+    "openingBalance" to openingBalance,
+    "inCapital" to inCapital,
+    "inStats" to inStats,
 )
 
 private fun parseRemoteWallet(m: Map<*, *>): WalletEntity? {
@@ -74,5 +78,11 @@ private fun parseRemoteWallet(m: Map<*, *>): WalletEntity? {
     val name = m["name"] as? String ?: return null
     val icon = m["icon"] as? String ?: "card"
     val currency = m["currency"] as? String ?: "UAH"
-    return WalletEntity(id = id, name = name, colorHex = webStringToColorHex(m["color"] as? String), currency = currency, icon = icon)
+    return WalletEntity(
+        id = id, name = name, colorHex = webStringToColorHex(m["color"] as? String), currency = currency, icon = icon,
+        kind = m["kind"] as? String ?: "card",
+        openingBalance = (m["openingBalance"] as? Number)?.toDouble() ?: 0.0,
+        inCapital = m["inCapital"] != false,
+        inStats = m["inStats"] != false,
+    )
 }
