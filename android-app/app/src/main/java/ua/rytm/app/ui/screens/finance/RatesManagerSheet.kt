@@ -98,7 +98,7 @@ fun RatesManagerSheet(
             verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
         ) {
             val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
-            val numberFormat = remember(locale) { NumberFormat.getNumberInstance(locale).apply { minimumFractionDigits = 2; maximumFractionDigits = 4 } }
+            val numberFormat = remember(locale) { NumberFormat.getNumberInstance(locale).apply { minimumFractionDigits = 2; maximumFractionDigits = 6 } }
             val updatedText = updatedAt?.let {
                 stringResource(R.string.rates_updated_at, DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it)))
             } ?: stringResource(R.string.rates_never_updated)

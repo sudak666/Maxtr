@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import ua.rytm.app.R
 import androidx.compose.runtime.saveable.rememberSaveable
 
-val SUPPORTED_CURRENCIES = listOf("UAH", "USD", "EUR", "GBP", "PLN")
+val SUPPORTED_CURRENCIES = listOf("UAH") + ua.rytm.app.data.SEED_RATES.keys
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

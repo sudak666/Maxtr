@@ -348,7 +348,7 @@ private fun FxRatesSection(vm: ToolsViewModel) {
         if (rates.isEmpty()) {
             Text(stringResource(R.string.rates_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            rates.toList().sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
+            rates.toList().filter { it.first in ua.rytm.app.data.MAIN_CURRENCIES }.sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.xs), verticalAlignment = Alignment.CenterVertically) {
                     val badge = when (code) {
                         "USD" -> "$" to TealDeep

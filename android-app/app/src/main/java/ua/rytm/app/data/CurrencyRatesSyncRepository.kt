@@ -96,5 +96,9 @@ class CurrencyRatesSyncRepository(private val db: RytmDatabase, private val fire
         }
     }
 
-    private fun roundRate(value: Double): Double = kotlin.math.round(value * 100.0) / 100.0
+    // Rates under 1 UAH keep six digits: VND is about 0.002.
+    private fun roundRate(value: Double): Double {
+        val scale = if (value < 1.0) 1_000_000.0 else 100.0
+        return kotlin.math.round(value * scale) / scale
+    }
 }

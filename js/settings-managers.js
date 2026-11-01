@@ -9,7 +9,7 @@ import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
 import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurringLocal, scheduleSave } from './color-picker.js';
-import { CURRENCY_LIST, PALETTE, SEED_RATES, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, localDateStr, shiftType, subKey, toBase, walletById } from './core.js';
+import { CURRENCY_LIST, MAIN_CURRENCIES, PALETTE, SEED_RATES, roundRate, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, localDateStr, shiftType, subKey, toBase, walletById } from './core.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
 import { batchWriteTransactions, lsKey } from './firebase-sync.js';
@@ -482,7 +482,7 @@ async function fetchLiveRates(){
   let updated=0;
   wanted.forEach(code=>{
     const entry=list.find(x=>x.cc===code);
-    if(entry && entry.rate>0){ AppState.currencyRates[code]=Math.round(entry.rate*100)/100; updated++; }
+    if(entry && entry.rate>0){ AppState.currencyRates[code]=roundRate(entry.rate); updated++; }
   });
   if(!updated) throw new Error('none of the tracked currencies found in NBU response');
   if(AppState.ratesSource==='privat'){
@@ -538,7 +538,7 @@ function FxWidgetRow({ color, symbol, title, sub, rateStr }){
 
 export function renderFxWidget(){
   const box=document.getElementById('fx-widget-list'); if(!box) return;
-  const rows=CURRENCY_LIST.filter(c=>c!=='UAH').map(code=>{
+  const rows=MAIN_CURRENCIES.map(code=>{
     const rate=AppState.currencyRates[code] ?? SEED_RATES[code] ?? 1;
     return h(FxWidgetRow, {
       key: code,

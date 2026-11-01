@@ -342,7 +342,8 @@ export const DEFAULT_WALLETS = [
   {id:'w_cash',name:'Готівка',color:'#f59e0b',icon:'banknote',currency:'UAH'},
 ];
 
-export const CURRENCY_LIST=['UAH','USD','EUR','GBP','PLN'];
+/** Shown in the FX widget; the full list lives in Settings. */
+export const MAIN_CURRENCIES=['USD','EUR','GBP','PLN'];
 
 /** @type {Record<string, {symbol: string}>} */
 const CURRENCY_META={
@@ -350,7 +351,11 @@ const CURRENCY_META={
 };
 
 /** @type {Record<string, number>} */
-export const SEED_RATES={USD:41, EUR:44, GBP:51, PLN:10.5};
+export const SEED_RATES={USD:41, EUR:44, GBP:51, PLN:10.5, AED:12.35, AUD:31.86, AZN:26.68, BDT:0.3656, CAD:32.47, CHF:55.13, CNY:6.82, CZK:2.08, DKK:6.78, DZD:0.3343, EGP:0.8096, GEL:17.48, HKD:5.78, HUF:0.1384, IDR:0.0025, ILS:14.49, INR:0.4776, JPY:0.2886, KRW:0.034, KZT:0.1001, LBP:0.0005, MDL:2.52, MXN:2.4, MYR:11.18, NOK:4.91, NZD:25.56, RON:9.48, RSD:0.4312, SAR:12.08, SEK:4.61, SGD:35.48, THB:1.34, TND:15.09, TRY:0.908, VND:0.0018, ZAR:2.72};
+export const CURRENCY_LIST=['UAH',...Object.keys(SEED_RATES)];
+
+/** Keeps precision for rates under 1 UAH (VND is about 0.002). @param {number} rate */
+export function roundRate(rate){ const f=rate<1?1e6:100; return Math.round(rate*f)/f; }
 
 /** @param {string} code */
 export function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || '₴'; }
