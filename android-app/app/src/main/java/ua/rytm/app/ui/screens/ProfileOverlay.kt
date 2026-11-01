@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import androidx.compose.runtime.collectAsState
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -185,7 +186,7 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
     val profileSwitched = stringResource(R.string.settings_profile_switched)
     var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var premiumOpen by rememberSaveable { mutableStateOf(false) }
-    val premiumActive = ua.rytm.app.ui.rytmApp().premiumRepository.isPremium.value
+    val premiumActive = ua.rytm.app.ui.rytmApp().premiumRepository.isPremium.collectAsState().value
 
     SettingsManagerSheets(
         open = openSheet,
