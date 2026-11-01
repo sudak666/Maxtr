@@ -119,7 +119,6 @@ import ua.rytm.app.ui.icons.BeachAccess
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.ChevronLeft
 import ua.rytm.app.ui.icons.ChevronRight
-import ua.rytm.app.ui.icons.Edit
 import ua.rytm.app.ui.icons.EventAvailable
 import ua.rytm.app.ui.icons.ExpandMore
 import ua.rytm.app.ui.icons.Schedule
@@ -170,24 +169,16 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
                         .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = RytmSpacing.xs)) {
-                Text(
-                    maskedAmount(stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), formatMoney(goal))),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                if (canEdit) {
-                    IconButton(onClick = onEditGoal, modifier = Modifier.size(RytmDimens.TouchTarget)) {
-                        Icon(
-                            RytmIcons.Edit,
-                            contentDescription = stringResource(R.string.shifts_goal_edit_title),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
+            // The goal text itself opens the editor; a pencil beside it was removed at the owner's request.
+            val editGoalLabel = stringResource(R.string.shifts_goal_edit_title)
+            Text(
+                maskedAmount(stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), formatMoney(goal))),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(top = RytmSpacing.xs)
+                    .then(if (canEdit) Modifier.clickable(onClickLabel = editGoalLabel, role = androidx.compose.ui.semantics.Role.Button, onClick = onEditGoal).heightIn(min = RytmDimens.TouchTarget) else Modifier),
+            )
         }
     }
 }
