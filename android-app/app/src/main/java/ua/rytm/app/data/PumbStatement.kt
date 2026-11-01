@@ -16,7 +16,7 @@ data class PdfWord(val page: Int, val x: Float, val y: Float, val text: String)
  * vertically centred around it, so rows split halfway between anchors.
  */
 object PumbStatement {
-    private val SPACES = Regex("""s+""")
+    private val SPACES = Regex(" +")
     private val DATE = Regex("""\d{4}-\d{2}-\d{2}""")
     private val TIME = Regex("""\d{2}:\d{2}:\d{2}""")
     private val AMOUNT = Regex("""\d+\.\d{2}""")
