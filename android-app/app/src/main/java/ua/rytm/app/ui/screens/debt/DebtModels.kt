@@ -24,6 +24,11 @@ data class Debt(
 
 val Debt.owedToMe: Boolean get() = direction == "owed"
 
+/** Open balances per currency, for one direction; settled debts drop out. */
+fun List<Debt>.openTotals(owedToMe: Boolean): Map<String, Double> =
+    filter { it.owedToMe == owedToMe && it.currentBalance() > 0 }
+        .groupBy { it.currency }.mapValues { (_, list) -> list.sumOf { it.currentBalance() } }
+
 fun Debt.currentBalance(): Double = entries.lastOrNull()?.balance ?: startAmount
 
 // Mirrors CLAUDE.md's DEBT_COLORS (js/core.js) chip-color rotation.

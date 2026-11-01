@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: debt polish (Android)
+
+"Повернення" wording on debts owed to the user; the last debt can be deleted (the empty state exists and nothing re-seeds it); a totals line appears with 2+ debts, per currency, without conversion. The PWA still refuses to delete its last debt.
+
 ## 2026-11-01: Premium gate off for now
 
 Play Console's Subscriptions page is locked: account Stasrun has no merchant account, and only the owner can register one (bank and personal data). Nothing was changed in the console. Owner's call: paid features stay free, `PremiumRepository.GATE_ENABLED = false` in all builds. Turn it on only after the product `rytm_premium` exists and a purchase was tested.

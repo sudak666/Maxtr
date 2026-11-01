@@ -123,7 +123,6 @@ class DebtViewModel(
     }
 
     fun requestDeleteCurrentDebt() {
-        if (debts.size <= 1) { errorMessageRes = R.string.debt_last_required; return }
         pendingDeleteDebt = true
     }
 

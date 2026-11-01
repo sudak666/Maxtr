@@ -95,6 +95,7 @@ import ua.rytm.app.ui.screens.debt.DebtEntry
 import ua.rytm.app.ui.screens.debt.DebtForecastCard
 import ua.rytm.app.ui.screens.debt.DebtViewModel
 import ua.rytm.app.ui.screens.debt.currentBalance
+import ua.rytm.app.ui.screens.debt.openTotals
 import ua.rytm.app.ui.screens.debt.owedToMe
 import ua.rytm.app.ui.screens.debt.paid
 import ua.rytm.app.ui.screens.debt.todayLabel
@@ -159,7 +160,7 @@ fun DebtScreen(
         scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
     }
 
-    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.debt_payment), enabled = cd != null && canEdit) {
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(if (cd?.owedToMe == true) R.string.debt_repayment else R.string.debt_payment), enabled = cd != null && canEdit) {
         viewModel.openNewEntrySheet()
     }
     Scaffold(
@@ -199,6 +200,7 @@ fun DebtScreen(
             if (viewModel.loading) item { ScreenLoadingState() }
             if (viewModel.loadFailed) item { ScreenLoadErrorState() }
             item { DebtChipsRow(viewModel, canEdit) }
+            if (viewModel.debts.size > 1) item { DebtTotals(viewModel.debts) }
 
             if (!viewModel.loading && !viewModel.loadFailed && cd == null) {
                 item { EmptyDebtState() }
@@ -331,6 +333,13 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             }
         }
     }
+}
+
+@Composable
+private fun DebtTotals(debts: List<Debt>) {
+    fun line(totals: Map<String, Double>) = totals.entries.joinToString(" + ") { "${formatMoney(it.value)} ${it.key}" }.ifEmpty { "0" }
+    val text = stringResource(R.string.debt_totals, line(debts.openTotals(false)), line(debts.openTotals(true)))
+    Text(maskedAmount(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -636,7 +645,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
 
     RytmModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-            RytmSheetTitle(stringResource(R.string.debt_new_payment))
+            RytmSheetTitle(stringResource(if (cd.owedToMe) R.string.debt_new_repayment else R.string.debt_new_payment))
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->
@@ -654,7 +663,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 isError = amountInvalid,
                 supportingText = if (amountInvalid) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
-                label = { Text(stringResource(R.string.debt_payment_amount)) },
+                label = { Text(stringResource(if (cd.owedToMe) R.string.debt_repayment_amount else R.string.debt_payment_amount)) },
             )
             OutlinedTextField(
                 value = balance,
