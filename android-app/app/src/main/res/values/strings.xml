@@ -661,4 +661,16 @@
     <string name="premium_body">Облік безкоштовний. Преміум бере на себе ручну роботу.</string><string name="premium_active">Усе це зараз доступно безкоштовно.</string><string name="premium_sync_title">Синхронізація Monobank</string><string name="premium_sync_body">Операції підтягуються з банку самі.</string><string name="premium_import_title">Імпорт виписок</string><string name="premium_import_body">monobank і ПУМБ за кілька дотиків.</string><string name="premium_auto_title">Автозапис операцій</string><string name="premium_auto_body">Знайомі покупки записуються самі.</string><string name="premium_pdf_title">PDF-звіт</string><string name="premium_pdf_body">Підсумок місяця одним файлом.</string><string name="premium_unavailable">Підписка зараз недоступна. Спробуй пізніше.</string><string name="premium_monthly">%1$s на місяць</string><string name="premium_yearly">%1$s на рік</string><string name="premium_trial">14 днів безкоштовно, далі %1$s</string><string name="premium_required">Імпорт виписок доступний у Преміум</string><string name="premium_plan_active">Усе відкрито</string>
     <string name="debt_repayment">Повернення</string><string name="debt_new_repayment">Нове повернення</string><string name="debt_repayment_amount">Сума повернення</string><string name="debt_totals">Я винен: %1$s · Мені винні: %2$s</string>
     <string name="wallet_kind_hint">Цей рахунок не входить у суму «на день».</string>
+    <string name="cash_forecast_short">≈ %1$s гроші закінчаться, бракуватиме %2$s ₴</string>
+    <string name="cash_forecast_title">До зарплати</string>
+    <string name="cash_forecast_subtitle">Прогноз до %1$s</string>
+    <string name="cash_forecast_enough">Вистачає: наприкінці лишиться ≈ %1$s ₴</string>
+    <string name="cash_forecast_gap">≈ %1$s гроші закінчаться</string>
+    <string name="cash_forecast_gap_amount">До кінця місяця бракуватиме %1$s ₴</string>
+    <string name="cash_forecast_daily">Звичні витрати: ≈ %1$s ₴ на день</string>
+    <string name="cash_forecast_no_history">Замало історії для звичних витрат, тому враховано лише регулярні платежі.</string>
+    <string name="cash_forecast_events">Заплановано</string>
+    <string name="cash_forecast_no_events">Регулярних платежів до кінця місяця немає.</string>
+    <string name="cash_forecast_after">залишок %1$s ₴</string>
+    <string name="cash_forecast_note">Баланс без депозитів і кредиток, регулярні платежі й доходи на їхні дати, звичні витрати за останні 60 днів. Заробіток зі змін не враховано: він часто приходить уже наступного місяця. Кінець місяця задано в налаштуваннях.</string>
 </resources>

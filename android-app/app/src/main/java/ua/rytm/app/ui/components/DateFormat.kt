@@ -25,5 +25,13 @@ fun formatLongDate(date: LocalDate): String {
     return date.format(DateTimeFormatter.ofPattern("d MMMM, EEEE", locale))
 }
 
+/** "25 серпня" */
+@Composable
+@ReadOnlyComposable
+fun formatDayMonth(date: LocalDate): String {
+    val locale: Locale = LocalConfiguration.current.locales[0]
+    return date.format(DateTimeFormatter.ofPattern("d MMMM", locale))
+}
+
 /** "25.08.2026" — compact, locale-independent. */
 fun formatNumericDate(date: LocalDate): String = date.format(NumericDateFormatter)

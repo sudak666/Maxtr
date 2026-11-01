@@ -651,4 +651,16 @@
     <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">All of this is free for now.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB in a few taps.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
     <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
+    <string name="cash_forecast_short">Money runs out ≈ %1$s, %2$s ₴ short</string>
+    <string name="cash_forecast_title">Until payday</string>
+    <string name="cash_forecast_subtitle">Forecast to %1$s</string>
+    <string name="cash_forecast_enough">Enough: ≈ %1$s ₴ left at month end</string>
+    <string name="cash_forecast_gap">Money runs out ≈ %1$s</string>
+    <string name="cash_forecast_gap_amount">%1$s ₴ short by month end</string>
+    <string name="cash_forecast_daily">Usual spending: ≈ %1$s ₴ a day</string>
+    <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
+    <string name="cash_forecast_events">Planned</string>
+    <string name="cash_forecast_no_events">No recurring payments until month end.</string>
+    <string name="cash_forecast_after">%1$s ₴ left</string>
+    <string name="cash_forecast_note">Balance without deposits and credit cards, recurring payments and income on their dates, usual spending over the last 60 days. Shift pay is left out: it often lands next month. Month end comes from Settings.</string>
 </resources>

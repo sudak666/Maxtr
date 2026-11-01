@@ -178,6 +178,9 @@ fun FinanceScreen(
     viewModel.salaryAllocation?.let { plan ->
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
     }
+    if (viewModel.cashForecastOpen) {
+        CashForecastSheet(viewModel.cashForecast, onDismiss = { viewModel.cashForecastOpen = false })
+    }
     if (viewModel.monthSummaryOpen) {
         val reportContext = androidx.compose.ui.platform.LocalContext.current
         val shareTitle = androidx.compose.ui.res.stringResource(ua.rytm.app.R.string.month_report_share)
