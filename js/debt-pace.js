@@ -25,7 +25,9 @@ function parseDate(s){
  * dates parse.
  * @param {number} start
  * @param {{balance: number|string, date?: string}[]} entries
- * @returns {{typicalPayment: number, typicalGapDays: number|null}|null}
+ * recentPayment is the median of the last 3 when there are more than 3
+ * paydowns, otherwise the typical payment.
+ * @returns {{typicalPayment: number, typicalGapDays: number|null, recentPayment: number}|null}
  */
 export function debtPace(start, entries){
   let prev=start;
@@ -42,5 +44,21 @@ export function debtPace(start, entries){
   const dates=recent.map(x=>parseDate(x.date)).filter(/** @returns {x is number} */ x=>x!=null).sort((a,b)=>a-b);
   const gaps=[];
   for(let i=1;i<dates.length;i++){ const g=Math.round((dates[i]-dates[i-1])/86400000); if(g>0) gaps.push(g); }
-  return { typicalPayment: median(recent.map(x=>x.d)), typicalGapDays: gaps.length>=2 ? Math.round(median(gaps)) : null };
+  const typicalPayment=median(recent.map(x=>x.d));
+  return {
+    typicalPayment,
+    typicalGapDays: gaps.length>=2 ? Math.round(median(gaps)) : null,
+    recentPayment: downs.length>3 ? median(downs.slice(-3).map(x=>x.d)) : typicalPayment,
+  };
+}
+
+/** @param {number} balance @param {number} payment @param {number} gapDays @param {number} now epoch ms @returns {number} epoch ms */
+export function finishDate(balance, payment, gapDays, now){
+  return now+gapDays*Math.max(1, Math.ceil(balance/payment))*86400000;
+}
+
+/** A round payment about twice the typical one, for "what if I paid more". @param {number} typical */
+export function whatIfPayment(typical){
+  const step=typical<100 ? 10 : typical<1000 ? 50 : 100;
+  return Math.ceil(typical*2/step)*step;
 }

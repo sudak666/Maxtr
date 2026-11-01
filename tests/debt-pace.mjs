@@ -1,6 +1,6 @@
 // Plain-node tests for js/debt-pace.js. Run: node tests/debt-pace.mjs
 import assert from 'node:assert/strict';
-import { debtPace } from '../js/debt-pace.js';
+import { debtPace, finishDate, whatIfPayment } from '../js/debt-pace.js';
 
 // One early lump, then ~monthly small payments — same shape as Android's DebtPaceTest.
 const entries = [
@@ -16,4 +16,14 @@ assert.equal(debtPace(1000, [{ balance: 900 }, { balance: 950 }, { balance: 850 
 assert.equal(debtPace(1000, [{ balance: 1000 }, { balance: 1100 }]), null);
 // AUDIT_2026-10 P4-03: an even gap count rounds half up, same as Android (gaps 30, 31 -> 31).
 assert.equal(debtPace(1000, [{ balance: 900, date: '01.01.2026' }, { balance: 800, date: '31.01.2026' }, { balance: 700, date: '03.03.2026' }]).typicalGapDays, 31);
+// The last three payments can run ahead of the six-payment median.
+const rising = debtPace(1000, [900, 800, 700, 600, 450, 300, 150].map((balance, i) => ({ balance, date: `01.0${i + 1}.2026` })));
+assert.equal(rising.typicalPayment, 125);
+assert.equal(rising.recentPayment, 150);
+const few = debtPace(1000, [{ balance: 900 }, { balance: 700 }]);
+assert.equal(few.recentPayment, few.typicalPayment);
+assert.equal(finishDate(250, 100, 30, 0), 90 * 86400000);
+assert.equal(whatIfPayment(108), 250);
+assert.equal(whatIfPayment(36), 80);
+assert.equal(whatIfPayment(1234), 2500);
 console.log('debt-pace: OK');
