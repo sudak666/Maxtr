@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
@@ -250,7 +251,7 @@ private fun WalletAccountingFields(wallet: Wallet, onUpdate: (Wallet) -> Unit) {
         val amount = if (openingText.isBlank()) 0.0 else openingText.replace(',', '.').toDoubleOrNull()
         if (amount != null && amount != wallet.openingBalance) onUpdate(wallet.copy(openingBalance = amount))
     }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
         WALLET_KINDS.forEach { kind ->
             androidx.compose.material3.FilterChip(
                 selected = wallet.kind == kind,
