@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: debts in both directions
+
+New `direction` on each debt (`owe` default, `owed`): Room 19->20 with `Migration`, synced in the `debt` doc, chips in the add dialog and details panel, labels "Вам винні"/"Отримано" on Android, balance label in the PWA (read-only there; PWA keeps the field since debt objects are saved whole), own push text in `sweep.js`. `sw.js` v194->v195. Checked on the A51 in Rytm QA: switching a debt to "Мені винні" changed the labels. **Gotcha:** `assembleQa testDebugUnitTest` in one command leaves the old APK when a test fails, and migration tests fail on the first run until the new schema JSON exists; build the APK separately. A debt named Test stays on the owner's account, since the app refuses to delete the last debt. Functions and Hosting deploy after merge.
+
 ## 2026-11-01: wallet settings verified, deploys
 
 Checked on the owner's A51 in Rytm QA: the Room 18->19 update opened with data intact, opening balance 1000 moved the total 4 990->5 990, the in-capital switch took it back, values restored. Found there: the "Кредит" chip wrapped, so the type row now scrolls horizontally. The in-stats switch was not toggled on the device. Hosting for #682 was deployed earlier today and missed its note; Functions and Hosting for #683 follow its merge.
