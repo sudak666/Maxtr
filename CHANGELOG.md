@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: release 2.7.1 (vc39)
+
+Play keeps a rejected upload's version code, so vc38 stayed taken after the Billing 7.1.1 error. Bumped to vc39. **Gotcha:** always raise the code after a rejected upload.
+
 ## 2026-11-01: Play Billing 8.0.0, goal pencil removed
 
 Play Console rejected vc38 for Billing 7.1.1, so `billing-ktx` moved to 8.0.0; the rejected build was never saved, and vc38 is rebuilt. The owner asked to drop the pencil on the Shifts tab: the goal line is now the tap target. The size and native-symbol warnings remain and do not block upload.
