@@ -49,6 +49,9 @@ interface WalletDao {
 
 @Dao
 interface TransactionDao {
+    @Query("SELECT monobankId FROM transactions WHERE monobankId IS NOT NULL")
+    suspend fun getAllMonobankIds(): List<String>
+
     @Query("SELECT * FROM transactions ORDER BY date DESC, createdAt DESC")
     fun observeAll(): Flow<List<TransactionEntity>>
 

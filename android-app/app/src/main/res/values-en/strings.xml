@@ -623,4 +623,27 @@
     <string name="bank_auto_save_title">Save familiar operations automatically</string><string name="bank_auto_save_hint">After 3 operations from a merchant in one category. You can undo from the notification.</string>
     <string name="statement_totals_gap">Statement rows differ from the bank totals: debits %1$s, credits %2$s. Some operations may be cancelled, check them after importing.</string>
     <string name="statement_confirm">Import %1$s? Operations already saved are skipped.</string><string name="statement_wallet">Wallet</string>
+    <string name="monobank_intro">Enter a personal Monobank Open API token to import cards, jars, and transactions. Only you can see the token (shared-profile members have no access to it), and it is sent only to Monobank through Rytm’s secure server.</string>
+    <string name="monobank_get_token">Get a token at api.monobank.ua</string>
+    <string name="monobank_token">Personal token</string>
+    <string name="monobank_connect">Connect</string>
+    <string name="monobank_connected">Monobank connected</string>
+    <string name="monobank_invalid_token">The token is invalid. Check it and try again.</string>
+    <string name="monobank_rate_limit">Monobank allows no more than one request per minute. Try again later.</string>
+    <string name="monobank_no_accounts">No Monobank cards or jars found</string>
+    <string name="monobank_owner_only">Only the profile owner can sync Monobank</string>
+    <string name="monobank_sync_background">Sync keeps running in the background — you can close this sheet.</string>
+    <string name="monobank_connection_failed">Could not connect to Monobank</string>
+    <string name="monobank_unmapped">%1$s · not linked</string>
+    <string name="monobank_never_synced">not synced yet</string>
+    <string name="monobank_last_sync">Last synced: %1$s</string>
+    <string name="monobank_sync_progress">Syncing account %1$d/%2$d…</string>
+    <string name="monobank_sync_result">Synced, new transactions: %1$d</string>
+    <string name="monobank_sync">Sync</string>
+    <string name="monobank_disconnect">Disconnect</string>
+    <string name="monobank_disconnected">Monobank disconnected</string>
+    <string name="monobank_disconnect_title">Disconnect Monobank</string>
+    <string name="monobank_disconnect_body">Wallets and imported transactions will remain, but automatic import of new transactions will stop.</string>
+    <string name="settings_monobank">Connect Monobank</string>
+    <string name="settings_monobank_subtitle">Import card and jar transactions automatically</string>
 </resources>
