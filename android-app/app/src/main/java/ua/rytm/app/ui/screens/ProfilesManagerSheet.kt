@@ -347,7 +347,6 @@ private fun ProfileRow(
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
-                        leadingIcon = { Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
                         onClick = { menuOpen = false; onDelete() },
                     )
                 }

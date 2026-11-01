@@ -485,19 +485,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                 }
                 DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
                 ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
-                    // Was a bare Icon, no enclosing shape -- every other
-                    // delete affordance in the app (Tags/Categories/
-                    // Profiles list rows, Settings' "Скинути дані
-                    // профілю"/"Видалити акаунт") wraps the icon in a
-                    // colored circle. Flagged live, screenshot; matched
-                    // that convention here too.
-                    Box(
-                        Modifier.size(28.dp).background(MaterialTheme.colorScheme.errorContainer, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(16.dp))
-                    }
-                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = RytmSpacing.sm))
+                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
             }
         }
