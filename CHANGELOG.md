@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: Premium gate off for now
+
+Play Console's Subscriptions page is locked: account Stasrun has no merchant account, and only the owner can register one (bank and personal data). Nothing was changed in the console. Owner's call: paid features stay free, `PremiumRepository.GATE_ENABLED = false` in all builds. Turn it on only after the product `rytm_premium` exists and a purchase was tested.
+
 ## 2026-11-01: Premium on Google Play (client side)
 
 Owner-approved model: subscription `rytm_premium`, base plans `monthly` (99 UAH) and `yearly` (699 UAH), 14-day trial. Gated in release builds only: Monobank sync, statement import, bank auto-save, PDF report. QA and debug stay unlocked because Play sells to `ua.rytm.app` only. Rytm CSV import stays free. **Not done:** the Play Console product (owner), a purchase test, and server verification through the Play Developer API, so premium is checked on the device and can be bypassed for now. `premium` is not tied to the Firebase account yet, it follows the Google Play account.
