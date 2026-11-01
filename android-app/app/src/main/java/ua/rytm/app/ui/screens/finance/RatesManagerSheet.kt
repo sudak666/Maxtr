@@ -5,15 +5,11 @@ import ua.rytm.app.ui.components.RytmModalBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -32,7 +28,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,6 +39,7 @@ import ua.rytm.app.data.CurrencyRatesSyncRepository
 import ua.rytm.app.data.DEFAULT_PROFILE_ID
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
+import ua.rytm.app.ui.components.CurrencyBadge
 import ua.rytm.app.data.local.SettingsStore
 import java.text.DateFormat
 import java.text.NumberFormat
@@ -51,11 +47,6 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
-import ua.rytm.app.ui.theme.GreenLight2
-import ua.rytm.app.ui.theme.BlueLight2
-import ua.rytm.app.ui.theme.PurpleLight2
-import ua.rytm.app.ui.theme.RedLight2
-import ua.rytm.app.ui.theme.Gray
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
@@ -169,7 +160,6 @@ fun RatesManagerSheet(
                 fontWeight = FontWeight.Bold,
             )
             SEED_RATES.forEach { (code, fallback) ->
-                val tint = currencyTint(code)
                 val value = rates[code] ?: fallback
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -177,9 +167,7 @@ fun RatesManagerSheet(
                     colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(44.dp).background(tint.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
-                            Text(currencyMark(code), color = tint, fontWeight = FontWeight.Black)
-                        }
+                        CurrencyBadge(code)
                         Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
                             Text(code, fontWeight = FontWeight.Bold)
                             Text(
@@ -189,7 +177,6 @@ fun RatesManagerSheet(
                                 maxLines = 1,
                             )
                         }
-                        // Red or green digits would read as loss or gain; colour stays on the badge.
                         Text("${numberFormat.format(value)} ₴", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -197,20 +184,4 @@ fun RatesManagerSheet(
 
         }
     }
-}
-
-private fun currencyTint(code: String): Color = when (code) {
-    "USD" -> GreenLight2
-    "EUR" -> BlueLight2
-    "GBP" -> PurpleLight2
-    "PLN" -> RedLight2
-    else -> Gray
-}
-
-private fun currencyMark(code: String): String = when (code) {
-    "USD" -> "$"
-    "EUR" -> "€"
-    "GBP" -> "£"
-    "PLN" -> "zł"
-    else -> code
 }

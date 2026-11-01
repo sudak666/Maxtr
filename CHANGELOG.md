@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: one currency badge (2026-11-01)** — the owner noticed four coloured badges among grey ones, with codes crowding the circle and PLN differing between screens. New `CurrencyBadge` replaces both copies (rates sheet, Tools): one accent colour, real symbols where they exist, a smaller font for bare codes. Checked on the A51 QA build, which also confirms the rates sheet stops above the nav bar (#704). AZN, BDT, CAD to CNY, INR to KZT were scrolled past, not seen; those symbols may fall back to a system font. The PWA is unchanged.
+
 - **Android: sheets stop above the system nav bar (2026-11-01)** — from the owner's screenshot: rate rows scrolled under the transparent nav buttons, because every sheet put `navigationBarsPadding()` inside its scroll, so the gap appeared only at the end of the list. `RytmModalBottomSheet` now wraps content in a `Column` with that padding, which fixes all 23 sheets; the inner paddings stay and add nothing, since the inset is consumed. Checked on the A51 QA build: Tools sheet scrolled to the end, transaction form with the keyboard. The rates sheet itself was not opened.
 
 - **Hosting deploy (2026-11-01)** — from a clean `origin/main` worktree at `59f80dc` (#702).
