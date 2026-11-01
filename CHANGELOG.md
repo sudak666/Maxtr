@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: PWA reads the financial month
+
+`financialMonth()` in `js/state.js` mirrors Android for analytics, the month filter, budget toasts/alerts and category totals. `monthStartDay` is read-only in the PWA: not in `fbSaveNow`'s payload, and `updateDoc` of changed fields leaves it intact. `sw.js` v192->v193.
+
 ## 2026-11-01: functions runtime Node 20 -> 22
 
 Deploy of #680 was refused: Node 20 was decommissioned 2026-10-30. Bumped `functions/package.json` engines and redeployed.

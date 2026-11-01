@@ -41,6 +41,21 @@ export const LANG_CALENDAR = {
   }
 };
 
+/**
+ * The financial month `offset` months back. Mirrors Android's FinancialMonth;
+ * `until` is exclusive and dates compare as plain "yyyy-MM-dd" strings.
+ * @param {number} [offset]
+ * @returns {{from: string, until: string, has: (date: string|undefined) => boolean}}
+ */
+export function financialMonth(offset=0){
+  const day=AppState.monthStartDay, now=new Date();
+  const m=now.getMonth()-offset-(now.getDate()<day?1:0);
+  /** @param {number} month */
+  const iso=month=>{ const d=new Date(now.getFullYear(),month,day); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const from=iso(m), until=iso(m+1);
+  return {from, until, has:date=>{ const d=(date||'').slice(0,10); return !!d&&d>=from&&d<until; }};
+}
+
 export const AppState = {
   /** @type {import('firebase/auth').User | null} */
   currentUser: null,
@@ -113,6 +128,8 @@ export const AppState = {
   // can't reference core.js's DEFAULT_SALARY_GOAL directly — kept in sync
   // by convention, same as this file's other duplicated defaults).
   salaryGoal: 20000,
+  /** Day the financial month starts; set from Android, read-only here. */
+  monthStartDay: 1,
   /** @type {Record<string, boolean>} */
   widgets: {rates:true, converter:true, analytics:true, chart:true, goals:true, dailyTip:true, cryptoTop:true},
   widgetOrder: WIDGET_ORDER_DEFAULT.slice(),

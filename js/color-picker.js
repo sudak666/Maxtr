@@ -488,6 +488,7 @@ export function seedConfigFromDocs(sData, fData){
     const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
     if(AppState.notifSettings.enabled && AppState.notifSettings.timeZone!==tz){ AppState.notifSettings.timeZone=tz; saveNotifSettings(); }
   }catch(e){}
+  AppState.monthStartDay = (fData && Number.isInteger(fData.monthStartDay) && fData.monthStartDay>=1 && fData.monthStartDay<=28) ? fData.monthStartDay : 1;
   AppState.salaryGoal = (fData && typeof fData.salaryGoal==='number' && fData.salaryGoal>=0) ? fData.salaryGoal : DEFAULT_SALARY_GOAL;
   AppState.catBackfillDone = !!(fData && fData.catBackfillDone);
   AppState.catLegacyMerged = !!(fData && fData.catLegacyMerged);
