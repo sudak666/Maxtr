@@ -175,7 +175,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         shape = RoundedCornerShape(RytmRadii.Row),
                     ) {
                         if (syncing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                        else { Icon(RytmIcons.Sync, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.monobank_sync)) }
+                        else { Icon(RytmIcons.Sync, null); Spacer(Modifier.width(ua.rytm.app.ui.theme.RytmSpacing.sm)); Text(stringResource(R.string.monobank_sync)) }
                     }
                     OutlinedButton(
                         onClick = { confirmDisconnect = true },
@@ -186,7 +186,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     ) { Text(stringResource(R.string.monobank_disconnect)) }
                 }
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(ua.rytm.app.ui.theme.RytmSpacing.xl))
         }
     }
 
