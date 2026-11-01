@@ -23,8 +23,7 @@ data class MonthReport(
 ) {
     companion object {
         fun build(transactions: List<Transaction>, month: YearMonth, toUah: (Transaction) -> Double): MonthReport {
-            val prefix = month.toString()
-            val inMonth = transactions.filter { it.date.startsWith(prefix) }
+            val inMonth = transactions.filter { ua.rytm.app.data.FinancialMonth.contains(month, it.date) }
             val expenses = inMonth.filter { it.type == TxType.EXPENSE }
             return MonthReport(
                 month = month,

@@ -52,6 +52,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setThemePreference(pref: ua.rytm.app.data.local.ThemePreference) { viewModelScope.launch { app.settingsStore.setThemePreference(pref) } }
     fun setLanguage(language: String) { viewModelScope.launch { app.settingsStore.setLanguage(language) } }
     fun setHideAmounts(hidden: Boolean) { viewModelScope.launch { app.settingsStore.setHideAmounts(hidden) } }
+    fun setFinancialMonthStart(uid: String, profileId: String, day: Int) {
+        viewModelScope.launch { app.widgetSettingsSyncRepository.saveFinancialMonthStart(uid, profileId, day) }
+    }
     fun setShowBalanceAfter(show: Boolean) { viewModelScope.launch { app.settingsStore.setShowBalanceAfter(show) } }
     fun setPrivacyCacheEnabled(enabled: Boolean) { viewModelScope.launch { app.settingsStore.setPrivacyCacheEnabled(enabled) } }
 

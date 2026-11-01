@@ -92,6 +92,7 @@ class RytmApplication : Application() {
             .debounce(1500)
             .onEach { runCatching { ua.rytm.app.widget.RytmWidget.refresh(this) } }
             .launchIn(appScope)
+        settingsStore.financialMonthStart.onEach { ua.rytm.app.data.FinancialMonth.startDay = it }.launchIn(appScope)
     }
 
     val database: RytmDatabase by lazy {

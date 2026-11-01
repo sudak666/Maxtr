@@ -36,11 +36,13 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
     override suspend fun doWork(): Result {
         val app = applicationContext as RytmApplication
         val today = LocalDate.now()
-        if (today.dayOfMonth > 3) return Result.success()
+        // A worker can start before the app has loaded the setting.
+        ua.rytm.app.data.FinancialMonth.startDay = app.settingsStore.financialMonthStart.first()
+        if (ua.rytm.app.data.FinancialMonth.dayNumber(today) > 3) return Result.success()
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.success()
         if (!app.settingsStore.isPushEnabled(uid).first()) return Result.success()
         if (!NotificationManagerCompat.from(app).areNotificationsEnabled()) return Result.success()
-        val month = YearMonth.from(today).minusMonths(1)
+        val month = ua.rytm.app.data.FinancialMonth.of(today).minusMonths(1)
         if (app.settingsStore.monthSummaryNotified(uid).first() == month.toString()) return Result.success()
 
         val rates = app.financeRepository.currencyRates.first()

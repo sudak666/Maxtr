@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, mapWithConcurrency } = require('../functions/lib/pure.js');
+const { convertCurrency, toBase, zonedDateParts, todayStr, monthPrefix, financialMonth, mapWithConcurrency } = require('../functions/lib/pure.js');
 
 let passed = 0;
 async function test(name, fn) {
@@ -70,6 +70,14 @@ test('zonedDateParts: invalid/unknown timeZone falls back to UTC instead of thro
 test('zonedDateParts: missing timeZone defaults to UTC', () => {
   const d = new Date('2026-07-10T18:05:00Z');
   assert.deepEqual(zonedDateParts(d, undefined), zonedDateParts(d, 'UTC'));
+});
+
+test('financialMonth: starts on the chosen day, crosses years, tolerates bad input', () => {
+  assert.deepEqual(financialMonth('2026-11-05', 10), { key: '2026-10', from: '2026-10-10', until: '2026-11-10' });
+  assert.deepEqual(financialMonth('2026-11-10', 10), { key: '2026-11', from: '2026-11-10', until: '2026-12-10' });
+  assert.equal(financialMonth('2027-01-02', 10).key, '2026-12');
+  assert.deepEqual(financialMonth('2026-11-05', undefined), { key: '2026-11', from: '2026-11-01', until: '2026-12-01' });
+  assert.equal(financialMonth('2026-11-05', 31).key, '2026-11');
 });
 
 test('todayStr / monthPrefix: consistent with zonedDateParts', () => {

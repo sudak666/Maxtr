@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
+import ua.rytm.app.data.FinancialMonth
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -17,15 +18,14 @@ object FinanceInsights {
      * Null when the balance does not even cover the bills (the UI says so).
      */
     fun safeToSpendPerDay(balanceUah: Double, recurringOutUah: Double, today: LocalDate): Double? {
-        val daysLeft = YearMonth.from(today).lengthOfMonth() - today.dayOfMonth + 1
+        val daysLeft = java.time.temporal.ChronoUnit.DAYS.between(today, FinancialMonth.lastDay(FinancialMonth.of(today))) + 1
         val free = balanceUah - recurringOutUah
         return if (free <= 0) null else free / daysLeft
     }
 
     /** Income or expense of [month] in UAH (transfers never count). */
     fun monthTotalUah(transactions: List<Transaction>, type: TxType, month: YearMonth, toUah: (Double, String) -> Double): Double {
-        val prefix = month.toString()
-        return transactions.filter { it.type == type && it.date.startsWith(prefix) }.sumOf { toUah(it.amount, it.currency) }
+        return transactions.filter { it.type == type && FinancialMonth.contains(month, it.date) }.sumOf { toUah(it.amount, it.currency) }
     }
 
     /**
@@ -39,7 +39,7 @@ object FinanceInsights {
         shiftsEarnings: Double,
         toUah: (Double, String) -> Double,
     ): MonthOutlook {
-        val end = YearMonth.from(today).atEndOfMonth()
+        val end = FinancialMonth.lastDay(FinancialMonth.of(today))
         var outgoing = 0.0
         var incoming = 0.0
         recurring.filter { it.active && it.amount > 0 }.forEach { r ->
@@ -63,9 +63,8 @@ object FinanceInsights {
      * Empty unless at least two people added something; the current user first.
      */
     fun contributions(transactions: List<Transaction>, month: YearMonth, myUid: String?, toUah: (Double, String) -> Double): List<Contribution> {
-        val prefix = month.toString()
         val byPerson = transactions.asSequence()
-            .filter { it.date.startsWith(prefix) && it.type != TxType.TRANSFER }
+            .filter { FinancialMonth.contains(month, it.date) && it.type != TxType.TRANSFER }
             .mapNotNull { t -> t.createdBy?.let { it to t } }
             .groupBy({ it.first }, { it.second })
         if (byPerson.size < 2) return emptyList()
@@ -108,7 +107,7 @@ object FinanceInsights {
         }
         result = when (periodFilter) {
             PeriodFilter.DAY -> { val d = today.toString(); result.filter { it.date == d } }
-            PeriodFilter.MONTH -> { val p = YearMonth.from(today).toString(); result.filter { it.date.startsWith(p) } }
+            PeriodFilter.MONTH -> { val m = FinancialMonth.of(today); result.filter { FinancialMonth.contains(m, it.date) } }
             PeriodFilter.ALL -> result
         }
         categoryFilter?.let { cat -> result = result.filter { it.category == cat } }

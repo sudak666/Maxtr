@@ -69,6 +69,11 @@ class SettingsStore(private val context: Context) {
     val showBalanceAfter: Flow<Boolean> = context.settingsDataStore.data.map { it[showBalanceAfterKey] ?: false }
     suspend fun setShowBalanceAfter(show: Boolean) { context.settingsDataStore.edit { it[showBalanceAfterKey] = show } }
 
+    /** Cached from the active profile's finance doc (`monthStartDay`). */
+    private val financialMonthStartKey = androidx.datastore.preferences.core.intPreferencesKey("financial_month_start")
+    val financialMonthStart: Flow<Int> = context.settingsDataStore.data.map { it[financialMonthStartKey] ?: 1 }
+    suspend fun setFinancialMonthStart(day: Int) { context.settingsDataStore.edit { it[financialMonthStartKey] = day } }
+
     val privacyCacheEnabled: Flow<Boolean> = context.settingsDataStore.data.map { it[privacyCacheKey] ?: true }
     suspend fun setPrivacyCacheEnabled(enabled: Boolean) { context.settingsDataStore.edit { it[privacyCacheKey] = enabled } }
     suspend fun isPrivacyCacheEnabled(): Boolean = privacyCacheEnabled.first()

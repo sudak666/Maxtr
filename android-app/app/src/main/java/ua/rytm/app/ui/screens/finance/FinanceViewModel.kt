@@ -120,7 +120,8 @@ class FinanceViewModel(
 
     /** Today, as observable state so cached month totals roll over at midnight. */
     private var today by mutableStateOf(LocalDate.now())
-    private val currentMonth: YearMonth get() = YearMonth.from(today)
+    private val currentMonth: YearMonth get() = ua.rytm.app.data.FinancialMonth.of(today)
+    private val monthDay: Int get() = ua.rytm.app.data.FinancialMonth.dayNumber(today)
 
     /** Last month's recap (MonthSummary). */
     val lastMonthSummary: MonthSummary by derivedStateOf {
@@ -135,7 +136,7 @@ class FinanceViewModel(
         private set
     val shownMonthSummary: MonthSummary by derivedStateOf {
         if (summaryMonth == currentMonth.minusMonths(1)) lastMonthSummary
-        else MonthSummary.compute(transactions, summaryMonth, upToDay = today.dayOfMonth.takeIf { summaryMonth == currentMonth }) { toUah(it.amount, it.currency) }
+        else MonthSummary.compute(transactions, summaryMonth, upToDay = monthDay.takeIf { summaryMonth == currentMonth }) { toUah(it.amount, it.currency) }
     }
     val canShowNextSummaryMonth: Boolean get() = summaryMonth < currentMonth
     fun shiftSummaryMonth(by: Long) {
@@ -144,7 +145,7 @@ class FinanceViewModel(
 
     /** The recap card shows in a month's first week until it is opened or closed. */
     val showMonthSummaryCard: Boolean
-        get() = today.dayOfMonth <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
+        get() = monthDay <= 7 && !lastMonthSummary.isEmpty && monthSummarySeen != lastMonthSummary.month.toString()
 
     /** Everything the month's PDF report needs (MonthReport). */
     fun monthReport(month: YearMonth): MonthReport = MonthReport.build(transactions, month) { toUah(it.amount, it.currency) }
@@ -153,7 +154,7 @@ class FinanceViewModel(
 
     fun reportExportFailed() { pendingMessage = FinanceMessage(R.string.common_save_failed) }
 
-    fun openMonthSummary(lastMonth: Boolean = today.dayOfMonth <= 7) {
+    fun openMonthSummary(lastMonth: Boolean = monthDay <= 7) {
         summaryMonth = if (lastMonth) currentMonth.minusMonths(1) else currentMonth
         monthSummaryOpen = true
         if (lastMonth) markMonthSummarySeen()
@@ -539,7 +540,7 @@ class FinanceViewModel(
                         category = toSave.category,
                         limit = budgets[toSave.category],
                         existingMonthAmountsUah = transactions.asSequence()
-                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.date.startsWith(currentMonthPrefix) }
+                            .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && ua.rytm.app.data.FinancialMonth.contains(currentMonth, it.date) }
                             .map { toUah(it.amount, it.currency) }
                             .toList(),
                         savedAmountUah = toUah(toSave.amount, toSave.currency),
@@ -591,7 +592,6 @@ class FinanceViewModel(
 
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 
-    private val currentMonthPrefix: String get() = currentMonth.toString() // "2026-08"
 
     val monthIncomeUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions, TxType.INCOME, currentMonth, ::toUah) }
 

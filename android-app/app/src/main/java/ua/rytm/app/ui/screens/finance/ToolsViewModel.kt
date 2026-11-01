@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
+import ua.rytm.app.data.FinancialMonth
+import java.time.LocalDate
 import java.time.YearMonth
 import androidx.compose.runtime.Immutable
 
@@ -54,18 +56,12 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     // Mirrors analyticsPredicates(): a "yyyy-MM" date prefix (or `>=` window
     // for 3m/all) selecting which transactions count for the current period.
     private fun periodTransactions(): List<Transaction> {
-        val now = YearMonth.now()
+        val now = FinancialMonth.of(LocalDate.now())
         return when (period) {
-            AnalyticsPeriod.MONTH -> {
-                val p = now.toString()
-                transactions.filter { it.date.startsWith(p) }
-            }
-            AnalyticsPeriod.PREV -> {
-                val p = now.minusMonths(1).toString()
-                transactions.filter { it.date.startsWith(p) }
-            }
+            AnalyticsPeriod.MONTH -> transactions.filter { FinancialMonth.contains(now, it.date) }
+            AnalyticsPeriod.PREV -> transactions.filter { FinancialMonth.contains(now.minusMonths(1), it.date) }
             AnalyticsPeriod.M3 -> {
-                val from = now.minusMonths(2).atDay(1).toString()
+                val from = FinancialMonth.firstDay(now.minusMonths(2)).toString()
                 transactions.filter { it.date >= from }
             }
             AnalyticsPeriod.ALL -> transactions
@@ -73,20 +69,21 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     }
 
     private fun previousPeriodTransactions(): List<Transaction>? {
-        val now = YearMonth.now()
+        val today = LocalDate.now()
+        val now = FinancialMonth.of(today)
         return when (period) {
             // Month-to-date vs the same days of last month, like the month
             // summary: against the whole previous month a 22-day October read
             // "на рівні" here while the summary said "+5%" (P5, live screenshots).
             AnalyticsPeriod.MONTH -> {
                 val prev = now.minusMonths(1)
-                val cutoff = "$prev-%02d".format(minOf(java.time.LocalDate.now().dayOfMonth, prev.lengthOfMonth()))
-                transactions.filter { it.date.startsWith(prev.toString()) && it.date.take(10) <= cutoff }
+                val cutoff = FinancialMonth.cutoff(prev, FinancialMonth.dayNumber(today)).toString()
+                transactions.filter { FinancialMonth.contains(prev, it.date) && it.date.take(10) <= cutoff }
             }
-            AnalyticsPeriod.PREV -> transactions.filter { it.date.startsWith(now.minusMonths(2).toString()) }
+            AnalyticsPeriod.PREV -> transactions.filter { FinancialMonth.contains(now.minusMonths(2), it.date) }
             AnalyticsPeriod.M3 -> {
-                val from = now.minusMonths(5).atDay(1).toString()
-                val until = now.minusMonths(2).atDay(1).toString()
+                val from = FinancialMonth.firstDay(now.minusMonths(5)).toString()
+                val until = FinancialMonth.firstDay(now.minusMonths(2)).toString()
                 transactions.filter { it.date >= from && it.date < until }
             }
             AnalyticsPeriod.ALL -> null
@@ -135,11 +132,10 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     // Last 6 calendar months (oldest first) — mirrors the PWA's 6-month chart.
     val sixMonthTotals: List<MonthTotal>
         get() {
-            val now = YearMonth.now()
+            val now = FinancialMonth.of(LocalDate.now())
             return (5 downTo 0).map { offset ->
                 val ym = now.minusMonths(offset.toLong())
-                val prefix = ym.toString()
-                val monthTxs = transactions.filter { it.date.startsWith(prefix) }
+                val monthTxs = transactions.filter { FinancialMonth.contains(ym, it.date) }
                 MonthTotal(
                     yearMonth = ym,
                     income = monthTxs.filter { it.type == TxType.INCOME }.sumOf { it.inBase() },

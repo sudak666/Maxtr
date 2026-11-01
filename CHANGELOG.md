@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: financial month start (Android + push sweep)
+
+New per-profile `monthStartDay` (1-28) in the `finance` doc, set in Settings. `data/FinancialMonth.kt` drives Android's budget feedback, Finance totals, safe-to-spend, month outlook, recap, PDF report, analytics and the month-summary notification; months are named after the calendar month they start in. `functions/lib/pure.js`'s `financialMonth()` gives the budget push the same window. Shift earnings and the calendar stay calendar-based. **Gotcha:** the PWA still shows calendar months and does not read this field yet. The functions change needs a deploy after merge. CLAUDE.md's "real users" rule replaced: no real users yet (owner, 2026-11-01).
+
 ## Known gaps / pending work
 
 - **No payment provider wired up.** Premium is upsell-only right now (and its free-tier caps are currently all disabled app-wide for exactly that reason — see Premium / free-tier limits above). Plan discussed: Stripe first (still a PWA), RevenueCat later once/if this ships to app stores (Apple/Google require native IAP there).
