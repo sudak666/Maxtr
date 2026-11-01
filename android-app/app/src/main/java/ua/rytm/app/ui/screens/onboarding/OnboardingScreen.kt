@@ -53,7 +53,7 @@ import ua.rytm.app.ui.theme.RytmRadii
 private data class OnboardingPage(val icon: ImageVector, @StringRes val title: Int, @StringRes val body: Int)
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit, onAddFirstExpense: () -> Unit = onComplete) {
+fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> Unit) {
     val pages = remember {
         listOf(
             OnboardingPage(RytmIcons.AccountBalanceWallet, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
@@ -122,7 +122,7 @@ fun OnboardingScreen(onComplete: () -> Unit, onAddFirstExpense: () -> Unit = onC
                 }
                 Button(
                     onClick = {
-                        if (page == pages.lastIndex) onAddFirstExpense()
+                        if (page == pages.lastIndex) (onAddFirstExpense ?: onComplete)()
                         else scope.launch { pagerState.animateScrollToPage(page + 1) }
                     },
                     // heightIn: a fixed 52dp clipped the label at large fonts.
