@@ -235,6 +235,35 @@ async function main() {
     await page.keyboard.press('Escape');
     await page.waitForSelector('#wallets-modal', { state: 'hidden' });
 
+    // New wallet: a form over the manager, nothing is saved until confirmed.
+    await page.evaluate(() => window.openWalletsManager && window.openWalletsManager());
+    await page.waitForSelector('#wallets-modal', { state: 'visible' });
+    const walletCount = () => page.locator('#wallets-list .mgr-row').count();
+    const walletsBefore = await walletCount();
+    await page.click('[data-action="add-wallet"]');
+    await page.waitForSelector('#wallet-create-modal', { state: 'visible' });
+    if (!(await page.isDisabled('#wallet-create-ok'))) throw new Error('expected «Додати» to stay disabled until the wallet has a name');
+    await page.click('[data-action="close-wallet-create"]');
+    await page.waitForSelector('#wallet-create-modal', { state: 'hidden' });
+    if (!(await page.isVisible('#wallets-modal'))) throw new Error('cancelling the create form must leave the wallets manager open');
+    if (await walletCount() !== walletsBefore) throw new Error('cancelling the create form must not create a wallet');
+    console.log('[ok] cancelling the new-wallet form creates nothing and keeps the manager open');
+
+    await page.click('[data-action="add-wallet"]');
+    await page.fill('#wallet-create-name', 'Депозит тест');
+    await page.fill('#wallet-create-opening', '1500');
+    await page.selectOption('#wallet-create-kind', 'deposit', { force: true });
+    await page.click('#wallet-create-ok');
+    await page.waitForSelector('#wallet-create-modal', { state: 'hidden' });
+    if (await walletCount() !== walletsBefore + 1) throw new Error('expected confirming the form to add one wallet');
+    const lastRow = page.locator('#wallets-list .mgr-row').last();
+    if (await lastRow.locator('.mgr-name-inline').inputValue() !== 'Депозит тест') throw new Error('new wallet has the wrong name');
+    if (await lastRow.locator('.wallet-hint').count() !== 1) throw new Error('expected the daily-allowance hint on a deposit wallet');
+    if (await page.locator('#wallets-list .mgr-row').first().locator('.wallet-hint').count() !== 0) throw new Error('the hint must not show on a card wallet');
+    console.log('[ok] confirming the new-wallet form saves name, kind and shows the hint only for deposit/credit');
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('#wallets-modal', { state: 'hidden' });
+
     if (pageErrors.length) throw new Error(`uncaught page errors during modal flow: ${pageErrors.join(' | ')}`);
     console.log('[ok] no uncaught page errors during the modal open/close flow');
   } finally {

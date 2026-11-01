@@ -39,7 +39,7 @@ const h = /** @type {any} */ (_h);
 // below purely because *assigning* to window is a side effect that needs
 // ordering against the rest of the circular import graph.
 export function closeManagers(){
-  ['shift-types-modal','wallets-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','backups-modal','shared-members-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','biometric-onboard-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','wallet-create-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','backups-modal','shared-members-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','biometric-onboard-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 }
@@ -215,6 +215,11 @@ const openWalletsManager = function(){
 /** @param {string} id */
 function walletInUse(id){ return AppState.transactions.some(t=>t.wallet===id||t.targetWallet===id) || AppState.recurring.some(r=>r.wallet===id); }
 
+/** @param {string} [kind] */
+function walletKindHint(kind){
+  return kind==='deposit'||kind==='credit' ? `<div class="wallet-hint">${tr('wallet_kind_hint')}</div>` : '';
+}
+
 function renderWalletsList(){
   const box=document.getElementById('wallets-list'); if(!box) return;
   box.innerHTML='';
@@ -236,6 +241,7 @@ function renderWalletsList(){
           <select data-action="update-wallet" data-id="${w.id}" data-field="kind">
             ${['cash','card','deposit','credit'].map(k=>`<option value="${k}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
           </select></label>
+        ${walletKindHint(w.kind)}
         <label class="wallet-switch"><input type="checkbox" ${w.inCapital!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inCapital"> ${tr('wallet_in_capital')}</label>
         <label class="wallet-switch"><input type="checkbox" ${w.inStats!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inStats"> ${tr('wallet_in_stats')}</label>
       </div>`;
@@ -253,15 +259,56 @@ export const updateWallet = function(id,field,value){
   else /** @type {any} */ (w)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
+  if(field==='kind') renderWalletsList();
 };
 
-const addWallet = async function(){
-  const name=await uiPrompt(tr('wallets_add_prompt'),'',tr('wallets_new_default'));
-  if(name===null) return;
+// Nothing is saved until the user confirms — same as Android's WalletCreateDialog.
+const openWalletCreate = function(){
+  const box=document.getElementById('wallet-create-form');
+  const modal=document.getElementById('wallet-create-modal');
+  if(!box||!modal) return;
+  box.innerHTML=`
+    <label class="mgr-field"><span class="mgr-field-label">${tr('common_name')}</span>
+      <input type="text" id="wallet-create-name" maxlength="60" data-action="wallet-create-field"></label>
+    <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_opening_balance')}</span>
+      <input type="number" class="mgr-num" id="wallet-create-opening" step="0.01" placeholder="0"></label>
+    <label class="mgr-field"><span class="mgr-field-label">${tr('debt_currency')}</span>
+      <select id="wallet-create-currency">${CURRENCY_LIST.map(c=>`<option value="${c}" ${c==='UAH'?'selected':''}>${c}</option>`).join('')}</select></label>
+    <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
+      <select id="wallet-create-kind" data-action="wallet-create-field">${['cash','card','deposit','credit'].map(k=>`<option value="${k}" ${k==='card'?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}</select></label>
+    <div id="wallet-create-hint"></div>`;
+  box.querySelectorAll('select').forEach(enhanceSelect);
+  syncWalletCreate();
+  modal.style.display='flex';
+  document.getElementById('wallet-create-name')?.focus();
+};
+
+function syncWalletCreate(){
+  const name=/** @type {HTMLInputElement | null} */ (document.getElementById('wallet-create-name'));
+  const kind=/** @type {HTMLSelectElement | null} */ (document.getElementById('wallet-create-kind'));
+  const ok=/** @type {HTMLButtonElement | null} */ (document.getElementById('wallet-create-ok'));
+  const hint=document.getElementById('wallet-create-hint');
+  if(ok) ok.disabled=!name||!name.value.trim();
+  if(hint) hint.innerHTML=walletKindHint(kind?.value);
+}
+
+function closeWalletCreate(){
+  const modal=document.getElementById('wallet-create-modal'); if(modal) modal.style.display='none';
+}
+
+const confirmAddWallet = function(){
+  /** @param {string} id */
+  const val=id=>/** @type {HTMLInputElement | null} */ (document.getElementById(id))?.value||'';
+  const name=val('wallet-create-name').trim();
+  if(!name) return;
+  const currency=val('wallet-create-currency')||'UAH';
+  if(currency!=='UAH' && AppState.currencyRates[currency]===undefined) AppState.currencyRates[currency]=SEED_RATES[currency]||1;
   const color=PALETTE[AppState.wallets.length%PALETTE.length];
-  AppState.wallets.push({id:uid('w'), name:name.trim()||tr('wallets_new_default'), color, icon:'card', currency:'UAH'});
+  AppState.wallets.push({id:uid('w'), name, color, icon:'card', currency, kind:val('wallet-create-kind')||'card', openingBalance:parseFloat(val('wallet-create-opening'))||0});
   saveConfigLocal(); scheduleSave();
+  closeWalletCreate();
   renderWalletsList(); renderFinance(); refreshWalletSelects();
+  document.getElementById('wallets-list')?.lastElementChild?.scrollIntoView({block:'nearest'});
 };
 
 /** @param {string} id */
@@ -1083,7 +1130,9 @@ export function __init_settings_managers__(){
 // inside the card (the target/closest check below is unaffected either way).
 document.addEventListener('click', (e)=>{
   const target=/** @type {Element} */ (e.target);
-  if(target.classList.contains('modal-overlay') || target.closest('[data-close-modal]')) closeManagers();
+  // The create form sits over the wallets manager: its backdrop closes only itself.
+  if(target.id==='wallet-create-modal') closeWalletCreate();
+  else if(target.classList.contains('modal-overlay') || target.closest('[data-close-modal]')) closeManagers();
 }, true);
 
 // Bottom-sheet drag-to-dismiss (see index.html's "BOTTOM SHEET" CSS block)
@@ -1106,7 +1155,9 @@ const CLICK_ACTIONS = {
   'toggle-shift-type-edit': ds=>toggleShiftTypeEdit(ds.id||''),
   'delete-shift-type': ds=>deleteShiftType(ds.id||''),
   'open-wallets-manager': ()=>openWalletsManager(),
-  'add-wallet': ()=>addWallet(),
+  'add-wallet': ()=>openWalletCreate(),
+  'close-wallet-create': ()=>closeWalletCreate(),
+  'confirm-add-wallet': ()=>confirmAddWallet(),
   'delete-wallet': ds=>deleteWallet(ds.id||''),
   // Color swatches on shiftType/wallet/tag manager rows — one handler for
   // all three (the global delegated listener sees every click regardless of
@@ -1144,6 +1195,7 @@ const CLICK_ACTIONS = {
 const FIELD_ACTIONS = {
   'update-shift-type': (ds,el)=>updateShiftType(ds.id||'', ds.field||'', ds.field==='isOff'?el.checked:el.value),
   'update-wallet': (ds,el)=>updateWallet(ds.id||'', ds.field||'', /** @type {HTMLInputElement} */ (el).type==='checkbox'?/** @type {HTMLInputElement} */ (el).checked:el.value),
+  'wallet-create-field': ()=>syncWalletCreate(),
   'toggle-widget': (ds,el)=>toggleWidget(ds.key||'', el.checked),
   'update-currency-rate': (ds,el)=>updateCurrencyRate(ds.code||'', el.value),
   'update-budget': (ds,el)=>updateBudget(ds.cat||'', el.value),
