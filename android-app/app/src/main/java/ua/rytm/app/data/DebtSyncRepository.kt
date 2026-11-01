@@ -85,6 +85,7 @@ private fun DebtEntity.toRemoteMap(entries: List<DebtEntryEntity>): Map<String, 
     "currency" to currency,
     "startAmount" to startAmount,
     "dueDate" to dueDate,
+    "direction" to direction,
     "entries" to entries.sortedBy { it.id }.map {
         mapOf("id" to it.id, "amount" to it.amount, "balance" to it.balance, "date" to it.date)
     },
@@ -100,6 +101,7 @@ private fun parseRemoteDebt(m: Map<*, *>): DebtEntity? {
         currency = when (val currency = m["currency"] as? String) { "грн", "₴", null -> "UAH"; else -> currency },
         startAmount = (m["startAmount"] as? Number)?.toDouble() ?: 0.0,
         dueDate = m["dueDate"] as? String ?: "",
+        direction = if (m["direction"] == "owed") "owed" else "owe",
     )
 }
 

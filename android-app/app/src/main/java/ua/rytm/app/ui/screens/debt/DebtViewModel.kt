@@ -115,9 +115,9 @@ class DebtViewModel(
 
     fun switchDebt(id: Long) { currentDebtId = id }
 
-    fun addDebt(name: String, fallbackName: String) {
+    fun addDebt(name: String, fallbackName: String, direction: String = "owe") {
         val clean = name.trim().ifBlank { fallbackName }
-        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList())
+        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList(), direction = direction)
         mutate(debt.id) { repository.addDebt(debt) }
         currentDebtId = debt.id
     }
@@ -140,6 +140,11 @@ class DebtViewModel(
         mutate(cd.id, dropIfBusy = false) {
             repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
         }
+    }
+
+    fun updateDirection(direction: String) {
+        val cd = currentDebt ?: return
+        mutate(cd.id) { repository.updateDebt(cd.copy(direction = direction)) }
     }
 
     fun toggleInfoPanel() { infoExpanded = !infoExpanded }

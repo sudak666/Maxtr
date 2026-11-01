@@ -24,7 +24,7 @@ import { h as _h, render, Fragment } from './vendor/preact/preact.module.js';
 const h = /** @type {any} */ (_h);
 
 /** @typedef {{id: number, amount?: string, balance: number, date?: string}} DebtEntry */
-/** @typedef {{id: number, name: string, note?: string, currency?: string, startAmount?: number, dueDate?: string, entries: DebtEntry[]}} Debt */
+/** @typedef {{id: number, name: string, note?: string, currency?: string, startAmount?: number, dueDate?: string, direction?: string, entries: DebtEntry[]}} Debt */
 
 /** @returns {Debt | undefined} */
 function getCurrentDebt(){
@@ -429,6 +429,7 @@ export function renderDebt(){
   const S=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
   S('debt-start-val',money((cd.startAmount||0))+' '+cur);
   S('debt-balance-val',money(currentBalance)+' '+cur);
+  S('debt-balance-label',tr(cd.direction==='owed'?'debt_stat_owed':'debt_stat_balance'));
   S('debt-paid-val',money(paid)+' '+cur);
   S('debt-count-val',cd.entries.length);
   renderDebtDueChip(cd);

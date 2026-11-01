@@ -95,6 +95,7 @@ import ua.rytm.app.ui.screens.debt.DebtEntry
 import ua.rytm.app.ui.screens.debt.DebtForecastCard
 import ua.rytm.app.ui.screens.debt.DebtViewModel
 import ua.rytm.app.ui.screens.debt.currentBalance
+import ua.rytm.app.ui.screens.debt.owedToMe
 import ua.rytm.app.ui.screens.debt.paid
 import ua.rytm.app.ui.screens.debt.todayLabel
 import ua.rytm.app.ui.screens.finance.formatMoney
@@ -309,22 +310,34 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             }
             if (addOpen) {
                 var name by rememberSaveable { mutableStateOf("") }
+                var direction by rememberSaveable { mutableStateOf("owe") }
                 AlertDialog(
                     onDismissRequest = { addOpen = false },
                     title = { Text(stringResource(R.string.debt_new_default)) },
                     text = {
                         val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
-                        OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
+                        Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                            OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
+                            DebtDirectionChips(direction) { direction = it }
+                        }
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
-                        Button(onClick = { viewModel.addDebt(name, fallbackName); addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
+                        Button(onClick = { viewModel.addDebt(name, fallbackName, direction); addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
                     },
                     dismissButton = { OutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun DebtDirectionChips(direction: String, onChange: (String) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+        androidx.compose.material3.FilterChip(selected = direction == "owe", onClick = { onChange("owe") }, label = { Text(stringResource(R.string.debt_direction_owe), maxLines = 1) })
+        androidx.compose.material3.FilterChip(selected = direction == "owed", onClick = { onChange("owed") }, label = { Text(stringResource(R.string.debt_direction_owed), maxLines = 1) })
     }
 }
 
@@ -364,7 +377,7 @@ private fun HeroBalance(cd: Debt) {
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
-            Text(stringResource(R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(if (cd.owedToMe) R.string.debt_owed_balance else R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
         }
         ua.rytm.app.ui.components.CelebrationBurst(trigger = celebrateTrigger, modifier = Modifier.matchParentSize())
@@ -381,7 +394,7 @@ private fun ProgressBarSection(cd: Debt) {
     val pct = (paid / target).coerceIn(0.0, 1.0)
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(R.string.debt_paid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${(pct * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         }
         Box(
@@ -413,7 +426,7 @@ private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     RytmStatChipRow {
         item { RytmStatChip(RytmIcons.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
-        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(R.string.debt_paid)) }
+        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
         item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
         if (due != null) item { RytmStatChip(RytmIcons.Event, due, stringResource(R.string.debt_due_date)) }
     }
@@ -465,6 +478,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
             Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 OutlinedTextField(value = name, onValueChange = { name = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.field_name)) })
                 OutlinedTextField(value = note, onValueChange = { note = it; commit() }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.note_label)) })
+                DebtDirectionChips(cd.direction, viewModel::updateDirection)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     OutlinedTextField(value = startAmount, onValueChange = { startAmount = it; commit() }, modifier = Modifier.weight(1f), singleLine = true, label = { Text(stringResource(R.string.debt_start_amount)) })
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))

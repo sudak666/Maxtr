@@ -1,5 +1,6 @@
 package ua.rytm.app.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
@@ -18,6 +19,8 @@ data class DebtEntity(
     val currency: String,
     val startAmount: Double,
     val dueDate: String,
+    /** "owe": the user owes it; "owed": it is owed to the user. */
+    @ColumnInfo(defaultValue = "owe") val direction: String = "owe",
 )
 
 // amount is a free-form string in the PWA (not always a plain number — see

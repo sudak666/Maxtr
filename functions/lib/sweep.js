@@ -28,7 +28,7 @@
 /** @typedef {{inStats?: boolean, id: string, currency?: string}} WalletLike */
 /** @typedef {{wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
-/** @typedef {{id: string, dueDate?: string, name?: string}} DebtLike */
+/** @typedef {{id: string, dueDate?: string, name?: string, direction?: string}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
 /** @typedef {{debts?: DebtLike[]}} DebtDocData */
 /** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
@@ -298,7 +298,9 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       if (d.dueDate !== tomorrow) continue;
       const key = `${d.id}_${tomorrow}`;
       if (sent[key]) continue;
-      const res = await sendPushFn(token, 'Наближається термін боргу', `Завтра настає дата, до якої треба віддати "${d.name || 'Розрахунок'}".`, 'debt');
+      const label = d.name || 'Розрахунок';
+      const body = d.direction === 'owed' ? `Завтра вам мають повернути "${label}".` : `Завтра настає дата, до якої треба віддати "${label}".`;
+      const res = await sendPushFn(token, 'Наближається термін боргу', body, 'debt');
       if (res.ok) { sent[key] = true; changed = true; }
       if (res.invalid) tokenInvalid = true;
     }

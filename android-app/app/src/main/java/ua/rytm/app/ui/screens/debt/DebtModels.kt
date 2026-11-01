@@ -19,7 +19,10 @@ data class Debt(
     val dueDate: String,
     /** Chronological (push) order, oldest first — same invariant js/debt.js's `entries` array relies on. */
     val entries: List<DebtEntry>,
+    val direction: String = "owe",
 )
+
+val Debt.owedToMe: Boolean get() = direction == "owed"
 
 fun Debt.currentBalance(): Double = entries.lastOrNull()?.balance ?: startAmount
 
