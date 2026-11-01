@@ -111,6 +111,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.derivedStateOf
+import ua.rytm.app.ui.icons.WarningAmber
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Category
@@ -533,7 +534,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                         titleColor = MaterialTheme.colorScheme.error,
                     )
                     SettingsRow(
-                        icon = RytmIcons.DeleteForever,
+                        icon = RytmIcons.WarningAmber,
                         badgeColor = MaterialTheme.colorScheme.error,
                         title = stringResource(R.string.settings_delete_account),
                         subtitle = stringResource(R.string.settings_delete_account_subtitle),

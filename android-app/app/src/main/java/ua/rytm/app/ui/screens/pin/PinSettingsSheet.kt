@@ -138,7 +138,6 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(RytmRadii.Row),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) {
-                    Icon(RytmIcons.DeleteOutline, contentDescription = null)
                     Text(stringResource(R.string.pin_remove))
                 }
             } else {
