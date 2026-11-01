@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import ua.rytm.app.R
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.RytmSheetTitle
@@ -77,7 +76,7 @@ fun CashForecastSheet(forecast: CashForecast, onDismiss: () -> Unit) {
                     }
                 }
             }
-            Text(stringResource(R.string.cash_forecast_note), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+            Text(stringResource(R.string.cash_forecast_note), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = RytmSpacing.xs))
         }
     }
 }
