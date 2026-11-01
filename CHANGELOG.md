@@ -1,5 +1,7 @@
 # Changelog
 
+- **Android: sheets stop above the system nav bar (2026-11-01)** — from the owner's screenshot: rate rows scrolled under the transparent nav buttons, because every sheet put `navigationBarsPadding()` inside its scroll, so the gap appeared only at the end of the list. `RytmModalBottomSheet` now wraps content in a `Column` with that padding, which fixes all 23 sheets; the inner paddings stay and add nothing, since the inset is consumed. Checked on the A51 QA build: Tools sheet scrolled to the end, transaction form with the keyboard. The rates sheet itself was not opened.
+
 - **Hosting deploy (2026-11-01)** — from a clean `origin/main` worktree at `59f80dc` (#702).
 
 - **PWA parity with the Android polish (2026-11-01)** — `#wallet-create-modal` replaces the name-only prompt (name, opening balance, currency, kind; its backdrop and Cancel close only itself, the manager stays open). Same wording for import/export and the wallet switches; the PWA subtitle names only CSV, since it has no statement import. Import now sits above export. New «Небезпечна зона» section holds reset and account deletion, as on Android. The kind hint shows for deposit/credit. `js/debt-pace.js` gained `recentPayment`, `finishDate()`, `whatIfPayment()`, used for the same year range and what-if line. Debt details already had a chevron; the month-start sheet does not exist in the PWA. `sw.js` `CACHE_NAME` v198→v199. `tests/e2e-modals.mjs` covers the form. Browser tests fail to start locally on Windows, so they ran only in CI.

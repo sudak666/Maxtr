@@ -1,7 +1,9 @@
 package ua.rytm.app.ui.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,8 +21,10 @@ import androidx.compose.ui.unit.dp
 // depends on its own position: when the content is ~screen-tall, every frame
 // moves the Expanded anchor and the sheet bounces forever after a swipe up
 // (seen on the A51, 2026-10-14). A fixed statusBarsPadding on the sheet plus
-// zero content insets keeps the height constant. Content still applies its
-// own navigationBarsPadding()/imePadding().
+// zero content insets keeps the height constant.
+// The nav bar padding sits outside the content so lists stop above the system
+// buttons instead of scrolling under them. It consumes the inset, so a
+// navigationBarsPadding() inside a sheet adds nothing; imePadding() still works.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RytmModalBottomSheet(
@@ -38,6 +42,7 @@ fun RytmModalBottomSheet(
         shape = shape,
         tonalElevation = tonalElevation,
         contentWindowInsets = { WindowInsets(0) },
-        content = content,
-    )
+    ) {
+        Column(Modifier.navigationBarsPadding(), content = content)
+    }
 }
