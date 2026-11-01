@@ -1,0 +1,76 @@
+package ua.rytm.app.data
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+import ua.rytm.app.ui.screens.finance.CashForecast
+import ua.rytm.app.ui.screens.finance.Recurring
+import ua.rytm.app.ui.screens.finance.Transaction
+import ua.rytm.app.ui.screens.finance.TxType
+import java.time.LocalDate
+
+class CashForecastTest {
+    private val today = LocalDate.parse("2026-11-10")
+    private val end = LocalDate.parse("2026-11-30")
+    private val uah = { amount: Double, _: String -> amount }
+
+    private fun rent(amount: Double, date: String, type: TxType = TxType.EXPENSE, active: Boolean = true) =
+        Recurring("r", type, amount, "Оренда", "w", "monthly", date, active, "")
+
+    private fun forecast(balance: Double, recurring: List<Recurring>, daily: Double?) =
+        CashForecast.compute(balance, recurring, { "UAH" }, today, end, daily, uah)
+
+    private fun spent(id: String, date: String, amount: Double) =
+        Transaction(id = id, type = TxType.EXPENSE, amount = amount, date = date, walletId = "w", category = "c")
+
+    @Test fun enoughMoneyHasNoShortfall() {
+        val f = forecast(10_000.0, listOf(rent(3_000.0, "2026-11-18")), 100.0)
+        assertNull(f.shortfallDate)
+        assertEquals(0.0, f.shortfall, 0.01)
+        assertEquals(5_000.0, f.endBalance, 0.01)
+        assertEquals(1, f.events.size)
+        assertEquals(6_200.0, f.events[0].balanceAfter, 0.01)
+    }
+
+    @Test fun firstNegativeDayAndDeepestGap() {
+        val f = forecast(1_000.0, listOf(rent(3_000.0, "2026-11-18")), 100.0)
+        assertEquals(LocalDate.parse("2026-11-18"), f.shortfallDate)
+        assertEquals(4_000.0, f.shortfall, 0.01)
+    }
+
+    // A gap before income still counts, even though the month ends in plus.
+    @Test fun gapBeforeIncomeIsReported() {
+        val f = forecast(1_000.0, listOf(rent(3_000.0, "2026-11-12"), rent(9_000.0, "2026-11-20", TxType.INCOME)), null)
+        assertEquals(LocalDate.parse("2026-11-12"), f.shortfallDate)
+        assertEquals(2_000.0, f.shortfall, 0.01)
+        assertEquals(7_000.0, f.endBalance, 0.01)
+    }
+
+    @Test fun todayIsPlannedButNotChargedDailySpend() {
+        val f = forecast(1_000.0, listOf(rent(100.0, "2026-11-10")), 50.0)
+        assertEquals(900.0, f.events[0].balanceAfter, 0.01)
+    }
+
+    @Test fun skipsInactivePastAndBeyondEnd() {
+        val f = forecast(1_000.0, listOf(rent(1.0, "2026-11-12", active = false), rent(1.0, "2026-12-01")), null)
+        assertEquals(0, f.events.size)
+    }
+
+    @Test fun shortHistoryGivesNoDailySpend() {
+        assertNull(CashForecast.dailySpend(emptyList(), today, uah))
+        assertNull(CashForecast.dailySpend(listOf(spent("a", "2026-11-01", 100.0)), today, uah))
+    }
+
+    @Test fun dropsBiggestDaysAndRecurringOccurrences() {
+        val history = (1..20).map { spent("t$it", today.minusDays(it.toLong()).toString(), 100.0) } +
+            spent("laptop", today.minusDays(3).toString(), 50_000.0) +
+            spent("rec_r_2026-11-05", "2026-11-05", 7_000.0)
+        assertEquals(100.0, CashForecast.dailySpend(history, today, uah)!!, 0.01)
+    }
+
+    @Test fun quietDaysCountAsZero() {
+        val history = listOf(spent("a", today.minusDays(20).toString(), 100.0), spent("b", today.minusDays(1).toString(), 100.0))
+        // 20 days, the 2 biggest dropped: 18 quiet days remain.
+        assertEquals(0.0, CashForecast.dailySpend(history, today, uah)!!, 0.01)
+    }
+}

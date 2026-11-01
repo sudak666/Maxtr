@@ -201,14 +201,24 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                 val perDayOrWarn = vm.safeToSpendPerDay != null || vm.monthOutlook.recurringOut > 0
                 if (vm.wallets.isNotEmpty() && perDayOrWarn) {
                     val perDay = vm.safeToSpendPerDay
-                    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = RytmSpacing.sm)) {
-                        Icon(if (perDay == null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 16.sp.toDp() }))
+                    val forecast = vm.cashForecast
+                    val shortfallDate = forecast.shortfallDate
+                    val warn = perDay == null || shortfallDate != null
+                    val tint = if (warn) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier.padding(top = RytmSpacing.sm).clip(androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input)).clickable { vm.cashForecastOpen = true },
+                    ) {
+                        Icon(if (warn) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 16.sp.toDp() }))
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = if (perDay == null) stringResource(R.string.finance_safe_to_spend_none)
-                            else stringResource(R.string.finance_safe_to_spend, maskedAmount(formatMoney(kotlin.math.floor(perDay)))),
+                            text = when {
+                                shortfallDate != null -> stringResource(R.string.cash_forecast_short, ua.rytm.app.ui.components.formatDayMonth(shortfallDate), maskedAmount(formatMoney(forecast.shortfall)))
+                                perDay == null -> stringResource(R.string.finance_safe_to_spend_none)
+                                else -> stringResource(R.string.finance_safe_to_spend, maskedAmount(formatMoney(kotlin.math.floor(perDay))))
+                            },
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (perDay == null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = tint,
                         )
                     }
                 }

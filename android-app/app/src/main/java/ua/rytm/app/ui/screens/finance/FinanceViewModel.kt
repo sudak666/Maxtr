@@ -132,6 +132,7 @@ class FinanceViewModel(
     /** Month shown in the recap sheet: last month in a month's first week
      * (matches the recap card), the month so far after that; the sheet's
      * arrows move it. */
+    var cashForecastOpen by mutableStateOf(false)
     var summaryMonth by mutableStateOf(YearMonth.now())
         private set
     val shownMonthSummary: MonthSummary by derivedStateOf {
@@ -603,6 +604,20 @@ class FinanceViewModel(
     /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = bills exceed the balance. */
     val safeToSpendPerDay: Double?
         get() = FinanceInsights.safeToSpendPerDay(spendableBalanceUah, monthOutlook.recurringOut, today)
+
+    val cashForecast: CashForecast by derivedStateOf {
+        val spendable = wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.map { it.id }.toSet()
+        val expenses = transactions.forStats(wallets).filter { it.type == TxType.EXPENSE && it.walletId in spendable }
+        CashForecast.compute(
+            spendableBalanceUah,
+            recurring.filter { it.walletId in spendable },
+            { id -> wallets.firstOrNull { it.id == id }?.currency },
+            today,
+            ua.rytm.app.data.FinancialMonth.lastDay(currentMonth),
+            CashForecast.dailySpend(expenses, today, ::toUah),
+            ::toUah,
+        )
+    }
 
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 
