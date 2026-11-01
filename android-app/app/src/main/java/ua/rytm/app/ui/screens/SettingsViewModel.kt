@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.first
 import ua.rytm.app.data.toTransactions
+import ua.rytm.app.data.totalsGap
 import ua.rytm.app.R
 import ua.rytm.app.RytmApplication
 import com.google.firebase.auth.FirebaseAuth
@@ -98,14 +99,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) { app.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
-                if (bytes != null && ua.rytm.app.data.MonobankStatement.isXlsx(bytes)) {
+                if (bytes != null && (ua.rytm.app.data.MonobankStatement.isXlsx(bytes) || ua.rytm.app.data.PumbStatement.isPdf(bytes))) {
                     val me = FirebaseAuth.getInstance().currentUser
                     val finance = app.financeRepository
-                    val new = withContext(Dispatchers.Default) { ua.rytm.app.data.MonobankStatement.parse(bytes) }.toTransactions(
+                    val statement = withContext(Dispatchers.Default) {
+                        if (ua.rytm.app.data.PumbStatement.isPdf(bytes)) ua.rytm.app.data.PumbStatement.read(app, bytes) else ua.rytm.app.data.MonobankStatement.parse(bytes)
+                    }
+                    val new = statement.toTransactions(
                         finance.wallets.first(), finance.transactions.first(), finance.categoriesByType.first(),
                         me?.uid, me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
                     )
-                    if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty) else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList())
+                    if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty) else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList(), statement.totalsGap())
                     return@launch
                 }
                 val text = bytes?.toString(Charsets.UTF_8)

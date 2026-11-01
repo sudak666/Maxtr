@@ -27,3 +27,7 @@
 # (seen live on the A51, 2026-09-28).
 -keep class * extends androidx.work.InputMerger { <init>(); }
 -keep class * extends androidx.work.ListenableWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }
+
+# PDFBox loads fonts and filters reflectively (PUMB statements).
+-keep class com.tom_roush.** { *; }
+-dontwarn com.gemalto.jp2.**

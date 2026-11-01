@@ -784,6 +784,14 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: real import check of both statements
+
+On the test account fraxed777@gmail.com in Rytm QA: PUMB 139 + mono 22 + 2 existing = 163 records; balance 4 990 + (-1 386,63) + 11 793,67 = 15 397,04, exact. Repeat PUMB import opened no preview. Everything landed in wallet "Картка" because no wallet name matched a bank, all categories "Інше". The imported data stays on the test account; statement files removed from the phone.
+
+## 2026-11-01: PUMB PDF statement import (Android)
+
+`data/PumbStatement.kt` reads rows by column position via pdfbox-android; the plain text order mixes rows. Operation date anchors a row because in-progress rows have no posting date. **Open gap:** on the owner's October file all 142 rows read cleanly, but they exceed the bank's summary by debits 1 904,90 and credits 350,00, cause unknown (cancelled or held operations suspected). On the owner's decision the preview warns and still imports; the warning is not proof of accuracy. Real file never committed; tests use synthetic words.
+
 ## 2026-11-01: monobank statement import (Android)
 
 The existing import button now also takes monobank's statement, an xlsx named .xls (`data/StatementImport.kt`, no new dependency). Signed column D is used; deterministic `stmt_` ids make repeat imports no-ops; same type+date+amount counts as already saved. Category comes from `confidentCategory`, else "Інше". Parser logic checked offline against the owner's real file (balance chain), never imported, not committed. PUMB is PDF-only and not done: PDF text order mixes rows.

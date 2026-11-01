@@ -181,6 +181,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
