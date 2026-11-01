@@ -784,6 +784,14 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: PWA catches up with Android
+
+Wallet opening balance, kind and switches are editable; subcategory limits in the budgets manager and local alerts; debt direction select; last debt deletable; manager delete buttons are red text instead of trash icons (swipe keeps its icon). Still Android-only: statement import (needs zip/PDF parsing in the browser), Monobank, Premium, setting the month start day, debt wording. `sw.js` v197->v198.
+
+## 2026-11-01: subcategory limits, wallet kind in the daily allowance
+
+Subcategory limits live in the `budgets` map as `Category › Subcategory` (no Room or schema change; clients matching category names skip these keys; rename and delete cascade by prefix). Android manager fields, save feedback and the push sweep use them. Wallet kind now matters: deposit and credit stay in the total but leave `safeToSpendPerDay`.
+
 ## 2026-11-01: debt polish (Android)
 
 "Повернення" wording on debts owed to the user; the last debt can be deleted (the empty state exists and nothing re-seeds it); a totals line appears with 2+ debts, per currency, without conversion. The PWA still refuses to delete its last debt.

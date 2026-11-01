@@ -64,7 +64,7 @@ function renderGoalsManagerList(){
           </div>
           <div class="goal-manager-actions">
             <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${g.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-            <button class="mgr-del" data-action="delete-goal" data-id="${g.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+            <button class="mgr-del" data-action="delete-goal" data-id="${g.id}">${tr('common_delete')}</button>
           </div>
         </div>
         <div class="goal-manager-progress-meta"><span>${summary}</span><strong>${pct}%</strong></div>

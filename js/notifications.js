@@ -245,13 +245,15 @@ function checkBudgetAlerts(){
   if(!AppState.notifSettings.budgetAlerts) return;
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   const month=financialMonth(); const prefix=month.from;
-  Object.entries(AppState.budgets).forEach(([cat,limit])=>{
+  Object.entries(AppState.budgets).forEach(([key,limit])=>{
+    // A subcategory limit is stored as "Category › Subcategory".
+    const [cat,sub]=key.split(' › ');
     if(!(limit>0) || !(AppState.categories.expense||[]).includes(cat)) return;
-    const spent=AppState.transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&month.has(t.date)&&inStats(t))?s+toBase(t.amount,t.currency||'UAH'):s,0);
+    const spent=AppState.transactions.reduce((s,t)=>(t.type==='expense'&&t.category===cat&&(!sub||t.subcategory===sub)&&month.has(t.date)&&inStats(t))?s+toBase(t.amount,t.currency||'UAH'):s,0);
     if(!isOverBudget(spent,limit)) return;
-    const shownKey=`mxBudgetAlert_${prefix}_${cat}`;
+    const shownKey=`mxBudgetAlert_${prefix}_${key}`;
     if(localStorage.getItem(shownKey)) return;
-    showLocalNotification(tr('notif_budget_title'), tr('notif_budget_body').replace('{category}',cat));
+    showLocalNotification(tr('notif_budget_title'), tr('notif_budget_body').replace('{category}',sub?`${cat}: ${sub}`:cat));
     localStorage.setItem(shownKey,'1');
   });
 }

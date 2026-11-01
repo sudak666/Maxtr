@@ -1522,7 +1522,10 @@ body.amounts-hidden #fx-converter-result{
 .profile-row-avatar .ico{margin-right:0;width:22px;height:22px}
 .mgr-field{display:flex;flex-direction:column;gap:3px}
 .mgr-field-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
-.mgr-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+.mgr-del{background:none;border:none;color:var(--red);font-weight:600;font-size:14px;cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto;margin-left:auto}
+.wallet-accounting{flex:1 1 100%;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:8px;border-top:1px dashed var(--border)}
+.wallet-accounting .mgr-num{width:100%}
+.wallet-switch{display:flex;gap:8px;align-items:center;font-size:14px;grid-column:1/-1}
 .mgr-del:active,.mgr-edit:active,.mgr-color:active{transform:scale(.92)}
 /* Profiles manager rows can show up to 3 action buttons (members/edit/
    delete-or-leave) side by side — grouping them in one flex container with
@@ -2124,6 +2127,7 @@ body.amounts-hidden #fx-converter-result{
         <div class="fg">
           <label data-i18n="debt_note">Нотатка</label>
           <input type="text" id="debt-note" placeholder="Додаткова нотатка..." data-i18n-placeholder="debt_note_placeholder" data-action="update-debt-info">
+          <select id="debt-direction" data-action="update-debt-info"><option value="owe" data-i18n="debt_direction_owe">Я винен</option><option value="owed" data-i18n="debt_direction_owed">Мені винні</option></select>
         </div>
         <div class="fg">
           <label data-i18n="debt_currency">Валюта</label>

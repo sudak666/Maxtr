@@ -546,6 +546,17 @@ class FinanceViewModel(
                         savedAmountUah = toUah(toSave.amount, toSave.currency),
                     )
                 } else null
+                    ?: toSave.subcategory?.takeIf { toSave.type == TxType.EXPENSE }?.let { sub ->
+                        budgetExceededFeedback(
+                            category = "${toSave.category}: $sub",
+                            limit = budgets[ua.rytm.app.data.subBudgetKey(toSave.category, sub)].takeIf { wallets.none { w -> w.id == toSave.walletId && !w.inStats } },
+                            existingMonthAmountsUah = transactions.forStats(wallets).asSequence()
+                                .filter { it.id != toSave.id && it.type == TxType.EXPENSE && it.category == toSave.category && it.subcategory == sub && ua.rytm.app.data.FinancialMonth.contains(currentMonth, it.date) }
+                                .map { toUah(it.amount, it.currency) }
+                                .toList(),
+                            savedAmountUah = toUah(toSave.amount, toSave.currency),
+                        )
+                    }
                 pendingMessage = budgetFeedback?.let {
                     FinanceMessage(R.string.transaction_budget_exceeded, listOf(it.category, formatMoney(it.spent), formatMoney(it.limit)))
                 } ?: when {
@@ -586,10 +597,12 @@ class FinanceViewModel(
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
     val totalBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
+    /** Money for everyday spending: a deposit is set aside and a credit line is not yours, so neither feeds the daily allowance. */
+    val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
     /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = bills exceed the balance. */
     val safeToSpendPerDay: Double?
-        get() = FinanceInsights.safeToSpendPerDay(totalBalanceUah, monthOutlook.recurringOut, today)
+        get() = FinanceInsights.safeToSpendPerDay(spendableBalanceUah, monthOutlook.recurringOut, today)
 
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
 

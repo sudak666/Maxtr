@@ -443,7 +443,7 @@ function renderTagsList(){
     row.innerHTML=`
       <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="tag" data-id="${t.id}"></button>
       <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-tag" data-id="${t.id}" data-field="name">
-      <button class="mgr-del" data-action="delete-tag" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <button class="mgr-del" data-action="delete-tag" data-id="${t.id}">${tr('common_delete')}</button>`;
     box.appendChild(row);
   });
 }
@@ -526,7 +526,7 @@ function renderAutoRulesList(){
           <span class="cat-row-sub">${typeLabel}</span>
         </div>
         <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-rule-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-auto-rule" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <button class="mgr-del" data-action="delete-auto-rule" data-id="${r.id}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
