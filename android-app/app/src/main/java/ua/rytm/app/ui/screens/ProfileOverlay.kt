@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import androidx.compose.runtime.collectAsState
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -185,6 +186,7 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
     val profileSwitched = stringResource(R.string.settings_profile_switched)
     var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var premiumOpen by rememberSaveable { mutableStateOf(false) }
+    val premiumActive = ua.rytm.app.ui.rytmApp().premiumRepository.isPremium.collectAsState().value
 
     SettingsManagerSheets(
         open = openSheet,
@@ -252,7 +254,7 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
                 ProfileTile(RytmIcons.CloudDone, R.string.settings_backups_title, R.string.settings_backups_subtitle, Modifier.weight(1f)) {
                     if (session.ownerUid != null) onMessage(backupsUnavailable) else openSheet = SettingsSheet.Backups
                 }
-                ProfileTile(RytmIcons.Star, R.string.settings_premium, R.string.settings_free_plan, Modifier.weight(1f)) { premiumOpen = true }
+                ProfileTile(RytmIcons.Star, R.string.settings_premium, if (premiumActive) R.string.premium_plan_active else R.string.settings_free_plan, Modifier.weight(1f)) { premiumOpen = true }
             }
             Spacer(Modifier.height(RytmSpacing.md))
             SettingsGroupCard {

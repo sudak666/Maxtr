@@ -239,6 +239,8 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         if (uri != null) settingsViewModel.exportCsv(uri, language)
     }
     var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var paywallOpen by rememberSaveable { mutableStateOf(false) }
+    if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
     val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) settingsViewModel.readImport(uri)
     }
@@ -496,7 +498,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                     SettingsLink(RytmIcons.Download, R.string.settings_csv_export, R.string.settings_csv_export_subtitle) {
                         if (!csvBusy) csvExportLauncher.launch("rytm-finansy-${java.time.LocalDate.now()}.csv")
                     },
-                    SettingsLink(RytmIcons.AccountBalance, R.string.settings_monobank, R.string.settings_monobank_subtitle) { monobankSheetOpen = true },
+                    SettingsLink(RytmIcons.AccountBalance, R.string.settings_monobank, R.string.settings_monobank_subtitle) { if (app.premiumRepository.isPremium.value) monobankSheetOpen = true else paywallOpen = true },
                     SettingsLink(RytmIcons.Upload, R.string.settings_csv_import, R.string.settings_csv_import_subtitle) {
                         if (!csvBusy) csvImportLauncher.launch(arrayOf("*/*"))
                     },

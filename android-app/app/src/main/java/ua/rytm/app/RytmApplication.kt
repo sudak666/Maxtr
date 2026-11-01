@@ -92,6 +92,7 @@ class RytmApplication : Application() {
             .debounce(1500)
             .onEach { runCatching { ua.rytm.app.widget.RytmWidget.refresh(this) } }
             .launchIn(appScope)
+        kotlinx.coroutines.flow.flow { emit(runCatching { premiumRepository.refresh() }) }.launchIn(appScope)
         settingsStore.financialMonthStart.onEach { ua.rytm.app.data.FinancialMonth.startDay = it }.launchIn(appScope)
     }
 
@@ -125,6 +126,7 @@ class RytmApplication : Application() {
     val transactionsCsvRepository: ua.rytm.app.data.TransactionsCsvRepository by lazy { ua.rytm.app.data.TransactionsCsvRepository(database, FirebaseFirestore.getInstance()) }
     /** Process-lifetime scope for work that must outlive any single screen. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val premiumRepository: ua.rytm.app.data.PremiumRepository by lazy { ua.rytm.app.data.PremiumRepository(this, settingsStore, appScope) }
     val monobankRepository: ua.rytm.app.data.MonobankRepository by lazy { ua.rytm.app.data.MonobankRepository(database, com.google.firebase.firestore.FirebaseFirestore.getInstance(), com.google.firebase.auth.FirebaseAuth.getInstance()) }
     val monobankSyncCoordinator: ua.rytm.app.data.MonobankSyncCoordinator by lazy { ua.rytm.app.data.MonobankSyncCoordinator(monobankRepository, appScope) }
 

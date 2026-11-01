@@ -16,6 +16,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -161,6 +164,11 @@ fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: 
 
 @Composable
 fun PremiumDialog(onDismiss: () -> Unit) {
+    val premium = ua.rytm.app.ui.rytmApp().premiumRepository
+    val owned by premium.isPremium.collectAsState()
+    val offers by premium.offers.collectAsState()
+    val activity = androidx.activity.compose.LocalActivity.current
+    LaunchedEffect(Unit) { runCatching { premium.loadOffers() } }
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
@@ -174,15 +182,24 @@ fun PremiumDialog(onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-                Text(stringResource(R.string.settings_premium_body))
-                PremiumPerkRow(RytmIcons.CheckCircle, GreenDark, stringResource(R.string.settings_premium_free_title), stringResource(R.string.settings_premium_free_body))
-                PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.settings_premium_forecast_title), stringResource(R.string.settings_premium_forecast_body))
-                PremiumPerkRow(RytmIcons.CloudDone, GreenDark, stringResource(R.string.settings_premium_backup_title), stringResource(R.string.settings_premium_backup_body))
-                PremiumPerkRow(RytmIcons.GridView, GreenDark, stringResource(R.string.settings_premium_widget_title), stringResource(R.string.settings_premium_widget_body))
+                Text(stringResource(if (owned) R.string.premium_active else R.string.premium_body))
+                PremiumPerkRow(RytmIcons.CheckCircle, GreenDark, stringResource(R.string.premium_sync_title), stringResource(R.string.premium_sync_body))
+                PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.premium_import_title), stringResource(R.string.premium_import_body))
+                PremiumPerkRow(RytmIcons.CloudDone, GreenDark, stringResource(R.string.premium_auto_title), stringResource(R.string.premium_auto_body))
+                PremiumPerkRow(RytmIcons.GridView, GreenDark, stringResource(R.string.premium_pdf_title), stringResource(R.string.premium_pdf_body))
+                if (!owned && offers.isEmpty()) Text(stringResource(R.string.premium_unavailable), style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                if (!owned) offers.forEach { offer ->
+                    val label = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
+                    Button(onClick = { activity?.let { premium.buy(it, offer) } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
+                        Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label)
+                    }
+                }
+                OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
+            }
         },
     )
 }
