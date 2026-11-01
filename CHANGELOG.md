@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: opt-in auto-save for familiar bank operations
+
+Merchant memory already existed in `quickCategories`, so the missing step was no tap. `confidentCategory()` requires 3+ past operations of the same type, all in one existing category; the Settings switch is device-only and off by default. Saves go through `BankQuickSaveReceiver`, so wallet checks, read-only guard and undo apply. `privacy.html`/`privacy-en.html` updated, `sw.js` v196->v197. No real bank notification was replayed on the device.
+
 ## 2026-11-01: 41 currencies
 
 UAH plus every fiat currency NBU publishes (45 minus XDR and 4 metals). `SEED_RATES` in `js/core.js`, `functions/lib/pure.js`, `FinanceRepository.kt` holds the fallbacks, since a code without any rate used to convert at 1; the original four seeds are unchanged, the rest are NBU values of 2026-11-01. Rates under 1 UAH round to 6 digits instead of 2 (VND would have become 0). FX widget stays on `MAIN_CURRENCIES`. Privat still covers only what it publishes. `sw.js` v195->v196.

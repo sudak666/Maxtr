@@ -630,4 +630,5 @@
     <string name="subcategory_add">Додати підкатегорію</string>
     <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
     <string name="onboarding_first_expense">Додати першу витрату</string>
+    <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
 </resources>

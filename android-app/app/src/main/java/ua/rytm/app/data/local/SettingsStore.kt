@@ -38,6 +38,7 @@ class SettingsStore(private val context: Context) {
     private val hideAmountsKey = booleanPreferencesKey("hide_amounts")
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
     private val showBalanceAfterKey = booleanPreferencesKey("show_balance_after")
+    private val bankAutoSaveKey = booleanPreferencesKey("bank_auto_save")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
     private val languageKey = stringPreferencesKey("language")
 
@@ -68,6 +69,10 @@ class SettingsStore(private val context: Context) {
     /** A small "balance after" under each history row's amount (bank-statement style). */
     val showBalanceAfter: Flow<Boolean> = context.settingsDataStore.data.map { it[showBalanceAfterKey] ?: false }
     suspend fun setShowBalanceAfter(show: Boolean) { context.settingsDataStore.edit { it[showBalanceAfterKey] = show } }
+
+    /** Device-only: familiar bank operations save without a tap, with an undo. */
+    val bankAutoSave: Flow<Boolean> = context.settingsDataStore.data.map { it[bankAutoSaveKey] ?: false }
+    suspend fun setBankAutoSave(enabled: Boolean) { context.settingsDataStore.edit { it[bankAutoSaveKey] = enabled } }
 
     /** Cached from the active profile's finance doc (`monthStartDay`). */
     private val financialMonthStartKey = androidx.datastore.preferences.core.intPreferencesKey("financial_month_start")

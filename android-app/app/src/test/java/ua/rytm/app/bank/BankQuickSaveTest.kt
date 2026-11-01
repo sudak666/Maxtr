@@ -24,6 +24,16 @@ class BankQuickSaveTest {
         assertEquals(listOf("Продукти", "Кафе", "Здоров'я"), BankQuickSaveReceiver.quickCategories(txs, cats, false, today, "Fora KIYEV UA", rules))
     }
 
+    @Test fun confidentCategoryNeedsThreeConsistentOperations() {
+        val cats = listOf("Здоров'я", "Кафе")
+        val three = List(3) { tx("Здоров'я", comment = "Apteka AGP $it") }
+        assertEquals("Здоров'я", BankQuickSaveReceiver.confidentCategory(three, cats, false, "Apteka 9"))
+        assertNull(BankQuickSaveReceiver.confidentCategory(three.drop(1), cats, false, "Apteka 9"))
+        assertNull(BankQuickSaveReceiver.confidentCategory(three + tx("Кафе", comment = "Apteka 1"), cats, false, "Apteka 9"))
+        assertNull(BankQuickSaveReceiver.confidentCategory(three, listOf("Кафе"), false, "Apteka 9"))
+        assertNull(BankQuickSaveReceiver.confidentCategory(three, cats, true, "Apteka 9"))
+    }
+
     @Test fun merchantKeyIsFirstWord() {
         assertEquals("apteka", BankQuickSaveReceiver.merchantKey("Apteka AGP 56 KIYEV UA"))
         assertNull(BankQuickSaveReceiver.merchantKey("UA"))

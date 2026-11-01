@@ -1,5 +1,8 @@
 package ua.rytm.app.ui.screens
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.launch
 import ua.rytm.app.ui.theme.RytmSpacing
 import android.Manifest
 import android.os.Build
@@ -132,6 +135,21 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
             } else bankDisclosureOpen = true
         },
     )
+    if (bankEnabled) {
+        val store = (bankContext.applicationContext as ua.rytm.app.RytmApplication).settingsStore
+        val autoSave by store.bankAutoSave.collectAsState(initial = false)
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+        androidx.compose.foundation.layout.Row(
+            androidx.compose.ui.Modifier.fillMaxWidth().padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.weight(1f)) {
+                androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_title), style = androidx.compose.material3.MaterialTheme.typography.bodyLarge)
+                androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_hint), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = { on -> scope.launch { store.setBankAutoSave(on) } })
+        }
+    }
 }
 
 @Composable

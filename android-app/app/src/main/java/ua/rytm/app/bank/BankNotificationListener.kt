@@ -148,6 +148,17 @@ class BankNotificationListener : NotificationListenerService() {
                 // One-tap categories only where saving here can work: not for a
                 // transfer (two wallets to confirm), signed in, editable profile.
                 val quick = if (transfer || app == null) emptyList() else runCatching { quickCategoriesFor(app, s.isIncome, s.merchant) }.getOrDefault(emptyList())
+                // Saved through the same receiver, so it ends in the «Скасувати» notification.
+                val auto = if (quick.isEmpty() || app == null) null else runCatching { autoSaveCategory(app, s) }.getOrNull()
+                if (auto != null) {
+                    context.sendBroadcast(Intent(context, BankQuickSaveReceiver::class.java).apply {
+                        action = BankQuickSaveReceiver.ACTION_SAVE
+                        putExtras(data)
+                        putExtra(BankQuickSaveReceiver.EXTRA_CATEGORY, auto)
+                        putExtra(BankQuickSaveReceiver.EXTRA_NOTIFICATION_ID, id)
+                    })
+                    return@launch
+                }
                 val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notification_rytm) // the Rytm mark, not the reminder bell
                     .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
@@ -171,6 +182,12 @@ class BankNotificationListener : NotificationListenerService() {
                     // POST_NOTIFICATIONS revoked — nothing to show.
                 }
             }
+        }
+
+        private suspend fun autoSaveCategory(app: RytmApplication, s: BankSuggestion): String? {
+            if (!app.settingsStore.bankAutoSave.first()) return null
+            val cats = app.financeRepository.categoriesByType.first()[if (s.isIncome) TxType.INCOME else TxType.EXPENSE].orEmpty()
+            return BankQuickSaveReceiver.confidentCategory(app.financeRepository.transactions.first(), cats, s.isIncome, s.merchant)
         }
 
         private suspend fun quickCategoriesFor(app: RytmApplication, isIncome: Boolean, merchant: String?): List<String> {
