@@ -39,6 +39,7 @@ class SettingsStore(private val context: Context) {
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
     private val showBalanceAfterKey = booleanPreferencesKey("show_balance_after")
     private val bankAutoSaveKey = booleanPreferencesKey("bank_auto_save")
+    private val premiumCachedKey = booleanPreferencesKey("premium_cached")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
     private val languageKey = stringPreferencesKey("language")
 
@@ -69,6 +70,9 @@ class SettingsStore(private val context: Context) {
     /** A small "balance after" under each history row's amount (bank-statement style). */
     val showBalanceAfter: Flow<Boolean> = context.settingsDataStore.data.map { it[showBalanceAfterKey] ?: false }
     suspend fun setShowBalanceAfter(show: Boolean) { context.settingsDataStore.edit { it[showBalanceAfterKey] = show } }
+
+    val premiumCached: Flow<Boolean> = context.settingsDataStore.data.map { it[premiumCachedKey] ?: false }
+    suspend fun setPremiumCached(owned: Boolean) { context.settingsDataStore.edit { it[premiumCachedKey] = owned } }
 
     /** Device-only: familiar bank operations save without a tap, with an undo. */
     val bankAutoSave: Flow<Boolean> = context.settingsDataStore.data.map { it[bankAutoSaveKey] ?: false }

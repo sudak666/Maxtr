@@ -185,7 +185,7 @@ class BankNotificationListener : NotificationListenerService() {
         }
 
         private suspend fun autoSaveCategory(app: RytmApplication, s: BankSuggestion): String? {
-            if (!app.settingsStore.bankAutoSave.first()) return null
+            if (!app.settingsStore.bankAutoSave.first() || !app.premiumRepository.isPremium.value) return null
             val cats = app.financeRepository.categoriesByType.first()[if (s.isIncome) TxType.INCOME else TxType.EXPENSE].orEmpty()
             return BankQuickSaveReceiver.confidentCategory(app.financeRepository.transactions.first(), cats, s.isIncome, s.merchant)
         }

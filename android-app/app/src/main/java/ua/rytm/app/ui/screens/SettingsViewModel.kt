@@ -106,6 +106,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             try {
                 val bytes = withContext(Dispatchers.IO) { app.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
                 if (bytes != null && (ua.rytm.app.data.MonobankStatement.isXlsx(bytes) || ua.rytm.app.data.PumbStatement.isPdf(bytes))) {
+                    if (!app.premiumRepository.isPremium.value) {
+                        message = SettingsMessage.Text(R.string.premium_required)
+                        return@launch
+                    }
                     val me = FirebaseAuth.getInstance().currentUser
                     val finance = app.financeRepository
                     val statement = withContext(Dispatchers.Default) {

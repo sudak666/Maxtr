@@ -151,6 +151,8 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val app = ua.rytm.app.ui.rytmApp()
+    var pdfPaywallOpen by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    if (pdfPaywallOpen) ua.rytm.app.ui.screens.PremiumDialog(onDismiss = { pdfPaywallOpen = false })
     val launchAction by app.pendingLaunchAction.collectAsStateWithLifecycle()
     LaunchedEffect(launchAction, canEdit, viewModel.loading) {
         // canEdit starts false until the role loads; on a cold start (tap on a
@@ -184,7 +186,8 @@ fun FinanceScreen(
             onDismiss = { viewModel.monthSummaryOpen = false },
             onPrevMonth = { viewModel.shiftSummaryMonth(-1) },
             onNextMonth = if (viewModel.canShowNextSummaryMonth) ({ viewModel.shiftSummaryMonth(1) }) else null,
-            onSharePdf = {
+            onSharePdf = onSharePdf@{
+                if (!app.premiumRepository.isPremium.value) { pdfPaywallOpen = true; return@onSharePdf }
                 runCatching {
                     shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.shownMonthSummary.month), viewModel::walletDisplayName, shareTitle)
                 }.onFailure { viewModel.reportExportFailed() }

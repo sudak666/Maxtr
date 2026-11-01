@@ -138,6 +138,9 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
     if (bankEnabled) {
         val store = (bankContext.applicationContext as ua.rytm.app.RytmApplication).settingsStore
         val autoSave by store.bankAutoSave.collectAsState(initial = false)
+        val premium by (bankContext.applicationContext as ua.rytm.app.RytmApplication).premiumRepository.isPremium.collectAsState()
+        var paywallOpen by remember { mutableStateOf(false) }
+        if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         androidx.compose.foundation.layout.Row(
             androidx.compose.ui.Modifier.fillMaxWidth().padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
@@ -147,7 +150,7 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
                 androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_title), style = androidx.compose.material3.MaterialTheme.typography.bodyLarge)
                 androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_hint), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = { on -> scope.launch { store.setBankAutoSave(on) } })
+            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = { on -> if (premium) scope.launch { store.setBankAutoSave(on) } else paywallOpen = true })
         }
     }
 }
