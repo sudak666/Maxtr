@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: monobank statement import (Android)
+
+The existing import button now also takes monobank's statement, an xlsx named .xls (`data/StatementImport.kt`, no new dependency). Signed column D is used; deterministic `stmt_` ids make repeat imports no-ops; same type+date+amount counts as already saved. Category comes from `confidentCategory`, else "Інше". Parser logic checked offline against the owner's real file (balance chain), never imported, not committed. PUMB is PDF-only and not done: PDF text order mixes rows.
+
 ## 2026-11-01: opt-in auto-save for familiar bank operations
 
 Merchant memory already existed in `quickCategories`, so the missing step was no tap. `confidentCategory()` requires 3+ past operations of the same type, all in one existing category; the Settings switch is device-only and off by default. Saves go through `BankQuickSaveReceiver`, so wallet checks, read-only guard and undo apply. `privacy.html`/`privacy-en.html` updated, `sw.js` v196->v197. No real bank notification was replayed on the device.

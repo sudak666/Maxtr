@@ -363,7 +363,7 @@
     <string name="settings_csv_export">Експорт CSV</string>
     <string name="settings_csv_export_subtitle">Зберегти всі фінансові операції</string>
     <string name="settings_csv_import">Імпорт CSV</string>
-    <string name="settings_csv_import_subtitle">Додати операції з експорту Rytm</string>
+    <string name="settings_csv_import_subtitle">Експорт Rytm або виписка monobank</string>
     <string name="settings_search_empty">Нічого не знайдено</string>
     <string name="settings_search_empty_body">Спробуй інший пошуковий запит</string>
     <string name="settings_push_enabled">Push-сповіщення увімкнено</string>
