@@ -65,6 +65,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         private set
     var csvImportPreview by mutableStateOf<CsvImportPreview?>(null)
         private set
+    /** A statement's rows all go to one wallet; the user can change the matched one. */
+    fun selectStatementWallet(wallet: ua.rytm.app.ui.screens.finance.Wallet) {
+        val preview = csvImportPreview ?: return
+        csvImportPreview = preview.copy(transactions = preview.transactions.map { it.copy(walletId = wallet.id, currency = wallet.currency) })
+    }
+
     fun dismissImportPreview() { if (!csvBusy) csvImportPreview = null }
 
     var pushBusy by mutableStateOf(false)
@@ -109,7 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         finance.wallets.first(), finance.transactions.first(), finance.categoriesByType.first(),
                         me?.uid, me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
                     )
-                    if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty) else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList(), statement.totalsGap())
+                    if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty) else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList(), statement.totalsGap(), finance.wallets.first())
                     return@launch
                 }
                 val text = bytes?.toString(Charsets.UTF_8)

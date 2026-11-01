@@ -594,6 +594,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             canImport = uid != null,
             onConfirm = { uid?.let { settingsViewModel.confirmImport(activeProfileOwnerUid ?: it, activeProfileId) } },
             onDismiss = settingsViewModel::dismissImportPreview,
+            onWallet = settingsViewModel::selectStatementWallet,
         )
     }
 

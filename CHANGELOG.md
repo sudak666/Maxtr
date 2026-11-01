@@ -784,6 +784,10 @@ For the current architecture, conventions, and how to run/test/deploy this app, 
 - **Android large-text Finance hierarchy correction (2026-08-24)**. A real-device English/light pass at temporary system font scale 1.3 showed the two half-width monthly summary cards wrapping currency amounts into awkward multi-line blocks. At font scales ≥1.2 they now stack as full-width cards; the default compact two-column layout is unchanged. Reinstalled and visually confirmed the single-line amounts on the SM-A515F, then restored the device's original 1.1 font scale. The horizontally scrollable filter chips remain intentionally peeked rather than clipped/inaccessible.
 
 
+## 2026-11-01: wallet choice for statement import
+
+The preview now shows wallet chips, preselected by `WalletMatcher`; the choice rewrites `walletId` and `currency` on all rows. Statements get their own confirm text, since repeats are skipped. Android only.
+
 ## 2026-11-01: real import check of both statements
 
 On the test account fraxed777@gmail.com in Rytm QA: PUMB 139 + mono 22 + 2 existing = 163 records; balance 4 990 + (-1 386,63) + 11 793,67 = 15 397,04, exact. Repeat PUMB import opened no preview. Everything landed in wallet "Картка" because no wallet name matched a bank, all categories "Інше". The imported data stays on the test account; statement files removed from the phone.

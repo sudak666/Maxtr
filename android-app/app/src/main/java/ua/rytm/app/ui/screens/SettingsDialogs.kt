@@ -111,7 +111,7 @@ fun SettingsManagerSheets(
 }
 
 @Composable
-fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit, onWallet: (ua.rytm.app.ui.screens.finance.Wallet) -> Unit = {}) {
     val importCount = pluralStringResource(R.plurals.settings_csv_operations, preview.transactions.size, preview.transactions.size)
     val skippedCount = pluralStringResource(R.plurals.settings_csv_errors, preview.errors.size, preview.errors.size)
     AlertDialog(
@@ -125,7 +125,16 @@ fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: 
         title = { Text(stringResource(R.string.settings_csv_import), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
+                Text(if (preview.wallets.isNotEmpty()) stringResource(R.string.statement_confirm, importCount) else if (preview.errors.isEmpty()) stringResource(R.string.settings_csv_confirm, importCount) else stringResource(R.string.settings_csv_confirm_with_errors, importCount, skippedCount))
+                if (preview.wallets.isNotEmpty()) {
+                    Text(stringResource(R.string.statement_wallet), style = MaterialTheme.typography.labelMedium)
+                    val selected = preview.transactions.firstOrNull()?.walletId
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        preview.wallets.forEach { wallet ->
+                            androidx.compose.material3.FilterChip(selected = wallet.id == selected, onClick = { onWallet(wallet) }, label = { Text(wallet.name, maxLines = 1) })
+                        }
+                    }
+                }
                 preview.totalsGap?.let { (debits, credits) ->
                     Text(
                         stringResource(R.string.statement_totals_gap, ua.rytm.app.ui.screens.finance.formatMoney(debits), ua.rytm.app.ui.screens.finance.formatMoney(credits)),
