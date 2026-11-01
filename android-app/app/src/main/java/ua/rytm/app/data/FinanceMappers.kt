@@ -8,8 +8,8 @@ import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import ua.rytm.app.ui.screens.finance.Wallet
 
-fun WalletEntity.toDomain() = Wallet(id = id, name = name, colorHex = colorHex, currency = currency, icon = icon)
-fun Wallet.toEntity() = WalletEntity(id = id, name = name, colorHex = colorHex, currency = currency, icon = icon)
+fun WalletEntity.toDomain() = Wallet(id = id, name = name, colorHex = colorHex, currency = currency, icon = icon, kind = kind, openingBalance = openingBalance, inCapital = inCapital, inStats = inStats)
+fun Wallet.toEntity() = WalletEntity(id = id, name = name, colorHex = colorHex, currency = currency, icon = icon, kind = kind, openingBalance = openingBalance, inCapital = inCapital, inStats = inStats)
 
 fun TransactionEntity.toDomain() = Transaction(
     id = id,

@@ -36,5 +36,13 @@ object RytmMigrations {
                 db.execSQL("ALTER TABLE `recurring` ADD COLUMN `anchorDay` INTEGER")
             }
         },
+        object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `wallets` ADD COLUMN `kind` TEXT NOT NULL DEFAULT 'card'")
+                db.execSQL("ALTER TABLE `wallets` ADD COLUMN `openingBalance` REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `wallets` ADD COLUMN `inCapital` INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE `wallets` ADD COLUMN `inStats` INTEGER NOT NULL DEFAULT 1")
+            }
+        },
     )
 }

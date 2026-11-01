@@ -63,7 +63,7 @@ class GoalsManagerViewModel(
         // reuses the same FinanceRepository.walletBalance() FinanceViewModel
         // uses for the hero card's wallet chips.
         combine(repository.transactions, repository.wallets) { txs, wallets ->
-            wallets.associate { w -> w.id to FinanceRepository.walletBalance(txs, w.id) }
+            wallets.associate { w -> w.id to FinanceRepository.walletBalance(txs, w.id, w.openingBalance) }
         }.onEach { walletBalances = it }.launchIn(viewModelScope)
     }
 

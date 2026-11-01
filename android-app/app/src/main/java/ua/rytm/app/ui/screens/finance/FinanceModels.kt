@@ -29,7 +29,23 @@ data class Wallet(
     // a future Android version) actually uses. Default matches addWallet()'s
     // PWA default (js/settings-managers.js).
     val icon: String = "card",
+    /** cash, card, deposit or credit. */
+    val kind: String = "card",
+    /** What the wallet held before its first entry. */
+    val openingBalance: Double = 0.0,
+    /** Off: left out of the total balance. */
+    val inCapital: Boolean = true,
+    /** Off: its entries are left out of totals, statistics and budgets, for all periods. */
+    val inStats: Boolean = true,
 )
+
+val WALLET_KINDS = listOf("cash", "card", "deposit", "credit")
+
+/** Entries that count in statistics. */
+fun List<Transaction>.forStats(wallets: List<Wallet>): List<Transaction> {
+    val off = wallets.filterNot { it.inStats }.map { it.id }.toSet()
+    return if (off.isEmpty()) this else filterNot { it.walletId in off }
+}
 
 @Immutable
 data class Transaction(

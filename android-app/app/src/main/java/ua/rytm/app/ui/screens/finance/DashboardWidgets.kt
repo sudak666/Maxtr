@@ -97,7 +97,7 @@ private fun GoalsDashboardWidget(app: RytmApplication) {
     WidgetCard(stringResource(R.string.widget_goals), RytmIcons.Flag, GreenDark) {
         goals.forEach { goal ->
             val wallet = wallets.firstOrNull { it.id == goal.walletId }
-            val current = FinanceRepository.walletBalance(transactions, goal.walletId)
+            val current = FinanceRepository.walletBalance(transactions, goal.walletId, wallet?.openingBalance ?: 0.0)
             val progress = if (goal.targetAmount > 0) (current / goal.targetAmount).coerceIn(0.0, 1.0) else 0.0
             val done = goal.targetAmount > 0 && progress >= 1.0
             // This dashboard widget, not GoalsManagerSheet's own row, is

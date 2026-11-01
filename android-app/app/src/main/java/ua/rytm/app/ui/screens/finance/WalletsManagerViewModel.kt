@@ -75,6 +75,10 @@ class WalletsManagerViewModel(
         mutateAndSync { repository.updateWallet(wallet.copy(colorHex = colorHex)) }
     }
 
+    fun update(wallet: Wallet) {
+        mutateAndSync { repository.updateWallet(wallet) }
+    }
+
     fun requestDelete(id: String) {
         viewModelScope.launch {
             if (wallets.size <= 1) {

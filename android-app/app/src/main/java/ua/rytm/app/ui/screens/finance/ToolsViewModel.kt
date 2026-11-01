@@ -55,7 +55,10 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
 
     // Mirrors analyticsPredicates(): a "yyyy-MM" date prefix (or `>=` window
     // for 3m/all) selecting which transactions count for the current period.
+    private val statsTransactions: List<Transaction> get() = transactions.forStats(wallets)
+
     private fun periodTransactions(): List<Transaction> {
+        val transactions = statsTransactions
         val now = FinancialMonth.of(LocalDate.now())
         return when (period) {
             AnalyticsPeriod.MONTH -> transactions.filter { FinancialMonth.contains(now, it.date) }
@@ -69,6 +72,7 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     }
 
     private fun previousPeriodTransactions(): List<Transaction>? {
+        val transactions = statsTransactions
         val today = LocalDate.now()
         val now = FinancialMonth.of(today)
         return when (period) {
@@ -132,6 +136,7 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     // Last 6 calendar months (oldest first) — mirrors the PWA's 6-month chart.
     val sixMonthTotals: List<MonthTotal>
         get() {
+            val transactions = statsTransactions
             val now = FinancialMonth.of(LocalDate.now())
             return (5 downTo 0).map { offset ->
                 val ym = now.minusMonths(offset.toLong())

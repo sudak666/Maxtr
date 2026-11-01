@@ -27,6 +27,15 @@
     <string name="wallets_body">Картки, готівка та інші рахунки, між якими рухаються гроші.</string>
     <string name="wallets_empty">Немає гаманців</string>
     <string name="wallet_new_default">Новий гаманець</string>
+    <string name="wallet_opening_balance">Початковий баланс</string>
+    <string name="wallet_kind_cash">Готівка</string>
+    <string name="wallet_kind_card">Картка</string>
+    <string name="wallet_kind_deposit">Депозит</string>
+    <string name="wallet_kind_credit">Кредит</string>
+    <string name="wallet_in_capital">Враховувати в капіталі</string>
+    <string name="wallet_in_capital_hint">Коли вимкнено, залишок не входить у загальний баланс.</string>
+    <string name="wallet_in_stats">Враховувати в обліку</string>
+    <string name="wallet_in_stats_hint">Коли вимкнено, операції не входять у підсумки, статистику й бюджети за всі періоди. Баланс рахунку не зміниться.</string>
     <string name="wallet_add">Додати гаманець</string>
     <string name="wallet_delete_title">Видалити гаманець</string>
     <string name="wallet_delete_body">Видалити цей гаманець?</string>

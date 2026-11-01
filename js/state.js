@@ -20,7 +20,7 @@
 // Finance-tab-widgets section) and are no longer part of the
 // show/hide+reorder widget system. dailyTip/cryptoTop (js/dashboard-widgets.js)
 // added alongside goals so the Widgets manager has more than one item.
-/** @typedef {{id: string, name: string, color: string, icon: string, currency?: string}} Wallet */
+/** @typedef {{id: string, name: string, color: string, icon: string, currency?: string, kind?: string, openingBalance?: number, inCapital?: boolean, inStats?: boolean}} Wallet */
 /** @typedef {{id: string, name: string, short: string, code?: string, color: string, amount: number, hours: number, isOff?: boolean}} ShiftType */
 /** @typedef {{id: string, name: string, avatar?: string, createdAt?: number, kind?: 'shared', ownerUid?: string}} ProfileMeta */
 /** @typedef {{id: string, name: string, color: string}} Tag */
@@ -55,6 +55,12 @@ export function financialMonth(offset=0){
   const from=iso(m), until=iso(m+1);
   return {from, until, has:date=>{ const d=(date||'').slice(0,10); return !!d&&d>=from&&d<until; }};
 }
+
+/**
+ * False for entries of a wallet switched out of statistics.
+ * @param {{wallet?: string}} t
+ */
+export function inStats(t){ return !AppState.wallets.some(w=>w.id===t.wallet&&w.inStats===false); }
 
 export const AppState = {
   /** @type {import('firebase/auth').User | null} */

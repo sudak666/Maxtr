@@ -419,8 +419,8 @@ class FinanceRepository(private val db: RytmDatabase) {
         // FinanceViewModel (hero balance/wallet chips) and
         // GoalsManagerViewModel (a goal's "saved" amount is its linked
         // wallet's own current balance, not a separate accumulator).
-        fun walletBalance(transactions: List<Transaction>, walletId: String): Double {
-            var balance = 0.0
+        fun walletBalance(transactions: List<Transaction>, walletId: String, opening: Double = 0.0): Double {
+            var balance = opening
             transactions.forEach { t ->
                 when (t.type) {
                     TxType.INCOME -> if (t.walletId == walletId) balance += t.amount
@@ -439,16 +439,16 @@ class FinanceRepository(private val db: RytmDatabase) {
          * createdAt — the same order the list shows). [tx] may be unsaved: any
          * stored copy with the same id is replaced by it.
          */
-        fun balanceAfter(transactions: List<Transaction>, walletId: String, tx: Transaction): Double {
+        fun balanceAfter(transactions: List<Transaction>, walletId: String, tx: Transaction, opening: Double = 0.0): Double {
             val upTo = transactions.filter { t ->
                 t.id != tx.id && (t.date < tx.date || (t.date == tx.date && t.createdAt <= tx.createdAt))
             }
-            return walletBalance(upTo + tx, walletId)
+            return walletBalance(upTo + tx, walletId, opening)
         }
 
         /** Every transaction's [balanceAfter] for its own (source) wallet, in one pass. */
-        fun runningBalances(transactions: List<Transaction>): Map<String, Double> {
-            val balances = HashMap<String, Double>()
+        fun runningBalances(transactions: List<Transaction>, openings: Map<String, Double> = emptyMap()): Map<String, Double> {
+            val balances = HashMap(openings)
             val out = HashMap<String, Double>(transactions.size)
             transactions.sortedWith(compareBy<Transaction> { it.date }.thenBy { it.createdAt }).forEach { t ->
                 when (t.type) {
