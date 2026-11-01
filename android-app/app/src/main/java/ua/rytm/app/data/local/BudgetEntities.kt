@@ -54,4 +54,12 @@ interface BudgetDao {
     // AppState.budgets[oldName] to the new key when a budget existed.
     @Query("UPDATE budgets SET category = :newName WHERE category = :oldName")
     suspend fun renameCategory(oldName: String, newName: String)
+
+    // Subcategory limits share this table under subBudgetKey(): the prefix
+    // keeps them attached when the category is renamed or deleted.
+    @Query("UPDATE budgets SET category = :newPrefix || substr(category, length(:oldPrefix) + 1) WHERE substr(category, 1, length(:oldPrefix)) = :oldPrefix")
+    suspend fun renameSubLimits(oldPrefix: String, newPrefix: String)
+
+    @Query("DELETE FROM budgets WHERE substr(category, 1, length(:prefix)) = :prefix")
+    suspend fun deleteSubLimits(prefix: String)
 }

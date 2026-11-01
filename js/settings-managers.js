@@ -157,7 +157,7 @@ function renderShiftTypesList(){
           <span class="cat-row-sub">${summary}</span>
         </div>
         <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-shift-type-edit" data-id="${t.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-shift-type" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <button class="mgr-del" data-action="delete-shift-type" data-id="${t.id}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -228,17 +228,28 @@ function renderWalletsList(){
       <select style="flex:0 0 82px" data-action="update-wallet" data-id="${w.id}" data-field="currency">
         ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
       </select>
-      <button class="mgr-del" data-action="delete-wallet" data-id="${w.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <button class="mgr-del" data-action="delete-wallet" data-id="${w.id}">${tr('common_delete')}</button>
+      <div class="wallet-accounting">
+        <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_opening_balance')}</span>
+          <input type="number" class="mgr-num" step="0.01" placeholder="0" value="${w.openingBalance||''}" data-action="update-wallet" data-id="${w.id}" data-field="openingBalance"></label>
+        <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
+          <select data-action="update-wallet" data-id="${w.id}" data-field="kind">
+            ${['cash','card','deposit','credit'].map(k=>`<option value="${k}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
+          </select></label>
+        <label class="wallet-switch"><input type="checkbox" ${w.inCapital!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inCapital"> ${tr('wallet_in_capital')}</label>
+        <label class="wallet-switch"><input type="checkbox" ${w.inStats!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inStats"> ${tr('wallet_in_stats')}</label>
+      </div>`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
   });
 }
 
-/** @param {string} id @param {string} field @param {string} value */
+/** @param {string} id @param {string} field @param {string|boolean} value */
 export const updateWallet = function(id,field,value){
   const w=walletById(id); if(!w) return;
   if(field==='name') w.name=String(value).trim()||tr('wallets_default_name');
-  else if(field==='currency'){ w.currency=value; if(value!=='UAH' && AppState.currencyRates[value]===undefined) AppState.currencyRates[value]=SEED_RATES[value]||1; }
+  else if(field==='openingBalance') w.openingBalance=parseFloat(String(value))||0;
+  else if(field==='currency'){ w.currency=String(value); const code=String(value); if(code!=='UAH' && AppState.currencyRates[code]===undefined) AppState.currencyRates[code]=SEED_RATES[code]||1; }
   else /** @type {any} */ (w)[field]=value;
   saveConfigLocal(); scheduleSave();
   renderFinance(); refreshWalletSelects();
@@ -880,7 +891,12 @@ function renderBudgetsManagerList(){
       <div class="mgr-field" style="padding-top:6px;border-top:1px dashed var(--border)">
         <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
         <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${val||''}" data-action="update-budget" data-cat="${escapeHtml(name)}">
-      </div>`:''}
+      </div>
+      ${(AppState.subcategories[subKey('expense',name)]||[]).map(sub=>{ const key=`${name} › ${sub}`; return `
+      <div class="mgr-field">
+        <span class="mgr-field-label">${escapeHtml(sub)}</span>
+        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${AppState.budgets[key]||''}" data-action="update-budget" data-cat="${escapeHtml(key)}">
+      </div>`; }).join('')}`:''}
     `;
     box.appendChild(row);
   });
@@ -964,7 +980,7 @@ function renderRecurringList(){
           <span class="cat-row-sub">${freqLabel} · ${nextDateFmt}${paused?' · '+tr('recurring_paused_label'):''}</span>
         </div>
         <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-recurring-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-recurring" data-id="${r.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+        <button class="mgr-del" data-action="delete-recurring" data-id="${r.id}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
@@ -1127,7 +1143,7 @@ const CLICK_ACTIONS = {
 /** @type {Record<string, (ds: DOMStringMap, el: HTMLInputElement) => void>} */
 const FIELD_ACTIONS = {
   'update-shift-type': (ds,el)=>updateShiftType(ds.id||'', ds.field||'', ds.field==='isOff'?el.checked:el.value),
-  'update-wallet': (ds,el)=>updateWallet(ds.id||'', ds.field||'', el.value),
+  'update-wallet': (ds,el)=>updateWallet(ds.id||'', ds.field||'', /** @type {HTMLInputElement} */ (el).type==='checkbox'?/** @type {HTMLInputElement} */ (el).checked:el.value),
   'toggle-widget': (ds,el)=>toggleWidget(ds.key||'', el.checked),
   'update-currency-rate': (ds,el)=>updateCurrencyRate(ds.code||'', el.value),
   'update-budget': (ds,el)=>updateBudget(ds.cat||'', el.value),

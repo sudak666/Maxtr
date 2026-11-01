@@ -38,6 +38,10 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
         private set
     var categoryIcons by mutableStateOf<Map<String, String>>(emptyMap())
         private set
+    var budgets by mutableStateOf<Map<String, Double>>(emptyMap())
+        private set
+    var subcategories by mutableStateOf<Map<String, List<String>>>(emptyMap())
+        private set
     @get:StringRes
     var errorMessageRes by mutableStateOf<Int?>(null)
         private set
@@ -48,6 +52,8 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
         combine(repository.categoriesByType, repository.budgets) { byType, budgets ->
             byType[TxType.EXPENSE].orEmpty().map { name -> name to (budgets[name] ?: 0.0) }
         }.onEach { rows = it }.launchIn(viewModelScope)
+        repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
+        repository.subcategoriesByKey.onEach { subcategories = it }.launchIn(viewModelScope)
         repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
     }
 

@@ -86,6 +86,9 @@ fun BudgetsManagerSheet(
                     expanded = viewModel.expandedCategory == category,
                     onToggleEdit = { viewModel.toggleEdit(category) },
                     onLimitChange = { viewModel.updateBudget(category, it) },
+                    subcategories = viewModel.subcategories[ua.rytm.app.data.subKey(TxType.EXPENSE.name, category)].orEmpty(),
+                    subLimits = viewModel.budgets,
+                    onSubLimitChange = { sub, amount -> viewModel.updateBudget(ua.rytm.app.data.subBudgetKey(category, sub), amount) },
                 )
             }
         }
@@ -93,7 +96,7 @@ fun BudgetsManagerSheet(
 }
 
 @Composable
-private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit) {
+private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit, subcategories: List<String>, subLimits: Map<String, Double>, onSubLimitChange: (String, Double) -> Unit) {
     val summary = if (limit > 0) stringResource(R.string.budgets_summary, formatMoney(limit)) else stringResource(R.string.budgets_unlimited)
 
     androidx.compose.material3.Card(
@@ -140,6 +143,23 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 delay(400)
                 val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(limitText) ?: 0.0
                 if (parsed != limit) onLimitChange(parsed)
+            }
+            subcategories.forEach { sub ->
+                val current = subLimits[ua.rytm.app.data.subBudgetKey(category, sub)] ?: 0.0
+                var text by remember(category, sub) { mutableStateOf(if (current == 0.0) "" else formatMoney(current)) }
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    label = { Text(localizedDomainText(sub)) },
+                )
+                LaunchedEffect(text) {
+                    delay(400)
+                    val parsed = ua.rytm.app.ui.screens.finance.parseMoneyInput(text) ?: 0.0
+                    if (parsed != current) onSubLimitChange(sub, parsed)
+                }
             }
         }
     }

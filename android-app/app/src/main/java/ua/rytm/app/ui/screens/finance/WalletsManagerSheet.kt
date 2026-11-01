@@ -265,6 +265,7 @@ private fun WalletAccountingFields(wallet: Wallet, onUpdate: (Wallet) -> Unit) {
             )
         }
     }
+    Text(stringResource(R.string.wallet_kind_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     WalletSwitch(R.string.wallet_in_capital, R.string.wallet_in_capital_hint, wallet.inCapital) { onUpdate(wallet.copy(inCapital = it)) }
     WalletSwitch(R.string.wallet_in_stats, R.string.wallet_in_stats_hint, wallet.inStats) { onUpdate(wallet.copy(inStats = it)) }
 }

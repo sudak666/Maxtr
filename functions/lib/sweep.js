@@ -26,7 +26,7 @@
 
 /** @typedef {{enabled?: boolean, timeZone?: string, time?: string, budgetAlerts?: boolean, recurringAlerts?: boolean, debtAlerts?: boolean, weeklySummary?: boolean}} NotifSettings */
 /** @typedef {{inStats?: boolean, id: string, currency?: string}} WalletLike */
-/** @typedef {{wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
+/** @typedef {{subcategory?: string, wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
 /** @typedef {{id: string, dueDate?: string, name?: string, direction?: string}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
@@ -266,6 +266,26 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
       if (isOverBudget(spent, limit)) {
         const res = await sendPushFn(token, 'Бюджет перевищено', `Витрати за категорією "${cat}" перевищили місячний бюджет.`, 'budget');
         if (res.ok) { sent[key] = true; changed = true; }
+        if (res.invalid) tokenInvalid = true;
+      }
+    }
+    // Subcategory limits live in `budgets` as "Category › Subcategory".
+    for (const [key, limit] of Object.entries(budgets)) {
+      if (tokenInvalid) break;
+      const at = key.indexOf(' › ');
+      if (at < 0 || !(limit > 0)) continue;
+      const cat = key.slice(0, at), sub = key.slice(at + 3);
+      if (!(categories.expense || []).includes(cat)) continue;
+      const sentKey = `${month.key}_${key}`;
+      if (sent[sentKey]) continue;
+      const spent = transactions.reduce((/** @type {number} */ s, /** @type {TransactionLike} */ t) => {
+        const date = (t.date || '').slice(0, 10);
+        return t.type === 'expense' && t.category === cat && t.subcategory === sub && date >= month.from && date < month.until && !offStats.has(t.wallet)
+          ? s + toBase(t.amount || 0, t.currency || 'UAH', rates) : s;
+      }, 0);
+      if (isOverBudget(spent, limit)) {
+        const res = await sendPushFn(token, 'Бюджет перевищено', `Витрати за "${cat}: ${sub}" перевищили ліміт.`, 'budget');
+        if (res.ok) { sent[sentKey] = true; changed = true; }
         if (res.invalid) tokenInvalid = true;
       }
     }

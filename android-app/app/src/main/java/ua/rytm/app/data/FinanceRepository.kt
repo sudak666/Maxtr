@@ -39,6 +39,10 @@ fun convertCurrencyAmount(amount: Double, from: String, to: String, rates: Map<S
 // unique across income/expense.
 fun subKey(type: String, name: String) = "$type:$name"
 
+/** Key of a subcategory limit in `budgets`. Clients that only match category names skip it. */
+const val SUB_BUDGET_SEPARATOR = " › "
+fun subBudgetKey(category: String, subcategory: String) = "$category$SUB_BUDGET_SEPARATOR$subcategory"
+
 // Real persistence backing FinanceViewModel — see ANDROID_MIGRATION.md §2/§7
 // and FINANCE_SCREEN_SPEC.md §8 for what this replaces (the old in-memory
 // SampleFinanceData-only state). seedIfEmpty() uses SampleFinanceData as
@@ -147,6 +151,7 @@ class FinanceRepository(private val db: RytmDatabase) {
         if (old != null && old.name != newName) {
             db.subcategoryDao().renameCategoryName(type.name, old.name, newName)
             db.budgetDao().renameCategory(old.name, newName)
+            db.budgetDao().renameSubLimits(old.name + SUB_BUDGET_SEPARATOR, newName + SUB_BUDGET_SEPARATOR)
             db.recurringDao().renameCategory(type.name, old.name, newName)
             db.categoryIconDao().renameCategory(old.name, newName)
             db.transactionDao().renameCategory(type.name, old.name, newName)
@@ -167,6 +172,7 @@ class FinanceRepository(private val db: RytmDatabase) {
         if (category != null) {
             db.subcategoryDao().deleteAllForCategory(category.type, category.name)
             db.budgetDao().deleteByCategory(category.name)
+            db.budgetDao().deleteSubLimits(category.name + SUB_BUDGET_SEPARATOR)
             db.categoryIconDao().deleteForCategory(category.name)
         }
     }

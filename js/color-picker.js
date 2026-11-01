@@ -318,7 +318,7 @@ export function renderProfilesUI(){
         <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
         ${isShared
           ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
-          : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`}
+          : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}">${tr('common_delete')}</button>`}
       </div>
     `;
     box.appendChild(row);

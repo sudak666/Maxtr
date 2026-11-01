@@ -7,7 +7,7 @@ import { AppState } from './state.js';
 import { debtPace } from './debt-pace.js';
 import { saveDebtLocal, scheduleSave } from './color-picker.js';
 import { DEBT_COLORS, canEditActiveProfile } from './core.js';
-import { emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt, recordsLabel } from './ui-widgets.js';
+import { csSync, emptyStateHtml, escapeHtml, showToast, uiConfirm, uiPrompt, recordsLabel } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
 // js/debt.js is served unbundled (GitHub Pages, a bare 'preact' package
 // specifier isn't a valid URL there) or bundled by Vite (dist/, Firebase
@@ -49,10 +49,9 @@ async function addNewDebt(){
 
 /** @returns {Promise<void>} */
 export async function deleteCurrentDebt(){
-  if(AppState.debts.length<=1){showToast(tr('debt_need_one'),'xmark');return;}
   if(!(await uiConfirm(tr('debt_delete_confirm'),{title:tr('debt_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.debts=AppState.debts.filter(d=>d.id!==AppState.currentDebtId);
-  AppState.currentDebtId=AppState.debts[0].id;
+  AppState.currentDebtId=AppState.debts[0]?.id??null;
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
@@ -69,6 +68,8 @@ export function updateDebtInfo(){
   cd.currency=ci?.value||'у.о.';
   cd.startAmount=parseFloat(si?.value||'')||0;
   cd.dueDate=dui?.value||'';
+  const di=/** @type {HTMLSelectElement | null} */ (document.getElementById('debt-direction'));
+  cd.direction=di?.value==='owed'?'owed':'owe';
   saveDebtLocal(); scheduleSave(); renderDebt();
 }
 
@@ -420,6 +421,7 @@ export function renderDebt(){
   const ci=/** @type {HTMLSelectElement | null} */ (document.getElementById('debt-currency')); if(ci) ci.value=cur;
   const si=/** @type {HTMLInputElement | null} */ (document.getElementById('debt-start')); if(si) si.value=String(cd.startAmount||0);
   const dui=/** @type {HTMLInputElement | null} */ (document.getElementById('debt-due-date')); if(dui) dui.value=cd.dueDate||'';
+  const di=/** @type {HTMLSelectElement | null} */ (document.getElementById('debt-direction')); if(di){ di.value=cd.direction==='owed'?'owed':'owe'; csSync(di); }
   // Prefill today's date for the next payment if the field is empty
   const ddi=/** @type {HTMLInputElement | null} */ (document.getElementById('debt-date')); if(ddi&&!ddi.value) ddi.value=todayLabel();
 
