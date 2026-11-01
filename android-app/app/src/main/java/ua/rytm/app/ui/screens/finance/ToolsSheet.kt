@@ -68,15 +68,12 @@ import java.time.format.TextStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.data.FinanceRepository
 import ua.rytm.app.data.SEED_RATES
+import ua.rytm.app.ui.components.CurrencyBadge
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.motionProgress
 import kotlin.math.max
 import androidx.compose.foundation.layout.imePadding
 import ua.rytm.app.ui.components.RytmSheetTitle
-import ua.rytm.app.ui.theme.TealDeep
-import ua.rytm.app.ui.theme.BlueLight2
-import ua.rytm.app.ui.theme.PurpleLight2
-import ua.rytm.app.ui.theme.Amber600
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
@@ -350,16 +347,7 @@ private fun FxRatesSection(vm: ToolsViewModel) {
         } else {
             rates.toList().filter { it.first in ua.rytm.app.data.MAIN_CURRENCIES }.sortedBy { (code, _) -> listOf("USD", "EUR", "GBP", "PLN").indexOf(code).let { if (it < 0) Int.MAX_VALUE else it } }.forEach { (code, rate) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = RytmSpacing.xs), verticalAlignment = Alignment.CenterVertically) {
-                    val badge = when (code) {
-                        "USD" -> "$" to TealDeep
-                        "EUR" -> "€" to BlueLight2
-                        "GBP" -> "£" to PurpleLight2
-                        "PLN" -> "zł" to Amber600
-                        else -> currencySymbol(code) to MaterialTheme.colorScheme.primary
-                    }
-                    Box(Modifier.size(34.dp).background(badge.second.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
-                        Text(badge.first, color = badge.second, fontWeight = FontWeight.Black)
-                    }
+                    CurrencyBadge(code, size = 34.dp)
                     Column(Modifier.padding(start = 10.dp).weight(1f)) {
                         Text(code, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         Text(runCatching { java.util.Currency.getInstance(code).getDisplayName(LocalConfiguration.current.locales[0]) }.getOrDefault(code), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
