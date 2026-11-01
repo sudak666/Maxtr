@@ -24,7 +24,8 @@ import ua.rytm.app.ui.screens.finance.Wallet
 // Mirrors js/core.js's SEED_RATES — the fallback used when a currency code
 // has no synced rate yet (a brand-new account before its first FX-widget
 // load, or a currency the account owner never manually rated).
-val SEED_RATES = mapOf("USD" to 41.0, "EUR" to 44.0, "GBP" to 51.0, "PLN" to 10.5)
+val SEED_RATES = mapOf("USD" to 41.0, "EUR" to 44.0, "GBP" to 51.0, "PLN" to 10.5, "AED" to 12.35, "AUD" to 31.86, "AZN" to 26.68, "BDT" to 0.3656, "CAD" to 32.47, "CHF" to 55.13, "CNY" to 6.82, "CZK" to 2.08, "DKK" to 6.78, "DZD" to 0.3343, "EGP" to 0.8096, "GEL" to 17.48, "HKD" to 5.78, "HUF" to 0.1384, "IDR" to 0.0025, "ILS" to 14.49, "INR" to 0.4776, "JPY" to 0.2886, "KRW" to 0.034, "KZT" to 0.1001, "LBP" to 0.0005, "MDL" to 2.52, "MXN" to 2.4, "MYR" to 11.18, "NOK" to 4.91, "NZD" to 25.56, "RON" to 9.48, "RSD" to 0.4312, "SAR" to 12.08, "SEK" to 4.61, "SGD" to 35.48, "THB" to 1.34, "TND" to 15.09, "TRY" to 0.908, "VND" to 0.0018, "ZAR" to 2.72)
+val MAIN_CURRENCIES = listOf("USD", "EUR", "GBP", "PLN")
 
 fun convertCurrencyAmount(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
     if (from == to) return amount

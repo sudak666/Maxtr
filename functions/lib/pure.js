@@ -13,7 +13,7 @@
 /** @typedef {Record<string, number>} RatesMap */
 
 /** @type {RatesMap} */
-const SEED_RATES = { USD: 41, EUR: 44, GBP: 51, PLN: 10.5 };
+const SEED_RATES = { USD: 41, EUR: 44, GBP: 51, PLN: 10.5, AED: 12.35, AUD: 31.86, AZN: 26.68, BDT: 0.3656, CAD: 32.47, CHF: 55.13, CNY: 6.82, CZK: 2.08, DKK: 6.78, DZD: 0.3343, EGP: 0.8096, GEL: 17.48, HKD: 5.78, HUF: 0.1384, IDR: 0.0025, ILS: 14.49, INR: 0.4776, JPY: 0.2886, KRW: 0.034, KZT: 0.1001, LBP: 0.0005, MDL: 2.52, MXN: 2.4, MYR: 11.18, NOK: 4.91, NZD: 25.56, RON: 9.48, RSD: 0.4312, SAR: 12.08, SEK: 4.61, SGD: 35.48, THB: 1.34, TND: 15.09, TRY: 0.908, VND: 0.0018, ZAR: 2.72 };
 
 /**
  * @param {number} amount

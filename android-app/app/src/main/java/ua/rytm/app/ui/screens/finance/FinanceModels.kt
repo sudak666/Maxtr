@@ -112,4 +112,4 @@ enum class PeriodFilter { DAY, MONTH, ALL }
 
 // 1:1 with js/core.js's PALETTE/CURRENCY_LIST constants.
 val PALETTE = listOf(0xFF8B5CF6, 0xFF3B82F6, 0xFF10B981, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4, 0xFFEF4444, 0xFFA78BFA)
-val CURRENCY_LIST = listOf("UAH", "USD", "EUR", "GBP", "PLN")
+val CURRENCY_LIST = listOf("UAH") + ua.rytm.app.data.SEED_RATES.keys
