@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /** Form pre-fill handed from a bank-push suggestion to the new-transaction sheet. */
-data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null, val walletId: String? = null)
+data class TxPrefill(val isIncome: Boolean, val amount: Double, val currency: String, val comment: String?, val isTransfer: Boolean = false, val account: String? = null, val targetAccount: String? = null, val bank: String? = null, val targetBank: String? = null, val walletId: String? = null, val category: String? = null)
 
 /**
  * Reads ONLY the notifications of the bank apps in
