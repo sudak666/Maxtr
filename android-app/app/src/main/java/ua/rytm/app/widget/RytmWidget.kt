@@ -155,11 +155,13 @@ private fun WidgetContent(s: WidgetSnapshot) {
             style = TextStyle(color = OnBg, fontSize = if (compact) 22.sp else 28.sp, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        s.perDayUah?.let { perDay ->
+        s.forecast?.let { f ->
+            val end = context.getString(R.string.cash_forecast_main, widgetDayMonth(context, f.end), if (s.masked) MASK else ua.rytm.app.ui.screens.finance.signedMoney(f.endBalance))
+            val gap = f.shortfallDate
             Text(
-                context.getString(R.string.widget_per_day, if (s.masked) MASK else formatMoney(kotlin.math.floor(perDay))),
+                if (gap != null) end + " · " + context.getString(R.string.cash_forecast_main_minus, widgetDayMonth(context, gap)) else end,
                 style = TextStyle(color = Muted, fontSize = WidgetCaptionSize),
-                maxLines = 1,
+                maxLines = 2,
             )
         }
         if (!compact) {
@@ -352,3 +354,7 @@ private fun dayLabel(context: Context, date: LocalDate): String {
         else -> date.format(DateTimeFormatter.ofPattern("dd.MM"))
     }
 }
+
+/** Glance has no LocalConfiguration, so the day is formatted from the context locale. */
+private fun widgetDayMonth(context: android.content.Context, date: java.time.LocalDate): String =
+    date.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM", context.resources.configuration.locales[0]))

@@ -54,6 +54,27 @@ data class CashForecast(
         private const val TOP_CATEGORIES = 3
         private const val RECURRING_MARK = "повторювана"
 
+        /**
+         * The forecast for spendable wallets (in capital, not deposit or
+         * credit) — one entry point, so Finance and the home-screen widget can
+         * never show two different numbers.
+         */
+        fun forProfile(
+            wallets: List<Wallet>,
+            transactions: List<Transaction>,
+            recurring: List<Recurring>,
+            today: LocalDate,
+            end: LocalDate,
+            toUah: (Double, String) -> Double,
+        ): CashForecast {
+            val spendableWallets = wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }
+            val spendable = spendableWallets.map { it.id }.toSet()
+            val balance = spendableWallets.sumOf { w -> toUah(ua.rytm.app.data.FinanceRepository.walletBalance(transactions, w.id, w.openingBalance), w.currency) }
+            val expenses = transactions.forStats(wallets).filter { it.type == TxType.EXPENSE && it.walletId in spendable }
+            val planned = recurring.filter { it.walletId in spendable }
+            return compute(balance, planned, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, end, habit(expenses, today, toUah, planned), toUah)
+        }
+
         fun compute(
             balanceUah: Double,
             recurring: List<Recurring>,

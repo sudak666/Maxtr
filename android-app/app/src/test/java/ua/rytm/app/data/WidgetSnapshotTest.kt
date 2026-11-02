@@ -46,13 +46,15 @@ class WidgetSnapshotTest {
 
     @Test fun maskedFlagPassesThrough() = assertEquals(true, snap(emptyMap(), masked = true).masked)
 
-    @Test fun perDayAllowanceSubtractsBillsStillDue() {
+    // The widget shows Finance's own forecast, not a separate allowance.
+    @Test fun widgetForecastMatchesFinance() {
         val today = java.time.LocalDate.of(2026, 10, 20) // 12 days left incl. today
         val wallets = listOf(ua.rytm.app.ui.screens.finance.Wallet("w", "Cash", 0, "UAH"))
         val txs = listOf(ua.rytm.app.ui.screens.finance.Transaction(id = "i", type = ua.rytm.app.ui.screens.finance.TxType.INCOME, amount = 1500.0, date = "2026-10-01", walletId = "w", category = "Salary"))
         val rent = ua.rytm.app.ui.screens.finance.Recurring("r", ua.rytm.app.ui.screens.finance.TxType.EXPENSE, 300.0, "Rent", "w", "monthly", "2026-10-25", true, "")
         val s = WidgetSnapshot.compute(today, wallets, txs, emptyMap(), emptyList(), emptyMap(), ua.rytm.app.ui.screens.shifts.AutoFillSchedule(), false, recurring = listOf(rent))
-        assertEquals(100.0, s.perDayUah!!, 0.001)
+        assertEquals(1_200.0, s.forecast!!.endBalance, 0.001)
+        assertEquals(300.0, s.forecast!!.plannedOut, 0.001)
     }
 
 }

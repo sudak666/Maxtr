@@ -25,8 +25,8 @@ data class WidgetSnapshot(
     val week: List<WeekDay> = emptyList(),
     /** Newest first, capped — the tall layout shows as many as fit. */
     val recent: List<RecentTx> = emptyList(),
-    /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = none or bills exceed the balance. */
-    val perDayUah: Double? = null,
+    /** The same month-end forecast as Finance (CashForecast.forProfile); null with no wallets or nothing to forecast. */
+    val forecast: ua.rytm.app.ui.screens.finance.CashForecast? = null,
 ) {
     data class NextShift(val date: LocalDate, val name: String, val code: String, val colorHex: Long)
     data class WeekDay(val date: LocalDate, val code: String?, val colorHex: Long, val name: String = "")
@@ -85,11 +85,10 @@ data class WidgetSnapshot(
                     )
                 }
             val toUah: (Double, String) -> Double = { a, c -> convertCurrencyAmount(a, c, "UAH", rates) }
-            val bills = ua.rytm.app.ui.screens.finance.FinanceInsights.monthOutlook(
-                recurring, { id -> wallets.firstOrNull { it.id == id }?.currency }, today, 0.0, toUah,
-            ).recurringOut
-            val perDay = if (wallets.isEmpty()) null else ua.rytm.app.ui.screens.finance.FinanceInsights.safeToSpendPerDay(balance, bills, today)
-            return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal, week, recent, perDay)
+            val cash = ua.rytm.app.ui.screens.finance.CashForecast.forProfile(
+                wallets, transactions, recurring, today, ua.rytm.app.data.FinancialMonth.lastDay(ua.rytm.app.data.FinancialMonth.of(today)), toUah,
+            ).takeIf { wallets.isNotEmpty() && (it.habit != null || it.events.isNotEmpty()) }
+            return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal, week, recent, cash)
         }
 
         suspend fun load(

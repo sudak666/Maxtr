@@ -602,18 +602,7 @@ class FinanceViewModel(
     val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
     val cashForecast: CashForecast by derivedStateOf {
-        val spendable = wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.map { it.id }.toSet()
-        val expenses = transactions.forStats(wallets).filter { it.type == TxType.EXPENSE && it.walletId in spendable }
-        val planned = recurring.filter { it.walletId in spendable }
-        CashForecast.compute(
-            spendableBalanceUah,
-            planned,
-            { id -> wallets.firstOrNull { it.id == id }?.currency },
-            today,
-            ua.rytm.app.data.FinancialMonth.lastDay(currentMonth),
-            CashForecast.habit(expenses, today, ::toUah, planned),
-            ::toUah,
-        )
+        CashForecast.forProfile(wallets, transactions, recurring, today, ua.rytm.app.data.FinancialMonth.lastDay(currentMonth), ::toUah)
     }
 
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }
