@@ -28,7 +28,7 @@
 /** @typedef {{inStats?: boolean, id: string, currency?: string}} WalletLike */
 /** @typedef {{subcategory?: string, wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
-/** @typedef {{id: string, dueDate?: string, name?: string, direction?: string}} DebtLike */
+/** @typedef {{id: string, dueDate?: string, name?: string, direction?: string, startAmount?: number, entries?: {id?: number|string, balance?: number}[]}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
 /** @typedef {{debts?: DebtLike[]}} DebtDocData */
 /** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
@@ -64,6 +64,18 @@ const DCOL = 'max_tracker';
  */
 function financeDocName(profileId) {
   return profileId && profileId !== 'default' ? `finance@${profileId}` : 'finance';
+}
+
+/**
+ * True when nothing is left: the newest entry's balance (entries by id), or the
+ * start amount with no entries, is zero. Same rule as Android's currentBalance().
+ * @param {DebtLike} d
+ * @returns {boolean}
+ */
+function debtSettled(d) {
+  const entries = Array.isArray(d.entries) ? [...d.entries].sort((a, b) => Number(a.id) - Number(b.id)) : [];
+  const last = entries.length ? entries[entries.length - 1].balance : d.startAmount;
+  return typeof last === 'number' && Math.abs(last) < 0.005;
 }
 
 // Same suffixing convention, for the separate "debt" doc (debts/dueDate
@@ -316,6 +328,8 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     for (const d of debts) {
       if (tokenInvalid) break;
       if (d.dueDate !== tomorrow) continue;
+      // A paid-off debt keeps its due date; reminding about it reads as a bug.
+      if (debtSettled(d)) continue;
       const key = `${d.id}_${tomorrow}`;
       if (sent[key]) continue;
       const label = d.name || 'Розрахунок';

@@ -693,4 +693,6 @@
     <string name="debt_finance_comment_owe">Повернення боргу · %1$s</string>
     <string name="debt_finance_comment_owed">Повернули борг · %1$s</string>
     <string name="debt_finance_category">Повернення боргу</string>
+    <string name="debt_remind">Нагадати</string>
+    <string name="debt_remind_message">Привіт! Нагадую про борг: %1$s %2$s. Коли зможеш повернути? Дякую!</string>
 </resources>

@@ -200,6 +200,15 @@ await test('sweepProfile: sends an upcoming-debt-due-date push exactly one day a
   assert.deepEqual(result.updates, { sentDebt: { 'd1_2026-07-16': true } });
 });
 
+await test('sweepProfile: no due-date push for a debt that is already paid off', async () => {
+  const financeData = { notifSettings: { debtAlerts: true, timeZone: 'UTC' }, data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {} };
+  const debtData = { debts: [{ id: 'd1', name: 'Позика', dueDate: '2026-07-16', startAmount: 1000, entries: [{ id: 1, balance: 400 }, { id: 2, balance: 0 }] }] };
+  const calls = [];
+  const sendPushFn = async (token, title) => { calls.push(title); return { ok: true, invalid: false }; };
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(debtData));
+  assert.equal(calls.length, 0);
+});
+
 await test('sweepProfile: skips a debt already flagged for its due date (dedup)', async () => {
   const financeData = {
     notifSettings: { debtAlerts: true, timeZone: 'UTC' },
