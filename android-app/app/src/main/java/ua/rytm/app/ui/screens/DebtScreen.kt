@@ -388,6 +388,21 @@ private fun HeroBalance(cd: Debt) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(if (cd.owedToMe) R.string.debt_owed_balance else R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            // People forget who owes them; asking is awkward. One tap hands a
+            // polite text to any messenger — the app sends nothing itself.
+            if (cd.owedToMe && cd.currentBalance() > 0) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val message = stringResource(R.string.debt_remind_message, formatMoney(cd.currentBalance()), cd.currency)
+                val chooserTitle = stringResource(R.string.debt_remind)
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        val send = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain").putExtra(android.content.Intent.EXTRA_TEXT, message)
+                        context.startActivity(android.content.Intent.createChooser(send, chooserTitle))
+                    },
+                    shape = RoundedCornerShape(RytmRadii.Row),
+                    modifier = Modifier.padding(top = RytmSpacing.md),
+                ) { Text(chooserTitle) }
+            }
         }
         ua.rytm.app.ui.components.CelebrationBurst(trigger = celebrateTrigger, modifier = Modifier.matchParentSize())
     }

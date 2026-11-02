@@ -683,4 +683,6 @@
     <string name="debt_finance_comment_owe">Debt repayment · %1$s</string>
     <string name="debt_finance_comment_owed">Debt repaid to me · %1$s</string>
     <string name="debt_finance_category">Debt repayment</string>
+    <string name="debt_remind">Remind</string>
+    <string name="debt_remind_message">Hi! A friendly reminder about the loan: %1$s %2$s. When can you pay it back? Thanks!</string>
 </resources>
