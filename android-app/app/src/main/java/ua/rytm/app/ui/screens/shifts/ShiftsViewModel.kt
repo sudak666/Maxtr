@@ -207,21 +207,24 @@ class ShiftsViewModel(
         launchMutation { repository.setAutoFillSchedule(uid, profileId, next, processDays = true) }
     }
 
-    data class MonthStats(val earned: Double, val hours: Double, val shiftsCount: Int, val offCount: Int)
+    /** [earned] is every shift of the month; [earnedToDate] only those up to and including today. */
+    data class MonthStats(val earned: Double, val hours: Double, val shiftsCount: Int, val offCount: Int, val earnedToDate: Double = earned)
 
     val monthStats: MonthStats
         get() {
             val prefix = visibleMonth.toString() // "yyyy-MM"
-            var earned = 0.0; var hours = 0.0; var shiftsCount = 0; var offCount = 0
+            var earned = 0.0; var hours = 0.0; var shiftsCount = 0; var offCount = 0; var toDate = 0.0
+            val today = java.time.LocalDate.now().toString()
             shiftsByDate.forEach { (dateKey, ids) ->
                 if (!dateKey.startsWith(prefix)) return@forEach
                 ids.forEach { id ->
                     val t = shiftTypes.firstOrNull { it.id == id } ?: return@forEach
                     earned += t.amount; hours += t.hours
+                    if (dateKey <= today) toDate += t.amount
                     if (t.isOff) offCount++ else shiftsCount++
                 }
             }
-            return MonthStats(earned, hours, shiftsCount, offCount)
+            return MonthStats(earned, hours, shiftsCount, offCount, toDate)
         }
 
     data class MonthEarning(val yearMonth: YearMonth, val earned: Double)

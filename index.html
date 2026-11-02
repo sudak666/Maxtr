@@ -2080,8 +2080,8 @@ body.amounts-hidden #fx-converter-result{
   <!-- ═══ РОЗРАХУНКИ ═══ -->
   <section id="tab-debt" class="tab-content" style="display:none" aria-labelledby="debt-title">
     <div class="page-head">
-      <div class="page-label" data-i18n="debt_kicker">Облік розрахунків</div>
-      <h2 class="page-title" id="debt-title" data-i18n="debt_title">Розрахунки</h2>
+      <div class="page-label" data-i18n="debt_kicker">Кому винен ти і хто винен тобі</div>
+      <h2 class="page-title" id="debt-title" data-i18n="debt_title">Позики</h2>
     </div>
 
     <div class="debt-chips" id="debt-chips"></div>
@@ -2119,7 +2119,7 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="fin-form" style="margin-bottom:18px">
       <button type="button" class="fin-form-title fin-form-title-toggle" data-action="toggle-debt-info-panel">
-        <span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані розрахунку</span>
+        <span id="ic-debt-info"></span><span data-i18n="debt_info_title">Дані позики</span>
         <span class="tools-toggle-chevron" id="debt-info-chevron"></span>
       </button>
       <div id="debt-info-body" style="display:none">
@@ -2150,7 +2150,7 @@ body.amounts-hidden #fx-converter-result{
           <label data-i18n="debt_due_date">Дата, до якої треба віддати</label>
           <input type="date" id="debt-due-date" data-action="update-debt-info">
         </div>
-        <button class="btn btn-danger" style="align-self:flex-start" data-action="delete-current-debt" data-i18n="debt_delete">Видалити цей розрахунок</button>
+        <button class="btn btn-danger" style="align-self:flex-start" data-action="delete-current-debt" data-i18n="debt_delete">Видалити цю позику</button>
       </div>
     </div>
 
@@ -2482,7 +2482,7 @@ body.amounts-hidden #fx-converter-result{
           <div class="settings-row-sub" data-i18n="settings_privacy_sub">Як ми обробляємо твої дані</div>
         </div>
       </a>
-      <div style="font-size:13px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Rytm — трекер змін, фінансів і розрахунків</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:12px" data-i18n="settings_footer">Rytm — трекер змін, фінансів і позик</div>
     </div>
   </section>
 
@@ -2492,7 +2492,7 @@ body.amounts-hidden #fx-converter-result{
 <nav class="tabs" aria-label="Основна навігація">
   <button id="nav-finance" class="tab-btn tab-c-finance active"><span class="tab-icon-wrap"><span id="tab-icon-finance"></span></span><span data-i18n="nav_finance">Фінанси</span></button>
   <button id="nav-shifts" class="tab-btn tab-c-shifts"><span class="tab-icon-wrap"><span id="tab-icon-shifts"></span></span><span data-i18n="nav_shifts">Графік змін</span></button>
-  <button id="nav-debt" class="tab-btn tab-c-debt"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Розрахунки</span></button>
+  <button id="nav-debt" class="tab-btn tab-c-debt"><span class="tab-icon-wrap"><span id="tab-icon-debt"></span></span><span data-i18n="nav_debt">Позики</span></button>
   <!-- Kept in the DOM (not deleted) purely so a stale cached js/app-init.js
        from before this element was removed from the visible nav - sw.js
        serves js/*.js cache-first, so a client whose service worker hasn't
@@ -2637,7 +2637,7 @@ body.amounts-hidden #fx-converter-result{
   </div>
 </div>
 
-<!-- MANAGER: NEW DEBT PAYMENT (opened from the Розрахунки FAB) -->
+<!-- MANAGER: NEW DEBT PAYMENT (opened from the Позики FAB) -->
 <div class="modal-overlay" id="debt-form-modal">
   <div class="modal-card">
    <div class="modal-card-body">

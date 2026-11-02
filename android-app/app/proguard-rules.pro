@@ -31,3 +31,8 @@
 # PDFBox loads fonts and filters reflectively (PUMB statements).
 -keep class com.tom_roush.** { *; }
 -dontwarn com.gemalto.jp2.**
+# bcpkix is excluded (see app/build.gradle.kts): only certificate-encrypted PDFs need it.
+-dontwarn org.bouncycastle.cert.**
+-dontwarn org.bouncycastle.cms.**
+-dontwarn org.bouncycastle.operator.**
+-dontwarn org.bouncycastle.asn1.**

@@ -59,14 +59,19 @@ internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = RytmSpacing.sm),
         )
+        // A tap only selects: the change reshapes budgets and every month
+        // total, so the sheet shows the resulting period and waits for Save.
+        var pick by remember { mutableStateOf(startDay) }
         (1..ua.rytm.app.data.FinancialMonth.MAX_START_DAY).chunked(7).forEach { week ->
             androidx.compose.foundation.layout.Row(Modifier.padding(horizontal = RytmSpacing.md)) {
                 week.forEach { day ->
-                    val selected = day == startDay
+                    val selected = day == pick
                     androidx.compose.material3.TextButton(
-                        onClick = { onPick(day); open = false },
+                        onClick = { pick = day },
                         modifier = Modifier.weight(1f),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                        // The saved day stays outlined while another one is picked.
+                        border = if (day == startDay && !selected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
                         colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
                             containerColor = if (selected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
                             contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
@@ -75,6 +80,22 @@ internal fun SettingsRowScope.FinancialMonthRow(startDay: Int, onPick: (Int) -> 
                 }
             }
         }
+        val today = java.time.LocalDate.now()
+        val month = java.time.YearMonth.from(today).let { if (today.dayOfMonth < pick) it.minusMonths(1) else it }
+        Text(
+            stringResource(
+                R.string.settings_month_start_period,
+                ua.rytm.app.ui.components.formatDayMonth(month.atDay(pick)),
+                ua.rytm.app.ui.components.formatDayMonth(month.plusMonths(1).atDay(pick).minusDays(1)),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = RytmSpacing.md),
+        )
+        androidx.compose.material3.Button(
+            onClick = { onPick(pick); open = false },
+            enabled = pick != startDay,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.lg),
+        ) { Text(stringResource(R.string.action_save)) }
         androidx.compose.foundation.layout.Spacer(Modifier.padding(bottom = RytmSpacing.lg))
         }
     }

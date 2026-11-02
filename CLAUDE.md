@@ -208,7 +208,7 @@ Two roles: **editor** (default, full read/write) and **viewer** (read-only).
 
 ### Bank integrations (Android only)
 Removed 2026-09-27, returned 2026-11-01 because card use dominates. The PWA has neither feature.
-- **Monobank sync** (`data/MonobankRepository.kt`, `MonobankSyncCoordinator`, `MonobankManagerSheet`): the app calls api.monobank.ua directly, so no proxy function exists. The token lives in the owner-only `monobank_secret` doc. Not yet tested with a real token.
+- **Monobank sync** (`data/MonobankRepository.kt`, `MonobankSyncCoordinator`, `MonobankManagerSheet`): the app calls api.monobank.ua directly, so no proxy function exists. The token lives in the owner-only `monobank_secret` doc. `data/MonobankMerge.kt` runs before saving: a push-saved operation (same wallet/type/date/amount, no bank id) gains the bank id instead of a duplicate, and an expense+income of one amount between two mapped accounts within 120 s becomes one transfer whose `monobankId` joins both ids with `|`.
 - **Statement import** goes through the CSV import button and preview. `data/StatementImport.kt` reads monobank's xlsx (named .xls; zip+XML, no dependency); `data/PumbStatement.kt` reads PUMB's PDF by column position via pdfbox-android, because the text order mixes rows and PDFBox glues the operation kind onto a details cell. Ids are deterministic (`stmt_`), and the same type+date+amount counts as already saved. The preview offers wallet chips and warns when rows differ from the PDF's own totals; the October file differs by debits 1 904,90 and credits 350, cause unknown.
 
 ### Premium

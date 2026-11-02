@@ -135,10 +135,10 @@ class MonobankRepository(
         // statements below wait their own minute anyway.
         val bankBalances = runCatching { buildAccounts(request("client-info", emptyMap(), connection.token) as JSONObject) }
             .getOrNull()?.associate { it.id to it.balance }.orEmpty()
-        val knownIds = db.transactionDao().getAllMonobankIds().toMutableSet()
+        val knownIds = MonobankMerge.knownIds(db.transactionDao().getAllMonobankIds())
         val rules = db.autoRuleDao().getAllOnce()
         val currencies = db.walletDao().getAllOnce().associate { it.id to it.currency }
-        val imported = mutableListOf<TransactionEntity>()
+        val fetched = mutableListOf<MonobankMerge.Row>()
 
         entries.forEachIndexed { index, entry ->
             onProgress(MonobankSyncProgress(index + 1, entries.size))
@@ -149,20 +149,27 @@ class MonobankRepository(
                 val rows = request("statement", mapOf("account" to entry.key, "from" to start.toString(), "to" to end.toString()), connection.token) as? JSONArray
                     ?: error("Некоректна відповідь Monobank")
                 for (rowIndex in 0 until rows.length()) {
-                    buildTransaction(rows.getJSONObject(rowIndex), entry.value, currencies[entry.value] ?: "UAH", rules, knownIds, imported.size)?.let(imported::add)
+                    val row = rows.getJSONObject(rowIndex)
+                    buildTransaction(row, entry.value, currencies[entry.value] ?: "UAH", rules, knownIds, fetched.size)
+                        ?.let { fetched += MonobankMerge.Row(it, row.optLong("time")) }
                 }
                 start = end
                 chunks++
             }
         }
-        if (imported.isNotEmpty()) {
+        // Own-account moves become transfers; operations already saved from a
+        // bank push only gain the bank id instead of being added again.
+        val merged = MonobankMerge.merge(fetched, db.transactionDao().getAllOnce())
+        val imported = merged.added
+        val changed = imported + merged.claimed
+        if (changed.isNotEmpty()) {
             val collection = financeRef(uid, profileId).collection("transactions")
-            imported.chunked(450).forEach { chunk ->
+            changed.chunked(450).forEach { chunk ->
                 val batch = firestore.batch()
                 chunk.forEach { batch.set(collection.document(it.id), it.toRemoteMap()) }
                 batch.commit().await()
             }
-            db.transactionDao().insertAll(imported)
+            db.transactionDao().insertAll(changed)
         }
         val reconciled = reconcileOpeningBalances(connection.mapping, bankBalances)
         val updated = connection.copy(lastSyncAt = nowSec)

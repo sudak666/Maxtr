@@ -134,7 +134,7 @@ import kotlinx.coroutines.launch
 // (.salary-bar-fill) rather than the theme's purple — same treatment
 // FinanceScreen's HeroBalanceCard got in step 38.
 @Composable
-internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGoal: () -> Unit) {
+internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Boolean, onEditGoal: () -> Unit) {
     val shape = MaterialTheme.shapes.large
     Box(
         modifier = Modifier
@@ -144,8 +144,17 @@ internal fun HeroMetric(earned: Double, goal: Double, canEdit: Boolean, onEditGo
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
-            Text(stringResource(R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            // The big number is only what is already worked (audit A-04: it
+            // used to add the shifts still ahead, while the forecast card on
+            // the same screen called a smaller sum «зароблено»). A month with
+            // nothing worked yet but shifts ahead (a future month) shows those
+            // as planned instead.
+            val onlyAhead = earned <= 0.0 && ahead > 0.0
+            Text(stringResource(if (onlyAhead) R.string.shifts_planned_month else R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(if (onlyAhead) ahead else earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            if (!onlyAhead && ahead > 0.0) {
+                Text(maskedAmount(stringResource(R.string.shifts_hero_ahead, formatMoney(ahead))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             val goalSafe = goal.coerceAtLeast(1.0)
             // Bar is clamped to full width; the label shows the real share so
             // overachieving (e.g. 163%) isn't hidden behind a flat "100%".

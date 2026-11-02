@@ -3,7 +3,7 @@
     <bool name="legal_docs_en">true</bool>
     <string name="nav_finance">Finance</string>
     <string name="nav_shifts">Shifts</string>
-    <string name="nav_debt">Debts</string>
+    <string name="nav_debt">Loans</string>
     <string name="nav_settings">Settings</string>
     <string name="notification_channel_name">Rytm reminders</string>
     <string name="action_skip">Skip</string>
@@ -50,13 +50,12 @@
     <string name="auto_rules_keyword">Word in comment</string>
     <string name="auto_rules_save_failed">Could not save the rule. Try again.</string>
     <string name="rates_title">Exchange rates</string>
-    <string name="rates_body">The UAH value of one currency unit. The base is UAH (always 1).</string>
     <string name="rates_source">Rate source</string>
     <string name="rates_nbu">NBU (official)</string>
     <string name="rates_privat">PrivatBank (cash)</string>
     <string name="rates_privat_note">PrivatBank provides cash rates only for USD/EUR; other currencies use NBU rates.</string>
     <string name="rates_updating">Updating…</string><string name="rates_refresh">Update online</string>
-    <string name="rates_updated">Rates updated</string><string name="rates_update_failed">Could not update rates</string>
+<string name="rates_update_failed">Could not update rates</string>
     <string name="rates_updated_at">Updated %1$s</string><string name="rates_never_updated">Not updated yet</string><string name="rates_dashboard_subtitle">Current values against the hryvnia</string><string name="rates_current">Current rates</string>
     <string name="profile_load_failed">Could not load profile</string>
     <string name="profile_save_failed">Could not save profile</string>
@@ -83,7 +82,7 @@
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · paused</string>
     <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
     <string name="tools_title">Tools</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
-    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income">Income: %1$s</string><string name="analytics_expense">Expense: %1$s</string><string name="analytics_balance_label">Balance</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">%1$s ₴ average</string><string name="analytics_maximum_uah">%1$s ₴ maximum</string>
+    <string name="analytics_title">Expense and income analytics</string><string name="analytics_balance_label">Balance</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">%1$s ₴ average</string><string name="analytics_maximum_uah">%1$s ₴ maximum</string>
     <string name="analytics_difference">Difference</string><string name="analytics_savings_rate">Savings rate</string>
     <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
     <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$d%%</string>
@@ -117,29 +116,28 @@
     <string name="crypto_loading">Updating rates…</string><string name="crypto_error">Could not load cryptocurrency rates</string>
     <string name="action_collapse">Collapse</string><string name="shifts_show_month">Show whole month</string><string name="action_collapse_list">Collapse list</string><string name="action_view_all">View all</string>
     <string name="finance_estimated_balance">Estimated balance</string><string name="finance_total_balance">Total balance</string><string name="finance_conversion_note">The amount is converted to hryvnia using current wallet rates.</string>
-    <string name="finance_month_income">Income</string><string name="finance_month_expense">Expenses</string><string name="finance_action_transaction">Transaction</string><string name="finance_history">Transaction history</string>
+    <string name="finance_month_income">Income</string><string name="finance_month_expense">Expenses</string><string name="finance_history">Transaction history</string>
     <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
     <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Start with what you have now, then log income and expenses.</string>
     <string name="finance_empty_cta">Set current balance</string>
-    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ this month</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
+    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Categories</string><string name="categories_body">Your own income and expense categories, with subcategories inside.</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
     <string name="subcategory_delete_title">Delete subcategory</string><string name="subcategory_delete_body">Delete subcategory “%1$s”?</string><string name="category_icon_title">Category icon</string>
     <string name="subcategory_too_long">Subcategory name cannot exceed 120 characters</string><string name="subcategory_exists">This subcategory already exists</string><string name="category_too_long">Category name cannot exceed 120 characters</string><string name="category_exists">This category already exists</string><string name="categories_sync_failed">Could not sync changes</string>
-    <string name="debt_new_default">New debt</string><string name="debt_last_required">At least one debt must remain</string><string name="debt_amount_required">Enter an amount</string><string name="debt_balance_required">Enter the remaining balance</string>
-    <string name="debt_forecast_title">Payoff forecast</string><string name="debt_paid_off">Debt fully paid off! 🎉</string><string name="debt_forecast_insufficient">Not enough data to estimate the payoff rate</string><string name="debt_average_payment">Typical payment: %1$s</string>
+    <string name="debt_new_default">New loan</string><string name="debt_amount_required">Enter an amount</string><string name="debt_balance_required">Enter the remaining balance</string>
+    <string name="debt_forecast_title">Payoff forecast</string><string name="debt_paid_off">Loan fully paid off! 🎉</string><string name="debt_forecast_insufficient">Not enough data to estimate the payoff rate</string><string name="debt_average_payment">Typical payment: %1$s</string>
     <plurals name="debt_payments_left"><item quantity="one">About %1$d payment remaining</item><item quantity="other">About %1$d payments remaining</item></plurals>
-    <string name="debt_payment">Payment</string><string name="debt_delete_title">Delete debt</string><string name="debt_delete_body">Delete this debt and its entire payment history?</string><string name="debt_payment_delete_title">Delete payment</string><string name="debt_payment_delete_body">Delete this history entry?</string><string name="attention_title">Attention</string>
-    <string name="debt_empty_title">Loans between people</string><string name="debt_empty_body">Who you owe and who owes you, no paper notes: what is left and when it ends. A bank loan or credit card is a “Credit” wallet in Finance.</string><string name="debt_current_balance">Current balance</string><string name="debt_paid">Paid</string><string name="debt_start_amount">Starting amount</string><string name="debt_payments">Payments</string><string name="debt_due_date">Due date</string>
-    <string name="debt_days_overdue">−%1$d days</string><string name="debt_days_future">%1$d days</string><string name="debt_details">Debt details</string><string name="note_label">Note</string><string name="debt_history">Payment history</string><string name="action_toggle_section">Collapse or expand</string><string name="debt_payments_empty">No payments yet</string>
+    <string name="debt_payment">Payment</string><string name="debt_delete_title">Delete loan</string><string name="debt_delete_body">Delete this loan and its entire payment history?</string><string name="debt_payment_delete_title">Delete payment</string><string name="debt_payment_delete_body">Delete this history entry?</string>    <string name="debt_empty_title">Loans between people</string><string name="debt_empty_body">Who you owe and who owes you, no paper notes: what is left and when it ends. A bank loan or credit card is a “Credit” wallet in Finance.</string><string name="debt_current_balance">Current balance</string><string name="debt_paid">Paid</string><string name="debt_start_amount">Starting amount</string><string name="debt_payments">Payments</string><string name="debt_due_date">Due date</string>
+    <string name="debt_days_overdue">−%1$d days</string><string name="debt_days_future">%1$d days</string><string name="debt_details">Loan details</string><string name="note_label">Note</string><string name="debt_payments_empty">No payments yet</string>
     <string name="debt_balance">Balance</string><string name="debt_balance_value">Balance: %1$s %2$s</string><string name="debt_new_payment">New payment</string><string name="debt_payment_amount">Payment amount</string><string name="debt_new_balance">New balance</string>
     <string-array name="finance_tips"><item>Save at least 10% of income as soon as you receive it, not from what remains at month-end.</item><item>Wait 24 hours before a large purchase; impulsive desire often passes.</item><item>Build an emergency fund covering 3–6 months of expenses.</item><item>Automate savings: a recurring transfer works better than willpower.</item><item>Review subscriptions and recurring payments once a week.</item><item>Plan irregular expenses in advance with separate categories.</item><item>Compare a discount with your actual need, not the original price.</item></string-array>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
     <string name="money_uah">%1$s ₴</string>
     <string name="shifts_choose">Choose shifts</string>
-    <string name="shifts_earned_month">Pay for the month</string>
+    <string name="shifts_earned_month">Earned this month</string>
     <string name="shifts_goal_progress">%1$d%% of the %2$s ₴ goal</string>
     <string name="shifts_goal_edit_title">Earnings goal</string>
     <string name="shifts_goal_edit_label">Amount, UAH</string>
@@ -161,13 +159,11 @@
     <string name="shifts_weekend_a11y">weekend</string><string name="shifts_other_month_a11y">day in an adjacent month</string>
     <string name="shifts_edit_day_a11y">edit shifts</string>
     <string name="shifts_clear_month_confirm">Every shift assigned in this month will be deleted. This cannot be undone.</string>
-    <string name="shifts_autofill_title">Daily auto-fill</string>
     <string name="shifts_autofill_body">When a new day starts, the required shift is added automatically without manually filling the month.</string>
     <string name="shifts_anchor_date">First working day of the cycle</string>
     <string name="shifts_empty_title">No shifts this month yet</string>
     <string name="shifts_empty_body">Add shifts manually by tapping a day, or use quick fill.</string>
     <string name="weekday_mon">MON</string><string name="weekday_tue">TUE</string><string name="weekday_wed">WED</string><string name="weekday_thu">THU</string><string name="weekday_fri">FRI</string><string name="weekday_sat">SAT</string><string name="weekday_sun">SUN</string>
-    <string name="shifts_edit_hint">Tap a day to edit shifts</string>
     <string name="action_next">Next</string>
     <string name="onboarding_page_status">Page %1$d of %2$d</string>
     <string name="onboarding_finance_title">Finances under control</string>
@@ -180,14 +176,10 @@
     <string name="action_clear">Clear</string>
     <string name="action_choose_date">Choose date</string>
     <string name="field_currency">Currency</string>
-    <string name="sync_status_syncing">Synchronizing…</string>
     <string name="sync_status_offline">Offline · showing cache</string>
     <string name="sync_status_error">Synchronization error</string>
     <string name="action_delete">Delete</string>
     <string name="profile_read_only">This profile is read-only</string>
-    <string name="action_show_amounts">Show amounts</string>
-    <string name="action_hide_amounts">Hide amounts</string>
-    <string name="action_refresh">Refresh</string>
     <string name="action_ok">OK</string>
     <string name="action_edit">Edit</string>
     <string name="field_name">Name</string>
@@ -203,7 +195,7 @@
     <string name="shift_pay">Pay</string>
     <string name="shift_hours">Hours</string>
     <string name="shift_day_off_unpaid">Day off (unpaid)</string>
-    <string name="auth_tagline">Finances, shifts, and debts in one place</string>
+    <string name="auth_tagline">Finances, shifts, and loans in one place</string>
     <string name="auth_continue_google">Continue with Google</string>
     <string name="auth_or">OR</string>
     <string name="auth_password">Password</string>
@@ -215,7 +207,6 @@
     <string name="auth_register">Create account</string>
     <string name="auth_forgot_password">Forgot password?</string>
     <string name="auth_emulator_sign_in">[emulator] Anonymous test sign-in</string>
-    <string name="auth_sign_in_failed">Unable to sign in</string>
     <string name="auth_login_tab">Sign in</string>
     <string name="auth_register_tab">Register</string>
     <string name="auth_terms_prefix">By registering, you agree to the</string>
@@ -342,7 +333,7 @@
     <string name="settings_web_subtitle">Open Rytm in a browser</string>
     <string name="settings_terms_subtitle">Rules for using the app</string>
     <string name="settings_privacy_subtitle">How we process your data</string>
-    <string name="settings_about_summary">Rytm — a tracker for shifts, finances, and debts</string>
+    <string name="settings_about_summary">Rytm — a tracker for shifts, finances, and loans</string>
     <string name="settings_wallets_subtitle">Cards, cash, and other accounts</string>
     <string name="settings_rates_subtitle">Synchronized exchange rates against UAH</string>
     <string name="settings_categories_subtitle">Custom income and expense categories</string>
@@ -376,24 +367,14 @@
     <string name="settings_csv_import_save_failed">Could not save imported transactions</string>
     <string name="settings_csv_import_action">Import</string>
     <string name="settings_deleting_account">Deleting…</string>
-    <string name="settings_delete_account_body">This permanently deletes your data (wallets, transactions, debts, and shift calendar) and your Rytm account. Your Google account itself is not affected. It cannot be undone.</string>
+    <string name="settings_delete_account_body">This permanently deletes your data (wallets, transactions, loans, and shift calendar) and your Rytm account. Your Google account itself is not affected. It cannot be undone.</string>
     <string name="settings_sign_out_title">Sign out</string>
     <string name="settings_sign_out_body">Sign out of your account?</string>
     <string name="settings_sign_out_action">Sign out</string>
     <string name="settings_premium_title">Rytm Premium</string>
-    <string name="settings_premium_body">Rytm is currently completely free with no limits. Here is what comes next:</string>
-    <string name="settings_premium_free_title">Already free</string>
-    <string name="settings_premium_free_body">Unlimited wallets, categories, rules, recurring payments, and push notifications</string>
-    <string name="settings_premium_forecast_title">Earnings forecast</string>
-    <string name="settings_premium_forecast_body">Now on the Shifts tab: expected pay for this and next month and shifts left to reach your goal</string>
-    <string name="settings_premium_backup_title">Backups</string>
-    <string name="settings_premium_backup_body">Automatic cloud backups and one-tap restore</string>
-    <string name="settings_premium_widget_title">Home-screen widget</string>
-    <string name="settings_premium_widget_body">Available now: balance, next shift and forecast on your home screen — long-press the home screen → Widgets → Rytm</string>
-    <string name="settings_soon">SOON</string>
     <string name="settings_reset_title">Start over?</string>
     <string name="settings_resetting">Resetting data…</string>
-    <string name="settings_reset_body">The current profile’s shift calendar, finances, and debts will be deleted. The account and profile will remain.</string>
+    <string name="settings_reset_body">The current profile’s shift calendar, finances, and loans will be deleted. The account and profile will remain.</string>
     <string name="settings_reset_success">Profile data reset</string>
     <string name="settings_reset_failed">Could not reset profile data</string>
     <string name="settings_reset_action">Reset</string>
@@ -401,8 +382,6 @@
     <plurals name="settings_csv_operations"><item quantity="one">%1$d transaction</item><item quantity="other">%1$d transactions</item></plurals>
     <plurals name="settings_csv_errors"><item quantity="one">%1$d row</item><item quantity="other">%1$d rows</item></plurals>
     <plurals name="settings_csv_no_valid_rows"><item quantity="one">No valid rows (%1$d error)</item><item quantity="other">No valid rows (%1$d errors)</item></plurals>
-    <string name="auth_delete_data_failed">Could not delete data</string>
-    <string name="auth_delete_reauth_required">Sign in with Google again to delete the account</string>
     <string name="auth_delete_account_failed">Could not delete the account</string>
     <string name="auth_emulator_sign_in_failed">Test sign-in failed</string>
     <string name="notifications_daily">Daily reminder</string>
@@ -416,7 +395,6 @@
     <string name="biometric_unlock_title">Unlock Rytm</string>
     <string name="biometric_unlock_subtitle">Confirm with your fingerprint or face</string>
     <string name="transaction_delete_failed">Could not delete the transaction</string><string name="transaction_deleted">Deleted</string><string name="action_undo">Undo</string>
-    <string name="common_deleted">Deleted</string>
     <string name="transaction_auto_category">Category selected automatically: %1$s</string>
     <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: %2$s ₴ / %3$s ₴</string>
     <string name="transaction_updated">Entry updated</string>
@@ -465,7 +443,6 @@
     <string name="widget_balance">Balance</string>
     <string name="widget_next_shift">Next shift</string>
     <string name="widget_no_shift">No shifts planned</string>
-    <string name="widget_forecast">Month forecast</string>
     <string name="widget_signed_out">Sign in to Rytm</string>
     <string name="widget_today">Today</string>
     <string name="widget_tomorrow">Tomorrow</string>
@@ -644,7 +621,6 @@
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
     <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
     <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
-    <string name="cash_forecast_main_minus">below zero from %1$s</string>
     <string name="cash_forecast_now">On your accounts now</string>
     <string name="cash_forecast_now_hint">Without deposits and credit cards</string>
     <string name="cash_forecast_in">Recurring income</string>
@@ -685,4 +661,13 @@
     <string name="debt_finance_category">Debt repayment</string>
     <string name="debt_remind">Remind</string>
     <string name="debt_remind_message">Hi! A friendly reminder about the loan: %1$s %2$s. When can you pay it back? Thanks!</string>
+    <string name="cash_forecast_hero_minus">May go below zero from %1$s</string>
+    <string name="settings_month_start_period">Current month: %1$s – %2$s</string>
+    <string name="debt_total_owe">How much you owe</string>
+    <string name="debt_total_owed">How much you are owed</string>
+    <string name="debt_start_required">Enter the loan amount</string>
+    <string name="debt_start_hint">What is left is counted from this amount</string>
+    <string name="shifts_planned_month">Planned for the month</string>
+    <string name="shifts_hero_ahead">plus %1$s ₴ on the schedule</string>
+    <string name="debt_start_missing">The loan amount is missing, so what is left is wrong. Enter it in «Loan details» and the payment balances are recounted.</string>
 </resources>

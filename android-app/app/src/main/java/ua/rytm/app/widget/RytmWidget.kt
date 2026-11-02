@@ -156,10 +156,11 @@ private fun WidgetContent(s: WidgetSnapshot) {
             maxLines = 1,
         )
         s.forecast?.let { f ->
-            val end = context.getString(R.string.cash_forecast_main, widgetDayMonth(context, f.end), if (s.masked) MASK else ua.rytm.app.ui.screens.finance.signedMoney(f.endBalance))
+            // Same one-message line as the Finance hero.
             val gap = f.shortfallDate
             Text(
-                if (gap != null) end + " · " + context.getString(R.string.cash_forecast_main_minus, widgetDayMonth(context, gap)) else end,
+                if (gap != null) context.getString(R.string.cash_forecast_hero_minus, widgetDayMonth(context, gap))
+                else context.getString(R.string.cash_forecast_main, widgetDayMonth(context, f.end), if (s.masked) MASK else ua.rytm.app.ui.screens.finance.signedMoney(f.endBalance)),
                 style = TextStyle(color = Muted, fontSize = WidgetCaptionSize),
                 maxLines = 2,
             )

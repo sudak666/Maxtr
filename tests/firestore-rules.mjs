@@ -234,6 +234,14 @@ await check('joiner cannot delete the shared profile\'s finance doc (delete stay
 await check('a stranger still cannot read the shared profile\'s finance doc', getDoc(doc(asC, financeDocPath)), 'deny');
 await check('joiner cannot read the owner\'s unrelated profiles_meta', getDoc(doc(asB, `users/${uidA}/max_tracker/profiles_meta`)), 'deny');
 await check('joiner cannot read the owner\'s unrelated backup_v2@profX', getDoc(doc(asB, `users/${uidA}/max_tracker/backup_v2@${PROFILE_ID}`)), 'deny');
+// AUDIT_2026-11 A-07: the Monobank token stays with the owner even in a shared profile.
+const monoSecretPath = `users/${uidA}/max_tracker/monobank_secret@${PROFILE_ID}`;
+await check('owner can save the Monobank token of a shared profile', setDoc(doc(asA, monoSecretPath), { token: 'secret', updatedAt: Date.now() }), 'allow');
+await check('owner can read their Monobank token', getDoc(doc(asA, monoSecretPath)), 'allow');
+await check('an editor member cannot read the owner token', getDoc(doc(asB, monoSecretPath)), 'deny');
+await check('an editor member cannot overwrite the owner token', setDoc(doc(asB, monoSecretPath), { token: 'mine', updatedAt: Date.now() }), 'deny');
+await check('an editor member cannot delete the owner token', deleteDoc(doc(asB, monoSecretPath)), 'deny');
+await check('a stranger cannot read the owner default Monobank token', getDoc(doc(asC, `users/${uidA}/max_tracker/monobank_secret`)), 'deny');
 
 const sharedTxPath = `${financeDocPath}/transactions/tx1`;
 await check('joiner can write a transaction under the shared profile', setDoc(doc(asB, sharedTxPath), { type: 'expense', amount: 42, date: '2026-07-16', category: 'Продукти' }), 'allow');

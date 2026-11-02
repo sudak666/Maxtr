@@ -44,8 +44,8 @@ android {
         // Closed testing track (ANDROID_MIGRATION.md step 54); 3 (PR #489)
         // and 4 (bottom-nav perf fix) were uploaded too. Bumped to 5 for the
         // Shopping-removal batch, same strict-increase requirement.
-        versionCode = 43
-        versionName = "2.7.5"
+        versionCode = 44
+        versionName = "2.7.6"
         // Dev/test-only escape hatch to point Firebase Auth/Firestore at the local
         // emulator suite instead of production maxtr-c238f — off by default, opt in
         // with `./gradlew assembleDebug -PuseFirebaseEmulator=true`. See
@@ -181,14 +181,18 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.google.mlkit:text-recognition:16.0.1")
-    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    // bcpkix only serves certificate-encrypted PDFs, which bank statements are not;
+    // it also brought an empty trust-all TrustManager (lint TrustAllX509TrustManager).
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0") {
+        exclude(group = "org.bouncycastle", module = "bcpkix-jdk15to18")
+    }
     implementation("com.android.billingclient:billing-ktx:8.0.0")
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation("org.robolectric:robolectric:4.16")
-    testImplementation("io.mockk:mockk:1.14.6")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("io.mockk:mockk:1.14.11")
     testImplementation("androidx.test:core:1.7.0")
     testImplementation(libs.androidx.room.testing)
 }
