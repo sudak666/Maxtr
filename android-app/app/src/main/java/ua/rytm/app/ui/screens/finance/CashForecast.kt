@@ -3,6 +3,7 @@ package ua.rytm.app.ui.screens.finance
 import ua.rytm.app.data.nextRecurringDate
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 
 /** A planned recurring payment or income. [amountUah] is negative for an expense. */
 data class CashEvent(val date: LocalDate, val label: String, val amountUah: Double, val balanceAfter: Double)
@@ -16,6 +17,8 @@ data class CashEvent(val date: LocalDate, val label: String, val amountUah: Doub
 data class CashForecast(
     val end: LocalDate,
     val dailySpend: Double?,
+    /** [dailySpend] times the days left after today. */
+    val unplannedSpend: Double,
     val events: List<CashEvent>,
     val endBalance: Double,
     val shortfallDate: LocalDate?,
@@ -25,6 +28,7 @@ data class CashForecast(
         private const val WINDOW_DAYS = 60L
         private const val MIN_HISTORY_DAYS = 14L
         private const val GUARD = 62
+        private const val RECURRING_MARK = "повторювана"
 
         fun compute(
             balanceUah: Double,
@@ -37,7 +41,7 @@ data class CashForecast(
         ): CashForecast {
             val planned = recurring.filter { it.active && it.amount > 0 && it.type != TxType.TRANSFER }.flatMap { r ->
                 val signed = toUah(r.amount, currency(r.walletId) ?: "UAH").let { if (r.type == TxType.EXPENSE) -it else it }
-                val label = r.comment.ifBlank { r.category }
+                val label = eventLabel(r)
                 buildList {
                     var date = runCatching { LocalDate.parse(r.nextDate) }.getOrNull() ?: return@buildList
                     var guard = 0
@@ -65,22 +69,36 @@ data class CashForecast(
                 lowest = minOf(lowest, balance)
                 day = day.plusDays(1)
             }
-            return CashForecast(end, dailySpend, events, balance, shortfallDate, -lowest)
+            val unplanned = (dailySpend ?: 0.0) * ChronoUnit.DAYS.between(today, end).coerceAtLeast(0)
+            return CashForecast(end, dailySpend, unplanned, events, balance, shortfallDate, -lowest)
+        }
+
+        /** The category, as in the history list, plus the user's own note. */
+        internal fun eventLabel(r: Recurring): String {
+            val note = r.comment.split(" · ").map(String::trim).filter { it.isNotEmpty() && it != RECURRING_MARK }.joinToString(" · ")
+            return if (note.isEmpty() || note.equals(r.category, ignoreCase = true)) r.category else "${r.category} · $note"
+        }
+
+        /** An expense that repeats a planned payment (rent paid by hand, say) is not a habit. */
+        private fun repeatsPlanned(t: Transaction, planned: List<Recurring>) = planned.any {
+            it.type == TxType.EXPENSE && it.category == t.category && abs(t.amount - it.amount) <= it.amount * 0.1
         }
 
         /**
          * Usual unplanned spending per day over the last 60 days before [today],
          * in UAH. The top tenth of days is dropped, so one laptop does not read
-         * as a habit. [expenses] holds expenses only; recurring occurrences are
-         * left out, since they are already planned events.
+         * as a habit. [expenses] holds expenses only; recurring occurrences and
+         * expenses that repeat one of [planned] are left out, since they are
+         * already planned events.
          */
-        fun dailySpend(expenses: List<Transaction>, today: LocalDate, toUah: (Double, String) -> Double): Double? {
+        fun dailySpend(expenses: List<Transaction>, today: LocalDate, toUah: (Double, String) -> Double, planned: List<Recurring> = emptyList()): Double? {
+            val active = planned.filter { it.active && it.amount > 0 }
             val parsed = expenses.mapNotNull { t -> runCatching { LocalDate.parse(t.date.take(10)) }.getOrNull()?.let { it to t } }
             val first = parsed.minOfOrNull { it.first } ?: return null
             val days = minOf(WINDOW_DAYS, ChronoUnit.DAYS.between(first, today))
             if (days < MIN_HISTORY_DAYS) return null
             val from = today.minusDays(days)
-            val byDay = parsed.filter { !it.first.isBefore(from) && it.first.isBefore(today) && !it.second.id.startsWith("rec_") }
+            val byDay = parsed.filter { !it.first.isBefore(from) && it.first.isBefore(today) && !it.second.id.startsWith("rec_") && !repeatsPlanned(it.second, active) }
                 .groupBy({ it.first }, { toUah(it.second.amount, it.second.currency) })
                 .mapValues { it.value.sum() }
             val all = byDay.values + List((days - byDay.size).toInt()) { 0.0 }

@@ -666,8 +666,8 @@
     <string name="cash_forecast_subtitle">Прогноз до %1$s</string>
     <string name="cash_forecast_enough">Вистачає: наприкінці лишиться ≈ %1$s ₴</string>
     <string name="cash_forecast_gap">≈ %1$s гроші закінчаться</string>
-    <string name="cash_forecast_gap_amount">До кінця місяця бракуватиме %1$s ₴</string>
-    <string name="cash_forecast_daily">Звичні витрати: ≈ %1$s ₴ на день</string>
+    <string name="cash_forecast_gap_amount">Найбільша нестача: %1$s ₴</string>
+    <string name="cash_forecast_daily">Звичні витрати: ≈ %1$s ₴ на день, разом ≈ %2$s ₴ до %3$s</string>
     <string name="cash_forecast_no_history">Замало історії для звичних витрат, тому враховано лише регулярні платежі.</string>
     <string name="cash_forecast_events">Заплановано</string>
     <string name="cash_forecast_no_events">Регулярних платежів до кінця місяця немає.</string>
