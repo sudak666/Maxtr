@@ -656,8 +656,8 @@
     <string name="cash_forecast_subtitle">Forecast to %1$s</string>
     <string name="cash_forecast_enough">Enough: ≈ %1$s ₴ left at month end</string>
     <string name="cash_forecast_gap">Money runs out ≈ %1$s</string>
-    <string name="cash_forecast_gap_amount">%1$s ₴ short by month end</string>
-    <string name="cash_forecast_daily">Usual spending: ≈ %1$s ₴ a day</string>
+    <string name="cash_forecast_gap_amount">Biggest gap: %1$s ₴</string>
+    <string name="cash_forecast_daily">Usual spending: ≈ %1$s ₴ a day, ≈ %2$s ₴ through %3$s</string>
     <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
     <string name="cash_forecast_events">Planned</string>
     <string name="cash_forecast_no_events">No recurring payments until month end.</string>

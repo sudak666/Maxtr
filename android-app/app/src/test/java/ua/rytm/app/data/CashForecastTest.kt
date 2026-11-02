@@ -68,6 +68,23 @@ class CashForecastTest {
         assertEquals(100.0, CashForecast.dailySpend(history, today, uah)!!, 0.01)
     }
 
+    // Rent paid by hand last month is a planned payment, not a habit.
+    @Test fun skipsExpensesThatRepeatAPlannedPayment() {
+        // 20 days drop the 2 biggest, so a third rent day would still count without the rule.
+        val history = (1..20).map { spent("t$it", today.minusDays(it.toLong()).toString(), 100.0) } +
+            listOf(3L, 9L, 15L).map { Transaction(id = "m$it", type = TxType.EXPENSE, amount = 10_500.0, date = today.minusDays(it).toString(), walletId = "w", category = "Оренда") }
+        assertEquals(100.0, CashForecast.dailySpend(history, today, uah, listOf(rent(11_000.0, "2026-11-20")))!!, 0.01)
+    }
+
+    @Test fun unplannedSpendCoversDaysAfterToday() {
+        assertEquals(2_000.0, forecast(0.0, emptyList(), 100.0).unplannedSpend, 0.01)
+    }
+
+    @Test fun eventLabelIsCategoryWithoutTheRecurringMark() {
+        assertEquals("Оренда", CashForecast.eventLabel(rent(1.0, "2026-11-20").copy(comment = "повторювана")))
+        assertEquals("Оренда · квартира", CashForecast.eventLabel(rent(1.0, "2026-11-20").copy(comment = "квартира · повторювана")))
+    }
+
     @Test fun quietDaysCountAsZero() {
         val history = listOf(spent("a", today.minusDays(20).toString(), 100.0), spent("b", today.minusDays(1).toString(), 100.0))
         // 20 days, the 2 biggest dropped: 18 quiet days remain.

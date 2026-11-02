@@ -53,7 +53,9 @@ fun CashForecastSheet(forecast: CashForecast, onDismiss: () -> Unit) {
                         Text(stringResource(R.string.cash_forecast_enough, maskedAmount(formatMoney(floor(forecast.endBalance)))), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                     Text(
-                        forecast.dailySpend?.let { stringResource(R.string.cash_forecast_daily, maskedAmount(formatMoney(floor(it)))) } ?: stringResource(R.string.cash_forecast_no_history),
+                        forecast.dailySpend?.let {
+                            stringResource(R.string.cash_forecast_daily, maskedAmount(formatMoney(floor(it))), maskedAmount(formatMoney(floor(forecast.unplannedSpend))), formatDayMonth(forecast.end))
+                        } ?: stringResource(R.string.cash_forecast_no_history),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

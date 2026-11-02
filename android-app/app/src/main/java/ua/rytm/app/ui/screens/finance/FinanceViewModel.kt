@@ -608,13 +608,14 @@ class FinanceViewModel(
     val cashForecast: CashForecast by derivedStateOf {
         val spendable = wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.map { it.id }.toSet()
         val expenses = transactions.forStats(wallets).filter { it.type == TxType.EXPENSE && it.walletId in spendable }
+        val planned = recurring.filter { it.walletId in spendable }
         CashForecast.compute(
             spendableBalanceUah,
-            recurring.filter { it.walletId in spendable },
+            planned,
             { id -> wallets.firstOrNull { it.id == id }?.currency },
             today,
             ua.rytm.app.data.FinancialMonth.lastDay(currentMonth),
-            CashForecast.dailySpend(expenses, today, ::toUah),
+            CashForecast.dailySpend(expenses, today, ::toUah, planned),
             ::toUah,
         )
     }
