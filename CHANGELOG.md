@@ -1,5 +1,7 @@
 # Changelog
 
+- **Audit 2026-11 done (2026-11-02)** — `AUDIT_2026-11.md` against `AUDIT_2026-11_PLAN.md`, main @ 8af7c62 (2.7.5). Baseline green (233 Android unit tests, lint, web build/typecheck/lint, node tests, CI). Register: A-01 🟡 Monobank sync duplicates bank-notification saves (dedups only by `monobankId`); A-02 🟡 own-account transfers become income+expense; A-03 🟡 privacy.html lacks Monobank/statement import; A-04 🟡 shifts hero «Заробіток» includes planned shifts; A-06 🟡 functions deps (2 high); A-05/07/08/09/10/11/12 ⚪. Not covered: full per-screen pass (only 4 tabs on QA), widget, offline, two-account sharing, Monobank reconcile live. No product code changed; fixes wait for the owner.
+
 - **Audit plan 2026-11 written (2026-11-02)** — owner asked for an audit that checks everything. `AUDIT_2026-11_PLAN.md`: rules (Android first, every finding proven in code and live, owner's Play app read-only, no owner data in the repo, merge only on green checks), baseline, every user-facing number, every screen/action, texts, data/security/backend, product issues, report format. Not executed yet — it is a large spend, waiting for the owner's go.
 
 - **2.7.5 (vc43) AAB built (2026-11-02)** — adds #718 (8+ character new passwords), #721 (shifts note), #722 (debts as loans between people, repayment also in Finance), #723 («Нагадати», no due-date push for paid-off debts). `clean bundleRelease testDebugUnitTest` green, upload key SHA-256 7C:A2:AF:88:… verified, Desktop `Rytm-2.7.5-vc43.aab`. Release build not run on a device.
