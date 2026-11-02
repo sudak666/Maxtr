@@ -148,16 +148,31 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     Text(mono.clientName.ifBlank { stringResource(R.string.monobank_connected) }, fontWeight = FontWeight.SemiBold)
                     mono.accounts.forEach { account ->
                         Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.fillMaxWidth().padding(ua.rytm.app.ui.theme.RytmSpacing.md), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(account.label)
+                            // Card on the first line, the wallet it fills on the second: side by side
+                            // they ran together («…5129Monobank 4441…5129»).
+                            Column(Modifier.fillMaxWidth().padding(ua.rytm.app.ui.theme.RytmSpacing.md)) {
+                                val pan = Regex("\\d{4}$").find(account.label)?.value
+                                Text(
+                                    if (account.kind == "jar") account.label else if (pan != null) stringResource(R.string.monobank_card_label, pan, account.currency) else account.label,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                )
                                 val walletName = mono.mapping[account.id]?.let { id -> wallets.firstOrNull { it.id == id }?.name }
-                                Text(walletName?.let { localizedDomainText(it) } ?: stringResource(R.string.monobank_unmapped, account.currency))
+                                Text(
+                                    walletName?.let { stringResource(R.string.monobank_into_wallet, localizedDomainText(it)) } ?: stringResource(R.string.monobank_unmapped, account.currency),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                )
                             }
                         }
                     }
                     val locale = Locale.forLanguageTag(LocalConfiguration.current.locales[0].toLanguageTag())
                     val lastSync = mono.lastSyncAt?.let { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it * 1000)) } ?: stringResource(R.string.monobank_never_synced)
                     Text(stringResource(R.string.monobank_last_sync, lastSync))
+                    Text(stringResource(R.string.monobank_balance_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (syncing) {
                         syncState.progress?.let { Text(stringResource(R.string.monobank_sync_progress, it.current, it.total)) }
                         Text(stringResource(R.string.monobank_sync_background), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -61,7 +61,8 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
     }
 }
 
-private fun WalletEntity.toRemoteMap(): Map<String, Any?> = mapOf(
+/** Every wallet field, so a write of the wallets array never drops one (Monobank used to drop openingBalance and kind). */
+internal fun WalletEntity.toRemoteMap(): Map<String, Any?> = mapOf(
     "id" to id,
     "name" to name,
     "color" to colorHexToWebString(colorHex),

@@ -599,7 +599,6 @@
     <string name="story_count">Transactions this month: %1$d</string>
     <string name="finance_search_what_month">“cafe october”</string>
     <string name="finance_search_what_amount">“over 500”</string>
-    <string name="widget_per_day">≈ %1$s ₴ a day</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
     <string name="analytics_spending_same">Spending is about the same as the previous period</string>
     <string name="month_summary_prev">Previous month</string>
@@ -618,7 +617,7 @@
     <string name="bank_auto_save_title">Save familiar operations automatically</string><string name="bank_auto_save_hint">After 3 operations from a merchant in one category. You can undo from the notification.</string>
     <string name="statement_totals_gap">Statement rows differ from the bank totals: debits %1$s, credits %2$s. Some operations may be cancelled, check them after importing.</string>
     <string name="statement_confirm">Import %1$s? Operations already saved are skipped.</string><string name="statement_wallet">Wallet</string>
-    <string name="monobank_intro">Enter a personal Monobank Open API token to import cards, jars, and transactions. Only you can see the token (shared-profile members have no access to it), and it is sent only to Monobank through Rytm’s secure server.</string>
+    <string name="monobank_intro">Enter a personal Monobank Open API token to import cards, jars, and transactions. Only you can see the token (shared-profile members have no access to it), and the app sends it straight to Monobank.</string>
     <string name="monobank_get_token">Get a token at api.monobank.ua</string>
     <string name="monobank_token">Personal token</string>
     <string name="monobank_connect">Connect</string>
@@ -673,4 +672,7 @@
     <string name="recurring_comment">Name (optional)</string>
     <string name="recurring_create_hint">If the date has passed, the first payment moves to the next such date: nothing is added back-dated.</string>
     <string name="goals_create_hint">Progress follows the chosen wallet balance.</string>
+    <string name="monobank_card_label">Card •%1$s · %2$s</string>
+    <string name="monobank_into_wallet">into the wallet “%1$s”</string>
+    <string name="monobank_balance_note">Each sync matches wallet balances to the bank: the difference is kept as the wallet’s opening balance.</string>
 </resources>

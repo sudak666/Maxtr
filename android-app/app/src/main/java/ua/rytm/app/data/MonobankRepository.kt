@@ -24,7 +24,8 @@ import java.time.ZoneId
 import java.util.UUID
 import kotlin.math.abs
 
-data class MonobankAccount(val id: String, val kind: String, val label: String, val currency: String)
+/** [balance] is the bank's own-money balance from client-info (credit limit taken off); it is not stored. */
+data class MonobankAccount(val id: String, val kind: String, val label: String, val currency: String, val balance: Double? = null)
 data class MonobankConnection(
     val token: String,
     val clientName: String,
@@ -94,6 +95,9 @@ class MonobankRepository(
                 colorHex = palette[(existing.size + index) % palette.size],
                 currency = account.currency,
                 icon = if (account.kind == "jar") "target" else "card",
+                // A jar is savings: it stays in the total but out of the daily allowance and forecast.
+                kind = if (account.kind == "jar") "deposit" else "card",
+                openingBalance = account.balance ?: 0.0,
             )
         }
         secretRef(uid, profileId).set(mapOf("token" to token, "updatedAt" to System.currentTimeMillis())).await()
@@ -127,6 +131,10 @@ class MonobankRepository(
         if (entries.isEmpty()) throw MonobankNoAccountsException()
         val nowSec = System.currentTimeMillis() / 1000L
         val fromSec = connection.lastSyncAt ?: nowSec - MAX_WINDOW_SEC
+        // Balances first: the bank allows client-info once a minute, and the
+        // statements below wait their own minute anyway.
+        val bankBalances = runCatching { buildAccounts(request("client-info", emptyMap(), connection.token) as JSONObject) }
+            .getOrNull()?.associate { it.id to it.balance }.orEmpty()
         val knownIds = db.transactionDao().getAllMonobankIds().toMutableSet()
         val rules = db.autoRuleDao().getAllOnce()
         val currencies = db.walletDao().getAllOnce().associate { it.id to it.currency }
@@ -156,9 +164,33 @@ class MonobankRepository(
             }
             db.transactionDao().insertAll(imported)
         }
+        val reconciled = reconcileOpeningBalances(connection.mapping, bankBalances)
         val updated = connection.copy(lastSyncAt = nowSec)
-        save(uid, profileId, updated)
+        save(uid, profileId, updated, if (reconciled) db.walletDao().getAllOnce() else null)
         return updated to imported.size
+    }
+
+    /**
+     * The statement only reaches back a month, so a wallet built from it alone
+     * shows that month's net, not the card's money. Each sync sets the
+     * wallet's opening balance so that opening + everything recorded in it
+     * equals what the bank reports now. Pending holds are already in the
+     * bank's figure and land in the history on a later sync.
+     */
+    private suspend fun reconcileOpeningBalances(mapping: Map<String, String>, bankBalances: Map<String, Double?>): Boolean {
+        if (bankBalances.isEmpty()) return false
+        val transactions = db.transactionDao().getAllOnce().map { it.toDomain() }
+        var changed = false
+        mapping.forEach { (accountId, walletId) ->
+            val bank = bankBalances[accountId] ?: return@forEach
+            val wallet = db.walletDao().getAllOnce().firstOrNull { it.id == walletId } ?: return@forEach
+            val opening = kotlin.math.round((bank - FinanceRepository.walletBalance(transactions, walletId)) * 100) / 100
+            if (abs(opening - wallet.openingBalance) >= 0.005) {
+                db.walletDao().update(wallet.copy(openingBalance = opening))
+                changed = true
+            }
+        }
+        return changed
     }
 
     private fun buildTransaction(
@@ -194,7 +226,7 @@ class MonobankRepository(
             "integrations" to mapOf("monobank" to value.toRemoteMap()),
             "updatedAt" to System.currentTimeMillis(),
         )
-        if (wallets != null) body["wallets"] = wallets.map { it.toRemoteWalletMap() }
+        if (wallets != null) body["wallets"] = wallets.map { it.toRemoteMap() }
         financeRef(uid, profileId).set(body, SetOptions.merge()).await()
     }
 
@@ -234,12 +266,14 @@ class MonobankRepository(
             val item = accounts.getJSONObject(i)
             val pans = item.optJSONArray("maskedPan")
             val label = pans?.optString(0).orEmpty().ifBlank { item.optString("type").takeIf(String::isNotBlank)?.let { "Monobank $it" } ?: "Monobank" }
-            result += MonobankAccount(item.getString("id"), "account", label, currency(item.optInt("currencyCode")))
+            // Amounts come in kopecks; "balance" includes the credit limit.
+            val own = (item.optLong("balance") - item.optLong("creditLimit")) / 100.0
+            result += MonobankAccount(item.getString("id"), "account", label, currency(item.optInt("currencyCode")), own)
         }
         val jars = info.optJSONArray("jars") ?: JSONArray()
         for (i in 0 until jars.length()) {
             val item = jars.getJSONObject(i)
-            result += MonobankAccount(item.getString("id"), "jar", item.optString("title").ifBlank { "Банка" }, currency(item.optInt("currencyCode")))
+            result += MonobankAccount(item.getString("id"), "jar", item.optString("title").ifBlank { "Банка" }, currency(item.optInt("currencyCode")), item.optLong("balance") / 100.0)
         }
         return result
     }
@@ -259,9 +293,6 @@ class MonobankRepository(
         "mapping" to mapping, "lastSyncAt" to lastSyncAt,
     )
 
-    private fun WalletEntity.toRemoteWalletMap() = mapOf(
-        "id" to id, "name" to name, "color" to colorHexToWebString(colorHex), "icon" to icon, "currency" to currency,
-    )
 
     private fun currency(code: Int) = java.util.Currency.getAvailableCurrencies().firstOrNull { it.numericCode == code }?.currencyCode ?: "UAH"
     private fun encode(value: String) = URLEncoder.encode(value, Charsets.UTF_8.name())
