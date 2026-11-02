@@ -265,7 +265,9 @@ private fun RecurringRow(
                     modifier = Modifier.weight(1f),
                 )
 
-                var amountText by remember(r.id, r.amount) { mutableStateOf(if (r.amount == 0.0) "" else formatMoney(r.amount)) }
+                // Keyed on the id only: keying on r.amount reset the field to the
+                // saved, regrouped value 400 ms into typing ("11 000" ↔ "1 100").
+                var amountText by remember(r.id) { mutableStateOf(if (r.amount == 0.0) "" else formatMoney(r.amount)) }
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
