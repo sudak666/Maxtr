@@ -73,9 +73,9 @@ class GoalsManagerViewModel(
 
     private val addThrottle = TapThrottle()
 
-    fun addGoal() {
+    fun addGoal(walletId: String, targetAmount: Double, targetDate: String) {
         if (!addThrottle.allow()) return
-        mutateAndSync { repository.addGoal() }
+        mutateAndSync { repository.addGoal(walletId, targetAmount, targetDate) }
     }
 
     fun updateWallet(goal: Goal, walletId: String) {

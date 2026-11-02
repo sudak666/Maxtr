@@ -50,11 +50,14 @@ class ShiftTypesManagerViewModel(private val repository: ShiftsRepository, priva
         expandedId = if (expandedId == id) null else id
     }
 
-    fun addShiftType(name: String) {
+    /** Saved only from the filled-in form, not as a silent "Нова зміна" with no pay. */
+    fun addShiftType(name: String, amount: Double, hours: Double, isOff: Boolean) {
+        val clean = name.trim()
+        if (clean.isEmpty()) return
         val color = PALETTE[shiftTypes.size % PALETTE.size]
         persist {
             repository.addShiftType(uid, profileId,
-                ShiftType(id = UUID.randomUUID().toString(), name = name, short = name.take(4), code = "", colorHex = color, amount = 0.0, hours = 8.0, isOff = false)
+                ShiftType(id = UUID.randomUUID().toString(), name = clean, short = clean.take(4), code = "", colorHex = color, amount = if (isOff) 0.0 else amount, hours = if (isOff) 0.0 else hours, isOff = isOff)
             )
         }
     }

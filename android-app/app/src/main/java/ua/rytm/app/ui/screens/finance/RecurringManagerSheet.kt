@@ -80,6 +80,7 @@ fun RecurringManagerSheet(
     ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var createOpen by rememberSaveable { mutableStateOf(false) }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -119,11 +120,23 @@ fun RecurringManagerSheet(
                 )
             }
 
-            androidx.compose.material3.Button(onClick = viewModel::addRecurring, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+            androidx.compose.material3.Button(onClick = { createOpen = true }, modifier = Modifier.fillMaxWidth(), enabled = !viewModel.isSaving, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
                 Icon(RytmIcons.Add, contentDescription = null)
                 Text(stringResource(R.string.recurring_add))
             }
         }
+    }
+
+    if (createOpen) {
+        RecurringCreateDialog(
+            categoriesByType = viewModel.categoriesByType,
+            wallets = viewModel.wallets,
+            onDismiss = { createOpen = false },
+            onCreate = { type, amount, category, walletId, frequency, start, comment ->
+                viewModel.addRecurring(type, amount, category, walletId, frequency, start, comment)
+                createOpen = false
+            },
+        )
     }
 
     viewModel.pendingDeleteId?.let {
@@ -134,6 +147,70 @@ fun RecurringManagerSheet(
             onConfirm = viewModel::confirmDelete,
             onDismiss = viewModel::cancelDelete,
         )
+    }
+}
+
+/** Wallet and amount are the user's choice: a guessed first wallet is how bills ended up in «Монети». */
+@Composable
+private fun RecurringCreateDialog(
+    categoriesByType: Map<TxType, List<String>>,
+    wallets: List<Wallet>,
+    onDismiss: () -> Unit,
+    onCreate: (TxType, Double, String, String, String, java.time.LocalDate, String) -> Unit,
+) {
+    val incomeLabel = stringResource(R.string.tx_income)
+    val expenseLabel = stringResource(R.string.tx_expense)
+    val frequencyOptions = listOf("daily" to stringResource(R.string.frequency_daily), "weekly" to stringResource(R.string.frequency_weekly), "monthly" to stringResource(R.string.frequency_monthly))
+    var type by rememberSaveable { mutableStateOf(TxType.EXPENSE) }
+    var amountText by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf("") }
+    var walletId by rememberSaveable { mutableStateOf(wallets.singleOrNull()?.id.orEmpty()) }
+    var frequency by rememberSaveable { mutableStateOf("monthly") }
+    var date by rememberSaveable { mutableStateOf(java.time.LocalDate.now().toString()) }
+    var comment by rememberSaveable { mutableStateOf("") }
+    val amount = ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText)
+    val start = runCatching { java.time.LocalDate.parse(date) }.getOrNull()
+    val categories = categoriesByType[type].orEmpty()
+    val canCreate = amount != null && amount > 0 && category in categories && wallets.any { it.id == walletId } && start != null
+
+    ua.rytm.app.ui.components.RytmCreateDialog(
+        title = stringResource(R.string.recurring_add),
+        canCreate = canCreate,
+        onCreate = { if (canCreate) onCreate(type, amount!!, category, walletId, frequency, start!!, comment) },
+        onDismiss = onDismiss,
+    ) {
+        DropdownField(
+            label = stringResource(R.string.tx_type),
+            options = listOf(expenseLabel, incomeLabel),
+            selected = if (type == TxType.INCOME) incomeLabel else expenseLabel,
+            onSelect = { picked -> val t = if (picked == incomeLabel) TxType.INCOME else TxType.EXPENSE; if (t != type) { type = t; category = "" } },
+        )
+        OutlinedTextField(
+            value = amountText,
+            onValueChange = { amountText = it },
+            isError = amountText.isNotBlank() && amount == null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            label = { Text(stringResource(R.string.amount_label)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        DropdownField(label = stringResource(R.string.tx_category), options = categories, selected = category, onSelect = { category = it })
+        WalletDropdown(label = stringResource(R.string.wallet_label), wallets = wallets, selectedId = walletId, onSelect = { walletId = it })
+        DropdownField(
+            label = stringResource(R.string.frequency_label),
+            options = frequencyOptions.map { it.second },
+            selected = frequencyOptions.first { it.first == frequency }.second,
+            onSelect = { label -> frequencyOptions.firstOrNull { it.second == label }?.let { frequency = it.first } },
+        )
+        DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.recurring_first_date), allowEmpty = false)
+        OutlinedTextField(
+            value = comment,
+            onValueChange = { comment = it },
+            singleLine = true,
+            label = { Text(stringResource(R.string.recurring_comment)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(stringResource(R.string.recurring_create_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -257,7 +334,7 @@ private fun DropdownField(label: String, options: List<String>, selected: String
     var expanded by rememberSaveable { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
-            value = selected,
+            value = localizedDomainText(selected),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },

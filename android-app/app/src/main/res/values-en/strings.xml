@@ -195,8 +195,7 @@
     <string name="sync_write_rejected">The server rejected a change. Data will refresh from the cloud</string>
     <string name="shift_types_title">Shift types</string><string name="shift_types_body">Pay, duration, and color for each shift type shown on the calendar.</string>
     <string name="shift_types_empty">No shift types</string>
-    <string name="shift_type_new_default">New shift</string>
-    <string name="shift_type_add">Add shift type</string>
+        <string name="shift_type_add">Add shift type</string>
     <string name="shift_type_delete_title">Delete shift type</string>
     <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
     <string name="shift_day_off">Day off</string>
@@ -670,4 +669,8 @@
     <string name="cash_forecast_no_events">No recurring payments until month end.</string>
     <string name="cash_forecast_after">%1$s ₴ left</string>
     <string name="cash_forecast_note">Month end comes from Settings.</string>
+    <string name="recurring_first_date">First payment</string>
+    <string name="recurring_comment">Name (optional)</string>
+    <string name="recurring_create_hint">If the date has passed, the first payment moves to the next such date: nothing is added back-dated.</string>
+    <string name="goals_create_hint">Progress follows the chosen wallet balance.</string>
 </resources>

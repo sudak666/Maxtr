@@ -260,10 +260,10 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.transactionDao().replaceAll(snapshot.transactions)
     }
 
-    suspend fun addAutoRule(): AutoRuleEntity {
+    /** Saved only from the filled-in form: no blank draft rule is left behind. */
+    suspend fun addAutoRule(type: String, keyword: String, category: String): AutoRuleEntity {
         val current = db.autoRuleDao().getAllOnce()
-        val category = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name.orEmpty()
-        return AutoRuleEntity(java.util.UUID.randomUUID().toString(), "expense", "", category, current.size).also { db.autoRuleDao().upsert(it) }
+        return AutoRuleEntity(java.util.UUID.randomUUID().toString(), type, keyword.trim(), category, current.size).also { db.autoRuleDao().upsert(it) }
     }
 
     suspend fun updateAutoRule(rule: AutoRuleEntity) = db.autoRuleDao().upsert(rule)
@@ -305,23 +305,27 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     suspend fun walletSnapshot(): List<Wallet> = db.walletDao().getAllOnce().map { it.toDomain() }
 
-    // Mirrors js/settings-managers.js's addRecurring(): defaults to type=expense,
-    // first expense category, first wallet, monthly, nextDate=today, active, amount=0.
-    suspend fun addRecurring() {
-        val expenseCategory = db.categoryDao().getAllOnce().firstOrNull { it.type == TxType.EXPENSE.name }?.name ?: BuiltinCategories.OTHER
-        val walletId = db.walletDao().getAllOnce().firstOrNull()?.id ?: ""
+    /**
+     * Saved only from the filled-in form, never as a silent draft (a draft used
+     * to take the first wallet). A start date in the past moves forward, so
+     * nothing is added back-dated.
+     */
+    suspend fun addRecurring(type: TxType, amount: Double, category: String, walletId: String, frequency: String, startDate: java.time.LocalDate, comment: String) {
+        requireValidStoredAmount(amount, "recurring amount")
+        val anchor = startDate.dayOfMonth
+        val first = firstDueFrom(startDate, frequency, anchor, java.time.LocalDate.now())
         db.recurringDao().insert(
             RecurringEntity(
                 id = java.util.UUID.randomUUID().toString(),
-                type = TxType.EXPENSE.name,
-                amount = 0.0,
-                category = expenseCategory,
+                type = type.name,
+                amount = amount,
+                category = category,
                 walletId = walletId,
-                frequency = "monthly",
-                nextDate = java.time.LocalDate.now().toString(),
+                frequency = frequency,
+                nextDate = first.toString(),
                 active = true,
-                comment = "",
-                anchorDay = java.time.LocalDate.now().dayOfMonth,
+                comment = comment.trim(),
+                anchorDay = anchor,
             ),
         )
     }
@@ -374,8 +378,10 @@ class FinanceRepository(private val db: RytmDatabase) {
     }
 
     suspend fun updateRecurringNextDate(recurring: Recurring, nextDate: String) {
-        val day = runCatching { java.time.LocalDate.parse(nextDate).dayOfMonth }.getOrNull()
-        db.recurringDao().update(recurring.copy(nextDate = nextDate, anchorDay = day).toEntity())
+        val picked = runCatching { java.time.LocalDate.parse(nextDate) }.getOrNull() ?: return
+        val day = picked.dayOfMonth
+        val first = firstDueFrom(picked, recurring.frequency, day, java.time.LocalDate.now())
+        db.recurringDao().update(recurring.copy(nextDate = first.toString(), anchorDay = day).toEntity())
     }
 
     suspend fun updateRecurringActive(recurring: Recurring, active: Boolean) {
@@ -385,11 +391,10 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun recurringSnapshot(): List<RecurringEntity> = db.recurringDao().getAllOnce()
     suspend fun replaceRecurring(recurring: List<RecurringEntity>) = db.recurringDao().replaceAll(recurring)
 
-    // Mirrors js/goals-profile.js's confirmAddGoal(): defaults to the first
-    // wallet, target 0, no date — the PWA's own new-goal form starts blank too.
-    suspend fun addGoal() {
-        val walletId = db.walletDao().getAllOnce().firstOrNull()?.id ?: return
-        db.goalDao().insert(GoalEntity(id = java.util.UUID.randomUUID().toString(), walletId = walletId, targetAmount = 0.0, targetDate = ""))
+    /** Saved only from the filled-in form: the user picks the wallet and target. */
+    suspend fun addGoal(walletId: String, targetAmount: Double, targetDate: String) {
+        requireValidStoredAmount(targetAmount, "goal target")
+        db.goalDao().insert(GoalEntity(id = java.util.UUID.randomUUID().toString(), walletId = walletId, targetAmount = targetAmount, targetDate = targetDate.trim()))
     }
 
     suspend fun deleteGoal(id: String) {
