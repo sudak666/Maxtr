@@ -93,7 +93,10 @@ fun CashForecastSheet(forecast: CashForecast, shiftsLeft: Double, onDismiss: () 
 
             if (shiftsLeft > 0) {
                 Text(stringResource(R.string.cash_forecast_shifts_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Explain(stringResource(R.string.cash_forecast_shifts, maskedAmount(formatMoney(shiftsLeft))))
+                // With a recurring income in the sum the salary is already counted;
+                // asking to add it again (as before) read as a bug to the owner.
+                val note = if (forecast.plannedIn > 0) R.string.cash_forecast_shifts_paid else R.string.cash_forecast_shifts
+                Explain(stringResource(note, maskedAmount(formatMoney(shiftsLeft))))
             }
 
             Text(stringResource(R.string.cash_forecast_events), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)

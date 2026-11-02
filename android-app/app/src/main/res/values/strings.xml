@@ -667,6 +667,7 @@
     <string name="cash_forecast_habit_explain">Середнє за останні %1$d дн. Не враховано %2$d найдорожчих дн. (разові покупки) і регулярні платежі: вони вже є вище.</string>
     <string name="cash_forecast_habit_top">Найбільше за ці дні: %1$s</string>
     <string name="cash_forecast_shifts_title">Зміни</string>
+    <string name="cash_forecast_shifts_paid">За зміни до кінця місяця ще ≈ %1$s ₴. Окремо не додано: ці гроші приходять зарплатою, а вона вже є серед регулярних надходжень.</string>
     <string name="cash_forecast_shifts">За зміни до кінця місяця ще ≈ %1$s ₴. У прогноз не додано: оплата змін приходить зарплатою. Додай зарплату як регулярний дохід, і вона тут врахується.</string>
     <string name="cash_forecast_after_hint">Залишок уже з урахуванням звичних витрат до цього дня.</string>
     <string name="cash_forecast_title">Прогноз грошей</string>
