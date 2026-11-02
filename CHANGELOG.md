@@ -1,5 +1,7 @@
 # Changelog
 
+- **PWA scope decided (2026-11-02)** — owner agreed: the PWA is a laptop companion for everyday edits, not a full copy of Android; Monobank, statement import, bank notifications, widget and Premium stay Android-only. Written into CLAUDE.md «Operating conventions»; the long-standing "PWA lacks statement import, Monobank, Premium, month start, repayment wording" list is no longer a gap to close, except where a missing piece would make the PWA mis-read data Android writes.
+
 - **2.7.4 (vc42) AAB built (2026-11-02)** — the owner uploaded vc41 (2.7.3, through #712). This adds #714 (Monobank balances matched to the bank, wallet fields no longer wiped, sheet labels, widget forecast) and #715 (recurring amount field steady while typing). `clean bundleRelease testDebugUnitTest` green, upload key SHA-256 7C:A2:AF:88:… verified, Desktop `Rytm-2.7.4-vc42.aab`. Release build not run on a device.
 
 - **Recurring amount field jumped while typing (2026-11-02)** — owner screen recording: editing «% поповнення ПУМБ» from 1 100 to 11 000 flipped between «11 000» and «1 100» with the cursor jumping. The field's text state was keyed on `r.amount`, so each debounced save (400 ms) re-created it from the saved, regrouped value mid-typing. Now keyed on the id only, as the goal field already was. No other amount field had that key (grepped). Not re-checked by typing on the device: a QA run could not get a recurring row onto the test account in reasonable time.
