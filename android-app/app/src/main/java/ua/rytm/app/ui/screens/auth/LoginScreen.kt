@@ -187,7 +187,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
-                        placeholder = { Text(stringResource(R.string.auth_password_hint)) },
+                        placeholder = { if (viewModel.authMode == AuthMode.REGISTER) Text(stringResource(R.string.auth_password_hint)) },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             // Autocorrect on a mobile keyboard is the single

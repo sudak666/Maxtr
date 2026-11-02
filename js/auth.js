@@ -15,13 +15,19 @@ import { closeManagers } from './settings-managers.js';
 import { showToast, uiAlert, uiConfirm } from './ui-widgets.js';
 import { clearSensitiveLocalCacheForAccount } from './privacy-cache.js';
 
+/** Minimum length for a new account password; Firebase itself only asks for 6. Same as Android's NEW_PASSWORD_MIN. */
+const NEW_PASSWORD_MIN=8;
+
 /** @param {string} mode */
 const setAuthMode = function(mode){
   AppState.authMode=mode;
   document.getElementById('auth-tab-login')?.classList.toggle('active',mode==='login');
   document.getElementById('auth-tab-register')?.classList.toggle('active',mode==='register');
   const submitBtn=document.getElementById('auth-submit'); if(submitBtn) submitBtn.textContent=mode==='login'?tr('auth_login_btn'):tr('auth_register_btn');
-  document.getElementById('auth-password')?.setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
+  const pw=document.getElementById('auth-password');
+  pw?.setAttribute('autocomplete', mode==='login'?'current-password':'new-password');
+  // The length hint is for a new password only; sign-in accepts an older, shorter one.
+  pw?.setAttribute('placeholder', mode==='login'?'':tr('auth_password_placeholder'));
   setAuthError('');
 };
 
@@ -632,7 +638,9 @@ document.getElementById('auth-form')?.addEventListener('submit', async function(
   const email=/** @type {HTMLInputElement} */ (document.getElementById('auth-email')).value.trim();
   const password=/** @type {HTMLInputElement} */ (document.getElementById('auth-password')).value;
   const btn=/** @type {HTMLButtonElement} */ (document.getElementById('auth-submit'));
-  setAuthError(''); btn.disabled=true;
+  setAuthError('');
+  if(AppState.authMode!=='login' && password.length<NEW_PASSWORD_MIN){ setAuthError(tr('auth_err_weak_password')); return; }
+  btn.disabled=true;
   try{
     if(AppState.authMode==='login') await signInWithEmailAndPassword(auth,email,password);
     else await createUserWithEmailAndPassword(auth,email,password);

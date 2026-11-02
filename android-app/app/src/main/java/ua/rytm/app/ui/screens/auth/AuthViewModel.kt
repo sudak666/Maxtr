@@ -130,8 +130,11 @@ class AuthViewModel : ViewModel() {
             publishFormMessage(R.string.auth_error_invalid_email)
             return
         }
-        if (password.length < 6) {
-            publishFormMessage(R.string.auth_error_weak_password)
+        // New passwords need 8+ characters; sign-in still accepts an older,
+        // shorter one, or those accounts would be locked out.
+        val tooShort = if (authMode == AuthMode.LOGIN) password.isEmpty() else password.length < NEW_PASSWORD_MIN
+        if (tooShort) {
+            publishFormMessage(if (authMode == AuthMode.LOGIN) R.string.auth_error_password_empty else R.string.auth_error_weak_password)
             return
         }
         isSigningIn = true
@@ -267,3 +270,6 @@ class AuthViewModel : ViewModel() {
 }
 
 enum class AuthMode { LOGIN, REGISTER }
+
+/** Minimum length for a new account password (NIST SP 800-63B); Firebase itself only asks for 6. */
+internal const val NEW_PASSWORD_MIN = 8
