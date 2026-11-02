@@ -196,14 +196,11 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                // Only with wallets: a fresh profile has nothing to divide yet.
-                // Warn only when real bills exceed the balance; a fresh/empty profile shows nothing.
-                val perDayOrWarn = vm.safeToSpendPerDay != null || vm.monthOutlook.recurringOut > 0
-                if (vm.wallets.isNotEmpty() && perDayOrWarn) {
-                    val perDay = vm.safeToSpendPerDay
-                    val forecast = vm.cashForecast
+                // One forecast line, the same numbers as the sheet it opens.
+                val forecast = vm.cashForecast
+                if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
                     val shortfallDate = forecast.shortfallDate
-                    val warn = perDay == null || shortfallDate != null
+                    val warn = shortfallDate != null
                     val tint = if (warn) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant
                     Row(
                         verticalAlignment = Alignment.Top,
@@ -211,12 +208,9 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     ) {
                         Icon(if (warn) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 16.sp.toDp() }))
                         Spacer(Modifier.width(6.dp))
+                        val endText = stringResource(R.string.cash_forecast_main, ua.rytm.app.ui.components.formatDayMonth(forecast.end), maskedAmount(signedMoney(forecast.endBalance)))
                         Text(
-                            text = when {
-                                shortfallDate != null -> stringResource(R.string.cash_forecast_short, ua.rytm.app.ui.components.formatDayMonth(shortfallDate), maskedAmount(formatMoney(forecast.shortfall)))
-                                perDay == null -> stringResource(R.string.finance_safe_to_spend_none)
-                                else -> stringResource(R.string.finance_safe_to_spend, maskedAmount(formatMoney(kotlin.math.floor(perDay))))
-                            },
+                            text = if (shortfallDate != null) endText + " · " + stringResource(R.string.cash_forecast_main_minus, ua.rytm.app.ui.components.formatDayMonth(shortfallDate)) else endText,
                             style = MaterialTheme.typography.labelMedium,
                             color = tint,
                         )
@@ -255,24 +249,6 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
         ) {
             items(vm.wallets, key = { it.id }) { wallet ->
                 WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id))
-            }
-        }
-
-        val outlook = vm.monthOutlook
-        if (!outlook.isEmpty) {
-            val parts = buildList {
-                if (outlook.shiftsEarnings > 0) add(stringResource(R.string.finance_outlook_shifts, formatMoney(outlook.shiftsEarnings)))
-                if (outlook.recurringIn > 0) add(stringResource(R.string.finance_outlook_recurring_in, formatMoney(outlook.recurringIn)))
-                if (outlook.recurringOut > 0) add(stringResource(R.string.finance_outlook_recurring_out, formatMoney(outlook.recurringOut)))
-            }
-            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(horizontal = RytmSpacing.xs)) {
-                Icon(RytmIcons.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    stringResource(R.string.finance_outlook_prefix) + " " + maskedAmount(parts.joinToString(" · ")),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
 

@@ -2,9 +2,11 @@ package ua.rytm.app.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import ua.rytm.app.ui.screens.finance.CashForecast
 import ua.rytm.app.ui.screens.finance.Recurring
+import ua.rytm.app.ui.screens.finance.SpendingHabit
 import ua.rytm.app.ui.screens.finance.Transaction
 import ua.rytm.app.ui.screens.finance.TxType
 import java.time.LocalDate
@@ -18,7 +20,7 @@ class CashForecastTest {
         Recurring("r", type, amount, "Оренда", "w", "monthly", date, active, "")
 
     private fun forecast(balance: Double, recurring: List<Recurring>, daily: Double?) =
-        CashForecast.compute(balance, recurring, { "UAH" }, today, end, daily, uah)
+        CashForecast.compute(balance, recurring, { "UAH" }, today, end, daily?.let { SpendingHabit(it, 60, 6) }, uah)
 
     private fun spent(id: String, date: String, amount: Double) =
         Transaction(id = id, type = TxType.EXPENSE, amount = amount, date = date, walletId = "w", category = "c")
@@ -83,6 +85,27 @@ class CashForecastTest {
     @Test fun eventLabelIsCategoryWithoutTheRecurringMark() {
         assertEquals("Оренда", CashForecast.eventLabel(rent(1.0, "2026-11-20").copy(comment = "повторювана")))
         assertEquals("Оренда · квартира", CashForecast.eventLabel(rent(1.0, "2026-11-20").copy(comment = "квартира · повторювана")))
+    }
+
+    // The sheet shows these lines as a sum; it must add up exactly.
+    @Test fun sheetSumAddsUp() {
+        val salary = rent(30_000.0, "2026-11-19", TxType.INCOME)
+        val f = forecast(982.68, listOf(rent(11_000.0, "2026-11-20"), salary), 1_073.45)
+        assertEquals(30_000.0, f.plannedIn, 0.001)
+        assertEquals(11_000.0, f.plannedOut, 0.001)
+        assertEquals(20, f.unplannedDays)
+        assertEquals(f.startBalance + f.plannedIn - f.plannedOut - f.unplannedSpend, f.endBalance, 0.001)
+    }
+
+    @Test fun habitNamesTopCategoriesOfKeptDays() {
+        val history = (1..20).map { Transaction(id = "t$it", type = TxType.EXPENSE, amount = if (it % 2 == 0) 300.0 else 100.0, date = today.minusDays(it.toLong()).toString(), walletId = "w", category = if (it % 2 == 0) "Кафе" else "Продукти") } +
+            Transaction(id = "tv", type = TxType.EXPENSE, amount = 20_000.0, date = today.minusDays(4).toString(), walletId = "w", category = "Техніка")
+        val h = CashForecast.habit(history, today, uah)!!
+        assertEquals(20, h.windowDays)
+        assertEquals(2, h.droppedDays)
+        assertEquals("Кафе", h.topCategories.first().first)
+        assertTrue(h.topCategories.none { it.first == "Техніка" })
+        assertEquals(h.perDay, kotlin.math.round(h.perDay * 100) / 100, 0.0)
     }
 
     @Test fun quietDaysCountAsZero() {

@@ -506,10 +506,6 @@
         <item quantity="one">≈ %d shift of work</item>
         <item quantity="other">≈ %d shifts of work</item>
     </plurals>
-    <string name="finance_outlook_prefix">Until month end:</string>
-    <string name="finance_outlook_shifts">+%1$s ₴ from shifts</string>
-    <string name="finance_outlook_recurring_in">+%1$s ₴ recurring income</string>
-    <string name="finance_outlook_recurring_out">−%1$s ₴ recurring payments</string>
     <string name="auth_email_placeholder">you@example.com</string>
     <string name="shifts_insight_title">90-day insight</string>
     <string name="shifts_insight_more">You spend %1$d%% more on shift days</string>
@@ -595,8 +591,6 @@
     <string name="notifications_weekly_title">Family week</string>
     <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
     <string name="categories_empty">No categories here yet. Add the first one below.</string>
-    <string name="finance_safe_to_spend">≈ %1$s ₴ a day until month end</string>
-    <string name="finance_safe_to_spend_none">Recurring payments this month exceed the balance</string>
     <string name="story_spent">Spent in %1$s</string>
     <string name="story_top_category">Most went to</string>
     <string name="story_top_share">%1$s · %2$d%% of all spending</string>
@@ -651,16 +645,29 @@
     <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">All of this is free for now.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB in a few taps.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
     <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
-    <string name="cash_forecast_short">Money runs out ≈ %1$s, %2$s ₴ short</string>
-    <string name="cash_forecast_title">Until payday</string>
-    <string name="cash_forecast_subtitle">Forecast to %1$s</string>
-    <string name="cash_forecast_enough">Enough: ≈ %1$s ₴ left at month end</string>
+    <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
+    <string name="cash_forecast_main_minus">below zero from %1$s</string>
+    <string name="cash_forecast_now">On your accounts now</string>
+    <string name="cash_forecast_now_hint">Without deposits and credit cards</string>
+    <string name="cash_forecast_in">Recurring income</string>
+    <string name="cash_forecast_out">Recurring payments</string>
+    <string name="cash_forecast_habit">Usual spending</string>
+    <string name="cash_forecast_habit_hint">%1$s ₴ a day × %2$d days</string>
+    <string name="cash_forecast_end">On %1$s</string>
+    <string name="cash_forecast_lowest">Biggest gap: %1$s ₴, %2$s</string>
+    <string name="cash_forecast_habit_title">Where usual spending comes from</string>
+    <string name="cash_forecast_habit_explain">Average over the last %1$d days. The %2$d priciest days (one-off buys) and recurring payments are left out: those are above already.</string>
+    <string name="cash_forecast_habit_top">Most of it: %1$s</string>
+    <string name="cash_forecast_shifts_title">Shifts</string>
+    <string name="cash_forecast_shifts">Shifts until month end bring ≈ %1$s ₴ more. Not in the forecast: shift pay arrives as your salary. Add the salary as recurring income and it counts here.</string>
+    <string name="cash_forecast_after_hint">The balance already includes usual spending up to that day.</string>
+    <string name="cash_forecast_title">Money forecast</string>
+    <string name="cash_forecast_subtitle">through %1$s</string>
+    <string name="cash_forecast_enough">Enough until month end</string>
     <string name="cash_forecast_gap">Money runs out ≈ %1$s</string>
-    <string name="cash_forecast_gap_amount">Biggest gap: %1$s ₴</string>
-    <string name="cash_forecast_daily">Usual spending: ≈ %1$s ₴ a day, ≈ %2$s ₴ through %3$s</string>
     <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
-    <string name="cash_forecast_events">Planned</string>
+    <string name="cash_forecast_events">Day by day</string>
     <string name="cash_forecast_no_events">No recurring payments until month end.</string>
     <string name="cash_forecast_after">%1$s ₴ left</string>
-    <string name="cash_forecast_note">Balance without deposits and credit cards, recurring payments and income on their dates, usual spending over the last 60 days. Shift pay is left out: it often lands next month. Month end comes from Settings.</string>
+    <string name="cash_forecast_note">Month end comes from Settings.</string>
 </resources>

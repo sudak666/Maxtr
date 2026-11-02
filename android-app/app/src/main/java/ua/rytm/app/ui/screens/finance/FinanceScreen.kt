@@ -179,7 +179,7 @@ fun FinanceScreen(
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
     }
     if (viewModel.cashForecastOpen) {
-        CashForecastSheet(viewModel.cashForecast, onDismiss = { viewModel.cashForecastOpen = false })
+        CashForecastSheet(viewModel.cashForecast, viewModel.monthOutlook.shiftsEarnings, onDismiss = { viewModel.cashForecastOpen = false })
     }
     if (viewModel.monthSummaryOpen) {
         val reportContext = androidx.compose.ui.platform.LocalContext.current
