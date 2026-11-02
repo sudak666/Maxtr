@@ -138,9 +138,10 @@ async function withStubbedAI(browser, answer, run) {
 }
 
 async function main() {
-  const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', ROOT], { stdio: 'ignore' });
+  const server = spawn(process.platform === 'win32' ? 'python' : 'python3', ['-m', 'http.server', String(PORT), '--directory', ROOT], { stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 500));
-  const browser = await chromium.launch(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {});
+  // Without this, Windows Hello makes the page offer biometric unlock over everything (audit A-10).
+  const browser = await chromium.launch({ ...(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {}), args: ['--disable-features=WebAuthenticationUseNativeWinApi'] });
   try {
     // ── a long, rule-free comment gets the stubbed model's suggested category ──
     await withStubbedAI(browser, 'Кафе', async (page) => {

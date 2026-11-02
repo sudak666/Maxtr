@@ -126,6 +126,9 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.SwapHoriz
 import ua.rytm.app.ui.icons.Event
 import ua.rytm.app.ui.icons.WarningAmber
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.icons.TrendingDown
+import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Build
@@ -135,8 +138,6 @@ import ua.rytm.app.ui.icons.ExpandLess
 import ua.rytm.app.ui.icons.Flag
 import ua.rytm.app.ui.icons.PieChart
 import ua.rytm.app.ui.icons.Search
-import ua.rytm.app.ui.icons.TrendingDown
-import ua.rytm.app.ui.icons.TrendingUp
 import ua.rytm.app.ui.theme.tabularNums
 
 // Building blocks of FinanceScreen, split out so the screen file holds only the screen itself.
@@ -176,44 +177,41 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     fontWeight = FontWeight.Black,
                 )
 
-                val net = vm.monthIncomeUah - vm.monthExpenseUah
-                val trendColor = RytmSemantic.signed(net)
-                // Top-aligned: at large font the line wraps and a centered icon
-                // floated between the two lines (P5, 200% check).
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 6.dp)) {
-                    Icon(
-                        imageVector = if (net < 0) RytmIcons.TrendingDown else RytmIcons.TrendingUp,
-                        contentDescription = null,
-                        tint = trendColor,
-                        modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 18.sp.toDp() }),
-                    )
-                    Spacer(Modifier.width(RytmSpacing.xs))
-                    val sign = if (net > 0) "+" else if (net < 0) "−" else ""
-                    Text(
-                        text = maskedAmount(stringResource(R.string.finance_month_net, sign, formatMoney(kotlin.math.abs(net)))),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = trendColor,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                // One forecast line, the same numbers as the sheet it opens.
+                // One quiet forecast line under the balance (owner, 2026-11-02:
+                // the hero felt crowded). The month net used to sit here too,
+                // but it repeated the income/expense row right below. The line
+                // says one thing: the end-of-month figure, or, when money runs
+                // out on the way, only that warning. The sheet holds the rest.
                 val forecast = vm.cashForecast
                 if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
                     val shortfallDate = forecast.shortfallDate
-                    val warn = shortfallDate != null
-                    val tint = if (warn) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant
+                    val tint = if (shortfallDate != null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant
+                    val iconSize = with(LocalDensity.current) { 16.sp.toDp() }
                     Row(
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.padding(top = RytmSpacing.sm).clip(androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input)).clickable { vm.cashForecastOpen = true },
+                        verticalAlignment = Alignment.CenterVertically,
+                        // Inner padding keeps the icon clear of the rounded tap
+                        // area (its corner clipped the warning triangle); the
+                        // negative offset keeps the icon in line with the balance.
+                        modifier = Modifier
+                            .padding(top = RytmSpacing.xs)
+                            .offset(x = -RytmSpacing.sm)
+                            .clip(RoundedCornerShape(RytmRadii.Input))
+                            .clickable(onClickLabel = stringResource(R.string.cash_forecast_title)) { vm.cashForecastOpen = true }
+                            .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.xs),
                     ) {
-                        Icon(if (warn) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.padding(top = 1.dp).size(with(LocalDensity.current) { 16.sp.toDp() }))
+                        Icon(if (shortfallDate != null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
                         Spacer(Modifier.width(6.dp))
-                        val endText = stringResource(R.string.cash_forecast_main, ua.rytm.app.ui.components.formatDayMonth(forecast.end), maskedAmount(signedMoney(forecast.endBalance)))
                         Text(
-                            text = if (shortfallDate != null) endText + " · " + stringResource(R.string.cash_forecast_main_minus, ua.rytm.app.ui.components.formatDayMonth(shortfallDate)) else endText,
+                            text = if (shortfallDate != null) {
+                                stringResource(R.string.cash_forecast_hero_minus, ua.rytm.app.ui.components.formatDayMonth(shortfallDate))
+                            } else {
+                                stringResource(R.string.cash_forecast_main, ua.rytm.app.ui.components.formatDayMonth(forecast.end), maskedAmount(signedMoney(forecast.endBalance)))
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             color = tint,
+                            modifier = Modifier.weight(1f, fill = false),
                         )
+                        Icon(RytmIcons.ChevronRight, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
                     }
                 }
                 // P5: income/expense live inside the hero as one quiet row

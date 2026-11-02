@@ -191,7 +191,7 @@ fun ShiftsScreen() {
         item { RealtimeStateBanner() }
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
-        item { HeroMetric(stats.earned, salaryGoal, canEdit) { editingGoal = true } }
+        item { HeroMetric(stats.earnedToDate, stats.earned - stats.earnedToDate, salaryGoal, canEdit) { editingGoal = true } }
         // The calendar is what this tab is opened for — it used to sit below
         // the stats, forecast and six-month chart, i.e. off-screen on a phone.
         item { MonthNav(viewModel) }

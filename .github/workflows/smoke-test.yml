@@ -429,8 +429,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      # One retry: this step has failed once on a runner with no code change
+      # (audit 2026-11, A-11); a real compile error fails both attempts.
       - name: Build test APKs
-        run: ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
+        run: ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon || ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
       # The system image download from dl.google.com has failed mid-zip on a
       # runner ("Error on ZipFile unknown archive"); cache it and the AVD.
       - name: Cache emulator system image + AVD
@@ -451,7 +453,13 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: android-app
-          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon
+          # "No compose hierarchies found" came from a locked or not yet
+          # focused emulator screen (A-11): wake and unlock it first, and retry
+          # once; a real test failure fails both runs.
+          script: |
+            adb shell input keyevent KEYCODE_WAKEUP
+            adb shell wm dismiss-keyguard
+            ./gradlew :app:connectedDebugAndroidTest --no-daemon || ./gradlew :app:connectedDebugAndroidTest --no-daemon
       - name: Upload instrumented test reports
         if: always()
         uses: actions/upload-artifact@v4

@@ -106,6 +106,9 @@ export function addDebtEntry(){
   const amount=ai?.value.trim();
   if(!amount){showToast(tr('debt_enter_amount'),'xmark');return;}
   let balance=parseFloat(bi?.value||'');
+  // A loan with no amount and no payments has nothing to count down from:
+  // a first payment went straight below zero (audit 2026-11, A-05).
+  if(isNaN(balance) && !((cd.startAmount||0)>0) && !cd.entries.length){showToast(tr('debt_start_required'),'xmark');return;}
   if(isNaN(balance)){
     // auto-compute from the running balance when the amount is a plain number
     if(/^\d+(\.\d+)?$/.test(amount)) balance=debtCurrentBalance(cd)-parseFloat(amount);

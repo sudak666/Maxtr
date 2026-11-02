@@ -8,7 +8,7 @@
 
     <string name="nav_finance">Фінанси</string>
     <string name="nav_shifts">Зміни</string>
-    <string name="nav_debt">Борги</string>
+    <string name="nav_debt">Позики</string>
     <string name="nav_settings">Налаштування</string>
 
     <string name="notification_channel_name">Нагадування Rytm</string>
@@ -56,13 +56,12 @@
     <string name="auto_rules_keyword">Слово в коментарі</string>
     <string name="auto_rules_save_failed">Не вдалося зберегти правило. Спробуй ще раз.</string>
     <string name="rates_title">Курси валют</string>
-    <string name="rates_body">Скільки гривень за 1 одиницю валюти. База — гривня (курс завжди 1).</string>
     <string name="rates_source">Джерело курсу</string>
     <string name="rates_nbu">НБУ (офіційний)</string>
     <string name="rates_privat">ПриватБанк (готівка)</string>
     <string name="rates_privat_note">ПриватБанк дає готівковий курс лише для USD/EUR; інші валюти — курс НБУ.</string>
     <string name="rates_updating">Оновлення…</string><string name="rates_refresh">Оновити онлайн</string>
-    <string name="rates_updated">Курси оновлено</string><string name="rates_update_failed">Не вдалося оновити курси</string>
+<string name="rates_update_failed">Не вдалося оновити курси</string>
     <string name="rates_updated_at">Оновлено %1$s</string><string name="rates_never_updated">Ще не оновлювалося</string><string name="rates_dashboard_subtitle">Актуальні значення відносно гривні</string><string name="rates_current">Поточні курси</string>
     <string name="profile_load_failed">Не вдалося завантажити профіль</string>
     <string name="profile_save_failed">Не вдалося зберегти профіль</string>
@@ -89,7 +88,7 @@
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
     <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
-    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income">Дохід: %1$s</string><string name="analytics_expense">Витрата: %1$s</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s ₴ середнє</string><string name="analytics_maximum_uah">%1$s ₴ максимум</string>
+    <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s ₴ середнє</string><string name="analytics_maximum_uah">%1$s ₴ максимум</string>
     <string name="analytics_difference">Різниця</string><string name="analytics_savings_rate">Заощаджено</string>
     <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
     <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$d%%</string>
@@ -123,29 +122,28 @@
     <string name="crypto_loading">Оновлюємо курси…</string><string name="crypto_error">Не вдалося завантажити курси криптовалют</string>
     <string name="action_collapse">Згорнути</string><string name="shifts_show_month">Показати весь місяць</string><string name="action_collapse_list">Згорнути список</string><string name="action_view_all">Переглянути всі</string>
     <string name="finance_estimated_balance">Орієнтовний баланс</string><string name="finance_total_balance">Загальний баланс</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
-    <string name="finance_month_income">Дохід</string><string name="finance_month_expense">Витрати</string><string name="finance_action_transaction">Операція</string><string name="finance_history">Історія операцій</string>
+    <string name="finance_month_income">Дохід</string><string name="finance_month_expense">Витрати</string><string name="finance_history">Історія операцій</string>
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
     <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Почни з суми, яка в тебе є зараз. Потім записуй доходи й витрати.</string>
     <string name="finance_empty_cta">Вказати поточний баланс</string>
-    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_month_net">%1$s%2$s ₴ цього місяця</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
+    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
     <string name="categories_title">Категорії</string><string name="categories_body">Свої категорії доходів і витрат, з підкатегоріями всередині.</string><string name="subcategories_title">Підкатегорії</string><string name="action_rename">Перейменувати</string><string name="action_more">Більше дій</string><string name="subcategory_label">Підкатегорія</string><string name="category_name">Назва категорії</string>
     <string name="category_rename_title">Перейменувати категорію</string><string name="category_delete_title">Видалити категорію</string><string name="category_delete_body">Видалити категорію? Старі операції збережуть свою назву.</string>
     <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
     <string name="subcategory_too_long">Назва підкатегорії не може перевищувати 120 символів</string><string name="subcategory_exists">Така підкатегорія вже є</string><string name="category_too_long">Назва категорії не може перевищувати 120 символів</string><string name="category_exists">Така категорія вже є</string><string name="categories_sync_failed">Не вдалося синхронізувати зміни</string>
-    <string name="debt_new_default">Новий розрахунок</string><string name="debt_last_required">Має лишитися хоча б один розрахунок</string><string name="debt_amount_required">Вкажи суму</string><string name="debt_balance_required">Вкажи залишок</string>
-    <string name="debt_forecast_title">Прогноз погашення</string><string name="debt_paid_off">Розрахунок повністю погашено! 🎉</string><string name="debt_forecast_insufficient">Замало даних для оцінки темпу погашення</string><string name="debt_average_payment">Типовий платіж: %1$s</string>
+    <string name="debt_new_default">Нова позика</string><string name="debt_amount_required">Вкажи суму</string><string name="debt_balance_required">Вкажи залишок</string>
+    <string name="debt_forecast_title">Прогноз погашення</string><string name="debt_paid_off">Позику повністю погашено! 🎉</string><string name="debt_forecast_insufficient">Замало даних для оцінки темпу погашення</string><string name="debt_average_payment">Типовий платіж: %1$s</string>
     <plurals name="debt_payments_left"><item quantity="one">Залишився приблизно %1$d платіж</item><item quantity="few">Залишилося приблизно %1$d платежі</item><item quantity="many">Залишилося приблизно %1$d платежів</item><item quantity="other">Залишилося приблизно %1$d платежу</item></plurals>
-    <string name="debt_payment">Платіж</string><string name="debt_delete_title">Видалити розрахунок</string><string name="debt_delete_body">Видалити цей розрахунок і всю історію платежів?</string><string name="debt_payment_delete_title">Видалити платіж</string><string name="debt_payment_delete_body">Видалити цей запис з історії?</string><string name="attention_title">Увага</string>
-    <string name="debt_empty_title">Позики між людьми</string><string name="debt_empty_body">Кому винен ти і хто винен тобі — без папірців: скільки лишилось і коли закриєш. Кредит чи кредитка банку — це гаманець типу «Кредит» у Фінансах.</string><string name="debt_current_balance">Поточний залишок</string><string name="debt_paid">Сплачено</string><string name="debt_start_amount">Початкова сума</string><string name="debt_payments">Платежів</string><string name="debt_due_date">Термін сплати</string>
-    <string name="debt_days_overdue">−%1$d дн.</string><string name="debt_days_future">%1$d дн.</string><string name="debt_details">Дані розрахунку</string><string name="note_label">Нотатка</string><string name="debt_history">Історія платежів</string><string name="action_toggle_section">Згорнути або розгорнути</string><string name="debt_payments_empty">Ще немає платежів</string>
+    <string name="debt_payment">Платіж</string><string name="debt_delete_title">Видалити позику</string><string name="debt_delete_body">Видалити цю позику і всю історію платежів?</string><string name="debt_payment_delete_title">Видалити платіж</string><string name="debt_payment_delete_body">Видалити цей запис з історії?</string>    <string name="debt_empty_title">Позики між людьми</string><string name="debt_empty_body">Кому винен ти і хто винен тобі — без папірців: скільки лишилось і коли закриєш. Кредит чи кредитка банку — це гаманець типу «Кредит» у Фінансах.</string><string name="debt_current_balance">Поточний залишок</string><string name="debt_paid">Сплачено</string><string name="debt_start_amount">Початкова сума</string><string name="debt_payments">Платежів</string><string name="debt_due_date">Термін сплати</string>
+    <string name="debt_days_overdue">−%1$d дн.</string><string name="debt_days_future">%1$d дн.</string><string name="debt_details">Дані позики</string><string name="note_label">Нотатка</string><string name="debt_payments_empty">Ще немає платежів</string>
     <string name="debt_balance">Залишок</string><string name="debt_balance_value">Залишок: %1$s %2$s</string><string name="debt_new_payment">Новий платіж</string><string name="debt_payment_amount">Сума платежу</string><string name="debt_new_balance">Новий залишок</string>
     <string-array name="finance_tips"><item>Відкладай хоча б 10% доходу одразу після отримання, а не «з залишку» в кінці місяця.</item><item>Перед великою покупкою зачекай 24 години — імпульсивне бажання часто минає.</item><item>Створи резерв на 3–6 місяців витрат, щоб несподівані події не руйнували бюджет.</item><item>Автоматизуй заощадження: регулярний переказ працює краще за силу волі.</item><item>Раз на тиждень переглядай підписки й регулярні платежі.</item><item>Плануй нерегулярні витрати заздалегідь окремими категоріями.</item><item>Порівнюй знижку не з початковою ціною, а з реальною потребою в покупці.</item></string-array>
     <string name="action_save">Зберегти</string>
     <string name="action_today">Сьогодні</string>
     <string name="money_uah">%1$s ₴</string>
     <string name="shifts_choose">Обери зміни</string>
-    <string name="shifts_earned_month">Заробіток за місяць</string>
+    <string name="shifts_earned_month">Зароблено за місяць</string>
     <string name="shifts_goal_progress">%1$d%% від цілі %2$s ₴</string>
     <string name="shifts_goal_edit_title">Ціль заробітку</string>
     <string name="shifts_goal_edit_label">Сума, ₴</string>
@@ -167,13 +165,11 @@
     <string name="shifts_weekend_a11y">вихідний</string><string name="shifts_other_month_a11y">день сусіднього місяця</string>
     <string name="shifts_edit_day_a11y">змінити зміни</string>
     <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
-    <string name="shifts_autofill_title">Автозаповнення кожного дня</string>
     <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
     <string name="shifts_anchor_date">Перший робочий день циклу</string>
     <string name="shifts_empty_title">Ще немає змін цього місяця</string>
     <string name="shifts_empty_body">Додай зміни вручну, натиснувши на день, або скористайся швидким заповненням.</string>
     <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
-    <string name="shifts_edit_hint">Натисни на день, щоб редагувати зміни</string>
     <string name="action_next">Далі</string>
     <string name="onboarding_page_status">Сторінка %1$d з %2$d</string>
     <string name="onboarding_finance_title">Фінанси під контролем</string>
@@ -186,14 +182,10 @@
     <string name="action_clear">Очистити</string>
     <string name="action_choose_date">Обрати дату</string>
     <string name="field_currency">Валюта</string>
-    <string name="sync_status_syncing">Синхронізація…</string>
     <string name="sync_status_offline">Офлайн · показано кеш</string>
     <string name="sync_status_error">Помилка синхронізації</string>
     <string name="action_delete">Видалити</string>
     <string name="profile_read_only">Профіль доступний лише для перегляду</string>
-    <string name="action_show_amounts">Показати суми</string>
-    <string name="action_hide_amounts">Приховати суми</string>
-    <string name="action_refresh">Оновити</string>
     <string name="action_ok">Гаразд</string>
     <string name="action_edit">Редагувати</string>
     <string name="field_name">Назва</string>
@@ -209,7 +201,7 @@
     <string name="shift_pay">Оплата</string>
     <string name="shift_hours">Години</string>
     <string name="shift_day_off_unpaid">Вихідний (без оплати)</string>
-    <string name="auth_tagline">Фінанси, зміни та борги в одному місці</string>
+    <string name="auth_tagline">Фінанси, зміни та позики в одному місці</string>
     <string name="auth_continue_google">Продовжити через Google</string>
     <string name="auth_or">АБО</string>
     <string name="auth_password">Пароль</string>
@@ -221,7 +213,6 @@
     <string name="auth_register">Зареєструватися</string>
     <string name="auth_forgot_password">Забули пароль?</string>
     <string name="auth_emulator_sign_in">[emulator] Анонімний вхід для тестів</string>
-    <string name="auth_sign_in_failed">Не вдалося увійти</string>
     <string name="auth_login_tab">Вхід</string>
     <string name="auth_register_tab">Реєстрація</string>
     <string name="auth_terms_prefix">Реєструючись, ти погоджуєшся з</string>
@@ -348,7 +339,7 @@
     <string name="settings_web_subtitle">Відкрити Rytm у браузері</string>
     <string name="settings_terms_subtitle">Правила користування застосунком</string>
     <string name="settings_privacy_subtitle">Як ми обробляємо твої дані</string>
-    <string name="settings_about_summary">Rytm — трекер змін, фінансів і розрахунків</string>
+    <string name="settings_about_summary">Rytm — трекер змін, фінансів і позик</string>
     <string name="settings_wallets_subtitle">Картки, готівка та інші рахунки</string>
     <string name="settings_rates_subtitle">Синхронізовані курси до гривні</string>
     <string name="settings_categories_subtitle">Власні категорії доходів і витрат</string>
@@ -382,24 +373,14 @@
     <string name="settings_csv_import_save_failed">Не вдалося зберегти імпортовані операції</string>
     <string name="settings_csv_import_action">Імпортувати</string>
     <string name="settings_deleting_account">Видалення…</string>
-    <string name="settings_delete_account_body">Це незворотно видалить твої дані (гаманці, операції, розрахунки, графік змін) та акаунт Rytm. Твій обліковий запис Google не зачіпається. Скасувати неможливо.</string>
+    <string name="settings_delete_account_body">Це незворотно видалить твої дані (гаманці, операції, позики, графік змін) та акаунт Rytm. Твій обліковий запис Google не зачіпається. Скасувати неможливо.</string>
     <string name="settings_sign_out_title">Вихід</string>
     <string name="settings_sign_out_body">Вийти з акаунту?</string>
     <string name="settings_sign_out_action">Вийти</string>
     <string name="settings_premium_title">Rytm Преміум</string>
-    <string name="settings_premium_body">Rytm зараз повністю безкоштовний — без лімітів. Ось що ми додаємо далі:</string>
-    <string name="settings_premium_free_title">Вже доступно безкоштовно</string>
-    <string name="settings_premium_free_body">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</string>
-    <string name="settings_premium_forecast_title">Прогноз заробітку</string>
-    <string name="settings_premium_forecast_body">Вже на вкладці «Зміни»: скільки отримаєш цього й наступного місяця та скільки змін бракує до цілі</string>
-    <string name="settings_premium_backup_title">Резервні копії</string>
-    <string name="settings_premium_backup_body">Автоматичні копії в хмарі та відновлення в один дотик</string>
-    <string name="settings_premium_widget_title">Віджет на екрані</string>
-    <string name="settings_premium_widget_body">Вже є: баланс, найближча зміна і прогноз на головному екрані — утримуй екран → Віджети → Rytm</string>
-    <string name="settings_soon">СКОРО</string>
     <string name="settings_reset_title">Почати спочатку?</string>
     <string name="settings_resetting">Скидання даних…</string>
-    <string name="settings_reset_body">Буде видалено графік змін, фінанси та розрахунки поточного профілю. Акаунт і сам профіль залишаться.</string>
+    <string name="settings_reset_body">Буде видалено графік змін, фінанси та позики поточного профілю. Акаунт і сам профіль залишаться.</string>
     <string name="settings_reset_success">Дані профілю скинуто</string>
     <string name="settings_reset_failed">Не вдалося скинути дані профілю</string>
     <string name="settings_reset_action">Скинути</string>
@@ -407,8 +388,6 @@
     <plurals name="settings_csv_operations"><item quantity="one">%1$d операцію</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
     <plurals name="settings_csv_errors"><item quantity="one">%1$d рядок</item><item quantity="few">%1$d рядки</item><item quantity="many">%1$d рядків</item><item quantity="other">%1$d рядка</item></plurals>
     <plurals name="settings_csv_no_valid_rows"><item quantity="one">Немає коректних рядків (%1$d помилка)</item><item quantity="few">Немає коректних рядків (%1$d помилки)</item><item quantity="many">Немає коректних рядків (%1$d помилок)</item><item quantity="other">Немає коректних рядків (%1$d помилки)</item></plurals>
-    <string name="auth_delete_data_failed">Не вдалося видалити дані</string>
-    <string name="auth_delete_reauth_required">Потрібен повторний вхід через Google для видалення акаунту</string>
     <string name="auth_delete_account_failed">Не вдалося видалити акаунт</string>
     <string name="auth_emulator_sign_in_failed">Не вдалося виконати тестовий вхід</string>
     <string name="notifications_daily">Щоденне нагадування</string>
@@ -422,7 +401,6 @@
     <string name="biometric_unlock_title">Розблокування Rytm</string>
     <string name="biometric_unlock_subtitle">Підтвердь відбитком пальця або обличчям</string>
     <string name="transaction_delete_failed">Не вдалося видалити операцію</string><string name="transaction_deleted">Видалено</string><string name="action_undo">Скасувати</string>
-    <string name="common_deleted">Видалено</string>
     <string name="transaction_auto_category">Категорія визначена автоматично: %1$s</string>
     <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s ₴</string>
     <string name="transaction_updated">Запис оновлено</string>
@@ -471,7 +449,6 @@
     <string name="widget_balance">Баланс</string>
     <string name="widget_next_shift">Найближча зміна</string>
     <string name="widget_no_shift">Змін не заплановано</string>
-    <string name="widget_forecast">Прогноз на місяць</string>
     <string name="widget_signed_out">Увійди у Rytm</string>
     <string name="widget_today">Сьогодні</string>
     <string name="widget_tomorrow">Завтра</string>
@@ -654,7 +631,6 @@
     <string name="debt_repayment">Повернення</string><string name="debt_new_repayment">Нове повернення</string><string name="debt_repayment_amount">Сума повернення</string><string name="debt_totals">Я винен: %1$s · Мені винні: %2$s</string>
     <string name="wallet_kind_hint">Цей рахунок не входить у суму «на день».</string>
     <string name="cash_forecast_main">Прогноз на %1$s: %2$s ₴</string>
-    <string name="cash_forecast_main_minus">мінус з %1$s</string>
     <string name="cash_forecast_now">Зараз на рахунках</string>
     <string name="cash_forecast_now_hint">Без депозитів і кредиток</string>
     <string name="cash_forecast_in">Регулярні надходження</string>
@@ -695,4 +671,13 @@
     <string name="debt_finance_category">Повернення боргу</string>
     <string name="debt_remind">Нагадати</string>
     <string name="debt_remind_message">Привіт! Нагадую про борг: %1$s %2$s. Коли зможеш повернути? Дякую!</string>
+    <string name="cash_forecast_hero_minus">Можливий мінус з %1$s</string>
+    <string name="settings_month_start_period">Поточний місяць: %1$s – %2$s</string>
+    <string name="debt_total_owe">Скільки ти винен</string>
+    <string name="debt_total_owed">Скільки тобі винні</string>
+    <string name="debt_start_required">Вкажи суму позики</string>
+    <string name="debt_start_hint">Від цієї суми рахуватиметься залишок</string>
+    <string name="shifts_planned_month">Заплановано на місяць</string>
+    <string name="shifts_hero_ahead">і ще %1$s ₴ за графіком</string>
+    <string name="debt_start_missing">Не вказано суму позики, тому залишок неправильний. Вкажи її в «Дані позики»: залишки платежів перерахуються.</string>
 </resources>

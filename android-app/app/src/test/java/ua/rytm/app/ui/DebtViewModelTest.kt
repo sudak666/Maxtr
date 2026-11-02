@@ -84,7 +84,8 @@ class DebtViewModelTest {
     @Test fun paymentWithDecimalCommaUpdatesBalance() {
         val vm = newVm(FakeDebtSaver())
         vm.updateInfo("Loan", "", "UAH", 1000.0, "")
-        waitUntil { vm.currentDebt?.startAmount == 1000.0 }
+        // Also wait for the save: addEntry drops a write while one is in flight (a race, not app behavior).
+        waitUntil { vm.currentDebt?.startAmount == 1000.0 && !vm.saving }
         vm.addEntry("200,5", "", "")
         waitUntil { vm.currentDebt?.entries?.isNotEmpty() == true }
         val entry = vm.currentDebt!!.entries.single()

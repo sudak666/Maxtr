@@ -313,6 +313,11 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
             if (addOpen) {
                 var name by rememberSaveable { mutableStateOf("") }
                 var direction by rememberSaveable { mutableStateOf("owe") }
+                // The amount is asked up front: without it a first payment
+                // had nothing to count down from and went below zero.
+                var total by rememberSaveable { mutableStateOf("") }
+                var totalTried by rememberSaveable { mutableStateOf(false) }
+                val totalValue = ua.rytm.app.ui.screens.finance.parseMoneyInput(total)?.takeIf { it > 0 }
                 AlertDialog(
                     onDismissRequest = { addOpen = false },
                     title = { Text(stringResource(R.string.debt_new_default)) },
@@ -321,12 +326,26 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                         Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                             OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
                             DebtDirectionChips(direction) { direction = it }
+                            val totalInvalid = totalTried && totalValue == null
+                            OutlinedTextField(
+                                value = total,
+                                onValueChange = { total = it },
+                                singleLine = true,
+                                isError = totalInvalid,
+                                supportingText = if (totalInvalid) ({ Text(stringResource(R.string.debt_start_required)) }) else null,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                label = { Text(stringResource(if (direction == "owed") R.string.debt_total_owed else R.string.debt_total_owe)) },
+                                suffix = { Text("UAH") },
+                            )
                         }
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     },
                     confirmButton = {
                         val fallbackName = stringResource(R.string.debt_new_default)
-                        Button(onClick = { viewModel.addDebt(name, fallbackName, direction); addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
+                        Button(onClick = {
+                            totalTried = true
+                            if (totalValue != null) { viewModel.addDebt(name, fallbackName, direction, totalValue); addOpen = false }
+                        }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
                     },
                     dismissButton = { OutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
                 )
@@ -388,6 +407,9 @@ private fun HeroBalance(cd: Debt) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(if (cd.owedToMe) R.string.debt_owed_balance else R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            if (cd.startAmount <= 0 && cd.entries.isNotEmpty()) {
+                Text(stringResource(R.string.debt_start_missing), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.warning, modifier = Modifier.padding(top = RytmSpacing.xs))
+            }
             // People forget who owes them; asking is awkward. One tap hands a
             // polite text to any messenger — the app sends nothing itself.
             if (cd.owedToMe && cd.currentBalance() > 0) {
@@ -646,6 +668,10 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     var amount by rememberSaveable { mutableStateOf("") }
     var balance by rememberSaveable { mutableStateOf("") }
     var date by rememberSaveable { mutableStateOf(todayLabel()) }
+    // Only for a loan saved without its amount (older data): asked here, saved with the payment.
+    val askStart = viewModel.needsStartAmount(cd)
+    var start by rememberSaveable { mutableStateOf("") }
+    val startArg = if (askStart) start else null
     var submitted by rememberSaveable { mutableStateOf(false) }
     // On by default: a repayment is also money leaving (or reaching) a wallet,
     // and recording it twice by hand is what the owner asked to drop.
@@ -657,10 +683,28 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     // accept anything and only report a problem after the save round-trip.
     val amountInvalid = submitted && parsePlainDebtAmount(amount) == null
     val balanceInvalid = submitted && balance.isNotBlank() && parsePlainDebtAmount(balance) == null
+    val startInvalid = submitted && askStart && (ua.rytm.app.ui.screens.finance.parseMoneyInput(start) ?: 0.0) <= 0.0
 
     RytmModalBottomSheet(onDismissRequest = viewModel::closeNewEntrySheet, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(if (cd.owedToMe) R.string.debt_new_repayment else R.string.debt_new_payment))
+            if (askStart) {
+                OutlinedTextField(
+                    value = start,
+                    onValueChange = { new ->
+                        val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount, start)
+                        start = new
+                        if (stillAutoFilled) balance = viewModel.autoFillBalance(amount, new)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = startInvalid,
+                    supportingText = { Text(stringResource(if (startInvalid) R.string.debt_start_required else R.string.debt_start_hint)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                    label = { Text(stringResource(if (cd.owedToMe) R.string.debt_total_owed else R.string.debt_total_owe)) },
+                    suffix = { Text(cd.currency) },
+                )
+            }
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->
@@ -669,9 +713,9 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                     // balance away from auto-fill" check compare the new value to itself,
                     // so auto-fill silently froze after the very first keystroke. Capture
                     // whether balance was still following auto-fill BEFORE updating amount.
-                    val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount)
+                    val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount, startArg)
                     amount = new
-                    if (stillAutoFilled) balance = viewModel.autoFillBalance(new)
+                    if (stillAutoFilled) balance = viewModel.autoFillBalance(new, startArg)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -718,8 +762,9 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                     onClick = {
                         submitted = true
                         val paid = parsePlainDebtAmount(amount)
-                        if (paid != null) {
-                            viewModel.addEntry(amount, balance, date)
+                        val startOk = !askStart || (ua.rytm.app.ui.screens.finance.parseMoneyInput(start) ?: 0.0) > 0.0
+                        if (paid != null && startOk) {
+                            viewModel.addEntry(amount, balance, date, startArg)
                             // The sheet closes only when the entry was accepted.
                             if (alsoInFinance && !viewModel.newEntrySheetOpen) {
                                 // Opens Finance's form filled in; nothing is saved until the user confirms there.

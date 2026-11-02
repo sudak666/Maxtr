@@ -851,6 +851,8 @@ function buildTransactionsFromCSV(text){
       currency:(currency||wallet.currency||'UAH').trim(), category:draft.cat, subcategory:draft.sub,
       tags:[], wallet:wallet.id, targetWallet:targetWalletId, targetAmount, targetCurrency:targetCur,
       date:draft.date, comment:draft.comment,
+      // Author, as for the form (js/finance.js): the per-member split counts imported rows too.
+      ...(AppState.currentUser ? {by:AppState.currentUser.uid, byName:(AppState.currentUser.displayName||(AppState.currentUser.email||'').split('@')[0]||'').slice(0,80)} : {}),
     });
   });
   return {valid, errors};

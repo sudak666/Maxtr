@@ -115,9 +115,9 @@ class DebtViewModel(
 
     fun switchDebt(id: Long) { currentDebtId = id }
 
-    fun addDebt(name: String, fallbackName: String, direction: String = "owe") {
+    fun addDebt(name: String, fallbackName: String, direction: String = "owe", startAmount: Double = 0.0) {
         val clean = name.trim().ifBlank { fallbackName }
-        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = 0.0, dueDate = "", entries = emptyList(), direction = direction)
+        val debt = Debt(id = System.currentTimeMillis(), name = clean, note = "", currency = "UAH", startAmount = startAmount, dueDate = "", entries = emptyList(), direction = direction)
         mutate(debt.id) { repository.addDebt(debt) }
         currentDebtId = debt.id
     }
@@ -138,6 +138,9 @@ class DebtViewModel(
         val cd = currentDebt ?: return
         mutate(cd.id, dropIfBusy = false) {
             repository.updateDebt(cd.copy(name = name.trim().ifBlank { cd.name }, note = note.trim(), currency = currency.ifBlank { "UAH" }, startAmount = startAmount, dueDate = dueDate))
+            // Auto-filled balances follow a changed amount (a loan saved
+            // without one showed «−100» until each payment was fixed by hand).
+            rechainedEntries(cd.entries, cd.startAmount, startAmount)?.forEach { repository.updateEntry(cd.id, it) }
         }
     }
 
@@ -153,23 +156,38 @@ class DebtViewModel(
     fun closeNewEntrySheet() { newEntrySheetOpen = false }
 
     /** Mirrors addDebtEntry()'s auto-fill: a plain-number amount computes balance from the running total. */
-    fun autoFillBalance(amountText: String): String {
+    fun autoFillBalance(amountText: String, startText: String? = null): String {
         val cd = currentDebt ?: return ""
-        return autoDebtBalance(cd.currentBalance(), amountText)
+        val base = if (startText != null) ua.rytm.app.ui.screens.finance.parseMoneyInput(startText) ?: return "" else cd.currentBalance()
+        return autoDebtBalance(base, amountText)
     }
 
-    fun addEntry(amountText: String, balanceText: String, dateText: String) {
+    /**
+     * A loan with no amount and no payments yet has nothing to count down
+     * from: a first payment went straight below zero. The entry sheet then
+     * asks for the total too ([addEntry]'s startText) and saves it with the payment.
+     */
+    fun needsStartAmount(cd: Debt): Boolean = cd.startAmount <= 0 && cd.entries.isEmpty()
+
+    fun addEntry(amountText: String, balanceText: String, dateText: String, startText: String? = null) {
         val cd = currentDebt ?: return
+        val start = if (startText != null) {
+            ua.rytm.app.ui.screens.finance.parseMoneyInput(startText)?.takeIf { it > 0 } ?: run { errorMessageRes = R.string.debt_start_required; return }
+        } else null
+        val base = start ?: cd.currentBalance()
         // A comma-decimal plain number is stored as "200.5" so the PWA parses it too.
         val amount = amountText.trim().let { if (parsePlainDebtAmount(it) != null) it.replace(',', '.') else it }
         if (amount.isEmpty()) { errorMessageRes = R.string.debt_amount_required; return }
         var balance = ua.rytm.app.ui.screens.finance.parseMoneyInput(balanceText)
         if (balance == null) {
             val plain = parsePlainDebtAmount(amount)
-            balance = if (plain != null) cd.currentBalance() - plain else { errorMessageRes = R.string.debt_balance_required; return }
+            balance = if (plain != null) base - plain else { errorMessageRes = R.string.debt_balance_required; return }
         }
         val date = normalizeDebtEntryDate(dateText).ifBlank { todayLabel() }
-        mutate(cd.id) { repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date)) }
+        mutate(cd.id) {
+            if (start != null) repository.updateDebt(cd.copy(startAmount = start))
+            repository.addEntry(cd.id, DebtEntry(id = System.currentTimeMillis(), amount = amount, balance = balance, date = date))
+        }
         newEntrySheetOpen = false
     }
 
