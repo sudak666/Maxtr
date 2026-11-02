@@ -216,7 +216,7 @@
     <string name="auth_email">Email</string>
     <string name="auth_show_password">Показати пароль</string>
     <string name="auth_hide_password">Сховати пароль</string>
-    <string name="auth_password_hint">Мінімум 6 символів</string>
+    <string name="auth_password_hint">Мінімум 8 символів</string>
     <string name="auth_sign_in">Увійти</string>
     <string name="auth_register">Зареєструватися</string>
     <string name="auth_forgot_password">Забули пароль?</string>
@@ -261,7 +261,7 @@
     <string name="auth_error_google_unavailable">Вхід через Google скасовано або недоступний.</string>
     <string name="auth_error_google_token">Помилка обробки облікового запису Google.</string>
     <string name="auth_error_invalid_email">Некоректний email.</string>
-    <string name="auth_error_weak_password">Пароль надто простий (мінімум 6 символів).</string>
+    <string name="auth_error_weak_password">Пароль надто короткий: потрібно щонайменше 8 символів.</string>
     <string name="auth_error_network">Немає з’єднання з мережею. Перевір інтернет і спробуй ще раз.</string>
     <string name="auth_error_reset_email_required">Введи email, щоб скинути пароль.</string>
     <string name="auth_reset_sent">Лист для скидання пароля надіслано.</string>
@@ -685,4 +685,5 @@
     <string name="monobank_card_label">Картка •%1$s · %2$s</string>
     <string name="monobank_into_wallet">у гаманець «%1$s»</string>
     <string name="monobank_balance_note">Під час кожної синхронізації баланс гаманців звіряється з банком: різницю записано як початковий баланс гаманця.</string>
+    <string name="auth_error_password_empty">Введіть пароль.</string>
 </resources>
