@@ -10,12 +10,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import ua.rytm.app.R
@@ -28,11 +30,16 @@ import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.RytmSpacing
 import kotlin.math.abs
-import kotlin.math.floor
 
+/**
+ * The forecast as a sum the user can check line by line: balance now, plus
+ * planned income, minus planned payments, minus usual spending, equals the
+ * month end. Then where usual spending comes from, why shift pay is left out,
+ * and the planned days with the balance after each.
+ */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-fun CashForecastSheet(forecast: CashForecast, onDismiss: () -> Unit) {
+fun CashForecastSheet(forecast: CashForecast, shiftsLeft: Double, onDismiss: () -> Unit) {
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
@@ -44,27 +51,53 @@ fun CashForecastSheet(forecast: CashForecast, onDismiss: () -> Unit) {
                 shape = RoundedCornerShape(RytmRadii.Input),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
             ) {
-                Column(Modifier.padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
-                    val gapDate = forecast.shortfallDate
-                    if (gapDate != null) {
-                        Text(stringResource(R.string.cash_forecast_gap, formatDayMonth(gapDate)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RytmSemantic.warning)
-                        Text(stringResource(R.string.cash_forecast_gap_amount, maskedAmount(formatMoney(forecast.shortfall))), style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        Text(stringResource(R.string.cash_forecast_enough, maskedAmount(formatMoney(floor(forecast.endBalance)))), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Column(Modifier.padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                    SumLine(stringResource(R.string.cash_forecast_now), formatMoney(forecast.startBalance), stringResource(R.string.cash_forecast_now_hint))
+                    if (forecast.plannedIn > 0) SumLine(stringResource(R.string.cash_forecast_in), "+" + formatMoney(forecast.plannedIn), color = RytmSemantic.signed(1.0))
+                    if (forecast.plannedOut > 0) SumLine(stringResource(R.string.cash_forecast_out), "−" + formatMoney(forecast.plannedOut), color = RytmSemantic.signed(-1.0))
+                    forecast.habit?.let { habit ->
+                        SumLine(
+                            stringResource(R.string.cash_forecast_habit),
+                            "−" + formatMoney(forecast.unplannedSpend),
+                            stringResource(R.string.cash_forecast_habit_hint, formatMoney(habit.perDay), forecast.unplannedDays),
+                            color = RytmSemantic.signed(-1.0),
+                        )
                     }
-                    Text(
-                        forecast.dailySpend?.let {
-                            stringResource(R.string.cash_forecast_daily, maskedAmount(formatMoney(floor(it))), maskedAmount(formatMoney(floor(forecast.unplannedSpend))), formatDayMonth(forecast.end))
-                        } ?: stringResource(R.string.cash_forecast_no_history),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    val endColor = if (forecast.endBalance < 0) RytmSemantic.warning else MaterialTheme.colorScheme.onSurface
+                    SumLine(stringResource(R.string.cash_forecast_end, formatDayMonth(forecast.end)), signedMoney(forecast.endBalance), color = endColor, bold = true)
+                    val gapDate = forecast.shortfallDate
+                    val lowestDate = forecast.lowestDate
+                    if (gapDate != null && lowestDate != null) {
+                        Text(stringResource(R.string.cash_forecast_gap, formatDayMonth(gapDate)), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = RytmSemantic.warning)
+                        Text(stringResource(R.string.cash_forecast_lowest, maskedAmount(formatMoney(forecast.shortfall)), formatDayMonth(lowestDate)), style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        Text(stringResource(R.string.cash_forecast_enough), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-            Text(stringResource(R.string.cash_forecast_events), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            if (forecast.events.isEmpty()) {
-                Text(stringResource(R.string.cash_forecast_no_events), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Text(stringResource(R.string.cash_forecast_habit_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            val habit = forecast.habit
+            if (habit == null) {
+                Explain(stringResource(R.string.cash_forecast_no_history))
+            } else {
+                Explain(stringResource(R.string.cash_forecast_habit_explain, habit.windowDays, habit.droppedDays))
+                if (habit.topCategories.isNotEmpty()) {
+                    val parts = mutableListOf<String>()
+                    habit.topCategories.forEach { (category, sum) -> parts += localizedDomainText(category) + " " + maskedAmount(formatMoney(sum) + " ₴") }
+                    val top = parts.joinToString(" · ")
+                    Explain(stringResource(R.string.cash_forecast_habit_top, top))
+                }
             }
+
+            if (shiftsLeft > 0) {
+                Text(stringResource(R.string.cash_forecast_shifts_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Explain(stringResource(R.string.cash_forecast_shifts, maskedAmount(formatMoney(shiftsLeft))))
+            }
+
+            Text(stringResource(R.string.cash_forecast_events), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            if (forecast.events.isEmpty()) Explain(stringResource(R.string.cash_forecast_no_events))
             forecast.events.forEach { event ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
@@ -78,7 +111,24 @@ fun CashForecastSheet(forecast: CashForecast, onDismiss: () -> Unit) {
                     }
                 }
             }
-            Text(stringResource(R.string.cash_forecast_note), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = RytmSpacing.xs))
+            if (forecast.events.isNotEmpty() && forecast.habit != null) Explain(stringResource(R.string.cash_forecast_after_hint))
+            Explain(stringResource(R.string.cash_forecast_note))
         }
     }
+}
+
+@Composable
+private fun SumLine(label: String, amount: String, hint: String? = null, color: Color = Color.Unspecified, bold: Boolean = false) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+        Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
+            Text(label, style = if (bold) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium, fontWeight = if (bold) FontWeight.Bold else null)
+            hint?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+        Text(maskedAmount("$amount ₴"), style = if (bold) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+@Composable
+private fun Explain(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

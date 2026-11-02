@@ -601,10 +601,6 @@ class FinanceViewModel(
     /** Money for everyday spending: a deposit is set aside and a credit line is not yours, so neither feeds the daily allowance. */
     val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
-    /** Daily allowance until month end (FinanceInsights.safeToSpendPerDay); null = bills exceed the balance. */
-    val safeToSpendPerDay: Double?
-        get() = FinanceInsights.safeToSpendPerDay(spendableBalanceUah, monthOutlook.recurringOut, today)
-
     val cashForecast: CashForecast by derivedStateOf {
         val spendable = wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.map { it.id }.toSet()
         val expenses = transactions.forStats(wallets).filter { it.type == TxType.EXPENSE && it.walletId in spendable }
@@ -615,7 +611,7 @@ class FinanceViewModel(
             { id -> wallets.firstOrNull { it.id == id }?.currency },
             today,
             ua.rytm.app.data.FinancialMonth.lastDay(currentMonth),
-            CashForecast.dailySpend(expenses, today, ::toUah, planned),
+            CashForecast.habit(expenses, today, ::toUah, planned),
             ::toUah,
         )
     }

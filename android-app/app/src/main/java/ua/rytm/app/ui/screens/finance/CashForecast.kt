@@ -9,25 +9,49 @@ import kotlin.math.abs
 data class CashEvent(val date: LocalDate, val label: String, val amountUah: Double, val balanceAfter: Double)
 
 /**
- * The balance day by day until the month's last day [end]. [dailySpend] is null
- * with too little history; then only planned events count.
- * [shortfallDate] is the first day below zero, [shortfall] the deepest gap.
- * Shift pay stays out on purpose, as in safeToSpendPerDay: it often lands next month.
+ * Usual unplanned spending, as the sheet explains it: [perDay] is the average
+ * over [windowDays] days with the [droppedDays] biggest days left out;
+ * [topCategories] are the categories behind it, biggest first, in UAH over the
+ * kept days.
+ */
+data class SpendingHabit(
+    val perDay: Double,
+    val windowDays: Int,
+    val droppedDays: Int,
+    val topCategories: List<Pair<String, Double>> = emptyList(),
+)
+
+/**
+ * The balance day by day until the month's last day [end], built so the sheet
+ * can show it as a sum: [startBalance] + [plannedIn] − [plannedOut] −
+ * [unplannedSpend] = [endBalance]. [habit] is null with too little history;
+ * then only planned events count. [shortfallDate] is the first day below zero,
+ * [shortfall] the deepest gap, reached on [lowestDate].
+ * Shift pay stays out on purpose: it arrives as the salary, which the user
+ * enters as a recurring income, so counting both would count it twice.
  */
 data class CashForecast(
     val end: LocalDate,
-    val dailySpend: Double?,
-    /** [dailySpend] times the days left after today. */
+    val startBalance: Double,
+    val habit: SpendingHabit?,
+    val plannedIn: Double,
+    val plannedOut: Double,
+    /** [SpendingHabit.perDay] times [unplannedDays], the days left after today. */
     val unplannedSpend: Double,
+    val unplannedDays: Int,
     val events: List<CashEvent>,
     val endBalance: Double,
     val shortfallDate: LocalDate?,
     val shortfall: Double,
+    val lowestDate: LocalDate?,
 ) {
+    val dailySpend: Double? get() = habit?.perDay
+
     companion object {
         private const val WINDOW_DAYS = 60L
         private const val MIN_HISTORY_DAYS = 14L
         private const val GUARD = 62
+        private const val TOP_CATEGORIES = 3
         private const val RECURRING_MARK = "повторювана"
 
         fun compute(
@@ -36,7 +60,7 @@ data class CashForecast(
             currency: (String) -> String?,
             today: LocalDate,
             end: LocalDate,
-            dailySpend: Double?,
+            habit: SpendingHabit?,
             toUah: (Double, String) -> Double,
         ): CashForecast {
             val planned = recurring.filter { it.active && it.amount > 0 && it.type != TxType.TRANSFER }.flatMap { r ->
@@ -53,24 +77,39 @@ data class CashForecast(
                 }
             }.groupBy { it.first }
 
+            val daily = habit?.perDay ?: 0.0
             val events = mutableListOf<CashEvent>()
             var balance = balanceUah
             var lowest = 0.0
+            var lowestDate: LocalDate? = null
             var shortfallDate: LocalDate? = null
             var day = today
             while (!day.isAfter(end)) {
                 // Today's spending is already in the balance, or still unknown.
-                if (day != today) balance -= dailySpend ?: 0.0
+                if (day != today) balance -= daily
                 planned[day].orEmpty().forEach { (date, label, amount) ->
                     balance += amount
                     events += CashEvent(date, label, amount, balance)
                 }
                 if (balance < 0 && shortfallDate == null) shortfallDate = day
-                lowest = minOf(lowest, balance)
+                if (balance < lowest) { lowest = balance; lowestDate = day }
                 day = day.plusDays(1)
             }
-            val unplanned = (dailySpend ?: 0.0) * ChronoUnit.DAYS.between(today, end).coerceAtLeast(0)
-            return CashForecast(end, dailySpend, unplanned, events, balance, shortfallDate, -lowest)
+            val days = ChronoUnit.DAYS.between(today, end).coerceAtLeast(0).toInt()
+            return CashForecast(
+                end = end,
+                startBalance = balanceUah,
+                habit = habit,
+                plannedIn = events.filter { it.amountUah > 0 }.sumOf { it.amountUah },
+                plannedOut = -events.filter { it.amountUah < 0 }.sumOf { it.amountUah },
+                unplannedSpend = daily * days,
+                unplannedDays = days,
+                events = events,
+                endBalance = balance,
+                shortfallDate = shortfallDate,
+                shortfall = -lowest,
+                lowestDate = lowestDate,
+            )
         }
 
         /** The category, as in the history list, plus the user's own note. */
@@ -91,7 +130,7 @@ data class CashForecast(
          * expenses that repeat one of [planned] are left out, since they are
          * already planned events.
          */
-        fun dailySpend(expenses: List<Transaction>, today: LocalDate, toUah: (Double, String) -> Double, planned: List<Recurring> = emptyList()): Double? {
+        fun habit(expenses: List<Transaction>, today: LocalDate, toUah: (Double, String) -> Double, planned: List<Recurring> = emptyList()): SpendingHabit? {
             val active = planned.filter { it.active && it.amount > 0 }
             val parsed = expenses.mapNotNull { t -> runCatching { LocalDate.parse(t.date.take(10)) }.getOrNull()?.let { it to t } }
             val first = parsed.minOfOrNull { it.first } ?: return null
@@ -99,11 +138,23 @@ data class CashForecast(
             if (days < MIN_HISTORY_DAYS) return null
             val from = today.minusDays(days)
             val byDay = parsed.filter { !it.first.isBefore(from) && it.first.isBefore(today) && !it.second.id.startsWith("rec_") && !repeatsPlanned(it.second, active) }
-                .groupBy({ it.first }, { toUah(it.second.amount, it.second.currency) })
+                .groupBy({ it.first }, { it.second })
+            val totals = byDay.mapValues { (_, txs) -> txs.sumOf { toUah(it.amount, it.currency) } }
+            val dropCount = (days / 10).toInt()
+            // Quiet days are zero and never among the dropped ones.
+            val dropped = totals.entries.sortedByDescending { it.value }.take(dropCount).map { it.key }.toSet()
+            val keptDays = byDay.filterKeys { it !in dropped }
+            val keptSum = keptDays.keys.sumOf { totals.getValue(it) }
+            val top = keptDays.values.flatten()
+                .groupBy({ it.category }, { toUah(it.amount, it.currency) })
                 .mapValues { it.value.sum() }
-            val all = byDay.values + List((days - byDay.size).toInt()) { 0.0 }
-            val kept = all.sorted().dropLast((days / 10).toInt())
-            return kept.sum() / kept.size
+                .entries.sortedByDescending { it.value }.take(TOP_CATEGORIES).map { it.key to it.value }
+            // Whole kopecks, so the sheet's sum adds up to the last digit.
+            val perDay = kotlin.math.round(keptSum / (days - dropCount) * 100) / 100
+            return SpendingHabit(perDay, days.toInt(), dropCount, top)
         }
+
+        fun dailySpend(expenses: List<Transaction>, today: LocalDate, toUah: (Double, String) -> Double, planned: List<Recurring> = emptyList()): Double? =
+            habit(expenses, today, toUah, planned)?.perDay
     }
 }
