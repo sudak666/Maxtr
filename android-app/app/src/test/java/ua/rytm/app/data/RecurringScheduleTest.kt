@@ -23,4 +23,13 @@ class RecurringScheduleTest {
         assertEquals("2026-03-01", nextRecurringDate(LocalDate.parse("2026-02-28"), "daily", null).toString())
         assertEquals("2027-01-05", nextRecurringDate(LocalDate.parse("2026-12-29"), "weekly", null).toString())
     }
+
+    // A start date in the past jumps forward instead of adding every missed month.
+    @Test fun pastStartMovesToFirstDueFromToday() {
+        val today = LocalDate.parse("2026-11-02")
+        assertEquals("2026-11-03", firstDueFrom(LocalDate.parse("2026-07-03"), "monthly", 3, today).toString())
+        assertEquals("2026-11-02", firstDueFrom(LocalDate.parse("2026-11-02"), "monthly", 2, today).toString())
+        assertEquals("2026-12-01", firstDueFrom(LocalDate.parse("2026-12-01"), "monthly", 1, today).toString())
+        assertEquals("2026-11-05", firstDueFrom(LocalDate.parse("2026-10-22"), "weekly", null, today).toString())
+    }
 }

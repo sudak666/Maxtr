@@ -18,3 +18,16 @@ internal fun nextRecurringDate(date: LocalDate, frequency: String, anchorDay: In
         month.atDay(minOf(anchorDay?.takeIf { it in 1..31 } ?: date.dayOfMonth, month.lengthOfMonth()))
     }
 }
+
+/**
+ * A start date the user picks in the past moves to its first occurrence from
+ * [today] on. Otherwise the app would add every missed one at once (four
+ * "Продукти" back to July, 2026-11-02). Catch-up after the app was closed is
+ * unaffected: it runs from a stored date, not through here.
+ */
+internal fun firstDueFrom(date: LocalDate, frequency: String, anchorDay: Int?, today: LocalDate): LocalDate {
+    var d = date
+    var guard = 0
+    while (d.isBefore(today) && guard < 1000) { d = nextRecurringDate(d, frequency, anchorDay); guard++ }
+    return d
+}

@@ -201,8 +201,7 @@
     <string name="sync_write_rejected">Сервер не прийняв зміну. Дані оновляться з хмари</string>
     <string name="shift_types_title">Типи змін</string><string name="shift_types_body">Оплата, тривалість і колір кожного типу зміни для календаря.</string>
     <string name="shift_types_empty">Немає типів змін</string>
-    <string name="shift_type_new_default">Нова зміна</string>
-    <string name="shift_type_add">Додати тип зміни</string>
+        <string name="shift_type_add">Додати тип зміни</string>
     <string name="shift_type_delete_title">Видалити тип зміни</string>
     <string name="shift_type_delete_body">Видалити цей тип зміни? Він буде знятий з усіх днів календаря.</string>
     <string name="shift_day_off">Вихідний</string>
@@ -680,4 +679,8 @@
     <string name="cash_forecast_no_events">Регулярних платежів до кінця місяця немає.</string>
     <string name="cash_forecast_after">залишок %1$s ₴</string>
     <string name="cash_forecast_note">Кінець місяця задано в налаштуваннях.</string>
+    <string name="recurring_first_date">Перший платіж</string>
+    <string name="recurring_comment">Назва (необов’язково)</string>
+    <string name="recurring_create_hint">Якщо дата вже минула, перший платіж буде в наступну таку дату: заднім числом нічого не додається.</string>
+    <string name="goals_create_hint">Прогрес рахується за балансом обраного гаманця.</string>
 </resources>

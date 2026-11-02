@@ -137,10 +137,40 @@ fun ShiftTypesManagerContent(viewModel: ShiftTypesManagerViewModel, showTitle: B
             )
         }
 
-        val newShiftName = stringResource(R.string.shift_type_new_default)
-        androidx.compose.material3.Button(onClick = { viewModel.addShiftType(newShiftName) }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
+        var createOpen by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+        androidx.compose.material3.Button(onClick = { createOpen = true }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
             Icon(RytmIcons.Add, contentDescription = null)
             Text(stringResource(R.string.shift_type_add))
+        }
+        if (createOpen) {
+            var name by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+            var payText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+            var hoursText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("8") }
+            var isOff by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+            val pay = if (payText.isBlank()) 0.0 else ua.rytm.app.ui.screens.finance.parseMoneyInput(payText)
+            val hours = ua.rytm.app.ui.screens.finance.parseMoneyInput(hoursText)
+            val canCreate = name.isNotBlank() && (isOff || (pay != null && hours != null && hours > 0))
+            ua.rytm.app.ui.components.RytmCreateDialog(
+                title = stringResource(R.string.shift_type_add),
+                canCreate = canCreate,
+                onCreate = { if (canCreate) { viewModel.addShiftType(name, pay ?: 0.0, hours ?: 0.0, isOff); createOpen = false } },
+                onDismiss = { createOpen = false },
+            ) {
+                androidx.compose.material3.OutlinedTextField(name, { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.fillMaxWidth())
+                Row(
+                    Modifier.fillMaxWidth().toggleable(value = isOff, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { isOff = it }),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.shift_day_off), modifier = Modifier.weight(1f))
+                    androidx.compose.material3.Switch(checked = isOff, onCheckedChange = null)
+                }
+                if (!isOff) {
+                    androidx.compose.material3.OutlinedTextField(payText, { payText = it }, singleLine = true, isError = pay == null, label = { Text(stringResource(R.string.shift_pay)) },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+                    androidx.compose.material3.OutlinedTextField(hoursText, { hoursText = it }, singleLine = true, isError = hours == null, label = { Text(stringResource(R.string.shift_hours)) },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+                }
+            }
         }
     }
 

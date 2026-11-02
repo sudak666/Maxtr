@@ -72,9 +72,9 @@ class RecurringManagerViewModel(
 
     private val addThrottle = TapThrottle()
 
-    fun addRecurring() {
+    fun addRecurring(type: TxType, amount: Double, category: String, walletId: String, frequency: String, startDate: java.time.LocalDate, comment: String) {
         if (!addThrottle.allow()) return
-        mutateAndSync { repository.addRecurring() }
+        mutateAndSync { repository.addRecurring(type, amount, category, walletId, frequency, startDate, comment) }
     }
 
     fun updateType(r: Recurring, type: TxType) {

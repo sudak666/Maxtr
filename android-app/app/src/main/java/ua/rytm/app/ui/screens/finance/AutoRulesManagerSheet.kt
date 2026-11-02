@@ -67,6 +67,7 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var saving by rememberSaveable { mutableStateOf(false) }
     var errorVisible by rememberSaveable { mutableStateOf(false) }
+    var createOpen by rememberSaveable { mutableStateOf(false) }
     // App scope + a mutex: edits are serialized instead of dropped while a save is
     // in flight, and a save started as the sheet closes still completes.
     val appScope = (androidx.compose.ui.platform.LocalContext.current.applicationContext as ua.rytm.app.RytmApplication).appScope
@@ -113,10 +114,27 @@ fun AutoRulesManagerSheet(repository: FinanceRepository, sync: AutoRulesSyncRepo
                 }
                 }
             }
-            Button(onClick = { persist { expandedId = repository.addAutoRule().id } }, enabled = !saving, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row)) {
+            Button(onClick = { createOpen = true }, enabled = !saving, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row)) {
                 Icon(RytmIcons.Add, null); Text(stringResource(R.string.auto_rules_add))
             }
             ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss, enabled = !saving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
+        }
+    }
+    if (createOpen) {
+        var type by rememberSaveable { mutableStateOf("expense") }
+        var keyword by rememberSaveable { mutableStateOf("") }
+        var category by rememberSaveable { mutableStateOf("") }
+        val options = categories[if (type == "income") TxType.INCOME else TxType.EXPENSE].orEmpty()
+        val canCreate = keyword.isNotBlank() && category in options
+        ua.rytm.app.ui.components.RytmCreateDialog(
+            title = stringResource(R.string.auto_rules_add),
+            canCreate = canCreate,
+            onCreate = { if (canCreate) { persist { repository.addAutoRule(type, keyword, category) }; createOpen = false } },
+            onDismiss = { createOpen = false },
+        ) {
+            RuleDropdown(R.string.tx_type, listOf("expense", "income"), type, true) { if (it != type) { type = it; category = "" } }
+            OutlinedTextField(keyword, { keyword = it }, label = { Text(stringResource(R.string.auto_rules_keyword)) }, placeholder = { Text(stringResource(R.string.auto_rules_example)) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            RuleDropdown(R.string.tx_category, options, category, false) { category = it }
         }
     }
     pendingDelete?.let { id ->

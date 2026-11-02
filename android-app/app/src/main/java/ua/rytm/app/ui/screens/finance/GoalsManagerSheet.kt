@@ -88,6 +88,7 @@ fun GoalsManagerSheet(
     ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var createOpen by rememberSaveable { mutableStateOf(false) }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -123,7 +124,7 @@ fun GoalsManagerSheet(
             }
 
             Button(
-                onClick = viewModel::addGoal,
+                onClick = { createOpen = true },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving,
                 shape = RoundedCornerShape(RytmRadii.Row),
@@ -133,6 +134,39 @@ fun GoalsManagerSheet(
                 androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
                 Text(stringResource(R.string.goals_add))
             }
+        }
+    }
+
+    if (createOpen) {
+        var walletId by rememberSaveable { mutableStateOf(viewModel.wallets.singleOrNull()?.id.orEmpty()) }
+        var amountText by rememberSaveable { mutableStateOf("") }
+        var dateText by rememberSaveable { mutableStateOf("") }
+        val amount = ua.rytm.app.ui.screens.finance.parseMoneyInput(amountText)
+        val canCreate = viewModel.wallets.any { it.id == walletId } && amount != null && amount > 0
+        ua.rytm.app.ui.components.RytmCreateDialog(
+            title = stringResource(R.string.goals_add),
+            canCreate = canCreate,
+            onCreate = { if (canCreate) { viewModel.addGoal(walletId, amount!!, dateText); createOpen = false } },
+            onDismiss = { createOpen = false },
+        ) {
+            GoalWalletDropdown(wallets = viewModel.wallets, selectedId = walletId, onSelect = { walletId = it })
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = { amountText = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = amountText.isNotBlank() && amount == null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                label = { Text(stringResource(R.string.goals_target_amount)) },
+            )
+            OutlinedTextField(
+                value = dateText,
+                onValueChange = { dateText = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(stringResource(R.string.goals_target_date)) },
+            )
+            Text(stringResource(R.string.goals_create_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 
