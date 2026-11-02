@@ -657,6 +657,7 @@
     <string name="cash_forecast_habit_explain">Average over the last %1$d days. The %2$d priciest days (one-off buys) and recurring payments are left out: those are above already.</string>
     <string name="cash_forecast_habit_top">Most of it: %1$s</string>
     <string name="cash_forecast_shifts_title">Shifts</string>
+    <string name="cash_forecast_shifts_paid">Shifts until month end bring ≈ %1$s ₴ more. Not added separately: that money arrives as your salary, which is already in recurring income.</string>
     <string name="cash_forecast_shifts">Shifts until month end bring ≈ %1$s ₴ more. Not in the forecast: shift pay arrives as your salary. Add the salary as recurring income and it counts here.</string>
     <string name="cash_forecast_after_hint">The balance already includes usual spending up to that day.</string>
     <string name="cash_forecast_title">Money forecast</string>
