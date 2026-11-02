@@ -1,4 +1,5 @@
 package ua.rytm.app.ui.screens
+import androidx.compose.foundation.selection.toggleable
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.pressScale
@@ -631,6 +632,12 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     var balance by rememberSaveable { mutableStateOf("") }
     var date by rememberSaveable { mutableStateOf(todayLabel()) }
     var submitted by rememberSaveable { mutableStateOf(false) }
+    // On by default: a repayment is also money leaving (or reaching) a wallet,
+    // and recording it twice by hand is what the owner asked to drop.
+    var alsoInFinance by rememberSaveable { mutableStateOf(true) }
+    val app = ua.rytm.app.ui.rytmApp()
+    val financeComment = stringResource(if (cd.owedToMe) R.string.debt_finance_comment_owed else R.string.debt_finance_comment_owe, cd.name)
+    val financeCategory = stringResource(R.string.debt_finance_category)
     // Per-field validation, marked on the field itself: the sheet used to
     // accept anything and only report a problem after the save round-trip.
     val amountInvalid = submitted && parsePlainDebtAmount(amount) == null
@@ -669,6 +676,16 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 label = { Text(stringResource(R.string.debt_new_balance)) },
             )
             DatePickerField(value = date, onValueChange = { date = it }, label = stringResource(R.string.date_label), modifier = Modifier.fillMaxWidth(), allowEmpty = false)
+            Row(
+                Modifier.fillMaxWidth().toggleable(value = alsoInFinance, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { alsoInFinance = it }),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
+                    Text(stringResource(R.string.debt_also_finance), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(if (cd.owedToMe) R.string.debt_also_finance_hint_owed else R.string.debt_also_finance_hint_owe), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                androidx.compose.material3.Switch(checked = alsoInFinance, onCheckedChange = null)
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                 // Neither button set an explicit shape, so both fell back
                 // to M3's own hardcoded "full" (pill) default instead of
@@ -685,7 +702,19 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 Button(
                     onClick = {
                         submitted = true
-                        if (parsePlainDebtAmount(amount) != null) viewModel.addEntry(amount, balance, date)
+                        val paid = parsePlainDebtAmount(amount)
+                        if (paid != null) {
+                            viewModel.addEntry(amount, balance, date)
+                            // The sheet closes only when the entry was accepted.
+                            if (alsoInFinance && !viewModel.newEntrySheetOpen) {
+                                // Opens Finance's form filled in; nothing is saved until the user confirms there.
+                                app.pendingPrefill.value = ua.rytm.app.bank.TxPrefill(
+                                    isIncome = cd.owedToMe, amount = paid, currency = cd.currency,
+                                    comment = financeComment, category = financeCategory,
+                                )
+                                app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION
+                            }
+                        }
                     },
                     enabled = !viewModel.saving,
                     shape = RoundedCornerShape(RytmRadii.Row),

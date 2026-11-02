@@ -402,10 +402,14 @@ class FinanceViewModel(
             ?: lastUsedWallet() ?: wallets.firstOrNull())?.id.orEmpty()
         val targetId = (walletForCard(prefill?.targetAccount, prefill?.targetBank)?.takeIf { it.id != walletId }
             ?: wallets.firstOrNull { it.id != walletId } ?: wallets.getOrNull(1))?.id.orEmpty()
-        val amount = prefill?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
+        // An amount in another currency than the wallet (a debt in USD paid
+        // from a UAH card) is left blank: the user types what really left the card.
+        val walletCurrency = wallets.firstOrNull { it.id == walletId }?.currency
+        val amount = prefill?.takeIf { it.currency == walletCurrency }?.let { java.math.BigDecimal.valueOf(it.amount).stripTrailingZeros().toPlainString() }.orEmpty()
         form.openNew(txType, walletId, targetId, amount)
         // Through the normal setter so keyword auto-rules pick the category.
         prefill?.comment?.let { form.onCommentChange(it) }
+        prefill?.category?.takeIf { c -> categoriesByType[txType].orEmpty().contains(c) }?.let { form.onCategoryChange(it) }
     }
 
     private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? =
