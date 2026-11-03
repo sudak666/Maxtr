@@ -1,5 +1,7 @@
 # Changelog
 
+- **Owner's Premium grant confirmed on the Play build (2026-11-03)** — owner on 2.7.9 (vc47) from Play: the Premium dialog shows the active state. In vc47 the gate is on and the cache starts false (older builds never set it), so this is the server's `PREMIUM_GRANT_EMAILS` answer. Activating the `rytm_premium` plans/offers is the owner's click: auto mode blocks the agent from it (real-world transaction).
+
 - **Premium dialog text (2026-11-03)** — owner's screenshot: with Premium on, the dialog said «Усе це зараз доступно безкоштовно» (written while the gate was off); with the gate on it would tell a paying subscriber it is free. `premium_active` now «Преміум активний, усе нижче відкрито» / «Premium is active, everything below is unlocked». Not in the vc47 AAB.
 
 - **2.7.9 (vc47) AAB built (2026-11-03)** — after the owner's testing hold was lifted. From `main` @ `4fbddf9`: #732 (calm forecast button, compact category filter, calculator result in the field, rounded balance tap), #733 (round donut ends, no «+0%» growth), #735 (Premium checked on the server, gate on in release). `bundleRelease testDebugUnitTest` green (`clean` failed on a locked file on Windows, rebuilt without it), upload key SHA-256 7C:A2:AF:88:… verified, Desktop `Rytm-2.7.9-vc47.aab`; next bump vc48. Release build not run on a device: the owner's free Premium on the Play build and a real purchase are still unchecked; activate the `rytm_premium` plans when this build is live.
