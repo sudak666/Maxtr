@@ -4,6 +4,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import android.app.Application
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
@@ -92,7 +93,8 @@ class RytmApplication : Application() {
             .debounce(1500)
             .onEach { runCatching { ua.rytm.app.widget.RytmWidget.refresh(this) } }
             .launchIn(appScope)
-        kotlinx.coroutines.flow.flow { emit(runCatching { premiumRepository.refresh() }) }.launchIn(appScope)
+        // Each sign-in (and sign-out) asks again: Premium belongs to the account, not the device.
+        auth.distinctUntilChanged().onEach { runCatching { premiumRepository.refresh() } }.launchIn(appScope)
         settingsStore.financialMonthStart.onEach { ua.rytm.app.data.FinancialMonth.startDay = it }.launchIn(appScope)
     }
 

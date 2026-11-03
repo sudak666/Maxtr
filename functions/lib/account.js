@@ -53,6 +53,7 @@ async function deleteAccountData(db, uid) {
   await Promise.all([
     ...invites.docs.map((/** @type {any} */ d) => d.ref.delete()),
     db.doc(`push_tokens/${uid}`).delete(),
+    db.doc(`entitlements/${uid}`).delete(),
     db.doc(`error_reports/${uid}`).delete(),
   ]);
   return { keepAuth };
