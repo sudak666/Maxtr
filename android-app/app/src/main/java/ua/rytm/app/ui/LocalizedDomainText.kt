@@ -48,7 +48,10 @@ fun builtInTextResource(value: String): Int? = when (value) {
 }
 
 @Composable
-fun localizedDomainText(value: String): String = builtInTextResource(value)?.let { stringResource(it) } ?: value
+fun localizedDomainText(value: String): String = builtInTextResource(value)?.let { stringResource(it) }
+    ?: ua.rytm.app.data.PresetCategories.englishName(value)
+        ?.takeIf { androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language == "en" }
+    ?: value
 
 /**
  * Calendar token for a shift type. Built-in types carry Cyrillic codes on the

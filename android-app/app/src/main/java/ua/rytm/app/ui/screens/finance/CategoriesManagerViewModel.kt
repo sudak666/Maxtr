@@ -156,6 +156,18 @@ class CategoriesManagerViewModel(
         }
     }
 
+    /** How many preset entries the last «add ready-made set» added; null until used. */
+    var presetsAdded by mutableStateOf<Int?>(null)
+        private set
+
+    fun addPresets() {
+        mutateAndSync(syncRepository::saveCategoriesAndSubcategoriesSnapshot) {
+            val added = repository.mergePresetCategories()
+            presetsAdded = added
+            added > 0
+        }
+    }
+
     fun deleteCategory(id: String) {
         mutateAndSync(syncRepository::saveAllCategorySnapshots) {
             repository.deleteCategory(id)

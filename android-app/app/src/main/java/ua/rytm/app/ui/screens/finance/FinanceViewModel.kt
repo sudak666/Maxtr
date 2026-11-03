@@ -52,6 +52,8 @@ class FinanceViewModel(
     shiftOutlookFlow: kotlinx.coroutines.flow.Flow<ShiftOutlook> = kotlinx.coroutines.flow.flowOf(ShiftOutlook()),
     private val recurringSync: ua.rytm.app.data.RecurringSyncRepository? = null,
     private val settingsStore: ua.rytm.app.data.local.SettingsStore? = null,
+    private val categoriesSync: ua.rytm.app.data.CategoriesSyncRepository? = null,
+    private val tagsSync: ua.rytm.app.data.TagsSyncRepository? = null,
 ) : ViewModel() {
 
     companion object {
@@ -81,6 +83,8 @@ class FinanceViewModel(
                     },
                     app.recurringSyncRepository,
                     app.settingsStore,
+                    app.categoriesSyncRepository,
+                    app.tagsSyncRepository,
                 )
             }
         }
@@ -133,6 +137,24 @@ class FinanceViewModel(
      * (matches the recap card), the month so far after that; the sheet's
      * arrows move it. */
     var cashForecastOpen by mutableStateOf(false)
+    var capitalOpen by mutableStateOf(false)
+
+    /** Capital at the end of each day of the last [days] days (null = since the first entry). */
+    fun capitalSeries(days: Long?): List<CapitalHistory.Point> {
+        val first = transactions.minOfOrNull { it.date }?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: today
+        val from = days?.let { today.minusDays(it - 1) } ?: first
+        return CapitalHistory.series(wallets, transactions, minOf(from, today), today, ::toUah)
+    }
+
+    /** Wallet name -> share of today's capital. */
+    val capitalByWallet: List<CapitalHistory.Share> by derivedStateOf {
+        CapitalHistory.shares(wallets.filter { it.inCapital }.map { w -> w.name to toUah(walletBalance(w.id), w.currency) })
+    }
+
+    /** Currency code -> share of today's capital. */
+    val capitalByCurrency: List<CapitalHistory.Share> by derivedStateOf {
+        CapitalHistory.shares(wallets.filter { it.inCapital }.map { w -> w.currency to toUah(walletBalance(w.id), w.currency) })
+    }
     var summaryMonth by mutableStateOf(YearMonth.now())
         private set
     val shownMonthSummary: MonthSummary by derivedStateOf {
@@ -231,8 +253,30 @@ class FinanceViewModel(
     fun onSearchChange(value: String) { search = value }
     fun clearSearch() { search = "" }
     fun onTypeFilterChange(value: TxTypeFilter) { typeFilter = value }
-    fun onPeriodFilterChange(value: PeriodFilter) { periodFilter = value }
+    fun onPeriodFilterChange(value: PeriodFilter) {
+        periodFilter = value
+        // A period chip replaces a custom range from the filters sheet.
+        if (historyFilter.hasRange) historyFilter = historyFilter.copy(from = null, to = null)
+    }
     fun clearCategoryFilter() { categoryFilter = null }
+    var historyFilter by mutableStateOf(HistoryFilter())
+        private set
+    /** Type, category and extras together, from the «Фільтри» sheet. */
+    fun applyFilters(type: TxTypeFilter, category: String?, extra: HistoryFilter) {
+        typeFilter = type
+        categoryFilter = category
+        historyFilter = extra
+        if (extra.hasRange) periodFilter = PeriodFilter.ALL
+    }
+    /** Drops the wallet and amount filters, keeping the rest. */
+    fun clearWalletAmountFilters() { historyFilter = historyFilter.copy(walletId = null, minAmount = null, maxAmount = null) }
+    fun resetFilters() {
+        typeFilter = TxTypeFilter.ALL
+        categoryFilter = null
+        historyFilter = HistoryFilter()
+    }
+    /** Badge on the filters button: everything set beyond the defaults. */
+    val activeFilterCount: Int get() = (if (typeFilter != TxTypeFilter.ALL) 1 else 0) + (if (categoryFilter != null) 1 else 0) + historyFilter.activeCount
     fun toggleListExpanded() { listExpanded = !listExpanded }
 
     fun deleteTransaction(id: String, animationDelayMs: Long = 0L, onComplete: (Boolean) -> Unit = {}) {
@@ -292,7 +336,7 @@ class FinanceViewModel(
     val formSalaryMatch: Pair<Double, Double>?
         get() {
             if (form.type != TxType.INCOME || form.editingTxId != null) return null
-            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: return null
+            val amount = form.amountValue?.takeIf { it > 0 } ?: return null
             val expected = shiftOutlook.lastMonthEarned
             val uah = toUah(amount, formWalletCurrency)
             return if (SalaryAutopilot.matchesExpectedPay(uah, expected)) expected to (uah - expected) else null
@@ -329,7 +373,7 @@ class FinanceViewModel(
         get() {
             if (form.type != TxType.EXPENSE) return null
             val pay = typicalShiftPay?.takeIf { it > 0 } ?: return null
-            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: return null
+            val amount = form.amountValue?.takeIf { it > 0 } ?: return null
             return toUah(amount, formWalletCurrency) / pay
         }
 
@@ -423,6 +467,50 @@ class FinanceViewModel(
     val formSubcategoryOptions: List<String>
         get() = subcategoriesByKey[subKey(form.type.name, form.category.orEmpty())].orEmpty()
 
+    fun subcategoriesOf(type: TxType, category: String): List<String> = subcategoriesByKey[subKey(type.name, category)].orEmpty()
+
+    /**
+     * Adds a category (or, with [parent], a subcategory) from the picker and
+     * puts it straight into the form. An existing name is just selected.
+     */
+    fun createCategoryFromForm(name: String, parent: String? = null) {
+        val clean = name.trim()
+        when (validateCategoryName(clean)) {
+            CategoryNameValidation.EMPTY -> return
+            CategoryNameValidation.TOO_LONG -> { pendingMessage = FinanceMessage(if (parent == null) R.string.category_too_long else R.string.subcategory_too_long); return }
+            CategoryNameValidation.VALID -> Unit
+        }
+        val type = form.type.takeIf { it != TxType.TRANSFER } ?: return
+        if (parent == null) {
+            categoriesByType[type].orEmpty().firstOrNull { it.equals(clean, ignoreCase = true) }?.let { form.onCategoryChange(it); return }
+        } else {
+            subcategoriesOf(type, parent).firstOrNull { it.equals(clean, ignoreCase = true) }?.let { form.onCategoryChange(parent); form.onSubcategoryChange(it); return }
+        }
+        viewModelScope.launch {
+            runCatching {
+                if (parent == null) repository.addCategory(type, clean) else repository.addSubcategory(type, parent, clean)
+                if (parent == null) form.onCategoryChange(clean) else { form.onCategoryChange(parent); form.onSubcategoryChange(clean) }
+                val (ownerUid, profileId) = activeProfilePath()
+                categoriesSync?.saveCategoriesAndSubcategoriesSnapshot(ownerUid, profileId)
+            }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; pendingMessage = FinanceMessage(R.string.categories_sync_failed) }
+        }
+    }
+
+    /** A tag typed in the form: an existing one (any case) is selected, a new one is created and selected. */
+    fun createTagFromForm(name: String) {
+        val clean = name.trim().take(40)
+        if (clean.isEmpty()) return
+        tags.firstOrNull { it.name.equals(clean, ignoreCase = true) }?.let { if (it.id !in form.selectedTagIds) form.toggleTag(it.id); return }
+        viewModelScope.launch {
+            runCatching {
+                val id = repository.addTag(clean, PALETTE[tags.size % PALETTE.size])
+                form.toggleTag(id)
+                val (ownerUid, profileId) = activeProfilePath()
+                tagsSync?.saveTagsSnapshot(ownerUid, profileId)
+            }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; pendingMessage = FinanceMessage(R.string.tags_save_failed) }
+        }
+    }
+
     val formTransferHint: TransferHint?
         get() {
             if (form.type != TxType.TRANSFER) return null
@@ -432,7 +520,7 @@ class FinanceViewModel(
             val targetCur = wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH"
             // Same currency: "1,00 UAH -> 1,00 UAH" says nothing.
             if (srcCur == targetCur) return null
-            val amount = parseMoneyInput(form.amountText)?.takeIf { it > 0 } ?: 1.0
+            val amount = form.amountValue?.takeIf { it > 0 } ?: 1.0
             val converted = convertSample(amount, srcCur, targetCur)
             val sourceText = "${"%.2f".format(amount)} $srcCur"
             val targetText = "${"%.2f".format(converted)} $targetCur"
@@ -450,7 +538,7 @@ class FinanceViewModel(
             if (form.walletId.isBlank()) return null
             val isTransfer = form.type == TxType.TRANSFER
             if (isTransfer && (form.targetWalletId.isBlank() || form.targetWalletId == form.walletId)) return null
-            val amount = parseMoneyInput(form.amountText)?.takeIf { it.isFinite() && it >= 0 } ?: 0.0
+            val amount = form.amountValue?.takeIf { it.isFinite() && it >= 0 } ?: 0.0
             val srcCur = formWalletCurrency
             val targetCur = if (isTransfer) wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH" else null
             val existing = form.editingTxId?.let { id -> transactions.firstOrNull { it.id == id } }
@@ -471,7 +559,7 @@ class FinanceViewModel(
 
     fun submitForm() {
         if (isSaving) return
-        val amount = parseMoneyInput(form.amountText) ?: Double.NaN
+        val amount = form.amountValue ?: Double.NaN
         val isTransfer = form.type == TxType.TRANSFER
         val draft = TransactionDraft(
             amount = amount,
@@ -617,7 +705,7 @@ class FinanceViewModel(
     val monthExpenseUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions.forStats(wallets), TxType.EXPENSE, currentMonth, ::toUah) }
 
     val isSearchOrFilterActive: Boolean
-        get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null
+        get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null || historyFilter.activeCount > 0
 
     /** Mirrors renderFinance()'s filter chain: type -> period -> category -> search -> sort newest-first.
      *  Cached: it used to be a plain getter, re-filtering and re-sorting every row on each read. */
@@ -635,6 +723,7 @@ class FinanceViewModel(
             transactions, typeFilter, periodFilter, categoryFilter, search, today,
             walletName = { id -> wallets.firstOrNull { it.id == id }?.name?.lowercase() ?: "" },
             tagNames = tags.associate { it.id to it.name },
+            extra = historyFilter,
         )
 }
 

@@ -43,6 +43,12 @@ fun subKey(type: String, name: String) = "$type:$name"
 const val SUB_BUDGET_SEPARATOR = " › "
 fun subBudgetKey(category: String, subcategory: String) = "$category$SUB_BUDGET_SEPARATOR$subcategory"
 
+private val ukCollator: java.text.Collator = java.text.Collator.getInstance(java.util.Locale.forLanguageTag("uk"))
+
+/** Alphabetical the Ukrainian way, «Інше» last (Room's byte order put «Інше» first). */
+val categoryOrder: Comparator<CategoryEntity> = compareBy<CategoryEntity> { it.name == BuiltinCategories.OTHER }
+    .thenComparator { a, b -> ukCollator.compare(a.name, b.name) }
+
 // Real persistence backing FinanceViewModel — see ANDROID_MIGRATION.md §2/§7
 // and FINANCE_SCREEN_SPEC.md §8 for what this replaces (the old in-memory
 // SampleFinanceData-only state). seedIfEmpty() uses SampleFinanceData as
@@ -56,12 +62,12 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     /** name -> TxType, per category — mirrors AppState.categories[type] (js/state.js). */
     val categoriesByType: Flow<Map<TxType, List<String>>> = db.categoryDao().observeAll().map { list ->
-        list.groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.name } }
+        list.sortedWith(categoryOrder).groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.name } }
     }
 
     /** id+name pairs, for the manager screen (delete needs the id; the tx form only needs names). */
     val categoryEntriesByType: Flow<Map<TxType, List<Pair<String, String>>>> = db.categoryDao().observeAll().map { list ->
-        list.groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.id to it.name } }
+        list.sortedWith(categoryOrder).groupBy { TxType.valueOf(it.type) }.mapValues { (_, entities) -> entities.map { it.id to it.name } }
     }
 
     /** subKey(type,name) -> subcategory names — mirrors AppState.subcategories (js/core.js's subKey()). */
@@ -105,17 +111,38 @@ class FinanceRepository(private val db: RytmDatabase) {
                 ),
             )
         }
-        if (db.categoryDao().count() == 0) {
-            val income = listOf("Зарплата", "Премія", "Підробіток", "Інше")
-            val expense = listOf("Продукти", "Кафе", "Транспорт", "Покупки", "Комунальні", "Здоров'я", "Розваги", "Інше")
-            db.categoryDao().insertAll(
-                income.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.INCOME.name, it) } +
-                    expense.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.EXPENSE.name, it) },
-            )
-        }
+        if (db.categoryDao().count() == 0) seedPresetCategories()
     }
 
-    /** Exact fresh-profile defaults from js/core.js; deliberately no sample transactions/subcategories. */
+    private suspend fun seedPresetCategories() {
+        db.categoryDao().insertAll(TxType.entries.filter { it != TxType.TRANSFER }.flatMap { type ->
+            PresetCategories.of(type.name).map { CategoryEntity(java.util.UUID.randomUUID().toString(), type.name, it.name) }
+        })
+        db.subcategoryDao().insertAll(presetSubcategories())
+    }
+
+    private fun presetSubcategories(): List<SubcategoryEntity> = TxType.entries.filter { it != TxType.TRANSFER }.flatMap { type ->
+        PresetCategories.of(type.name).flatMap { p -> p.subcategories.map { (sub, _) -> SubcategoryEntity(type.name, p.name, sub) } }
+    }
+
+    /**
+     * Adds whatever of the ready-made set this profile lacks; never renames or
+     * removes anything. Returns how many categories and subcategories were added.
+     */
+    suspend fun mergePresetCategories(): Int = db.withTransaction {
+        val have = db.categoryDao().getAllOnce().map { it.type to it.name }.toSet()
+        val newCategories = TxType.entries.filter { it != TxType.TRANSFER }.flatMap { type ->
+            PresetCategories.of(type.name).filter { (type.name to it.name) !in have }
+                .map { CategoryEntity(java.util.UUID.randomUUID().toString(), type.name, it.name) }
+        }
+        val haveSubs = db.subcategoryDao().getAllOnce().map { Triple(it.categoryType, it.categoryName, it.name) }.toSet()
+        val newSubs = presetSubcategories().filter { Triple(it.categoryType, it.categoryName, it.name) !in haveSubs }
+        db.categoryDao().insertAll(newCategories)
+        db.subcategoryDao().insertAll(newSubs)
+        newCategories.size + newSubs.size
+    }
+
+    /** Fresh-profile defaults: two wallets and the ready-made category set (PresetCategories); no sample transactions. */
     suspend fun seedFreshProfileDefaults() {
         db.walletDao().insertAll(
             listOf(
@@ -123,12 +150,7 @@ class FinanceRepository(private val db: RytmDatabase) {
                 WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
             ),
         )
-        val income = listOf("Зарплата", "Премія", "Підробіток", "Інше")
-        val expense = listOf("Продукти", "Кафе", "Транспорт", "Покупки", "Комунальні", "Здоров'я", "Розваги", "Інше")
-        db.categoryDao().insertAll(
-            income.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.INCOME.name, it) } +
-                expense.map { CategoryEntity(java.util.UUID.randomUUID().toString(), TxType.EXPENSE.name, it) },
-        )
+        seedPresetCategories()
     }
 
     /** Mirrors addCategory()'s duplicate-name guard in js/settings-managers.js. Returns false if the name already exists for that type. */
@@ -231,8 +253,10 @@ class FinanceRepository(private val db: RytmDatabase) {
 
     // Mirrors js/finance.js's addTag() — color picked by rotating PALETTE, same
     // as ShiftTypeDao's own creation convention (no interactive color picker yet).
-    suspend fun addTag(name: String, colorHex: Long) {
-        db.tagDao().insert(TagEntity(id = java.util.UUID.randomUUID().toString(), name = name, colorHex = colorHex))
+    suspend fun addTag(name: String, colorHex: Long): String {
+        val id = java.util.UUID.randomUUID().toString()
+        db.tagDao().insert(TagEntity(id = id, name = name, colorHex = colorHex))
+        return id
     }
 
     suspend fun renameTag(id: String, newName: String, colorHex: Long) {

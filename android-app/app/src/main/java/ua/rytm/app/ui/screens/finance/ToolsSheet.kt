@@ -1,5 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.RytmModalBottomSheet
@@ -92,9 +94,27 @@ fun ToolsSheet(
     repository: FinanceRepository,
     onDismiss: () -> Unit,
     onOpenMonthSummary: (() -> Unit)? = null,
+    /** «До операцій» from a category's statistics: type, category and the period's date range. */
+    onShowTransactions: ((TxType, String, String?, String?) -> Unit)? = null,
     viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(repository)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var detail by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<Pair<String, String>?>(null) }
+    detail?.let { (typeName, category) ->
+        CategoryStatsSheet(
+            vm = viewModel,
+            type = TxType.valueOf(typeName),
+            category = category,
+            onDismiss = { detail = null },
+            onShowTransactions = onShowTransactions?.let { show ->
+                {
+                    val (from, to) = viewModel.periodRange()
+                    detail = null
+                    show(TxType.valueOf(typeName), category, from, to)
+                }
+            },
+        )
+    }
 
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -114,7 +134,7 @@ fun ToolsSheet(
                 }
             }
 
-            AnalyticsSection(viewModel)
+            AnalyticsSection(viewModel) { type, category -> detail = type.name to category }
             FxRatesSection(viewModel)
             ConverterSection(viewModel)
             SixMonthChartSection(viewModel)
@@ -123,7 +143,7 @@ fun ToolsSheet(
 }
 
 @Composable
-private fun AnalyticsSection(vm: ToolsViewModel) {
+private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) -> Unit) {
     val periodLabels = mapOf(AnalyticsPeriod.MONTH to stringResource(R.string.period_month), AnalyticsPeriod.PREV to stringResource(R.string.period_previous), AnalyticsPeriod.M3 to stringResource(R.string.period_three_months), AnalyticsPeriod.ALL to stringResource(R.string.period_all))
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.analytics_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -193,12 +213,12 @@ private fun AnalyticsSection(vm: ToolsViewModel) {
 
         if (expenseByCategory.isNotEmpty()) {
             Text(stringResource(R.string.analytics_expense_categories), style = MaterialTheme.typography.labelLarge)
-            Column { expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) } }
+            Column { expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) { onCategory(TxType.EXPENSE, cat) } } }
         }
         val incomeByCategory = vm.incomeByCategory
         if (incomeByCategory.isNotEmpty()) {
             Text(stringResource(R.string.analytics_income_categories), style = MaterialTheme.typography.labelLarge)
-            Column { incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) } }
+            Column { incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) { onCategory(TxType.INCOME, cat) } } }
         }
         if (expenseByCategory.isEmpty() && incomeByCategory.isEmpty()) {
             Text(stringResource(R.string.analytics_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -311,15 +331,19 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
 }
 
 @Composable
-private fun CategoryBar(category: String, amount: Double, total: Double) {
+private fun CategoryBar(category: String, amount: Double, total: Double, label: String = localizedDomainText(category), onClick: (() -> Unit)? = null) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
     val color = categoryColor(category)
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    Column(
+        Modifier.fillMaxWidth()
+            .then(if (onClick != null) Modifier.clip(androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)).clickable(onClick = onClick) else Modifier)
+            .padding(vertical = 6.dp),
+    ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             CategoryIconBadge(category = category, size = 30.dp)
             Text(
-                localizedDomainText(category),
+                label,
                 modifier = Modifier.padding(start = RytmSpacing.sm).weight(1f),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
@@ -332,6 +356,54 @@ private fun CategoryBar(category: String, amount: Double, total: Double) {
         }
         Box(Modifier.fillMaxWidth().padding(top = 5.dp).height(3.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
             Box(Modifier.fillMaxWidth(progress).height(3.dp).background(color, CircleShape))
+        }
+    }
+}
+
+/** A category in the chosen analytics period: total, change and the split by subcategory. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryStatsSheet(vm: ToolsViewModel, type: TxType, category: String, onDismiss: () -> Unit, onShowTransactions: (() -> Unit)?) {
+    val d = vm.categoryDetail(type, category)
+    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+                CategoryIconBadge(category = category, size = 40.dp)
+                RytmSheetTitle(localizedDomainText(category), modifier = Modifier.weight(1f))
+            }
+            Text(maskedAmount(formatMoney(d.total) + " ₴"), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
+            val prev = d.previous
+            val changeText = when {
+                prev == null || prev <= 0 -> stringResource(R.string.category_stats_no_compare)
+                else -> {
+                    val pct = Math.round((d.total - prev) / prev * 100).toInt()
+                    stringResource(R.string.category_stats_vs_previous, (if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct), maskedAmount(formatMoney(prev) + " ₴"))
+                }
+            }
+            Text(
+                androidx.compose.ui.res.pluralStringResource(R.plurals.finance_records, d.count, d.count) + " · " + changeText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (d.bySubcategory.size > 1 || d.bySubcategory.firstOrNull()?.first != null) {
+                Text(stringResource(R.string.category_stats_by_sub), style = MaterialTheme.typography.labelLarge)
+                Column {
+                    val none = stringResource(R.string.subcategory_none)
+                    d.bySubcategory.forEach { (sub, amt) ->
+                        CategoryBar(category, amt, d.total, label = sub?.let { localizedDomainText(it) } ?: none)
+                    }
+                }
+            }
+            onShowTransactions?.let { show ->
+                androidx.compose.material3.OutlinedButton(
+                    onClick = show,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row),
+                ) { Text(stringResource(R.string.category_stats_show_tx)) }
+            }
         }
     }
 }

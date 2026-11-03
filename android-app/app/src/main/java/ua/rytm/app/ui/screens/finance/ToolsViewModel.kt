@@ -122,6 +122,31 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
             }.maxByOrNull { it.second }
         }
 
+    /** One category in the chosen period: its total, the previous period's, and the split by subcategory (null = none). */
+    data class CategoryDetail(val total: Double, val previous: Double?, val count: Int, val bySubcategory: List<Pair<String?, Double>>)
+
+    fun categoryDetail(type: TxType, category: String): CategoryDetail {
+        val own = periodTransactions().filter { it.type == type && it.category == category }
+        val previous = previousPeriodTransactions()?.filter { it.type == type && it.category == category }?.sumOf { it.inBase() }
+        return CategoryDetail(
+            total = own.sumOf { it.inBase() },
+            previous = previous,
+            count = own.size,
+            bySubcategory = own.groupBy { it.subcategory }.mapValues { (_, txs) -> txs.sumOf { it.inBase() } }.toList().sortedByDescending { it.second },
+        )
+    }
+
+    /** The chosen period as an inclusive ISO date range for the history filter; nulls = all time. */
+    fun periodRange(): Pair<String?, String?> {
+        val now = FinancialMonth.of(LocalDate.now())
+        return when (period) {
+            AnalyticsPeriod.MONTH -> FinancialMonth.firstDay(now).toString() to FinancialMonth.lastDay(now).toString()
+            AnalyticsPeriod.PREV -> FinancialMonth.firstDay(now.minusMonths(1)).toString() to FinancialMonth.lastDay(now.minusMonths(1)).toString()
+            AnalyticsPeriod.M3 -> FinancialMonth.firstDay(now.minusMonths(2)).toString() to FinancialMonth.lastDay(now).toString()
+            AnalyticsPeriod.ALL -> null to null
+        }
+    }
+
     // category -> amount, sorted descending — mirrors byCatAmount()/renderCatList().
     val expenseByCategory: List<Pair<String, Double>>
         get() = periodTransactions().filter { it.type == TxType.EXPENSE }

@@ -192,6 +192,19 @@ private val CAT_ICON: Map<String, ImageVector> = mapOf(
         "Аптека" to RytmIcons.LocalPharmacy,
         "Цигарки" to RytmIcons.SmokingRooms,
         BuiltinCategories.TRANSFER to RytmIcons.SwapHoriz,
+        "Комунальні" to RytmIcons.Home,
+        "Зв'язок і підписки" to RytmIcons.Phone,
+        "Дім і побут" to RytmIcons.Home,
+        "Спорт" to RytmIcons.Bolt,
+        "Освіта" to RytmIcons.Description,
+        "Діти" to RytmIcons.Person,
+        "Тварини" to RytmIcons.Star,
+        "Подорожі" to RytmIcons.Public,
+        "Благодійність" to RytmIcons.CardGiftcard,
+        "Обов'язкові платежі" to RytmIcons.AccountBalance,
+        "Бізнес і ФОП" to RytmIcons.Work,
+        "Пасивний дохід" to RytmIcons.TrendingUp,
+        "Подарунки і допомога" to RytmIcons.CardGiftcard,
     )
 
 // Keyword/substring match, tried after CAT_ICON's exact-name lookup and

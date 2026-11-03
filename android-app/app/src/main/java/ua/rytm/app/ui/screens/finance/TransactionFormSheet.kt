@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -86,6 +87,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.theme.RytmDimens
@@ -150,6 +152,11 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> if (success) cameraUri?.let(::processReceipt) }
 
     var moreOpen by rememberSaveable { mutableStateOf(false) }
+    var categoryPickerOpen by rememberSaveable { mutableStateOf(false) }
+    var amountFocused by remember { mutableStateOf(false) }
+    var tagDialogOpen by rememberSaveable { mutableStateOf(false) }
+    if (categoryPickerOpen && vm.form.type != TxType.TRANSFER) CategoryPickerSheet(vm) { categoryPickerOpen = false }
+    if (tagDialogOpen) NewTagDialog(onDismiss = { tagDialogOpen = false }, onAdd = { vm.createTagFromForm(it); tagDialogOpen = false })
     val openedDate = remember { vm.form.date }
     val showMore = moreOpen || vm.form.editingTxId != null || vm.form.comment.isNotEmpty() ||
         vm.form.selectedTagIds.isNotEmpty() || vm.form.splits.isNotEmpty() || vm.form.date != openedDate ||
@@ -295,9 +302,20 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 LaunchedEffect(Unit) {
                     if (vm.form.editingTxId == null && vm.form.amountText.isEmpty()) runCatching { amountFocus.requestFocus() }
                 }
+                // A TextFieldValue so an operator button leaves the cursor at
+                // the end: with a plain String it stayed put, and «2 × 70»
+                // came out as «270 ×».
+                var amountField by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))) }
+                if (amountField.text != vm.form.amountText) {
+                    amountField = androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
+                }
                 OutlinedTextField(
-                    value = vm.form.amountText,
-                    onValueChange = vm.form::onAmountChange,
+                    value = amountField,
+                    onValueChange = { v ->
+                        vm.form.onAmountChange(v.text)
+                        amountField = if (v.text == vm.form.amountText) v
+                        else androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
+                    },
                     label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
                     placeholder = { Text("0${decimalSeparator}00") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
@@ -306,6 +324,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     // the form, with no field highlighted at all.
                     isError = amountInvalid,
                     supportingText = vm.form.errorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
+                        ?: amountCalcLine(vm.form.amountText, vm.formWalletCurrency)?.let { line -> { Text(line) } }
                         ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } }
                         ?: vm.formSalaryMatch?.let { (expected, diff) ->
                             {
@@ -318,7 +337,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                                 )
                             }
                         },
-                    modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
+                    modifier = Modifier.fillMaxWidth().focusRequester(amountFocus).onFocusChanged { amountFocused = it.isFocused },
                     singleLine = true,
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
@@ -344,22 +363,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         }
                     }
                 }
-                if (categories.isNotEmpty()) {
-                    DropdownField(
-                        label = stringResource(R.string.tx_category),
-                        options = categories,
-                        selected = vm.form.category ?: categories.first(),
-                        onSelect = vm.form::onCategoryChange,
-                    )
-                }
-                if (vm.formSubcategoryOptions.isNotEmpty()) {
-                    DropdownField(
-                        label = stringResource(R.string.transaction_subcategory),
-                        options = listOf("—") + vm.formSubcategoryOptions,
-                        selected = vm.form.subcategory ?: "—",
-                        onSelect = { vm.form.onSubcategoryChange(it.takeIf { s -> s != "—" }) },
-                    )
-                }
+                if (categories.isNotEmpty()) CategoryField(vm) { categoryPickerOpen = true }
                 if (showMore && vm.form.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
             }
 
@@ -389,9 +393,17 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                if (vm.tags.isNotEmpty()) {
+                run {
                     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
                     LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                        // A new user had no way to make a first tag from here: the row only appeared once tags existed.
+                        item {
+                            AssistChip(
+                                onClick = { tagDialogOpen = true },
+                                label = { Text(stringResource(R.string.tag_new)) },
+                                leadingIcon = { Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            )
+                        }
                         items(vm.tags) { tag ->
                             ua.rytm.app.ui.components.RytmFilterChip(
                                 selected = tag.id in vm.form.selectedTagIds,
@@ -410,6 +422,8 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
         // Pinned outside the scroll: it used to sit below every field, out of
         // sight behind the keyboard, on the form opened most often.
         Column(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+            // Pinned with the button: in the scroll they sat under the keyboard.
+            if (amountFocused) OperatorRow(onOperator = vm.form::appendOperator)
             // Only the errors that do not belong to a visible field land here
             // now; everything else is marked on the field itself.
             if (vm.form.errorField == null || vm.form.errorField == TxFormField.WALLET ||
@@ -598,6 +612,58 @@ private fun DropdownField(label: String, options: List<String>, selected: String
             }
         }
     }
+}
+
+/** «+ − × ÷» under the amount: the Decimal keyboard has no operator keys. */
+@Composable
+private fun OperatorRow(onOperator: (Char) -> Unit) {
+    val ops = listOf(
+        AmountExpression.PLUS to R.string.amount_op_plus,
+        AmountExpression.MINUS to R.string.amount_op_minus,
+        AmountExpression.TIMES to R.string.amount_op_times,
+        AmountExpression.DIVIDE to R.string.amount_op_divide,
+    )
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        ops.forEach { (op, label) ->
+            val description = stringResource(label)
+            androidx.compose.material3.FilledTonalButton(
+                onClick = { onOperator(op) },
+                modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget).semantics { this.contentDescription = description },
+                shape = RoundedCornerShape(RytmRadii.Control),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+            ) { Text(op.toString(), style = MaterialTheme.typography.titleLarge) }
+        }
+    }
+}
+
+/** «= 140 ₴» under a typed sum, or a nudge while it is unfinished; null for a plain number. */
+@Composable
+private fun amountCalcLine(text: String, currency: String): String? {
+    if (!AmountExpression.isExpression(text)) return null
+    val value = AmountExpression.evaluate(text) ?: return stringResource(R.string.amount_calc_invalid)
+    return stringResource(R.string.amount_calc_result, ua.rytm.app.ui.maskedAmount("${formatMoney(value)} ${currencySymbol(currency)}"))
+}
+
+@Composable
+private fun NewTagDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.tag_new)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { if (it.length <= 40) name = it },
+                label = { Text(stringResource(R.string.tag_new_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { if (name.isNotBlank()) onAdd(name) }),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = { onAdd(name) }, enabled = name.isNotBlank()) { Text(stringResource(R.string.action_add)) } },
+        dismissButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 /** "≈ 1,4 зміни роботи" / "≈ 3 зміни роботи" — whole numbers take the plural form. */
