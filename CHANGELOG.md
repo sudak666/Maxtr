@@ -1,5 +1,7 @@
 # Changelog
 
+- **`rytm_premium` on sale (2026-11-03)** — owner activated both base plans (`monthly` 99 ₴, `yearly` 699 ₴) and both `trial-14` offers; checked in Play Console: all four «Активні», 175 countries. Not yet checked: a real purchase end to end (a license-tester account buying on the Play build → `premium` verify → `entitlements/{uid}`). The 15% fee enrollment is still open on the owner's side.
+
 - **Owner's Premium grant confirmed on the Play build (2026-11-03)** — owner on 2.7.9 (vc47) from Play: the Premium dialog shows the active state. In vc47 the gate is on and the cache starts false (older builds never set it), so this is the server's `PREMIUM_GRANT_EMAILS` answer. Activating the `rytm_premium` plans/offers is the owner's click: auto mode blocks the agent from it (real-world transaction).
 
 - **Premium dialog text (2026-11-03)** — owner's screenshot: with Premium on, the dialog said «Усе це зараз доступно безкоштовно» (written while the gate was off); with the gate on it would tell a paying subscriber it is free. `premium_active` now «Преміум активний, усе нижче відкрито» / «Premium is active, everything below is unlocked». Not in the vc47 AAB.
