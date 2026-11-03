@@ -689,6 +689,9 @@
     <string name="filters_type">Type</string>
     <string name="filters_wallet">Account</string>
     <string name="filters_category">Category</string>
+    <string name="filters_category_more">%1$d more</string>
+    <string name="filters_category_less">Show less</string>
+    <string name="filters_category_search">Find a category</string>
     <string name="filters_amount">Amount</string>
     <string name="filters_from">From</string>
     <string name="filters_to">To</string>

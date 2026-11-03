@@ -699,6 +699,9 @@
     <string name="filters_type">Тип операції</string>
     <string name="filters_wallet">Рахунок</string>
     <string name="filters_category">Категорія</string>
+    <string name="filters_category_more">Ще %1$d</string>
+    <string name="filters_category_less">Згорнути</string>
+    <string name="filters_category_search">Знайти категорію</string>
     <string name="filters_amount">Сума</string>
     <string name="filters_from">Від</string>
     <string name="filters_to">До</string>
