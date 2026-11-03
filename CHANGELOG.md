@@ -1,5 +1,7 @@
 # Changelog
 
+- **License tester for the purchase test (2026-11-03)** — Play Console → License testing: new list «Rytm покупки тест» with one account (owner-supplied test address, not in `PREMIUM_GRANT_EMAILS`, so Premium there depends on a real purchase), selected for license testing and saved (checked after reload). That account is already in the closed-testing list «Тестувальники Rytm» (7 addresses), so it can install the Play build. Purchase on it not done yet.
+
 - **`rytm_premium` on sale (2026-11-03)** — owner activated both base plans (`monthly` 99 ₴, `yearly` 699 ₴) and both `trial-14` offers; checked in Play Console: all four «Активні», 175 countries. Not yet checked: a real purchase end to end (a license-tester account buying on the Play build → `premium` verify → `entitlements/{uid}`). The 15% fee enrollment is still open on the owner's side.
 
 - **Owner's Premium grant confirmed on the Play build (2026-11-03)** — owner on 2.7.9 (vc47) from Play: the Premium dialog shows the active state. In vc47 the gate is on and the cache starts false (older builds never set it), so this is the server's `PREMIUM_GRANT_EMAILS` answer. Activating the `rytm_premium` plans/offers is the owner's click: auto mode blocks the agent from it (real-world transaction).
