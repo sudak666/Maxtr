@@ -86,18 +86,19 @@ class PremiumRepository(context: Context, private val settings: SettingsStore, p
                 result.purchasesList.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && PRODUCT_ID in it.products }
             } else emptyList()
         } else emptyList()
-        // Offline or the server failed: keep the last answer (owned stays null → cache).
-        val premium = runCatching {
-            var answer: Boolean? = null
-            for (purchase in active) {
-                val ok = callServer(mapOf("action" to "verify", "purchaseToken" to purchase.purchaseToken))
-                if (ok && !purchase.isAcknowledged) {
-                    client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build())
-                }
-                if (ok) answer = true
+        // Each token on its own: one Play account can hold a purchase that
+        // belongs to another Rytm account (the server refuses it), and that
+        // must not stop this account's own answer (a grant, its own purchase).
+        var verified = false
+        for (purchase in active) {
+            val ok = runCatching { callServer(mapOf("action" to "verify", "purchaseToken" to purchase.purchaseToken)) }.getOrDefault(false)
+            if (ok && !purchase.isAcknowledged) {
+                client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build())
             }
-            answer ?: callServer(mapOf("action" to "status"))
-        }.getOrNull() ?: return
+            if (ok) verified = true
+        }
+        // Offline or the server failed: keep the last answer (owned stays null → cache).
+        val premium = if (verified) true else runCatching { callServer(mapOf("action" to "status")) }.getOrNull() ?: return
         if (FirebaseAuth.getInstance().currentUser?.uid != uid) return
         owned.value = premium
         settings.setPremiumCached(premium)
