@@ -133,6 +133,18 @@ class CategoriesSyncRepository(private val db: RytmDatabase, private val firesto
         financeDocRef(uid, profileId).setFields(mapOf("subcategories" to remote, "updatedAt" to System.currentTimeMillis())).enqueue()
     }
 
+    suspend fun saveCategoriesAndSubcategoriesSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
+        val local = db.categoryDao().getAllOnce()
+        financeDocRef(uid, profileId).setFields(mapOf(
+            "categories" to mapOf(
+                "income" to local.filter { it.type == "INCOME" }.map { it.name },
+                "expense" to local.filter { it.type == "EXPENSE" }.map { it.name },
+            ),
+            "subcategories" to db.subcategoryDao().getAllOnce().groupBy({ "${it.categoryType.lowercase()}:${it.categoryName}" }, { it.name }),
+            "updatedAt" to System.currentTimeMillis(),
+        )).enqueue()
+    }
+
     suspend fun saveCategoryIconsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) = saveMutex.withLock {
         val remote = db.categoryIconDao().getAllOnce().associate { it.categoryName to it.iconName }
         financeDocRef(uid, profileId).setFields(mapOf("categoryIcons" to remote, "updatedAt" to System.currentTimeMillis())).enqueue()

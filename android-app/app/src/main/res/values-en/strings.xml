@@ -102,7 +102,7 @@
     <string name="settings_month_start_hint">Budgets, statistics and recaps count the month from this day, such as payday. A month is named after the one it starts in.</string>
     <string name="settings_balance_after">Balance after each operation</string>
     <string name="settings_balance_after_subtitle">Wallet balance in history rows</string>
-    <string name="transaction_amount_currency">Amount (%1$s)</string><string name="transaction_subcategory">Subcategory</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
+    <string name="transaction_amount_currency">Amount (%1$s)</string><string name="date_label">Date</string><string name="comment_label">Comment</string>
     <string name="transaction_comment_hint">Transaction details…</string><string name="action_saving">Saving…</string><string name="action_save_changes">Save changes</string><string name="transaction_add">Add transaction</string><string name="tx_transfer">Transfer</string>
     <string name="validation_invalid_amount">Enter a valid amount</string><string name="validation_amount_too_large">Amount is too large</string>
     <string name="validation_name_required">Enter a name</string>
@@ -670,4 +670,45 @@
     <string name="shifts_planned_month">Planned for the month</string>
     <string name="shifts_hero_ahead">plus %1$s ₴ on the schedule</string>
     <string name="debt_start_missing">The loan amount is missing, so what is left is wrong. Enter it in «Loan details» and the payment balances are recounted.</string>
+    <string name="categories_add_presets">Add ready-made categories</string>
+    <string name="categories_presets_none">You already have the whole ready-made set.</string>
+    <plurals name="categories_presets_added"><item quantity="one">Added %1$d category or subcategory</item><item quantity="other">Added %1$d categories and subcategories</item></plurals>
+    <string name="category_add">New category</string>
+    <string name="category_new_name">New category name</string>
+    <string name="subcategory_new_name">New subcategory name</string>
+    <string name="subcategory_none">No subcategory</string>
+    <string name="tag_new">Tag</string>
+    <string name="tag_new_hint">New or existing tag</string>
+    <string name="amount_calc_result">= %1$s</string>
+    <string name="amount_calc_invalid">Finish the calculation</string>
+    <string name="amount_op_plus">Plus</string>
+    <string name="amount_op_minus">Minus</string>
+    <string name="amount_op_times">Times</string>
+    <string name="amount_op_divide">Divide by</string>
+    <string name="filters_title">Filters</string>
+    <string name="filters_type">Type</string>
+    <string name="filters_wallet">Account</string>
+    <string name="filters_category">Category</string>
+    <string name="filters_amount">Amount</string>
+    <string name="filters_from">From</string>
+    <string name="filters_to">To</string>
+    <string name="filters_period">Period</string>
+    <string name="filters_custom_period">Custom</string>
+    <string name="filters_reset">Reset</string>
+    <string name="filters_apply">Apply</string>
+    <string name="capital_title">Net worth</string>
+    <string name="capital_subtitle">All accounts counted in net worth, in hryvnias</string>
+    <string name="capital_30d">30 days</string>
+    <string name="capital_90d">3 months</string>
+    <string name="capital_year">Year</string>
+    <string name="capital_change">%1$s since %2$s</string>
+    <string name="capital_no_history">Not enough entries for a chart yet.</string>
+    <string name="capital_by_wallet">Where the money is</string>
+    <string name="capital_by_currency">Currencies</string>
+    <string name="capital_note">Past days use today’s rates. Accounts below zero (a credit card) are left out of the shares.</string>
+    <string name="capital_chart_description">Net worth chart, from %1$s to %2$s hryvnias</string>
+    <string name="category_stats_no_compare">nothing to compare with</string>
+    <string name="category_stats_vs_previous">%1$s%% vs the previous period (%2$s)</string>
+    <string name="category_stats_by_sub">By subcategory</string>
+    <string name="category_stats_show_tx">Show transactions</string>
 </resources>

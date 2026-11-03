@@ -65,8 +65,11 @@ class TransactionFormState(
     /** What stays in the form's own category: total minus the parts; null without a split. */
     val splitRemainder: Double? by derivedStateOf {
         if (splits.isEmpty()) null
-        else (parseMoneyInput(amountText) ?: 0.0) - splits.sumOf { parseMoneyInput(it.amountText) ?: 0.0 }
+        else (amountValue ?: 0.0) - splits.sumOf { parseMoneyInput(it.amountText) ?: 0.0 }
     }
+
+    /** The amount, with a typed sum like «2 × 70» already worked out; null while unfinished. */
+    val amountValue: Double? get() = AmountExpression.evaluate(amountText)
 
     init { restore() }
 
@@ -123,7 +126,12 @@ class TransactionFormState(
     fun onTargetWalletChange(id: String) { targetWalletId = id; persist() }
     fun onAmountChange(text: String) {
         // Pasted/hardware-keyboard text could put letters into the amount field.
-        amountText = text.filter { it.isDigit() || it == '.' || it == ',' || it == ' ' || it == ' ' }
+        amountText = text.filter(AmountExpression::isAllowed)
+        clearError()
+        persist()
+    }
+    fun appendOperator(op: Char) {
+        amountText = AmountExpression.append(amountText, op)
         clearError()
         persist()
     }

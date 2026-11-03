@@ -122,6 +122,7 @@ import ua.rytm.app.ui.ScreenLoadErrorState
 import ua.rytm.app.ui.ScreenLoadingState
 import ua.rytm.app.ui.LocalSnackbarHost
 import androidx.compose.runtime.saveable.rememberSaveable
+import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.SwapHoriz
 import ua.rytm.app.ui.icons.Event
@@ -175,6 +176,8 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     // horizontally as it changes.
                     style = MaterialTheme.typography.displayMedium.tabularNums(),
                     fontWeight = FontWeight.Black,
+                    // The balance opens «Капітал»: how it changed and where the money sits.
+                    modifier = Modifier.clickable(onClickLabel = stringResource(R.string.capital_title)) { vm.capitalOpen = true },
                 )
 
                 // One quiet forecast line under the balance (owner, 2026-11-02:
@@ -458,15 +461,27 @@ internal fun FilterRow(vm: FinanceViewModel) {
         item(key = "divider") {
             Box(Modifier.padding(horizontal = RytmSpacing.xs).size(width = 1.dp, height = 24.dp).background(MaterialTheme.colorScheme.outlineVariant))
         }
+        val range = vm.historyFilter
+        if (range.hasRange) item(key = "range") {
+            ua.rytm.app.ui.components.RytmFilterChip(
+                selected = true,
+                onClick = { vm.onPeriodFilterChange(PeriodFilter.ALL) },
+                label = { Text(listOf(range.from, range.to).joinToString(" – ") { d -> d?.let(::shortDate) ?: "…" }) },
+                leadingIcon = { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.filters_reset), modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+            )
+        }
         items(periods, key = { "p-${it.first}" }) { (value, label) ->
             ua.rytm.app.ui.components.RytmFilterChip(
-                selected = vm.periodFilter == value,
+                selected = !range.hasRange && vm.periodFilter == value,
                 onClick = { vm.onPeriodFilterChange(value) },
                 label = { Text(label) },
             )
         }
     }
 }
+
+private fun shortDate(iso: String): String =
+    runCatching { java.time.LocalDate.parse(iso).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yy")) }.getOrDefault(iso)
 
 @Composable
 internal fun DayHeader(date: String, netUah: Double) {

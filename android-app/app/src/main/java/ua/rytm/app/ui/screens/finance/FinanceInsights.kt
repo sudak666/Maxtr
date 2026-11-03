@@ -98,6 +98,7 @@ object FinanceInsights {
         today: LocalDate,
         walletName: (String?) -> String,
         tagNames: Map<String, String>,
+        extra: HistoryFilter = HistoryFilter(),
     ): List<Transaction> {
         var result = when (typeFilter) {
             TxTypeFilter.ALL -> transactions
@@ -105,12 +106,14 @@ object FinanceInsights {
             TxTypeFilter.EXPENSE -> transactions.filter { it.type == TxType.EXPENSE }
             TxTypeFilter.TRANSFER -> transactions.filter { it.type == TxType.TRANSFER }
         }
-        result = when (periodFilter) {
+        // A custom date range replaces the period chips.
+        if (!extra.hasRange) result = when (periodFilter) {
             PeriodFilter.DAY -> { val d = today.toString(); result.filter { it.date == d } }
             PeriodFilter.MONTH -> { val m = FinancialMonth.of(today); result.filter { FinancialMonth.contains(m, it.date) } }
             PeriodFilter.ALL -> result
         }
         categoryFilter?.let { cat -> result = result.filter { it.category == cat } }
+        if (extra != HistoryFilter()) result = result.filter(extra::matches)
         if (search.isNotBlank()) {
             // "кафе жовтень більше 200": month/date/amount words become filters (SmartSearch).
             val smart = SmartSearch.parse(search, today)

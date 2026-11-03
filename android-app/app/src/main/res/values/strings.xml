@@ -108,7 +108,7 @@
     <string name="settings_month_start_hint">Бюджети, статистика й підсумки рахуватимуть місяць від цього дня, наприклад від дня зарплати. Місяць має назву того, в якому починається.</string>
     <string name="settings_balance_after">Баланс після операції</string>
     <string name="settings_balance_after_subtitle">Залишок гаманця в рядках історії</string>
-    <string name="transaction_amount_currency">Сума (%1$s)</string><string name="transaction_subcategory">Підкатегорія</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
+    <string name="transaction_amount_currency">Сума (%1$s)</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
     <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
     <string name="validation_invalid_amount">Введи коректну суму</string><string name="validation_amount_too_large">Сума завелика</string>
     <string name="validation_name_required">Введи назву</string>
@@ -680,4 +680,45 @@
     <string name="shifts_planned_month">Заплановано на місяць</string>
     <string name="shifts_hero_ahead">і ще %1$s ₴ за графіком</string>
     <string name="debt_start_missing">Не вказано суму позики, тому залишок неправильний. Вкажи її в «Дані позики»: залишки платежів перерахуються.</string>
+    <string name="categories_add_presets">Додати готові категорії</string>
+    <string name="categories_presets_none">Усе з готового набору вже є.</string>
+    <plurals name="categories_presets_added"><item quantity="one">Додано %1$d категорію або підкатегорію</item><item quantity="few">Додано %1$d категорії та підкатегорії</item><item quantity="many">Додано %1$d категорій та підкатегорій</item><item quantity="other">Додано %1$d категорії та підкатегорії</item></plurals>
+    <string name="category_add">Нова категорія</string>
+    <string name="category_new_name">Назва нової категорії</string>
+    <string name="subcategory_new_name">Назва нової підкатегорії</string>
+    <string name="subcategory_none">Без підкатегорії</string>
+    <string name="tag_new">Мітка</string>
+    <string name="tag_new_hint">Нова або наявна мітка</string>
+    <string name="amount_calc_result">= %1$s</string>
+    <string name="amount_calc_invalid">Допиши вираз до кінця</string>
+    <string name="amount_op_plus">Додати</string>
+    <string name="amount_op_minus">Відняти</string>
+    <string name="amount_op_times">Помножити</string>
+    <string name="amount_op_divide">Поділити</string>
+    <string name="filters_title">Фільтри</string>
+    <string name="filters_type">Тип операції</string>
+    <string name="filters_wallet">Рахунок</string>
+    <string name="filters_category">Категорія</string>
+    <string name="filters_amount">Сума</string>
+    <string name="filters_from">Від</string>
+    <string name="filters_to">До</string>
+    <string name="filters_period">Період</string>
+    <string name="filters_custom_period">Свій період</string>
+    <string name="filters_reset">Скинути</string>
+    <string name="filters_apply">Застосувати</string>
+    <string name="capital_title">Капітал</string>
+    <string name="capital_subtitle">Усі рахунки, що входять у капітал, у гривнях</string>
+    <string name="capital_30d">30 днів</string>
+    <string name="capital_90d">3 місяці</string>
+    <string name="capital_year">Рік</string>
+    <string name="capital_change">%1$s з %2$s</string>
+    <string name="capital_no_history">Ще замало записів для графіка.</string>
+    <string name="capital_by_wallet">Де найбільше коштів</string>
+    <string name="capital_by_currency">Валюти</string>
+    <string name="capital_note">Минулі дні перераховано за сьогоднішнім курсом. Рахунки з мінусом (кредитка) у частках не показано.</string>
+    <string name="capital_chart_description">Графік капіталу, від %1$s до %2$s гривень</string>
+    <string name="category_stats_no_compare">немає з чим порівняти</string>
+    <string name="category_stats_vs_previous">%1$s %% до попереднього періоду (%2$s)</string>
+    <string name="category_stats_by_sub">За підкатегоріями</string>
+    <string name="category_stats_show_tx">До операцій</string>
 </resources>

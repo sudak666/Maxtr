@@ -178,6 +178,7 @@ fun FinanceScreen(
     viewModel.salaryAllocation?.let { plan ->
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
     }
+    if (viewModel.capitalOpen) CapitalSheet(viewModel) { viewModel.capitalOpen = false }
     if (viewModel.cashForecastOpen) {
         CashForecastSheet(viewModel.cashForecast, viewModel.monthOutlook.shiftsEarnings, onDismiss = { viewModel.cashForecastOpen = false })
     }
@@ -247,6 +248,7 @@ fun FinanceScreen(
     var toolsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
     // The floating "Згорнути список" FAB exists so a user who scrolled deep
     // into a long expanded list can collapse it without scrolling all the
@@ -370,10 +372,25 @@ fun FinanceScreen(
             item { HistoryHeader(viewModel, resultCount = displayedCount) }
             // Nothing to search yet: on an empty account these pushed the first action below the fold.
             val hasHistory = filtered.isNotEmpty() || viewModel.isSearchOrFilterActive
-            if (hasHistory) item { SearchField(viewModel) }
+            if (hasHistory) item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                    Box(Modifier.weight(1f)) { SearchField(viewModel) }
+                    FiltersButton(viewModel.activeFilterCount) { filtersOpen = true }
+                }
+            }
             if (hasHistory) item { FilterRow(viewModel) }
             viewModel.categoryFilter?.let { cat ->
                 item { CategoryFilterChip(cat, onClear = viewModel::clearCategoryFilter) }
+            }
+            val hf = viewModel.historyFilter
+            if (hf.walletId != null || hf.minAmount != null || hf.maxAmount != null) item {
+                // Wallet and amount filters had no visible trace except the badge.
+                val parts = listOfNotNull(
+                    hf.walletId?.let { id -> viewModel.wallets.firstOrNull { it.id == id }?.name?.let { ua.rytm.app.ui.localizedDomainText(it) } },
+                    hf.minAmount?.let { androidx.compose.ui.res.stringResource(R.string.filters_from) + " " + formatMoney(it) },
+                    hf.maxAmount?.let { androidx.compose.ui.res.stringResource(R.string.filters_to) + " " + formatMoney(it) },
+                )
+                CategoryFilterChip(parts.joinToString(", "), onClear = viewModel::clearWalletAmountFilters)
             }
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
@@ -441,6 +458,7 @@ fun FinanceScreen(
         }
     }
 
+    if (filtersOpen) HistoryFiltersSheet(viewModel) { filtersOpen = false }
     if (viewModel.form.sheetVisible) {
         TransactionFormSheet(viewModel)
     }
@@ -449,6 +467,11 @@ fun FinanceScreen(
             repository = app.financeRepository,
             onDismiss = { toolsSheetOpen = false },
             onOpenMonthSummary = { toolsSheetOpen = false; viewModel.openMonthSummary() },
+            onShowTransactions = { type, category, from, to ->
+                toolsSheetOpen = false
+                viewModel.applyFilters(if (type == TxType.INCOME) TxTypeFilter.INCOME else TxTypeFilter.EXPENSE, category, HistoryFilter(from = from, to = to))
+                if (from == null) viewModel.onPeriodFilterChange(PeriodFilter.ALL)
+            },
         )
     }
     if (budgetsSheetOpen && accountUid != null) {

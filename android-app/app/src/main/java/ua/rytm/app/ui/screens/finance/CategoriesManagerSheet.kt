@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -112,6 +113,19 @@ fun CategoriesManagerSheet(
                     Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
                 }
+            }
+
+            ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::addPresets, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+                Icon(RytmIcons.Add, contentDescription = null)
+                Spacer(Modifier.width(RytmSpacing.sm))
+                Text(stringResource(R.string.categories_add_presets))
+            }
+            viewModel.presetsAdded?.let { n ->
+                Text(
+                    if (n > 0) androidx.compose.ui.res.pluralStringResource(R.plurals.categories_presets_added, n, n) else stringResource(R.string.categories_presets_none),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             if (viewModel.categories.isEmpty()) {

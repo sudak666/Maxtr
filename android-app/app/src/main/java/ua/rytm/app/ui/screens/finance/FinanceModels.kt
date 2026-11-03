@@ -110,6 +110,29 @@ enum class TxTypeFilter { ALL, INCOME, EXPENSE, TRANSFER }
 @Immutable
 enum class PeriodFilter { DAY, MONTH, ALL }
 
+/**
+ * The history's «Фільтри» sheet beyond type, period and category: one wallet
+ * (either side of a transfer), an amount range in the entry's own currency,
+ * and a custom date range (ISO, inclusive) that replaces the period chips.
+ */
+data class HistoryFilter(
+    val walletId: String? = null,
+    val minAmount: Double? = null,
+    val maxAmount: Double? = null,
+    val from: String? = null,
+    val to: String? = null,
+) {
+    val hasRange: Boolean get() = from != null || to != null
+    val activeCount: Int get() = listOf(walletId != null, minAmount != null || maxAmount != null, hasRange).count { it }
+
+    fun matches(t: Transaction): Boolean =
+        (walletId == null || t.walletId == walletId || t.targetWalletId == walletId) &&
+            (minAmount == null || t.amount >= minAmount) &&
+            (maxAmount == null || t.amount <= maxAmount) &&
+            (from == null || t.date >= from) &&
+            (to == null || t.date <= to)
+}
+
 // 1:1 with js/core.js's PALETTE/CURRENCY_LIST constants.
 val PALETTE = listOf(0xFF8B5CF6, 0xFF3B82F6, 0xFF10B981, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4, 0xFFEF4444, 0xFFA78BFA)
 val CURRENCY_LIST = listOf("UAH") + ua.rytm.app.data.SEED_RATES.keys
