@@ -32,7 +32,7 @@ import ua.rytm.app.ui.icons.CheckCircle
 import ua.rytm.app.ui.icons.LocalCafe
 import ua.rytm.app.ui.icons.Lock
 import ua.rytm.app.ui.icons.Mobile
-import ua.rytm.app.ui.icons.Monitor
+import ua.rytm.app.ui.icons.Laptop
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.ShoppingCart
 import ua.rytm.app.ui.localizedDomainText
@@ -111,7 +111,7 @@ internal fun ShiftsPreview() = PreviewCard {
 @Composable
 internal fun PrivacyPreview() = PreviewCard {
     PreviewRow(RytmIcons.Mobile, MaterialTheme.colorScheme.primary, stringResource(R.string.onboarding_demo_phone), "", Color.Unspecified)
-    PreviewRow(RytmIcons.Monitor, MaterialTheme.colorScheme.primary, stringResource(R.string.onboarding_demo_laptop), "", Color.Unspecified)
+    PreviewRow(RytmIcons.Laptop, MaterialTheme.colorScheme.primary, stringResource(R.string.onboarding_demo_laptop), "", Color.Unspecified)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(RytmIcons.CheckCircle, contentDescription = null, tint = RytmSemantic.income, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
