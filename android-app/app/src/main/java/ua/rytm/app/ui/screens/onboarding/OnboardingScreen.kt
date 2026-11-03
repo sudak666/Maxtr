@@ -37,6 +37,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.launch
@@ -61,6 +63,7 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
     val page = pagerState.currentPage
     BoxWithConstraints(Modifier.fillMaxSize().testTag("onboarding-screen")) {
     val compactHeight = maxHeight < 500.dp
+    val showPreview = maxHeight >= 640.dp
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 24.dp, vertical = if (compactHeight) 8.dp else 24.dp),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -71,11 +74,17 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
         }
         // A real HorizontalPager: the only way forward used to be the Next
         // button — no swipe, no way back.
-        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { index ->
+        // weight + scroll: the buttons stay on screen whatever the page holds
+        // (a 320x568 screen at 1.3x font pushed «Далі» off with the preview).
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth().weight(1f)) { index ->
             val pageData = pages[index]
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
                 // The preview needs room; on a short screen the text alone carries the page.
-                if (!compactHeight) pageData.preview()
+                if (showPreview) pageData.preview()
                 Spacer(Modifier.height(if (compactHeight) 8.dp else 28.dp))
                 Text(stringResource(pageData.title), style = if (compactHeight) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(if (compactHeight) 4.dp else 12.dp))
