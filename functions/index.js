@@ -42,6 +42,8 @@ const { mapWithConcurrency } = require('./lib/pure');
 const { sweepToken } = require('./lib/sweep');
 const backup = require('./lib/backup');
 const { deleteAccountData } = require('./lib/account');
+const premium = require('./lib/premium');
+const { defineSecret } = require('firebase-functions/params');
 
 initializeApp();
 const db = getFirestore();
@@ -215,6 +217,34 @@ exports.account = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
   } catch (err) {
     logger.error('account delete failed', { uid, error: errMessage(err) });
     throw new HttpsError('internal', 'delete failed');
+  }
+});
+
+// Premium (Android): {action:'verify', purchaseToken} checks a Play purchase
+// with Google and stores it; {action:'status'} only answers. E-mails in the
+// PREMIUM_GRANT_EMAILS secret (comma-separated; the repo is public) get
+// Premium without buying — the owner's own accounts.
+const PREMIUM_GRANT_EMAILS = defineSecret('PREMIUM_GRANT_EMAILS');
+exports.premium = onCall({ secrets: [PREMIUM_GRANT_EMAILS], maxInstances: 5 }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
+  const data = req.data || {};
+  const now = Date.now();
+  const email = req.auth?.token?.email_verified ? req.auth.token.email : undefined;
+  const grants = String(PREMIUM_GRANT_EMAILS.value() || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+  try {
+    if (data.action === 'verify') {
+      await premium.verifyPurchase(db, uid, data.purchaseToken, premium.fetchSubscriptionFromPlay, now);
+    } else if (data.action !== 'status') {
+      throw new HttpsError('invalid-argument', 'unknown action');
+    }
+    const doc = (await db.doc(`entitlements/${uid}`).get()).data();
+    return premium.entitlementFor(doc, email, grants, now);
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    if (err instanceof premium.PremiumError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
+    logger.error('premium callable failed', { uid, action: data.action, error: errMessage(err) });
+    throw new HttpsError('internal', 'premium check failed');
   }
 });
 
