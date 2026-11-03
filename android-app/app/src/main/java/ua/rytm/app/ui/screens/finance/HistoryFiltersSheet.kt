@@ -41,6 +41,7 @@ import ua.rytm.app.ui.components.RytmFilterChip
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Search
 import ua.rytm.app.ui.icons.Tune
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.theme.RytmDimens
@@ -108,10 +109,40 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                 }
 
                 val cats = categoriesFor(vm, type)
-                if (type != TxTypeFilter.TRANSFER && cats.isNotEmpty()) Section(stringResource(R.string.filters_category)) {
-                    RytmFilterChip(selected = category == null, onClick = { category = null }, label = { Text(stringResource(R.string.filter_all)) })
-                    cats.forEach { c ->
-                        RytmFilterChip(selected = category == c, onClick = { category = c }, label = { Text(localizedDomainText(c)) })
+                if (type != TxTypeFilter.TRANSFER && cats.isNotEmpty()) {
+                    // Owner, 2026-11-03: every category as a chip made a wall
+                    // of 40 (and would be 100+). The most used come first, the
+                    // rest open under «Ще N», with a search once the list is long.
+                    val usage = vm.categoryUsage
+                    val ranked = cats.sortedByDescending { usage[it] ?: 0 }
+                    var expanded by rememberSaveable { mutableStateOf(false) }
+                    var query by rememberSaveable { mutableStateOf("") }
+                    val hidden = (ranked.size - CATEGORY_CHIPS_COLLAPSED).coerceAtLeast(0)
+                    if (expanded && ranked.size > CATEGORY_SEARCH_FROM) {
+                        Text(stringResource(R.string.filters_category), style = MaterialTheme.typography.titleSmall)
+                        OutlinedTextField(
+                            value = query, onValueChange = { query = it },
+                            placeholder = { Text(stringResource(R.string.filters_category_search)) },
+                            leadingIcon = { Icon(RytmIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Section(if (expanded && ranked.size > CATEGORY_SEARCH_FROM) null else stringResource(R.string.filters_category)) {
+                        val shown = when {
+                            !expanded -> ranked.take(CATEGORY_CHIPS_COLLAPSED).let { top -> if (category != null && category !in top && category in ranked) top + category!! else top }
+                            query.isBlank() -> ranked
+                            else -> ranked.filter { localizedDomainText(it).contains(query.trim(), ignoreCase = true) }
+                        }
+                        if (query.isBlank()) RytmFilterChip(selected = category == null, onClick = { category = null }, label = { Text(stringResource(R.string.filter_all)) })
+                        shown.forEach { c ->
+                            RytmFilterChip(selected = category == c, onClick = { category = c }, label = { Text(localizedDomainText(c)) })
+                        }
+                        if (hidden > 0) RytmFilterChip(
+                            selected = false,
+                            onClick = { expanded = !expanded; query = "" },
+                            label = { Text(if (expanded) stringResource(R.string.filters_category_less) else stringResource(R.string.filters_category_more, hidden)) },
+                        )
                     }
                 }
 
@@ -173,6 +204,11 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
     }
 }
 
+/** Chips shown before «Ще N»: about two rows on a phone. */
+private const val CATEGORY_CHIPS_COLLAPSED = 8
+/** Above this many categories the expanded list gets a search field. */
+private const val CATEGORY_SEARCH_FROM = 15
+
 private fun plain(v: Double) = if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
 
 private fun categoriesFor(vm: FinanceViewModel, type: TxTypeFilter): List<String> = when (type) {
@@ -185,9 +221,9 @@ private fun categoriesFor(vm: FinanceViewModel, type: TxTypeFilter): List<String
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Section(title: String, chips: @Composable () -> Unit) {
+private fun Section(title: String?, chips: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
-        Text(title, style = MaterialTheme.typography.titleSmall)
+        if (title != null) Text(title, style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(0.dp)) { chips() }
     }
 }

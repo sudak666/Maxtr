@@ -380,6 +380,9 @@ class FinanceViewModel(
     /** Most used categories of the form's type over the last 90 days — one-tap picks above the dropdown. */
     val formFrequentCategories: List<String> by derivedStateOf { frequentCategoriesOf(form.type) }
 
+    /** How many entries each category has, all time: orders the history filter's chips. */
+    val categoryUsage: Map<String, Int> by derivedStateOf { transactions.groupingBy { it.category }.eachCount() }
+
     private fun frequentCategoriesOf(type: TxType): List<String> =
         FinanceInsights.frequentCategories(transactions, type, categoriesByType[type].orEmpty().toSet(), today.minusDays(90))
 
@@ -691,7 +694,8 @@ class FinanceViewModel(
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
     val totalBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
     /** Money for everyday spending: a deposit is set aside and a credit line is not yours, so neither feeds the daily allowance. */
-    val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
+    val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
+
 
     val cashForecast: CashForecast by derivedStateOf {
         CashForecast.forProfile(wallets, transactions, recurring, today, ua.rytm.app.data.FinancialMonth.lastDay(currentMonth), ::toUah)

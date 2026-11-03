@@ -168,6 +168,23 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
+                    // The forecast lives behind one quiet button (owner,
+                    // 2026-11-03: the orange «Можливий мінус» line under the
+                    // balance read as an alarm every time the app opened). A
+                    // small dot says the sheet has a shortfall to look at.
+                    val forecast = vm.cashForecast
+                    if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
+                        Box {
+                            androidx.compose.material3.IconButton(onClick = { vm.cashForecastOpen = true }) {
+                                Icon(RytmIcons.Event, contentDescription = stringResource(R.string.cash_forecast_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            if (forecast.shortfallDate != null) Box(
+                                Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(8.dp)
+                                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape),
+                            )
+                        }
+                        Spacer(Modifier.width(RytmSpacing.xs))
+                    }
                     ua.rytm.app.ui.screens.ProfileEntryAvatar()
                 }
                 Text(
@@ -177,46 +194,15 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
                     style = MaterialTheme.typography.displayMedium.tabularNums(),
                     fontWeight = FontWeight.Black,
                     // The balance opens «Капітал»: how it changed and where the money sits.
-                    modifier = Modifier.clickable(onClickLabel = stringResource(R.string.capital_title)) { vm.capitalOpen = true },
+                    // Rounded tap area, padded and pulled back into line: the
+                    // bare clickable flashed a sharp grey rectangle.
+                    modifier = Modifier
+                        .offset(x = -RytmSpacing.sm)
+                        .clip(RoundedCornerShape(RytmRadii.Input))
+                        .clickable(onClickLabel = stringResource(R.string.capital_title)) { vm.capitalOpen = true }
+                        .padding(horizontal = RytmSpacing.sm),
                 )
 
-                // One quiet forecast line under the balance (owner, 2026-11-02:
-                // the hero felt crowded). The month net used to sit here too,
-                // but it repeated the income/expense row right below. The line
-                // says one thing: the end-of-month figure, or, when money runs
-                // out on the way, only that warning. The sheet holds the rest.
-                val forecast = vm.cashForecast
-                if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
-                    val shortfallDate = forecast.shortfallDate
-                    val tint = if (shortfallDate != null) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant
-                    val iconSize = with(LocalDensity.current) { 16.sp.toDp() }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        // Inner padding keeps the icon clear of the rounded tap
-                        // area (its corner clipped the warning triangle); the
-                        // negative offset keeps the icon in line with the balance.
-                        modifier = Modifier
-                            .padding(top = RytmSpacing.xs)
-                            .offset(x = -RytmSpacing.sm)
-                            .clip(RoundedCornerShape(RytmRadii.Input))
-                            .clickable(onClickLabel = stringResource(R.string.cash_forecast_title)) { vm.cashForecastOpen = true }
-                            .padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.xs),
-                    ) {
-                        Icon(if (shortfallDate != null) RytmIcons.WarningAmber else RytmIcons.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = if (shortfallDate != null) {
-                                stringResource(R.string.cash_forecast_hero_minus, ua.rytm.app.ui.components.formatDayMonth(shortfallDate))
-                            } else {
-                                stringResource(R.string.cash_forecast_main, ua.rytm.app.ui.components.formatDayMonth(forecast.end), maskedAmount(signedMoney(forecast.endBalance)))
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = tint,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        Icon(RytmIcons.ChevronRight, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
-                    }
-                }
                 // P5: income/expense live inside the hero as one quiet row
                 // instead of two more bordered cards competing with the balance.
                 HorizontalDivider(Modifier.padding(vertical = RytmSpacing.md), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

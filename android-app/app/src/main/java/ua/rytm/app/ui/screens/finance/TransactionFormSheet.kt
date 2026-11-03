@@ -318,13 +318,18 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     },
                     label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
                     placeholder = { Text("0${decimalSeparator}00") },
+                    // The result sits inside the field: under it, it hid behind
+                    // the pinned operator row and the keyboard.
+                    suffix = amountCalcResult(vm.form.amountText, vm.formWalletCurrency)?.let { result ->
+                        { Text(result, color = MaterialTheme.colorScheme.primary, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     // The error used to be one generic line at the bottom of
                     // the form, with no field highlighted at all.
                     isError = amountInvalid,
                     supportingText = vm.form.errorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
-                        ?: amountCalcLine(vm.form.amountText, vm.formWalletCurrency)?.let { line -> { Text(line) } }
+                        ?: vm.form.amountText.takeIf { AmountExpression.isExpression(it) && AmountExpression.evaluate(it) == null }?.let { { Text(stringResource(R.string.amount_calc_invalid)) } }
                         ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } }
                         ?: vm.formSalaryMatch?.let { (expected, diff) ->
                             {
@@ -636,11 +641,11 @@ private fun OperatorRow(onOperator: (Char) -> Unit) {
     }
 }
 
-/** «= 140 ₴» under a typed sum, or a nudge while it is unfinished; null for a plain number. */
+/** «= 140 ₴» for a finished sum; null for a plain number or an unfinished one. */
 @Composable
-private fun amountCalcLine(text: String, currency: String): String? {
+private fun amountCalcResult(text: String, currency: String): String? {
     if (!AmountExpression.isExpression(text)) return null
-    val value = AmountExpression.evaluate(text) ?: return stringResource(R.string.amount_calc_invalid)
+    val value = AmountExpression.evaluate(text) ?: return null
     return stringResource(R.string.amount_calc_result, ua.rytm.app.ui.maskedAmount("${formatMoney(value)} ${currencySymbol(currency)}"))
 }
 
