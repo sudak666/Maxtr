@@ -54,6 +54,7 @@ class FinanceViewModel(
     private val settingsStore: ua.rytm.app.data.local.SettingsStore? = null,
     private val categoriesSync: ua.rytm.app.data.CategoriesSyncRepository? = null,
     private val tagsSync: ua.rytm.app.data.TagsSyncRepository? = null,
+    private val walletsSync: ua.rytm.app.data.FinanceSyncRepository? = null,
 ) : ViewModel() {
 
     companion object {
@@ -85,6 +86,7 @@ class FinanceViewModel(
                     app.settingsStore,
                     app.categoriesSyncRepository,
                     app.tagsSyncRepository,
+                    app.financeSyncRepository,
                 )
             }
         }
@@ -268,6 +270,40 @@ class FinanceViewModel(
         historyFilter = extra
         if (extra.hasRange) periodFilter = PeriodFilter.ALL
     }
+    /** Tap on a wallet chip: its operations only (both sides of a transfer); the same chip again shows all. */
+    fun toggleWalletFilter(walletId: String) {
+        historyFilter = historyFilter.copy(walletId = if (historyFilter.walletId == walletId) null else walletId)
+    }
+
+    /**
+     * A profile with no operations and every wallet at zero: asking for the
+     * money already there keeps the first expense from going negative
+     * (owner, 2026-11-03). Opening balances, not an «income» row, so the
+     * month's income stays true.
+     */
+    val needsStartingBalance: Boolean by derivedStateOf {
+        !loading && transactions.isEmpty() && wallets.isNotEmpty() && wallets.all { it.openingBalance == 0.0 }
+    }
+    var startingBalanceOpen by mutableStateOf(false)
+    /** Opens the expense form once the balances are in (the onboarding's «Почати»). */
+    var expenseAfterStartingBalance by mutableStateOf(false)
+
+    fun saveStartingBalances(amounts: Map<String, Double>) {
+        val changed = wallets.filter { w -> amounts[w.id]?.let { it != w.openingBalance } == true }
+        if (changed.isEmpty()) return
+        viewModelScope.launch {
+            val before = repository.walletSnapshot()
+            try {
+                changed.forEach { w -> repository.updateWallet(w.copy(openingBalance = amounts.getValue(w.id))) }
+                val (ownerUid, profileId) = activeProfilePath()
+                walletsSync?.saveWalletsSnapshot(ownerUid, profileId)
+            } catch (_: Exception) {
+                repository.replaceWallets(before)
+                pendingMessage = FinanceMessage(R.string.common_save_failed)
+            }
+        }
+    }
+
     /** Drops the wallet and amount filters, keeping the rest. */
     fun clearWalletAmountFilters() { historyFilter = historyFilter.copy(walletId = null, minAmount = null, maxAmount = null) }
     fun resetFilters() {

@@ -101,6 +101,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -144,7 +145,7 @@ import ua.rytm.app.ui.theme.tabularNums
 // Building blocks of FinanceScreen, split out so the screen file holds only the screen itself.
 
 @Composable
-internal fun HeroBalanceCard(vm: FinanceViewModel) {
+internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Unit = {}) {
     // Design pass 2026-10-20: the hero holds one number and one line. It used
     // to stack balance, month net, outlook, contributions, two tinted stat
     // cards and the wallet chips inside one gradient card with a purple glow
@@ -235,7 +236,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel) {
             horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
         ) {
             items(vm.wallets, key = { it.id }) { wallet ->
-                WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id))
+                WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id), selected = vm.historyFilter.walletId == wallet.id) { onWalletClick(wallet.id) }
             }
         }
 
@@ -294,8 +295,16 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
 }
 
 @Composable
-internal fun WalletChip(wallet: Wallet, balance: Double) {
-    Card(shape = RoundedCornerShape(RytmRadii.Pill), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
+internal fun WalletChip(wallet: Wallet, balance: Double, selected: Boolean = false, onClick: () -> Unit = {}) {
+    // A tap shows that wallet's operations, like a card in a bank app
+    // (owner, 2026-11-03); the selected chip is outlined in the wallet colour.
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(RytmRadii.Pill),
+        colors = CardDefaults.cardColors(containerColor = if (selected) Color(wallet.colorHex).copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceContainerHighest),
+        border = if (selected) androidx.compose.foundation.BorderStroke(1.5.dp, Color(wallet.colorHex)) else null,
+        modifier = Modifier.semantics { this.selected = selected },
+    ) {
         Row(Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
             Box(Modifier.size(8.dp).background(Color(wallet.colorHex), CircleShape))

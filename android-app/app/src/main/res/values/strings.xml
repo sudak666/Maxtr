@@ -172,12 +172,12 @@
     <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
     <string name="action_next">Далі</string>
     <string name="onboarding_page_status">Сторінка %1$d з %2$d</string>
-    <string name="onboarding_finance_title">Фінанси під контролем</string>
-    <string name="onboarding_finance_body">Гаманці, категорії, бюджети, цілі й аналітика в одному місці.</string>
+    <string name="onboarding_finance_title">Скільки грошей і чи вистачить</string>
+    <string name="onboarding_finance_body">Усі гаманці в одному балансі, а прогноз підкаже, чи вистачить грошей до кінця місяця.</string>
     <string name="onboarding_shifts_title">Робочий ритм</string>
-    <string name="onboarding_shifts_body">Плануй зміни, рахуй дохід і прогнозуй робочий місяць.</string>
+    <string name="onboarding_shifts_body">Познач зміни в календарі, і Rytm порахує, скільки ти заробиш за місяць.</string>
     <string name="onboarding_security_title">Приватність і синхронізація</string>
-    <string name="onboarding_security_body">Дані синхронізуються між твоїми пристроями через акаунт. PIN і біометрія захищають доступ на пристрої.</string>
+    <string name="onboarding_security_body">Дані синхронізуються між твоїми пристроями через акаунт. PIN-код і відбиток пальця вмикаються в Налаштуваннях.</string>
     <string name="action_cancel">Скасувати</string>
     <string name="action_clear">Очистити</string>
     <string name="action_choose_date">Обрати дату</string>
@@ -597,10 +597,8 @@
     <string name="widget_forecast_short">Прогноз</string>
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
     <string name="transaction_more_fields">Дата, коментар, теги</string>
-    <string name="finance_starting_balance">Початковий баланс</string>
     <string name="subcategory_add">Додати підкатегорію</string>
     <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
-    <string name="onboarding_first_expense">Додати першу витрату</string>
     <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
     <string name="statement_totals_gap">Рядки виписки не збігаються з підсумками банку: списання %1$s, зарахування %2$s. Частина операцій може бути скасована, перевір їх після імпорту.</string>
     <string name="statement_confirm">Імпортувати %1$s? Те, що вже є в обліку, буде пропущено.</string><string name="statement_wallet">Гаманець</string>
@@ -627,7 +625,7 @@
     <string name="monobank_disconnect_body">Гаманці й уже імпортовані операції залишаться, але автоматичне підтягування нових операцій припиниться.</string>
     <string name="settings_monobank">Прив’язати Monobank</string>
     <string name="settings_monobank_subtitle">Підтягувати операції з карток і банок автоматично</string>
-    <string name="premium_body">Облік безкоштовний. Преміум бере на себе ручну роботу.</string><string name="premium_active">Преміум активний, усе нижче відкрито.</string><string name="premium_sync_title">Синхронізація Monobank</string><string name="premium_sync_body">Операції підтягуються з банку самі.</string><string name="premium_import_title">Імпорт виписок</string><string name="premium_import_body">monobank і ПУМБ за кілька дотиків.</string><string name="premium_auto_title">Автозапис операцій</string><string name="premium_auto_body">Знайомі покупки записуються самі.</string><string name="premium_pdf_title">PDF-звіт</string><string name="premium_pdf_body">Підсумок місяця одним файлом.</string><string name="premium_unavailable">Підписка зараз недоступна. Спробуй пізніше.</string><string name="premium_monthly">%1$s на місяць</string><string name="premium_yearly">%1$s на рік</string><string name="premium_trial">14 днів безкоштовно, далі %1$s</string><string name="premium_required">Імпорт виписок доступний у Преміум</string><string name="premium_plan_active">Усе відкрито</string>
+    <string name="premium_body">Облік безкоштовний. Преміум бере на себе ручну роботу.</string><string name="premium_active">Преміум активний, усе нижче відкрито.</string><string name="premium_sync_title">Синхронізація Monobank</string><string name="premium_sync_body">Операції підтягуються з банку самі.</string><string name="premium_import_title">Імпорт виписок</string><string name="premium_import_body">Виписки monobank і ПУМБ. Інші банки додаємо.</string><string name="premium_auto_title">Автозапис операцій</string><string name="premium_auto_body">Знайомі покупки записуються самі.</string><string name="premium_pdf_title">PDF-звіт</string><string name="premium_pdf_body">Підсумок місяця одним файлом.</string><string name="premium_unavailable">Підписка зараз недоступна. Спробуй пізніше.</string><string name="premium_monthly">%1$s на місяць</string><string name="premium_yearly">%1$s на рік</string><string name="premium_trial">14 днів безкоштовно, далі %1$s</string><string name="premium_required">Імпорт виписок доступний у Преміум</string><string name="premium_plan_active">Усе відкрито</string>
     <string name="debt_repayment">Повернення</string><string name="debt_new_repayment">Нове повернення</string><string name="debt_repayment_amount">Сума повернення</string><string name="debt_totals">Я винен: %1$s · Мені винні: %2$s</string>
     <string name="wallet_kind_hint">Цей рахунок не входить у суму «на день».</string>
     <string name="cash_forecast_main">Прогноз на %1$s: %2$s ₴</string>
@@ -724,4 +722,15 @@
     <string name="category_stats_vs_previous">%1$s %% до попереднього періоду (%2$s)</string>
     <string name="category_stats_by_sub">За підкатегоріями</string>
     <string name="category_stats_show_tx">До операцій</string>
+    <string name="onboarding_start">Почати</string>
+    <string name="onboarding_demo_forecast">До кінця місяця вистачить</string>
+    <string name="onboarding_demo_day">Д</string>
+    <string name="onboarding_demo_night">Н</string>
+    <string name="onboarding_demo_off">В</string>
+    <string name="onboarding_demo_earned">≈ %1$s за місяць</string>
+    <string name="onboarding_demo_phone">Телефон</string>
+    <string name="onboarding_demo_laptop">Ноутбук</string>
+    <string name="onboarding_demo_synced">Синхронізовано</string>
+    <string name="start_balance_title">Скільки зараз грошей?</string>
+    <string name="start_balance_body">Впиши суму на кожному гаманці. Тоді перша витрата не піде в мінус, а прогноз рахуватиме від справжньої суми. Порожнє поле лишається нулем.</string>
 </resources>

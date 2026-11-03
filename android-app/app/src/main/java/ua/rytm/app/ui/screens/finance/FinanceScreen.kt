@@ -166,7 +166,12 @@ fun FinanceScreen(
                 ua.rytm.app.MainActivity.ACTION_QUICK_ENTRY -> viewModel.quickEntryOpen = true
                 ua.rytm.app.MainActivity.ACTION_MONTH_SUMMARY -> viewModel.openMonthSummary()
                 ua.rytm.app.MainActivity.ACTION_NEW_INCOME -> viewModel.openNewTransactionSheet(type = TxType.INCOME)
-                ua.rytm.app.MainActivity.ACTION_NEW_EXPENSE -> viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
+                ua.rytm.app.MainActivity.ACTION_NEW_EXPENSE -> if (viewModel.needsStartingBalance) {
+                    // A fresh profile: the money already there first, or the
+                    // first expense shows as a minus.
+                    viewModel.expenseAfterStartingBalance = true
+                    viewModel.startingBalanceOpen = true
+                } else viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
                 else -> {
                     val prefill = app.pendingPrefill.value
                     app.pendingPrefill.value = null
@@ -177,6 +182,15 @@ fun FinanceScreen(
     }
     viewModel.salaryAllocation?.let { plan ->
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
+    }
+    if (viewModel.startingBalanceOpen) {
+        StartingBalanceSheet(viewModel.wallets, onSave = viewModel::saveStartingBalances, onDismiss = {
+            viewModel.startingBalanceOpen = false
+            if (viewModel.expenseAfterStartingBalance) {
+                viewModel.expenseAfterStartingBalance = false
+                viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
+            }
+        })
     }
     if (viewModel.capitalOpen) CapitalSheet(viewModel) { viewModel.capitalOpen = false }
     if (viewModel.cashForecastOpen) {
@@ -350,7 +364,13 @@ fun FinanceScreen(
             item { RealtimeStateBanner() }
             if (viewModel.loading) item { ScreenLoadingState() }
             if (viewModel.loadFailed) item { ScreenLoadErrorState() }
-            item { HeroBalanceCard(viewModel) }
+            item {
+                HeroBalanceCard(viewModel, onWalletClick = { id ->
+                    viewModel.toggleWalletFilter(id)
+                    // Selecting brings the filtered history into view; clearing stays put.
+                    if (viewModel.historyFilter.walletId == id) scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
+                })
+            }
             item {
                 QuickActionsRow(
                     canEdit = canEdit,
@@ -395,10 +415,10 @@ fun FinanceScreen(
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
                 item {
-                    val startingBalanceComment = androidx.compose.ui.res.stringResource(R.string.finance_starting_balance)
+                    // Opening balances, not an income row named «Початковий
+                    // баланс»: that row counted as the month's income.
                     EmptyState(isSearching = viewModel.isSearchOrFilterActive, canEdit = canEdit) {
-                        viewModel.openNewTransactionSheet(type = TxType.INCOME)
-                        viewModel.form.onCommentChange(startingBalanceComment)
+                        viewModel.startingBalanceOpen = true
                     }
                 }
             } else {
