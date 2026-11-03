@@ -1,5 +1,7 @@
 # Changelog
 
+- **Purchase-test account swapped (2026-11-03)** — the owner has no access to the first test account right now. «Rytm покупки тест» (license testing) now holds only the owner's second address instead, still selected; the same address added to «Тестувальники Rytm» (now 8) so it can install the closed-testing build. Both saved and re-read after reload. Purchase not done yet.
+
 - **License tester for the purchase test (2026-11-03)** — Play Console → License testing: new list «Rytm покупки тест» with one account (owner-supplied test address, not in `PREMIUM_GRANT_EMAILS`, so Premium there depends on a real purchase), selected for license testing and saved (checked after reload). That account is already in the closed-testing list «Тестувальники Rytm» (7 addresses), so it can install the Play build. Purchase on it not done yet.
 
 - **`rytm_premium` on sale (2026-11-03)** — owner activated both base plans (`monthly` 99 ₴, `yearly` 699 ₴) and both `trial-14` offers; checked in Play Console: all four «Активні», 175 countries. Not yet checked: a real purchase end to end (a license-tester account buying on the Play build → `premium` verify → `entitlements/{uid}`). The 15% fee enrollment is still open on the owner's side.
