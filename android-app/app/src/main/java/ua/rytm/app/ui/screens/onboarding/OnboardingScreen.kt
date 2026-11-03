@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,8 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,21 +41,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.launch
 import ua.rytm.app.R
-import ua.rytm.app.ui.icons.RytmIcons
-import ua.rytm.app.ui.icons.AccountBalanceWallet
-import ua.rytm.app.ui.icons.CalendarMonth
-import ua.rytm.app.ui.icons.Security
 import ua.rytm.app.ui.theme.RytmRadii
 
-private data class OnboardingPage(val icon: ImageVector, @StringRes val title: Int, @StringRes val body: Int)
+private data class OnboardingPage(val preview: @Composable () -> Unit, @StringRes val title: Int, @StringRes val body: Int)
 
 @Composable
 fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> Unit) {
     val pages = remember {
         listOf(
-            OnboardingPage(RytmIcons.AccountBalanceWallet, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
-            OnboardingPage(RytmIcons.CalendarMonth, R.string.onboarding_shifts_title, R.string.onboarding_shifts_body),
-            OnboardingPage(RytmIcons.Security, R.string.onboarding_security_title, R.string.onboarding_security_body),
+            OnboardingPage({ FinancePreview() }, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
+            OnboardingPage({ ShiftsPreview() }, R.string.onboarding_shifts_title, R.string.onboarding_shifts_body),
+            OnboardingPage({ PrivacyPreview() }, R.string.onboarding_security_title, R.string.onboarding_security_body),
         )
     }
     // rememberSaveable, not remember: a rotation used to bounce the user
@@ -81,13 +74,8 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { index ->
             val pageData = pages[index]
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    Modifier.size(if (compactHeight) 64.dp else 96.dp).background(
-                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)),
-                        CircleShape,
-                    ),
-                    contentAlignment = Alignment.Center,
-                ) { Icon(pageData.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(if (compactHeight) 32.dp else 48.dp)) }
+                // The preview needs room; on a short screen the text alone carries the page.
+                if (!compactHeight) pageData.preview()
                 Spacer(Modifier.height(if (compactHeight) 8.dp else 28.dp))
                 Text(stringResource(pageData.title), style = if (compactHeight) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(if (compactHeight) 4.dp else 12.dp))
@@ -128,7 +116,7 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
                     // heightIn: a fixed 52dp clipped the label at large fonts.
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                     shape = RoundedCornerShape(RytmRadii.Row),
-                ) { Text(stringResource(if (page == pages.lastIndex) R.string.onboarding_first_expense else R.string.action_next)) }
+                ) { Text(stringResource(if (page == pages.lastIndex) R.string.onboarding_start else R.string.action_next)) }
             }
         }
     }

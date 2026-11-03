@@ -166,12 +166,12 @@
     <string name="weekday_mon">MON</string><string name="weekday_tue">TUE</string><string name="weekday_wed">WED</string><string name="weekday_thu">THU</string><string name="weekday_fri">FRI</string><string name="weekday_sat">SAT</string><string name="weekday_sun">SUN</string>
     <string name="action_next">Next</string>
     <string name="onboarding_page_status">Page %1$d of %2$d</string>
-    <string name="onboarding_finance_title">Finances under control</string>
-    <string name="onboarding_finance_body">Wallets, categories, budgets, goals, and analytics in one place.</string>
+    <string name="onboarding_finance_title">Your money, and whether it lasts</string>
+    <string name="onboarding_finance_body">All wallets in one balance, and a forecast of whether the money lasts to the end of the month.</string>
     <string name="onboarding_shifts_title">Your work rhythm</string>
-    <string name="onboarding_shifts_body">Plan shifts, calculate income, and forecast your working month.</string>
+    <string name="onboarding_shifts_body">Mark shifts in the calendar and Rytm works out what you will earn this month.</string>
     <string name="onboarding_security_title">Privacy and synchronization</string>
-    <string name="onboarding_security_body">Data is synced across your devices via your account. PIN and biometrics protect access on this device.</string>
+    <string name="onboarding_security_body">Data syncs across your devices through your account. A PIN and fingerprint can be turned on in Settings.</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_clear">Clear</string>
     <string name="action_choose_date">Choose date</string>
@@ -587,10 +587,8 @@
     <string name="widget_forecast_short">Forecast</string>
     <string name="profile_panel_settings_subtitle">Theme, language, categories, wallets</string>
     <string name="transaction_more_fields">Date, comment, tags</string>
-    <string name="finance_starting_balance">Starting balance</string>
     <string name="subcategory_add">Add subcategory</string>
     <string name="debt_direction_owe">I owe</string><string name="debt_direction_owed">Owed to me</string><string name="debt_owed_balance">Owed to you</string><string name="debt_received">Received</string>
-    <string name="onboarding_first_expense">Add first expense</string>
     <string name="bank_auto_save_title">Save familiar operations automatically</string><string name="bank_auto_save_hint">After 3 operations from a merchant in one category. You can undo from the notification.</string>
     <string name="statement_totals_gap">Statement rows differ from the bank totals: debits %1$s, credits %2$s. Some operations may be cancelled, check them after importing.</string>
     <string name="statement_confirm">Import %1$s? Operations already saved are skipped.</string><string name="statement_wallet">Wallet</string>
@@ -617,7 +615,7 @@
     <string name="monobank_disconnect_body">Wallets and imported transactions will remain, but automatic import of new transactions will stop.</string>
     <string name="settings_monobank">Connect Monobank</string>
     <string name="settings_monobank_subtitle">Import card and jar transactions automatically</string>
-    <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">Premium is active, everything below is unlocked.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB in a few taps.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
+    <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">Premium is active, everything below is unlocked.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB statements. More banks are coming.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
     <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
     <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
@@ -714,4 +712,15 @@
     <string name="category_stats_vs_previous">%1$s%% vs the previous period (%2$s)</string>
     <string name="category_stats_by_sub">By subcategory</string>
     <string name="category_stats_show_tx">Show transactions</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_demo_forecast">Lasts to the end of the month</string>
+    <string name="onboarding_demo_day">D</string>
+    <string name="onboarding_demo_night">N</string>
+    <string name="onboarding_demo_off">O</string>
+    <string name="onboarding_demo_earned">≈ %1$s this month</string>
+    <string name="onboarding_demo_phone">Phone</string>
+    <string name="onboarding_demo_laptop">Laptop</string>
+    <string name="onboarding_demo_synced">Synced</string>
+    <string name="start_balance_title">How much money do you have now?</string>
+    <string name="start_balance_body">Enter the amount in each wallet. Then the first expense will not go negative, and the forecast starts from the real sum. An empty field stays at zero.</string>
 </resources>
