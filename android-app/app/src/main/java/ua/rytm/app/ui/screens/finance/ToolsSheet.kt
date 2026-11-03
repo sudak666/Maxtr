@@ -306,20 +306,35 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
                 topLeft = Offset(stroke / 2, stroke / 2),
                 size = Size(size.width - stroke, size.height - stroke),
             )
+            // Round ends like the rest of the app (owner, 2026-11-03). A round
+            // cap reaches stroke/2 past the arc's end, so each segment is
+            // drawn shorter by that angle on both sides plus a gap; a slice
+            // too thin for that becomes a dot that fits inside its own slice.
+            val radius = (size.width - stroke) / 2
+            val capDeg = Math.toDegrees((stroke / 2 / radius).toDouble()).toFloat()
+            val gapDeg = 3f
             chartEntries.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
-                // Butt caps: a round cap adds stroke/2 past each end (~8° here),
-                // so neighbouring segments overlapped despite the gap (P5).
-                val gap = minOf(2f, sweep * 0.18f)
-                drawArc(
-                    color = categoryColor(cat),
-                    startAngle = startAngle + gap / 2,
-                    sweepAngle = (sweep - gap).coerceAtLeast(0.6f) * progress,
-                    useCenter = false,
-                    style = Stroke(width = stroke, cap = StrokeCap.Butt),
-                    topLeft = Offset(stroke / 2, stroke / 2),
-                    size = Size(size.width - stroke, size.height - stroke),
-                )
+                val body = sweep - 2 * capDeg - gapDeg
+                if (body > 0f) {
+                    drawArc(
+                        color = categoryColor(cat),
+                        startAngle = startAngle + capDeg + gapDeg / 2,
+                        sweepAngle = body * progress,
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                        topLeft = Offset(stroke / 2, stroke / 2),
+                        size = Size(size.width - stroke, size.height - stroke),
+                    )
+                } else {
+                    val mid = Math.toRadians((startAngle + sweep / 2).toDouble())
+                    val room = (radius * Math.toRadians(((sweep - gapDeg) / 2).toDouble())).toFloat()
+                    drawCircle(
+                        color = categoryColor(cat),
+                        radius = room.coerceIn(1.5.dp.toPx(), stroke / 2) * progress,
+                        center = center + Offset((radius * kotlin.math.cos(mid)).toFloat(), (radius * kotlin.math.sin(mid)).toFloat()),
+                    )
+                }
                 startAngle += sweep
             }
         }

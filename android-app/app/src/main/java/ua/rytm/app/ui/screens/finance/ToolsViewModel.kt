@@ -119,7 +119,8 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
                 val previousAmount = previousByCategory[category] ?: return@mapNotNull null
                 if (previousAmount <= 0 || amount <= previousAmount) return@mapNotNull null
                 category to Math.round((amount - previousAmount) / previousAmount * 100).toInt() // rounded like the month summary (1346 vs 1347 seen live)
-            }.maxByOrNull { it.second }
+            }.filter { it.second >= 5 } // same ±5% band as the total: «зросли … +0%» showed for a 985,62 vs 985,00 month
+                .maxByOrNull { it.second }
         }
 
     /** One category in the chosen period: its total, the previous period's, and the split by subcategory (null = none). */
