@@ -740,4 +740,6 @@
     <string name="statement_map_preview">Result</string>
     <plurals name="statement_map_found"><item quantity="one">%1$d operation</item><item quantity="other">%1$d operations</item></plurals>
     <plurals name="statement_map_skipped"><item quantity="one">%1$d row skipped (no date or amount)</item><item quantity="other">%1$d rows skipped (no date or amount)</item></plurals>
+    <string name="finance_filtered_spent">Spent %1$s ₴</string>
+    <string name="finance_filtered_earned">Received %1$s ₴</string>
 </resources>

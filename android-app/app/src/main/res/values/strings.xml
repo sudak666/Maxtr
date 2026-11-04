@@ -16,13 +16,13 @@
     <string name="action_done">Готово</string>
     <string name="action_apply">Застосувати</string>
     <string name="action_add">Додати</string>
-    <string name="tags_title">Теги</string>
+    <string name="tags_title">Мітки</string>
     <string name="tags_body">Довільні мітки на операції, окремо від категорій — на одну операцію можна повісити кілька. Щоб видалити, змахни вліво.</string>
-    <string name="tags_empty">Немає тегів</string>
-    <string name="tags_name">Назва тега</string>
-    <string name="tags_delete_title">Видалити тег</string>
-    <string name="tags_delete_body">Видалити цей тег? Він буде знятий з усіх операцій.</string>
-    <string name="tags_save_failed">Не вдалося зберегти теги. Спробуй ще раз.</string>
+    <string name="tags_empty">Немає міток</string>
+    <string name="tags_name">Назва мітки</string>
+    <string name="tags_delete_title">Видалити мітку</string>
+    <string name="tags_delete_body">Видалити цю мітку? Вона буде знята з усіх операцій.</string>
+    <string name="tags_save_failed">Не вдалося зберегти мітки. Спробуй ще раз.</string>
     <string name="wallets_title">Гаманці</string>
     <string name="wallets_body">Картки, готівка та інші рахунки, між якими рухаються гроші.</string>
     <string name="wallets_empty">Немає гаманців</string>
@@ -477,7 +477,7 @@
     <string name="backups_failed">Не вдалося. Перевірте з’єднання</string>
     <string name="backups_rate_limited">Зачекай трохи перед наступною копією</string>
     <string name="backups_shared_unavailable">Копії спільного профілю робить його власник</string>
-    <string name="finance_search_prefix">Шукати</string><string name="finance_search_what_comment">за коментарем</string><string name="finance_search_what_category">за категорією</string><string name="finance_search_what_tag">за тегом</string><string name="finance_search_what_wallet">за гаманцем</string>
+    <string name="finance_search_prefix">Шукати</string><string name="finance_search_what_comment">за коментарем</string><string name="finance_search_what_category">за категорією</string><string name="finance_search_what_tag">за міткою</string><string name="finance_search_what_wallet">за гаманцем</string>
     <string name="settings_search_what_wallets">гаманці</string><string name="settings_search_what_categories">категорії</string><string name="settings_search_what_notifications">сповіщення</string><string name="settings_search_what_pin">PIN-код</string><string name="settings_search_what_theme">тему</string>
     <string name="finance_day_yesterday">Вчора</string>
     <string name="shifts_brush_hint">Порада: обери тип зміни вище, щоб проставляти дні одним дотиком</string>
@@ -596,7 +596,7 @@
     <string name="debt_forecast_now">зараз</string>
     <string name="widget_forecast_short">Прогноз</string>
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
-    <string name="transaction_more_fields">Дата, коментар, теги</string>
+    <string name="transaction_more_fields">Дата, коментар, мітки</string>
     <string name="subcategory_add">Додати підкатегорію</string>
     <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
     <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
@@ -685,6 +685,8 @@
     <string name="category_new_name">Назва нової категорії</string>
     <string name="subcategory_new_name">Назва нової підкатегорії</string>
     <string name="subcategory_none">Без підкатегорії</string>
+    <string name="finance_filtered_spent">Витрачено %1$s ₴</string>
+    <string name="finance_filtered_earned">Отримано %1$s ₴</string>
     <string name="tag_new">Мітка</string>
     <string name="tag_new_hint">Нова або наявна мітка</string>
     <string name="amount_calc_result">= %1$s</string>

@@ -410,6 +410,21 @@ internal fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
 }
 
 @Composable
+internal fun FilteredTotals(spent: Double, earned: Double) {
+    val parts = listOfNotNull(
+        if (spent > 0) stringResource(R.string.finance_filtered_spent, maskedAmount(formatMoney(spent))) else null,
+        if (earned > 0) stringResource(R.string.finance_filtered_earned, maskedAmount(formatMoney(earned))) else null,
+    )
+    if (parts.isEmpty()) return
+    Text(
+        parts.joinToString("  ·  "),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.semantics(mergeDescendants = true) {},
+    )
+}
+
+@Composable
 internal fun SearchField(vm: FinanceViewModel) {
     ua.rytm.app.ui.components.RytmSearchField(
         value = vm.search,
