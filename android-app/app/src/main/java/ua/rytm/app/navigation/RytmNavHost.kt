@@ -318,7 +318,8 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                     ) {
                         Icon(
                             destination.icon,
-                            contentDescription = null,
+                            // Named only while the label is hidden, so TalkBack never reads it twice.
+                            contentDescription = if (compactHeight && !selected) stringResource(destination.labelRes) else null,
                             tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(RytmDimens.TabGlyph),
                         )
