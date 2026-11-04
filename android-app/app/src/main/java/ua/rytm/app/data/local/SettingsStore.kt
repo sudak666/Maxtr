@@ -78,6 +78,13 @@ class SettingsStore(private val context: Context) {
     val bankAutoSave: Flow<Boolean> = context.settingsDataStore.data.map { it[bankAutoSaveKey] ?: false }
     suspend fun setBankAutoSave(enabled: Boolean) { context.settingsDataStore.edit { it[bankAutoSaveKey] = enabled } }
 
+    /** Device-only: which columns a bank's statement table uses, keyed by its header line. */
+    private fun statementMappingKey(signature: String) = stringPreferencesKey(
+        "stmt_map_" + java.security.MessageDigest.getInstance("SHA-256").digest(signature.toByteArray()).joinToString("") { "%02x".format(it) }.take(16),
+    )
+    suspend fun statementMapping(signature: String): String? = context.settingsDataStore.data.first()[statementMappingKey(signature)]
+    suspend fun setStatementMapping(signature: String, value: String) { context.settingsDataStore.edit { it[statementMappingKey(signature)] = value } }
+
     /** Cached from the active profile's finance doc (`monthStartDay`). */
     private val financialMonthStartKey = androidx.datastore.preferences.core.intPreferencesKey("financial_month_start")
     val financialMonthStart: Flow<Int> = context.settingsDataStore.data.map { it[financialMonthStartKey] ?: 1 }
