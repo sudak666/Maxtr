@@ -20,6 +20,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Row
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
@@ -186,7 +188,8 @@ fun PremiumDialog(onDismiss: () -> Unit) {
         },
         title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+            // Scrolls: at 200 % font the last perks were cut off with no way to reach them.
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                 Text(stringResource(if (owned) R.string.premium_active else R.string.premium_body))
                 PremiumPerkRow(RytmIcons.CheckCircle, GreenDark, stringResource(R.string.premium_sync_title), stringResource(R.string.premium_sync_body))
                 PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.premium_import_title), stringResource(R.string.premium_import_body))

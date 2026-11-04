@@ -761,4 +761,6 @@
     <string name="premium_error_network">Немає звʼязку з Google Play. Спробуй ще раз.</string>
     <string name="premium_error_billing">Оплата в Google Play зараз недоступна на цьому пристрої.</string>
     <string name="premium_error_generic">Покупка не вдалася. Гроші не списано, спробуй ще раз.</string>
+    <string name="shifts_empty_hint">Натисни на день у календарі</string>
+    <string name="shifts_quick_fill_short">Заповнити</string>
 </resources>

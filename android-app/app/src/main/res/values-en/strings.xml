@@ -751,4 +751,6 @@
     <string name="premium_error_network">No connection to Google Play. Try again.</string>
     <string name="premium_error_billing">Google Play billing is not available on this device right now.</string>
     <string name="premium_error_generic">The purchase did not go through. Nothing was charged, try again.</string>
+    <string name="shifts_empty_hint">Tap a day in the calendar</string>
+    <string name="shifts_quick_fill_short">Fill in</string>
 </resources>

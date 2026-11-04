@@ -258,7 +258,9 @@ internal fun ProfileAvatar(appearance: ProfileAppearance, fallback: String, desc
         when {
             bitmap != null -> Image(bitmap, contentDescription = description, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
             builtin != null -> Icon(builtin.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(size * 0.44f))
-            else -> Text(fallback.trim().firstOrNull()?.uppercase() ?: "?", fontWeight = FontWeight.ExtraBold, color = ua.rytm.app.ui.theme.RytmSemantic.link)
+            else -> fallback.trim().firstOrNull()?.uppercase()?.let { Text(it, fontWeight = FontWeight.ExtraBold, color = ua.rytm.app.ui.theme.RytmSemantic.link) }
+                // No photo and no name: a person, not «?», which read as "help".
+                ?: Icon(ua.rytm.app.ui.icons.RytmIcons.Person, contentDescription = null, tint = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.size(size * 0.5f))
         }
     }
 }
