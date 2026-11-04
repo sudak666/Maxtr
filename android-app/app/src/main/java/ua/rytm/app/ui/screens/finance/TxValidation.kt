@@ -48,7 +48,8 @@ fun validateTransactionDraft(draft: TransactionDraft, isTransfer: Boolean): TxVa
     if (!draft.amount.isFinite() || draft.amount <= 0) return TxValidationError.INVALID_AMOUNT
     if (draft.amount >= TX_AMOUNT_MAX) return TxValidationError.AMOUNT_TOO_LARGE
     if (draft.date.isBlank()) return TxValidationError.DATE_REQUIRED
-    if (!dateRegex.matches(draft.date)) return TxValidationError.INVALID_DATE
+    // The shape alone let 2026-99-99 or 2026-02-30 through (CSV, statements).
+    if (!dateRegex.matches(draft.date) || runCatching { java.time.LocalDate.parse(draft.date) }.isFailure) return TxValidationError.INVALID_DATE
     if (draft.walletId.isBlank()) return TxValidationError.WALLET_REQUIRED
     if (draft.comment.length > TX_COMMENT_MAX) return TxValidationError.COMMENT_TOO_LONG
     if ((draft.category?.length ?: 0) > 120 || (draft.subcategory?.length ?: 0) > 120) return TxValidationError.CATEGORY_TOO_LONG

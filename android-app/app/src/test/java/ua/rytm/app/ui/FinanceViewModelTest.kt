@@ -174,6 +174,41 @@ class FinanceViewModelTest {
         assertEquals(100.0, vm.monthExpenseUah, 0.001)
     }
 
+    // An old EUR→UAH transfer keeps what was really received when only the
+    // comment changes, even after the rate moved (audit P1).
+    @Test fun editingTransferCommentKeepsReceivedSum() {
+        runBlocking { db.currencyRateDao().insertAll(listOf(ua.rytm.app.data.local.CurrencyRateEntity("EUR", 41.0))) }
+        val vm = vm()
+        waitUntil { !vm.isSaving }
+        vm.openNewTransactionSheet()
+        vm.form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.TRANSFER)
+        vm.form.onWalletChange("eur")
+        vm.form.onTargetWalletChange("uah")
+        vm.form.onAmountChange("100")
+        vm.form.onDateChange(LocalDate.now().toString())
+        vm.submitForm()
+        waitUntil { runBlocking { db.transactionDao().getAllOnce() }.isNotEmpty() && !vm.isSaving }
+        assertEquals(4100.0, runBlocking { db.transactionDao().getAllOnce() }.single().targetAmount!!, 0.001)
+
+        runBlocking { db.currencyRateDao().insertAll(listOf(ua.rytm.app.data.local.CurrencyRateEntity("EUR", 42.0))) }
+        waitUntil { vm.filteredTransactions.isNotEmpty() }
+        vm.openEditTransactionSheet(vm.filteredTransactions.single())
+        assertEquals("4100", vm.form.receivedText)
+        vm.form.onCommentChange("rent")
+        vm.submitForm()
+        waitUntil { runBlocking { db.transactionDao().getAllOnce() }.single().comment == "rent" && !vm.isSaving }
+        assertEquals(4100.0, runBlocking { db.transactionDao().getAllOnce() }.single().targetAmount!!, 0.001)
+
+        // A new amount drops the stale sum; a typed one wins over the rate.
+        vm.openEditTransactionSheet(vm.filteredTransactions.single())
+        vm.form.onAmountChange("50")
+        assertEquals("", vm.form.receivedText)
+        vm.form.onReceivedChange("2090")
+        vm.submitForm()
+        waitUntil { runBlocking { db.transactionDao().getAllOnce() }.single().amount == 50.0 && !vm.isSaving }
+        assertEquals(2090.0, runBlocking { db.transactionDao().getAllOnce() }.single().targetAmount!!, 0.001)
+    }
+
     @Test fun searchMatchesTagNames() {
         runBlocking { db.tagDao().insert(ua.rytm.app.data.local.TagEntity("t1", "Коло", 0xFFFF0000)) }
         val vm = vm()

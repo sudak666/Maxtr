@@ -39,7 +39,8 @@ class SettingsStore(private val context: Context) {
     private val privacyCacheKey = booleanPreferencesKey("privacy_cache")
     private val showBalanceAfterKey = booleanPreferencesKey("show_balance_after")
     private val bankAutoSaveKey = booleanPreferencesKey("bank_auto_save")
-    private val premiumCachedKey = booleanPreferencesKey("premium_cached")
+    // "uid|validUntilMillis": the old bare boolean had no owner and no end.
+    private val premiumCacheKey = stringPreferencesKey("premium_cache")
     private val onboardingCompleteKey = booleanPreferencesKey("onboarding_complete")
     private val languageKey = stringPreferencesKey("language")
 
@@ -71,8 +72,13 @@ class SettingsStore(private val context: Context) {
     val showBalanceAfter: Flow<Boolean> = context.settingsDataStore.data.map { it[showBalanceAfterKey] ?: false }
     suspend fun setShowBalanceAfter(show: Boolean) { context.settingsDataStore.edit { it[showBalanceAfterKey] = show } }
 
-    val premiumCached: Flow<Boolean> = context.settingsDataStore.data.map { it[premiumCachedKey] ?: false }
-    suspend fun setPremiumCached(owned: Boolean) { context.settingsDataStore.edit { it[premiumCachedKey] = owned } }
+    /** The last server "yes": whose it was and until when it may stand offline. */
+    val premiumCache: Flow<PremiumCache?> = context.settingsDataStore.data.map { prefs ->
+        prefs[premiumCacheKey]?.split('|')?.takeIf { it.size == 2 }?.let { (uid, until) -> until.toLongOrNull()?.let { PremiumCache(uid, it) } }
+    }
+    suspend fun setPremiumCache(cache: PremiumCache?) {
+        context.settingsDataStore.edit { if (cache == null) it.remove(premiumCacheKey) else it[premiumCacheKey] = "${cache.uid}|${cache.validUntil}" }
+    }
 
     /** Device-only: familiar bank operations save without a tap, with an undo. */
     val bankAutoSave: Flow<Boolean> = context.settingsDataStore.data.map { it[bankAutoSaveKey] ?: false }
@@ -222,3 +228,5 @@ const val DEFAULT_SALARY_GOAL = 20000.0
 val FINANCE_WIDGET_KEYS = listOf("goals", "dailyTip", "cryptoTop")
 data class FinanceWidgetsConfig(val enabled: Set<String>, val order: List<String>)
 data class CryptoCache(val json: String, val at: Long)
+
+data class PremiumCache(val uid: String, val validUntil: Long)

@@ -744,4 +744,11 @@
     <string name="finance_filtered_earned">Received %1$s ₴</string>
     <string name="debt_due_reminder">Remind before the due date</string>
     <string name="debt_due_reminder_push_off">Turn on push notifications in Settings first</string>
+    <string name="transaction_received">Received, %1$s</string>
+    <string name="transaction_received_hint">Blank uses the rate. Type it if the bank credited a different sum.</string>
+    <string name="premium_loading">Loading plans…</string>
+    <string name="premium_load_failed">Could not load the plans. Check the connection.</string>
+    <string name="premium_error_network">No connection to Google Play. Try again.</string>
+    <string name="premium_error_billing">Google Play billing is not available on this device right now.</string>
+    <string name="premium_error_generic">The purchase did not go through. Nothing was charged, try again.</string>
 </resources>

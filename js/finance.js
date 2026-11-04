@@ -253,6 +253,10 @@ export async function addTransaction(){
   if(AppState.currentFinanceType==='transfer'){
     targetCurrency=walletCurrency(wt);
     targetAmount=convertCurrency(amount, srcCur, targetCurrency);
+    // Editing a past transfer with the same sum and wallets keeps what was
+    // really received: re-pricing it at today's rate rewrote old balances.
+    const prev=AppState.editingTxId!=null?AppState.transactions.find(x=>sameTxId(x.id,AppState.editingTxId)):null;
+    if(prev&&prev.type==='transfer'&&prev.amount===amount&&prev.wallet===ws&&prev.targetWallet===wt&&prev.currency===srcCur&&prev.targetCurrency===targetCurrency&&Number.isFinite(prev.targetAmount)&&prev.targetAmount>0) targetAmount=prev.targetAmount;
     if(!Number.isFinite(targetAmount)||targetAmount<=0||targetAmount>=TX_AMOUNT_MAX){showToast(tr('finance_err_amount_large'),'xmark');return;}
   }
   if(AppState.editingTxId!=null){

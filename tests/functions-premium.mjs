@@ -8,12 +8,26 @@ const { accountIdFor, evaluateSubscription, entitlementFor, verifyPurchase } = r
 
 function fakeDb() {
   const docs = new Map();
+  const snap = (path) => ({ exists: docs.has(path), get: (k) => docs.get(path)?.[k], data: () => docs.get(path) });
+  // Firestore serializes transactions that touch the same document; a chain
+  // of promises gives the same one-at-a-time order.
+  let queue = Promise.resolve();
   return {
     docs,
     doc: (path) => ({
-      get: async () => ({ exists: docs.has(path), get: (k) => docs.get(path)?.[k], data: () => docs.get(path) }),
+      path,
+      get: async () => snap(path),
       set: async (data, opts) => { docs.set(path, opts?.merge ? { ...(docs.get(path) || {}), ...data } : data); },
     }),
+    runTransaction(fn) {
+      const run = queue.then(async () => {
+        const writes = [];
+        await fn({ get: async (ref) => snap(ref.path), set: (ref, data) => writes.push([ref.path, data]) });
+        for (const [p, d] of writes) docs.set(p, d);
+      });
+      queue = run.catch(() => {});
+      return run;
+    },
   };
 }
 
@@ -56,5 +70,15 @@ await assert.rejects(verifyPurchase(db, 'u1', 'x', async () => sub(), now), { co
 const r2 = await verifyPurchase(db, 'u1', token, async () => sub({ subscriptionState: 'SUBSCRIPTION_STATE_EXPIRED' }), now);
 assert.equal(r2.premium, false);
 assert.equal(db.docs.get('entitlements/u1').premium, false, 'expiry overwrites the stored answer');
+
+// Two accounts verifying one token at once (no account id in the purchase):
+// only one may win.
+{
+  const race = fakeDb();
+  const slow = async () => { await new Promise((r) => setTimeout(r, 10)); return sub({ externalAccountIdentifiers: undefined }); };
+  const results = await Promise.allSettled([verifyPurchase(race, 'a', token, slow, now), verifyPurchase(race, 'b', token, slow, now)]);
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1, 'exactly one account claims the token');
+  assert.equal([race.docs.has('entitlements/a'), race.docs.has('entitlements/b')].filter(Boolean).length, 1);
+}
 
 console.log('functions-premium: all passed');
