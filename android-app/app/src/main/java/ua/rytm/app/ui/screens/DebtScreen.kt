@@ -50,6 +50,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -524,6 +525,7 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
                 DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
+                if (dueDate.isNotBlank()) DueReminderRow()
                 ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
                     Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
@@ -782,4 +784,32 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
             }
         }
     }
+}
+
+/**
+ * The due date only reminds when push and the «Борги» type are both on, and
+ * both lived in Settings, so a date was set and nothing ever came. The type is
+ * switched right here; push itself needs the permission flow in Settings.
+ */
+@Composable
+private fun DueReminderRow() {
+    val session = ua.rytm.app.ui.LocalSession.current
+    val accountUid = session.accountUid ?: return
+    val dataUid = session.dataUid ?: return
+    val app = ua.rytm.app.ui.rytmApp()
+    val pushFlow = remember(accountUid) { app.settingsStore.isPushEnabled(accountUid) }
+    val pushOn by pushFlow.collectAsState(initial = true)
+    val notif: ua.rytm.app.ui.screens.NotificationSettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        key = "debt-due-$dataUid-${session.profileId}",
+        factory = ua.rytm.app.ui.screens.NotificationSettingsViewModel.factory(dataUid, app.pushRepository, session.profileId),
+    )
+    if (notif.loading) return
+    NotifToggleRow(
+        title = stringResource(R.string.debt_due_reminder),
+        subtitle = stringResource(if (pushOn) R.string.notifications_debt_subtitle else R.string.debt_due_reminder_push_off),
+        checked = pushOn && notif.debtAlerts,
+        enabled = pushOn && !notif.saving,
+        onCheckedChange = notif::onDebtAlertsChanged,
+    )
+    notif.errorMessageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 }

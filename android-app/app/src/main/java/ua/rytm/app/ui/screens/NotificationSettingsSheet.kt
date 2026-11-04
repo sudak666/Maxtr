@@ -139,7 +139,7 @@ fun NotificationSettingsSheet(
 }
 
 @Composable
-private fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun NotifToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
     val haptics = rememberRytmHaptics()
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {

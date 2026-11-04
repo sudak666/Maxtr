@@ -195,7 +195,7 @@ private fun PickerRow(
         Spacer(Modifier.width(RytmSpacing.md))
         Column(Modifier.weight(1f)) {
             Text(text, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.link, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         if (hasChildren) Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         else RadioButton(selected = selected, onClick = null)
