@@ -25,11 +25,11 @@ object RytmSemantic {
     val isDark: Boolean
         @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
-    /** Income text on a plain surface. Dark 8.12:1, light 7.8:1. */
+    /** Income text on a plain surface. Dark 8.12:1, light 6.1:1 on white. */
     val income: Color
         @Composable @ReadOnlyComposable get() = if (isDark) GreenDark2 else GreenText
 
-    /** Expense text on a plain surface. Dark 5.65:1, light 8.3:1. */
+    /** Expense text on a plain surface. Dark 5.65:1, light 6.2:1 on white. */
     val expense: Color
         @Composable @ReadOnlyComposable get() = if (isDark) RedDarkText else RedText
 
