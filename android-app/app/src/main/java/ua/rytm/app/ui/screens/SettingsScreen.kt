@@ -602,6 +602,15 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         )
     }
 
+    settingsViewModel.statementTable?.let { draft ->
+        StatementMappingSheet(
+            table = draft.table,
+            initial = draft.mapping,
+            onApply = settingsViewModel::applyStatementMapping,
+            onDismiss = settingsViewModel::dismissStatementTable,
+        )
+    }
+
     csvImportPreview?.let { preview ->
         CsvImportPreviewDialog(
             preview = preview,

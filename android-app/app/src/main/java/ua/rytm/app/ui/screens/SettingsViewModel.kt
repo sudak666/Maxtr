@@ -73,6 +73,59 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissImportPreview() { if (!csvBusy) csvImportPreview = null }
 
+    /** A statement table from a bank without its own reader, waiting for the user to name its columns. */
+    data class StatementTableDraft(val table: List<List<String>>, val mapping: ua.rytm.app.data.StatementTable.Mapping)
+    var statementTable by mutableStateOf<StatementTableDraft?>(null)
+        private set
+    fun dismissStatementTable() { statementTable = null }
+
+    fun applyStatementMapping(mapping: ua.rytm.app.data.StatementTable.Mapping) {
+        val draft = statementTable ?: return
+        viewModelScope.launch {
+            try {
+                val result = ua.rytm.app.data.StatementTable.apply(draft.table, mapping)
+                val me = FirebaseAuth.getInstance().currentUser
+                val finance = app.financeRepository
+                val new = result.statement.toTransactions(
+                    finance.wallets.first(), finance.transactions.first(), finance.categoriesByType.first(),
+                    me?.uid, me?.displayName?.takeIf { it.isNotBlank() } ?: me?.email?.substringBefore('@'),
+                )
+                app.settingsStore.setStatementMapping(
+                    ua.rytm.app.data.StatementTable.signature(draft.table, mapping.headerRow),
+                    with(mapping) { listOf(headerRow, date, amount, debit, credit, details).joinToString(",") { it?.toString().orEmpty() } },
+                )
+                statementTable = null
+                if (new.isEmpty()) message = SettingsMessage.Text(R.string.settings_csv_empty)
+                else csvImportPreview = ua.rytm.app.data.CsvImportPreview(new, emptyList(), null, finance.wallets.first())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                message = SettingsMessage.Text(R.string.settings_csv_import_failed)
+            }
+        }
+    }
+
+    /** The saved mapping for this header line, if it still fits the table. */
+    private suspend fun savedMapping(table: List<List<String>>): ua.rytm.app.data.StatementTable.Mapping? {
+        val guess = ua.rytm.app.data.StatementTable.guess(table)
+        val raw = app.settingsStore.statementMapping(ua.rytm.app.data.StatementTable.signature(table, guess.headerRow)) ?: return null
+        val parts = raw.split(",").map { it.toIntOrNull() }
+        if (parts.size != 6 || parts[0] == null || parts[1] == null) return null
+        val width = table.getOrNull(parts[0]!!)?.size ?: return null
+        if (parts.drop(1).any { it != null && it >= width }) return null
+        return ua.rytm.app.data.StatementTable.Mapping(parts[0]!!, parts[1]!!, parts[2], parts[3], parts[4], parts[5])
+    }
+
+    private suspend fun openStatementTable(bytes: ByteArray): Boolean {
+        val table = withContext(Dispatchers.Default) { ua.rytm.app.data.StatementTable.read(bytes) } ?: return false
+        if (!app.premiumRepository.isPremium.value) {
+            message = SettingsMessage.Text(R.string.premium_required)
+            return true
+        }
+        statementTable = StatementTableDraft(table, savedMapping(table) ?: ua.rytm.app.data.StatementTable.guess(table))
+        return true
+    }
+
     var pushBusy by mutableStateOf(false)
         private set
     var pendingPushEnabled by mutableStateOf<Boolean?>(null)
@@ -105,6 +158,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) { app.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+                if (bytes != null && ua.rytm.app.data.StatementTable.isLegacyXls(bytes)) {
+                    message = SettingsMessage.Text(R.string.statement_old_xls)
+                    return@launch
+                }
+                // An xlsx that is not monobank's own layout is another bank's table.
+                val monobankRows = if (bytes != null && ua.rytm.app.data.MonobankStatement.isXlsx(bytes)) {
+                    withContext(Dispatchers.Default) { runCatching { ua.rytm.app.data.MonobankStatement.parse(bytes).rows.size }.getOrDefault(0) }
+                } else 0
+                if (bytes != null && ua.rytm.app.data.MonobankStatement.isXlsx(bytes) && monobankRows == 0) {
+                    if (!openStatementTable(bytes)) message = SettingsMessage.Text(R.string.settings_csv_read_failed)
+                    return@launch
+                }
                 if (bytes != null && (ua.rytm.app.data.MonobankStatement.isXlsx(bytes) || ua.rytm.app.data.PumbStatement.isPdf(bytes))) {
                     if (!app.premiumRepository.isPremium.value) {
                         message = SettingsMessage.Text(R.string.premium_required)
@@ -127,7 +192,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     message = SettingsMessage.Text(R.string.settings_csv_read_failed)
                     return@launch
                 }
-                val preview = csvRepository.parse(text)
+                // Rytm's own CSV export has 11 columns; any other table is a bank's.
+                val preview = runCatching { csvRepository.parse(text) }.getOrNull()
+                // A bank table that happens to have 11 columns fails every row of our own format.
+                if (preview == null || (preview.transactions.isEmpty() && preview.errors.isNotEmpty())) {
+                    if (!openStatementTable(checkNotNull(bytes))) message = if (preview == null) SettingsMessage.Text(R.string.settings_csv_read_failed)
+                        else SettingsMessage.Plural(R.plurals.settings_csv_no_valid_rows, preview.errors.size)
+                    return@launch
+                }
                 when {
                     preview.transactions.isNotEmpty() -> csvImportPreview = preview
                     preview.errors.isEmpty() -> message = SettingsMessage.Text(R.string.settings_csv_empty)
