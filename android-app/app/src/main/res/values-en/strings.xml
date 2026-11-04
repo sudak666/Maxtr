@@ -742,4 +742,6 @@
     <plurals name="statement_map_skipped"><item quantity="one">%1$d row skipped (no date or amount)</item><item quantity="other">%1$d rows skipped (no date or amount)</item></plurals>
     <string name="finance_filtered_spent">Spent %1$s ₴</string>
     <string name="finance_filtered_earned">Received %1$s ₴</string>
+    <string name="debt_due_reminder">Remind before the due date</string>
+    <string name="debt_due_reminder_push_off">Turn on push notifications in Settings first</string>
 </resources>

@@ -321,7 +321,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     // The result sits inside the field: under it, it hid behind
                     // the pinned operator row and the keyboard.
                     suffix = amountCalcResult(vm.form.amountText, vm.formWalletCurrency)?.let { result ->
-                        { Text(result, color = MaterialTheme.colorScheme.primary, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
+                        { Text(result, color = ua.rytm.app.ui.theme.RytmSemantic.link, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),

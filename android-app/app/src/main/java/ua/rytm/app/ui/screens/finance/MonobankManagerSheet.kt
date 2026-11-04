@@ -178,8 +178,8 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         Text(stringResource(R.string.monobank_sync_background), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     errorRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-                    messageRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
-                    importedCount?.let { Text(stringResource(R.string.monobank_sync_result, it), color = MaterialTheme.colorScheme.primary) }
+                    messageRes?.let { Text(stringResource(it), color = ua.rytm.app.ui.theme.RytmSemantic.link) }
+                    importedCount?.let { Text(stringResource(R.string.monobank_sync_result, it), color = ua.rytm.app.ui.theme.RytmSemantic.link) }
                     Button(
                         onClick = {
                             errorRes = null; messageRes = null; importedCount = null
