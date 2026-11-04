@@ -440,6 +440,11 @@ class FinanceViewModel(
         }
     }
 
+    /** Expense and income sums in UAH, transfers left out: the total under a search or filter. */
+    fun totalsUah(txs: List<Transaction>): Pair<Double, Double> =
+        txs.filter { it.type == TxType.EXPENSE }.sumOf { toUah(it.amount, it.currency) } to
+            txs.filter { it.type == TxType.INCOME }.sumOf { toUah(it.amount, it.currency) }
+
     private fun toUah(amount: Double, currency: String): Double =
         repository.convertCurrency(amount, currency, "UAH", currencyRates)
 

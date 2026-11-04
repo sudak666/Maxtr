@@ -412,6 +412,12 @@ fun FinanceScreen(
                 )
                 CategoryFilterChip(parts.joinToString(", "), onClear = viewModel::clearWalletAmountFilters)
             }
+            // "#відпустка" or any filter: how much the found operations add up to.
+            if (viewModel.isSearchOrFilterActive && filtered.isNotEmpty()) item(key = "filtered-totals") {
+                val shownTxs = filtered.filter { it.id != pendingDeleteId }
+                val (spent, earned) = remember(shownTxs) { viewModel.totalsUah(shownTxs) }
+                FilteredTotals(spent, earned)
+            }
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {
                 item {
