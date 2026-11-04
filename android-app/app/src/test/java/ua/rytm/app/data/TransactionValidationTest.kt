@@ -16,6 +16,11 @@ class TransactionValidationTest {
         assertEquals(TxValidationError.AMOUNT_TOO_LARGE, validateTransactionDraft(draft(amount = 1_000_000_000.0), false))
         assertEquals(TxValidationError.DATE_REQUIRED, validateTransactionDraft(draft(date = ""), false))
         assertEquals(TxValidationError.INVALID_DATE, validateTransactionDraft(draft(date = "22.08.2026"), false))
+        // Right shape, impossible day (audit P2).
+        listOf("2026-99-99", "2026-02-30", "2026-13-01", "2025-02-29").forEach {
+            assertEquals(it, TxValidationError.INVALID_DATE, validateTransactionDraft(draft(date = it), false))
+        }
+        assertEquals(null, validateTransactionDraft(draft(date = "2028-02-29"), false))
         assertEquals(TxValidationError.WALLET_REQUIRED, validateTransactionDraft(draft(wallet = ""), false))
         assertEquals(TxValidationError.COMMENT_TOO_LONG, validateTransactionDraft(draft(comment = "x".repeat(501)), false))
         assertEquals(TxValidationError.CATEGORY_TOO_LONG, validateTransactionDraft(draft(category = "x".repeat(121)), false))

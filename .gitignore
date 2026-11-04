@@ -26,3 +26,4 @@ android-app/*.keystore
 .agents/
 .codex/
 android-app/.kotlin/
+firestore-debug.log

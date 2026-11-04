@@ -20,6 +20,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -167,8 +169,11 @@ fun PremiumDialog(onDismiss: () -> Unit) {
     val premium = ua.rytm.app.ui.rytmApp().premiumRepository
     val owned by premium.isPremium.collectAsState()
     val offers by premium.offers.collectAsState()
+    val offersState by premium.offersState.collectAsState()
+    val purchaseError by premium.purchaseError.collectAsState()
     val activity = androidx.activity.compose.LocalActivity.current
-    LaunchedEffect(Unit) { runCatching { premium.loadOffers() } }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    LaunchedEffect(Unit) { premium.clearPurchaseError(); runCatching { premium.loadOffers() } }
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
@@ -187,14 +192,26 @@ fun PremiumDialog(onDismiss: () -> Unit) {
                 PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.premium_import_title), stringResource(R.string.premium_import_body))
                 PremiumPerkRow(RytmIcons.CloudDone, GreenDark, stringResource(R.string.premium_auto_title), stringResource(R.string.premium_auto_body))
                 PremiumPerkRow(RytmIcons.GridView, GreenDark, stringResource(R.string.premium_pdf_title), stringResource(R.string.premium_pdf_body))
-                if (!owned && offers.isEmpty()) Text(stringResource(R.string.premium_unavailable), style = MaterialTheme.typography.bodySmall)
+                // Loading, failed and "not sold here" used to be one message: «недоступно» while still loading.
+                if (!owned && offers.isEmpty()) when (offersState) {
+                    ua.rytm.app.data.OffersState.LOADING -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                        androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Text(stringResource(R.string.premium_loading), style = MaterialTheme.typography.bodySmall)
+                    }
+                    ua.rytm.app.data.OffersState.FAILED -> Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.premium_load_failed), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = { scope.launch { runCatching { premium.loadOffers() } } }) { Text(stringResource(R.string.action_retry)) }
+                    }
+                    else -> Text(stringResource(R.string.premium_unavailable), style = MaterialTheme.typography.bodySmall)
+                }
+                purchaseError?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 if (!owned) offers.forEach { offer ->
                     val label = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
-                    Button(onClick = { activity?.let { premium.buy(it, offer) } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
+                    Button(onClick = { premium.clearPurchaseError(); activity?.let { premium.buy(it, offer) } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                         Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label)
                     }
                 }

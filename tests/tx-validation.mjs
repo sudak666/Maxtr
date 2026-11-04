@@ -80,4 +80,10 @@ test('accepts a well-formed transfer between two different wallets', () => {
   passed++;
 }
 
+// Impossible calendar dates (shape is right, the day does not exist).
+for (const bad of ['2026-99-99', '2026-02-30', '2026-13-01', '2026-00-10', '2025-02-29']) {
+  assert.equal(validateTransactionDraft({ ...baseDraft, date: bad }, false), 'finance_err_date_format', bad);
+}
+assert.equal(validateTransactionDraft({ ...baseDraft, date: '2028-02-29' }, false), '', 'leap day');
+
 console.log(`\n${passed} tx-validation test(s) passed`);

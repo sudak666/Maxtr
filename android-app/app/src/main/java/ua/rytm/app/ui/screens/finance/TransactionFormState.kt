@@ -40,6 +40,13 @@ class TransactionFormState(
         private set
     var amountText by mutableStateOf("")
         private set
+    /**
+     * What reached the target wallet in its own currency, for a transfer
+     * between currencies. Blank = today's rate. Editing an old transfer keeps
+     * its saved sum here, so changing only the comment no longer re-prices it.
+     */
+    var receivedText by mutableStateOf("")
+        private set
     var category by mutableStateOf<String?>(null)
         private set
     var subcategory by mutableStateOf<String?>(null)
@@ -79,6 +86,7 @@ class TransactionFormState(
         this.walletId = walletId
         this.targetWalletId = targetWalletId
         this.amountText = amountText
+        receivedText = ""
         // The type's most-used category, not the alphabetically first one.
         category = frequentOf(type).firstOrNull() ?: categoriesOf(type).firstOrNull()
         subcategory = null
@@ -97,6 +105,7 @@ class TransactionFormState(
         walletId = tx.walletId
         targetWalletId = tx.targetWalletId ?: fallbackTargetWalletId
         amountText = plainNumber(tx.amount)
+        receivedText = tx.targetAmount?.takeIf { tx.type == TxType.TRANSFER && tx.targetCurrency != null && tx.targetCurrency != tx.currency }?.let(::plainNumber).orEmpty()
         category = tx.category
         subcategory = tx.subcategory
         date = tx.date
@@ -122,11 +131,17 @@ class TransactionFormState(
         persist()
     }
 
-    fun onWalletChange(id: String) { walletId = id; persist() }
-    fun onTargetWalletChange(id: String) { targetWalletId = id; persist() }
+    // A new amount or another wallet makes the saved received sum stale.
+    fun onWalletChange(id: String) { if (id != walletId) receivedText = ""; walletId = id; persist() }
+    fun onTargetWalletChange(id: String) { if (id != targetWalletId) receivedText = ""; targetWalletId = id; persist() }
+    fun onReceivedChange(text: String) { receivedText = text.filter { it.isDigit() || it == ',' || it == '.' || it == ' ' }; clearError(); persist() }
+    /** The typed received sum, or null for "use the rate". */
+    val receivedValue: Double? get() = parseMoneyInput(receivedText)?.takeIf { it > 0 && it.isFinite() }
     fun onAmountChange(text: String) {
         // Pasted/hardware-keyboard text could put letters into the amount field.
-        amountText = text.filter(AmountExpression::isAllowed)
+        val filtered = text.filter(AmountExpression::isAllowed)
+        if (filtered != amountText) receivedText = ""
+        amountText = filtered
         clearError()
         persist()
     }
@@ -212,6 +227,7 @@ class TransactionFormState(
             comment,
             selectedTagIds.joinToString("\u001f"),
             splits.joinToString("\u001d") { it.category + "\u001e" + it.amountText },
+            receivedText,
         )
     }
 
@@ -231,6 +247,7 @@ class TransactionFormState(
         selectedTagIds = saved[10].split("\u001f").filter { it.isNotEmpty() }
         splits = saved.getOrNull(11).orEmpty().split("\u001d").filter { it.isNotEmpty() }
             .map { it.split("\u001e").let { p -> SplitPart(p[0], p.getOrElse(1) { "" }) } }
+        receivedText = saved.getOrNull(12).orEmpty()
     }
 
     private companion object { const val DRAFT_KEY = "tx_draft" }

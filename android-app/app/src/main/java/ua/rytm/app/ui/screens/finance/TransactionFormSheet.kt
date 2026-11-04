@@ -292,6 +292,19 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                         color = if (hint.isWarning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                // Between currencies: the bank's real sum, if it differs from the rate.
+                vm.formReceivedSuggestion?.let { suggestion ->
+                    OutlinedTextField(
+                        value = vm.form.receivedText,
+                        onValueChange = vm.form::onReceivedChange,
+                        label = { Text(stringResource(R.string.transaction_received, currencySymbol(vm.formTargetCurrency))) },
+                        placeholder = { Text(suggestion) },
+                        supportingText = { Text(stringResource(R.string.transaction_received_hint)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {

@@ -79,10 +79,17 @@ async function verifyPurchase(db, uid, purchaseToken, fetchSubscription, now) {
     throw new PremiumError('invalid-argument', 'bad purchase token');
   }
   const claimRef = db.doc(`purchase_tokens/${sha256(purchaseToken)}`);
+  // Cheap early refusal before asking Google; the transaction below decides.
   const claim = await claimRef.get();
   if (claim.exists && claim.get('uid') !== uid) throw new PremiumError('permission-denied', 'purchase belongs to another account');
   const result = evaluateSubscription(await fetchSubscription(purchaseToken), uid, now);
-  if (!claim.exists) await claimRef.set({ uid, createdAt: now });
+  // Read and claim in one transaction: two accounts verifying the same token
+  // at once both passed the read above and both got Premium.
+  await db.runTransaction(async (/** @type {any} */ tx) => {
+    const snap = await tx.get(claimRef);
+    if (snap.exists && snap.get('uid') !== uid) throw new PremiumError('permission-denied', 'purchase belongs to another account');
+    if (!snap.exists) tx.set(claimRef, { uid, createdAt: now });
+  });
   await db.doc(`entitlements/${uid}`).set({
     premium: result.premium, expiresAt: result.expiresAt, state: result.state, basePlan: result.basePlan, updatedAt: now,
   }, { merge: true });

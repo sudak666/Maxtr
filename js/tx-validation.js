@@ -44,6 +44,16 @@ export function isOverBudget(spent, limit){
 // call site) rather than read off AppState, so this function stays pure
 // and doesn't need to import state.js.
 /**
+ * The shape alone let 2026-99-99 or 2026-02-30 through (e.g. from a CSV).
+ * @param {string} iso YYYY-MM-DD
+ */
+export function isRealDate(iso){
+  const [y,m,d]=iso.split('-').map(Number);
+  const dt=new Date(Date.UTC(y,m-1,d));
+  return dt.getUTCFullYear()===y&&dt.getUTCMonth()===m-1&&dt.getUTCDate()===d;
+}
+
+/**
  * @param {TransactionDraft} draft
  * @param {boolean} isTransfer
  * @returns {string} an i18n error key, or '' if the draft is valid
@@ -52,7 +62,7 @@ export function validateTransactionDraft(draft, isTransfer){
   if(!Number.isFinite(draft.amount)||draft.amount<=0) return 'finance_err_amount';
   if(draft.amount>=TX_AMOUNT_MAX) return 'finance_err_amount_large';
   if(!draft.date) return 'finance_err_date';
-  if(!TX_DATE_RE.test(draft.date)) return 'finance_err_date_format';
+  if(!TX_DATE_RE.test(draft.date)||!isRealDate(draft.date)) return 'finance_err_date_format';
   if(!draft.ws) return 'finance_err_wallet';
   if(draft.comment.length>TX_COMMENT_MAX) return 'finance_err_comment_long';
   if(String(draft.cat||'').length>120 || String(draft.sub||'').length>120) return 'finance_err_field_long';

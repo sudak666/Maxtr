@@ -449,6 +449,22 @@ class FinanceViewModel(
         repository.convertCurrency(amount, currency, "UAH", currencyRates)
 
     /** Cross-rate via UAH as the base, matching convertCurrency() in js/core.js. */
+    /** The typed received sum between currencies, else today's rate. */
+    private fun formTargetAmount(amount: Double, from: String, to: String): Double =
+        form.receivedValue?.takeIf { from != to } ?: convertSample(amount, from, to)
+
+    val formTargetCurrency: String
+        get() = wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH"
+
+    /** The received field's placeholder (what today's rate gives); null hides the field. */
+    val formReceivedSuggestion: String?
+        get() {
+            if (form.type != TxType.TRANSFER || form.targetWalletId.isBlank() || form.targetWalletId == form.walletId) return null
+            if (formTargetCurrency == formWalletCurrency) return null
+            val amount = form.amountValue?.takeIf { it > 0 } ?: return "0"
+            return "%.2f".format(convertSample(amount, formWalletCurrency, formTargetCurrency))
+        }
+
     private fun convertSample(amount: Double, from: String, to: String): Double {
         if (from == to) return amount
         return repository.convertCurrency(amount, from, to, currencyRates)
@@ -590,7 +606,7 @@ class FinanceViewModel(
                 id = existing?.id ?: "__draft__", type = form.type, amount = amount, currency = srcCur,
                 date = form.date, walletId = form.walletId, category = "",
                 targetWalletId = if (isTransfer) form.targetWalletId else null,
-                targetAmount = targetCur?.let { convertSample(amount, srcCur, it) }, targetCurrency = targetCur,
+                targetAmount = targetCur?.let { formTargetAmount(amount, srcCur, it) }, targetCurrency = targetCur,
                 createdAt = existing?.createdAt ?: Long.MAX_VALUE,
             )
             return FormBalanceAfter(
@@ -638,7 +654,7 @@ class FinanceViewModel(
         var targetCurrency: String? = null
         if (isTransfer) {
             targetCurrency = wallets.firstOrNull { it.id == form.targetWalletId }?.currency ?: "UAH"
-            targetAmount = convertSample(amount, srcCur, targetCurrency)
+            targetAmount = formTargetAmount(amount, srcCur, targetCurrency)
         }
 
         val editingId = form.editingTxId
