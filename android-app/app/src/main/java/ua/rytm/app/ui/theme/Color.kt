@@ -22,9 +22,12 @@ val GreenDark2 = Color(0xFF34D399)
 val GreenLight2 = Color(0xFF059669)
 // Accessible light-theme money tones. #059669/#DC2626 measure 3.77:1/4.83:1
 // on white and far less on the tinted mini-stat wash, so semantic money text
-// in the light theme uses these deeper tones instead (7.8:1 / 8.3:1 on white,
-// >5:1 on the wash). See ui/theme/SemanticColors.kt.
-val GreenText = Color(0xFF065F46)
+// in the light theme uses these deeper tones instead. The first pick
+// (#065F46 / #991B1B, 7.7–8.3:1) read as dark green and maroon; these clear
+// AA (4.5:1) on every light surface, the darkest #E2E0DD sheet card included:
+// green 6.1 white / 5.5 page / 4.6 sheet card, red 6.2 / 5.6 / 4.7.
+// See ui/theme/SemanticColors.kt.
+val GreenText = Color(0xFF06704F)
 // Gradient end for the green FAB: white-on-#10B981 was 2.54:1 even as large
 // bold text, #059669→#047857 keeps it at 3.77:1 minimum.
 val GreenDeep = Color(0xFF047857)
@@ -32,7 +35,7 @@ val GreenDeep = Color(0xFF047857)
 val RedDark = Color(0xFFEF4444)
 val RedDark2 = Color(0xFFF87171)
 val RedLight2 = Color(0xFFDC2626)
-val RedText = Color(0xFF991B1B)
+val RedText = Color(0xFFBE1E1E)
 // Dark-theme expense text: #F87171 measured 4.26:1 on the #38373D card —
 // below AA for the 16sp amounts. #FA8A8A is 5.09:1 (P5 contrast pass).
 val RedDarkText = Color(0xFFFA8A8A)
