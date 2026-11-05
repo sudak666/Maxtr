@@ -753,4 +753,8 @@
     <string name="premium_error_generic">The purchase did not go through. Nothing was charged, try again.</string>
     <string name="shifts_empty_hint">Tap a day in the calendar</string>
     <string name="shifts_quick_fill_short">Fill in</string>
+    <string name="wallet_move_title">Move operations</string>
+    <plurals name="wallet_move_body"><item quantity="one">“%1$s” has %2$d operation. Where should it go before the wallet is deleted?</item><item quantity="other">“%1$s” has %2$d operations. Where should they go before the wallet is deleted?</item></plurals>
+    <string name="wallet_move_no_target">There is no other wallet in this currency. Create one or delete these operations first.</string>
+    <string name="wallet_move_confirm">Move and delete</string>
 </resources>

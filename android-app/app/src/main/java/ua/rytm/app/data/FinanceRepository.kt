@@ -323,6 +323,31 @@ class FinanceRepository(private val db: RytmDatabase) {
         db.walletDao().deleteById(id)
     }
 
+    /** Operations plus recurring payments that still point at [id]. */
+    suspend fun walletUseCount(id: String): Int = db.transactionDao().countUsingWallet(id) + db.recurringDao().countUsingWallet(id)
+
+    /** Wallets on the other side of a transfer with [id]: moving there would make a transfer to itself. */
+    suspend fun transferCounterparts(id: String): Set<String> = db.transactionDao().usingWallet(id)
+        .filter { it.targetWalletId != null }
+        .mapNotNull { if (it.walletId == id) it.targetWalletId else it.walletId }
+        .toSet()
+
+    /**
+     * Moves every operation and recurring payment of [from] to [to] before the
+     * wallet is deleted. Returns the changed transactions for the cloud write.
+     */
+    suspend fun moveWalletOperations(from: String, to: String): List<TransactionEntity> {
+        val moved = db.transactionDao().usingWallet(from).map {
+            it.copy(
+                walletId = if (it.walletId == from) to else it.walletId,
+                targetWalletId = if (it.targetWalletId == from) to else it.targetWalletId,
+            )
+        }
+        if (moved.isNotEmpty()) db.transactionDao().insertAll(moved)
+        db.recurringDao().usingWallet(from).forEach { db.recurringDao().update(it.copy(walletId = to)) }
+        return moved
+    }
+
     suspend fun replaceWallets(wallets: List<Wallet>) {
         db.walletDao().replaceAll(wallets.map { it.toEntity() })
     }

@@ -89,4 +89,7 @@ interface TransactionDao {
 
     @Query("SELECT COUNT(*) FROM transactions WHERE walletId = :walletId OR targetWalletId = :walletId")
     suspend fun countUsingWallet(walletId: String): Int
+
+    @Query("SELECT * FROM transactions WHERE walletId = :walletId OR targetWalletId = :walletId")
+    suspend fun usingWallet(walletId: String): List<TransactionEntity>
 }

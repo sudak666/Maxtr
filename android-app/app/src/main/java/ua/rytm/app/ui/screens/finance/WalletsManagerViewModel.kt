@@ -22,16 +22,20 @@ import ua.rytm.app.R
 // Mirrors js/settings-managers.js's openWalletsManager()/renderWalletsList()/
 // updateWallet()/addWallet()/deleteWallet()/walletInUse() — see
 // FINANCE_SCREEN_SPEC.md §10 for the exact rules ported here.
+/** A wallet the user wants gone that still has operations: where can they go. */
+data class WalletMoveRequest(val walletId: String, val walletName: String, val useCount: Int, val targets: List<Wallet>)
+
 class WalletsManagerViewModel(
     private val repository: FinanceRepository,
     private val syncRepository: FinanceSyncRepository,
+    private val recurringSyncRepository: ua.rytm.app.data.RecurringSyncRepository,
     private val uid: String,
     private val profileId: String,
 ) : ViewModel() {
 
     companion object {
-        fun factory(repository: FinanceRepository, syncRepository: FinanceSyncRepository, uid: String, profileId: String) = viewModelFactory {
-            initializer { WalletsManagerViewModel(repository, syncRepository, uid, profileId) }
+        fun factory(repository: FinanceRepository, syncRepository: FinanceSyncRepository, recurringSyncRepository: ua.rytm.app.data.RecurringSyncRepository, uid: String, profileId: String) = viewModelFactory {
+            initializer { WalletsManagerViewModel(repository, syncRepository, recurringSyncRepository, uid, profileId) }
         }
     }
 
@@ -44,6 +48,9 @@ class WalletsManagerViewModel(
     fun consumeError() { errorMessageRes = null }
 
     var pendingDeleteId by mutableStateOf<String?>(null)
+        private set
+
+    var pendingMove by mutableStateOf<WalletMoveRequest?>(null)
         private set
 
     private val mutationMutex = Mutex()
@@ -86,7 +93,12 @@ class WalletsManagerViewModel(
                 return@launch
             }
             if (repository.isWalletInUse(id)) {
-                errorMessageRes = R.string.wallet_in_use
+                // Used to stop here with a line at the top of the sheet, which was off
+                // screen while deleting a wallet further down: the tap seemed to do nothing.
+                val wallet = wallets.firstOrNull { it.id == id } ?: return@launch
+                val blocked = repository.transferCounterparts(id)
+                val targets = wallets.filter { it.id != id && it.currency == wallet.currency && it.id !in blocked }
+                pendingMove = WalletMoveRequest(id, wallet.name, repository.walletUseCount(id), targets)
                 return@launch
             }
             pendingDeleteId = id
@@ -100,6 +112,28 @@ class WalletsManagerViewModel(
     }
 
     fun cancelDelete() { pendingDeleteId = null }
+
+    fun cancelMove() { pendingMove = null }
+
+    /** Moves the operations to [targetId], then deletes the wallet. */
+    fun confirmMove(targetId: String) {
+        val request = pendingMove ?: return
+        pendingMove = null
+        viewModelScope.launch {
+            mutationMutex.withLock {
+                try {
+                    val moved = ua.rytm.app.data.LocalWriteLock.mutex.withLock {
+                        repository.moveWalletOperations(request.walletId, targetId).also { repository.deleteWallet(request.walletId) }
+                    }
+                    syncRepository.saveMovedTransactions(uid, profileId, moved)
+                    recurringSyncRepository.saveRecurringSnapshot(uid, profileId)
+                    syncRepository.saveWalletsSnapshot(uid, profileId)
+                } catch (_: Exception) {
+                    errorMessageRes = R.string.common_save_retry
+                }
+            }
+        }
+    }
 
     private fun mutateAndSync(mutation: suspend () -> Unit) {
         viewModelScope.launch {
