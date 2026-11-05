@@ -207,13 +207,16 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                 // P5: income/expense live inside the hero as one quiet row
                 // instead of two more bordered cards competing with the balance.
                 HorizontalDivider(Modifier.padding(vertical = RytmSpacing.md), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                if (largeText) {
+                // Sums past ~9 digits ("+123 456 789,25 ₴") fill half the row and
+                // ran into «Витрати»; such months stack like large text does.
+                val longSums = maxOf(formatMoney(vm.monthIncomeUah).length, formatMoney(vm.monthExpenseUah).length) > 11
+                if (largeText || longSums) {
                     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true)
                         HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false)
                     }
                 } else {
-                    Row(Modifier.fillMaxWidth()) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.lg)) {
                         HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
                         HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
                     }
