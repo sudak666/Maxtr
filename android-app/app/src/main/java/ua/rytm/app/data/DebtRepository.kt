@@ -25,6 +25,7 @@ class DebtRepository(private val db: RytmDatabase) {
                 startAmount = d.startAmount,
                 dueDate = d.dueDate,
                 direction = d.direction,
+                dueMonthly = d.dueMonthly,
                 // entry ids are timestamps assigned in insertion order, so sorting by id
                 // recovers the PWA's chronological (push) order.
                 entries = byDebtId[d.id].orEmpty().sortedBy { it.id }.map { it.toDomain() },
@@ -40,12 +41,12 @@ class DebtRepository(private val db: RytmDatabase) {
 
     suspend fun addDebt(debt: Debt) {
         requireValidStoredAmount(debt.startAmount, "debt start amount")
-        db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, debt.direction))
+        db.debtDao().insert(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, debt.direction, debt.dueMonthly))
     }
 
     suspend fun updateDebt(debt: Debt) {
         requireValidStoredAmount(debt.startAmount, "debt start amount")
-        db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, debt.direction))
+        db.debtDao().update(DebtEntity(debt.id, debt.name, debt.note, debt.currency, debt.startAmount, debt.dueDate, debt.direction, debt.dueMonthly))
     }
 
     // Mirrors js/debt.js's deleteCurrentDebt(): drop the debt and every payment under it.

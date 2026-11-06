@@ -28,7 +28,7 @@
 /** @typedef {{inStats?: boolean, id: string, currency?: string}} WalletLike */
 /** @typedef {{subcategory?: string, wallet?: string, type?: string, category?: string, date?: string, amount?: number, currency?: string, by?: string, byName?: string}} TransactionLike */
 /** @typedef {{id: string, active?: boolean, nextDate?: string, amount?: number, wallet?: string, category?: string}} RecurringLike */
-/** @typedef {{id: string, dueDate?: string, name?: string, direction?: string, startAmount?: number, entries?: {id?: number|string, balance?: number}[]}} DebtLike */
+/** @typedef {{id: string, dueDate?: string, dueMonthly?: boolean, name?: string, direction?: string, startAmount?: number, entries?: {id?: number|string, balance?: number}[]}} DebtLike */
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
 /** @typedef {{debts?: DebtLike[]}} DebtDocData */
 /** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
@@ -64,6 +64,30 @@ const DCOL = 'max_tracker';
  */
 function financeDocName(profileId) {
   return profileId && profileId !== 'default' ? `finance@${profileId}` : 'finance';
+}
+
+/**
+ * The date a debt's reminder is about, as yyyy-MM-dd. A one-off due date is
+ * itself; a monthly one (`dueMonthly`) repeats on the due date's day of month,
+ * clamped to the month's last day, starting from the due date itself. Mirrors
+ * Android's `Debt.nextDueDate()` and the PWA's `nextDebtDueDate()`.
+ * @param {{dueDate?: string, dueMonthly?: boolean}} d
+ * @param {string} today yyyy-MM-dd
+ * @returns {string}
+ */
+function nextDebtDueDate(d, today) {
+  const due = typeof d.dueDate === 'string' ? d.dueDate : '';
+  if (!d.dueMonthly || !/^\d{4}-\d{2}-\d{2}$/.test(due) || due >= today) return due;
+  const anchor = Number(due.slice(8, 10));
+  let y = Number(today.slice(0, 4));
+  let m = Number(today.slice(5, 7));
+  for (let i = 0; i < 2; i++) {
+    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const candidate = `${y}-${String(m).padStart(2, '0')}-${String(Math.min(anchor, last)).padStart(2, '0')}`;
+    if (candidate >= today) return candidate;
+    m += 1; if (m > 12) { m = 1; y += 1; }
+  }
+  return due;
 }
 
 /**
@@ -327,7 +351,7 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
     let changed = false;
     for (const d of debts) {
       if (tokenInvalid) break;
-      if (d.dueDate !== tomorrow) continue;
+      if (nextDebtDueDate(d, todayStr(now, timeZone)) !== tomorrow) continue;
       // A paid-off debt keeps its due date; reminding about it reads as a bug.
       if (debtSettled(d)) continue;
       const key = `${d.id}_${tomorrow}`;
@@ -571,4 +595,4 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   }
 }
 
-module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken, weeklySummaryBody };
+module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken, weeklySummaryBody, nextDebtDueDate };

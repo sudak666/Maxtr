@@ -97,6 +97,7 @@ import ua.rytm.app.ui.screens.debt.DebtEntry
 import ua.rytm.app.ui.screens.debt.DebtForecastCard
 import ua.rytm.app.ui.screens.debt.DebtViewModel
 import ua.rytm.app.ui.screens.debt.currentBalance
+import ua.rytm.app.ui.screens.debt.nextDueDate
 import ua.rytm.app.ui.screens.debt.openTotals
 import ua.rytm.app.ui.screens.debt.owedToMe
 import ua.rytm.app.ui.screens.debt.paid
@@ -481,9 +482,10 @@ private fun ChipStatsRow(cd: Debt) {
 
 @Composable
 private fun dueChipInfo(cd: Debt): String? {
-    if (cd.dueDate.isBlank()) return null
+    val next = cd.nextDueDate()
+    if (next.isBlank()) return null
     val diffDays = try {
-        val due = java.time.LocalDate.parse(cd.dueDate)
+        val due = java.time.LocalDate.parse(next)
         java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), due)
     } catch (e: Exception) { return null }
     return when {
@@ -525,7 +527,17 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     CurrencyPickerField(value = currency, onValueChange = { currency = it; commit() }, modifier = Modifier.weight(1f))
                 }
                 DatePickerField(value = dueDate, onValueChange = { dueDate = it; commit() }, label = stringResource(R.string.debt_due_date), modifier = Modifier.fillMaxWidth())
-                if (dueDate.isNotBlank()) DueReminderRow()
+                if (dueDate.isNotBlank()) {
+                    val day = runCatching { java.time.LocalDate.parse(dueDate).dayOfMonth }.getOrNull()
+                    NotifToggleRow(
+                        title = stringResource(R.string.debt_due_monthly),
+                        subtitle = if (day != null) stringResource(R.string.debt_due_monthly_hint, day) else "",
+                        checked = cd.dueMonthly,
+                        enabled = canEdit,
+                        onCheckedChange = viewModel::updateDueMonthly,
+                    )
+                    DueReminderRow()
+                }
                 ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
                     Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }

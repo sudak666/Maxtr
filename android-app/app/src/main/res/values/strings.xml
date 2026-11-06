@@ -753,6 +753,8 @@
     <plurals name="statement_map_found"><item quantity="one">%1$d операція</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
     <plurals name="statement_map_skipped"><item quantity="one">%1$d рядок пропущено (немає дати чи суми)</item><item quantity="few">%1$d рядки пропущено (немає дати чи суми)</item><item quantity="many">%1$d рядків пропущено (немає дати чи суми)</item><item quantity="other">%1$d рядка пропущено (немає дати чи суми)</item></plurals>
     <string name="debt_due_reminder">Нагадати про термін</string>
+    <string name="debt_due_monthly">Щомісяця</string>
+    <string name="debt_due_monthly_hint">Термін повторюється %1$d числа кожного місяця</string>
     <string name="debt_due_reminder_push_off">Спершу увімкни push-сповіщення в Налаштуваннях</string>
     <string name="transaction_received">Отримано, %1$s</string>
     <string name="transaction_received_hint">Порожньо — за курсом. Впиши, якщо банк зарахував іншу суму.</string>

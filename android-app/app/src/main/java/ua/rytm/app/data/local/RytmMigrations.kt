@@ -49,5 +49,10 @@ object RytmMigrations {
                 db.execSQL("ALTER TABLE `debts` ADD COLUMN `direction` TEXT NOT NULL DEFAULT 'owe'")
             }
         },
+        object : Migration(20, 21) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `debts` ADD COLUMN `dueMonthly` INTEGER NOT NULL DEFAULT 0")
+            }
+        },
     )
 }

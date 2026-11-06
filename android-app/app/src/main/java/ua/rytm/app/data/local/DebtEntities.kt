@@ -21,6 +21,8 @@ data class DebtEntity(
     val dueDate: String,
     /** "owe": the user owes it; "owed": it is owed to the user. */
     @ColumnInfo(defaultValue = "owe") val direction: String = "owe",
+    /** The due date repeats every month on its day of month. */
+    @ColumnInfo(defaultValue = "0") val dueMonthly: Boolean = false,
 )
 
 // amount is a free-form string in the PWA (not always a plain number — see

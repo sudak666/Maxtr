@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { sweepProfile, sweepToken, weeklySummaryBody } = require('../functions/lib/sweep.js');
+const { sweepProfile, sweepToken, weeklySummaryBody, nextDebtDueDate } = require('../functions/lib/sweep.js');
 
 let passed = 0;
 async function test(name, fn) {
@@ -198,6 +198,32 @@ await test('sweepProfile: sends an upcoming-debt-due-date push exactly one day a
   assert.equal(sent[0].title, 'Наближається термін боргу');
   assert.match(sent[0].body, /Позика в банку/);
   assert.deepEqual(result.updates, { sentDebt: { 'd1_2026-07-16': true } });
+});
+
+await test('nextDebtDueDate: one-off date stays, monthly repeats on its day, clamped to month end', () => {
+  assert.equal(nextDebtDueDate({ dueDate: '2026-09-15' }, '2026-11-06'), '2026-09-15');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-09-15', dueMonthly: true }, '2026-11-06'), '2026-11-15');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-09-15', dueMonthly: true }, '2026-11-15'), '2026-11-15');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-09-15', dueMonthly: true }, '2026-11-16'), '2026-12-15');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-12-20', dueMonthly: true }, '2026-11-06'), '2026-12-20');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-01-31', dueMonthly: true }, '2027-02-10'), '2027-02-28');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-10-31', dueMonthly: true }, '2026-12-31'), '2026-12-31');
+  assert.equal(nextDebtDueDate({ dueDate: '2026-11-20', dueMonthly: true }, '2026-12-25'), '2027-01-20');
+  assert.equal(nextDebtDueDate({ dueDate: '', dueMonthly: true }, '2026-11-06'), '');
+});
+
+await test('sweepProfile: a monthly debt reminds the day before its day of month, months after the first date', async () => {
+  const financeData = { notifSettings: { debtAlerts: true, timeZone: 'UTC' }, data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {} };
+  const debtData = { debts: [{ id: 'd1', name: 'Борг Роману', dueDate: '2026-03-16', dueMonthly: true, startAmount: 1000, entries: [{ id: 1, balance: 600 }] }] };
+  const sent = [];
+  const sendPushFn = async (token, title, body) => { sent.push({ title, body }); return { ok: true, invalid: false }; };
+  const result = await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(debtData));
+  assert.equal(sent.length, 1);
+  assert.deepEqual(result.updates, { sentDebt: { 'd1_2026-07-16': true } });
+  const oneOff = { debts: [{ ...debtData.debts[0], dueMonthly: false }] };
+  sent.length = 0;
+  await sweepProfile(null, sendPushFn, 'u1', 'default', 'tok1', {}, NOW, snap(financeData), snap(oneOff));
+  assert.equal(sent.length, 0);
 });
 
 await test('sweepProfile: no due-date push for a debt that is already paid off', async () => {
