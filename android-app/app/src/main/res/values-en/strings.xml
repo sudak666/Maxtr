@@ -743,6 +743,8 @@
     <string name="finance_filtered_spent">Spent %1$s ₴</string>
     <string name="finance_filtered_earned">Received %1$s ₴</string>
     <string name="debt_due_reminder">Remind before the due date</string>
+    <string name="debt_due_monthly">Every month</string>
+    <string name="debt_due_monthly_hint">Due on day %1$d of every month</string>
     <string name="debt_due_reminder_push_off">Turn on push notifications in Settings first</string>
     <string name="transaction_received">Received, %1$s</string>
     <string name="transaction_received_hint">Blank uses the rate. Type it if the bank credited a different sum.</string>

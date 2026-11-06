@@ -20,6 +20,8 @@ data class Debt(
     /** Chronological (push) order, oldest first — same invariant js/debt.js's `entries` array relies on. */
     val entries: List<DebtEntry>,
     val direction: String = "owe",
+    /** [dueDate] repeats every month on its day of month. */
+    val dueMonthly: Boolean = false,
 )
 
 val Debt.owedToMe: Boolean get() = direction == "owed"
@@ -28,6 +30,26 @@ val Debt.owedToMe: Boolean get() = direction == "owed"
 fun List<Debt>.openTotals(owedToMe: Boolean): Map<String, Double> =
     filter { it.owedToMe == owedToMe && it.currentBalance() > 0 }
         .groupBy { it.currency }.mapValues { (_, list) -> list.sumOf { it.currentBalance() } }
+
+/**
+ * The due date that is next, as yyyy-MM-dd ("" when none). A monthly one repeats
+ * on [Debt.dueDate]'s day of month, clamped to the month's last day, from
+ * [Debt.dueDate] on. Same rule as nextDebtDueDate() in functions/lib/sweep.js,
+ * which sends the reminder a day before.
+ */
+fun Debt.nextDueDate(today: java.time.LocalDate = java.time.LocalDate.now()): String {
+    if (!dueMonthly || dueDate.isBlank()) return dueDate
+    val first = runCatching { java.time.LocalDate.parse(dueDate) }.getOrNull() ?: return dueDate
+    if (!first.isBefore(today)) return dueDate
+    val anchor = first.dayOfMonth
+    var month = java.time.YearMonth.from(today)
+    repeat(2) {
+        val candidate = month.atDay(minOf(anchor, month.lengthOfMonth()))
+        if (!candidate.isBefore(today)) return candidate.toString()
+        month = month.plusMonths(1)
+    }
+    return dueDate
+}
 
 fun Debt.currentBalance(): Double = entries.lastOrNull()?.balance ?: startAmount
 

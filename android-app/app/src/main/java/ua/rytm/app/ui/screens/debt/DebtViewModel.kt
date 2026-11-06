@@ -144,6 +144,11 @@ class DebtViewModel(
         }
     }
 
+    fun updateDueMonthly(monthly: Boolean) {
+        val cd = currentDebt ?: return
+        mutate(cd.id) { repository.updateDebt(cd.copy(dueMonthly = monthly)) }
+    }
+
     fun updateDirection(direction: String) {
         val cd = currentDebt ?: return
         mutate(cd.id) { repository.updateDebt(cd.copy(direction = direction)) }

@@ -204,3 +204,41 @@ export const AppState = {
   /** @type {number | null} */
   debtEntryEditId: null,
 };
+
+/**
+ * A loan's currency as a code. Older PWA loans stored a symbol ("$", "грн");
+ * Android stores codes, so both clients read either. Same as Android's
+ * debtCurrencyCode() (DebtSyncRepository.kt).
+ * @param {string | undefined | null} v
+ * @returns {string}
+ */
+export function debtCurrencyCode(v){
+  const s=(v||'').trim();
+  if(!s||s==='грн'||s==='₴') return 'UAH';
+  if(s==='$') return 'USD';
+  if(s==='€') return 'EUR';
+  if(s==='£') return 'GBP';
+  return s;
+}
+
+/**
+ * The due date that is next, yyyy-MM-dd ('' when none). A monthly one
+ * (`dueMonthly`, set on Android) repeats on dueDate's day of month, clamped to
+ * the month's last day. Same rule as nextDebtDueDate() in functions/lib/sweep.js.
+ * @param {{dueDate?: string, dueMonthly?: boolean}} d
+ * @param {string} today yyyy-MM-dd
+ * @returns {string}
+ */
+export function nextDebtDueDate(d, today){
+  const due=typeof d.dueDate==='string'?d.dueDate:'';
+  if(!d.dueMonthly||!/^\d{4}-\d{2}-\d{2}$/.test(due)||due>=today) return due;
+  const anchor=Number(due.slice(8,10));
+  let y=Number(today.slice(0,4)), m=Number(today.slice(5,7));
+  for(let i=0;i<2;i++){
+    const last=new Date(Date.UTC(y,m,0)).getUTCDate();
+    const c=`${y}-${String(m).padStart(2,'0')}-${String(Math.min(anchor,last)).padStart(2,'0')}`;
+    if(c>=today) return c;
+    m+=1; if(m>12){ m=1; y+=1; }
+  }
+  return due;
+}

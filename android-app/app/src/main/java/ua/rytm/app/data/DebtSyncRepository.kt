@@ -86,6 +86,7 @@ private fun DebtEntity.toRemoteMap(entries: List<DebtEntryEntity>): Map<String, 
     "startAmount" to startAmount,
     "dueDate" to dueDate,
     "direction" to direction,
+    "dueMonthly" to dueMonthly,
     "entries" to entries.sortedBy { it.id }.map {
         mapOf("id" to it.id, "amount" to it.amount, "balance" to it.balance, "date" to it.date)
     },
@@ -98,10 +99,11 @@ private fun parseRemoteDebt(m: Map<*, *>): DebtEntity? {
         id = id,
         name = name,
         note = m["note"] as? String ?: "",
-        currency = when (val currency = m["currency"] as? String) { "грн", "₴", null -> "UAH"; else -> currency },
+        currency = debtCurrencyCode(m["currency"] as? String),
         startAmount = (m["startAmount"] as? Number)?.toDouble() ?: 0.0,
         dueDate = m["dueDate"] as? String ?: "",
         direction = if (m["direction"] == "owed") "owed" else "owe",
+        dueMonthly = m["dueMonthly"] == true,
     )
 }
 
@@ -113,4 +115,13 @@ private fun parseRemoteEntry(m: Map<*, *>): DebtEntryEntity? {
     // debtId filled in by the caller (copy(debtId=...)) once the parent debt's
     // real id is known — this parse function has no access to it.
     return DebtEntryEntity(id = id, debtId = 0L, amount = amount, balance = balance, date = date)
+}
+
+/** Older PWA loans stored a symbol ("$", "грн"); the picker and the Finance prefill need the code. */
+internal fun debtCurrencyCode(value: String?): String = when (val v = value?.trim().orEmpty()) {
+    "", "грн", "₴" -> "UAH"
+    "$" -> "USD"
+    "€" -> "EUR"
+    "£" -> "GBP"
+    else -> v
 }
