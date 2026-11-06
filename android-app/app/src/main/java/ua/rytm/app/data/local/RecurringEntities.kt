@@ -69,6 +69,9 @@ interface RecurringDao {
     @Query("SELECT COUNT(*) FROM recurring WHERE walletId = :id")
     suspend fun countUsingWallet(id: String): Int
 
+    @Query("SELECT * FROM recurring WHERE walletId = :id")
+    suspend fun usingWallet(id: String): List<RecurringEntity>
+
     // Same "remote wins" cold-sync bootstrap pattern as every other synced domain.
     @Transaction
     suspend fun replaceAll(recurring: List<RecurringEntity>) {

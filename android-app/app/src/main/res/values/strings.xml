@@ -763,4 +763,8 @@
     <string name="premium_error_generic">Покупка не вдалася. Гроші не списано, спробуй ще раз.</string>
     <string name="shifts_empty_hint">Натисни на день у календарі</string>
     <string name="shifts_quick_fill_short">Заповнити</string>
+    <string name="wallet_move_title">Перенести операції</string>
+    <plurals name="wallet_move_body"><item quantity="one">У гаманці «%1$s» %2$d операція. Куди перенести її перед видаленням?</item><item quantity="few">У гаманці «%1$s» %2$d операції. Куди перенести їх перед видаленням?</item><item quantity="many">У гаманці «%1$s» %2$d операцій. Куди перенести їх перед видаленням?</item><item quantity="other">У гаманці «%1$s» %2$d операції. Куди перенести їх перед видаленням?</item></plurals>
+    <string name="wallet_move_no_target">Немає іншого гаманця в цій валюті. Створи його або спершу видали ці операції.</string>
+    <string name="wallet_move_confirm">Перенести й видалити</string>
 </resources>

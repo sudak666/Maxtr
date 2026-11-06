@@ -49,6 +49,22 @@ class FinanceSyncRepository(private val db: RytmDatabase, private val firestore:
         }
     }
 
+    /**
+     * Writes only the wallet fields of moved transactions (merge of flat keys),
+     * so fields this app does not know about stay as they are.
+     */
+    fun saveMovedTransactions(uid: String, profileId: String, moved: List<ua.rytm.app.data.local.TransactionEntity>) {
+        val collection = financeDocRef(uid, profileId).collection("transactions")
+        val now = System.currentTimeMillis()
+        moved.chunked(450).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { tx ->
+                batch.set(collection.document(tx.id), mapOf("wallet" to tx.walletId, "targetWallet" to tx.targetWalletId, "updatedAt" to now), SetOptions.merge())
+            }
+            batch.commit().enqueue()
+        }
+    }
+
     /** Serializes Room snapshots so an older write can never overtake a newer wallet edit. */
     suspend fun saveWalletsSnapshot(uid: String, profileId: String = DEFAULT_PROFILE_ID) {
         walletSaveMutex.withLock {

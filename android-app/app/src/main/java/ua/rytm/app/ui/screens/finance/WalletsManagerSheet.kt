@@ -73,12 +73,13 @@ import androidx.compose.ui.draw.clip
 fun WalletsManagerSheet(
     repository: FinanceRepository,
     syncRepository: FinanceSyncRepository,
+    recurringSyncRepository: ua.rytm.app.data.RecurringSyncRepository,
     uid: String,
     profileId: String,
     onDismiss: () -> Unit,
     viewModel: WalletsManagerViewModel = viewModel(
         key = "wallets-$uid-$profileId",
-        factory = WalletsManagerViewModel.factory(repository, syncRepository, uid, profileId),
+        factory = WalletsManagerViewModel.factory(repository, syncRepository, recurringSyncRepository, uid, profileId),
     ),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -98,16 +99,6 @@ fun WalletsManagerSheet(
         Column(Modifier.fillMaxWidth().verticalScroll(scrollState).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.wallets_title), subtitle = stringResource(R.string.wallets_body))
 
-            viewModel.errorMessageRes?.let { messageRes ->
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    IconButton(onClick = viewModel::consumeError) { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.action_dismiss)) }
-                }
-            }
 
             if (viewModel.wallets.isEmpty()) {
                 Text(stringResource(R.string.wallets_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -142,6 +133,17 @@ fun WalletsManagerSheet(
         )
     }
 
+    // A dialog, not a line at the top: the delete button is usually far down the list.
+    viewModel.errorMessageRes?.let { messageRes ->
+        AlertDialog(
+            onDismissRequest = viewModel::consumeError,
+            text = { Text(stringResource(messageRes)) },
+            confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::consumeError) { Text(stringResource(R.string.action_ok)) } },
+        )
+    }
+
+    viewModel.pendingMove?.let { request -> WalletMoveDialog(request, onMove = viewModel::confirmMove, onDismiss = viewModel::cancelMove) }
+
     viewModel.pendingDeleteId?.let {
         RytmDestructiveConfirm(
             title = stringResource(R.string.wallet_delete_title),
@@ -150,6 +152,41 @@ fun WalletsManagerSheet(
             onDismiss = viewModel::cancelDelete,
         )
     }
+}
+
+/** Picks where a wallet's operations go before it is deleted. */
+@Composable
+private fun WalletMoveDialog(request: WalletMoveRequest, onMove: (String) -> Unit, onDismiss: () -> Unit) {
+    var selected by rememberSaveable(request.walletId) { mutableStateOf(request.targets.firstOrNull()?.id) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.wallet_move_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                Text(androidx.compose.ui.res.pluralStringResource(R.plurals.wallet_move_body, request.useCount, request.walletName, request.useCount))
+                if (request.targets.isEmpty()) {
+                    Text(stringResource(R.string.wallet_move_no_target), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                }
+                request.targets.forEach { target ->
+                    Row(
+                        Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)).clickable { selected = target.id }.padding(vertical = RytmSpacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.RadioButton(selected = selected == target.id, onClick = { selected = target.id })
+                        Text(target.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (request.targets.isNotEmpty()) {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = { selected?.let(onMove) }, enabled = selected != null) {
+                    Text(stringResource(R.string.wallet_move_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        dismissButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss) { Text(stringResource(if (request.targets.isEmpty()) R.string.action_ok else R.string.action_cancel)) } },
+    )
 }
 
 /** Nothing is saved until the user confirms, so a stray tap leaves no placeholder wallet. */

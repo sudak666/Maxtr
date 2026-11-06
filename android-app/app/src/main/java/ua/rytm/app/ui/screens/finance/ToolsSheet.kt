@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -295,44 +296,26 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
                 cat + " " + formatMoney(amt) + " (" + (amt / total * 100).toInt() + "%)"
             }
         Canvas(Modifier.size(184.dp).semantics { contentDescription = donutSummary }) {
+            // Segments are ring pieces with softly rounded corners and an even gap
+            // (owner, 2026-11-06): full round caps read as pills, and short slices
+            // turned into dots.
+            val ring = 20.dp.toPx()
+            val outerR = size.minDimension / 2
+            val innerR = outerR - ring
+            val gapDeg = Math.toDegrees((3.dp.toPx() / (outerR - ring / 2)).toDouble()).toFloat()
+            if (chartEntries.isEmpty()) {
+                drawCircle(trackColor, radius = outerR - ring / 2, style = Stroke(width = ring))
+                return@Canvas
+            }
             var startAngle = -90f
-            val stroke = 22.dp.toPx()
-            drawArc(
-                color = trackColor,
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                style = Stroke(width = stroke, cap = StrokeCap.Round),
-                topLeft = Offset(stroke / 2, stroke / 2),
-                size = Size(size.width - stroke, size.height - stroke),
-            )
-            // Round ends like the rest of the app (owner, 2026-11-03). A round
-            // cap reaches stroke/2 past the arc's end, so each segment is
-            // drawn shorter by that angle on both sides plus a gap; a slice
-            // too thin for that becomes a dot that fits inside its own slice.
-            val radius = (size.width - stroke) / 2
-            val capDeg = Math.toDegrees((stroke / 2 / radius).toDouble()).toFloat()
-            val gapDeg = 3f
+            val single = chartEntries.size == 1
             chartEntries.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
-                val body = sweep - 2 * capDeg - gapDeg
-                if (body > 0f) {
-                    drawArc(
-                        color = categoryColor(cat),
-                        startAngle = startAngle + capDeg + gapDeg / 2,
-                        sweepAngle = body * progress,
-                        useCenter = false,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round),
-                        topLeft = Offset(stroke / 2, stroke / 2),
-                        size = Size(size.width - stroke, size.height - stroke),
-                    )
-                } else {
-                    val mid = Math.toRadians((startAngle + sweep / 2).toDouble())
-                    val room = (radius * Math.toRadians(((sweep - gapDeg) / 2).toDouble())).toFloat()
-                    drawCircle(
-                        color = categoryColor(cat),
-                        radius = room.coerceIn(1.5.dp.toPx(), stroke / 2) * progress,
-                        center = center + Offset((radius * kotlin.math.cos(mid)).toFloat(), (radius * kotlin.math.sin(mid)).toFloat()),
+                val drawn = (if (single) 360f else (sweep - gapDeg).coerceAtLeast(0.8f)) * progress
+                if (drawn > 0f) {
+                    drawPath(
+                        donutSegment(center, outerR, innerR, if (single) startAngle else startAngle + gapDeg / 2, drawn, 5.dp.toPx(), rounded = !single),
+                        categoryColor(cat),
                     )
                 }
                 startAngle += sweep
@@ -343,6 +326,42 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
             Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
         }
     }
+}
+
+/**
+ * One ring piece from [startDeg] over [sweepDeg] with corners rounded by up to
+ * [corner] px (less when the piece is too short or the ring too thin).
+ */
+private fun donutSegment(center: Offset, outerR: Float, innerR: Float, startDeg: Float, sweepDeg: Float, corner: Float, rounded: Boolean): Path {
+    val path = Path()
+    val outer = Rect(center.x - outerR, center.y - outerR, center.x + outerR, center.y + outerR)
+    val inner = Rect(center.x - innerR, center.y - innerR, center.x + innerR, center.y + innerR)
+    val end = startDeg + sweepDeg
+    if (!rounded || sweepDeg >= 359.9f) {
+        path.arcTo(outer, startDeg, sweepDeg, true)
+        path.arcTo(inner, end, -sweepDeg, false)
+        path.close()
+        return path
+    }
+    // The corner can be no bigger than half the ring or half the inner arc.
+    val innerArc = Math.toRadians(sweepDeg.toDouble()).toFloat() * innerR
+    val c = minOf(corner, (outerR - innerR) / 2, innerArc / 2)
+    fun at(r: Float, deg: Float): Offset {
+        val a = Math.toRadians(deg.toDouble())
+        return Offset(center.x + r * kotlin.math.cos(a).toFloat(), center.y + r * kotlin.math.sin(a).toFloat())
+    }
+    val dOut = Math.toDegrees((c / outerR).toDouble()).toFloat()
+    val dIn = Math.toDegrees((c / innerR).toDouble()).toFloat()
+    path.arcTo(outer, startDeg + dOut, sweepDeg - 2 * dOut, true)
+    at(outerR, end).let { k -> at(outerR - c, end).let { p -> path.quadraticTo(k.x, k.y, p.x, p.y) } }
+    at(innerR + c, end).let { path.lineTo(it.x, it.y) }
+    at(innerR, end).let { k -> at(innerR, end - dIn).let { p -> path.quadraticTo(k.x, k.y, p.x, p.y) } }
+    path.arcTo(inner, end - dIn, -(sweepDeg - 2 * dIn), false)
+    at(innerR, startDeg).let { k -> at(innerR + c, startDeg).let { p -> path.quadraticTo(k.x, k.y, p.x, p.y) } }
+    at(outerR - c, startDeg).let { path.lineTo(it.x, it.y) }
+    at(outerR, startDeg).let { k -> at(outerR, startDeg + dOut).let { p -> path.quadraticTo(k.x, k.y, p.x, p.y) } }
+    path.close()
+    return path
 }
 
 @Composable

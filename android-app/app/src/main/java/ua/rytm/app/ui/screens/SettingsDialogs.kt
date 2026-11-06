@@ -86,7 +86,7 @@ fun SettingsManagerSheets(
     val app = rytmApp()
     when (open) {
         null -> Unit
-        SettingsSheet.Wallets -> WalletsManagerSheet(app.financeRepository, app.financeSyncRepository, dataUid, profileId, onDismiss = onClose)
+        SettingsSheet.Wallets -> WalletsManagerSheet(app.financeRepository, app.financeSyncRepository, app.recurringSyncRepository, dataUid, profileId, onDismiss = onClose)
         SettingsSheet.Categories -> CategoriesManagerSheet(app.financeRepository, app.categoriesSyncRepository, dataUid, profileId, onDismiss = onClose)
         SettingsSheet.Budgets -> BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = dataUid, profileId = profileId, onDismiss = onClose)
         SettingsSheet.Tags -> TagsManagerSheet(repository = app.financeRepository, syncRepository = app.tagsSyncRepository, uid = dataUid, profileId = profileId, onDismiss = onClose)
