@@ -1,6 +1,6 @@
 # Графік змін — UX-специфікація (Крок 8, scoped)
 
-Джерело: [index.html:1752-1858](../index.html), [js/calendar.js](../js/calendar.js), `LEGACY_SHIFT_TYPES` у [js/core.js:316-323](../js/core.js).
+Джерело: [index.html:1752-1858](../../index.html), [js/calendar.js](../../js/calendar.js), `LEGACY_SHIFT_TYPES` у [js/core.js:316-323](../../js/core.js).
 
 ## В цьому кроці
 - **Hero metric**: "Зароблено цього місяця" + прогрес-бар до `SALARY_GOAL=20000` грн.

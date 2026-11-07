@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
  * ANDROID_MIGRATION.md (design-audit stage 5).
  *
  * Rytm's own icon set: stroke glyphs traced from the vendored Lucide library
- * (`docs/lucide/`, ISC), which is already the app's documented source for new
+ * (`docs/icons/lucide/`, ISC), which is already the app's documented source for new
  * glyphs and matches the PWA's hand-drawn stroke language 1:1 in format
  * (24x24 viewBox, `stroke="currentColor"`, no fill).
  *
