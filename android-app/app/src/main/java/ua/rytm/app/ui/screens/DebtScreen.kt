@@ -103,6 +103,7 @@ import ua.rytm.app.ui.screens.debt.owedToMe
 import ua.rytm.app.ui.screens.debt.paid
 import ua.rytm.app.ui.screens.debt.todayLabel
 import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.currencySymbol
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
@@ -218,7 +219,7 @@ fun DebtScreen(
                     item { EmptyEntriesState() }
                 } else {
                     items(visibleEntries, key = { it.id }) { entry ->
-                        DebtEntryRow(viewModel, entry, cd.currency, canEdit) { open -> if (open) swipedEntries.add(entry.id.toString()) else swipedEntries.remove(entry.id.toString()) }
+                        DebtEntryRow(viewModel, entry, currencySymbol(cd.currency), canEdit) { open -> if (open) swipedEntries.add(entry.id.toString()) else swipedEntries.remove(entry.id.toString()) }
                     }
                 }
                 if (newestEntries.size > 3) {
@@ -408,7 +409,7 @@ private fun HeroBalance(cd: Debt) {
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(if (cd.owedToMe) R.string.debt_owed_balance else R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${cd.currency}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${currencySymbol(cd.currency)}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             if (cd.startAmount <= 0 && cd.entries.isNotEmpty()) {
                 Text(stringResource(R.string.debt_start_missing), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.warning, modifier = Modifier.padding(top = RytmSpacing.xs))
             }
@@ -416,7 +417,7 @@ private fun HeroBalance(cd: Debt) {
             // polite text to any messenger — the app sends nothing itself.
             if (cd.owedToMe && cd.currentBalance() > 0) {
                 val context = androidx.compose.ui.platform.LocalContext.current
-                val message = stringResource(R.string.debt_remind_message, formatMoney(cd.currentBalance()), cd.currency)
+                val message = stringResource(R.string.debt_remind_message, formatMoney(cd.currentBalance()), currencySymbol(cd.currency))
                 val chooserTitle = stringResource(R.string.debt_remind)
                 androidx.compose.material3.OutlinedButton(
                     onClick = {
@@ -473,8 +474,8 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     RytmStatChipRow {
-        item { RytmStatChip(RytmIcons.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${cd.currency}"), stringResource(R.string.debt_start_amount)) }
-        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${cd.currency}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
+        item { RytmStatChip(RytmIcons.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${currencySymbol(cd.currency)}"), stringResource(R.string.debt_start_amount)) }
+        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
         item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
         if (due != null) item { RytmStatChip(RytmIcons.Event, due, stringResource(R.string.debt_due_date)) }
     }
@@ -716,7 +717,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                     supportingText = { Text(stringResource(if (startInvalid) R.string.debt_start_required else R.string.debt_start_hint)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                     label = { Text(stringResource(if (cd.owedToMe) R.string.debt_total_owed else R.string.debt_total_owe)) },
-                    suffix = { Text(cd.currency) },
+                    suffix = { Text(currencySymbol(cd.currency)) },
                 )
             }
             OutlinedTextField(

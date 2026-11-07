@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import ua.rytm.app.R
 import ua.rytm.app.ui.screens.finance.formatMoney
+import ua.rytm.app.ui.screens.finance.currencySymbol
 import ua.rytm.app.ui.maskedAmount
 import kotlin.math.ceil
 import kotlin.math.max
@@ -96,14 +97,14 @@ fun DebtForecastCard(debt: Debt) {
             }
             val axis = MaterialTheme.typography.labelSmall
             val axisColor = MaterialTheme.colorScheme.onSurfaceVariant
-            val startLabel = maskedAmount("${formatMoney(start)} ${debt.currency}")
+            val startLabel = maskedAmount("${formatMoney(start)} ${currencySymbol(debt.currency)}")
             if (left > 0) {
                 // "now" sits at the junction of the solid and dashed parts.
                 Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.xs, bottom = RytmSpacing.sm)) {
                     Text(startLabel, style = axis, color = axisColor, maxLines = 1, modifier = Modifier.weight(historyShare))
                     Row(Modifier.weight(1f - historyShare)) {
                         Text(stringResource(R.string.debt_forecast_now), style = axis, color = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.weight(1f))
-                        Text(finishLabel ?: "0 ${debt.currency}", style = axis, color = axisColor, maxLines = 1)
+                        Text(finishLabel ?: "0 ${currencySymbol(debt.currency)}", style = axis, color = axisColor, maxLines = 1)
                     }
                 }
             } else {
@@ -114,7 +115,7 @@ fun DebtForecastCard(debt: Debt) {
                 avgDown <= 0 -> Text(stringResource(R.string.debt_forecast_insufficient), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
                     val paymentsLeft = max(1, ceil(currentBalance / avgDown).roundToInt())
-                    val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${debt.currency}")
+                    val avgStr = maskedAmount("${formatMoney(avgDown.roundToInt().toDouble())} ${currencySymbol(debt.currency)}")
                     Text(pluralStringResource(R.plurals.debt_payments_left, paymentsLeft, paymentsLeft), style = MaterialTheme.typography.bodyMedium)
                     Text(stringResource(R.string.debt_average_payment, avgStr), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     // At the user's real cadence: payments left × median gap between them.
@@ -133,7 +134,7 @@ fun DebtForecastCard(debt: Debt) {
                         Text(finishText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         val whatIf = DebtPaceCalc.whatIfPayment(avgDown)
                         Text(
-                            stringResource(R.string.debt_forecast_what_if, maskedAmount("${formatMoney(whatIf)} ${debt.currency}"), DebtPaceCalc.finishDate(currentBalance, whatIf, gap, today).format(monthYear)),
+                            stringResource(R.string.debt_forecast_what_if, maskedAmount("${formatMoney(whatIf)} ${currencySymbol(debt.currency)}"), DebtPaceCalc.finishDate(currentBalance, whatIf, gap, today).format(monthYear)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

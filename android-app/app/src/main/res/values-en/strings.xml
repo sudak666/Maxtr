@@ -759,4 +759,17 @@
     <plurals name="wallet_move_body"><item quantity="one">“%1$s” has %2$d operation. Where should it go before the wallet is deleted?</item><item quantity="other">“%1$s” has %2$d operations. Where should they go before the wallet is deleted?</item></plurals>
     <string name="wallet_move_no_target">There is no other wallet in this currency. Create one or delete these operations first.</string>
     <string name="wallet_move_confirm">Move and delete</string>
+    <string name="shifts_pay_hint_title">Set the pay per shift</string>
+    <string name="shifts_pay_hint_body">Then Rytm counts your earnings</string>
+    <string name="shifts_pay_hint_action">Set</string>
+    <string name="premium_saving">%1$s · save %2$d%%</string>
+    <string name="premium_terms_note">The subscription renews automatically. Cancel any time in Google Play; nothing is charged before the trial ends.</string>
+    <string name="premium_manage">Manage subscription</string>
+    <string name="onboarding_bank_title">Your bank fills it in</string>
+    <string name="onboarding_bank_body">Connect monobank, import a statement or let Rytm read bank notifications, and it suggests what to save.</string>
+    <string name="onboarding_demo_bank_push">Purchase %1$s · ATB</string>
+    <string name="onboarding_demo_bank_saved">Ready to save</string>
+    <string name="budgets_none_set">No limits yet. Set a limit on a category and Rytm warns you as spending gets close.</string>
+    <string name="budgets_add_limit">Add a limit</string>
+    <string name="profile_add_name">Add your name</string>
 </resources>

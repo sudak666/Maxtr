@@ -212,10 +212,35 @@ fun PremiumDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                val saving = ua.rytm.app.data.yearlySavingPercent(offers)
                 if (!owned) offers.forEach { offer ->
-                    val label = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
+                    val base = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
+                    val label = if (offer.basePlan == "yearly" && saving != null) stringResource(R.string.premium_saving, base, saving) else base
                     Button(onClick = { premium.clearPurchaseError(); activity?.let { premium.buy(it, offer) } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                        Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label)
+                        Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+                // What a subscriber must know before paying, and the way out after.
+                if (!owned && offers.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.premium_terms_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                val context = LocalContext.current
+                val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
+                fun open(url: String) { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } }
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (owned) {
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = { open("https://play.google.com/store/account/subscriptions?sku=rytm_premium&package=" + context.packageName) }) {
+                            Text(stringResource(R.string.premium_manage))
+                        }
+                    }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = { open(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") }) {
+                        Text(stringResource(R.string.settings_terms_row))
                     }
                 }
                 OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }

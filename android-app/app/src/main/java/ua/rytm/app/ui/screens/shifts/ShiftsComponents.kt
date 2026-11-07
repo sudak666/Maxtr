@@ -3,6 +3,7 @@ import ua.rytm.app.ui.theme.RytmSpacing
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.fadingEdges
 import ua.rytm.app.ui.icons.Share
+import ua.rytm.app.ui.icons.Payments
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.background
@@ -604,6 +605,24 @@ internal fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
                 Text(stringResource(R.string.shifts_empty_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             ua.rytm.app.ui.components.RytmTextButton(onClick = onQuickFill) { Text(stringResource(R.string.shifts_quick_fill_short)) }
+        }
+    }
+}
+
+@Composable
+internal fun PayRateHintBanner(onSet: () -> Unit) {
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(RytmRadii.Input),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(start = RytmSpacing.lg, end = RytmSpacing.xs, top = RytmSpacing.sm, bottom = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+            Icon(RytmIcons.Payments, contentDescription = null, tint = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.size(20.dp))
+            Column(Modifier.weight(1f).padding(horizontal = RytmSpacing.md)) {
+                Text(stringResource(R.string.shifts_pay_hint_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.shifts_pay_hint_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            ua.rytm.app.ui.components.RytmTextButton(onClick = onSet) { Text(stringResource(R.string.shifts_pay_hint_action)) }
         }
     }
 }

@@ -312,7 +312,11 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
             chartEntries.forEach { (cat, amt) ->
                 val sweep = (amt / total * 360).toFloat()
                 val drawn = (if (single) 360f else (sweep - gapDeg).coerceAtLeast(0.8f)) * progress
-                if (drawn > 0f) {
+                if (single && drawn >= 359.9f) {
+                    // A 360° arcTo starts and ends on one point, and Android draws
+                    // nothing: one category at 100 % left the chart blank.
+                    drawCircle(categoryColor(cat), radius = outerR - ring / 2, style = Stroke(width = ring))
+                } else if (drawn > 0f) {
                     drawPath(
                         donutSegment(center, outerR, innerR, if (single) startAngle else startAngle + gapDeg / 2, drawn, 5.dp.toPx(), rounded = !single),
                         categoryColor(cat),

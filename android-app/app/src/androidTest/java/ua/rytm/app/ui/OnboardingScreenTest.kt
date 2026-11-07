@@ -28,6 +28,8 @@ class OnboardingScreenTest {
 
         compose.onNodeWithText(context.getString(R.string.onboarding_finance_title)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.action_next)).assertHeightIsAtLeast(48.dp).performClick()
+        compose.onNodeWithText(context.getString(R.string.onboarding_bank_title)).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.action_next)).performClick()
         compose.onNodeWithText(context.getString(R.string.onboarding_shifts_title)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.action_next)).performClick()
         compose.onNodeWithText(context.getString(R.string.onboarding_security_title)).assertIsDisplayed()

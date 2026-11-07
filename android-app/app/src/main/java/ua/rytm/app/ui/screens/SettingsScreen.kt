@@ -89,6 +89,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -241,6 +242,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
     var paywallOpen by rememberSaveable { mutableStateOf(false) }
     if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
+    val premiumActive = app.premiumRepository.isPremium.collectAsState().value
     val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) settingsViewModel.readImport(uri)
     }
@@ -389,12 +391,53 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                 }
                 SettingsSectionLabel(stringResource(R.string.settings_account))
                 SettingsGroupCard {
+                    // Same sheets as the profile panel behind the avatar: a new user
+                    // looks for them here (first-run audit 2026-11-07).
+                    if (uid != null) {
+                        SettingsRow(
+                            icon = RytmIcons.Groups,
+                            badgeColor = SettingsGroupColors.Account,
+                            title = stringResource(R.string.profiles_title),
+                            subtitle = stringResource(R.string.settings_profiles_subtitle),
+                            onClick = { openSheet = SettingsSheet.Profiles },
+                        )
+                        SettingsRow(
+                            icon = RytmIcons.CloudDone,
+                            badgeColor = SettingsGroupColors.Account,
+                            title = stringResource(R.string.settings_backups_title),
+                            subtitle = stringResource(R.string.settings_backups_subtitle),
+                            onClick = {
+                                if (activeProfileOwnerUid != null) pendingMessage = resources.getString(R.string.backups_shared_unavailable)
+                                else openSheet = SettingsSheet.Backups
+                            },
+                        )
+                        SettingsRow(
+                            icon = RytmIcons.Star,
+                            badgeColor = SettingsGroupColors.Account,
+                            title = stringResource(R.string.settings_premium),
+                            subtitle = stringResource(if (premiumActive) R.string.premium_plan_active else R.string.settings_free_plan),
+                            onClick = { paywallOpen = true },
+                        )
+                    }
                     SettingsRow(
                         icon = RytmIcons.Logout,
                         badgeColor = SettingsGroupColors.Account,
                         title = stringResource(R.string.settings_sign_out),
                         subtitle = stringResource(R.string.settings_sign_out_subtitle),
                         onClick = { pendingSignOut = true },
+                    )
+                }
+            } }
+
+            if (uid != null && securityVisible) { item(key = "settings-security") {
+                SettingsSectionLabel(stringResource(R.string.settings_security))
+                SettingsGroupCard {
+                    SettingsRow(
+                        icon = RytmIcons.Lock,
+                        badgeColor = SettingsGroupColors.Security,
+                        title = stringResource(R.string.pin_settings_title),
+                        subtitle = stringResource(R.string.settings_pin_subtitle),
+                        onClick = { openSheet = SettingsSheet.Pin },
                     )
                 }
             } }

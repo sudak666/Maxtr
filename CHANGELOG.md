@@ -24,6 +24,22 @@
 
 - **Docs cleanup (2026-11-06)** — owner asked to record everything and remove what is stale. `ANDROID_MIGRATION.md` cut from 1096 lines to the current checkpoint (2.8.5 vc53 from Play, Play Console done: trader status, Japan, SA permissions; open: 15% fee, 12 testers, other-bank statement); the step-by-step migration log, the August design-audit block and the original screen/schema plan are removed (still in git history). `CLAUDE.md`: the TypeScript strict-rollout batch log replaced by the lessons that still apply; App Check bullets no longer describe the removed phone sign-in; the TWA packaging section reduced to the signing / Digital Asset Links facts that still hold. Deleted: `AUDIT.md` (2026-07, pre-split PWA), `AUDIT_2026-11_PLAN.md` (executed), `android-icon-rounded.png` (TWA splash only), `scripts/backfill-transactions.mjs` (superseded by the client-side migration). Kept: `AUDIT_2026-10.md`/`AUDIT_2026-11.md` and `MIGRATION_PLAN_transactions.md`, which tests and code comments cite. Agent memory refreshed the same way.
 
+- **First-run audit + P1/P2 fixes (2026-11-07)** — owner asked for a "first five minutes of a stranger" audit, then fixes for P1 and P2. New account from zero on the Pixel 10 emulator, against local Firebase emulators (`-PuseFirebaseEmulator=true`, `adb reverse` 8080/9099, test users `novachok@audit.test` and `novachok2@audit.test` exist only in the emulator). Report and status table: `AUDIT_2026-11-first-run.md`.
+  - Settings: PIN, backups, profiles and Premium lived only in the avatar panel, while the tour says PIN is «в Налаштуваннях». The «Безпека» filter showed only notifications, and a search for «PIN» gave an empty list. Now Акаунт has Профілі / Резервні копії / Преміум, and a new «Безпека» group has the PIN row; they open the same sheets.
+  - New profile defaulted to «Благодійність» (alphabetical first) with alphabetical chips. `PresetCategories.starterOrder()`: used categories first, then the preset order, so expense → Продукти and income → Зарплата.
+  - Shifts: default types pay 0, so marked shifts earned «0 ₴» with no clue. New `PayRateHintBanner` (worked shifts and month earned == 0) opens `ShiftTypesManagerSheet`.
+  - Donut: a single category drew a 360° `arcTo`, which Android renders as nothing; it now uses `drawCircle`. Regression from #766.
+  - Premium dialog: auto-renew/cancel note, «Керувати підпискою» (Play subscriptions deep link), «Умови», yearly saving % (`yearlySavingPercent()`, from the recurring pricing phase).
+  - Tour: 4th page «Банк записує сам» (`BankPreview`). Worded as «підкаже, що записати», because auto-save is Premium.
+  - Bottom bar: every tab shows its label under the icon (`FitText`, min 8 sp); icon-only from font 1.5×. At 1.3× «Налаштування» ellipsizes.
+  - Budgets: categories with a limit first, the rest behind «Додати ліміт», with an empty-state line.
+  - Profile name: «Додати ім’я» in the accent colour instead of a literal «Нікнейм».
+  - Loans show `currencySymbol()` (₴ instead of UAH).
+
+  Also fixed a flaky `FinanceViewModelTest.editingTransferCommentKeepsReceivedSum` (about 1 in 3): the test now waits for the EUR rate to reach the VM, via `ratesForTest`, before saving. Before that, seed 44 applied.
+
+  `assembleDebug testDebugUnitTest lintDebug compileDebugAndroidTestKotlin` green. `OnboardingGoldenTest` (runs only on the A51) will drift: there are now 4 page dots, so it needs re-recording on the phone. Not seen: the Premium purchase state (debug is always premium). P3 items 11–14 left open.
+
 - **2.8.6 (vc54) AAB built (2026-11-07)** — owner asked for an AAB. Bumped to 2.8.6 / vc54 (adds #769: monthly loan due date «Щомісяця» with the chip and reminders on the next due day, currency symbols `$/€/£/грн/₴` read as codes). `bundleRelease` → Desktop `Rytm-2.8.6-vc54.aab`, upload key SHA-256 7C:A2:AF:88:… verified; release build not run on a device by the agent. Next bump vc55.
 
 - **2.8.5 (vc53) AAB built (2026-11-06)** — owner asked for an AAB. Bumped to 2.8.5 / vc53 (adds #766: move a wallet's operations before deleting it, rounded-corner donut segments). `bundleRelease` → Desktop `Rytm-2.8.5-vc53.aab`, upload key SHA-256 7C:A2:AF:88:… verified; release build not run on a device by the agent (the debug build with the same code was checked on the emulator). vc52 was in Play review. Next bump vc54.

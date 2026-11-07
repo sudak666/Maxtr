@@ -166,6 +166,10 @@ fun ShiftsScreen() {
         key = "shiftTypes|$dataUid|$profileId",
         factory = ShiftTypesManagerViewModel.factory(app.shiftsRepository, dataUid, profileId),
     )
+    var payRatesOpen by rememberSaveable { mutableStateOf(false) }
+    if (payRatesOpen) {
+        ShiftTypesManagerSheet(app.shiftsRepository, dataUid, profileId, onDismiss = { payRatesOpen = false }, viewModel = shiftTypesViewModel)
+    }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbar = LocalSnackbarHost.current ?: ownHost
@@ -201,6 +205,11 @@ fun ShiftsScreen() {
         }
         if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
+        }
+        // Default shift types are created with pay 0: marked shifts then earned
+        // «0 ₴» with no clue where the pay goes (first-run audit 2026-11-07).
+        if (!viewModel.loading && canEdit && stats.shiftsCount > 0 && stats.earned == 0.0) {
+            item { PayRateHintBanner(onSet = { payRatesOpen = true }) }
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {

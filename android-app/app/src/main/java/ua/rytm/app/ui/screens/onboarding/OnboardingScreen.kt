@@ -52,6 +52,7 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
     val pages = remember {
         listOf(
             OnboardingPage({ FinancePreview() }, R.string.onboarding_finance_title, R.string.onboarding_finance_body),
+            OnboardingPage({ BankPreview() }, R.string.onboarding_bank_title, R.string.onboarding_bank_body),
             OnboardingPage({ ShiftsPreview() }, R.string.onboarding_shifts_title, R.string.onboarding_shifts_body),
             OnboardingPage({ PrivacyPreview() }, R.string.onboarding_security_title, R.string.onboarding_security_body),
         )
