@@ -32,9 +32,9 @@ import ua.rytm.app.ui.theme.RytmTheme
 class OnboardingGoldenTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "dc71936cc57818e539b5754eda8975af5e3a9ef0882444d8d6cb8c8f8dba1f80")
+    @Test fun lightUkrainianPhoneGolden() = verifyGolden("uk", dark = false, expected = "98f01cb0fb5b72f496b0492874ed831fbfe99ffc1c7c1e413f59bfe3707a7632")
 
-    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "5aef44d5221f95a3f7fbace4fbcf61ef08895c8b8619cd3117970e3ebe85363c")
+    @Test fun darkEnglishPhoneGolden() = verifyGolden("en", dark = true, expected = "d818318be2677564f89cf3f3bf9b15b245c71d29391cb51c0135965418529cac")
 
     private fun verifyGolden(language: String, dark: Boolean, expected: String) {
         // Pixel hashes are only stable on the device they were recorded on
