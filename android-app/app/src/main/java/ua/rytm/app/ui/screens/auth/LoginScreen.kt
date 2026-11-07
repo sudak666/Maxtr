@@ -1,4 +1,8 @@
 package ua.rytm.app.ui.screens.auth
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.ui.focus.onFocusChanged
 import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.core.net.toUri
 
@@ -103,8 +107,10 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
             )
         },
     ) {
+        val submitBringIntoView = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
+        val scope = rememberCoroutineScope()
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).safeDrawingPadding().padding(RytmSpacing.xxl),
+            modifier = Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(RytmSpacing.xxl),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -184,7 +190,11 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        // The keyboard covered «Зареєструватися»; show the button too
+                        // once the keyboard has slid up (first-run audit 2026-11-07).
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).onFocusChanged { state ->
+                            if (state.isFocused) scope.launch { kotlinx.coroutines.delay(350); submitBringIntoView.bringIntoView() }
+                        },
                         enabled = !viewModel.isSigningIn,
                         singleLine = true,
                         placeholder = { if (viewModel.authMode == AuthMode.REGISTER) Text(stringResource(R.string.auth_password_hint)) },
@@ -219,7 +229,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     Button(
                         onClick = submit,
                         enabled = !viewModel.isSigningIn,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).bringIntoViewRequester(submitBringIntoView),
                         shape = RoundedCornerShape(RytmRadii.Pill),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
                     ) {

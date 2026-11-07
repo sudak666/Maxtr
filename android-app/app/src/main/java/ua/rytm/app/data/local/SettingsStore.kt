@@ -146,7 +146,8 @@ class SettingsStore(private val context: Context) {
 
     val financeWidgets: Flow<FinanceWidgetsConfig> = context.settingsDataStore.data.map { prefs ->
         val enabled = prefs[widgetsEnabledKey]?.split(',')?.filter { it in FINANCE_WIDGET_KEYS }?.toSet()
-            ?: FINANCE_WIDGET_KEYS.toSet()
+            // Crypto prices are opt-in: off-topic noise for most new users (first-run audit).
+            ?: (FINANCE_WIDGET_KEYS - "cryptoTop").toSet()
         val storedOrder = prefs[widgetsOrderKey]?.split(',')?.filter { it in FINANCE_WIDGET_KEYS }.orEmpty()
         FinanceWidgetsConfig(enabled, (storedOrder + FINANCE_WIDGET_KEYS).distinct())
     }

@@ -529,7 +529,9 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            minSize = 8.sp,
+            // In sp a fixed minimum grows with the font scale, so «Налаштування»
+            // ellipsized at 1.3×; keep the floor at about 8 px-independent dp.
+            minSize = (8f / androidx.compose.ui.platform.LocalDensity.current.fontScale).sp,
         )
     }
 }

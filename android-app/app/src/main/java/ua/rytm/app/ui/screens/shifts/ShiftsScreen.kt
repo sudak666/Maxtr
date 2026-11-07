@@ -203,12 +203,13 @@ fun ShiftsScreen() {
             val brushHaptics = rememberRytmHaptics()
             LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) { id -> brushHaptics.tick(); viewModel.selectBrush(id) } else null)
         }
-        if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
+        if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0 && viewModel.brushTypeId == null) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
         }
         // Default shift types are created with pay 0: marked shifts then earned
         // «0 ₴» with no clue where the pay goes (first-run audit 2026-11-07).
-        if (!viewModel.loading && canEdit && stats.shiftsCount > 0 && stats.earned == 0.0) {
+        // Not while painting: a row appearing above the calendar moved the days under the finger.
+        if (!viewModel.loading && canEdit && stats.shiftsCount > 0 && stats.earned == 0.0 && viewModel.brushTypeId == null) {
             item { PayRateHintBanner(onSet = { payRatesOpen = true }) }
         }
         item {
