@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Bottom bar: labels on every tab reverted (2026-11-07)** — owner, after living with 2.8.7: the shrunken «Налаштування» looked off, and the old bar was visually better. `RytmNavHost.kt` restored byte-for-byte from before #772: only the selected tab shows its label, the others are icons named for TalkBack. Audit item 7 is now marked reverted. Considered and rejected: equal smaller labels, and «Ще» instead of «Налаштування». `assembleDebug testDebugUnitTest lintDebug` green. Not re-checked on a device: this is the exact code 2.8.6 shipped. Reaches the phone with the next AAB (vc56).
+
 - **Repo tidy-up and checkpoint (2026-11-07)** — owner: tidy everything into folders and record the state for the next session.
   - `CHANGELOG.md` (1.2 MB, months interleaved) split by entry month: 2026-11 stays here; 07–10 go to `docs/changelog/YYYY-MM.md` verbatim (sorted line multiset identical before and after).
   - Moved: audits → `docs/audits/` (incl. `android-app/DESIGN_AUDIT_2026-08-24.md`); `FINANCE_/SHIFTS_SCREEN_SPEC.md` and `QA_MATRIX.md` → `docs/android/` (relative links rewritten); `MIGRATION_PLAN_transactions.md` → `docs/history/`; `docs/lucide` and `docs/material-symbols` → `docs/icons/`.

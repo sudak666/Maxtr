@@ -22,9 +22,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 import ua.rytm.app.ui.components.pressScale
 import ua.rytm.app.ui.icons.RytmIcons
@@ -380,7 +377,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(shape)
                 .background(barColor)
-                .padding(horizontal = 4.dp, vertical = if (compactHeight) 2.dp else 6.dp),
+                .padding(horizontal = 10.dp, vertical = if (compactHeight) 4.dp else 8.dp),
             // Deliberately NOT `weight(1f)` on each child: an equal 1/5 share
             // still clips the selected tab's label even though it's now the
             // only one rendering text (reported live — "Налаштув" clipped
@@ -397,7 +394,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                     destination = destination,
                     selected = selected,
                     compact = compactHeight,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier,
                     onClick = {
                         navController.navigate(destination.route) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -478,60 +475,46 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
         label = "tabPressedScale",
     )
 
-    if (hugeFont) {
-        // At ~2x font labels cannot fit: icon-only, the selected tab keeps its fill.
-        Box(
-            modifier = modifier
-                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                .graphicsLayer { scaleX = pressedScale; scaleY = pressedScale }
-                .clip(RoundedCornerShape(percent = 50))
-                .background(backgroundColor)
-                .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = onClick)
-                .padding(horizontal = 12.dp, vertical = if (compact) 8.dp else 10.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(destination.icon, stringResource(destination.labelRes), tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph))
-        }
-        return
-    }
-    // Every tab carries its name under the icon (first-run audit 2026-11-07:
-    // with a label on the selected tab only, a newcomer had to guess what the
-    // calendar and receipt icons open). The selected one also gets a pill.
-    Column(
+    Row(
         modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
             .graphicsLayer {
                 scaleX = pressedScale
                 scaleY = pressedScale
             }
-            .clip(RoundedCornerShape(RytmSpacing.md))
+            .animateContentSize(motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)))
+            .clip(RoundedCornerShape(percent = 50))
+            .background(backgroundColor)
             .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = onClick)
-            .padding(vertical = if (compact) 2.dp else 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = if (selected) 14.dp else 12.dp, vertical = if (compact) 8.dp else 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(percent = 50))
-                .background(backgroundColor)
-                .padding(horizontal = 16.dp, vertical = if (compact) 2.dp else 4.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                destination.icon,
-                contentDescription = null,
-                tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
+        Icon(
+            destination.icon,
+            // Only the selected tab renders its label Text, so the others were
+            // unnamed for TalkBack (found in a live audit via uiautomator: just
+            // one of four tabs had any text/description). Describe the icon
+            // exactly when there's no visible label — never both, which read
+            // the name twice.
+            contentDescription = if (selected && !hugeFont) null else stringResource(destination.labelRes),
+            tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
+        )
+        // Label only renders for the selected tab (Instagram/X/TikTok
+        // pattern) — at most one label competes for width at any time,
+        // so a long Ukrainian word like "Налаштування" always gets the
+        // full row width instead of a fixed per-item share and can never
+        // truncate, no matter how translations or font scale change later.
+        if (selected && !hugeFont) {
+            Spacer(Modifier.width(RytmSpacing.sm))
+            Text(
+                stringResource(destination.labelRes),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
-        if (!compact) Spacer(Modifier.height(2.dp))
-        ua.rytm.app.ui.components.FitText(
-            stringResource(destination.labelRes),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            // In sp a fixed minimum grows with the font scale, so «Налаштування»
-            // ellipsized at 1.3×; keep the floor at about 8 px-independent dp.
-            minSize = (8f / androidx.compose.ui.platform.LocalDensity.current.fontScale).sp,
-        )
     }
 }
