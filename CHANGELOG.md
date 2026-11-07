@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **2.8.8 (vc56) AAB built (2026-11-07)** — owner asked for an AAB. Bumped to 2.8.8 / vc56 (adds #777, the bottom bar back to a label on the selected tab only). `bundleRelease` → Desktop `Rytm-2.8.8-vc56.aab`, upload key SHA-256 7C:A2:AF:88:… verified; not run on a device by the agent. Next bump vc57.
+
 - **Bottom bar: labels on every tab reverted (2026-11-07)** — owner, after living with 2.8.7: the shrunken «Налаштування» looked off, and the old bar was visually better. `RytmNavHost.kt` restored byte-for-byte from before #772: only the selected tab shows its label, the others are icons named for TalkBack. Audit item 7 is now marked reverted. Considered and rejected: equal smaller labels, and «Ще» instead of «Налаштування». `assembleDebug testDebugUnitTest lintDebug` green. Not re-checked on a device: this is the exact code 2.8.6 shipped. Reaches the phone with the next AAB (vc56).
 
 - **Repo tidy-up and checkpoint (2026-11-07)** — owner: tidy everything into folders and record the state for the next session.
