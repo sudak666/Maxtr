@@ -35,7 +35,26 @@ import kotlin.coroutines.resume
 /** What the Premium dialog shows while the plans load. */
 enum class OffersState { LOADING, READY, UNAVAILABLE, FAILED }
 
-data class PremiumOffer(val details: ProductDetails, val offerToken: String, val basePlan: String, val price: String, val hasTrial: Boolean)
+data class PremiumOffer(val details: ProductDetails, val offerToken: String, val basePlan: String, val price: String, val hasTrial: Boolean) {
+    /** The recurring price after any trial, in micros (0 when Play gave none). */
+    val recurringMicros: Long
+        get() = details.subscriptionOfferDetails?.firstOrNull { it.offerToken == offerToken }
+            ?.pricingPhases?.pricingPhaseList?.lastOrNull()?.priceAmountMicros ?: 0L
+}
+
+/** What the Premium dialog shows of one Play plan; plain data so the dialog can be rendered in tests. */
+data class PremiumPlanUi(val basePlan: String, val price: String, val hasTrial: Boolean, val recurringMicros: Long)
+
+fun PremiumOffer.toUi() = PremiumPlanUi(basePlan, price, hasTrial, recurringMicros)
+
+/** Whole percent the yearly plan saves against twelve monthly payments, or null. */
+fun yearlySavingPercent(plans: List<PremiumPlanUi>): Int? {
+    val monthly = plans.firstOrNull { it.basePlan == "monthly" }?.recurringMicros ?: return null
+    val yearly = plans.firstOrNull { it.basePlan == "yearly" }?.recurringMicros ?: return null
+    if (monthly <= 0 || yearly <= 0) return null
+    val pct = ((1.0 - yearly.toDouble() / (monthly * 12.0)) * 100).toInt()
+    return pct.takeIf { it >= 5 }
+}
 
 /**
  * Google Play subscription state. Premium is the server's answer (the

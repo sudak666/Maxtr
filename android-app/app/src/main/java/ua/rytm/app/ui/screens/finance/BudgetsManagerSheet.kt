@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import ua.rytm.app.ui.icons.Add
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -78,7 +80,18 @@ fun BudgetsManagerSheet(
                 Text(stringResource(R.string.budgets_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            viewModel.rows.forEach { (category, limit) ->
+            // Categories with a limit first; the rest wait behind «Додати ліміт»
+            // (first-run audit 2026-11-07: a new profile opened on 17 rows of
+            // «Без ліміту»). The row being edited stays visible.
+            var showUnset by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+            fun hasLimit(category: String, limit: Double) = limit > 0 ||
+                viewModel.subcategories[ua.rytm.app.data.subKey(TxType.EXPENSE.name, category)].orEmpty()
+                    .any { (viewModel.budgets[ua.rytm.app.data.subBudgetKey(category, it)] ?: 0.0) > 0 }
+            val unsetCount = viewModel.rows.count { (c, l) -> !hasLimit(c, l) }
+            if (viewModel.rows.isNotEmpty() && unsetCount == viewModel.rows.size && !showUnset) {
+                Text(stringResource(R.string.budgets_none_set), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            viewModel.rows.filter { (c, l) -> showUnset || hasLimit(c, l) || viewModel.expandedCategory == c }.forEach { (category, limit) ->
                 BudgetRow(
                     category = category,
                     limit = limit,
@@ -90,6 +103,13 @@ fun BudgetsManagerSheet(
                     subLimits = viewModel.budgets,
                     onSubLimitChange = { sub, amount -> viewModel.updateBudget(ua.rytm.app.data.subBudgetKey(category, sub), amount) },
                 )
+            }
+            if (unsetCount > 0 && !showUnset) {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = { showUnset = true }) {
+                    Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
+                    Text(stringResource(R.string.budgets_add_limit))
+                }
             }
         }
     }

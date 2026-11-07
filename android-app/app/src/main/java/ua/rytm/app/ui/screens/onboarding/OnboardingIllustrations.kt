@@ -34,6 +34,7 @@ import ua.rytm.app.ui.icons.Lock
 import ua.rytm.app.ui.icons.Mobile
 import ua.rytm.app.ui.icons.Laptop
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.Notifications
 import ua.rytm.app.ui.icons.ShoppingCart
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.screens.finance.formatMoney
@@ -81,6 +82,24 @@ internal fun FinancePreview() = PreviewCard {
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(320.0)} ₴", RytmSemantic.expense)
     PreviewRow(RytmIcons.LocalCafe, Color(0xFFF59E0B), localizedDomainText("Кафе"), "−${formatMoney(65.0)} ₴", RytmSemantic.expense)
+}
+
+@Composable
+internal fun BankPreview() = PreviewCard {
+    // A bank notification turning into a saved operation.
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(RytmIcons.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("monobank", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    Text(stringResource(R.string.onboarding_demo_bank_push, "${formatMoney(245.0)} ₴"), style = MaterialTheme.typography.bodyMedium)
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(245.0)} ₴", RytmSemantic.expense)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(RytmIcons.CheckCircle, contentDescription = null, tint = RytmSemantic.income, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(stringResource(R.string.onboarding_demo_bank_saved), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable

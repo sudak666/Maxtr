@@ -179,7 +179,9 @@ class FinanceViewModelTest {
     @Test fun editingTransferCommentKeepsReceivedSum() {
         runBlocking { db.currencyRateDao().insertAll(listOf(ua.rytm.app.data.local.CurrencyRateEntity("EUR", 41.0))) }
         val vm = vm()
-        waitUntil { !vm.isSaving }
+        // The rate reaches the view model asynchronously; before it does, the
+        // seed rate (44) applies and the test flaked about one run in three.
+        waitUntil { vm.ratesForTest["EUR"] == 41.0 && !vm.isSaving }
         vm.openNewTransactionSheet()
         vm.form.onTypeChange(ua.rytm.app.ui.screens.finance.TxType.TRANSFER)
         vm.form.onWalletChange("eur")

@@ -421,7 +421,7 @@
     <string name="settings_csv_error_text_long">задовгий коментар або категорія</string>
     <string name="builtin_wallet_card">Картка</string><string name="builtin_wallet_cash">Готівка</string>
     <string name="builtin_category_salary">Зарплата</string><string name="builtin_category_bonus">Премія</string><string name="builtin_category_side_job">Підробіток</string>
-    <string name="builtin_category_groceries">Продукти</string><string name="builtin_category_cafe">Кафе</string><string name="builtin_category_transport">Транспорт</string><string name="builtin_category_shopping">Покупки</string><string name="builtin_category_utilities">Комунальні</string><string name="builtin_category_health">Здоров’я</string><string name="builtin_category_entertainment">Розваги</string><string name="builtin_category_other">Інше</string><string name="builtin_category_transfer">Внутрішній переказ</string>
+    <string name="builtin_category_groceries">Продукти</string><string name="builtin_category_cafe">Кафе</string><string name="builtin_category_transport">Транспорт</string><string name="builtin_category_shopping">Покупки</string><string name="builtin_category_utilities">Комунальні</string><string name="builtin_category_health">Здоров\'я</string><string name="builtin_category_entertainment">Розваги</string><string name="builtin_category_other">Інше</string><string name="builtin_category_transfer">Внутрішній переказ</string>
     <string name="builtin_shift_day">Денна зміна</string><string name="builtin_shift_night">Нічна зміна</string><string name="builtin_shift_day_off">Вихідний</string><string name="builtin_shift_day_short">День</string><string name="builtin_shift_night_short">Ніч</string><string name="builtin_shift_off_short">Вих</string><string name="builtin_shift_day_enhanced">Денна (підвищена)</string><string name="builtin_shift_night_full">Нічна повна</string><string name="builtin_shift_night_early">Ніч рання</string><string name="builtin_shift_night_late">Ніч пізня</string>
     <string name="builtin_debt_credit">Кредит</string><string name="builtin_profile_me">Я</string><string name="builtin_monobank_jar">Банка</string>
     <string name="action_dismiss">Закрити повідомлення</string>
@@ -769,4 +769,17 @@
     <plurals name="wallet_move_body"><item quantity="one">У гаманці «%1$s» %2$d операція. Куди перенести її перед видаленням?</item><item quantity="few">У гаманці «%1$s» %2$d операції. Куди перенести їх перед видаленням?</item><item quantity="many">У гаманці «%1$s» %2$d операцій. Куди перенести їх перед видаленням?</item><item quantity="other">У гаманці «%1$s» %2$d операції. Куди перенести їх перед видаленням?</item></plurals>
     <string name="wallet_move_no_target">Немає іншого гаманця в цій валюті. Створи його або спершу видали ці операції.</string>
     <string name="wallet_move_confirm">Перенести й видалити</string>
+    <string name="shifts_pay_hint_title">Вкажи оплату за зміну</string>
+    <string name="shifts_pay_hint_body">Тоді Rytm порахує заробіток</string>
+    <string name="shifts_pay_hint_action">Вказати</string>
+    <string name="premium_saving">%1$s · вигода %2$d%%</string>
+    <string name="premium_terms_note">Підписка продовжується сама. Скасувати можна будь-коли в Google Play — до кінця пробного періоду гроші не списуються.</string>
+    <string name="premium_manage">Керувати підпискою</string>
+    <string name="onboarding_bank_title">Банк записує сам</string>
+    <string name="onboarding_bank_body">Підключи monobank, імпортуй виписку або дозволь читати сповіщення банку — Rytm сам підкаже, що записати.</string>
+    <string name="onboarding_demo_bank_push">Покупка %1$s · АТБ</string>
+    <string name="onboarding_demo_bank_saved">Готово до запису</string>
+    <string name="budgets_none_set">Ще немає лімітів. Постав ліміт на категорію, і Rytm попередить, коли витрати наблизяться до нього.</string>
+    <string name="budgets_add_limit">Додати ліміт</string>
+    <string name="profile_add_name">Додати ім’я</string>
 </resources>

@@ -105,6 +105,7 @@ class FinanceViewModel(
     private var autoRules by mutableStateOf<List<AutoRuleEntity>>(emptyList())
     private var transactions by mutableStateOf<List<Transaction>>(emptyList())
     private var currencyRates by mutableStateOf<Map<String, Double>>(emptyMap())
+    @androidx.annotation.VisibleForTesting internal val ratesForTest: Map<String, Double> get() = currencyRates
     private var budgets by mutableStateOf<Map<String, Double>>(emptyMap())
     private var walletsLoaded = false
     private var transactionsLoaded = false
@@ -419,8 +420,13 @@ class FinanceViewModel(
     /** How many entries each category has, all time: orders the history filter's chips. */
     val categoryUsage: Map<String, Int> by derivedStateOf { transactions.groupingBy { it.category }.eachCount() }
 
-    private fun frequentCategoriesOf(type: TxType): List<String> =
-        FinanceInsights.frequentCategories(transactions, type, categoriesByType[type].orEmpty().toSet(), today.minusDays(90))
+    /** Most used first, then the common ready-made ones, so a new profile starts on «Продукти». */
+    private fun frequentCategoriesOf(type: TxType): List<String> {
+        if (type == TxType.TRANSFER) return emptyList()
+        val known = categoriesByType[type].orEmpty()
+        val used = FinanceInsights.frequentCategories(transactions, type, known.toSet(), today.minusDays(90))
+        return (used + ua.rytm.app.data.PresetCategories.starterOrder(type.name, known)).distinct().take(6)
+    }
 
     /**
      * Shared profile, this month: income/expense per person who added the

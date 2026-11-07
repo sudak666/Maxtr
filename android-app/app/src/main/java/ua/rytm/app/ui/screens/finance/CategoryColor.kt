@@ -22,6 +22,9 @@ import ua.rytm.app.ui.theme.OrangeDark
 import ua.rytm.app.ui.theme.Pink
 import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RedDark
+import ua.rytm.app.ui.icons.Laptop
+import ua.rytm.app.ui.icons.Favorite
+import ua.rytm.app.ui.icons.Build
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.AccountBalance
 import ua.rytm.app.ui.icons.AccountBalanceWallet
@@ -172,16 +175,17 @@ val PICKER_ICONS: Map<String, ImageVector> = mapOf(
 // CAT_ICON referencing it — confirmed by reading both, not an oversight
 // here), so it's kept as its own literal reference rather than routed
 // through PICKER_ICONS.
+// No two ready-made categories of one type share an icon (first-run audit 2026-11-07).
 private val CAT_ICON: Map<String, ImageVector> = mapOf(
         "Зарплата" to RytmIcons.Work,
         "Аванс" to RytmIcons.CreditCard,
-        "Підробіток" to RytmIcons.CardGiftcard,
+        "Підробіток" to RytmIcons.Laptop,
         "Повернення боргу" to RytmIcons.Payments,
         "Інше" to RytmIcons.Bento,
         "Кава" to RytmIcons.LocalCafe,
         "Кафе" to RytmIcons.LocalCafe,
         "Фастфуд" to RytmIcons.Fastfood,
-        "Розваги" to RytmIcons.CardGiftcard,
+        "Розваги" to RytmIcons.Gamepad,
         "Кредит" to RytmIcons.AccountBalance,
         "Борг" to RytmIcons.Payments,
         "Продукти" to RytmIcons.ShoppingCart,
@@ -194,15 +198,15 @@ private val CAT_ICON: Map<String, ImageVector> = mapOf(
         BuiltinCategories.TRANSFER to RytmIcons.SwapHoriz,
         "Комунальні" to RytmIcons.Home,
         "Зв'язок і підписки" to RytmIcons.Phone,
-        "Дім і побут" to RytmIcons.Home,
+        "Дім і побут" to RytmIcons.Build,
         "Спорт" to RytmIcons.Bolt,
         "Освіта" to RytmIcons.Description,
         "Діти" to RytmIcons.Person,
         "Тварини" to RytmIcons.Star,
         "Подорожі" to RytmIcons.Public,
-        "Благодійність" to RytmIcons.CardGiftcard,
+        "Благодійність" to RytmIcons.Favorite,
         "Обов'язкові платежі" to RytmIcons.AccountBalance,
-        "Бізнес і ФОП" to RytmIcons.Work,
+        "Бізнес і ФОП" to RytmIcons.Badge,
         "Пасивний дохід" to RytmIcons.TrendingUp,
         "Подарунки і допомога" to RytmIcons.CardGiftcard,
     )
@@ -220,7 +224,7 @@ private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>> = listOf(
         Regex("борг", RegexOption.IGNORE_CASE) to RytmIcons.Payments,
         Regex("продукт|харч", RegexOption.IGNORE_CASE) to RytmIcons.ShoppingCart,
         Regex("транспорт|таксі|бензин|паливо", RegexOption.IGNORE_CASE) to RytmIcons.DirectionsCar,
-        Regex("розваг|кіно|хобі", RegexOption.IGNORE_CASE) to RytmIcons.CardGiftcard,
+        Regex("розваг|кіно|хобі", RegexOption.IGNORE_CASE) to RytmIcons.Gamepad,
         Regex("кава", RegexOption.IGNORE_CASE) to RytmIcons.LocalCafe,
         Regex("кафе|ресторан|фастфуд", RegexOption.IGNORE_CASE) to RytmIcons.Fastfood,
         Regex("подар", RegexOption.IGNORE_CASE) to RytmIcons.CardGiftcard,

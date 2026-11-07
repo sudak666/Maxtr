@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ua.rytm.app.data.toUi
 import ua.rytm.app.R
 import ua.rytm.app.data.CsvImportPreview
 import ua.rytm.app.ui.icons.CheckCircle
@@ -176,6 +177,28 @@ fun PremiumDialog(onDismiss: () -> Unit) {
     val activity = androidx.activity.compose.LocalActivity.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(Unit) { premium.clearPurchaseError(); runCatching { premium.loadOffers() } }
+    PremiumDialogContent(
+        owned = owned,
+        plans = offers.map { it.toUi() },
+        offersState = offersState,
+        purchaseError = purchaseError,
+        onBuy = { index -> premium.clearPurchaseError(); offers.getOrNull(index)?.let { offer -> activity?.let { premium.buy(it, offer) } } },
+        onRetry = { scope.launch { runCatching { premium.loadOffers() } } },
+        onDismiss = onDismiss,
+    )
+}
+
+/** The dialog itself, without Play: tests render it with made-up plans. */
+@Composable
+fun PremiumDialogContent(
+    owned: Boolean,
+    plans: List<ua.rytm.app.data.PremiumPlanUi>,
+    offersState: ua.rytm.app.data.OffersState,
+    purchaseError: Int?,
+    onBuy: (Int) -> Unit,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
@@ -196,14 +219,14 @@ fun PremiumDialog(onDismiss: () -> Unit) {
                 PremiumPerkRow(RytmIcons.CloudDone, GreenDark, stringResource(R.string.premium_auto_title), stringResource(R.string.premium_auto_body))
                 PremiumPerkRow(RytmIcons.GridView, GreenDark, stringResource(R.string.premium_pdf_title), stringResource(R.string.premium_pdf_body))
                 // Loading, failed and "not sold here" used to be one message: «недоступно» while still loading.
-                if (!owned && offers.isEmpty()) when (offersState) {
+                if (!owned && plans.isEmpty()) when (offersState) {
                     ua.rytm.app.data.OffersState.LOADING -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                         Text(stringResource(R.string.premium_loading), style = MaterialTheme.typography.bodySmall)
                     }
                     ua.rytm.app.data.OffersState.FAILED -> Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.premium_load_failed), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                        ua.rytm.app.ui.components.RytmTextButton(onClick = { scope.launch { runCatching { premium.loadOffers() } } }) { Text(stringResource(R.string.action_retry)) }
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
                     }
                     else -> Text(stringResource(R.string.premium_unavailable), style = MaterialTheme.typography.bodySmall)
                 }
@@ -212,13 +235,47 @@ fun PremiumDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                if (!owned) offers.forEach { offer ->
-                    val label = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
-                    Button(onClick = { premium.clearPurchaseError(); activity?.let { premium.buy(it, offer) } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                        Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label)
+                val saving = ua.rytm.app.data.yearlySavingPercent(plans)
+                // Yearly first and filled, monthly outlined: one clear main choice.
+                if (!owned) plans.withIndex().sortedBy { if (it.value.basePlan == "yearly") 0 else 1 }.forEach { (index, offer) ->
+                    val base = stringResource(if (offer.basePlan == "yearly") R.string.premium_yearly else R.string.premium_monthly, offer.price)
+                    val label = if (offer.basePlan == "yearly" && saving != null) stringResource(R.string.premium_saving, base, saving) else base
+                    val text: @Composable () -> Unit = { Text(if (offer.hasTrial) stringResource(R.string.premium_trial, label) else label, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                    if (offer.basePlan == "yearly") {
+                        Button(onClick = { onBuy(index) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { text() }
+                    } else {
+                        OutlinedButton(onClick = { onBuy(index) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { text() }
                     }
                 }
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
+                // What a subscriber must know before paying, and the way out after.
+                if (!owned && plans.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.premium_terms_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                val context = LocalContext.current
+                val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
+                fun open(url: String) { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } }
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (owned) {
+                        ua.rytm.app.ui.components.RytmTextButton(onClick = { open("https://play.google.com/store/account/subscriptions?sku=rytm_premium&package=" + context.packageName) }) {
+                            Text(stringResource(R.string.premium_manage))
+                        }
+                    }
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = { open(if (legalDocsEn) "https://maxtr-c238f.web.app/terms-en.html" else "https://maxtr-c238f.web.app/terms.html") }) {
+                        Text(stringResource(R.string.settings_terms_row))
+                    }
+                }
+                // A plain text button, so it doesn't read as a third plan.
+                if (!owned && plans.isNotEmpty()) {
+                    ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
+                } else {
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
+                }
             }
         },
     )

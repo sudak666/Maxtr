@@ -45,6 +45,16 @@ object PresetCategories {
 
     fun of(type: String): List<Preset> = if (type == "INCOME") income else expense
 
+    /**
+     * [categories] with the ready-made ones first, in the set's own order (most
+     * common first), the rest after. A new profile has no history, and the
+     * alphabetical first pick was «Благодійність» (first-run audit 2026-11-07).
+     */
+    fun starterOrder(type: String, categories: List<String>): List<String> {
+        val rank = of(type).withIndex().associate { (i, p) -> p.name to i }
+        return categories.sortedBy { rank[it] ?: Int.MAX_VALUE }
+    }
+
     private val english: Map<String, String> by lazy {
         (expense + income).flatMap { p -> listOf(p.name to p.english) + p.subcategories }.toMap()
     }

@@ -188,9 +188,11 @@ fun ProfileAppearanceCard(
                 ) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            text = appearance.nickname.ifBlank { stringResource(R.string.profile_nickname) },
+                            // A bare «Нікнейм» read as the user's actual name (first-run audit).
+                            text = appearance.nickname.ifBlank { stringResource(R.string.profile_add_name) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
+                            color = if (appearance.nickname.isBlank()) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Unspecified,
                         )
                         Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

@@ -24,7 +24,8 @@ class WidgetSettingsSyncRepository(
         settingsStore.setFinancialMonthStart(((snapshot.get("monthStartDay") as? Number)?.toInt() ?: 1).coerceIn(1, FinancialMonth.MAX_START_DAY))
         val widgets = snapshot.get("widgets") as? Map<*, *>
         if (widgets != null) {
-            val enabled = FINANCE_WIDGET_KEYS.filter { widgets[it] != false }.toSet()
+            // cryptoTop is opt-in (missing = off); the others are on unless turned off.
+            val enabled = FINANCE_WIDGET_KEYS.filter { if (it == "cryptoTop") widgets[it] == true else widgets[it] != false }.toSet()
             val remoteOrder = (snapshot.get("widgetOrder") as? List<*>)?.filterIsInstance<String>().orEmpty()
             settingsStore.replaceFinanceWidgets(FinanceWidgetsConfig(enabled, (remoteOrder + FINANCE_WIDGET_KEYS).distinct()))
         } else {

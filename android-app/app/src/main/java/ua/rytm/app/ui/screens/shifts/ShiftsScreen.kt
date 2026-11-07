@@ -166,6 +166,10 @@ fun ShiftsScreen() {
         key = "shiftTypes|$dataUid|$profileId",
         factory = ShiftTypesManagerViewModel.factory(app.shiftsRepository, dataUid, profileId),
     )
+    var payRatesOpen by rememberSaveable { mutableStateOf(false) }
+    if (payRatesOpen) {
+        ShiftTypesManagerSheet(app.shiftsRepository, dataUid, profileId, onDismiss = { payRatesOpen = false }, viewModel = shiftTypesViewModel)
+    }
     // Falls back to a local host only outside the nav graph (previews/tests).
     val ownHost = remember { SnackbarHostState() }
     val snackbar = LocalSnackbarHost.current ?: ownHost
@@ -199,8 +203,14 @@ fun ShiftsScreen() {
             val brushHaptics = rememberRytmHaptics()
             LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) { id -> brushHaptics.tick(); viewModel.selectBrush(id) } else null)
         }
-        if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0) {
+        if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0 && viewModel.brushTypeId == null) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
+        }
+        // Default shift types are created with pay 0: marked shifts then earned
+        // «0 ₴» with no clue where the pay goes (first-run audit 2026-11-07).
+        // Not while painting: a row appearing above the calendar moved the days under the finger.
+        if (!viewModel.loading && canEdit && stats.shiftsCount > 0 && stats.earned == 0.0 && viewModel.brushTypeId == null) {
+            item { PayRateHintBanner(onSet = { payRatesOpen = true }) }
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {

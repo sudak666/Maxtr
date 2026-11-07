@@ -126,7 +126,24 @@ async function main() {
     if (!tipText) throw new Error('expected non-empty tip text');
     console.log(`[ok] daily tip: visible by default with real non-empty text ("${tipText.slice(0, 40)}...")`);
 
-    // ── Crypto top: fetches the stubbed CoinGecko response on cold init and
+    // ── Crypto top is opt-in for a new profile (first-run audit 2026-11-07):
+    // hidden by default, turned on through the Widgets manager. ──
+    const cryptoHiddenByDefault = await page.evaluate(() => getComputedStyle(document.getElementById('crypto-top-section')).display === 'none');
+    if (!cryptoHiddenByDefault) throw new Error('expected the crypto widget to be off by default');
+    console.log('[ok] crypto top: off by default for a new profile');
+    await page.click('#btn-settings');
+    await page.waitForTimeout(200);
+    await page.click('.settings-row[data-action="open-widgets-manager"]');
+    await page.waitForSelector('#widgets-modal', { state: 'visible' });
+    await page.evaluate(() => {
+      const cb = document.querySelectorAll('#widgets-list input[type=checkbox]')[2]; // cryptoTop
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await page.evaluate(() => { document.getElementById('widgets-modal').style.display = 'none'; });
+    await page.click('#nav-finance');
+
+    // ── Crypto top: fetches the stubbed CoinGecko response once enabled and
     // renders real Preact h()/render() rows (not stale/empty markup) ──
     await page.waitForFunction(() => getComputedStyle(document.getElementById('crypto-top-section')).display !== 'none', { timeout: 5000 });
     const cryptoRows = await page.evaluate(() => Array.from(document.querySelectorAll('#crypto-top-list .crypto-top-row')).map((row) => ({
