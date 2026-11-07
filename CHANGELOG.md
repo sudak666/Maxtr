@@ -24,6 +24,8 @@
 
 - **Docs cleanup (2026-11-06)** — owner asked to record everything and remove what is stale. `ANDROID_MIGRATION.md` cut from 1096 lines to the current checkpoint (2.8.5 vc53 from Play, Play Console done: trader status, Japan, SA permissions; open: 15% fee, 12 testers, other-bank statement); the step-by-step migration log, the August design-audit block and the original screen/schema plan are removed (still in git history). `CLAUDE.md`: the TypeScript strict-rollout batch log replaced by the lessons that still apply; App Check bullets no longer describe the removed phone sign-in; the TWA packaging section reduced to the signing / Digital Asset Links facts that still hold. Deleted: `AUDIT.md` (2026-07, pre-split PWA), `AUDIT_2026-11_PLAN.md` (executed), `android-icon-rounded.png` (TWA splash only), `scripts/backfill-transactions.mjs` (superseded by the client-side migration). Kept: `AUDIT_2026-10.md`/`AUDIT_2026-11.md` and `MIGRATION_PLAN_transactions.md`, which tests and code comments cite. Agent memory refreshed the same way.
 
+- **#772 merged and deployed (2026-11-07)** — all 5 checks green on `28943b0d`. Hosting deployed from a clean `origin/main` worktree at `888a9e6a`: PWA cryptoTop opt-in, `sw.js` v205. No functions or rules changes. Android changes ship with the next AAB (2.8.7 / vc55).
+
 - **First-run audit: open items closed (2026-11-07)** — same PR, owner: "давай і це зробимо".
   - Bottom-bar label: `FitText` min is `8 / fontScale` sp, so «Налаштування» fits at 1.3× instead of ellipsizing.
   - P3-11, icons unique per preset type: Благодійність Favorite, Дім і побут Build, Розваги Gamepad (and the «розваг» keyword), Підробіток Laptop, Бізнес і ФОП Badge. `builtin_category_health` uses `'` like the stored name.
