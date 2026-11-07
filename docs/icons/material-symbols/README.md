@@ -12,12 +12,12 @@ To refresh or add another style:
 ```
 npm pack @material-symbols/svg-400
 tar xzf material-symbols-svg-400-*.tgz
-cp -r package/outlined docs/material-symbols/outlined   # or package/rounded, package/sharp
+cp -r package/outlined docs/icons/material-symbols/outlined   # or package/rounded, package/sharp
 ```
 
 ## How to use one of these icons in `ICON_PATHS`
 
-1. Find the icon: `docs/material-symbols/outlined/<name>.svg` (e.g. `cycle.svg`). A `-fill.svg` suffix is the filled/solid variant of the same glyph.
+1. Find the icon: `docs/icons/material-symbols/outlined/<name>.svg` (e.g. `cycle.svg`). A `-fill.svg` suffix is the filled/solid variant of the same glyph.
 2. Each file is a single `<path d="...">` inside `viewBox="0 -960 960 960"` — a different coordinate space than this app's uniform `viewBox="0 0 24 24"`.
 3. Wrap the path in a `<g transform="translate(0,24) scale(0.025)">` to remap it into the 24×24 box (0.025 = 24/960; the `translate(0,24)` compensates for the source's `-960..0` y-range). This is the same technique already used for the `pharmacy` capsule glyph's `<g transform="rotate(45 12 12)">` and for `repeat`'s Material Symbols "Cycle" glyph — see either in `js/classic-globals.js` for a worked example.
 4. Since these are solid filled shapes (not stroked outlines like most of this app's hand-drawn icons), add `fill="currentColor" stroke="none"` on the `<path>` itself — same precedent as the existing filled `bolt` icon.

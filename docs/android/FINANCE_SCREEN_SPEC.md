@@ -1,7 +1,7 @@
 # Фінанси — UX-специфікація (Крок 2)
 
 Автор ролі: Product/UX lead. Джерело фактів — реальний код PWA, не здогадки:
-[index.html:1861-1980](../index.html) (розмітка), [js/analytics-csv.js:295-628](../js/analytics-csv.js) (`renderFinance()`, `txItemInnerHtml()`, swipe-логіка), точні рядки — [js/classic-globals.js](../js/classic-globals.js) (`I18N.uk`). Кожне твердження нижче або пряма цитата з цих файлів, або позначене як **[РІШЕННЯ]** — свідома зміна з обґрунтуванням (посилання на §3 [ANDROID_MIGRATION.md](../ANDROID_MIGRATION.md)).
+[index.html:1861-1980](../../index.html) (розмітка), [js/analytics-csv.js:295-628](../../js/analytics-csv.js) (`renderFinance()`, `txItemInnerHtml()`, swipe-логіка), точні рядки — [js/classic-globals.js](../../js/classic-globals.js) (`I18N.uk`). Кожне твердження нижче або пряма цитата з цих файлів, або позначене як **[РІШЕННЯ]** — свідома зміна з обґрунтуванням (посилання на §3 [ANDROID_MIGRATION.md](../../ANDROID_MIGRATION.md)).
 
 ## 1. Ціль екрана
 
@@ -93,7 +93,7 @@
 
 ## 9. Форма нової/редагування операції (Крок 3) — точні поля з `tx-form-modal`
 
-Джерело: [index.html:2513-2578](../index.html), [js/finance.js:32-284](../js/finance.js) (`setFinanceType`, `updateTransferHint`, `readTransactionForm`, `addTransaction`, `editTransaction`), [js/tx-validation.js](../js/tx-validation.js).
+Джерело: [index.html:2513-2578](../../index.html), [js/finance.js:32-284](../../js/finance.js) (`setFinanceType`, `updateTransferHint`, `readTransactionForm`, `addTransaction`, `editTransaction`), [js/tx-validation.js](../../js/tx-validation.js).
 
 - **Сегмент типу** (3 кнопки): `+ Дохід` / `− Витрата` (активна за замовчуванням у розмітці) / `⇄ Переказ`.
 - **Гаманець** — лейбл змінюється залежно від типу: дохід → `"Гаманець"`, витрата → `"Звідки списати"`, переказ → `"Звідки переказати"`.
@@ -114,10 +114,10 @@
 
 ## 10. Менеджер гаманців (Крок 5) — точні поля з `wallets-modal`
 
-Джерело: [js/settings-managers.js:209-263](../js/settings-managers.js) (`openWalletsManager`, `renderWalletsList`, `updateWallet`, `addWallet`, `deleteWallet`, `walletInUse`).
+Джерело: [js/settings-managers.js:209-263](../../js/settings-managers.js) (`openWalletsManager`, `renderWalletsList`, `updateWallet`, `addWallet`, `deleteWallet`, `walletInUse`).
 
 - **Рядок гаманця**: кольоровий квадрат (тап → color picker, поза скоупом цього кроку — колір лишається фіксованим при створенні), інлайн-поле назви (редагується "на льоту", без окремого Зберегти), select валюти, кнопка видалення.
-- **Валюти**: `CURRENCY_LIST = ['UAH','USD','EUR','GBP','PLN']` ([js/core.js:342](../js/core.js)).
+- **Валюти**: `CURRENCY_LIST = ['UAH','USD','EUR','GBP','PLN']` ([js/core.js:342](../../js/core.js)).
 - **Кольори нових гаманців**: `PALETTE` (той самий масив, що й для категорій/типів змін) — `['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa']`, циклічно за індексом.
 - **Додавання**: назва (обов'язкова, дефолт `"Новий гаманець"` при порожньому вводі), валюта завжди стартує з UAH.
 - **Видалення — 2 захисти, в такому порядку**:
