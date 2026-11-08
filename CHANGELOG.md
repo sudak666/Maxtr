@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **`insights` answers live; prompt tightened (2026-11-08)** — after the model fallback the A51 got a real Gemini answer for October (5 sentences, correct sums), but it called the month's 80 operations those of «Інше». Prompt: the count is labelled as the whole month's, 3 sentences / ≤60 words, and «mostly Other» gets the tip to sort operations into categories. `PROMPT_VERSION` joins the cache key so a changed prompt doesn't serve old answers. Redeployed `functions:insights`.
+
 - **2.9.0 (vc57) AAB built; `insights` model fallback (2026-11-08)** — owner asked for vc57. Bumped to 2.9.0 / vc57 (adds #779: AI month summary, quick-entry category guess). `bundleRelease` → Desktop `Rytm-2.9.0-vc57.aab`, signed by the upload key (SHA-256 `7C:A2:AF:88…`).
   - Live check on the A51 (QA build, owner's account, October): the card showed «Не вдалося…». Function log: Vertex answered 404 for `publishers/google/models/gemini-2.5-flash` — the model is still listed as GA, but a new project gets no access to older models. `generateWithGemini` now tries `gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.7-flash`, `gemini-2.5-flash` in order, moving on only on 404, and remembers the first that answers per instance (`INSIGHTS_MODEL` pins one). `maxOutputTokens` 2048 and no `thinkingConfig` (3.x models think by default; thought parts are dropped). Redeployed `functions:insights`.
 
