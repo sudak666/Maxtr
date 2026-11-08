@@ -259,7 +259,7 @@ exports.insights = onCall({ timeoutSeconds: 60, maxInstances: 5 }, async (req) =
     return await insights.monthInsight(db, uid, insights.parseInput(req.data), insights.generateWithGemini, Date.now());
   } catch (err) {
     if (err instanceof insights.InsightsError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
-    logger.error('insights callable failed', { uid, model: insights.MODEL, error: errMessage(err) });
+    logger.error('insights callable failed', { uid, model: insights.currentModel(), error: errMessage(err) });
     throw new HttpsError('unavailable', 'insight failed');
   }
 });

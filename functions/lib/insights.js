@@ -8,7 +8,12 @@ const crypto = require('crypto');
 
 const DAILY_LIMIT = 10;
 const MAX_CATEGORIES = 8;
-const MODEL = process.env.INSIGHTS_MODEL || 'gemini-2.5-flash';
+// Tried in order; a model this project can't use (404) falls through to the
+// next. New projects get no access to older models (gemini-2.5-flash 404'd
+// on 2026-11-08), so newer ones come first. INSIGHTS_MODEL pins one.
+const MODELS = process.env.INSIGHTS_MODEL ? [process.env.INSIGHTS_MODEL] : ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash'];
+/** @type {string | null} the first model that answered in this instance */
+let workingModel = null;
 
 class InsightsError extends Error {
   /** @param {string} code @param {string} message */
@@ -179,19 +184,31 @@ async function generateWithGemini(prompt) {
   const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] });
   const client = await auth.getClient();
   const project = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || (await auth.getProjectId());
-  const url = `https://aiplatform.googleapis.com/v1/projects/${project}/locations/global/publishers/google/models/${MODEL}:generateContent`;
-  const res = await client.request({
-    url,
-    method: 'POST',
-    timeout: 30000,
-    data: {
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.5, maxOutputTokens: 500, thinkingConfig: { thinkingBudget: 0 } },
-    },
-  });
-  const data = /** @type {any} */ (res.data);
-  const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
-  return parts.map((/** @type {any} */ p) => p.text || '').join('');
+  /** @type {unknown} */
+  let lastError = null;
+  for (const model of workingModel ? [workingModel] : MODELS) {
+    try {
+      const res = await client.request({
+        url: `https://aiplatform.googleapis.com/v1/projects/${project}/locations/global/publishers/google/models/${model}:generateContent`,
+        method: 'POST',
+        timeout: 30000,
+        // Room for the model's own thinking tokens; cleanText() caps what is shown.
+        data: { contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 2048 } },
+      });
+      const data = /** @type {any} */ (res.data);
+      const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+      workingModel = model;
+      return parts.filter((/** @type {any} */ p) => !p.thought).map((/** @type {any} */ p) => p.text || '').join('');
+    } catch (err) {
+      lastError = err;
+      const status = /** @type {any} */ (err).response?.status ?? /** @type {any} */ (err).status;
+      if (status !== 404) throw err;
+    }
+  }
+  throw lastError;
 }
 
-module.exports = { InsightsError, parseInput, buildPrompt, cleanText, monthInsight, generateWithGemini, DAILY_LIMIT, MODEL };
+/** Model in use, for logs. */
+function currentModel() { return workingModel || MODELS.join('|'); }
+
+module.exports = { InsightsError, parseInput, buildPrompt, cleanText, monthInsight, generateWithGemini, currentModel, DAILY_LIMIT };
