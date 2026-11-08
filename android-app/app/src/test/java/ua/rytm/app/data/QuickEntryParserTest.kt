@@ -7,6 +7,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import ua.rytm.app.ui.screens.finance.QuickEntryParser
 import ua.rytm.app.ui.screens.finance.Wallet
+import ua.rytm.app.ui.screens.finance.Transaction
+import ua.rytm.app.ui.screens.finance.TxType
 
 class QuickEntryParserTest {
     private val wallets = listOf(
@@ -65,5 +67,19 @@ class QuickEntryParserTest {
 
     @Test fun latinTypedFindsCyrillicWallet() {
         assertEquals("pumb", QuickEntryParser.parse("kava 65 pumb", wallets)!!.walletId)
+    }
+
+    private fun tx(comment: String?, category: String, type: TxType = TxType.EXPENSE) =
+        Transaction(id = comment + category, type = type, amount = 10.0, date = "2026-11-01", walletId = "cash", category = category, comment = comment)
+
+    @Test fun guessCategoryFromHistory() {
+        val history = listOf(tx("Кава з собою", "Кафе"), tx("кава!", "Кафе"), tx("Кава", "Продукти"), tx("Таксі додому", "Транспорт"), tx("кава", "Зарплата", TxType.INCOME))
+        val cats = listOf("Кафе", "Продукти", "Транспорт")
+        assertEquals("Кафе", QuickEntryParser.guessCategory("кава", TxType.EXPENSE, history, cats))
+        assertEquals("Транспорт", QuickEntryParser.guessCategory("Таксі", TxType.EXPENSE, history, cats))
+        assertNull("no history", QuickEntryParser.guessCategory("бензин", TxType.EXPENSE, history, cats))
+        assertNull("too short to trust", QuickEntryParser.guessCategory("ок", TxType.EXPENSE, history, cats))
+        assertNull("deleted category is not offered", QuickEntryParser.guessCategory("таксі", TxType.EXPENSE, history, listOf("Кафе")))
+        assertNull("blank", QuickEntryParser.guessCategory("", TxType.EXPENSE, history, cats))
     }
 }

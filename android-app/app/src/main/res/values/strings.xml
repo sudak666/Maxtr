@@ -782,4 +782,12 @@
     <string name="budgets_none_set">Ще немає лімітів. Постав ліміт на категорію, і Rytm попередить, коли витрати наблизяться до нього.</string>
     <string name="budgets_add_limit">Додати ліміт</string>
     <string name="profile_add_name">Додати ім’я</string>
+    <string name="ai_summary_title">AI-підсумок</string>
+    <string name="ai_summary_body">Gemini пояснить місяць кількома реченнями: що змінилося і де можна заощадити.</string>
+    <string name="ai_summary_ask">Пояснити місяць</string>
+    <string name="ai_summary_loading">Готуємо підсумок…</string>
+    <string name="ai_summary_privacy">Надсилаються лише суми по категоріях — без операцій, коментарів і гаманців.</string>
+    <string name="ai_summary_disclaimer">Згенеровано AI (Gemini) · може помилятися, цифри вище точні</string>
+    <string name="ai_summary_failed">Не вдалося підготувати підсумок. Перевірте інтернет і спробуйте ще раз.</string>
+    <string name="ai_summary_limit">На сьогодні ліміт AI-підсумків вичерпано. Спробуйте завтра.</string>
 </resources>

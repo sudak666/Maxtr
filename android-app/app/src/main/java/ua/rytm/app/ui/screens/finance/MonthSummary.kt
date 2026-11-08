@@ -9,11 +9,16 @@ data class MonthSummary(
     val income: Double,
     val expense: Double,
     val previousExpense: Double,
-    val topCategories: List<CategoryShare>,
+    /** Every expense category of the month, biggest first (the AI summary sends these). */
+    val allCategories: List<CategoryShare>,
     val biggestExpense: Transaction?,
     val transactionCount: Int,
+    /** The month is still running (its previous month was cut to the same days). */
+    val partial: Boolean = false,
 ) {
     val net: Double get() = income - expense
+
+    val topCategories: List<CategoryShare> get() = allCategories.take(3)
 
     /** Expense change vs the previous month in percent, null when there is nothing to compare with. */
     val expenseChangePercent: Int? get() = if (previousExpense <= 0) null else Math.round((expense - previousExpense) / previousExpense * 100).toInt()
@@ -35,18 +40,18 @@ data class MonthSummary(
             }
             val expenses = current.filter { it.type == TxType.EXPENSE }
             val previousByCategory = previousExpenses.groupBy { it.category }.mapValues { (_, l) -> l.sumOf(toUah) }
-            val top = expenses.groupBy { it.category }
+            val all = expenses.groupBy { it.category }
                 .map { (cat, l) -> CategoryShare(cat, l.sumOf(toUah), previousByCategory[cat] ?: 0.0) }
                 .sortedByDescending { it.amount }
-                .take(3)
             return MonthSummary(
                 month = month,
                 income = current.filter { it.type == TxType.INCOME }.sumOf(toUah),
                 expense = expenses.sumOf(toUah),
                 previousExpense = previousExpenses.sumOf(toUah),
-                topCategories = top,
+                allCategories = all,
                 biggestExpense = expenses.maxByOrNull(toUah),
                 transactionCount = current.size,
+                partial = upToDay != null,
             )
         }
     }

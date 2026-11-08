@@ -39,6 +39,7 @@ import ua.rytm.app.R
 import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.AutoAwesome
 import ua.rytm.app.ui.icons.PieChart
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Share
@@ -91,6 +92,9 @@ fun MonthSummarySheet(
     onSharePdf: (() -> Unit)? = null,
     onPrevMonth: (() -> Unit)? = null,
     onNextMonth: (() -> Unit)? = null,
+    ai: FinanceViewModel.AiInsight? = null,
+    aiKey: ((String) -> String)? = null,
+    onAskAi: ((lang: String, label: (String) -> String) -> Unit)? = null,
 ) {
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
@@ -109,6 +113,12 @@ fun MonthSummarySheet(
                 return@Column
             }
             MonthStories(summary)
+            if (onAskAi != null && aiKey != null) {
+                val lang = if (LocalConfiguration.current.locales[0].language == "en") "en" else "uk"
+                // Category names as the user sees them (built-ins are localized).
+                val labels = summary.allCategories.associate { it.category to localizedDomainText(it.category) }
+                AiSummaryCard(ai?.takeIf { it.key == aiKey(lang) }) { onAskAi(lang) { labels[it] ?: it } }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatTile(stringResource(R.string.analytics_income_label), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
                 StatTile(stringResource(R.string.analytics_expense_label), uah(summary.expense), RytmSemantic.expense, Modifier.weight(1f))
@@ -159,6 +169,46 @@ fun MonthSummarySheet(
                 }
             }
             Spacer(Modifier.size(8.dp))
+        }
+    }
+}
+
+/** "Explain the month" by Gemini: asked on tap only, since it sends category totals off the phone. */
+@Composable
+private fun AiSummaryCard(state: FinanceViewModel.AiInsight?, onAsk: () -> Unit) {
+    Card(shape = RoundedCornerShape(RytmRadii.Card), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+        Column(Modifier.fillMaxWidth().padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(RytmIcons.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(RytmSpacing.sm))
+                Text(stringResource(R.string.ai_summary_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            }
+            when {
+                state?.loading == true -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(RytmSpacing.sm))
+                    Text(stringResource(R.string.ai_summary_loading), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                state?.text != null -> {
+                    Text(maskedAmount(state.text), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.ai_summary_disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                else -> {
+                    Text(
+                        state?.error?.let { stringResource(it) } ?: stringResource(R.string.ai_summary_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (state?.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = onAsk,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
+                        shape = RoundedCornerShape(RytmRadii.Row),
+                    ) {
+                        Text(stringResource(if (state?.error != null) R.string.action_retry else R.string.ai_summary_ask))
+                    }
+                    Text(stringResource(R.string.ai_summary_privacy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }

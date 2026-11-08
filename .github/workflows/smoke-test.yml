@@ -81,6 +81,9 @@ jobs:
       - name: Run Cloud Function premium tests
         run: node tests/functions-premium.mjs
 
+      - name: Run Cloud Function insights tests
+        run: node tests/functions-insights.mjs
+
       - name: Run shift-money tests
         run: node tests/shift-money.mjs
 

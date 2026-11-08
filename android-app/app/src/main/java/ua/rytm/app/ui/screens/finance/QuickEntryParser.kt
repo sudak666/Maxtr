@@ -34,6 +34,22 @@ object QuickEntryParser {
         return Result(amount, isIncome, wallet?.id, comment)
     }
 
+    /**
+     * "кава" → the category the user picked most often for an earlier comment
+     * starting with the same word ("Кава з собою" → Кафе). Null when there is
+     * no such history; keyword auto-rules are applied by the form before this.
+     */
+    fun guessCategory(comment: String, type: TxType, history: List<Transaction>, categories: List<String>): String? {
+        val key = firstWord(comment) ?: return null
+        return history.asSequence()
+            .filter { it.type == type && it.category in categories && firstWord(it.comment.orEmpty()) == key }
+            .groupingBy { it.category }.eachCount()
+            .maxByOrNull { it.value }?.key
+    }
+
+    private fun firstWord(text: String): String? =
+        text.trim().split(Regex("""\s+""")).firstOrNull()?.lowercase()?.trim(',', '.', ';', ':', '!', '?')?.takeIf { it.length >= 3 }
+
     /** "моно" matches "monobank"/"Моно картка", "пумб" matches "ПУМБ 5536": a word of the name starting with it. */
     private fun matchesWallet(word: String, walletName: String): Boolean {
         if (word.length < 3) return false

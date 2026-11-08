@@ -23,6 +23,7 @@
     "lib/backup.js",
     "lib/account.js",
     "lib/premium.js",
+    "lib/insights.js",
     "index.js"
   ],
   "exclude": [
