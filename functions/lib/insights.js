@@ -8,6 +8,8 @@ const crypto = require('crypto');
 
 const DAILY_LIMIT = 10;
 const MAX_CATEGORIES = 8;
+// Part of the cache key: a changed prompt must not serve answers of the old one.
+const PROMPT_VERSION = 2;
 // Tried in order; a model this project can't use (404) falls through to the
 // next. New projects get no access to older models (gemini-2.5-flash 404'd
 // on 2026-11-08), so newer ones come first. INSIGHTS_MODEL pins one.
@@ -96,23 +98,23 @@ function buildPrompt(i) {
     `income: ${i.income} UAH`,
     `expenses: ${i.expense} UAH (previous month: ${i.previousExpense} UAH, change ${fmtPct(changePct(i.expense, i.previousExpense))})`,
     `balance: ${net >= 0 ? 'saved' : 'overspent'} ${Math.abs(net)} UAH`,
-    `operations: ${i.txCount}`,
+    `operations in the month, all categories together: ${i.txCount}`,
     'expense categories (this month / previous month / change / share of expenses):',
     ...i.categories.map((c) => `- ${c.name}: ${c.amount} / ${c.previous} / ${fmtPct(changePct(c.amount, c.previous))} / ${i.expense > 0 ? Math.round((c.amount / i.expense) * 100) : 0}%`),
   ];
   const rules = uk
     ? [
         'Ти пишеш короткий підсумок місяця для застосунку обліку особистих фінансів Rytm.',
-        'Напиши 3–4 короткі речення українською, звертайся на «ви», дружньо й без осуду.',
-        'Використовуй лише числа з фактів нижче, нічого не вигадуй і не рахуй нових сум.',
+        'Напиши 3 короткі речення українською (до 60 слів), звертайся на «ви», дружньо й без осуду.',
+        'Використовуй лише числа з фактів нижче, нічого не вигадуй і не рахуй нових сум. Кількість операцій стосується всього місяця, не окремої категорії. Якщо майже всі витрати в «Інше», порадь розносити операції по категоріях.',
         'Скажи, що змінилося найбільше, і дай одну практичну, конкретну пораду щодо витрат.',
         'Без порад щодо інвестицій, кредитів, акцій чи криптовалют. Без markdown, списків і емодзі.',
         'Суми пиши як «12 500 ₴».',
       ]
     : [
         'You write a short month summary for Rytm, a personal finance tracking app.',
-        'Write 3–4 short sentences in English, friendly and non-judgmental.',
-        'Use only numbers from the facts below; invent nothing and compute no new sums.',
+        'Write 3 short sentences in English (up to 60 words), friendly and non-judgmental.',
+        'Use only numbers from the facts below; invent nothing and compute no new sums. The operation count is for the whole month, not one category. If almost all spending is in "Other", suggest sorting operations into categories.',
         'Say what changed most and give one practical, concrete tip about spending.',
         'No investment, loan, stock or crypto advice. No markdown, lists or emoji.',
         'Write amounts like "12,500 ₴".',
@@ -132,7 +134,7 @@ function cleanText(text) {
 
 /** @param {InsightsInput} i */
 function inputHash(i) {
-  return crypto.createHash('sha256').update(JSON.stringify(i)).digest('hex').slice(0, 32);
+  return crypto.createHash('sha256').update(`${PROMPT_VERSION}:${JSON.stringify(i)}`).digest('hex').slice(0, 32);
 }
 
 /**
