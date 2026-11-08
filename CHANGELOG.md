@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **`insights` logs the model that answered (2026-11-08)** — owner asked which Gemini model really answers; successful calls weren't logged. `logger.info('insight answered', {uid, model, cached, remaining})`. Redeployed `functions:insights`.
+
 - **`insights` answers live; prompt tightened (2026-11-08)** — after the model fallback the A51 got a real Gemini answer for October (5 sentences, correct sums), but it called the month's 80 operations those of «Інше». Prompt: the count is labelled as the whole month's, 3 sentences / ≤60 words, and «mostly Other» gets the tip to sort operations into categories. `PROMPT_VERSION` joins the cache key so a changed prompt doesn't serve old answers. Redeployed `functions:insights`.
 
 - **2.9.0 (vc57) AAB built; `insights` model fallback (2026-11-08)** — owner asked for vc57. Bumped to 2.9.0 / vc57 (adds #779: AI month summary, quick-entry category guess). `bundleRelease` → Desktop `Rytm-2.9.0-vc57.aab`, signed by the upload key (SHA-256 `7C:A2:AF:88…`).
