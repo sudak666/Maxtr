@@ -145,6 +145,7 @@ class RytmApplication : Application() {
     val backupsRepository: BackupsRepository by lazy {
         BackupsRepository(FirebaseFirestore.getInstance(), com.google.firebase.functions.FirebaseFunctions.getInstance())
     }
+    val insightsRepository: ua.rytm.app.data.InsightsRepository by lazy { ua.rytm.app.data.InsightsRepository() }
     val activeProfileStore: ActiveProfileStore by lazy { ActiveProfileStore(this) }
     val profilesRepository: ProfilesRepository by lazy { ProfilesRepository(FirebaseFirestore.getInstance()) }
     val profileAppearanceRepository: ProfileAppearanceRepository by lazy { ProfileAppearanceRepository(FirebaseFirestore.getInstance()) }

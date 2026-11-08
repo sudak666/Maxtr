@@ -43,6 +43,7 @@ const { sweepToken } = require('./lib/sweep');
 const backup = require('./lib/backup');
 const { deleteAccountData } = require('./lib/account');
 const premium = require('./lib/premium');
+const insights = require('./lib/insights');
 const { defineSecret } = require('firebase-functions/params');
 
 initializeApp();
@@ -245,6 +246,21 @@ exports.premium = onCall({ secrets: [PREMIUM_GRANT_EMAILS], maxInstances: 5 }, a
     if (err instanceof premium.PremiumError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
     logger.error('premium callable failed', { uid, action: data.action, error: errMessage(err) });
     throw new HttpsError('internal', 'premium check failed');
+  }
+});
+
+// AI month summary (Android): per-category totals in, 3–4 sentences out.
+// Gemini runs on Vertex AI under the function's own service account, so no
+// API key exists anywhere. See lib/insights.js for the limit and the cache.
+exports.insights = onCall({ timeoutSeconds: 60, maxInstances: 5 }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
+  try {
+    return await insights.monthInsight(db, uid, insights.parseInput(req.data), insights.generateWithGemini, Date.now());
+  } catch (err) {
+    if (err instanceof insights.InsightsError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
+    logger.error('insights callable failed', { uid, model: insights.MODEL, error: errMessage(err) });
+    throw new HttpsError('unavailable', 'insight failed');
   }
 });
 

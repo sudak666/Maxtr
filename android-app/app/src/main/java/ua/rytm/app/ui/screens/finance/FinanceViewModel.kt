@@ -55,6 +55,7 @@ class FinanceViewModel(
     private val categoriesSync: ua.rytm.app.data.CategoriesSyncRepository? = null,
     private val tagsSync: ua.rytm.app.data.TagsSyncRepository? = null,
     private val walletsSync: ua.rytm.app.data.FinanceSyncRepository? = null,
+    private val insights: ua.rytm.app.data.InsightsRepository? = null,
 ) : ViewModel() {
 
     companion object {
@@ -87,6 +88,7 @@ class FinanceViewModel(
                     app.categoriesSyncRepository,
                     app.tagsSyncRepository,
                     app.financeSyncRepository,
+                    app.insightsRepository,
                 )
             }
         }
@@ -184,6 +186,41 @@ class FinanceViewModel(
         summaryMonth = if (lastMonth) currentMonth.minusMonths(1) else currentMonth
         monthSummaryOpen = true
         if (lastMonth) markMonthSummarySeen()
+    }
+
+    /** AI month summary (InsightsRepository): text per month+figures, so changed figures ask again. */
+    data class AiInsight(val key: String, val text: String? = null, val loading: Boolean = false, @StringRes val error: Int? = null)
+    var aiInsight by mutableStateOf<AiInsight?>(null)
+        private set
+    val aiInsightsAvailable: Boolean get() = insights != null
+
+    private fun aiRequest(summary: MonthSummary, lang: String, label: (String) -> String) = ua.rytm.app.data.InsightsRepository.Request(
+        month = summary.month.toString(),
+        lang = lang,
+        partial = summary.partial,
+        income = summary.income,
+        expense = summary.expense,
+        previousExpense = summary.previousExpense,
+        txCount = summary.transactionCount,
+        categories = summary.allCategories.map { ua.rytm.app.data.InsightsRepository.Category(label(it.category), it.amount, it.previousAmount) },
+    )
+
+    /** Key of the summary as it is now; the sheet shows [aiInsight] only while it matches. */
+    fun aiKey(summary: MonthSummary, lang: String): String =
+        "$lang|${summary.month}|${Math.round(summary.income)}|${Math.round(summary.expense)}|${summary.transactionCount}|${summary.allCategories.joinToString(",") { "${it.category}:${Math.round(it.amount)}" }}"
+
+    fun askAiInsight(summary: MonthSummary, lang: String, label: (String) -> String) {
+        val repo = insights ?: return
+        if (summary.isEmpty || aiInsight?.loading == true) return
+        val key = aiKey(summary, lang)
+        aiInsight = AiInsight(key, loading = true)
+        viewModelScope.launch {
+            aiInsight = try {
+                AiInsight(key, text = repo.monthInsight(aiRequest(summary, lang, label)))
+            } catch (e: ua.rytm.app.data.InsightsRepository.InsightException) {
+                AiInsight(key, error = e.messageRes)
+            }
+        }
     }
 
     fun markMonthSummarySeen() {
@@ -520,6 +557,14 @@ class FinanceViewModel(
         // Through the normal setter so keyword auto-rules pick the category.
         prefill?.comment?.let { form.onCommentChange(it) }
         prefill?.category?.takeIf { c -> categoriesByType[txType].orEmpty().contains(c) }?.let { form.onCategoryChange(it) }
+    }
+
+    /** Quick entry: a keyword rule wins (the form applies it); otherwise the category used before for this word. */
+    fun guessQuickEntryCategory(comment: String, isIncome: Boolean): String? {
+        val type = if (isIncome) TxType.INCOME else TxType.EXPENSE
+        val text = comment.lowercase()
+        if (autoRules.any { it.type.equals(type.name, true) && it.keyword.isNotEmpty() && text.contains(it.keyword.lowercase()) }) return null
+        return QuickEntryParser.guessCategory(comment, type, transactions, categoriesByType[type].orEmpty())
     }
 
     private fun walletForCard(mask: String?, bankPackage: String? = null): Wallet? =

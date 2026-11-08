@@ -45,7 +45,7 @@ a{color:var(--purple2)}
   </div>
 
   <h1>Privacy Policy</h1>
-  <div class="updated">Last updated: October 6, 2026</div>
+  <div class="updated">Last updated: November 8, 2026</div>
 
   <div class="card">
     <p>This Policy explains what data the Rytm app ("the app", "we") collects, how we use and store it, and what rights you have as a user. Rytm is a personal tracker for work shifts, finances, and debt/settlement schedules; it is not a legal entity or a commercial company — it is developed and maintained by a single individual.</p>
@@ -66,6 +66,7 @@ a{color:var(--purple2)}
   <p><strong>Voice input (Android, optional).</strong> The microphone button in Quick entry uses Android's system speech recognition (on most phones a Google service). Speech is processed by that system service under its own terms; Rytm only receives the recognised text, uses it to fill the form, and never sends or stores the audio.</p>
   <p><strong>Shared profiles.</strong> If you keep a profile together with someone else, each new transaction records who added it (your Google account name or the part of your email before «@»), so members can see each person's contributions.</p>
 
+  <p><strong>AI month summary (Android, only when you tap “Explain the month”).</strong> The app sends our server (Firebase Cloud Functions) only that month's totals: overall income and expenses, the number of operations and the total of each expense category with its name, plus the same totals for the previous month. Individual transactions, comments, merchants, wallets, email and name are not sent. The server passes these totals to Google's Gemini model (Vertex AI), which writes a few sentences, and keeps the last few answers and a daily request counter so identical requests aren't sent twice. Google, as a data processor, does not use them to train its models. The text is AI-generated and may contain mistakes: the exact figures are always the ones the app shows itself.</p>
   <p><strong>Crash reports (Android app).</strong> If the app crashes, Firebase Crashlytics (Google) sends a technical report: where in the code it failed, device model, Android and app version. It contains none of your financial data, email or account identifier and is used only to fix bugs.</p>
 
   <h2>How we use your data</h2>

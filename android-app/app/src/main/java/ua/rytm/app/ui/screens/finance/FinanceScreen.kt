@@ -204,6 +204,9 @@ fun FinanceScreen(
             onDismiss = { viewModel.monthSummaryOpen = false },
             onPrevMonth = { viewModel.shiftSummaryMonth(-1) },
             onNextMonth = if (viewModel.canShowNextSummaryMonth) ({ viewModel.shiftSummaryMonth(1) }) else null,
+            ai = viewModel.aiInsight,
+            aiKey = { lang -> viewModel.aiKey(viewModel.shownMonthSummary, lang) },
+            onAskAi = if (viewModel.aiInsightsAvailable) ({ lang, label -> viewModel.askAiInsight(viewModel.shownMonthSummary, lang, label) }) else null,
             onSharePdf = onSharePdf@{
                 if (!app.premiumRepository.isPremium.value) { pdfPaywallOpen = true; return@onSharePdf }
                 runCatching {
@@ -225,6 +228,7 @@ fun FinanceScreen(
                         currency = viewModel.wallets.firstOrNull { it.id == result.walletId }?.currency ?: "UAH",
                         comment = result.comment.ifBlank { null },
                         walletId = result.walletId,
+                        category = viewModel.guessQuickEntryCategory(result.comment, result.isIncome),
                     ),
                 )
             },
