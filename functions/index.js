@@ -256,7 +256,9 @@ exports.insights = onCall({ timeoutSeconds: 60, maxInstances: 5 }, async (req) =
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
   try {
-    return await insights.monthInsight(db, uid, insights.parseInput(req.data), insights.generateWithGemini, Date.now());
+    const answer = await insights.monthInsight(db, uid, insights.parseInput(req.data), insights.generateWithGemini, Date.now());
+    logger.info('insight answered', { uid, model: insights.currentModel(), cached: answer.cached, remaining: answer.remaining });
+    return answer;
   } catch (err) {
     if (err instanceof insights.InsightsError) throw new HttpsError(/** @type {any} */ (err.code), err.message);
     logger.error('insights callable failed', { uid, model: insights.currentModel(), error: errMessage(err) });
