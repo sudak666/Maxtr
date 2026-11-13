@@ -105,6 +105,7 @@ import androidx.compose.ui.semantics.selected
 import ua.rytm.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ua.rytm.app.RytmApplication
@@ -671,11 +672,24 @@ internal fun TransactionRow(
         // onSizeChanged (a second layout pass for every newly composed row).
         val shape = MaterialTheme.shapes.large
         val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-        val pressed by interaction.collectIsPressedAsState()
+        // The ripple outlives the press: it appears a moment after a quick
+        // tap is already released and then fades out. Clipping only while
+        // pressed let that tail draw as a square block behind the rounded
+        // card (reported live), so the clip stays until the fade is over.
+        var rippleClip by remember { mutableStateOf(false) }
+        LaunchedEffect(interaction) {
+            interaction.interactions.collectLatest { event ->
+                rippleClip = true
+                if (event !is androidx.compose.foundation.interaction.PressInteraction.Press) {
+                    kotlinx.coroutines.delay(RippleFadeClipMillis)
+                    rippleClip = false
+                }
+            }
+        }
         Box(
             modifier = Modifier
                 .then(if (offsetPx < 0f) Modifier.width(cardWidthDp) else Modifier.fillMaxWidth())
-                .then(if (pressed) Modifier.clip(shape) else Modifier)
+                .then(if (rippleClip) Modifier.clip(shape) else Modifier)
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
                 .clickable(
                     enabled = canEdit,
@@ -780,3 +794,6 @@ internal fun TransactionRow(
         }
     }
 }
+
+/** How long a row keeps its rounded clip after a press ends, so the fading ripple stays inside the card. */
+private const val RippleFadeClipMillis = 450L

@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **History row: square block behind the rounded card on tap (2026-11-13, #784)** — owner's screenshot: tapping an operation showed a rectangular highlight. The row clips to its rounded shape only while pressed (perf, see #496), but the ripple starts after a quick tap is already released and then fades, so its tail drew unclipped. `SwipeToDeleteRow` now keeps the clip until 450 ms after the press ends (`RippleFadeClipMillis`, driven by the interaction flow); rows at rest still have no clip. Verified by `compileQaKotlin` only — not seen on the A51 (no QA build installed, and the Play build can't be replaced by a local one); ships with the next AAB.
+
 - **`insights` logs the model that answered (2026-11-08)** — owner asked which Gemini model really answers; successful calls weren't logged. `logger.info('insight answered', {uid, model, cached, remaining})`. Redeployed `functions:insights`.
 
 - **`insights` answers live; prompt tightened (2026-11-08)** — after the model fallback the A51 got a real Gemini answer for October (5 sentences, correct sums), but it called the month's 80 operations those of «Інше». Prompt: the count is labelled as the whole month's, 3 sentences / ≤60 words, and «mostly Other» gets the tip to sort operations into categories. `PROMPT_VERSION` joins the cache key so a changed prompt doesn't serve old answers. Redeployed `functions:insights`.
