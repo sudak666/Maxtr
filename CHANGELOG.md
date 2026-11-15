@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Dependabot cleanup + functions redeploy (2026-11-15, #801)** — merged Dependabot #801 (`google-auth-library` 11.3.2 → 11.3.4 in `functions/`) after green CI and redeployed all 7 functions from a clean `origin/main` worktree. Closed the superseded Dependabot PRs with a pointer: #795–#800 (Actions, applied in #808), #802 (web group, covered by #808), #805 (Android group, superseded by #812 minus Billing 9). #812 merged after CI incl. `android-instrumented`; ships with the next AAB (next version code 60).
+
 - **Audit wave 5b: Android dependencies (2026-11-15, #812)** — AND-01 from `docs/audits/AUDIT_2026-11-full.md`, done by hand instead of Dependabot #805 (which also proposed Billing 8 → 9, a purchase-API major now ignored).
   - AGP 9.3.0 → 9.5.1, Kotlin 2.2.10 → 2.4.21, KSP → 2.3.14, Gradle 9.5.0 → 9.9.1, Navigation 2.10.2, DataStore 1.3.0, Firebase BoM 35.2.0, Glance 1.2.0, WorkManager 2.12.0, googleid 1.2.1, coroutines 1.11.0, mockk 1.14.12.
   - Kotlin 2.4's new `ILLEGAL_RUN_CATCHING_AROUND_COMPOSABLE` check caught a real misuse: `ToolsSheet` read `LocalConfiguration.current` inside `runCatching` — the locale is now read first.
