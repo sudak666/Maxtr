@@ -49,7 +49,7 @@
     <string name="auto_rules_draft">Нове правило — заповни ключове слово</string>
     <string name="auto_rules_empty">Немає правил</string>
     <string name="auto_rules_example">напр. Сільпо</string>
-    <string name="auto_rules_summary">“%1$s” → %2$s</string>
+    <string name="auto_rules_summary">«%1$s» → %2$s</string>
     <string name="auto_rules_add">Додати правило</string>
     <string name="auto_rules_delete_title">Видалити правило</string>
     <string name="auto_rules_delete_body">Видалити це правило?</string>
@@ -78,7 +78,7 @@
     <string name="goals_delete_title">Видалити ціль</string><string name="goals_delete_body">Видалити цю ціль?</string>
     <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_summary_done">%1$s / %2$s %3$s · Досягнуто</string>
     <string name="goals_choose_wallet">Обери гаманець</string><string name="goals_default_name">Ціль</string>
-    <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. Грудень 2026)</string>
+    <string name="goals_target_amount">Цільова сума</string><string name="goals_target_date">Дата (напр. грудень 2026)</string>
     <string name="wallet_label">Гаманець</string>
     <string name="amount_label">Сума</string>
     <string name="recurring_title">Регулярні платежі</string><string name="recurring_body">Автоматично додаються при вході в застосунок, коли настає дата.</string><string name="recurring_empty">Немає регулярних платежів</string>
@@ -109,11 +109,11 @@
     <string name="settings_balance_after">Баланс після операції</string>
     <string name="settings_balance_after_subtitle">Залишок гаманця в рядках історії</string>
     <string name="transaction_amount_currency">Сума (%1$s)</string><string name="date_label">Дата</string><string name="comment_label">Коментар</string>
-    <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати запис</string><string name="tx_transfer">Переказ</string>
+    <string name="transaction_comment_hint">Деталі операції…</string><string name="action_saving">Збереження…</string><string name="action_save_changes">Зберегти зміни</string><string name="transaction_add">Додати операцію</string><string name="tx_transfer">Переказ</string>
     <string name="validation_invalid_amount">Введи коректну суму</string><string name="validation_amount_too_large">Сума завелика</string>
     <string name="validation_name_required">Введи назву</string>
     <string name="validation_date_required">Обери дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Обери гаманець</string>
-    <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
+    <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові гаманці</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
     <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s ₴/міс</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
@@ -124,7 +124,7 @@
     <string name="finance_estimated_balance">Орієнтовний баланс</string><string name="finance_total_balance">Загальний баланс</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
     <string name="finance_month_income">Дохід</string><string name="finance_month_expense">Витрати</string><string name="finance_history">Історія операцій</string>
     <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
-    <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Всі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
+    <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Усі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Почни з суми, яка в тебе є зараз. Потім записуй доходи й витрати.</string>
     <string name="finance_empty_cta">Вказати поточний баланс</string>
     <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
@@ -133,7 +133,7 @@
     <string name="subcategory_delete_title">Видалити підкатегорію</string><string name="subcategory_delete_body">Видалити підкатегорію «%1$s»?</string><string name="category_icon_title">Іконка категорії</string>
     <string name="subcategory_too_long">Назва підкатегорії не може перевищувати 120 символів</string><string name="subcategory_exists">Така підкатегорія вже є</string><string name="category_too_long">Назва категорії не може перевищувати 120 символів</string><string name="category_exists">Така категорія вже є</string><string name="categories_sync_failed">Не вдалося синхронізувати зміни</string>
     <string name="debt_new_default">Нова позика</string><string name="debt_amount_required">Вкажи суму</string><string name="debt_balance_required">Вкажи залишок</string>
-    <string name="debt_forecast_title">Прогноз погашення</string><string name="debt_paid_off">Позику повністю погашено! 🎉</string><string name="debt_forecast_insufficient">Замало даних для оцінки темпу погашення</string><string name="debt_average_payment">Типовий платіж: %1$s</string>
+    <string name="debt_forecast_title">Прогноз погашення</string><string name="debt_paid_off">Позику повністю погашено!</string><string name="debt_forecast_insufficient">Замало даних для оцінки темпу погашення</string><string name="debt_average_payment">Типовий платіж: %1$s</string>
     <plurals name="debt_payments_left"><item quantity="one">Залишився приблизно %1$d платіж</item><item quantity="few">Залишилося приблизно %1$d платежі</item><item quantity="many">Залишилося приблизно %1$d платежів</item><item quantity="other">Залишилося приблизно %1$d платежу</item></plurals>
     <string name="debt_payment">Платіж</string><string name="debt_delete_title">Видалити позику</string><string name="debt_delete_body">Видалити цю позику і всю історію платежів?</string><string name="debt_payment_delete_title">Видалити платіж</string><string name="debt_payment_delete_body">Видалити цей запис з історії?</string>    <string name="debt_empty_title">Позики між людьми</string><string name="debt_empty_body">Кому винен ти і хто винен тобі — без папірців: скільки лишилось і коли закриєш. Кредит чи кредитка банку — це гаманець типу «Кредит» у Фінансах.</string><string name="debt_current_balance">Поточний залишок</string><string name="debt_paid">Сплачено</string><string name="debt_start_amount">Початкова сума</string><string name="debt_payments">Платежів</string><string name="debt_due_date">Термін сплати</string>
     <string name="debt_days_overdue">−%1$d дн.</string><string name="debt_days_future">%1$d дн.</string><string name="debt_details">Дані позики</string><string name="note_label">Нотатка</string><string name="debt_payments_empty">Ще немає платежів</string>
@@ -163,7 +163,7 @@
     <string name="shift_pattern_3_3">3 через 3</string>
     <string name="shifts_clear_month">Очистити місяць</string>
     <string name="shifts_weekend_a11y">вихідний</string><string name="shifts_other_month_a11y">день сусіднього місяця</string>
-    <string name="shifts_edit_day_a11y">змінити зміни</string>
+    <string name="shifts_edit_day_a11y">редагувати зміни дня</string>
     <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
     <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
     <string name="shifts_anchor_date">Перший робочий день циклу</string>
@@ -261,7 +261,7 @@
     <string name="auth_error_invalid_credentials">Невірний email або пароль.</string>
     <string name="auth_error_email_in_use">Цей email вже зареєстровано.</string>
     <string name="auth_error_too_many">Забагато спроб. Спробуй пізніше.</string>
-    <string name="profiles_title">Профілі</string><string name="profiles_body">Окремі набори даних в одному акаунті — наприклад, для кожного члена сім\'ї.</string>
+    <string name="profiles_title">Профілі</string><string name="profiles_body">Окремі набори даних в одному акаунті — наприклад, для кожного члена сім’ї.</string>
     <string name="profile_name">Назва профілю</string>
     <string name="profile_join_by_code">Приєднатися за кодом</string>
     <string name="profile_invite_code">Код запрошення</string>
@@ -279,7 +279,7 @@
     <string name="profile_members_title">Учасники: %1$s</string>
     <string name="profile_members_not_shared">Профіль ще не поширювався — немає учасників.</string>
     <string name="profile_members_empty">Ще ніхто не приєднався за кодом.</string>
-    <string name="profile_role_viewer">Переглядач</string>
+    <string name="profile_role_viewer">Лише перегляд</string>
     <string name="profile_role_editor">Редактор</string>
     <string name="profile_active">Активний</string>
     <string name="profile_shared">Спільний</string>
@@ -365,7 +365,7 @@
     <string name="settings_csv_export_failed">Не вдалося експортувати CSV</string>
     <string name="settings_csv_read_failed">Не вдалося прочитати файл</string>
     <string name="settings_csv_import_failed">Не вдалося імпортувати CSV</string>
-    <string name="settings_csv_empty">CSV не містить транзакцій</string>
+    <string name="settings_csv_empty">CSV не містить операцій</string>
     <string name="settings_profile_switched">Профіль перемкнено</string>
     <string name="settings_csv_confirm">Імпортувати %1$s? Повторний імпорт створить дублікати.</string>
     <string name="settings_csv_confirm_with_errors">Імпортувати %1$s? %2$s пропущено. Повторний імпорт створить дублікати.</string>
@@ -405,7 +405,7 @@
     <string name="transaction_budget_exceeded">Бюджет «%1$s» перевищено: %2$s / %3$s ₴</string>
     <string name="transaction_updated">Запис оновлено</string>
     <string name="transaction_transfer_done">Переказ виконано</string>
-    <string name="transaction_added">Запис додано</string>
+    <string name="transaction_added">Операцію додано</string>
     <string name="notifications_load_failed">Не вдалося завантажити налаштування сповіщень</string>
     <string name="notifications_save_failed">Не вдалося зберегти налаштування сповіщень</string>
     <string name="settings_csv_more_errors">Ще помилок: %1$d</string>
@@ -491,7 +491,7 @@
         <item quantity="other">≈ %d зміни роботи</item>
     </plurals>
     <string name="auth_email_placeholder">you@example.com</string>
-    <string name="shifts_insight_title">Інсайт за 90 днів</string>
+    <string name="shifts_insight_title">Підсумок за 90 днів</string>
     <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d%% більше</string>
     <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d%% менше</string>
     <string name="shifts_insight_detail">≈ %1$s ₴ на день у зміну проти %2$s ₴ у вихідний</string>
@@ -513,7 +513,7 @@
     <string name="debt_forecast_what_if">Якщо платити %1$s ≈ до %2$s</string>
     <string name="settings_terms_row">Умови використання</string>
     <string name="settings_privacy_row">Політика конфіденційності</string>
-    <string name="bank_listener_blocked">Сповіщення Rytm вимкнено — пропозиції не з\'являться. Торкнись, щоб дозволити</string>
+    <string name="bank_listener_blocked">Сповіщення Rytm вимкнено — пропозиції не з’являться. Торкнись, щоб дозволити</string>
     <string name="bank_suggest_transfer">Переказ між рахунками %1$s?</string>
     <string name="bank_suggest_account">Рахунок %1$s · торкнись, щоб перевірити</string>
     <string name="field_autosaved">Збережено ✓</string>
@@ -697,7 +697,7 @@
     <string name="amount_op_divide">Поділити</string>
     <string name="filters_title">Фільтри</string>
     <string name="filters_type">Тип операції</string>
-    <string name="filters_wallet">Рахунок</string>
+    <string name="filters_wallet">Гаманець</string>
     <string name="filters_category">Категорія</string>
     <string name="filters_category_more">Ще %1$d</string>
     <string name="filters_category_less">Згорнути</string>
@@ -782,12 +782,12 @@
     <string name="budgets_none_set">Ще немає лімітів. Постав ліміт на категорію — тут буде видно, скільки вже витрачено, а Rytm попередить, коли ліміт перевищено.</string>
     <string name="budgets_add_limit">Додати ліміт</string>
     <string name="profile_add_name">Додати ім’я</string>
-    <string name="ai_summary_title">AI-підсумок</string>
+    <string name="ai_summary_title">ШІ-підсумок</string>
     <string name="ai_summary_body">Gemini пояснить місяць кількома реченнями: що змінилося і де можна заощадити.</string>
     <string name="ai_summary_ask">Пояснити місяць</string>
     <string name="ai_summary_loading">Готуємо підсумок…</string>
     <string name="ai_summary_privacy">Надсилаються лише суми по категоріях — без операцій, коментарів і гаманців.</string>
-    <string name="ai_summary_disclaimer">Згенеровано AI (Gemini) · може помилятися, цифри вище точні</string>
+    <string name="ai_summary_disclaimer">Згенеровано ШІ (Gemini) · може помилятися, цифри вище точні</string>
     <string name="ai_summary_failed">Не вдалося підготувати підсумок. Перевір інтернет і спробуй ще раз.</string>
     <string name="ai_summary_limit">На сьогодні ліміт ШІ-підсумків вичерпано. Спробуй завтра.</string>
     <string name="pin_digits_entered">Введено %1$d з %2$d цифр</string>

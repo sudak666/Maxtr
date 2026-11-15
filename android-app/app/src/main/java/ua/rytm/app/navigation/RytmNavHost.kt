@@ -181,7 +181,10 @@ fun RytmNavHost() {
     // Two changes cover it without a per-screen rewrite: the content column
     // is capped and centred, and the bottom capsule becomes a NavigationRail
     // on the side once there is room for one.
-    val widthDp = LocalConfiguration.current.screenWidthDp
+    // The window, not the screen: in split screen or a freeform window the
+    // app gets less than the display's width.
+    val windowWidthPx = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize.width
+    val widthDp = with(androidx.compose.ui.platform.LocalDensity.current) { windowWidthPx.toDp().value.toInt() }
     val expandedWidth = widthDp >= 840
     val mediumWidth = widthDp >= 600
 
@@ -327,6 +330,9 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                 },
                 label = { Text(stringResource(destination.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 alwaysShowLabel = !compactHeight,
+                // The gradient circle above is the selection indicator; M3's own
+                // pill would draw a second one around it.
+                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent),
             )
         }
     }

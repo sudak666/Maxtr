@@ -495,7 +495,7 @@ private fun ConverterSection(vm: ToolsViewModel) {
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Card(
-                modifier = Modifier.weight(1f).height(56.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
                 // Was a 1dp onSurfaceVariant border (full body-text
                 // brightness) on a plain `surface` background -- flagged

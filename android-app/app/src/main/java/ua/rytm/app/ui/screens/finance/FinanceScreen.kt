@@ -441,12 +441,13 @@ fun FinanceScreen(
                 val days = visible.groupBy { it.date }
                 days.forEach { (date, dayTxs) ->
                     val shown = dayTxs.filter { it.id != pendingDeleteId }
-                    item(key = "day-$date") {
+                    // contentType lets Compose reuse a header node for a header, a row for a row.
+                    item(key = "day-$date", contentType = "day") {
                         AnimatedVisibility(visible = shown.isNotEmpty(), exit = fadeOut(tween(180)) + shrinkVertically(tween(220))) {
                             DayHeader(date, dayNets[date] ?: 0.0)
                         }
                     }
-                items(dayTxs, key = { it.id }) { tx ->
+                items(dayTxs, key = { it.id }, contentType = { "tx" }) { tx ->
                     AnimatedVisibility(
                         visible = pendingDeleteId != tx.id,
                         exit = fadeOut(tween(180)) + shrinkVertically(tween(220)),
