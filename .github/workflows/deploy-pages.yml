@@ -64,7 +64,7 @@ jobs:
       - name: Production build (dist/)
         run: npm run build
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v3
         with:
