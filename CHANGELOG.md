@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Dependabot first run (2026-11-15, #804)** — right after #794 it opened #795–#802: six single-action GitHub Actions bumps, the web group (#802, 4 updates), `google-auth-library` for functions (#801). Actions are now grouped into one PR (`open-pull-requests-limit: 1`). None merged yet: they need review (the web group may carry major versions; CLAUDE.md pins the gstatic Firebase SDK separately from npm `firebase`).
+
 - **Audit wave 4: backend debt (2026-11-15, #794)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - BE-05: removed the 1st-gen `deleteBackupsOnAccountDelete` trigger (blocked Node 24; the `account` callable already deletes backups) and moved functions to `nodejs24` (`firebase.json`, `functions/package.json` engines). Gap, disclosed in CLAUDE.md: an account deleted by hand in the Console keeps its backups.
   - BE-06: `backups` callable refuses any `create` within 20 s of an existing backup (was `manual` only; `pre_reset`/`pre_import` were unlimited and each reads the whole history) and gets `maxInstances: 5`.
