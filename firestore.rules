@@ -145,7 +145,11 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.usedBy == request.auth.uid
           // A redeemed invite stays usedBy==self forever; without an expiry
           // check it would be a permanent re-entry ticket after leaving.
-          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.expiresAt > request.time.toMillis())
+          && get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.expiresAt > request.time.toMillis()
+          // A member the owner removed can't walk back in with the invite
+          // they already redeemed: only one created after the removal counts.
+          && (!('removedAt' in resource.data) || !(request.auth.uid in resource.data.removedAt)
+            || get(/databases/$(database)/documents/profile_invites/$(request.resource.data.lastJoinInviteCode)).data.createdAt > resource.data.removedAt[request.auth.uid]))
         ||
         // A non-owner member *leaving* shared_members@{profileId}: only
         // allowed to remove exactly their own uid, nothing else changes.

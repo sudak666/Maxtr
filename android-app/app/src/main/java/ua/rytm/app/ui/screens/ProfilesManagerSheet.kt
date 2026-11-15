@@ -209,6 +209,7 @@ fun ProfilesManagerSheet(
     }
 
     viewModel.managingMembersFor?.let { profile ->
+        var removeConfirmFor by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<String?>(null) }
         AlertDialog(
             onDismissRequest = viewModel::closeMembersManager,
             title = { Text(stringResource(R.string.profile_members_title, localizedDomainText(profile.name))) },
@@ -231,9 +232,12 @@ fun ProfilesManagerSheet(
                                         // contacts/friends list) — a shortened uid is the only real
                                         // identifier available, same as js/color-picker.js's own
                                         // renderSharedMembersList().
-                                        Text(memberUid.take(8) + "…", style = MaterialTheme.typography.bodyMedium)
+                                        Text(memberUid.take(8) + "…", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                                         ua.rytm.app.ui.components.RytmTextButton(onClick = { viewModel.toggleMemberRole(memberUid, role) }) {
                                             Text(stringResource(if (role == "viewer") R.string.profile_role_viewer else R.string.profile_role_editor))
+                                        }
+                                        IconButton(onClick = { removeConfirmFor = memberUid }) {
+                                            Icon(RytmIcons.Delete, contentDescription = stringResource(R.string.profile_member_remove), tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
                                 }
@@ -244,6 +248,15 @@ fun ProfilesManagerSheet(
             },
             confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::closeMembersManager) { Text(stringResource(R.string.action_done)) } },
         )
+        removeConfirmFor?.let { memberUid ->
+            ua.rytm.app.ui.components.RytmDestructiveConfirm(
+                title = stringResource(R.string.profile_member_remove),
+                body = stringResource(R.string.profile_member_remove_body),
+                confirmLabel = stringResource(R.string.profile_member_remove_action),
+                onConfirm = { viewModel.removeMember(memberUid); removeConfirmFor = null },
+                onDismiss = { removeConfirmFor = null },
+            )
+        }
     }
 }
 

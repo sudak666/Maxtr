@@ -11,7 +11,7 @@ import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncome
 import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, sanitizeWidgetOrder, setDoc, updateDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
-import { batchWriteTransactions, createMissingTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
+import { batchWriteTransactions, createMissingTransactions, leaveSharedProfile, removeSharedMember, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { setCacheItem } from './privacy-cache.js';
@@ -260,6 +260,7 @@ async function renderSharedMembersList(profileId){
       <div class="mgr-name-inline">${shortUid}</div>
       <span style="font-weight:800;font-size:13px;color:${role==='viewer'?'var(--muted2)':'var(--green2)'};text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${role==='viewer'?tr('profiles_member_role_viewer'):tr('profiles_member_role_editor')}</span>
       <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="toggle-member-role" data-uid="${escapeHtml(uid)}" data-role="${role}">${role==='viewer'?tr('profiles_member_make_editor'):tr('profiles_member_make_viewer')}</button>
+      <button class="mgr-del" data-action="remove-shared-member" data-uid="${escapeHtml(uid)}" aria-label="${tr('profiles_member_remove')}">${window.Icon('trash')}</button>
     `;
     box.appendChild(row);
   });
@@ -281,6 +282,21 @@ const toggleMemberRoleUI = async function(uid, currentRole){
   }
   await renderSharedMembersList(currentManagedMembersProfileId);
   showToast(tr('profiles_member_role_changed'),'check');
+};
+
+/** @param {string} uid */
+const removeSharedMemberUI = async function(uid){
+  if(!currentManagedMembersProfileId) return;
+  if(!(await uiConfirm(tr('profiles_member_remove_body'),{title:tr('profiles_member_remove'),okText:tr('profiles_member_remove_action'),danger:true}))) return;
+  try{
+    await removeSharedMember(currentManagedMembersProfileId, uid);
+  }catch(e){
+    console.error(e);
+    showToast(tr('sync_autosave_error'),'xmark');
+    return;
+  }
+  await renderSharedMembersList(currentManagedMembersProfileId);
+  showToast(tr('profiles_member_removed'),'check');
 };
 
 /** @returns {void} */
@@ -729,6 +745,7 @@ const CLICK_ACTIONS = {
   'leave-shared-profile': ds=>leaveSharedProfileUI(ds.id||'', ds.ownerUid||''),
   'open-shared-members-manager': ds=>openSharedMembersManagerUI(ds.id||''),
   'toggle-member-role': ds=>toggleMemberRoleUI(ds.uid||'', ds.role||''),
+  'remove-shared-member': ds=>removeSharedMemberUI(ds.uid||''),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[data-action]'));

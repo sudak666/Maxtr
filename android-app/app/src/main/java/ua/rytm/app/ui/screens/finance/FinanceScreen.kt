@@ -239,6 +239,7 @@ fun FinanceScreen(
     val snackbarHostState = LocalSnackbarHost.current ?: ownHost
     val scope = rememberCoroutineScope()
     var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var viewingTx by remember { mutableStateOf<Transaction?>(null) }
     var swipeResetGeneration by rememberSaveable { mutableIntStateOf(0) }
     val transactionDeleted = stringResource(R.string.transaction_deleted)
     val undoLabel = stringResource(R.string.action_undo)
@@ -461,7 +462,8 @@ fun FinanceScreen(
                             canEdit = canEdit && pendingDeleteId == null,
                             resetGeneration = swipeResetGeneration,
                             onDelete = { requestDelete(tx) },
-                            onClick = { viewModel.openEditTransactionSheet(tx) },
+                            canOpen = pendingDeleteId == null,
+                            onClick = { if (canEdit) viewModel.openEditTransactionSheet(tx) else viewingTx = tx },
                             onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
                             balanceAfter = if (showBalanceAfter) balancesAfter[tx.id] else null,
                         )
@@ -489,6 +491,15 @@ fun FinanceScreen(
         }
     }
 
+    // A viewer can't edit, but can open an operation to read all of it.
+    viewingTx?.let { tx ->
+        TransactionDetailsDialog(
+            tx = tx,
+            walletName = viewModel.wallets.firstOrNull { it.id == tx.walletId }?.name,
+            tagNames = tx.tags.mapNotNull { id -> viewModel.tags.firstOrNull { it.id == id }?.name },
+            onDismiss = { viewingTx = null },
+        )
+    }
     if (filtersOpen) HistoryFiltersSheet(viewModel) { filtersOpen = false }
     if (viewModel.form.sheetVisible) {
         // Delete from the edit sheet too: swipe alone was hard to find and

@@ -785,4 +785,13 @@
     <string name="auth_reauth_wrong_password">Wrong password</string>
     <string name="auth_reauth_password_title">Confirm with your password</string>
     <string name="auth_reauth_password_body">Deletion cannot be undone, so enter your account password once more.</string>
+    <string name="profile_member_remove">Remove member</string>
+    <string name="profile_member_remove_action">Remove</string>
+    <string name="profile_member_remove_body">The member loses access to this profile right away. They can only come back with a new invite code.</string>
+    <string name="profile_member_remove_failed">Could not remove the member</string>
+    <string name="tx_details_category">Category</string>
+    <string name="tx_details_wallet">Wallet</string>
+    <string name="tx_details_comment">Comment</string>
+    <string name="tx_details_tags">Tags</string>
+    <string name="tx_details_author">Added by</string>
 </resources>
