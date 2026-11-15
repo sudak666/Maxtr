@@ -7,7 +7,15 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
-- **Audit wave 5a: web versions + load path (2026-11-15, #808)** — from `docs/audits/AUDIT_2026-11-full.md`.
+- **Audit wave 5b: Android dependencies (2026-11-15, #812)** — AND-01 from `docs/audits/AUDIT_2026-11-full.md`, done by hand instead of Dependabot #805 (which also proposed Billing 8 → 9, a purchase-API major now ignored).
+  - AGP 9.3.0 → 9.5.1, Kotlin 2.2.10 → 2.4.21, KSP → 2.3.14, Gradle 9.5.0 → 9.9.1, Navigation 2.10.2, DataStore 1.3.0, Firebase BoM 35.2.0, Glance 1.2.0, WorkManager 2.12.0, googleid 1.2.1, coroutines 1.11.0, mockk 1.14.12.
+  - Kotlin 2.4's new `ILLEGAL_RUN_CATCHING_AROUND_COMPOSABLE` check caught a real misuse: `ToolsSheet` read `LocalConfiguration.current` inside `runCatching` — the locale is now read first.
+  - KSP 2.3 supports AGP 9's built-in Kotlin, so `android.disallowKotlinSourceSets=false` is gone from `gradle.properties` (build verified without it).
+  - Verified: `assembleDebug lintDebug testDebugUnitTest assembleQa` (R8-minified QA; 0 lint errors). The QA APK installed on a headless API-37 emulator (`Rytm_Audit_Pixel_10`) launches to the login screen with no app crash; nothing past login checked (no test account on the emulator).
+  - AND-05 (generated Baseline Profile) **not done**: generation needs the macrobenchmark journey to get past login, i.e. a test account on the emulator — owner's call.
+  - Gotcha: a hosting deploy right after the Gradle build died with `JavaScript heap out of memory` in `npm install` (machine short on RAM with Gradle daemons + emulator); `./gradlew --stop` and retry fixed it. Also: create the deploy worktree only after `git fetch`, or it checks out the pre-merge `origin/main`.
+
+- **Audit wave 5a: web versions + load path (2026-11-15, #808)** — deployed to Hosting; live page loads SDK 13.3.0 and Inter from `fonts/`, zero Google Fonts requests, clean console. From `docs/audits/AUDIT_2026-11-full.md`.
   - PWA-13: Firebase JS SDK 12.11.0 → 13.3.0 (gstatic URLs in `js/core.js`, `sw.js` precache + compat `importScripts`, `types/firebase-vendor.d.ts`; npm `firebase` for types). Release notes: 13.0's breaking changes are AI Logic only. All six gstatic files checked 200. Vite 8.3.8, ESLint 10 (lint clean, no config change). `sw.js` → `rytm-v208`.
   - PWA-12: Inter is self-hosted (`fonts/`, @fontsource-variable/inter 5.3.0 via `npm pack`, OFL licence kept): 4 variable woff2 subsets (cyrillic, cyrillic-ext, latin, latin-ext; ~178 KB), `@font-face` inline in `index.html`, cyrillic subset preloaded, all four in `sw.js` `STATIC_ASSETS`. Google Fonts link + `fonts.googleapis.com`/`fonts.gstatic.com` dropped from both CSPs (header and meta).
   - PWA-11 (part): `<link rel="modulepreload">` for the 4 gstatic SDK modules (they were only discovered after the bundle parsed). Firestore Lite and lazy messaging not done: Lite needs a parity check of `ignoreUndefinedProperties`/offline behaviour, messaging is ~9 KB gz.

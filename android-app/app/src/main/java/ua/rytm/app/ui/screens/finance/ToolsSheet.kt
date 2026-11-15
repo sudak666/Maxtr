@@ -460,7 +460,9 @@ private fun FxRatesSection(vm: ToolsViewModel) {
                     CurrencyBadge(code, size = 34.dp)
                     Column(Modifier.padding(start = 10.dp).weight(1f)) {
                         Text(code, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Text(runCatching { java.util.Currency.getInstance(code).getDisplayName(LocalConfiguration.current.locales[0]) }.getOrDefault(code), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        // Locale read outside runCatching: a composable read inside it is illegal (Kotlin 2.4 check).
+                        val locale = LocalConfiguration.current.locales[0]
+                        Text(runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrDefault(code), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(rate))), fontWeight = FontWeight.Bold)
                 }
