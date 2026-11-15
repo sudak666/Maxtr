@@ -16,7 +16,33 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Same emulator test as smoke-test.yml's firestore-rules job: a push to
+  # main deploys only if the rules it would publish pass it.
+  rules-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install rules-test dependencies
+        run: |
+          mkdir -p /tmp/rules-test
+          cd /tmp/rules-test
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund @firebase/rules-unit-testing firebase
+          ln -s /tmp/rules-test/node_modules "$GITHUB_WORKSPACE/tests/node_modules"
+      - name: Run Firestore rules tests
+        working-directory: /tmp/rules-test
+        run: |
+          npx --yes firebase-tools@15.27.0 emulators:exec --only firestore --project rytm-rules-test \n            "cd '$GITHUB_WORKSPACE' && node tests/firestore-rules.mjs"
+
   deploy:
+    needs: rules-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -31,4 +57,4 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> "$GITHUB_ENV"
 
       - name: Deploy Firestore rules
-        run: npx --yes firebase-tools deploy --only firestore:rules --project maxtr-c238f --non-interactive
+        run: npx --yes firebase-tools@15.27.0 deploy --only firestore:rules --project maxtr-c238f --non-interactive

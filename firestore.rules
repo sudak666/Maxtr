@@ -264,7 +264,9 @@ service cloud.firestore {
         && request.resource.data.profileId == resource.data.profileId
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.expiresAt == resource.data.expiresAt;
+        && request.resource.data.expiresAt == resource.data.expiresAt
+        // Redeeming changes usedBy and nothing else (profileName, extra keys).
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedBy']);
       // Only the creator can delete an unredeemed invite early (e.g. the
       // owner regenerating one) — a used or expired one is harmless to
       // leave behind, same reasoning as push_tokens/error_reports not
@@ -287,6 +289,8 @@ service cloud.firestore {
       // share an allow block with the field validation below.
       allow delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
+        // Room for the sweep's own fields (profileState, legacy sent*), not a dumping ground.
+        && request.resource.data.keys().size() < 12
         && (!('token' in request.resource.data) || (
           request.resource.data.token is string &&
           request.resource.data.token.size() > 0 &&
@@ -310,7 +314,9 @@ service cloud.firestore {
         && request.resource.data.keys().size() < 5
         && request.resource.data.entries is list
         && request.resource.data.entries.size() <= 20
-        && request.resource.data.updatedAt is number;
+        && request.resource.data.updatedAt is number
+        // Each entry is a small map (logAppError truncates stacks to 500 chars).
+        && (request.resource.data.entries.size() == 0 || (request.resource.data.entries[0] is map && request.resource.data.entries[0].keys().size() < 10));
     }
 
     // DoRytm's habits/tasks used to sync here too; since 2026-10 DoRytm has its own Firebase

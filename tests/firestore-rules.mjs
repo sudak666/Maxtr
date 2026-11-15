@@ -222,6 +222,7 @@ await check('invite profileId must be a plain id (it ends up in HTML and doc pat
 await check('owner cannot redeem their own invite', updateDoc(doc(asA, `profile_invites/${CODE}`), { usedBy: uidA }), 'deny');
 await check('a stranger cannot self-add to shared_members without ever redeeming an invite', updateDoc(doc(asC, sharedMembersPath), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: 'BOGUSCODE' }), 'deny');
 await check('joiner cannot join shared_members before redeeming the invite (usedBy still null)', updateDoc(doc(asB, sharedMembersPath), { members: arrayUnion(uidB), updatedAt: Date.now(), lastJoinInviteCode: CODE }), 'deny');
+await check('joiner cannot rename the invite while redeeming it', updateDoc(doc(asB, `profile_invites/${CODE}`), { usedBy: uidB, profileName: 'pwned' }), 'deny');
 await check('joiner can redeem the invite (usedBy null -> self)', updateDoc(doc(asB, `profile_invites/${CODE}`), { usedBy: uidB, ownerUid: uidA, profileId: PROFILE_ID, createdBy: uidA, createdAt: (await getDoc(doc(asB, `profile_invites/${CODE}`))).data().createdAt, expiresAt }), 'allow');
 await check('joiner cannot redeem the same invite twice', updateDoc(doc(asB, `profile_invites/${CODE}`), { usedBy: uidB }), 'deny');
 await check('a stranger cannot reuse joiner\'s already-redeemed invite to also self-add', updateDoc(doc(asC, sharedMembersPath), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE }), 'deny');
