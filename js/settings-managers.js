@@ -39,7 +39,7 @@ const h = /** @type {any} */ (_h);
 // below purely because *assigning* to window is a side effect that needs
 // ordering against the rest of the circular import graph.
 export function closeManagers(){
-  ['shift-types-modal','wallets-modal','wallet-create-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','premium-modal','profiles-modal','backups-modal','shared-members-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','biometric-onboard-modal'].forEach(id=>{
+  ['shift-types-modal','wallets-modal','wallet-create-modal','categories-modal','budgets-modal','goals-modal','recurring-modal','rates-modal','widgets-modal','tools-modal','pin-settings-modal','tags-modal','cat-action-modal','rules-modal','profiles-modal','backups-modal','shared-members-modal','profile-avatar-pick-modal','color-pick-modal','category-icon-modal','tx-form-modal','debt-form-modal','biometric-onboard-modal'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
 }
@@ -81,6 +81,13 @@ export function setupModalAccessibility(){
       }
     }
   });
+  // aria-modal alone doesn't stop a screen reader's swipe navigation from
+  // walking out of the dialog into the page behind it; inert does (Baseline
+  // widely available). Lifted before focus goes back to the page.
+  const syncBackgroundInert=()=>{
+    const open=AppState.openModalStack.length>0;
+    document.querySelectorAll('main.app, nav.tabs').forEach(el=>el.toggleAttribute('inert', open));
+  };
   const observer=new MutationObserver(mutations=>{
     mutations.forEach(m=>{
       const target=m.target;
@@ -90,6 +97,7 @@ export function setupModalAccessibility(){
       const stackIdx=AppState.openModalStack.indexOf(overlay);
       if(isOpen && stackIdx===-1){
         AppState.openModalStack.push(overlay);
+        syncBackgroundInert();
         const returnFocusTo=document.activeElement;
         overlay._returnFocusTo=(returnFocusTo && returnFocusTo!==document.body)?/** @type {HTMLElement} */ (returnFocusTo):null;
         // .dlg-card (#ui-dialog) needs the same auto-focus-on-open as
@@ -100,6 +108,7 @@ export function setupModalAccessibility(){
         if(card) setTimeout(()=>{ (/** @type {HTMLElement} */ (focusableIn(card)[0]||card)).focus(); },0);
       }else if(!isOpen && stackIdx!==-1){
         AppState.openModalStack.splice(stackIdx,1);
+        syncBackgroundInert();
         if(overlay._returnFocusTo && document.contains(overlay._returnFocusTo)) overlay._returnFocusTo.focus();
         overlay._returnFocusTo=null;
       }
@@ -471,8 +480,6 @@ const updateCurrencyRate = function(code,value){
 
 const NBU_RATES_URL='https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json';
 
-const NBU_RATES_FALLBACK_URL='https://api.allorigins.win/raw?url='+encodeURIComponent('https://bank.gov.ua/NBU_Exchange/exchange?json');
-
 // api.privatbank.ua never sends CORS headers for our origin, so a direct
 // browser fetch to it always fails — permanently, not intermittently (see
 // CLAUDE.md), so there's no point attempting it first and eating a
@@ -524,17 +531,11 @@ function renderRatesUpdatedHint(){
 }
 
 async function fetchLiveRates(){
-  let list;
-  try{
-    const res=await fetch(NBU_RATES_URL);
-    if(!res.ok) throw new Error('NBU HTTP '+res.status);
-    list=await res.json();
-  }catch(primaryErr){
-    console.warn('primary NBU rates endpoint failed, trying CORS-relay fallback', primaryErr);
-    const res=await fetch(NBU_RATES_FALLBACK_URL);
-    if(!res.ok) throw new Error('NBU fallback HTTP '+res.status);
-    list=await res.json();
-  }
+  // No third-party relay fallback any more (api.allorigins.win saw every
+  // request); if NBU is down the cached rates stay, as for PrivatBank.
+  const res=await fetch(NBU_RATES_URL);
+  if(!res.ok) throw new Error('NBU HTTP '+res.status);
+  const list=await res.json();
   if(!Array.isArray(list)) throw new Error('unexpected NBU response');
   const wanted=CURRENCY_LIST.filter(c=>c!=='UAH');
   let updated=0;

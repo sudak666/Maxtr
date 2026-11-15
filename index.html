@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- Same policy as firebase.json's header, for the GitHub Pages mirror and local tests (a <meta> CSP cannot carry frame-ancestors). Keep the two in sync. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.gstatic.com; connect-src 'self' https://us-central1-maxtr-c238f.cloudfunctions.net https://*.googleapis.com https://bank.gov.ua https://api.allorigins.win https://api.privatbank.ua https://api.coingecko.com https://www.google.com https://apis.google.com https://www.gstatic.com; frame-src https://www.google.com https://*.firebaseapp.com https://*.web.app https://content.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.gstatic.com; connect-src 'self' https://us-central1-maxtr-c238f.cloudfunctions.net https://*.googleapis.com https://bank.gov.ua https://api.coingecko.com https://www.google.com https://apis.google.com https://www.gstatic.com; frame-src https://www.google.com https://*.firebaseapp.com https://*.web.app https://content.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <script src="./js/theme-preinit.js"></script>
 <!-- iOS Safari only applies :active CSS states to a tap when at least one
      touch listener is registered somewhere in the document — without this,
@@ -1000,7 +1000,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .cs-panel-scroll{max-height:260px;overflow-y:auto;padding:6px}
 .cs.open .cs-panel{display:block}
 .cs-opt{padding:9px 12px;border-radius:12px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cs-opt:hover{background:var(--bg3)}
+.cs-opt:hover,.cs-opt:focus-visible{background:var(--bg3)}
+.cs-opt:focus-visible{outline:2px solid var(--purple);outline-offset:-2px}
 .cs-opt.sel{background:rgba(139,92,246,.16);color:var(--purple2)}
 /* smaller variant for the compact toolbar / calendar-nav selects */
 .cs.cs-sm{display:inline-block;min-width:108px;vertical-align:middle}
@@ -2240,16 +2241,6 @@ body.amounts-hidden #fx-converter-result{
       </div>
     </div>
 
-    <div class="chart-section settings-section" data-settings-group="account">
-      <div class="settings-row" data-action="show-premium-upsell">
-        <span id="ic-set-premium" class="icon-badge" style="--badge-color:#f59e0b"></span>
-        <div class="settings-row-text">
-          <div class="settings-row-title" data-i18n="settings_premium">Преміум</div>
-          <div class="settings-row-sub" id="settings-premium-sub" data-i18n="premium_free_plan">Безкоштовний план</div>
-        </div>
-      </div>
-    </div>
-
     <div class="chart-section settings-section" data-settings-group="finance">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
       <div class="settings-row" data-action="open-wallets-manager">
@@ -2823,41 +2814,6 @@ body.amounts-hidden #fx-converter-result{
 
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
-    </div>
-   </div>
-  </div>
-</div>
-
-<!-- PREMIUM UPSELL -->
-<div class="modal-overlay" id="premium-modal">
-  <div class="modal-card">
-   <div class="modal-card-body">
-    <div class="sheet-grabber"></div>
-    <div style="display:flex;justify-content:center;margin-bottom:10px">
-      <span class="icon-badge" id="ic-premium-badge" style="width:52px;height:52px;background:linear-gradient(135deg,#f59e0b,#ec4899)"></span>
-    </div>
-    <div class="modal-header" style="justify-content:center;text-align:center"><div class="modal-date" data-i18n="premium_title">Rytm Преміум</div></div>
-    <div class="chk-desc" id="premium-modal-limit-msg" style="text-align:center;margin-bottom:16px" data-i18n="premium_subtitle">Rytm зараз повністю безкоштовний — без лімітів. Що вже входить:</div>
-    <div class="settings-row">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-wallets"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_free_now">Вже доступно безкоштовно</div><div class="settings-row-sub" data-i18n="premium_perk_free_now_sub">Необмежено гаманців, категорій, правил і повторюваних платежів + push-сповіщення</div></div>
-    </div>
-    <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-forecast"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_forecast">Прогноз заробітку</div><div class="settings-row-sub" data-i18n="premium_perk_forecast_sub">Скільки отримаєте цього місяця за запланованими змінами</div></div>
-      
-    </div>
-    <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-backup"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_backup">Резервні копії</div><div class="settings-row-sub" data-i18n="premium_perk_backup_sub">Автоматичні копії в хмарі та відновлення в один дотик</div></div>
-    </div>
-    <div class="settings-row" style="border-top:none">
-      <span class="icon-badge icon-badge-sm" style="--badge-color:var(--green)" id="ic-premium-widget"></span>
-      <div class="settings-row-text"><div class="settings-row-title" data-i18n="premium_perk_widget">Віджет на екрані</div><div class="settings-row-sub" data-i18n="premium_perk_widget_sub">Баланс і найближча зміна без відкриття застосунку</div></div>
-      <span style="font-size:13px;font-weight:800;letter-spacing:.04em;color:var(--green);flex:0 0 auto" data-i18n="premium_android_badge">Android</span>
-    </div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="modal-save" style="width:100%" data-close-modal data-i18n="common_done">Готово</button>
     </div>
    </div>
   </div>

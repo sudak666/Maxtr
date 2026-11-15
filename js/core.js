@@ -189,37 +189,6 @@ export function applyWidgetOrder(){
   });
 }
 
-/** @type {Record<string, number>} */
-const FREE_LIMITS = {wallets:3, categoriesPerType:8, autoRules:3, recurring:3, goals:1};
-
-function isPremium(){ return AppState.subscription.plan==='premium' && (!AppState.subscription.expiresAt || AppState.subscription.expiresAt>Date.now()); }
-
-// Intentionally unused right now -- caps were removed since there's no
-// payment provider (see CLAUDE.md's "Premium / free-tier limits" section);
-// kept as the re-add hook for whenever one gets wired up.
-/**
- * @param {string} kind
- * @param {number} currentCount
- */
-// eslint-disable-next-line no-unused-vars
-function canAddMore(kind, currentCount){ return isPremium() || currentCount < FREE_LIMITS[kind]; }
-
-export function renderPremiumUI(){
-  const sub=document.getElementById('settings-premium-sub');
-  if(sub) sub.textContent = isPremium() ? tr('premium_active_plan') : tr('premium_free_plan');
-}
-
-/** @type {Record<string, string>} */
-const PREMIUM_LIMIT_MSG_KEYS={wallets:'premium_limit_wallets', categoriesPerType:'premium_limit_categories', autoRules:'premium_limit_rules', recurring:'premium_limit_recurring', goals:'premium_limit_goals'};
-
-/** @param {string} [limitKind] */
-const showPremiumUpsell = function(limitKind){
-  const msgEl=document.getElementById('premium-modal-limit-msg');
-  if(msgEl) msgEl.textContent = limitKind ? tr(PREMIUM_LIMIT_MSG_KEYS[limitKind]) : tr('premium_subtitle');
-  const modal=document.getElementById('premium-modal');
-  if(modal) modal.style.display='flex';
-};
-
 export const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
 
 export const PALETTE = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
@@ -246,7 +215,7 @@ const __applyLangDynamic = function(lang){
   AppState.WEEKDAYS=LANG_CALENDAR[lang].weekdays;
   populateMonthSelectLabels();
   renderCalendar(); renderIncomeChart(); renderFinance(); renderFinanceChart(); renderDebt();
-  renderProfileUI(); renderPremiumUI(); renderNotifUI(); updateAmountLabel();
+  renderProfileUI(); renderNotifUI(); updateAmountLabel();
   const wsl=document.getElementById('wallet-source-label');
   if(wsl){
     const key={income:'finance_wallet',expense:'finance_wallet_expense',transfer:'finance_wallet_transfer'}[AppState.currentFinanceType];
@@ -316,21 +285,6 @@ export function categoryIcon(name){
 // first letter (Денна/Денна+ → Д, Нічна/Ніч рання/Ніч пізня → Н) and a
 // naive first-letter derivation would make them indistinguishable; custom
 // types fall back to a derived first letter (shiftCode()).
-export const LEGACY_SHIFT_TYPES = [
-  {id:'day',         name:'Денна зміна',          short:'День', code:'Д',  color:'#3b82f6', amount:1000, hours:12},
-  {id:'day1900',     name:'Денна (підвищена)',    short:'День+',code:'Д+', color:'#10b981', amount:1900, hours:12},
-  {id:'night',       name:'Нічна повна',          short:'Ніч',  code:'Н',  color:'#8b5cf6', amount:900,  hours:12},
-  {id:'night_half1', name:'Ніч рання',            short:'НічР', code:'Нр', color:'#ec4899', amount:450,  hours:6},
-  {id:'night_half2', name:'Ніч пізня',            short:'НічП', code:'Нп', color:'#06b6d4', amount:450,  hours:6},
-  {id:'vacation',    name:'Вихідний',             short:'Вих',  code:'В',  color:'#f59e0b', amount:0,    hours:0, isOff:true},
-];
-
-export const LEGACY_WALLETS = [
-  {id:'main',name:'Основна картка',color:'#8b5cf6',icon:'card',currency:'UAH'},
-  {id:'pumb',name:'Картка ПУМБ',   color:'#ef4444',icon:'card',currency:'UAH'},
-  {id:'cash',name:'Готівка',        color:'#f59e0b',icon:'banknote',currency:'UAH'},
-];
-
 export const DEFAULT_SHIFT_TYPES = [
   {id:'st_day',   name:'Денна зміна', short:'День', code:'Д', color:'#3b82f6', amount:0, hours:8},
   {id:'st_night', name:'Нічна зміна', short:'Ніч',  code:'Н', color:'#8b5cf6', amount:0, hours:12},
@@ -409,11 +363,6 @@ export const DEFAULT_CATEGORIES = {
   expense: ['Продукти','Кафе','Транспорт','Покупки','Комуналка','Здоров\'я','Розваги','Інше'],
 };
 
-export const LEGACY_CATEGORIES = {
-  income:  ['Зарплата','Аванс','Підробіток','Повернення боргу','Інше'],
-  expense: ['Алла','Син','Цигарки','Кава','Фастфуд','Борг','Кредит','Продукти','Транспорт','Комуналка','Покупки','Інше'],
-};
-
 /** @param {string} id */
 export function shiftType(id){ return AppState.shiftTypes.find(t=>t.id===id); }
 
@@ -474,7 +423,6 @@ window.__applyLangDynamic = __applyLangDynamic;
 // file was split out.
 /** @type {Record<string, (ds: DOMStringMap) => void>} */
 const CLICK_ACTIONS = {
-  'show-premium-upsell': ()=>showPremiumUpsell(),
 };
 document.addEventListener('click', e=>{
   const el=/** @type {HTMLElement} */ (/** @type {Element} */ (e.target).closest('[data-action]'));

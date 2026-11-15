@@ -106,7 +106,7 @@ export function saveModalSelection(){
 
 // The compact 1-2 char glyph shown on a calendar day cell for a shift
 // type. Prefers an explicit `code` (set on the built-ins, see
-// LEGACY_SHIFT_TYPES/DEFAULT_SHIFT_TYPES in js/core.js). For a type with no
+// DEFAULT_SHIFT_TYPES in js/core.js). For a type with no
 // `code` — a user-created type, or a built-in already saved to an existing
 // account's config before `code` existed (pre-launch testing devices) — it
 // derives one from `short`/`name`: the first letter, plus a distinguishing

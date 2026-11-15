@@ -8,7 +8,7 @@ import { nextRecurringDate } from './shift-money.js';
 import { renderFinance } from './analytics-csv.js';
 import { switchTab } from './app-init.js';
 import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncomeChart } from './calendar.js';
-import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, updateDoc, walletCurrency } from './core.js';
+import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, sanitizeWidgetOrder, setDoc, updateDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
 import { batchWriteTransactions, createMissingTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
@@ -144,7 +144,7 @@ const switchProfile = async function(id, ownerUid){
   applyProfileReadOnlyUI();
   closeManagers();
   await fbLoadNow();
-  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
+  renderProfileUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
   switchTab('finance');
   showToast(tr('profiles_switched_toast'),'check');
 };
@@ -444,17 +444,19 @@ export function normalizeDebtData(raw){
  */
 export function seedConfigFromDocs(sData, fData){
   let seeded=false;
-  const hasData = Object.keys(AppState.shifts).length>0 || AppState.transactions.length>0 || (AppState.debts&&AppState.debts.length>0);
   if(Array.isArray(sData&&sData.shiftTypes) && sData.shiftTypes.length){
     AppState.shiftTypes=sData.shiftTypes;
   }else{
-    AppState.shiftTypes=(hasData?LEGACY_SHIFT_TYPES:DEFAULT_SHIFT_TYPES).map(t=>({...t}));
+    // Always the neutral defaults: the old "legacy" sets were the original
+    // owner's own pay rates/cards, seeded into any account that had data but
+    // no types yet (e.g. one started on Android).
+    AppState.shiftTypes=DEFAULT_SHIFT_TYPES.map(t=>({...t}));
     seeded=true;
   }
   if(Array.isArray(fData&&fData.wallets) && fData.wallets.length){
     AppState.wallets=fData.wallets;
   }else{
-    AppState.wallets=(hasData?LEGACY_WALLETS:DEFAULT_WALLETS).map(w=>({...w}));
+    AppState.wallets=DEFAULT_WALLETS.map(w=>({...w}));
     seeded=true;
   }
   normalizeWallets();
@@ -497,7 +499,6 @@ export function seedConfigFromDocs(sData, fData){
 
 function backfillCategories(){
   if(AppState.catLegacyMerged) return false;
-  const hasData = Object.keys(AppState.shifts).length>0 || AppState.transactions.length>0 || (AppState.debts&&AppState.debts.length>0);
   let changed=false;
   /** @param {string} type @param {string} name */
   const add=(type,name)=>{
@@ -506,10 +507,10 @@ function backfillCategories(){
     if(!AppState.categories[type]) AppState.categories[type]=[];
     if(!AppState.categories[type].includes(c)){ AppState.categories[type].push(c); changed=true; }
   };
-  if(hasData){
-    LEGACY_CATEGORIES.income.forEach(c=>add('income',c));
-    LEGACY_CATEGORIES.expense.forEach(c=>add('expense',c));
-  }
+  // Only categories real transactions use. The old LEGACY_CATEGORIES merge
+  // added the original owner's personal categories to any account with data
+  // that hadn't been flagged yet; Android never sets catLegacyMerged, so an
+  // Android-first account got them on its first PWA open.
   AppState.transactions.forEach(t=>{ if(t.type==='income'||t.type==='expense') add(t.type, t.category); });
   AppState.catLegacyMerged=true; AppState.catBackfillDone=true;
   return changed;

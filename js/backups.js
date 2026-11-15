@@ -6,7 +6,7 @@
 // extra Firebase SDK module is needed: same-origin /api/backups rewrite on
 // Hosting, the function's own URL on the GitHub Pages mirror.
 import { AppState } from './state.js';
-import { applyWidgetVisibility, collection, db, getDocs, renderPremiumUI } from './core.js';
+import { applyWidgetVisibility, collection, db, getDocs } from './core.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
@@ -171,7 +171,7 @@ async function restoreBackupUI(id){
   clearTimeout(AppState.fbTimer ?? undefined);
   ['shifts','tx','recurring','debt','cfg'].forEach(n => { const k = lsKey(n); if(k) localStorage.removeItem(k); });
   await fbLoadNow();
-  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
+  renderProfileUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
   busy = false;
   showToast(tr('backups_restored'), 'cloud');
   await renderBackupsList();

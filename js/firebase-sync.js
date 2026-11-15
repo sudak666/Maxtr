@@ -149,7 +149,9 @@ export async function saveProfilesMeta(removedIds=[]){
 const INVITE_CODE_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I - unambiguous to read aloud or type
 function generateInviteCode(){
   let s='';
-  for(let i=0;i<8;i++) s+=INVITE_CODE_ALPHABET[Math.floor(Math.random()*INVITE_CODE_ALPHABET.length)];
+  // crypto, not Math.random: the code is the only secret guarding a shared profile.
+  const bytes=crypto.getRandomValues(new Uint32Array(8));
+  for(let i=0;i<8;i++) s+=INVITE_CODE_ALPHABET[bytes[i]%INVITE_CODE_ALPHABET.length];
   return s;
 }
 const INVITE_TTL_MS=24*60*60*1000;
