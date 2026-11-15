@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **2.9.2 (vc59) AAB built (2026-11-15, #793)** — owner asked for a build after audit waves 2–3 (#790 Android part: data extraction rules, `onNewToken` guard; #792: delete via TalkBack/edit sheet, budget progress, contrast/theme roles, switches, PIN landscape, copy). Bumped to 2.9.2 / vc59. `bundleRelease` → Desktop `Rytm-2.9.2-vc59.aab` (39.3 MB), signed by the upload key (SHA-256 `7C:A2:AF:88…`), manifest carries `2.9.2`, package `ua.rytm.app`. Not uploaded to Play — the owner does that. Next version code: 60.
+
 - **Audit wave 3: Android UX (2026-11-15, #792)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - UX-01: history rows and debt payment rows expose «Видалити» as a TalkBack/Switch Access custom action (swipe is a path gesture, WCAG 2.5.1); the transaction edit sheet gained a red «Видалити» (same undo snackbar via `requestDelete`).
   - UX-02: the budgets sheet shows «X з Y ₴» plus a progress bar (amber from 80 %, red over) from this financial month's expenses (`BudgetsManagerViewModel.spent`, same `forStats`/`FinancialMonth`/UAH conversion as the over-budget snackbar). Empty-state copy no longer promises a "getting close" alert that doesn't exist.
