@@ -19,9 +19,9 @@ jobs:
     # Unpin together with a Playwright bump that supports the new image.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -200,9 +200,9 @@ jobs:
     # now runs identically against source or a bundle, so there's no
     # remaining reason to keep dist-smoke's coverage narrower than smoke's.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -342,13 +342,13 @@ jobs:
     # delete, where request.resource is null on delete) — invisible to a
     # read-through and to smoke.mjs, only visible against the emulator.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -386,15 +386,15 @@ jobs:
       run:
         working-directory: android-app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: platform-tools
 
@@ -423,7 +423,7 @@ jobs:
 
       - name: Upload Compose compiler stability/metrics reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compose-compiler-reports
           path: android-app/app/build/compose_compiler/
@@ -439,13 +439,13 @@ jobs:
       run:
         working-directory: android-app
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: platform-tools
       - name: Enable KVM
@@ -460,7 +460,7 @@ jobs:
       # The system image download from dl.google.com has failed mid-zip on a
       # runner ("Error on ZipFile unknown archive"); cache it and the AVD.
       - name: Cache emulator system image + AVD
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.android/avd/*
@@ -486,7 +486,7 @@ jobs:
             ./gradlew :app:connectedDebugAndroidTest --no-daemon || ./gradlew :app:connectedDebugAndroidTest --no-daemon
       - name: Upload instrumented test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-instrumented-reports
           path: android-app/app/build/reports/androidTests/
