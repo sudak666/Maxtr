@@ -3,13 +3,11 @@
 # AndroidX) ships consumer rules of its own.
 
 # --- Firebase / Firestore ---
-# Firestore serializes POJOs reflectively; the app's Firestore models live in
-# data/ and are read back field-by-field.
+# No class of this app is (de)serialized reflectively: every Firestore read
+# and write maps fields by hand (no toObject()/POJO set()), so the old blanket
+# keep on ua.rytm.app.data.** (all fields and constructors) only blocked R8
+# from shrinking. Removed 2026-11-15 after a minified QA run.
 -keepattributes Signature,*Annotation*,EnclosingMethod,InnerClasses
--keepclassmembers class ua.rytm.app.data.** {
-  <init>();
-  <fields>;
-}
 -keepnames class com.google.firebase.** { *; }
 -dontwarn com.google.firebase.**
 

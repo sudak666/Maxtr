@@ -358,7 +358,7 @@ class FinanceViewModel(
 
     fun deleteTransaction(id: String, animationDelayMs: Long = 0L, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            runCatching {
+            ua.rytm.app.data.suspendRunCatching {
                 if (animationDelayMs > 0) delay(animationDelayMs)
                 val (ownerUid, profileId) = activeProfilePath()
                 syncRepository.deleteTransaction(ownerUid, profileId, id)

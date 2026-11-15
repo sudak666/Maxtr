@@ -30,11 +30,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,11 +45,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import ua.rytm.app.R
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.theme.RytmRadii
-import kotlinx.coroutines.launch
 import ua.rytm.app.data.MonobankConnection
-import ua.rytm.app.data.MonobankHttpException
-import ua.rytm.app.data.MonobankNoAccountsException
-import ua.rytm.app.data.MonobankOwnerOnlyException
 import ua.rytm.app.data.MonobankRepository
 import ua.rytm.app.data.MonobankSyncCoordinator
 import ua.rytm.app.data.FinanceRepository
@@ -66,44 +61,28 @@ import ua.rytm.app.ui.icons.Sync
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRepository, syncCoordinator: MonobankSyncCoordinator, financeRepository: FinanceRepository, onDismiss: () -> Unit) {
-    var connection by remember(uid, profileId) { mutableStateOf<MonobankConnection?>(null) }
+    val vm: MonobankManagerViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        key = "monobank-$uid-$profileId",
+        factory = MonobankManagerViewModel.factory(repository, uid, profileId),
+    )
+    val connection = vm.connection
+    val loading = vm.loading
+    val busy = vm.busy
     var token by rememberSaveable { mutableStateOf("") }
-    var loading by rememberSaveable { mutableStateOf(true) }
-    var busy by rememberSaveable { mutableStateOf(false) }
-    var errorRes by remember { mutableStateOf<Int?>(null) }
-    var messageRes by remember { mutableStateOf<Int?>(null) }
     var importedCount by remember { mutableStateOf<Int?>(null) }
-    val syncState by syncCoordinator.state.collectAsState()
+    val syncState by syncCoordinator.state.collectAsStateWithLifecycle()
     val profileKey = "$uid/$profileId"
     val syncing = syncState.running && syncState.profileKey == profileKey
     var confirmDisconnect by rememberSaveable { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val wallets by financeRepository.wallets.collectAsState(initial = emptyList())
+    val wallets by financeRepository.wallets.collectAsStateWithLifecycle(initialValue = emptyList())
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    fun errorText(throwable: Throwable) = when (throwable) {
-        is MonobankHttpException -> when (throwable.status) {
-            401, 403 -> R.string.monobank_invalid_token
-            429 -> R.string.monobank_rate_limit
-            else -> R.string.monobank_connection_failed
-        }
-        is MonobankNoAccountsException -> R.string.monobank_no_accounts
-        is MonobankOwnerOnlyException -> R.string.monobank_owner_only
-        else -> R.string.monobank_connection_failed
-    }
 
     LaunchedEffect(syncState) {
         if (syncState.running || syncState.profileKey != profileKey) return@LaunchedEffect
-        syncState.result?.let { (next, count) -> connection = next; importedCount = count }
-        syncState.error?.let { errorRes = errorText(it) }
+        syncState.result?.let { (next, count) -> vm.connection = next; importedCount = count }
+        syncState.error?.let { vm.errorRes = MonobankManagerViewModel.errorText(it) }
         if (syncState.result != null || syncState.error != null) syncCoordinator.consume()
-    }
-
-    LaunchedEffect(uid, profileId) {
-        loading = true
-        runCatching { repository.load(uid, profileId) }.onSuccess { connection = it }.onFailure { errorRes = errorText(it) }
-        loading = false
     }
 
     ua.rytm.app.ui.components.RytmModalBottomSheet(onDismissRequest = { if (!busy) onDismiss() }, sheetState = sheet) {
@@ -122,23 +101,17 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                     ) { Text(stringResource(R.string.monobank_get_token)) }
                     OutlinedTextField(
                         value = token,
-                        onValueChange = { token = it; errorRes = null },
+                        onValueChange = { token = it; vm.errorRes = null },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.monobank_token)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         enabled = !busy,
-                        isError = errorRes != null,
-                        supportingText = errorRes?.let { textRes -> { Text(stringResource(textRes)) } },
+                        isError = vm.errorRes != null,
+                        supportingText = vm.errorRes?.let { textRes -> { Text(stringResource(textRes)) } },
                     )
                     Button(
-                        onClick = { scope.launch {
-                            busy = true; errorRes = null
-                            runCatching { repository.connect(uid, profileId, token) }
-                                .onSuccess { connection = it; token = ""; messageRes = R.string.monobank_connected }
-                                .onFailure { errorRes = errorText(it) }
-                            busy = false
-                        } },
+                        onClick = { vm.connect(token) { token = "" } },
                         enabled = !busy && token.isNotBlank(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(RytmRadii.Row),
@@ -177,12 +150,12 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         syncState.progress?.let { Text(stringResource(R.string.monobank_sync_progress, it.current, it.total)) }
                         Text(stringResource(R.string.monobank_sync_background), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    errorRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-                    messageRes?.let { Text(stringResource(it), color = ua.rytm.app.ui.theme.RytmSemantic.link) }
+                    vm.errorRes?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+                    vm.messageRes?.let { Text(stringResource(it), color = ua.rytm.app.ui.theme.RytmSemantic.link) }
                     importedCount?.let { Text(stringResource(R.string.monobank_sync_result, it), color = ua.rytm.app.ui.theme.RytmSemantic.link) }
                     Button(
                         onClick = {
-                            errorRes = null; messageRes = null; importedCount = null
+                            vm.errorRes = null; vm.messageRes = null; importedCount = null
                             syncCoordinator.start(uid, profileId, mono)
                         },
                         enabled = !busy && !syncing,
@@ -211,13 +184,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
         confirmLabel = stringResource(R.string.monobank_disconnect),
         onConfirm = {
             confirmDisconnect = false
-            scope.launch {
-                busy = true
-                runCatching { repository.disconnect(uid, profileId) }
-                    .onSuccess { connection = null; messageRes = R.string.monobank_disconnected }
-                    .onFailure { errorRes = errorText(it) }
-                busy = false
-            }
+            vm.disconnect()
         },
         onDismiss = { confirmDisconnect = false },
     )

@@ -804,4 +804,5 @@
     <string name="tx_details_comment">Коментар</string>
     <string name="tx_details_tags">Теги</string>
     <string name="tx_details_author">Додав(-ла)</string>
+    <string name="settings_language">Мова застосунку</string>
 </resources>

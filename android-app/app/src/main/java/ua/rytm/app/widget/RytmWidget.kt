@@ -69,6 +69,12 @@ class RytmWidget : GlanceAppWidget() {
         provideContent { WidgetContent(snapshot) }
     }
 
+    // Widget picker preview (Glance 1.2, Android 15+): sample numbers, not the
+    // user's, since the picker shows it before the widget is placed.
+    override suspend fun providePreview(context: Context, widgetCategory: Int) {
+        provideContent { WidgetContent(WidgetSnapshot(signedIn = true, masked = false, balanceUah = 12_450.0, nextShift = null, monthForecastUah = 18_300.0, salaryGoal = 20_000.0)) }
+    }
+
     companion object {
         suspend fun loadSnapshot(context: Context): WidgetSnapshot {
             val app = context.applicationContext as RytmApplication
@@ -76,6 +82,19 @@ class RytmWidget : GlanceAppWidget() {
             val masked = app.settingsStore.hideAmounts.first() || app.pinStore.hasPin(uid).first()
             val goal = app.settingsStore.salaryGoal(uid).first()
             return WidgetSnapshot.load(app.financeRepository, app.shiftsRepository, signedIn = true, masked = masked, salaryGoal = goal)
+        }
+
+        /**
+         * Publishes the picker preview once per app version (Android 15+; the
+         * system rate-limits these calls, so not on every start).
+         */
+        suspend fun publishPreviewOnce(context: Context) {
+            if (android.os.Build.VERSION.SDK_INT < 35) return
+            val prefs = context.getSharedPreferences("widget_preview", Context.MODE_PRIVATE)
+            val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode }.getOrDefault(0L)
+            if (prefs.getLong("published_version", -1L) == version) return
+            runCatching { GlanceAppWidgetManager(context).setWidgetPreviews(RytmWidgetReceiver::class) }
+                .onSuccess { prefs.edit().putLong("published_version", version).apply() }
         }
 
         /** Refreshes placed widgets; a no-op (no work) when none are on the home screen. */

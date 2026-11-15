@@ -287,7 +287,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
         )
         val securityKeywords = rememberSettingsKeywords(R.string.settings_security, R.string.pin_settings_title, R.string.settings_pin_subtitle)
         val notificationsKeywords = rememberSettingsKeywords(R.string.settings_notifications, R.string.settings_push, R.string.settings_push_subtitle, R.string.settings_notification_types, R.string.settings_notification_types_subtitle)
-        val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
+        val appearanceKeywords = rememberSettingsKeywords(R.string.settings_appearance, R.string.settings_language, R.string.settings_language_uk, R.string.settings_language_en, R.string.settings_theme, R.string.settings_theme_light, R.string.settings_theme_dark, R.string.settings_theme_system)
         val aboutKeywords = rememberSettingsKeywords(R.string.settings_about, R.string.settings_web, R.string.settings_web_subtitle, R.string.settings_terms_row, R.string.settings_terms_subtitle, R.string.settings_privacy_row, R.string.settings_privacy_subtitle, R.string.settings_about_summary)
         val financeKeywords = rememberSettingsKeywords(
             R.string.settings_finance, R.string.wallets_title, R.string.settings_wallets_subtitle,

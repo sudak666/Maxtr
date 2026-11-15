@@ -121,13 +121,13 @@ class PushRepository(private val firestore: FirebaseFirestore) {
     }
 
     suspend fun disable(accountUid: String, @Suppress("UNUSED_PARAMETER") dataOwnerUid: String = accountUid, @Suppress("UNUSED_PARAMETER") profileId: String = DEFAULT_PROFILE_ID) {
-        removeThisDevice(accountUid, runCatching { FirebaseMessaging.getInstance().token.await() }.getOrNull())
+        removeThisDevice(accountUid, ua.rytm.app.data.suspendRunCatching { FirebaseMessaging.getInstance().token.await() }.getOrNull())
     }
 
     /** Sign-out: stop this device's pushes. Best-effort and time-boxed: sign-out must work offline too. */
     suspend fun releaseOnSignOut(accountUid: String) {
         kotlinx.coroutines.withTimeoutOrNull(5_000) {
-            runCatching {
+            ua.rytm.app.data.suspendRunCatching {
                 val messaging = FirebaseMessaging.getInstance()
                 removeThisDevice(accountUid, messaging.token.await())
                 messaging.deleteToken().await()

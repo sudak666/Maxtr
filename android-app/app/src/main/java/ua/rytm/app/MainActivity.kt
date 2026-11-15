@@ -36,6 +36,7 @@ import ua.rytm.app.ui.screens.onboarding.OnboardingScreen
 import ua.rytm.app.ui.theme.RytmTheme
 import ua.rytm.app.ui.LocalHideAmounts
 import ua.rytm.app.ui.applyAppLanguage
+import ua.rytm.app.ui.systemAppLanguage
 import ua.rytm.app.ui.wrapContext
 import ua.rytm.app.ui.LocalReducedMotion
 import ua.rytm.app.ui.rememberReducedMotion
@@ -84,8 +85,15 @@ class MainActivity : FragmentActivity() {
                 }
             }
             LaunchedEffect(Unit) { app.settingsStore.language.collect { language = it } }
+            // Android 13+: the platform per-app locale (system Settings → App
+            // languages, or the in-app toggle, which writes it too) wins; the
+            // stored setting just follows it. Without one (first start, older
+            // Android) the stored setting is applied.
             LaunchedEffect(language) {
-                language?.let { if (applyAppLanguage(this@MainActivity, it)) recreate() }
+                val lang = language ?: return@LaunchedEffect
+                val system = systemAppLanguage(this@MainActivity)
+                if (system != null && system != lang) { app.settingsStore.setLanguage(system); return@LaunchedEffect }
+                if (applyAppLanguage(this@MainActivity, lang)) recreate()
             }
             RytmTheme(darkTheme = darkTheme) {
                 CompositionLocalProvider(LocalHideAmounts provides hideAmounts, LocalReducedMotion provides reducedMotion) {
@@ -211,7 +219,7 @@ class MainActivity : FragmentActivity() {
 
     private fun handleLaunchAction(intent: android.content.Intent?) {
         val app = application as RytmApplication
-        app.pendingPrefill.value = ua.rytm.app.bank.BankNotificationListener.prefillFrom(intent)
+        app.pendingPrefill.value = ua.rytm.app.bank.BankNotificationListener.trustedPrefillFrom(this, intent)
         intent?.getStringExtra(EXTRA_LAUNCH_ACTION)?.let { app.pendingLaunchAction.value = it }
     }
 

@@ -53,7 +53,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     // Preference writes run here, not in the screen's scope, so they outlive
     // a recreation (a language change recreates the Activity).
     fun setThemePreference(pref: ua.rytm.app.data.local.ThemePreference) { viewModelScope.launch { app.settingsStore.setThemePreference(pref) } }
-    fun setLanguage(language: String) { viewModelScope.launch { app.settingsStore.setLanguage(language) } }
+    fun setLanguage(language: String) {
+        // Android 13+: the platform per-app locale is the one source of truth
+        // (it is what system Settings → App languages shows); MainActivity
+        // copies it into the stored setting. Older versions: the stored setting.
+        ua.rytm.app.ui.setSystemAppLanguage(app, language)
+        viewModelScope.launch { app.settingsStore.setLanguage(language) }
+    }
     fun setHideAmounts(hidden: Boolean) { viewModelScope.launch { app.settingsStore.setHideAmounts(hidden) } }
     fun setFinancialMonthStart(uid: String, profileId: String, day: Int) {
         viewModelScope.launch { app.widgetSettingsSyncRepository.saveFinancialMonthStart(uid, profileId, day) }

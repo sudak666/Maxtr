@@ -1,6 +1,9 @@
 package ua.rytm.app.ui
 
 import android.app.Activity
+import android.app.LocaleManager
+import android.os.Build
+import android.os.LocaleList
 import android.content.Context
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
@@ -45,8 +48,15 @@ private const val KEY_CHOSEN_TAG = "chosen_tag"
  * cooperate — this wrapper is what guarantees the visible text either way.
  */
 fun wrapContext(base: Context): Context {
-    val tag = base.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_CHOSEN_TAG, null)
-        ?: return base
+    val prefs = base.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Android 13+: a language picked in system Settings → App languages is the
+    // platform's per-app locale; it wins over the in-app choice and is copied
+    // into it, so the two can't disagree (it used to be silently overridden).
+    val systemTag = platformAppTag(base)
+    if (systemTag != null && systemTag != prefs.getString(KEY_CHOSEN_TAG, null)) {
+        prefs.edit().putString(KEY_CHOSEN_TAG, systemTag).apply()
+    }
+    val tag = systemTag ?: prefs.getString(KEY_CHOSEN_TAG, null) ?: return base
     val locale = Locale.forLanguageTag(tag)
     Locale.setDefault(locale)
     val config = Configuration(base.resources.configuration)
@@ -69,6 +79,30 @@ fun applyAppLanguage(activity: Activity, language: String): Boolean {
     val prefs = activity.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE)
     if (prefs.getString(KEY_CHOSEN_TAG, null) == tag) return false
     prefs.edit().putString(KEY_CHOSEN_TAG, tag).apply()
-    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // The framework API directly (MainActivity is a FragmentActivity, and
+        // the AppCompat route never persisted it on the owner's Samsung), so
+        // system Settings → App languages shows the same choice.
+        activity.getSystemService(LocaleManager::class.java)?.applicationLocales = LocaleList.forLanguageTags(tag)
+    } else {
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+    }
     return true
+}
+
+/** In-app toggle on Android 13+: writes the platform per-app locale (the OS recreates the Activity). */
+fun setSystemAppLanguage(context: Context, language: String) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val tag = if (language == "en") "en" else "uk"
+    runCatching { context.getSystemService(LocaleManager::class.java)?.applicationLocales = LocaleList.forLanguageTags(tag) }
+}
+
+/** "uk"/"en" from the platform per-app locale (Android 13+), or null when none is set. */
+fun systemAppLanguage(context: Context): String? = platformAppTag(context)
+
+private fun platformAppTag(context: Context): String? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+    val locales = runCatching { context.getSystemService(LocaleManager::class.java)?.applicationLocales }.getOrNull()
+    if (locales == null || locales.isEmpty) return null
+    return if (locales[0].language == "en") "en" else "uk"
 }
