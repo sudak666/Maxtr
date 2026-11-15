@@ -46,12 +46,12 @@ const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 /** @typedef {{ok: boolean, invalid?: boolean}} PushResult */
 /** @typedef {(token: string, title: string, body: string, type: 'daily'|'budget'|'recurring'|'debt'|'weekly') => Promise<PushResult>} SendPushFn */
 
-/** @typedef {{token?: string, sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, profileState?: Record<string, ProfileState>}} TokenDocData */
+/** @typedef {{token?: string|null, tokens?: Record<string, {token?: string, updatedAt?: number}>, sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, profileState?: Record<string, ProfileState>}} TokenDocData */
 /**
  * @typedef {Object} TokenDocSnap
  * @property {string} id
  * @property {() => TokenDocData} data
- * @property {{delete: () => Promise<any>, set: (data: any, opts?: any) => Promise<any>}} ref
+ * @property {{delete: () => Promise<any>, set: (data: any, opts?: any) => Promise<any>, update: (data: any) => Promise<any>}} ref
  */
 
 const { toBase, zonedDateParts, todayStr, financialMonth, isOverBudget } = require('./pure');
@@ -418,8 +418,28 @@ function recentTransactions(db, path, now) {
 async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   const uid = tokenDoc.id;
   const data = tokenDoc.data();
-  const { token, sentDaily, sentBudget, sentRecurring, profileState } = data;
-  if (!token) return;
+  const { sentDaily, sentBudget, sentRecurring, profileState } = data;
+  // Every device of the account gets the push: `tokens` maps a per-install
+  // key to {token, updatedAt}; the legacy single `token` (older clients)
+  // counts as one more device unless the same token is already in the map.
+  const devices = deviceTokens(data);
+  if (!devices.length) return;
+  const token = devices[0].token;
+  /** @type {Set<string>} */
+  const deadKeys = new Set();
+  /** @type {SendPushFn} */
+  const sendToAll = async (_unused, title, body, type) => {
+    let ok = false;
+    for (const d of devices) {
+      if (deadKeys.has(d.key)) continue;
+      const r = await sendPushFn(d.token, title, body, type);
+      if (r.invalid) deadKeys.add(d.key);
+      else if (r.ok) ok = true;
+    }
+    // "invalid" only once no device is left, so the per-check dedup and the
+    // whole-doc delete below keep their old single-token meaning.
+    return { ok, invalid: devices.every((d) => deadKeys.has(d.key)) };
+  };
 
   // profiles_meta lists every profile on the account (including 'default');
   // accounts that never created extra profiles just have the one default
@@ -545,7 +565,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
     const body = dailyNeededProfileIds.length > 1 && names.every(Boolean)
       ? `Не забудь записати сьогоднішні операції: ${names.join(', ')}.`
       : 'Не забудь записати сьогоднішні операції.';
-    const res = await sendPushFn(token, 'Rytm', body, 'daily');
+    const res = await sendToAll(token, 'Rytm', body, 'daily');
     if (res.invalid) {
       tokenInvalid = true;
     } else if (res.ok) {
@@ -567,7 +587,7 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
       const prevState = prevStateFor(profileId);
 
       const result = await sweepProfile(
-        db, sendPushFn, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId], transactionsSnapByProfile[profileId],
+        db, sendToAll, uid, profileId, token, prevState, now, financeSnapByProfile[profileId], debtSnapByProfile[profileId], transactionsSnapByProfile[profileId],
         dailyNeededProfileIds.includes(profileId), // skipDaily — already covered by the consolidated push above
         dataOwnerByProfile[profileId],
       );
@@ -610,6 +630,34 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   if (anyChange) {
     await tokenDoc.ref.set({ profileState: nextProfileState }, { merge: true });
   }
+  if (deadKeys.size) {
+    // Some devices are gone (uninstalled, data cleared): forget only those.
+    // update() replaces the `tokens` map whole, so removed keys really go.
+    const tokens = Object.fromEntries(Object.entries(data.tokens || {}).filter(([k]) => !deadKeys.has(k)));
+    /** @type {Record<string, any>} */
+    const patch = { tokens };
+    if (deadKeys.has(LEGACY_KEY)) patch.token = null;
+    await tokenDoc.ref.update(patch);
+    logFn('dropped dead device tokens', { uid, count: deadKeys.size });
+  }
 }
 
-module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken, weeklySummaryBody, nextDebtDueDate };
+const LEGACY_KEY = '_legacy';
+
+/**
+ * @param {any} data push_tokens/{uid}
+ * @returns {{key: string, token: string}[]}
+ */
+function deviceTokens(data) {
+  /** @type {{key: string, token: string}[]} */
+  const out = [];
+  const map = data && typeof data.tokens === 'object' && data.tokens ? data.tokens : {};
+  for (const [key, v] of Object.entries(map)) {
+    const t = v && typeof v === 'object' ? /** @type {any} */ (v).token : null;
+    if (typeof t === 'string' && t && !out.some((d) => d.token === t)) out.push({ key, token: t });
+  }
+  if (typeof data?.token === 'string' && data.token && !out.some((d) => d.token === data.token)) out.push({ key: LEGACY_KEY, token: data.token });
+  return out;
+}
+
+module.exports = { DCOL, financeDocName, debtDocName, sweepProfile, sweepToken, weeklySummaryBody, nextDebtDueDate, deviceTokens };
