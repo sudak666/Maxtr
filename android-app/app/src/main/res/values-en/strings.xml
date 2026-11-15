@@ -781,4 +781,8 @@
     <string name="ai_summary_failed">Couldn’t prepare the summary. Check the connection and try again.</string>
     <string name="ai_summary_limit">Today’s AI summary limit is used up. Try again tomorrow.</string>
     <string name="pin_digits_entered">%1$d of %2$d digits entered</string>
+    <string name="auth_reauth_failed">Could not confirm the sign-in. Try again.</string>
+    <string name="auth_reauth_wrong_password">Wrong password</string>
+    <string name="auth_reauth_password_title">Confirm with your password</string>
+    <string name="auth_reauth_password_body">Deletion cannot be undone, so enter your account password once more.</string>
 </resources>

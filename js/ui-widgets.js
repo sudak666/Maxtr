@@ -452,12 +452,13 @@ function __closeDlg(val){
  * @property {string} [okText]
  * @property {string | null} [cancelText]
  * @property {boolean} [danger]
+ * @property {string} [inputType] e.g. "password"; default "text"
  */
 /**
  * @param {UiDialogOpts} opts
  * @returns {Promise<string | boolean | null>}
  */
-function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
+function uiDialog({title,message,input,defaultValue,okText,cancelText,danger,inputType}){
   return new Promise(resolve=>{
     AppState.__dlgResolve=resolve;
     /** @type {HTMLElement} */ (document.getElementById('ui-dlg-title')).textContent=title||'';
@@ -471,6 +472,8 @@ function uiDialog({title,message,input,defaultValue,okText,cancelText,danger}){
     cancel.textContent=cancelText||tr('common_cancel');
     cancel.style.display=(cancelText===null)?'none':'';
     if(input){
+      inp.type=inputType||'text';
+      inp.autocomplete=inputType==='password'?'current-password':'off';
       inp.style.display='block'; inp.value=defaultValue||'';
       setTimeout(()=>{inp.focus(); inp.select();},50);
     }else{
@@ -501,6 +504,15 @@ export const uiAlert = function(message,title){ return /** @type {Promise<boolea
  * @returns {Promise<string | null>}
  */
 export const uiPrompt = function(message,defaultValue,title){ return /** @type {Promise<string|null>} */ (uiDialog({title:title||'',message,input:true,defaultValue,okText:tr('common_done')})); };
+
+/**
+ * Password prompt (masked input), for re-authentication.
+ * @param {string} message
+ * @param {string} title
+ * @param {string} okText
+ * @returns {Promise<string | null>}
+ */
+export const uiPasswordPrompt = function(message,title,okText){ return /** @type {Promise<string|null>} */ (uiDialog({title,message,input:true,inputType:'password',okText,danger:true})); };
 
 // Adds a sliding "thumb" behind the active button of a fixed 2-3 option
 // segmented control (income/expense/transfer, auth login/register, the

@@ -791,4 +791,8 @@
     <string name="ai_summary_failed">Не вдалося підготувати підсумок. Перевір інтернет і спробуй ще раз.</string>
     <string name="ai_summary_limit">На сьогодні ліміт ШІ-підсумків вичерпано. Спробуй завтра.</string>
     <string name="pin_digits_entered">Введено %1$d з %2$d цифр</string>
+    <string name="auth_reauth_failed">Не вдалося підтвердити вхід. Спробуй ще раз.</string>
+    <string name="auth_reauth_wrong_password">Неправильний пароль</string>
+    <string name="auth_reauth_password_title">Підтверди паролем</string>
+    <string name="auth_reauth_password_body">Видалення не можна скасувати, тому введи пароль від акаунта ще раз.</string>
 </resources>

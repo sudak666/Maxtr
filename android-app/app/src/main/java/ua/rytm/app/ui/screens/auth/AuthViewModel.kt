@@ -230,13 +230,37 @@ class AuthViewModel : ViewModel() {
     // Auth user itself. Done client-side this missed most of that, failed for
     // any history over 500 transactions (one batch) and, for email accounts,
     // could never pass Firebase's requires-recent-login check.
-    fun deleteAccount(context: Context) {
+    /** Email/password accounts confirm deletion with their password; Google ones with the account picker. */
+    val needsPasswordToDelete: Boolean
+        get() = auth.currentUser?.providerData?.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } != true &&
+            auth.currentUser?.providerData?.any { it.providerId == com.google.firebase.auth.EmailAuthProvider.PROVIDER_ID } == true
+
+    fun deleteAccount(context: Context, password: String? = null) {
         val user = auth.currentUser ?: return
         if (isDeletingAccount) return
         isDeletingAccount = true
         val uid = user.uid
         val app = context.applicationContext as RytmApplication
         viewModelScope.launch {
+            // The server only deletes for a sign-in made in the last 5 minutes
+            // (functions/index.js `account`): re-authenticate, then refresh the
+            // ID token so it carries the new auth_time.
+            try {
+                val credential = if (!needsPasswordToDelete) fetchGoogleCredential(context)
+                else password?.takeIf { it.isNotEmpty() }?.let { com.google.firebase.auth.EmailAuthProvider.getCredential(user.email.orEmpty(), it) }
+                if (credential == null) { isDeletingAccount = false; return@launch }
+                user.reauthenticate(credential).await()
+                user.getIdToken(true).await()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
+                isDeletingAccount = false
+                return@launch
+            } catch (e: Exception) {
+                errorMessageRes = if (e is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) R.string.auth_reauth_wrong_password else R.string.auth_reauth_failed
+                isDeletingAccount = false
+                return@launch
+            }
             try {
                 app.profileSyncCoordinator.stopRealtimeSync()
                 com.google.firebase.functions.FirebaseFunctions.getInstance()
