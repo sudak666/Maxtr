@@ -6,8 +6,8 @@
 import { AppState, financialMonth, inStats, nextDebtDueDate } from './state.js';
 import { isOverBudget } from './tx-validation.js';
 import { scheduleSave } from './color-picker.js';
-import { VAPID_KEY, currencySymbol, db, deleteDoc, deleteToken, doc, fbApp, getDoc, getMessaging, getToken, isMessagingSupported, onMessage, setDoc, toBase, walletCurrency } from './core.js';
-import { csSync, showToast, uiConfirm } from './ui-widgets.js';
+import { VAPID_KEY, currencySymbol, db, deleteToken, doc, fbApp, getDoc, getMessaging, getToken, isMessagingSupported, onMessage, setDoc, toBase, updateDoc, walletCurrency } from './core.js';
+import { csSync, showToast } from './ui-widgets.js';
 
 /** @returns {void} */
 export function loadNotifSettings(){
@@ -56,8 +56,18 @@ function showLocalNotification(title, body){
 
 /** @returns {string | null} */
 export function pushEnabledKey(){ return AppState.currentUser ? `mx_pushEnabled_${AppState.currentUser.uid}` : null; }
-/** This browser's own FCM token, so disabling never deletes another device's. */
+/** This browser's own FCM token (legacy single-token cleanup on disable). */
 function pushTokenKey(){ return AppState.currentUser ? `mx_pushToken_${AppState.currentUser.uid}` : null; }
+/** Stable random id of this browser install, the key of its push_tokens.tokens entry. */
+function pushDeviceKey(){
+  let k=null;
+  try{ k=localStorage.getItem('mxPushDevice'); }catch(e){}
+  if(!k){
+    k='w_'+Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,'0')).join('');
+    try{ localStorage.setItem('mxPushDevice', k); }catch(e){}
+  }
+  return k;
+}
 
 /** @returns {Promise<any>} */
 export async function getMessagingInstance(){
@@ -87,14 +97,11 @@ async function enablePushNotifications(){
     const reg=await navigator.serviceWorker.register('sw.js');
     const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
     if(!token) throw new Error('no-token');
-    // push_tokens/{uid} holds ONE token per account (the sweep sends to it),
-    // shared with the Android app. Taking it over silently stopped the
-    // phone's pushes, so ask first.
-    const ref=doc(db,'push_tokens',AppState.currentUser.uid);
-    const existing=await getDoc(ref);
-    const other=existing.exists() ? existing.data()?.token : null;
-    if(other && other!==token && !(await uiConfirm(tr('push_move_confirm'),{title:tr('push_move_title'),okText:tr('push_move_ok')}))){ renderNotifUI(); return; }
-    await setDoc(ref, {token, updatedAt:Date.now()}, {merge:true});
+    // One entry per device (push_tokens/{uid}.tokens.<device key>); the
+    // sweep sends to every entry, so this browser and the phone both get
+    // pushes. merge = deep merge: only this device's entry changes.
+    const now=Date.now();
+    await setDoc(doc(db,'push_tokens',AppState.currentUser.uid), {tokens:{[pushDeviceKey()]:{token, updatedAt:now}}, updatedAt:now}, {merge:true});
     const k=pushEnabledKey(); if(k) localStorage.setItem(k,'1');
     const tk=pushTokenKey(); if(tk) localStorage.setItem(tk,token);
     showToast(tr('toast_push_on'),'check');
@@ -122,18 +129,24 @@ async function disablePushNotifications(){
       await deleteToken(messaging);
     }
   }catch(err){ console.warn('deleteToken failed', err); }
-  // Only remove the account's token doc if it still points at THIS browser:
-  // the Android app may have taken it over since (and its dedup state lives
-  // in the same doc).
+  // Remove only this browser's entry (and the legacy single token if it was
+  // ours); other devices keep theirs, and so does the shared dedup state.
   const tk=pushTokenKey();
   const mine=tk ? localStorage.getItem(tk) : null;
   try{
-    if(AppState.currentUser && mine){
+    if(AppState.currentUser){
       const ref=doc(db,'push_tokens',AppState.currentUser.uid);
       const snap=await getDoc(ref);
-      if(snap.exists() && snap.data()?.token===mine) await deleteDoc(ref);
+      if(snap.exists()){
+        const data=snap.data()||{};
+        const tokens={...(data.tokens||{})}; delete tokens[pushDeviceKey()];
+        /** @type {Record<string, any>} */
+        const patch={tokens, updatedAt:Date.now()};
+        if(mine && data.token===mine) patch.token=null;
+        await updateDoc(ref, patch);
+      }
     }
-  }catch(err){ console.warn('deleting push token doc failed', err); }
+  }catch(err){ console.warn('removing this device from push_tokens failed', err); }
   const k=pushEnabledKey(); if(k) localStorage.removeItem(k);
   if(tk) localStorage.removeItem(tk);
   showToast(tr('toast_push_off'),'xmark');

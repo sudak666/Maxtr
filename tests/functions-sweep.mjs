@@ -99,6 +99,11 @@ function fakeTokenDoc(uid, data) {
         store.set(`push_tokens/${uid}`, { ...prev, ...newData });
         this._written = { ...prev, ...newData };
       },
+      async update(patch) {
+        const prev = store.get(`push_tokens/${uid}`) || {};
+        store.set(`push_tokens/${uid}`, { ...prev, ...patch });
+        this._updated = { ...(this._updated || {}), ...patch };
+      },
     },
   };
 }
@@ -565,6 +570,33 @@ await test('sweepToken: a shared entry for a profile the holder is NOT a member 
   const sent = [];
   await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
   assert.equal(sent.length, 0, 'nothing from the victim profile may reach a non-member');
+});
+
+await test('sweepToken: every device in `tokens` (plus a legacy token) gets the push; a dead one is dropped', async () => {
+  const uid = 'multi1';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(uid, { token: 'tokPhoneOld', tokens: { laptop: { token: 'tokLaptop' }, phone: { token: 'tokPhoneOld' }, gone: { token: 'tokDead' } } });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => {
+    sent.push(token);
+    return token === 'tokDead' ? { ok: false, invalid: true } : { ok: true, invalid: false };
+  }, tokenDoc, NOW);
+  assert.deepEqual(sent.sort(), ['tokDead', 'tokLaptop', 'tokPhoneOld'], 'one push per distinct device token, legacy duplicate not sent twice');
+  assert.ok(!tokenDoc.ref._deleted, 'the doc survives while some device is alive');
+  assert.deepEqual(Object.keys(tokenDoc.ref._updated.tokens).sort(), ['laptop', 'phone'], 'only the dead device is dropped');
+  assert.equal(tokenDoc.ref._written.profileState.default.sentDaily, '2026-07-15', 'dedup still recorded once');
+});
+
+await test('sweepToken: deviceTokens ignores junk entries', async () => {
+  const { deviceTokens } = await import('../functions/lib/sweep.js').then((m) => m.default || m);
+  assert.deepEqual(deviceTokens({ tokens: { a: { token: '' }, b: null, c: { token: 'x' } }, token: '' }), [{ key: 'c', token: 'x' }]);
 });
 
 // Real report this pair of tests was added for: an account with two
