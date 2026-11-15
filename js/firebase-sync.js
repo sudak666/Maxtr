@@ -327,6 +327,29 @@ export async function setMemberRole(profileId, memberUid, role){
   await updateDoc(ref, {roles, updatedAt:Date.now()});
 }
 
+/**
+ * Owner takes a member off a shared profile (same as Android's removeMember).
+ * @param {string} profileId
+ * @param {string} memberUid
+ * @returns {Promise<void>}
+ */
+export async function removeSharedMember(profileId, memberUid){
+  if(!AppState.currentUser) throw new Error('not-authenticated');
+  if(AppState.activeProfileOwnerUid) throw new Error('only the profile owner can remove members');
+  if(memberUid===AppState.currentUser.uid) return;
+  const name = profileId && profileId!=='default' ? `shared_members@${profileId}` : 'shared_members';
+  const ref=doc(db,'users',AppState.currentUser.uid,DCOL,name);
+  const snap=await getDoc(ref);
+  if(!snap.exists()) return;
+  const data=snap.data();
+  const members=(data.members||[]).filter((/** @type {string} */ m)=>m!==memberUid);
+  const roles={...(data.roles||{})}; delete roles[memberUid];
+  const now=Date.now();
+  // firestore.rules: an invite redeemed before this moment no longer lets them back in.
+  const removedAt={...(data.removedAt||{}), [memberUid]: now};
+  await updateDoc(ref, {members, roles, removedAt, updatedAt:now});
+}
+
 // ── TRANSACTIONS SUBCOLLECTION ─────────────────────────────────
 // users/{uid}/max_tracker/{financeDocName}/transactions/{txId} — see
 // MIGRATION_PLAN_transactions.md and CLAUDE.md's Firebase data model

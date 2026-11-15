@@ -795,4 +795,13 @@
     <string name="auth_reauth_wrong_password">Неправильний пароль</string>
     <string name="auth_reauth_password_title">Підтверди паролем</string>
     <string name="auth_reauth_password_body">Видалення не можна скасувати, тому введи пароль від акаунта ще раз.</string>
+    <string name="profile_member_remove">Прибрати учасника</string>
+    <string name="profile_member_remove_action">Прибрати</string>
+    <string name="profile_member_remove_body">Учасник одразу втратить доступ до цього профілю. Повернутися він зможе лише за новим кодом запрошення.</string>
+    <string name="profile_member_remove_failed">Не вдалося прибрати учасника</string>
+    <string name="tx_details_category">Категорія</string>
+    <string name="tx_details_wallet">Гаманець</string>
+    <string name="tx_details_comment">Коментар</string>
+    <string name="tx_details_tags">Теги</string>
+    <string name="tx_details_author">Додав(-ла)</string>
 </resources>

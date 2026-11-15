@@ -296,6 +296,11 @@ await check('ex-viewer can rejoin with their still-valid invite', updateDoc(doc(
 await check('rejoined ex-viewer is still a viewer (cannot write finance)', setDoc(doc(asC, financeDocPathY), { wallets: [{ id: 'w3' }], updatedAt: Date.now() }), 'deny');
 await check('rejoined viewer cannot strip their own role while leaving', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), roles: {}, updatedAt: Date.now() }), 'deny');
 await check('rejoined viewer can leave again', updateDoc(doc(asC, sharedMembersPathY), { members: arrayRemove(uidC), updatedAt: Date.now() }), 'allow');
+// Owner removal (BE-02): the removed member's already-redeemed invite stops being a way back in.
+await check('ex-viewer rejoins once more (invite still valid)', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'allow');
+await check('owner can remove the member and stamp removedAt', updateDoc(doc(asA, sharedMembersPathY), { members: arrayRemove(uidC), removedAt: { [uidC]: Date.now() }, updatedAt: Date.now() }), 'allow');
+await check('removed member can no longer read the shared finance doc', getDoc(doc(asC, financeDocPathY)), 'deny');
+await check('removed member cannot rejoin with the invite they redeemed before removal', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'deny');
 await testEnv.withSecurityRulesDisabled(ctx => updateDoc(doc(ctx.firestore(), `profile_invites/${CODE_Y}`), { expiresAt: Date.now() - 1000 }));
 await check('an expired (already-redeemed) invite is no re-entry ticket', updateDoc(doc(asC, sharedMembersPathY), { members: arrayUnion(uidC), updatedAt: Date.now(), lastJoinInviteCode: CODE_Y }), 'deny');
 

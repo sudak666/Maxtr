@@ -570,6 +570,8 @@ internal fun TransactionRow(
     canEdit: Boolean,
     resetGeneration: Int,
     onDelete: () -> Boolean,
+    /** Tap opens the row even without edit rights (a viewer reads it). */
+    canOpen: Boolean = canEdit,
     onClick: () -> Unit,
     onSwipeOpenChange: (Boolean) -> Unit = {},
     /** Wallet balance after this operation, shown small under the amount; null = off. */
@@ -703,7 +705,7 @@ internal fun TransactionRow(
                 .then(if (rippleClip) Modifier.clip(shape) else Modifier)
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
                 .clickable(
-                    enabled = canEdit,
+                    enabled = canOpen,
                     interactionSource = interaction,
                     indication = androidx.compose.material3.ripple(),
                     role = Role.Button,
@@ -813,3 +815,33 @@ internal fun TransactionRow(
 
 /** How long a row keeps its rounded clip after a press ends, so the fading ripple stays inside the card. */
 private const val RippleFadeClipMillis = 450L
+
+/** Read-only view of one operation, for a viewer of a shared profile. */
+@Composable
+internal fun TransactionDetailsDialog(tx: Transaction, walletName: String?, tagNames: List<String>, onDismiss: () -> Unit) {
+    val sign = when (tx.type) { TxType.INCOME -> "+"; TxType.EXPENSE -> "−"; TxType.TRANSFER -> "" }
+    val locale = LocalConfiguration.current.locales[0]
+    val dateText = remember(tx.date, locale) {
+        runCatching { java.time.LocalDate.parse(tx.date).format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", locale)) }.getOrDefault(tx.date)
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(maskedAmount("$sign${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}"), style = MaterialTheme.typography.titleLarge.tabularNums()) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+                @Composable fun line(label: Int, value: String?) {
+                    if (value.isNullOrBlank()) return
+                    Text(stringResource(label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(value, style = MaterialTheme.typography.bodyMedium)
+                }
+                line(R.string.tx_details_category, listOfNotNull(ua.rytm.app.ui.localizedDomainText(tx.category).takeIf { tx.type != TxType.TRANSFER }, tx.subcategory).joinToString(" › "))
+                line(R.string.tx_details_wallet, walletName)
+                line(R.string.date_label, dateText)
+                line(R.string.tx_details_comment, tx.comment)
+                line(R.string.tx_details_tags, tagNames.joinToString(", ").ifEmpty { null })
+                line(R.string.tx_details_author, tx.createdByName)
+            }
+        },
+        confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
+    )
+}

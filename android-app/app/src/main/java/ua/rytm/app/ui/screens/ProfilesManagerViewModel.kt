@@ -337,6 +337,20 @@ class ProfilesManagerViewModel(
 
     // Mirrors js/color-picker.js's toggleMemberRoleUI(): flips
     // editor<->viewer, same as the PWA offers no third state.
+    fun removeMember(memberUid: String) {
+        val profile = managingMembersFor ?: return
+        viewModelScope.launch {
+            try {
+                profilesRepository.removeMember(uid, profile.id, memberUid)
+                reloadMembers()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessageRes = R.string.profile_member_remove_failed
+            }
+        }
+    }
+
     fun toggleMemberRole(memberUid: String, currentRole: String) {
         val profile = managingMembersFor ?: return
         val nextRole = if (currentRole == "viewer") "editor" else "viewer"

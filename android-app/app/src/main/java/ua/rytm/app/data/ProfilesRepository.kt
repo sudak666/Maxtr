@@ -291,4 +291,22 @@ class ProfilesRepository(private val firestore: FirebaseFirestore) {
         val roles = existingRoles + (memberUid to role)
         ref.update(mapOf("roles" to roles, "updatedAt" to System.currentTimeMillis())).await()
     }
+
+    // Owner takes a member off a shared profile. Their own profiles_meta still
+    // lists it until they leave or reopen it, but the rules stop every read
+    // and write at once, and the push sweep checks membership (BE-01).
+    suspend fun removeMember(ownerUid: String, profileId: String, memberUid: String) {
+        if (memberUid == ownerUid) return
+        val ref = sharedMembersDocRef(ownerUid, profileId)
+        val snap = ref.get().await()
+        @Suppress("UNCHECKED_CAST")
+        val members = ((snap.get("members") as? List<String>) ?: emptyList()).filter { it != memberUid }
+        @Suppress("UNCHECKED_CAST")
+        val roles = ((snap.get("roles") as? Map<String, String>) ?: emptyMap()) - memberUid
+        val now = System.currentTimeMillis()
+        // firestore.rules: an invite redeemed before this moment no longer lets them back in.
+        @Suppress("UNCHECKED_CAST")
+        val removedAt = ((snap.get("removedAt") as? Map<String, Long>) ?: emptyMap()) + (memberUid to now)
+        ref.update(mapOf("members" to members, "roles" to roles, "removedAt" to removedAt, "updatedAt" to now)).await()
+    }
 }

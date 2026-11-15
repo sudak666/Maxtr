@@ -78,7 +78,8 @@ val Typography = Typography(
     displaySmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto), // --text-lg
     headlineLarge = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto),
     headlineMedium = TextStyle(fontFamily = Inter, fontWeight = WeightDisplay, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.2).sp, hyphens = Hyphens.Auto),
-    headlineSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 20.sp, lineHeight = 26.sp, letterSpacing = 0.sp, hyphens = Hyphens.Auto),
+    // 22sp, not 20: headlineSmall was smaller than titleLarge (22sp), so the scale inverted.
+    headlineSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp, hyphens = Hyphens.Auto),
     titleLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp, hyphens = Hyphens.Auto),
     titleMedium = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto), // --text-md
     titleSmall = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto), // --text-base
