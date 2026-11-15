@@ -267,6 +267,7 @@ fun FinanceScreen(
     var toolsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var budgetsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var walletOrderFocus by rememberSaveable { mutableStateOf<String?>(null) }
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
     // The floating "Згорнути список" FAB exists so a user who scrolled deep
@@ -374,7 +375,7 @@ fun FinanceScreen(
                     viewModel.toggleWalletFilter(id)
                     // Selecting brings the filtered history into view; clearing stays put.
                     if (viewModel.historyFilter.walletId == id) scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
-                })
+                }, onWalletLongClick = if (canEdit && viewModel.wallets.size > 1) { id -> walletOrderFocus = id } else null)
             }
             item {
                 QuickActionsRow(
@@ -522,6 +523,19 @@ fun FinanceScreen(
     }
     if (budgetsSheetOpen && accountUid != null) {
         BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: accountUid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })
+    }
+    walletOrderFocus?.let { focus ->
+        if (accountUid != null) {
+            WalletOrderSheet(
+                repository = app.financeRepository,
+                syncRepository = app.financeSyncRepository,
+                recurringSyncRepository = app.recurringSyncRepository,
+                uid = activeProfileOwnerUid ?: accountUid,
+                profileId = activeProfileId,
+                focusId = focus,
+                onDismiss = { walletOrderFocus = null },
+            )
+        }
     }
     if (goalsSheetOpen && accountUid != null) {
         GoalsManagerSheet(

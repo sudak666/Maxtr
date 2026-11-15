@@ -78,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.graphicsLayer
@@ -148,7 +149,7 @@ import ua.rytm.app.ui.theme.tabularNums
 // Building blocks of FinanceScreen, split out so the screen file holds only the screen itself.
 
 @Composable
-internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Unit = {}) {
+internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Unit = {}, onWalletLongClick: ((String) -> Unit)? = null) {
     // Design pass 2026-10-20: the hero holds one number and one line. It used
     // to stack balance, month net, outlook, contributions, two tinted stat
     // cards and the wallet chips inside one gradient card with a purple glow
@@ -250,7 +251,12 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
             horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
         ) {
             items(vm.wallets, key = { it.id }) { wallet ->
-                WalletChip(wallet = wallet, balance = vm.walletBalance(wallet.id), selected = vm.historyFilter.walletId == wallet.id) { onWalletClick(wallet.id) }
+                WalletChip(
+                    wallet = wallet,
+                    balance = vm.walletBalance(wallet.id),
+                    selected = vm.historyFilter.walletId == wallet.id,
+                    onLongClick = onWalletLongClick?.let { cb -> { cb(wallet.id) } },
+                ) { onWalletClick(wallet.id) }
             }
         }
 
@@ -309,15 +315,24 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
 }
 
 @Composable
-internal fun WalletChip(wallet: Wallet, balance: Double, selected: Boolean = false, onClick: () -> Unit = {}) {
+internal fun WalletChip(wallet: Wallet, balance: Double, selected: Boolean = false, onLongClick: (() -> Unit)? = null, onClick: () -> Unit = {}) {
     // A tap shows that wallet's operations, like a card in a bank app
     // (owner, 2026-11-03); the selected chip is outlined in the wallet colour.
+    // A long press opens the wallet order sheet (2026-11-15), only for editors.
+    val shape = RoundedCornerShape(RytmRadii.Pill)
+    val haptics = ua.rytm.app.ui.components.rememberRytmHaptics()
     Card(
-        onClick = onClick,
-        shape = RoundedCornerShape(RytmRadii.Pill),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = if (selected) Color(wallet.colorHex).copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceContainerHighest),
         border = if (selected) androidx.compose.foundation.BorderStroke(1.5.dp, Color(wallet.colorHex)) else null,
-        modifier = Modifier.semantics { this.selected = selected },
+        modifier = Modifier
+            .semantics { this.selected = selected }
+            .clip(shape)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick?.let { cb -> { haptics.confirm(); cb() } },
+                onLongClickLabel = if (onLongClick != null) stringResource(R.string.wallet_order_open) else null,
+            ),
     ) {
         Row(Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             // Solid color dot for the wallet, matching .wallet-chip-dot.
