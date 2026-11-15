@@ -599,6 +599,23 @@ await test('sweepToken: deviceTokens ignores junk entries', async () => {
   assert.deepEqual(deviceTokens({ tokens: { a: { token: '' }, b: null, c: { token: 'x' } }, token: '' }), [{ key: 'c', token: 'x' }]);
 });
 
+await test('sweepToken: no transaction query for a profile with every transaction-based check off', async () => {
+  const uid = 'quiet1';
+  const docs = new Map([
+    [`push_tokens/${uid}`, undefined],
+    [`users/${uid}/max_tracker/finance`, {
+      notifSettings: { enabled: false, budgetAlerts: false, weeklySummary: false, recurringAlerts: true, timeZone: 'UTC' },
+      data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+  ]);
+  const db = fakeDb(docs);
+  let queries = 0;
+  const realCollection = db.collection.bind(db);
+  db.collection = (path) => { queries++; return realCollection(path); };
+  await sweepToken(db, async () => ({ ok: true, invalid: false }), fakeTokenDoc(uid, { token: 'tokQuiet' }), NOW);
+  assert.equal(queries, 0, 'transactions are not read when no check needs them');
+});
+
 // Real report this pair of tests was added for: an account with two
 // profiles enabled on the same device got two literally-identical "Не
 // забудь записати сьогоднішні операції" push notifications at once — the

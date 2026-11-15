@@ -6,7 +6,10 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import android.os.SystemClock
 
-internal const val TARGET_PACKAGE = "ua.rytm.app"
+// -e targetPackage ua.rytm.app.qa runs the same journeys against the QA
+// install (see baselineprofile/README.md: recording on a signed-in QA build).
+internal val TARGET_PACKAGE: String =
+    androidx.test.platform.app.InstrumentationRegistry.getArguments().getString("targetPackage") ?: "ua.rytm.app"
 
 internal fun MacrobenchmarkScope.startRytm(device: UiDevice) {
     pressHome()

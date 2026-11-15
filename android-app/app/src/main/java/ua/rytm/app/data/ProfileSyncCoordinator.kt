@@ -245,7 +245,7 @@ class ProfileSyncCoordinator(private val app: RytmApplication) {
         // A profile nobody has opened yet has no finance doc; without a seed the
         // sync below pushed an empty wallet list, leaving a profile (seen live: a
         // fresh shared one) where nothing could be added — no wallet to pick.
-        val neverOpened = runCatching {
+        val neverOpened = ua.rytm.app.data.suspendRunCatching {
             FirebaseFirestore.getInstance().collection("users").document(ownerUid).collection("max_tracker")
                 .document(profileDocName("finance", newProfileId))
                 .get(com.google.firebase.firestore.Source.SERVER).await()

@@ -98,15 +98,18 @@ async function sendPush(token, title, body, type) {
 // Firestore/FCM once the account count grows.
 const SWEEP_CONCURRENCY = 25;
 
-exports.notificationSweep = onSchedule('every 60 minutes', async () => {
+exports.notificationSweep = onSchedule({ schedule: 'every 60 minutes', timeoutSeconds: 540 }, async () => {
   const tokensSnap = await db.collection('push_tokens').get();
   if (tokensSnap.empty) return;
 
   const now = new Date();
-  const results = await mapWithConcurrency(tokensSnap.docs, SWEEP_CONCURRENCY, (tokenDoc) => sweepToken(db, sendPush, tokenDoc, now, (msg, meta) => logger.info(msg, meta)));
+  // Shuffled: if a run ever hits its timeout, the same accounts at the end of
+  // the list aren't the ones skipped every hour.
+  const docs = [...tokensSnap.docs].sort(() => Math.random() - 0.5);
+  const results = await mapWithConcurrency(docs, SWEEP_CONCURRENCY, (tokenDoc) => sweepToken(db, sendPush, tokenDoc, now, (msg, meta) => logger.info(msg, meta)));
   results.forEach((r, i) => {
     if (r.status === 'rejected') {
-      logger.error('sweepToken failed', { uid: tokensSnap.docs[i].id, error: r.reason?.message || String(r.reason) });
+      logger.error('sweepToken failed', { uid: docs[i].id, error: r.reason?.message || String(r.reason) });
     }
   });
 });

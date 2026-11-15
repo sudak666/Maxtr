@@ -100,6 +100,12 @@ android {
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
             matchingFallbacks += listOf("release")
+            // -Prytm.qaNoMinify: a non-minified QA install for recording the
+            // Baseline Profile (real class names; R8 maps them into release).
+            if (project.hasProperty("rytm.qaNoMinify")) {
+                isMinifyEnabled = false
+                isShrinkResources = false
+            }
         }
     }
 

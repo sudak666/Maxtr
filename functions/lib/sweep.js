@@ -395,6 +395,16 @@ async function sweepProfile(db, sendPushFn, uid, profileId, token, prevState, no
 // to UTC (best-effort, not to-the-minute precise) until they next touch
 // their notification settings, at which point the client backfills it.
 /**
+ * Whether any check that reads transactions is on for this profile.
+ * @param {FinanceDocSnap|null|undefined} financeSnap
+ * @returns {boolean}
+ */
+function needsTransactions(financeSnap) {
+  const notif = financeSnap && financeSnap.exists ? (financeSnap.data()?.notifSettings || {}) : {};
+  return !!(notif.enabled || notif.budgetAlerts || notif.weeklySummary);
+}
+
+/**
  * The sweep only ever looks at today's and this month's transactions (daily
  * reminder, budget totals), but read the WHOLE subcollection of every
  * profile every hour — reads grew with each user's entire history. Bounded
@@ -452,12 +462,17 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // invocation can get through before its own execution timeout as the
   // user base grows (each doc read here was previously a fully sequential
   // round trip, one profile at a time).
-  const [metaSnap, defaultFinanceSnap, defaultDebtSnap, defaultTransactionsSnap] = await Promise.all([
+  const [metaSnap, defaultFinanceSnap, defaultDebtSnap] = await Promise.all([
     db.doc(`users/${uid}/${DCOL}/profiles_meta`).get(),
     db.doc(`users/${uid}/${DCOL}/${financeDocName('default')}`).get(),
     db.doc(`users/${uid}/${DCOL}/${debtDocName('default')}`).get(),
-    recentTransactions(db, `users/${uid}/${DCOL}/${financeDocName('default')}/transactions`, now),
   ]);
+  // The transaction query is the expensive read (a month and a half of
+  // operations, every hour, every device): skip it for a profile whose
+  // checks don't use transactions (daily reminder, budgets, weekly summary).
+  const defaultTransactionsSnap = needsTransactions(defaultFinanceSnap)
+    ? await recentTransactions(db, `users/${uid}/${DCOL}/${financeDocName('default')}/transactions`, now)
+    : null;
   // Keep the full profiles_meta entries, not just ids — a shared-profile
   // entry (kind:'shared', ownerUid: <the sharing account's uid>) needs its
   // data read from *that* uid's tree, not this token holder's own (see
@@ -501,11 +516,13 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // stop the remaining profiles, but there's no reason the reads
   // themselves can't all be in flight together first.
   const otherProfileIds = profileIds.filter((id) => id !== 'default');
-  const [otherFinanceSnaps, otherDebtSnaps, otherTransactionsSnaps] = await Promise.all([
+  const [otherFinanceSnaps, otherDebtSnaps] = await Promise.all([
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}`).get())),
     Promise.all(otherProfileIds.map((id) => db.doc(`users/${dataOwnerByProfile[id]}/${DCOL}/${debtDocName(id)}`).get())),
-    Promise.all(otherProfileIds.map((id) => recentTransactions(db, `users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`, now))),
   ]);
+  const otherTransactionsSnaps = await Promise.all(otherProfileIds.map((id, i) => (needsTransactions(otherFinanceSnaps[i])
+    ? recentTransactions(db, `users/${dataOwnerByProfile[id]}/${DCOL}/${financeDocName(id)}/transactions`, now)
+    : Promise.resolve(null))));
   /** @type {Record<string, FinanceDocSnap>} */
   const financeSnapByProfile = { default: defaultFinanceSnap };
   /** @type {Record<string, DebtDocSnap>} */

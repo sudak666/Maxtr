@@ -794,4 +794,5 @@
     <string name="tx_details_comment">Comment</string>
     <string name="tx_details_tags">Tags</string>
     <string name="tx_details_author">Added by</string>
+    <string name="settings_language">App language</string>
 </resources>

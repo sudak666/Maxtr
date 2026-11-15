@@ -61,7 +61,7 @@ class MonobankRepository(
         val meta = parseConnection(map) ?: return null
         val legacyToken = (map["token"] as? String)?.takeIf { it.isNotBlank() }
         if (auth.currentUser?.uid != uid) return meta.copy(token = "")
-        val secret = runCatching { secretRef(uid, profileId).get().await().getString("token") }.getOrNull()
+        val secret = ua.rytm.app.data.suspendRunCatching { secretRef(uid, profileId).get().await().getString("token") }.getOrNull()
         if (!secret.isNullOrBlank()) {
             if (legacyToken != null) stripLegacyToken(uid, profileId)
             return meta.copy(token = secret)
@@ -75,7 +75,7 @@ class MonobankRepository(
     }
 
     private suspend fun stripLegacyToken(uid: String, profileId: String) {
-        runCatching {
+        ua.rytm.app.data.suspendRunCatching {
             financeRef(uid, profileId).update(mapOf("integrations.monobank.token" to FieldValue.delete(), "updatedAt" to System.currentTimeMillis())).await()
         }
     }
@@ -113,7 +113,7 @@ class MonobankRepository(
     }
 
     suspend fun disconnect(uid: String, profileId: String) {
-        runCatching { secretRef(uid, profileId).delete().await() }
+        ua.rytm.app.data.suspendRunCatching { secretRef(uid, profileId).delete().await() }
         financeRef(uid, profileId).set(
             mapOf("integrations" to mapOf("monobank" to null), "updatedAt" to System.currentTimeMillis()),
             SetOptions.merge(),

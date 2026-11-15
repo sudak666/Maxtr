@@ -97,6 +97,29 @@ class BankNotificationListener : NotificationListenerService() {
         fun isEnabled(context: Context): Boolean =
             NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
 
+        private const val EXTRA_PREFILL_TOKEN = "ua.rytm.app.PREFILL_TOKEN"
+
+        /**
+         * A random per-install secret only this app's own PendingIntents carry.
+         * MainActivity is exported (it is the launcher), so any other app could
+         * otherwise open the form pre-filled with an amount and comment of its
+         * choosing; saving still needed the user's tap, but it shouldn't be possible.
+         */
+        private fun prefillToken(context: Context): String {
+            val prefs = context.getSharedPreferences("bank_prefill", Context.MODE_PRIVATE)
+            prefs.getString("token", null)?.let { return it }
+            val token = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString("token", token).apply()
+            return token
+        }
+
+        /** Prefill for MainActivity: only from an intent this app built itself. */
+        fun trustedPrefillFrom(context: Context, intent: Intent?): TxPrefill? {
+            val token = intent?.getStringExtra(EXTRA_PREFILL_TOKEN) ?: return null
+            if (token != prefillToken(context)) return null
+            return prefillFrom(intent)
+        }
+
         fun prefillFrom(intent: Intent?): TxPrefill? {
             val amount = intent?.getDoubleExtra(EXTRA_PREFILL_AMOUNT, -1.0)?.takeIf { it > 0 } ?: return null
             return TxPrefill(
@@ -116,6 +139,7 @@ class BankNotificationListener : NotificationListenerService() {
         fun formIntent(context: Context, extras: Intent): Intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             extras.extras?.let { putExtras(it) }
+            putExtra(EXTRA_PREFILL_TOKEN, prefillToken(context))
             putExtra(MainActivity.EXTRA_LAUNCH_ACTION, MainActivity.ACTION_NEW_TRANSACTION)
             removeExtra(BankQuickSaveReceiver.EXTRA_CATEGORY)
             removeExtra(BankQuickSaveReceiver.EXTRA_NOTIFICATION_ID)

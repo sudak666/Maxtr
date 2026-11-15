@@ -14,6 +14,7 @@ import ua.rytm.app.data.AutoRulesSyncRepository
 import ua.rytm.app.data.CategoriesSyncRepository
 import ua.rytm.app.data.CurrencyRatesSyncRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import ua.rytm.app.data.WidgetSettingsSyncRepository
@@ -96,6 +97,7 @@ class RytmApplication : Application() {
         // Each sign-in (and sign-out) asks again: Premium belongs to the account, not the device.
         auth.distinctUntilChanged().onEach { runCatching { premiumRepository.refresh() } }.launchIn(appScope)
         settingsStore.financialMonthStart.onEach { ua.rytm.app.data.FinancialMonth.startDay = it }.launchIn(appScope)
+        appScope.launch(Dispatchers.IO) { runCatching { ua.rytm.app.widget.RytmWidget.publishPreviewOnce(this@RytmApplication) } }
     }
 
     val database: RytmDatabase by lazy {
