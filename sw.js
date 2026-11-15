@@ -17,8 +17,8 @@
 // costs background push, never the core offline-caching behavior.
 let messaging = null;
 try {
-  importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js');
-  importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/13.3.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging-compat.js');
 
   firebase.initializeApp({
     apiKey: "AIzaSyBjtcCiXKKZ9TH3Ubrn65IX59kyCe9C-H4",
@@ -52,12 +52,16 @@ try {
   console.warn('sw.js: Firebase Messaging setup failed, push notifications unavailable this session', err);
 }
 
-const CACHE_NAME = 'rytm-v207';
+const CACHE_NAME = 'rytm-v208';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
+  './fonts/inter-cyrillic-ext-wght-normal.woff2',
+  './fonts/inter-cyrillic-wght-normal.woff2',
+  './fonts/inter-latin-ext-wght-normal.woff2',
+  './fonts/inter-latin-wght-normal.woff2',
   './icon-512.png',
   './icon-192-rounded.png',
   './icon-512-rounded.png',
@@ -146,10 +150,10 @@ const STATIC_ASSETS = [
 // URLs/version index.html imports — bump both together if the SDK version
 // ever changes (see SETUP.md's note on the pinned 12.11.0 version).
 const FIREBASE_SDK_ASSETS = [
-  'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js',
-  'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js',
+  'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging.js',
 ];
 
 // Встановлення — кешуємо статику

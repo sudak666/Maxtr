@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- Same policy as firebase.json's header, for the GitHub Pages mirror and local tests (a <meta> CSP cannot carry frame-ancestors). Keep the two in sync. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.gstatic.com; connect-src 'self' https://us-central1-maxtr-c238f.cloudfunctions.net https://*.googleapis.com https://bank.gov.ua https://api.allorigins.win https://api.privatbank.ua https://api.coingecko.com https://www.google.com https://apis.google.com https://www.gstatic.com; frame-src https://www.google.com https://*.firebaseapp.com https://*.web.app https://content.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.gstatic.com; connect-src 'self' https://us-central1-maxtr-c238f.cloudfunctions.net https://*.googleapis.com https://bank.gov.ua https://api.allorigins.win https://api.privatbank.ua https://api.coingecko.com https://www.google.com https://apis.google.com https://www.gstatic.com; frame-src https://www.google.com https://*.firebaseapp.com https://*.web.app https://content.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <script src="./js/theme-preinit.js"></script>
 <!-- iOS Safari only applies :active CSS states to a tap when at least one
      touch listener is registered somewhere in the document — without this,
@@ -22,9 +22,18 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0' y1='0' x2='512' y2='512' gradientUnits='userSpaceOnUse'><stop offset='0' stop-color='%239a6cf7'/><stop offset='1' stop-color='%236528c9'/></linearGradient><linearGradient id='coin' x1='322' y1='84' x2='390' y2='152' gradientUnits='userSpaceOnUse'><stop offset='0' stop-color='%23fbbf24'/><stop offset='1' stop-color='%23f59e0b'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(%23bg)'/><rect x='148' y='260' width='56' height='122' rx='14' fill='white'/><rect x='228' y='200' width='56' height='182' rx='14' fill='white'/><rect x='308' y='142' width='56' height='240' rx='14' fill='white'/><circle cx='356' cy='118' r='38' fill='url(%23coin)' stroke='white' stroke-width='5'/><path d='M356 100v36M347 122c0 6 4 10 9 10s9-3 9-8-4-7-9-8-9-4-9-9 4-8 9-8 9 3 9 8' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <script src="./js/sw-register.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/inter-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<!-- The Firebase SDK modules are imported by the app bundle, so the browser only found them after downloading and parsing it (a waterfall). Keep the version in sync with js/core.js. -->
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging.js">
 <style>
+/* Inter, self-hosted variable font (fonts/, OFL): no render-blocking third-party CSS, no request to Google on every launch. */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(fonts/inter-cyrillic-ext-wght-normal.woff2) format('woff2-variations');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(fonts/inter-cyrillic-wght-normal.woff2) format('woff2-variations');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(fonts/inter-latin-ext-wght-normal.woff2) format('woff2-variations');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(fonts/inter-latin-wght-normal.woff2) format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 :root{

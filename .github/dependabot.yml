@@ -8,6 +8,14 @@ updates:
     schedule: { interval: weekly }
     groups: { web: { patterns: ["*"] } }
     open-pull-requests-limit: 2
+    ignore:
+      # Only types: the app runs the vendored js/vendor/preact (10.x), so
+      # npm preact must stay on the same major.
+      - dependency-name: preact
+        update-types: ["version-update:semver-major"]
+      # Runtime SDK is the gstatic URL pinned in js/core.js + sw.js +
+      # index.html; bump those by hand together with npm firebase.
+      - dependency-name: firebase
   - package-ecosystem: npm
     directory: /functions
     schedule: { interval: weekly }
@@ -18,6 +26,11 @@ updates:
     schedule: { interval: weekly }
     groups: { android: { patterns: ["*"] } }
     open-pull-requests-limit: 2
+    ignore:
+      # Billing majors change the purchase API (PremiumRepository); Billing 8
+      # is accepted by Play until 2027-08-31. Upgrade by hand with a test purchase.
+      - dependency-name: com.android.billingclient:*
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }

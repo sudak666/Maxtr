@@ -7,6 +7,13 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Audit wave 5a: web versions + load path (2026-11-15, PR below)** — from `docs/audits/AUDIT_2026-11-full.md`.
+  - PWA-13: Firebase JS SDK 12.11.0 → 13.3.0 (gstatic URLs in `js/core.js`, `sw.js` precache + compat `importScripts`, `types/firebase-vendor.d.ts`; npm `firebase` for types). Release notes: 13.0's breaking changes are AI Logic only. All six gstatic files checked 200. Vite 8.3.8, ESLint 10 (lint clean, no config change). `sw.js` → `rytm-v208`.
+  - PWA-12: Inter is self-hosted (`fonts/`, @fontsource-variable/inter 5.3.0 via `npm pack`, OFL licence kept): 4 variable woff2 subsets (cyrillic, cyrillic-ext, latin, latin-ext; ~178 KB), `@font-face` inline in `index.html`, cyrillic subset preloaded, all four in `sw.js` `STATIC_ASSETS`. Google Fonts link + `fonts.googleapis.com`/`fonts.gstatic.com` dropped from both CSPs (header and meta).
+  - PWA-11 (part): `<link rel="modulepreload">` for the 4 gstatic SDK modules (they were only discovered after the bundle parsed). Firestore Lite and lazy messaging not done: Lite needs a parity check of `ignoreUndefinedProperties`/offline behaviour, messaging is ~9 KB gz.
+  - CI: the six Dependabot Actions majors (#795–#800) applied by hand in one go (checkout/setup-node v7, setup-java v5, upload-artifact v7, upload-pages-artifact v5, configure-pages v6). Dependabot now ignores `firebase` (runtime is the pinned gstatic URL), `preact` majors (vendored 10.x runs) and Billing majors (purchase API change, Billing 8 OK until 2027-08-31).
+  - Verified: build/typecheck/lint, all 32 local browser/unit tests; `dist/` served locally: Inter loaded from `fonts/`, zero Google Fonts requests, SDK modules preloaded, clean console.
+
 - **Dependabot first run (2026-11-15, #804)** — right after #794 it opened #795–#802: six single-action GitHub Actions bumps, the web group (#802, 4 updates), `google-auth-library` for functions (#801). Actions are now grouped into one PR (`open-pull-requests-limit: 1`). None merged yet: they need review (the web group may carry major versions; CLAUDE.md pins the gstatic Firebase SDK separately from npm `firebase`).
 
 - **Audit wave 4: backend debt (2026-11-15, #794)** — from `docs/audits/AUDIT_2026-11-full.md`.
