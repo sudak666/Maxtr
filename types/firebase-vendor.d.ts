@@ -9,18 +9,18 @@
 // is sufficient on its own. Keep the version pinned here in sync with the
 // literal URL js/core.js/sw.js import — see SETUP.md's note on the pinned
 // 12.11.0 SDK version.
-declare module 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js' {
+declare module 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js' {
   export * from 'firebase/app';
 }
-declare module 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js' {
+declare module 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app-check.js' {
   export * from 'firebase/app-check';
 }
-declare module 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js' {
+declare module 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js' {
   export * from 'firebase/firestore';
 }
-declare module 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js' {
+declare module 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js' {
   export * from 'firebase/auth';
 }
-declare module 'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js' {
+declare module 'https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging.js' {
   export * from 'firebase/messaging';
 }
