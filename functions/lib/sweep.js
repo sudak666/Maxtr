@@ -32,6 +32,9 @@
 /** @typedef {{notifSettings?: NotifSettings, data?: TransactionLike[], wallets?: WalletLike[], budgets?: Record<string, number>, categories?: {expense?: string[], income?: string[]}, recurring?: RecurringLike[], currencyRates?: Record<string, number>}} FinanceDocData */
 /** @typedef {{debts?: DebtLike[]}} DebtDocData */
 /** @typedef {{id: string, name?: string, kind?: string, ownerUid?: string}} ProfileEntry */
+
+// Profile ids and uids that may be put into a document path.
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 /** @typedef {{sentDaily?: string, sentBudget?: Record<string, boolean>, sentRecurring?: Record<string, boolean>, sentDebt?: Record<string, boolean>, sentWeekly?: string}} ProfileState */
 
 /** @typedef {{exists: boolean, data: () => FinanceDocData}} FinanceDocSnap */
@@ -446,8 +449,22 @@ async function sweepToken(db, sendPushFn, tokenDoc, now, logFn = () => {}) {
   // this failed safe, not broken, while the gap existed).
   const metaData = metaSnap.exists ? metaSnap.data() : null;
   /** @type {ProfileEntry[]} */
-  const metaList = Array.isArray(metaData?.list) ? metaData.list : [];
-  const profileEntries = metaList.length ? metaList.filter((p) => p && p.id) : [{ id: 'default' }];
+  const rawMetaList = Array.isArray(metaData?.list) ? metaData.list : [];
+  // profiles_meta is written by its own owner, so a {kind:'shared', ownerUid}
+  // entry is only a claim. The Admin SDK bypasses firestore.rules, so the
+  // claim is checked here against the owner's shared_members doc; without it
+  // anyone who knew another account's uid + profileId got that profile's
+  // pushes (category names, amounts, debts).
+  /** @type {ProfileEntry[]} */
+  const metaList = /** @type {ProfileEntry[]} */ ((await Promise.all(rawMetaList.map(async (/** @type {ProfileEntry} */ p) => {
+    if (!p || typeof p.id !== 'string' || !SAFE_ID.test(p.id)) return null;
+    if (p.kind !== 'shared') return p;
+    if (typeof p.ownerUid !== 'string' || !SAFE_ID.test(p.ownerUid) || p.ownerUid === uid) return null;
+    const members = await db.doc(`users/${p.ownerUid}/${DCOL}/shared_members@${p.id}`).get();
+    const list = members.exists ? members.data()?.members : null;
+    return Array.isArray(list) && list.includes(uid) ? p : null;
+  }))).filter(Boolean));
+  const profileEntries = metaList.length ? metaList : [{ id: 'default' }];
   const profileIds = profileEntries.map((p) => p.id);
   /** @param {ProfileEntry} p */
   const isSharedProfileEntry = (p) => !!(p && p.kind === 'shared' && p.ownerUid);

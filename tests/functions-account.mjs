@@ -18,6 +18,10 @@ function fakeDb(seed) {
       path,
       get: async () => snap(path),
       set: async (data, opts) => { docs.set(path, opts?.merge ? { ...(docs.get(path) || {}), ...data } : data); },
+      update: async (data) => {
+        if (!docs.has(path)) throw new Error('NOT_FOUND ' + path);
+        docs.set(path, { ...docs.get(path), ...data });
+      },
       delete: async () => { docs.delete(path); },
     };
   }
@@ -43,13 +47,15 @@ function fakeDb(seed) {
 
 const uid = 'u1';
 const db = fakeDb({
-  [`users/${uid}/max_tracker/profiles_meta`]: { list: [{ id: 'default' }, { id: 'p2' }, { id: 'sh', kind: 'shared', ownerUid: 'o1' }] },
+  [`users/${uid}/max_tracker/profiles_meta`]: { list: [{ id: 'default' }, { id: 'p2' }, { id: 'sh', kind: 'shared', ownerUid: 'o1' }, { id: 'x', kind: 'shared', ownerUid: 'o9' }] },
   [`users/${uid}/max_tracker/finance`]: { a: 1 },
   [`users/${uid}/max_tracker/finance@p2`]: { a: 1 },
   ...Object.fromEntries(Array.from({ length: 700 }, (_, i) => [`users/${uid}/max_tracker/finance/transactions/t${i}`, { id: i }])),
   [`users/${uid}/backups/default_1`]: { x: 1 },
   [`push_tokens/${uid}`]: { token: 't' },
   [`error_reports/${uid}`]: { entries: [] },
+  [`ai_usage/${uid}`]: { cache: { k: 'text' } },
+  'users/o9/max_tracker/shared_members@x': { members: ['o9', 'u3'], roles: {} },
   'profile_invites/ABC': { ownerUid: uid },
   'profile_invites/KEEP': { ownerUid: 'other' },
   'users/o1/max_tracker/shared_members@sh': { members: ['o1', uid], roles: { [uid]: 'viewer' } },
@@ -66,6 +72,8 @@ assert.ok(!db.docs.has(`push_tokens/${uid}`) && !db.docs.has(`error_reports/${ui
 assert.ok(!db.docs.has('profile_invites/ABC') && db.docs.has('profile_invites/KEEP'), 'only own invites deleted');
 assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').members, ['o1'], 'removed from joined shared profile');
 assert.deepEqual(db.docs.get('users/o1/max_tracker/shared_members@sh').roles, {}, 'role entry removed');
+assert.ok(!db.docs.has(`ai_usage/${uid}`), 'cached AI summaries deleted');
+assert.deepEqual(db.docs.get('users/o9/max_tracker/shared_members@x').members, ['o9', 'u3'], 'a claimed but not real membership leaves the owner doc alone');
 assert.ok(db.docs.has('users/o1/max_tracker/finance@sh') && db.docs.has('users/u2/max_tracker/finance'), "other accounts' data untouched");
 
 // AUDIT_2026-10 P2-03: another app of this project (DoRytm) shares the sign-in.

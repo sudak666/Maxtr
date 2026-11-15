@@ -32,7 +32,7 @@ function renderNewGoalForm(){
   box.style.display=AppState.showNewGoalForm?'flex':'none';
   if(!AppState.showNewGoalForm) return;
   const sel=/** @type {HTMLSelectElement | null} */ (document.getElementById('goal-new-wallet'));
-  if(sel){ sel.innerHTML=AppState.wallets.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join(''); enhanceSelect(sel); }
+  if(sel){ sel.innerHTML=AppState.wallets.map(w=>`<option value="${escapeHtml(w.id)}">${escapeHtml(w.name)}</option>`).join(''); enhanceSelect(sel); }
   const amt=/** @type {HTMLInputElement | null} */ (document.getElementById('goal-new-amount')); if(amt) amt.value='';
   const dt=/** @type {HTMLInputElement | null} */ (document.getElementById('goal-new-date')); if(dt) dt.value='';
 }
@@ -63,8 +63,8 @@ function renderGoalsManagerList(){
             <span class="cat-row-name">${w?escapeHtml(w.name):''}${g.targetDate?` · ${escapeHtml(g.targetDate)}`:''}</span>
           </div>
           <div class="goal-manager-actions">
-            <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${g.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-            <button class="mgr-del" data-action="delete-goal" data-id="${g.id}">${tr('common_delete')}</button>
+            <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-goal-edit" data-id="${escapeHtml(g.id)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+            <button class="mgr-del" data-action="delete-goal" data-id="${escapeHtml(g.id)}">${tr('common_delete')}</button>
           </div>
         </div>
         <div class="goal-manager-progress-meta"><span>${summary}</span><strong>${pct}%</strong></div>
@@ -73,17 +73,17 @@ function renderGoalsManagerList(){
         <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
           <div class="fg">
             <label>${tr('finance_wallet')}</label>
-            <select data-action="update-goal" data-id="${g.id}" data-field="walletId">
-              ${AppState.wallets.map(w2=>`<option value="${w2.id}" ${g.walletId===w2.id?'selected':''}>${escapeHtml(w2.name)}</option>`).join('')}
+            <select data-action="update-goal" data-id="${escapeHtml(g.id)}" data-field="walletId">
+              ${AppState.wallets.map(w2=>`<option value="${escapeHtml(w2.id)}" ${g.walletId===w2.id?'selected':''}>${escapeHtml(w2.name)}</option>`).join('')}
             </select>
           </div>
           <div class="fg">
             <label>${tr('goals_target')}</label>
-            <input type="number" min="0.01" step="0.01" value="${g.targetAmount||''}" data-action="update-goal" data-id="${g.id}" data-field="targetAmount">
+            <input type="number" min="0.01" step="0.01" value="${escapeHtml(g.targetAmount||'')}" data-action="update-goal" data-id="${escapeHtml(g.id)}" data-field="targetAmount">
           </div>
           <div class="fg">
             <label>${tr('goals_target_date')}</label>
-            <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" data-action="update-goal" data-id="${g.id}" data-field="targetDate">
+            <input type="text" placeholder="напр. Грудень 2026" value="${escapeHtml(g.targetDate||'')}" data-action="update-goal" data-id="${escapeHtml(g.id)}" data-field="targetDate">
           </div>
         </div>`:''}
       `;

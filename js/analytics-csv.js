@@ -367,7 +367,7 @@ function txItemInnerHtml(t){
           <span class="tx-amount ${cls}">${amtStr}</span>
         </div>
       </div>
-      <button class="tx-swipe-delete" data-action="delete-transaction" data-id="${t.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
+      <button class="tx-swipe-delete" data-action="delete-transaction" data-id="${escapeHtml(t.id)}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>`;
 }
 
 const TX_SWIPE_REVEAL_PX=60;

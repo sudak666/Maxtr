@@ -29,10 +29,16 @@ async function deleteAccountData(db, uid) {
     const ref = db.doc(`users/${p.ownerUid}/max_tracker/shared_members@${p.id}`);
     const snap = await ref.get();
     if (!snap.exists) continue;
-    const members = (snap.get('members') || []).filter((/** @type {string} */ m) => m !== uid);
+    // profiles_meta is client-written: only touch an owner's doc this
+    // account really is a member of.
+    const current = snap.get('members');
+    if (!Array.isArray(current) || !current.includes(uid)) continue;
+    const members = current.filter((/** @type {string} */ m) => m !== uid);
     const roles = { ...(snap.get('roles') || {}) };
     delete roles[uid];
-    await ref.set({ members, roles, updatedAt: Date.now() }, { merge: true });
+    // update(), not set(merge): merge deep-merges the roles map, so the
+    // removed key would survive in Firestore.
+    await ref.update({ members, roles, updatedAt: Date.now() });
   }
 
   const otherApps = await Promise.all([
@@ -55,6 +61,8 @@ async function deleteAccountData(db, uid) {
     db.doc(`push_tokens/${uid}`).delete(),
     db.doc(`entitlements/${uid}`).delete(),
     db.doc(`error_reports/${uid}`).delete(),
+    // Cached AI month summaries carry the user's amounts and category names.
+    db.doc(`ai_usage/${uid}`).delete(),
   ]);
   return { keepAuth };
 }

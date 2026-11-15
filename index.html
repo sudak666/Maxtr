@@ -2,6 +2,8 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+<!-- Same policy as firebase.json's header, for the GitHub Pages mirror and local tests (a <meta> CSP cannot carry frame-ancestors). Keep the two in sync. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.gstatic.com; connect-src 'self' https://us-central1-maxtr-c238f.cloudfunctions.net https://*.googleapis.com https://bank.gov.ua https://api.allorigins.win https://api.privatbank.ua https://api.coingecko.com https://www.google.com https://apis.google.com https://www.gstatic.com; frame-src https://www.google.com https://*.firebaseapp.com https://*.web.app https://content.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <script src="./js/theme-preinit.js"></script>
 <!-- iOS Safari only applies :active CSS states to a tap when at least one
      touch listener is registered somewhere in the document — without this,
