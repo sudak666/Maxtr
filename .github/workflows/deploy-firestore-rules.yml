@@ -39,7 +39,7 @@ jobs:
       - name: Run Firestore rules tests
         working-directory: /tmp/rules-test
         run: |
-          npx --yes firebase-tools@15.27.0 emulators:exec --only firestore --project rytm-rules-test \n            "cd '$GITHUB_WORKSPACE' && node tests/firestore-rules.mjs"
+          npx --yes firebase-tools@15.27.0 emulators:exec --only firestore --project rytm-rules-test "cd '$GITHUB_WORKSPACE' && node tests/firestore-rules.mjs"
 
   deploy:
     needs: rules-test
