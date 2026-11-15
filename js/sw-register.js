@@ -22,7 +22,9 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloading || !hadController) return;
     reloading = true;
-    window.location.reload();
+    // Save a pending debounced edit first (js/color-picker.js), at most 3 s.
+    const flush = window.__rytmFlushSave ? Promise.resolve(window.__rytmFlushSave()).catch(() => {}) : Promise.resolve();
+    Promise.race([flush, new Promise((r) => setTimeout(r, 3000))]).then(() => window.location.reload());
   });
 
   window.addEventListener('load', () => {

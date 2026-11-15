@@ -97,10 +97,27 @@ export async function loadProfilesMeta(){
     saveActiveProfileId();
   }
 }
-/** @returns {Promise<void>} */
-export async function saveProfilesMeta(){
+/**
+ * Writes the profile list. The local copy is loaded once, so a profile the
+ * Android app added meanwhile would vanish from a whole-list write: entries
+ * only the server has are kept, unless this save is the one removing them.
+ * @param {string[]} [removedIds]
+ * @returns {Promise<void>}
+ */
+export async function saveProfilesMeta(removedIds=[]){
+  const ref=userDoc('profiles_meta');
+  try{
+    const snap=await getDoc(ref);
+    const remote=snap.exists() ? snap.data()?.list : null;
+    if(Array.isArray(remote)){
+      const have=new Set(AppState.profilesMeta.list.map(p=>p.id));
+      remote.forEach((/** @type {any} */ p)=>{
+        if(p && p.id && !have.has(p.id) && !removedIds.includes(p.id)) AppState.profilesMeta.list.push(p);
+      });
+    }
+  }catch(e){ console.warn('profiles_meta re-read failed', e); }
   AppState.profilesMeta.updatedAt=Date.now();
-  await setDoc(userDoc('profiles_meta'), AppState.profilesMeta, {merge:false});
+  await setDoc(ref, AppState.profilesMeta, {merge:false});
 }
 
 // ── SHARED PROFILES ─────────────────────────────────────
@@ -233,7 +250,7 @@ export async function leaveSharedProfile(ownerUid, profileId){
     updatedAt: Date.now(),
   });
   AppState.profilesMeta.list=AppState.profilesMeta.list.filter(p=>!(p.kind==='shared' && p.id===profileId && p.ownerUid===ownerUid));
-  await saveProfilesMeta();
+  await saveProfilesMeta([profileId]);
 }
 
 // ── GRANULAR PERMISSIONS (a later session) ──────────────────────
@@ -335,6 +352,51 @@ export async function saveTransactionDoc(t){
   await setDoc(txDocRef(t.id), {...t, updatedAt:Date.now()}, {merge:false});
 }
 /**
+ * Writes only the given fields of an existing transaction. A whole-doc
+ * setDoc() from this tab's copy (loaded once, no listener) dropped fields
+ * Android added since, e.g. the Monobank merge's monobankId.
+ * `undefined` becomes null so a cleared field is really cleared.
+ * @param {string | number} id
+ * @param {Record<string, any>} fields
+ * @returns {Promise<boolean>} false when the doc no longer exists
+ */
+export async function updateTransactionFields(id, fields){
+  /** @type {Record<string, any>} */
+  const data={updatedAt:Date.now()};
+  Object.keys(fields).forEach(k=>{ data[k]=fields[k]===undefined?null:fields[k]; });
+  try{
+    await updateDoc(txDocRef(id), data);
+    return true;
+  }catch(e){
+    if(/** @type {any} */ (e)?.code==='not-found') return false;
+    throw e;
+  }
+}
+/**
+ * Edit from the form: only the fields the form controls; a transaction that
+ * was never written (or was deleted elsewhere) is written whole.
+ * @param {{id: string | number} & Record<string, any>} t
+ * @param {string[]} fieldNames
+ * @returns {Promise<void>}
+ */
+export async function saveTransactionEdit(t, fieldNames){
+  /** @type {Record<string, any>} */
+  const fields={};
+  fieldNames.forEach(k=>{ fields[k]=t[k]; });
+  if(!(await updateTransactionFields(t.id, fields))) await saveTransactionDoc(t);
+}
+/**
+ * Same field-only update for many transactions (category rename, tag
+ * delete); deleted ones are skipped, not recreated.
+ * @param {Array<{id: string | number, fields: Record<string, any>}>} items
+ * @returns {Promise<void>}
+ */
+export async function updateTransactionsFields(items){
+  for(let i=0;i<items.length;i+=50){
+    await Promise.all(items.slice(i,i+50).map(it=>updateTransactionFields(it.id, it.fields)));
+  }
+}
+/**
  * @param {string | number} id
  * @returns {Promise<void>}
  */
@@ -362,6 +424,18 @@ export async function batchWriteTransactions(txs){
     txs.slice(i,i+BATCH_CHUNK).forEach(t=>batch.set(txDocRef(t.id), {...t, updatedAt:Date.now()}));
     await batch.commit();
   }
+}
+/**
+ * Writes only the transactions whose doc doesn't exist yet. Recurring
+ * occurrences have deterministic ids shared with Android, so one Android
+ * already created (and maybe edited) must not be overwritten from here.
+ * @param {Array<{id: string | number}>} txs
+ * @returns {Promise<void>}
+ */
+export async function createMissingTransactions(txs){
+  const snaps=await Promise.all(txs.map(t=>getDoc(txDocRef(t.id))));
+  const missing=txs.filter((_,i)=>!snaps[i].exists());
+  if(missing.length) await batchWriteTransactions(missing);
 }
 /**
  * @param {Array<string | number>} ids

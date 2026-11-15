@@ -1,5 +1,6 @@
 package ua.rytm.app.push
 
+import android.util.Log
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,6 +17,7 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import ua.rytm.app.R
 import ua.rytm.app.data.PushRepository
 
@@ -40,8 +42,17 @@ class RytmMessagingService : FirebaseMessagingService() {
         // callback that isn't itself suspend — a short-lived IO-dispatcher
         // scope is the standard fire-and-forget pattern here, same as the
         // system gives onMessageReceived() no way to suspend either.
+        // The write only completes on a server ack: bounded so an offline
+        // device doesn't keep the coroutine alive forever, and caught so a
+        // rejected write can't crash the process in the background.
         CoroutineScope(Dispatchers.IO).launch {
-            PushRepository(FirebaseFirestore.getInstance()).updateToken(uid, token)
+            try {
+                withTimeout(30_000) {
+                    PushRepository(FirebaseFirestore.getInstance()).updateToken(uid, token)
+                }
+            } catch (e: Exception) {
+                Log.w("RytmMessaging", "token update failed", e)
+            }
         }
     }
 

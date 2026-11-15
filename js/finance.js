@@ -9,7 +9,7 @@ import { renderFinance } from './analytics-csv.js';
 import { renderFinanceChart } from './calendar.js';
 import { saveConfigLocal, scheduleSave } from './color-picker.js';
 import { PALETTE, canEditActiveProfile, convertCurrency, currencySymbol, localDateStr, subKey, toBase, walletById, walletCurrency } from './core.js';
-import { batchWriteTransactions, deleteTransactionDoc, lsKey, saveTransactionDoc } from './firebase-sync.js';
+import { deleteTransactionDoc, lsKey, saveTransactionDoc, saveTransactionEdit, updateTransactionsFields } from './firebase-sync.js';
 import { setCacheItem } from './privacy-cache.js';
 import { uid } from './settings-managers.js';
 import { TX_AMOUNT_MAX, TX_COMMENT_MAX, isOverBudget, validateTransactionDraft } from './tx-validation.js';
@@ -240,6 +240,9 @@ function readTransactionForm(){
   return {amount,date,ws,wt,cat,sub,comment};
 }
 
+/** The fields the transaction form edits; everything else on the doc is left alone. */
+const TX_FORM_FIELDS=['type','amount','currency','category','subcategory','tags','wallet','targetWallet','targetAmount','targetCurrency','date','comment'];
+
 /** @returns {Promise<void>} */
 export async function addTransaction(){
   if(!canEditActiveProfile()){ showToast(tr('shared_profile_readonly'),'xmark'); return; }
@@ -267,7 +270,7 @@ export async function addTransaction(){
     // Writes straight to this transaction's own subcollection doc rather
     // than scheduleSave()'s whole-finance-doc rewrite — see
     // js/firebase-sync.js's TRANSACTIONS SUBCOLLECTION section.
-    if(t) saveTransactionDoc(t).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
+    if(t) saveTransactionEdit(t, TX_FORM_FIELDS).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
     renderFinance(); renderFinanceChart();
     const m1=document.getElementById('tx-form-modal'); if(m1) m1.style.display='none';
     showToast(tr('toast_tx_updated'),'check');
@@ -489,7 +492,7 @@ const deleteTag = async function(id){
   // individual transactions that referenced this tag are their own
   // subcollection docs and get updated directly instead.
   scheduleSave();
-  if(affected.length) batchWriteTransactions(affected).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
+  if(affected.length) updateTransactionsFields(affected.map(t=>({id:t.id, fields:{tags:t.tags}}))).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderTagsList(); renderFinTagChips(); renderFinance();
 };
 

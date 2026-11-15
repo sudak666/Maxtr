@@ -46,6 +46,7 @@ const STUB_APP_CHECK = `export function initializeAppCheck(){ return {}; } expor
 // leakage.
 const STUB_FIRESTORE = `
 const _docs = new Map();
+globalThis.__stubFirestoreDocs = _docs;
 let _ignoreUndefinedProperties = false;
 function _assertNoUndefinedFields(data, path){
   if (data === undefined) throw new Error('Function setDoc() called with invalid data. Unsupported field value: undefined (found in field ' + JSON.stringify(path || '(root)') + ')');
@@ -195,6 +196,16 @@ async function main() {
     }
     console.log('[ok] create: new transaction appears in the list with the entered amount');
 
+    // A field only Android writes (Monobank merge) appears on the doc after
+    // this tab loaded it; the PWA edit below must not drop it.
+    const txPath = await page.evaluate((m) => {
+      for (const [k, v] of globalThis.__stubFirestoreDocs) {
+        if (k.includes('/transactions/') && v && String(v.comment || '').includes(m)) { v.monobankId = 'mono-123'; return k; }
+      }
+      return null;
+    }, marker);
+    if (!txPath) throw new Error('created transaction doc not found in the Firestore stub');
+
     // ── EDIT ── (tapping the row itself opens edit - the dedicated pencil
     // button was removed, see index.html's tx-item-inner/swipe-to-delete note)
     await row.click();
@@ -213,6 +224,10 @@ async function main() {
       throw new Error(`edited transaction shows unexpected amount: "${amountAfterEdit}"`);
     }
     console.log('[ok] edit: transaction amount updates in place and the row count stays at 1');
+    const afterEdit = await page.evaluate((p) => globalThis.__stubFirestoreDocs.get(p), txPath);
+    if (!afterEdit || afterEdit.amount !== 999.99) throw new Error(`edit did not reach Firestore: ${JSON.stringify(afterEdit)}`);
+    if (afterEdit.monobankId !== 'mono-123') throw new Error('edit dropped a field the PWA does not know (monobankId)');
+    console.log('[ok] edit: only form fields are written, an Android-only field survives');
 
     // ── DELETE ── (the delete button lives behind a swipe-to-reveal panel
     // now; a real touch swipe is dispatched in tests/tx-swipe-delete.mjs -
