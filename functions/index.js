@@ -32,7 +32,6 @@
  */
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
-const functionsV1 = require('firebase-functions/v1');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -171,8 +170,8 @@ exports.dailyBackup = onSchedule({ schedule: 'every day 03:30', timeZone: 'Europ
 // on the caller's own tree, so shared-profile members can't touch the
 // owner's backups by construction.
 const CLIENT_REASONS = new Set(['manual', 'pre_reset', 'pre_import']);
-const MANUAL_MIN_INTERVAL_MS = 20 * 1000;
-exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) => {
+const MIN_BACKUP_INTERVAL_MS = 20 * 1000;
+exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB', maxInstances: 5 }, async (req) => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
   const data = req.data || {};
@@ -183,7 +182,10 @@ exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) 
       const reason = CLIENT_REASONS.has(data.reason) ? data.reason : 'manual';
       if (!(await backup.ownProfileIds(db, uid)).includes(profileId)) throw new HttpsError('permission-denied', 'not your profile');
       const existing = await backup.listBackups(db, uid);
-      if (reason === 'manual' && existing.some((e) => e.meta.reason === 'manual' && now - e.meta.createdAt < MANUAL_MIN_INTERVAL_MS)) {
+      // Every reason, not only 'manual': each call reads the whole history,
+      // and pre_reset/pre_import were unlimited. Clients treat the pre_*
+      // ones as best-effort, and a backup under 20 s old already covers them.
+      if (existing.some((e) => now - e.meta.createdAt < MIN_BACKUP_INTERVAL_MS)) {
         throw new HttpsError('resource-exhausted', 'too many backups');
       }
       return await backup.createBackup(db, uid, profileId, reason, now, existing);
@@ -266,8 +268,9 @@ exports.insights = onCall({ timeoutSeconds: 60, maxInstances: 5 }, async (req) =
   }
 });
 
-// Safety net for an account deleted any other way (Console, old clients):
-// backups are server-written and client-undeletable, so they go here.
-exports.deleteBackupsOnAccountDelete = functionsV1.auth.user().onDelete(async (user) => {
-  await db.recursiveDelete(db.collection(`users/${user.uid}/backups`));
-});
+// The 1st-gen auth.user().onDelete safety net (deleteBackupsOnAccountDelete)
+// was removed 2026-11-15: 1st gen can't run on Node 24 (nodejs22 is
+// decommissioned 2027-10-31) and 2nd gen has no auth-delete trigger. Both
+// clients delete accounts through the `account` callable, which removes
+// users/{uid} recursively, backups included. Only an account deleted by hand
+// in the Firebase Console now leaves its backups behind.

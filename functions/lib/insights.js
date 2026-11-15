@@ -12,8 +12,9 @@ const MAX_CATEGORIES = 8;
 const PROMPT_VERSION = 2;
 // Tried in order; a model this project can't use (404) falls through to the
 // next. New projects get no access to older models (gemini-2.5-flash 404'd
-// on 2026-11-08), so newer ones come first. INSIGHTS_MODEL pins one.
-const MODELS = process.env.INSIGHTS_MODEL ? [process.env.INSIGHTS_MODEL] : ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash'];
+// on 2026-11-08 and was retired 2026-10-20 anyway; 3.7-flash retires
+// 2027-01-28), so newer ones come first. INSIGHTS_MODEL pins one.
+const MODELS = process.env.INSIGHTS_MODEL ? [process.env.INSIGHTS_MODEL] : ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash'];
 /** @type {string | null} the first model that answered in this instance */
 let workingModel = null;
 
@@ -188,7 +189,11 @@ async function generateWithGemini(prompt) {
   const project = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || (await auth.getProjectId());
   /** @type {unknown} */
   let lastError = null;
-  for (const model of workingModel ? [workingModel] : MODELS) {
+  // A remembered model that starts answering 404 (retired) is forgotten and
+  // the whole list tried again, instead of failing every call until the
+  // instance is recycled.
+  const candidates = workingModel ? [workingModel, ...MODELS.filter((m) => m !== workingModel)] : MODELS;
+  for (const model of candidates) {
     try {
       const res = await client.request({
         url: `https://aiplatform.googleapis.com/v1/projects/${project}/locations/global/publishers/google/models/${model}:generateContent`,
@@ -205,6 +210,7 @@ async function generateWithGemini(prompt) {
       lastError = err;
       const status = /** @type {any} */ (err).response?.status ?? /** @type {any} */ (err).status;
       if (status !== 404) throw err;
+      if (model === workingModel) workingModel = null;
     }
   }
   throw lastError;

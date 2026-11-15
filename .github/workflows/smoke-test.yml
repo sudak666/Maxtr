@@ -171,6 +171,12 @@ jobs:
       - name: Syntax-check Cloud Function
         run: node --check functions/index.js
 
+      # Only high/critical: the remaining moderate ones (glob/minimatch under
+      # google-gax) need an attacker-controlled glob and are unreachable here.
+      - name: Audit Cloud Functions dependencies
+        working-directory: functions
+        run: npm audit --omit=dev --audit-level=high --package-lock-only
+
   dist-smoke:
     # Pinned: ubuntu-latest moved to 26.04 (2026-11), where Playwright 1.56.1
     # cannot install Chromium ("does not support chromium on ubuntu26.04").
