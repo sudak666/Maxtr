@@ -423,7 +423,7 @@ jobs:
 
       - name: Upload Compose compiler stability/metrics reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compose-compiler-reports
           path: android-app/app/build/compose_compiler/
@@ -486,7 +486,7 @@ jobs:
             ./gradlew :app:connectedDebugAndroidTest --no-daemon || ./gradlew :app:connectedDebugAndroidTest --no-daemon
       - name: Upload instrumented test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-instrumented-reports
           path: android-app/app/build/reports/androidTests/
