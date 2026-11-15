@@ -251,6 +251,9 @@ async function main() {
     console.log('[ok] cancelling the new-wallet form creates nothing and keeps the manager open');
 
     await page.click('[data-action="add-wallet"]');
+    // Wait for the form to open: filling before it does raced its own reset
+    // of the fields (flaked once on CI's dist-smoke run).
+    await page.waitForSelector('#wallet-create-modal', { state: 'visible' });
     await page.fill('#wallet-create-name', 'Депозит тест');
     await page.fill('#wallet-create-opening', '1500');
     await page.selectOption('#wallet-create-kind', 'deposit', { force: true });
