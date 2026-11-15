@@ -7,7 +7,7 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
-- **Audit wave 3: Android UX (2026-11-15, PR below)** — from `docs/audits/AUDIT_2026-11-full.md`.
+- **Audit wave 3: Android UX (2026-11-15, #792)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - UX-01: history rows and debt payment rows expose «Видалити» as a TalkBack/Switch Access custom action (swipe is a path gesture, WCAG 2.5.1); the transaction edit sheet gained a red «Видалити» (same undo snackbar via `requestDelete`).
   - UX-02: the budgets sheet shows «X з Y ₴» plus a progress bar (amber from 80 %, red over) from this financial month's expenses (`BudgetsManagerViewModel.spent`, same `forStats`/`FinancialMonth`/UAH conversion as the over-budget snackbar). Empty-state copy no longer promises a "getting close" alert that doesn't exist.
   - UX-03: new `RytmOutlinedButton` (content `RytmSemantic.link`), all 27 `OutlinedButton` call sites switched — dark `primary` text was 2.78–4.0:1. White-on-primary filled buttons (4.24:1) left as is.
@@ -16,7 +16,7 @@ Working log, newest first. Older months are archived per month in `docs/changelo
   - UX-06: PIN lock scrolls when the keypad doesn't fit (landscape) and stays centred otherwise; dots announce «Введено N з 6 цифр», the error is a polite live region.
   - UX-08: 15 strings moved from «Ви» to «ти» (incl. «Тобі винні», «AI-підсумків» → «ШІ-підсумків»); first-run #9: «Нікнейм» → «Ім’я»; #10: new-debt amount suffix `UAH` → `₴`.
   - UX-10: «Нова позика» moved out of the scrolling debt chips, always visible.
-  - Verified: `assembleDebug lintDebug testDebugUnitTest` (0 lint errors). **Not seen on a device**: the only emulator here has no signed-in Rytm install, so no screenshots or TalkBack run.
+  - Verified: `assembleDebug lintDebug testDebugUnitTest` (0 lint errors). **Not seen on a device**: the only emulator here has no signed-in Rytm install, so no screenshots or TalkBack run. CI green incl. `android-instrumented`. Android-only, no deploy; ships with the next AAB.
 
 - **Audit wave 2: PWA must not damage Android data (2026-11-15, #790)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - PWA-03: enabling push in the PWA asks before taking over `push_tokens/{uid}` from another device (one token per account); disabling deletes the doc only if it still holds this browser's token (`mx_pushToken_<uid>`), same as Android already did. Proper per-device token map is still open.
