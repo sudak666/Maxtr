@@ -7,7 +7,7 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
-- **Owner removes members, viewer reads operations, type scale (2026-11-15, PR below)** — remaining audit items the owner delegated ("робимо як правильно").
+- **Owner removes members, viewer reads operations, type scale (2026-11-15, #822)** — remaining audit items the owner delegated ("робимо як правильно").
   - BE-02: the owner can remove a member of a shared profile (Android `ProfilesRepository.removeMember` + trash button with confirm in the members dialog; PWA `removeSharedMember` + `remove-shared-member` action). The write drops the uid from `members`/`roles` and stamps `removedAt.<uid>`. **Rules gap found on the way:** a removed member could rejoin within 24 h with the invite they had already redeemed; the join branch now also requires that invite's `createdAt` to be later than `removedAt[uid]`. Rules tests: removal allowed, removed member can't read, can't rejoin with the old invite.
   - UX-14: a viewer (read-only member) can tap an operation and read it all in `TransactionDetailsDialog` (amount, category › subcategory, wallet, date, comment, tags, author); rows get `canOpen` separate from `canEdit`.
   - UX-13: `headlineSmall` 20 → 22 sp (it was smaller than `titleLarge`, inverting the scale; 4 call sites).
