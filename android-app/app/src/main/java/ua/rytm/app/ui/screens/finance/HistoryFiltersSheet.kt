@@ -180,7 +180,7 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.md), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = { vm.resetFilters(); vm.onPeriodFilterChange(PeriodFilter.ALL); onDismiss() },
                     modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
                     shape = RoundedCornerShape(RytmRadii.Row),

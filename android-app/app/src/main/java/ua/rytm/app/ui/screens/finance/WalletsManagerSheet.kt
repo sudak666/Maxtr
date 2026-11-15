@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
@@ -236,7 +237,7 @@ private fun WalletCreateDialog(onDismiss: () -> Unit, onCreate: (name: String, c
             ) { Text(stringResource(R.string.action_add)) }
         },
         dismissButton = {
-            androidx.compose.material3.OutlinedButton(onClick = onDismiss, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
+            ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onDismiss, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -397,11 +398,12 @@ private fun WalletAccountingFields(wallet: Wallet, onUpdate: (Wallet) -> Unit) {
 
 @Composable
 private fun WalletSwitch(@androidx.annotation.StringRes title: Int, @androidx.annotation.StringRes hint: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+    // The whole row toggles and TalkBack reads the label with the switch.
+    Row(Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget).toggleable(value = checked, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = onChange), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
         Column(Modifier.weight(1f)) {
             Text(stringResource(title), style = MaterialTheme.typography.bodyMedium)
             Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
+        androidx.compose.material3.Switch(checked = checked, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
     }
 }

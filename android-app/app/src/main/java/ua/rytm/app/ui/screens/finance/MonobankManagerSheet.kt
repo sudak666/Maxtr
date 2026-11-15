@@ -192,7 +192,7 @@ fun MonobankManagerSheet(uid: String, profileId: String, repository: MonobankRep
                         if (syncing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         else { Icon(RytmIcons.Sync, null); Spacer(Modifier.width(ua.rytm.app.ui.theme.RytmSpacing.sm)); Text(stringResource(R.string.monobank_sync)) }
                     }
-                    OutlinedButton(
+                    ua.rytm.app.ui.components.RytmOutlinedButton(
                         onClick = { confirmDisconnect = true },
                         enabled = !busy && !syncing,
                         modifier = Modifier.fillMaxWidth(),

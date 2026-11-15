@@ -108,7 +108,7 @@ import ua.rytm.app.ui.icons.SwapHoriz
 // multi-select, see FinanceViewModel.formSelectedTagIds/toggleFormTag()).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionFormSheet(vm: FinanceViewModel) {
+fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -189,7 +189,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                 // (and sitting above) the form's real primary action. Source
                 // choice moved into a small sheet, the platform-canonical shape.
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    OutlinedButton(
+                    ua.rytm.app.ui.components.RytmOutlinedButton(
                         onClick = { scanSourceOpen = true },
                         enabled = !ocrBusy,
                         modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
@@ -203,7 +203,7 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
                     }
                     // A new transaction only: one line or voice re-fills the whole form.
                     if (vm.form.editingTxId == null) {
-                        OutlinedButton(
+                        ua.rytm.app.ui.components.RytmOutlinedButton(
                             onClick = { vm.quickEntryOpen = true },
                             modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
                             shape = RoundedCornerShape(RytmRadii.Row),
@@ -455,6 +455,16 @@ fun TransactionFormSheet(vm: FinanceViewModel) {
 
             Button(onClick = { submitHaptics.confirm(); vm.submitForm() }, enabled = !vm.isSaving, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
                 Text(stringResource(if (vm.isSaving) R.string.action_saving else if (vm.form.editingTxId != null) R.string.action_save_changes else R.string.transaction_add))
+            }
+            if (onDelete != null && vm.form.editingTxId != null) {
+                ua.rytm.app.ui.components.RytmTextButton(
+                    onClick = onDelete,
+                    enabled = !vm.isSaving,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(stringResource(R.string.action_delete))
+                }
             }
         }
         }

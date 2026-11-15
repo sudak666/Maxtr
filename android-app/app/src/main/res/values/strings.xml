@@ -67,8 +67,8 @@
     <string name="profile_save_failed">Не вдалося зберегти профіль</string>
     <string name="profile_invalid_image">Обери коректне зображення</string>
     <string name="profile_avatar_updated">Аватар оновлено</string>
-    <string name="profile_nickname_saved">Нікнейм збережено</string>
-    <string name="profile_nickname">Нікнейм</string>
+    <string name="profile_nickname_saved">Ім’я збережено</string>
+    <string name="profile_nickname">Ім’я</string>
     <string name="profile_edit_nickname">Редагувати нікнейм</string>
     <string name="profile_choose_avatar">Обери аватар</string>
     <string name="profile_upload_photo">Завантажити фото</string>
@@ -115,7 +115,7 @@
     <string name="validation_date_required">Обери дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Обери гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові рахунки</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s ₴/міс</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s ₴/міс</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_reorder">Перетягнути, щоб змінити порядок</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -211,7 +211,7 @@
     <string name="auth_password_hint">Мінімум 8 символів</string>
     <string name="auth_sign_in">Увійти</string>
     <string name="auth_register">Зареєструватися</string>
-    <string name="auth_forgot_password">Забули пароль?</string>
+    <string name="auth_forgot_password">Забув пароль?</string>
     <string name="auth_emulator_sign_in">[emulator] Анонімний вхід для тестів</string>
     <string name="auth_login_tab">Вхід</string>
     <string name="auth_register_tab">Реєстрація</string>
@@ -222,7 +222,7 @@
     <string name="pin_enter">Введи PIN-код</string>
     <string name="pin_unlock_biometric">Розблокувати відбитком</string>
     <string name="pin_forgot_short">Забув PIN?</string>
-    <string name="pin_forgot_title">Забули PIN?</string>
+    <string name="pin_forgot_title">Забув PIN?</string>
     <string name="pin_forgot_body">Скинути PIN на цьому пристрої і вийти з акаунту? Після повторного входу зможеш встановити новий PIN.</string>
     <string name="pin_reset_sign_out">Скинути й вийти</string>
     <string name="pin_biometric_title">Швидке розблокування</string>
@@ -296,7 +296,7 @@
     <string name="profile_join_expired_error">Код прострочено</string>
     <string name="profile_join_failed">Не вдалося приєднатися</string>
     <string name="profile_join_not_found_error">Код не знайдено</string>
-    <string name="profile_leave_active_error">Спершу перемкніться на інший профіль</string>
+    <string name="profile_leave_active_error">Спершу перемкнися на інший профіль</string>
     <string name="profile_leave_failed">Не вдалося покинути профіль</string>
     <string name="profile_members_load_failed">Не вдалося завантажити учасників</string>
     <string name="profile_role_change_failed">Не вдалося змінити роль</string>
@@ -474,7 +474,7 @@
     <string name="backups_created">Копію створено</string>
     <string name="backups_unchanged">Дані не змінились з останньої копії</string>
     <string name="backups_nothing">Профіль порожній, копіювати нічого</string>
-    <string name="backups_failed">Не вдалося. Перевірте з’єднання</string>
+    <string name="backups_failed">Не вдалося. Перевір з’єднання</string>
     <string name="backups_rate_limited">Зачекай трохи перед наступною копією</string>
     <string name="backups_shared_unavailable">Копії спільного профілю робить його власник</string>
     <string name="finance_search_prefix">Шукати</string><string name="finance_search_what_comment">за коментарем</string><string name="finance_search_what_category">за категорією</string><string name="finance_search_what_tag">за міткою</string><string name="finance_search_what_wallet">за гаманцем</string>
@@ -550,8 +550,8 @@
     <string name="month_summary_top">Найбільші категорії</string>
     <string name="month_summary_vs_previous">%1$s%% до попереднього</string>
     <string name="month_summary_biggest">Найбільша витрата: %1$s, %2$s</string>
-    <string name="month_summary_notification_body">Витрати %1$s · дохід %2$s. Торкніться, щоб подивитись.</string>
-    <string name="month_summary_notification_hidden">Торкніться, щоб подивитись, куди пішли гроші.</string>
+    <string name="month_summary_notification_body">Витрати %1$s · дохід %2$s. Торкнись, щоб подивитись.</string>
+    <string name="month_summary_notification_hidden">Торкнись, щоб подивитись, куди пішли гроші.</string>
     <string name="month_summary_tool">Підсумок місяця</string>
     <string name="finance_settle_line">Щоб порівну: %1$s → %2$s %3$s</string>
     <string name="salary_match_hint">Схоже на зарплату за минулий місяць: за змінами %1$s, різниця %2$s</string>
@@ -598,17 +598,17 @@
     <string name="profile_panel_settings_subtitle">Тема, мова, категорії, гаманці</string>
     <string name="transaction_more_fields">Дата, коментар, мітки</string>
     <string name="subcategory_add">Додати підкатегорію</string>
-    <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Вам винні</string><string name="debt_received">Отримано</string>
+    <string name="debt_direction_owe">Я винен</string><string name="debt_direction_owed">Мені винні</string><string name="debt_owed_balance">Тобі винні</string><string name="debt_received">Отримано</string>
     <string name="bank_auto_save_title">Записувати знайомі операції самостійно</string><string name="bank_auto_save_hint">Від 3 операцій продавця в одній категорії. У сповіщенні можна скасувати.</string>
     <string name="statement_totals_gap">Рядки виписки не збігаються з підсумками банку: списання %1$s, зарахування %2$s. Частина операцій може бути скасована, перевір їх після імпорту.</string>
     <string name="statement_confirm">Імпортувати %1$s? Те, що вже є в обліку, буде пропущено.</string><string name="statement_wallet">Гаманець</string>
-    <string name="monobank_intro">Вкажіть персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен бачите лише ви (навіть учасники спільного профілю не мають до нього доступу), а програма передає його напряму в Monobank.</string>
+    <string name="monobank_intro">Вкажи персональний токен Monobank Open API — підтягнемо картки, банки та операції. Токен бачиш лише ти (навіть учасники спільного профілю не мають до нього доступу), а застосунок передає його напряму в Monobank.</string>
     <string name="monobank_get_token">Отримати токен на api.monobank.ua</string>
     <string name="monobank_token">Персональний токен</string>
     <string name="monobank_connect">Підключити</string>
     <string name="monobank_connected">Monobank підключено</string>
-    <string name="monobank_invalid_token">Токен недійсний. Перевірте його та спробуйте ще раз.</string>
-    <string name="monobank_rate_limit">Monobank дозволяє не більше одного запиту на хвилину. Спробуйте пізніше.</string>
+    <string name="monobank_invalid_token">Токен недійсний. Перевір його та спробуй ще раз.</string>
+    <string name="monobank_rate_limit">Monobank дозволяє не більше одного запиту на хвилину. Спробуй пізніше.</string>
     <string name="monobank_no_accounts">У Monobank не знайдено карток або банок</string>
     <string name="monobank_owner_only">Синхронізувати Monobank може лише власник профілю</string>
     <string name="monobank_sync_background">Синхронізація триває у фоні — шторку можна закрити.</string>
@@ -660,7 +660,7 @@
     <string name="monobank_card_label">Картка •%1$s · %2$s</string>
     <string name="monobank_into_wallet">у гаманець «%1$s»</string>
     <string name="monobank_balance_note">Під час кожної синхронізації баланс гаманців звіряється з банком: різницю записано як початковий баланс гаманця.</string>
-    <string name="auth_error_password_empty">Введіть пароль.</string>
+    <string name="auth_error_password_empty">Введи пароль.</string>
     <string name="debt_also_finance">Записати й у Фінанси</string>
     <string name="debt_also_finance_hint_owe">Відкриється заповнена витрата: обери гаманець і збережи.</string>
     <string name="debt_also_finance_hint_owed">Відкриється заповнений дохід: обери гаманець і збережи.</string>
@@ -779,7 +779,7 @@
     <string name="onboarding_bank_body">Підключи monobank, імпортуй виписку або дозволь читати сповіщення банку — Rytm сам підкаже, що записати.</string>
     <string name="onboarding_demo_bank_push">Покупка %1$s · АТБ</string>
     <string name="onboarding_demo_bank_saved">Готово до запису</string>
-    <string name="budgets_none_set">Ще немає лімітів. Постав ліміт на категорію, і Rytm попередить, коли витрати наблизяться до нього.</string>
+    <string name="budgets_none_set">Ще немає лімітів. Постав ліміт на категорію — тут буде видно, скільки вже витрачено, а Rytm попередить, коли ліміт перевищено.</string>
     <string name="budgets_add_limit">Додати ліміт</string>
     <string name="profile_add_name">Додати ім’я</string>
     <string name="ai_summary_title">AI-підсумок</string>
@@ -788,6 +788,7 @@
     <string name="ai_summary_loading">Готуємо підсумок…</string>
     <string name="ai_summary_privacy">Надсилаються лише суми по категоріях — без операцій, коментарів і гаманців.</string>
     <string name="ai_summary_disclaimer">Згенеровано AI (Gemini) · може помилятися, цифри вище точні</string>
-    <string name="ai_summary_failed">Не вдалося підготувати підсумок. Перевірте інтернет і спробуйте ще раз.</string>
-    <string name="ai_summary_limit">На сьогодні ліміт AI-підсумків вичерпано. Спробуйте завтра.</string>
+    <string name="ai_summary_failed">Не вдалося підготувати підсумок. Перевір інтернет і спробуй ще раз.</string>
+    <string name="ai_summary_limit">На сьогодні ліміт ШІ-підсумків вичерпано. Спробуй завтра.</string>
+    <string name="pin_digits_entered">Введено %1$d з %2$d цифр</string>
 </resources>

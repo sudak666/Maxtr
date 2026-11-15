@@ -158,7 +158,7 @@ fun MonthSummarySheet(
                 )
             }
             if (!summary.isEmpty && onSharePdf != null) {
-                androidx.compose.material3.OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = onSharePdf,
                     modifier = Modifier.fillMaxWidth().heightIn(min = RytmDimens.TouchTarget),
                     shape = RoundedCornerShape(RytmRadii.Row),

@@ -123,7 +123,7 @@ fun StatementMappingSheet(
                 )
             }
             Row(Modifier.fillMaxWidth().padding(top = RytmSpacing.md), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget), shape = RoundedCornerShape(RytmRadii.Row)) {
+                ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget), shape = RoundedCornerShape(RytmRadii.Row)) {
                     Text(stringResource(R.string.action_cancel))
                 }
                 Button(

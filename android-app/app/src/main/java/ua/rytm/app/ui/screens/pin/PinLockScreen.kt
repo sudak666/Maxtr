@@ -1,5 +1,12 @@
 package ua.rytm.app.ui.screens.pin
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.background
@@ -64,15 +71,26 @@ fun PinLockScreen(viewModel: PinViewModel) {
         biometricOnboardingVisible = activity != null && !biometricEnabled && !biometricOnboardingDismissed && biometricAvailable(activity)
     }
 
+    // The keypad needs ~544dp; a phone in landscape has less than 480dp, so the
+    // column scrolls there and stays centered whenever it fits.
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            .heightIn(min = maxHeight)
+            .padding(horizontal = 32.dp, vertical = RytmSpacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(stringResource(R.string.pin_enter), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(RytmSpacing.xxl))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+        val entered = stringResource(R.string.pin_digits_entered, viewModel.pinInput.length, 6)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
+            modifier = Modifier.clearAndSetSemantics { stateDescription = entered },
+        ) {
             repeat(6) { i ->
                 Box(
                     Modifier.size(16.dp).background(
@@ -85,7 +103,12 @@ fun PinLockScreen(viewModel: PinViewModel) {
 
         viewModel.errorMessageRes?.let { messageRes ->
             Spacer(Modifier.height(RytmSpacing.lg))
-            Text(stringResource(messageRes), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(messageRes),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
 
         Spacer(Modifier.height(40.dp))
@@ -108,6 +131,7 @@ fun PinLockScreen(viewModel: PinViewModel) {
         )
         Spacer(Modifier.height(RytmSpacing.xl))
         ua.rytm.app.ui.components.RytmTextButton(onClick = { forgotConfirm = true }) { Text(stringResource(R.string.pin_forgot_short)) }
+    }
     }
 
     if (forgotConfirm) ua.rytm.app.ui.components.RytmDestructiveConfirm(

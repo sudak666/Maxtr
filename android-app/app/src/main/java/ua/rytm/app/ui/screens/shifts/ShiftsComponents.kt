@@ -491,7 +491,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs),
                 ) {
-                    androidx.compose.material3.OutlinedButton(onClick = onOpenShiftTypes, shape = RoundedCornerShape(RytmRadii.Row)) {
+                    ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onOpenShiftTypes, shape = RoundedCornerShape(RytmRadii.Row)) {
                         Icon(RytmIcons.Style, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.shift_types_title), modifier = Modifier.padding(start = 6.dp))
                     }

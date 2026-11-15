@@ -104,7 +104,7 @@ fun DatePickerField(
                 ) { Text(stringResource(R.string.action_done), fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { open = false }, shape = RoundedCornerShape(RytmRadii.Pill)) {
+                ua.rytm.app.ui.components.RytmOutlinedButton(onClick = { open = false }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                     Text(stringResource(R.string.action_cancel), fontWeight = FontWeight.Bold)
                 }
             },

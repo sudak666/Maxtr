@@ -269,7 +269,7 @@ fun CategoriesManagerSheet(
             confirmButton = {
                 Button(onClick = { viewModel.renameCategory(id, editedName); pendingRename = null }, enabled = editedName.trim().isNotEmpty(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_save)) }
             },
-            dismissButton = { OutlinedButton(onClick = { pendingRename = null }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { ua.rytm.app.ui.components.RytmOutlinedButton(onClick = { pendingRename = null }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 

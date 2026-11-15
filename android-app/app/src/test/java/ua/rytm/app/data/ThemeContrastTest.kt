@@ -13,6 +13,23 @@ import ua.rytm.app.ui.theme.LightBg1
 import ua.rytm.app.ui.theme.LightMuted
 import ua.rytm.app.ui.theme.LightMuted2
 import ua.rytm.app.ui.theme.LightText
+import ua.rytm.app.ui.theme.AmberText
+import ua.rytm.app.ui.theme.DarkErrorContainer
+import ua.rytm.app.ui.theme.DarkOnErrorContainer
+import ua.rytm.app.ui.theme.DarkOnPrimaryContainer
+import ua.rytm.app.ui.theme.DarkPrimaryContainer
+import ua.rytm.app.ui.theme.DarkWarnContainer
+import ua.rytm.app.ui.theme.LightErrorContainer
+import ua.rytm.app.ui.theme.LightInverseSurface
+import ua.rytm.app.ui.theme.LightOnErrorContainer
+import ua.rytm.app.ui.theme.LightOnPrimaryContainer
+import ua.rytm.app.ui.theme.LightPrimaryContainer
+import ua.rytm.app.ui.theme.LightWarnContainer
+import ua.rytm.app.ui.theme.OrangeDark2
+import ua.rytm.app.ui.theme.Purple3
+import ua.rytm.app.ui.theme.PurpleLinkDark
+import ua.rytm.app.ui.theme.DarkBg3
+import ua.rytm.app.ui.theme.DarkBg2
 
 class ThemeContrastTest {
     @Test fun bodyAndMutedTextMeetWcagAaInBothThemes() {
@@ -28,6 +45,33 @@ class ThemeContrastTest {
         ).forEach { (foreground, background) ->
             val ratio = contrast(foreground, background)
             assertTrue("Contrast $ratio for $foreground on $background", ratio >= 4.5)
+        }
+    }
+
+    @Test fun pinnedContainerAndInverseRolesMeetWcagAa() {
+        listOf(
+            DarkOnPrimaryContainer to DarkPrimaryContainer,
+            OrangeDark2 to DarkWarnContainer,
+            DarkOnErrorContainer to DarkErrorContainer,
+            DarkBg to DarkText, // inverse surface (snackbar)
+            Purple3 to DarkText, // inversePrimary (snackbar action)
+            LightOnPrimaryContainer to LightPrimaryContainer,
+            AmberText to LightWarnContainer,
+            LightOnErrorContainer to LightErrorContainer,
+            LightBg to LightInverseSurface,
+            PurpleLinkDark to LightInverseSurface,
+        ).forEach { (foreground, background) ->
+            val ratio = contrast(foreground, background)
+            assertTrue("Contrast $ratio for $foreground on $background", ratio >= 4.5)
+        }
+    }
+
+    // Outlined/text buttons use RytmSemantic.link in dark theme, not primary
+    // (#8B5CF6 measured 2.78:1 on cards).
+    @Test fun darkLinkTextMeetsWcagAaOnCardsAndSheets() {
+        listOf(DarkBg1, DarkBg2, DarkBg3).forEach { bg ->
+            val ratio = contrast(PurpleLinkDark, bg)
+            assertTrue("Contrast $ratio for link on $bg", ratio >= 4.5)
         }
     }
 

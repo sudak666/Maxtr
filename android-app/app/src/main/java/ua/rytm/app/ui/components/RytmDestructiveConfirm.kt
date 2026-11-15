@@ -80,7 +80,7 @@ fun RytmDestructiveConfirm(
             ) { Text(confirmLabel) }
         },
         dismissButton = {
-            OutlinedButton(enabled = !busy, onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
+            ua.rytm.app.ui.components.RytmOutlinedButton(enabled = !busy, onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

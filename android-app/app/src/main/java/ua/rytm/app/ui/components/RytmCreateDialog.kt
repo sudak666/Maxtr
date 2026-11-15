@@ -33,7 +33,7 @@ fun RytmCreateDialog(title: String, canCreate: Boolean, onCreate: () -> Unit, on
             Button(onClick = onCreate, enabled = canCreate, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
+            ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
