@@ -5,14 +5,14 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { init, switchTab } from './app-init.js';
-import { applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, getRedirectResult, googleProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
+import { EmailAuthProvider, applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, getRedirectResult, googleProvider, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
 import { callFunction, safetyBackup } from './backups.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { deleteAllTransactionDocs, loadActiveProfileId, lsKey, userDoc } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { renderNotifUI } from './notifications.js';
 import { closeManagers } from './settings-managers.js';
-import { showToast, uiAlert, uiConfirm } from './ui-widgets.js';
+import { showToast, uiAlert, uiConfirm, uiPasswordPrompt } from './ui-widgets.js';
 import { clearSensitiveLocalCacheForAccount } from './privacy-cache.js';
 
 /** Minimum length for a new account password; Firebase itself only asks for 6. Same as Android's NEW_PASSWORD_MIN. */
@@ -175,6 +175,25 @@ const deleteAccountUser = async function(){
   if(!currentUser) return;
   if(!(await uiConfirm(tr('auth_delete_confirm'),{title:tr('auth_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   const uid=currentUser.uid;
+  // The server deletes only for a sign-in made in the last 5 minutes
+  // (functions/index.js `account`): re-authenticate, then refresh the token.
+  try{
+    const providers=currentUser.providerData.map(p=>p.providerId);
+    if(providers.includes('google.com')){
+      await reauthenticateWithPopup(currentUser, googleProvider);
+    }else{
+      const pwd=await uiPasswordPrompt(tr('auth_reauth_password_body'), tr('auth_reauth_password_title'), tr('common_delete'));
+      if(!pwd) return;
+      await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email||'', pwd));
+    }
+    await currentUser.getIdToken(true);
+  }catch(e){
+    const code=firebaseErrCode(e);
+    if(code==='auth/popup-closed-by-user'||code==='auth/cancelled-popup-request') return;
+    console.error(e);
+    await uiAlert(tr(code==='auth/wrong-password'||code==='auth/invalid-credential'?'auth_reauth_wrong_password':'auth_reauth_failed'));
+    return;
+  }
   try{
     await callFunction('account', {action:'delete'});
   }catch(e){

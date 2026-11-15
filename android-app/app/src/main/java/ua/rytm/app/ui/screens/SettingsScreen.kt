@@ -161,6 +161,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var pendingSignOut by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteAccount by rememberSaveable { mutableStateOf(false) }
+    var deletePasswordOpen by rememberSaveable { mutableStateOf(false) }
     var pendingResetProfile by rememberSaveable { mutableStateOf(false) }
     var settingsSearch by rememberSaveable { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
@@ -672,8 +673,44 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
             confirmLabel = stringResource(R.string.action_delete),
             busy = authViewModel.isDeletingAccount,
             busyLabel = stringResource(R.string.settings_deleting_account),
-            onConfirm = { authViewModel.deleteAccount(context) },
+            // Google accounts confirm in the account picker; email accounts
+            // type their password in the next dialog.
+            onConfirm = {
+                if (authViewModel.needsPasswordToDelete) { pendingDeleteAccount = false; deletePasswordOpen = true }
+                else authViewModel.deleteAccount(context)
+            },
             onDismiss = { pendingDeleteAccount = false },
+        )
+    }
+    if (deletePasswordOpen) {
+        var password by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { if (!authViewModel.isDeletingAccount) deletePasswordOpen = false },
+            title = { Text(stringResource(R.string.auth_reauth_password_title)) },
+            text = {
+                androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(ua.rytm.app.ui.theme.RytmSpacing.sm)) {
+                    Text(stringResource(R.string.auth_reauth_password_body))
+                    androidx.compose.material3.OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        singleLine = true,
+                        enabled = !authViewModel.isDeletingAccount,
+                        label = { Text(stringResource(R.string.auth_password)) },
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = { authViewModel.deleteAccount(context, password) },
+                    enabled = password.isNotEmpty() && !authViewModel.isDeletingAccount,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+                ) { Text(stringResource(if (authViewModel.isDeletingAccount) R.string.settings_deleting_account else R.string.action_delete)) }
+            },
+            dismissButton = {
+                ua.rytm.app.ui.components.RytmTextButton(onClick = { deletePasswordOpen = false }, enabled = !authViewModel.isDeletingAccount) { Text(stringResource(R.string.action_cancel)) }
+            },
         )
     }
     if (pendingSignOut) {

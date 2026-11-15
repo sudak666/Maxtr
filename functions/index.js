@@ -206,10 +206,16 @@ exports.backups = onCall({ timeoutSeconds: 300, memory: '512MiB', maxInstances: 
 // rewrite). Data first, then the Auth user — both server-side, so neither a
 // stale client session (requires-recent-login) nor a big history can leave
 // the account half-deleted. See lib/account.js.
+const RECENT_LOGIN_SECONDS = 5 * 60;
 exports.account = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'sign in required');
   if ((req.data || {}).action !== 'delete') throw new HttpsError('invalid-argument', 'unknown action');
+  // Irreversible (backups go too), so the caller must have signed in again
+  // within the last 5 minutes: a stolen session or an unlocked phone is not
+  // enough. Clients re-authenticate and force-refresh the ID token first.
+  const authTime = Number(req.auth?.token?.auth_time) || 0;
+  if (Date.now() / 1000 - authTime > RECENT_LOGIN_SECONDS) throw new HttpsError('failed-precondition', 'recent-login-required');
   try {
     const { keepAuth } = await deleteAccountData(db, uid);
     // The sign-in is shared with other apps of this project; keep it while
