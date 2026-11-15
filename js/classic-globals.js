@@ -162,12 +162,6 @@
   setIcon('ic-settings-account','idCard');
   setIcon('ic-settings-danger','warning');
   setIcon('ic-settings-about','info');
-  setIcon('ic-set-premium','star');
-  setIcon('ic-premium-badge','star');
-  setIcon('ic-premium-wallets','check');
-  setIcon('ic-premium-forecast','trendUp');
-  setIcon('ic-premium-backup','cloud');
-  setIcon('ic-premium-widget','grid');
   setIcon('ic-set-wallets','wallet');
   setIcon('ic-set-rates','swap');
   setIcon('ic-rates-update','refresh');

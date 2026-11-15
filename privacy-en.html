@@ -45,7 +45,7 @@ a{color:var(--purple2)}
   </div>
 
   <h1>Privacy Policy</h1>
-  <div class="updated">Last updated: November 8, 2026</div>
+  <div class="updated">Last updated: November 15, 2026</div>
 
   <div class="card">
     <p>This Policy explains what data the Rytm app ("the app", "we") collects, how we use and store it, and what rights you have as a user. Rytm is a personal tracker for work shifts, finances, and debt/settlement schedules; it is not a legal entity or a commercial company — it is developed and maintained by a single individual.</p>
@@ -67,7 +67,12 @@ a{color:var(--purple2)}
   <p><strong>Shared profiles.</strong> If you keep a profile together with someone else, each new transaction records who added it (your Google account name or the part of your email before «@»), so members can see each person's contributions.</p>
 
   <p><strong>AI month summary (Android, only when you tap “Explain the month”).</strong> The app sends our server (Firebase Cloud Functions) only that month's totals: overall income and expenses, the number of operations and the total of each expense category with its name, plus the same totals for the previous month. Individual transactions, comments, merchants, wallets, email and name are not sent. The server passes these totals to Google's Gemini model (Vertex AI), which writes a few sentences, and keeps the last few answers and a daily request counter so identical requests aren't sent twice. Google, as a data processor, does not use them to train its models. The text is AI-generated and may contain mistakes: the exact figures are always the ones the app shows itself.</p>
-  <p><strong>Crash reports (Android app).</strong> If the app crashes, Firebase Crashlytics (Google) sends a technical report: where in the code it failed, device model, Android and app version. It contains none of your financial data, email or account identifier and is used only to fix bugs.</p>
+  <p><strong>Crash reports (Android app).</strong> If the app crashes, Firebase Crashlytics (Google) sends a technical report: where in the code it failed, device model, Android and app version. It contains none of your financial data, email or account identifier, only a random app-installation ID (to tell one recurring crash from many different ones), and is used only to fix bugs.</p>
+  <p><strong>Backups.</strong> Every night the server keeps a copy of each of your profiles (shifts, finances, loans, transactions), and also before a profile reset, an import or a restore. Only you can restore from them. Copies are kept for up to five weeks, so a record you deleted stays in older copies for that long. They are deleted together with your account.</p>
+  <p><strong>Push notifications (optional).</strong> If you turn on push notifications, a technical device token (Firebase Cloud Messaging) is stored, plus markers of which reminders were already sent so they are not repeated.</p>
+  <p><strong>Web version error log.</strong> The web version keeps up to 20 recent technical errors (the message and a short code location) and syncs them to your account so we can fix them. They contain no financial data.</p>
+  <p><strong>Exchange and crypto rates.</strong> To show rates, the app calls the public services of the National Bank of Ukraine, PrivatBank (through our server) and CoinGecko. These requests carry none of your data, only the rate request itself; the services see ordinary connection data such as your IP address.</p>
+  <p><strong>Premium subscription (Android, once available).</strong> To verify a Google Play purchase, the server stores the subscription state (active or not, until which date) and a one-way hash of the purchase token, linked to your account. The hash stays after account deletion so the same purchase cannot be claimed by another account. We never receive payment details: Google handles the payment entirely.</p>
 
   <h2>How we use your data</h2>
   <p>Data is used solely to run the app itself: showing your statistics, calculating balances, and syncing between your devices. We do <strong>not</strong> show ads, do <strong>not</strong> use third-party advertising analytics or trackers (apart from the crash reports described above), and do <strong>not</strong> sell or share your data with anyone for marketing or any other purposes.</p>

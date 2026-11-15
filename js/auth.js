@@ -5,7 +5,7 @@
 // AST-based free-variable analysis (eslint-scope), not manual tracing.
 import { AppState } from './state.js';
 import { init, switchTab } from './app-init.js';
-import { applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, getRedirectResult, googleProvider, onAuthStateChanged, renderPremiumUI, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
+import { applyWidgetVisibility, auth, createUserWithEmailAndPassword, deleteDoc, getRedirectResult, googleProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut } from './core.js';
 import { callFunction, safetyBackup } from './backups.js';
 import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { deleteAllTransactionDocs, loadActiveProfileId, lsKey, userDoc } from './firebase-sync.js';
@@ -220,7 +220,7 @@ const resetProfileData = async function(){
   // path — the exact same one a brand-new profile goes through) — reusing
   // that instead of duplicating the default-field list here.
   await fbLoadNow();
-  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
+  renderProfileUI(); applyWidgetVisibility(); renderNotifUI(); renderProfilesUI();
   switchTab('finance');
   showToast(tr('profiles_reset_done'),'trash');
 };

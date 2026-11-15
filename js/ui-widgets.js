@@ -263,20 +263,49 @@ export function enhanceSelect(sel){
   wrap.appendChild(el);
   const trigger=document.createElement('button');
   trigger.type='button'; trigger.className='cs-trigger';
-  trigger.innerHTML='<span class="cs-val"></span>'+window.Icon('chevron');
+  trigger.innerHTML=`<span class="cs-val"${el.id?` id="${el.id}-cs-val"`:''}></span>`+window.Icon('chevron');
   const car=trigger.querySelector('svg'); if(car) car.classList.add('cs-caret');
   const panel=document.createElement('div'); panel.className='cs-panel';
   const panelScroll=document.createElement('div'); panelScroll.className='cs-panel-scroll';
+  panelScroll.setAttribute('role','listbox');
   panel.appendChild(panelScroll);
   wrap.appendChild(trigger); wrap.appendChild(panel);
-  const close=()=>wrap.classList.remove('open');
+  // Keyboard/screen-reader semantics: the hidden native <select> leaves the
+  // Tab order (it used to take an invisible focus stop), the trigger says it
+  // opens a list, and the options are a listbox driven by arrow keys.
+  el.tabIndex=-1;
+  el.setAttribute('aria-hidden','true');
+  trigger.setAttribute('aria-haspopup','listbox');
+  trigger.setAttribute('aria-expanded','false');
+  const labelEl=el.id ? document.querySelector(`label[for="${el.id}"]`) : null;
+  if(labelEl){ if(!labelEl.id) labelEl.id=el.id+'-label'; trigger.setAttribute('aria-labelledby', labelEl.id+' '+(el.id+'-cs-val')); }
+  else if(el.getAttribute('aria-label')) trigger.setAttribute('aria-label', /** @type {string} */ (el.getAttribute('aria-label')));
+  const close=(refocus=false)=>{ wrap.classList.remove('open'); trigger.setAttribute('aria-expanded','false'); if(refocus) trigger.focus(); };
+  const optionEls=()=>/** @type {HTMLElement[]} */ (Array.from(panelScroll.querySelectorAll('.cs-opt')));
+  const open=()=>{
+    document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
+    positionFixedPanel(trigger, panel, true, {dynamicHeight:true});
+    wrap.classList.add('open'); trigger.setAttribute('aria-expanded','true');
+  };
   function build(){
     panelScroll.innerHTML='';
     Array.from(el.options).forEach(opt=>{
       const o=document.createElement('div');
       o.className='cs-opt'+(opt.selected?' sel':'');
+      o.setAttribute('role','option');
+      o.setAttribute('aria-selected', opt.selected?'true':'false');
+      o.tabIndex=-1;
       o.textContent=opt.textContent;
-      o.addEventListener('click',e=>{ e.stopPropagation(); el.value=opt.value; el.dispatchEvent(new Event('change',{bubbles:true})); close(); });
+      const choose=()=>{ el.value=opt.value; el.dispatchEvent(new Event('change',{bubbles:true})); close(true); };
+      o.addEventListener('click',e=>{ e.stopPropagation(); choose(); });
+      o.addEventListener('keydown',e=>{
+        const list=optionEls(); const i=list.indexOf(o);
+        if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); const n=list[Math.min(list.length-1, Math.max(0, i+(e.key==='ArrowDown'?1:-1)))]; if(n) n.focus(); }
+        else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); choose(); }
+        // Escape closes this list only, not the modal around it.
+        else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); close(true); }
+        else if(e.key==='Tab'){ close(); }
+      });
       panelScroll.appendChild(o);
     });
     const cur=el.options[el.selectedIndex];
@@ -284,9 +313,14 @@ export function enhanceSelect(sel){
   }
   trigger.addEventListener('click',e=>{
     e.stopPropagation();
-    const willOpen=!wrap.classList.contains('open');
-    document.querySelectorAll('.cs.open').forEach(c=>c.classList.remove('open'));
-    if(willOpen){ positionFixedPanel(trigger, panel, true, {dynamicHeight:true}); wrap.classList.add('open'); }
+    if(wrap.classList.contains('open')) close(); else open();
+  });
+  trigger.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault(); open();
+      const list=optionEls(); const sel=list.find(x=>x.classList.contains('sel'))||list[0];
+      if(sel) setTimeout(()=>sel.focus(),0);
+    }else if(e.key==='Escape' && wrap.classList.contains('open')){ e.preventDefault(); e.stopPropagation(); close(); }
   });
   el.addEventListener('change', build);
   el.addEventListener('cs-sync', build); // for programmatic .value changes
@@ -349,7 +383,7 @@ export function enhanceDateInput(inp){
     }
     const rest=(7-((first+total)%7))%7;
     for(let i=1;i<=rest;i++) html+=`<span class="dp-day dp-out">${i}</span>`;
-    html+='</div><button type="button" class="dp-today-btn" data-act="today">Сьогодні</button>';
+    html+='</div><button type="button" class="dp-today-btn" data-act="today">'+tr('finance_day_today')+'</button>';
     panel.innerHTML=html;
     /** @type {Element} */ (panel.querySelector('[data-act=prev]')).addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m-1,1); render();});
     /** @type {Element} */ (panel.querySelector('[data-act=next]')).addEventListener('click',e=>{e.stopPropagation(); viewDate=new Date(y,m+1,1); render();});

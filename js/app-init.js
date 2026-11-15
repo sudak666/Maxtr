@@ -8,7 +8,7 @@ import { renderFinance, renderFinanceSkeleton } from './analytics-csv.js';
 import { maybeShowSettingsTip } from './auth.js';
 import { renderCalendar, renderFinanceChart, renderIncomeChart, renderShiftsSkeleton, runAutoFillCheck } from './calendar.js';
 import { fbLoadNow, normalizeDebtData, renderProfilesUI, seedConfigFromDocs } from './color-picker.js';
-import { DEFAULT_SALARY_GOAL, applyWidgetVisibility, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder } from './core.js';
+import { DEFAULT_SALARY_GOAL, applyWidgetVisibility, localDateStr, normalizeWallets, sanitizeWidgetOrder } from './core.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { renderDebt } from './debt.js';
 import { applyAutoRuleToForm, fillSubcats, maybeSuggestCategoryWithAI, setFinanceType, updateAmountLabel } from './finance.js';
@@ -92,7 +92,7 @@ export async function init(){
   setFinanceType('expense');
   populateFxConverterSelects(); renderFxConverter();
   enhanceAllSelects();
-  renderProfileUI(); renderPremiumUI();
+  renderProfileUI();
   try{ await loadProfilesMeta(); }catch(e){ console.error('profiles meta load failed', e); }
   if(!isSensitiveLocalCacheEnabled() && AppState.currentUser) clearSensitiveLocalCacheForAccount(AppState.currentUser.uid, AppState.profilesMeta);
   renderProfilesUI();
@@ -106,7 +106,7 @@ export async function init(){
   // Firestore read since the owner could have changed it since last time).
   await loadActiveProfileRole();
   applyProfileReadOnlyUI();
-  renderProfileUI(); renderPremiumUI(); applyWidgetVisibility(); renderNotifUI();
+  renderProfileUI(); applyWidgetVisibility(); renderNotifUI();
   runNotificationChecks();
   maybeAutoUpdateRates();
   maybeRefreshCryptoTop();
