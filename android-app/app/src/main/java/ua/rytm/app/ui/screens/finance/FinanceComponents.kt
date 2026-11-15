@@ -98,7 +98,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
@@ -568,6 +570,7 @@ internal fun TransactionRow(
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
+    val deleteLabel = stringResource(R.string.action_delete)
     val swipeThresholdPx = with(density) { SwipeOpenThreshold.toPx() }
     val revealWidthPx = with(density) { SwipeRevealWidth.toPx() }
     var rowWidthPx by remember(tx.id) { mutableIntStateOf(0) }
@@ -698,6 +701,11 @@ internal fun TransactionRow(
                     role = Role.Button,
                 ) {
                     if (offsetPx < -1f) scope.launch { settleAt(0f) } else onClick()
+                }
+                // Swipe is a path gesture; TalkBack/Switch Access users get
+                // the same delete as an action (WCAG 2.5.1).
+                .semantics {
+                    if (canEdit) customActions = listOf(CustomAccessibilityAction(deleteLabel) { onDelete() })
                 }
                 .draggable(
                     enabled = canEdit,

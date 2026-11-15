@@ -85,11 +85,13 @@ fun RealtimeStateBanner() {
         }
         else -> return
     }
+    // Offline is a heads-up (amber); a sync error is an error (red).
+    val isError = message == R.string.sync_status_error
     Card(
         Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            containerColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
         ),
     ) {
         Row(

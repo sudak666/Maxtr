@@ -327,7 +327,7 @@ fun ShiftsScreen() {
                 if (viewModel.shiftTypes.isEmpty()) {
                     // A fresh profile has no shift types; the sheet used to be blank.
                     Text(stringResource(R.string.shifts_no_types), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    androidx.compose.material3.OutlinedButton(
+                    ua.rytm.app.ui.components.RytmOutlinedButton(
                         onClick = {
                             viewModel.closeDayModal()
                             quickFillShowingShiftTypes = true

@@ -23,3 +23,23 @@ fun RytmTextButton(
     colors: ButtonColors = ButtonDefaults.textButtonColors(contentColor = RytmSemantic.link),
     content: @Composable RowScope.() -> Unit,
 ) = TextButton(onClick = onClick, modifier = modifier, enabled = enabled, shape = shape, colors = colors, content = content)
+
+/**
+ * OutlinedButton with the same [RytmSemantic.link] default content color as
+ * [RytmTextButton]: M3's default `primary` text was 2.78–4.0:1 in dark theme.
+ */
+@Composable
+fun RytmOutlinedButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    shape: Shape = ButtonDefaults.outlinedShape,
+    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = RytmSemantic.link),
+    border: androidx.compose.foundation.BorderStroke? = ButtonDefaults.outlinedButtonBorder(enabled),
+    contentPadding: androidx.compose.foundation.layout.PaddingValues = ButtonDefaults.ContentPadding,
+    interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource? = null,
+    content: @Composable RowScope.() -> Unit,
+) = androidx.compose.material3.OutlinedButton(
+    onClick = onClick, modifier = modifier, enabled = enabled, shape = shape, colors = colors,
+    border = border, contentPadding = contentPadding, interactionSource = interactionSource, content = content,
+)

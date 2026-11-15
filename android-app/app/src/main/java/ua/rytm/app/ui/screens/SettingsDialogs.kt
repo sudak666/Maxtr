@@ -160,7 +160,7 @@ fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: 
             Button(enabled = !busy && canImport, onClick = onConfirm, shape = RoundedCornerShape(RytmRadii.Control)) { Text(stringResource(R.string.settings_csv_import_action)) }
         },
         dismissButton = {
-            OutlinedButton(enabled = !busy, onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Control)) {
+            ua.rytm.app.ui.components.RytmOutlinedButton(enabled = !busy, onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Control)) {
                 Text(stringResource(R.string.action_cancel))
             }
         },
@@ -244,7 +244,7 @@ fun PremiumDialogContent(
                     if (offer.basePlan == "yearly") {
                         Button(onClick = { onBuy(index) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { text() }
                     } else {
-                        OutlinedButton(onClick = { onBuy(index) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { text() }
+                        ua.rytm.app.ui.components.RytmOutlinedButton(onClick = { onBuy(index) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { text() }
                     }
                 }
                 // What a subscriber must know before paying, and the way out after.
@@ -274,7 +274,7 @@ fun PremiumDialogContent(
                 if (!owned && plans.isNotEmpty()) {
                     ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_done)) }
                 } else {
-                    OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
+                    ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_done)) }
                 }
             }
         },

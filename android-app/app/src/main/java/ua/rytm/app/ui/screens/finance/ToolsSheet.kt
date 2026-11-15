@@ -124,7 +124,7 @@ fun ToolsSheet(
         ) {
             RytmSheetTitle(stringResource(R.string.tools_title))
             onOpenMonthSummary?.let { open ->
-                androidx.compose.material3.OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = open,
                     modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
@@ -436,7 +436,7 @@ private fun CategoryStatsSheet(vm: ToolsViewModel, type: TxType, category: Strin
                 }
             }
             onShowTransactions?.let { show ->
-                androidx.compose.material3.OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = show,
                     modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row),

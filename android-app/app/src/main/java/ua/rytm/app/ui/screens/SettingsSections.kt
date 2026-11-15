@@ -1,5 +1,6 @@
 package ua.rytm.app.ui.screens
 
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
@@ -169,15 +170,18 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
         var paywallOpen by remember { mutableStateOf(false) }
         if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
         val scope = androidx.compose.runtime.rememberCoroutineScope()
+        val onToggle: (Boolean) -> Unit = { on -> if (premium) scope.launch { store.setBankAutoSave(on) } else paywallOpen = true }
         androidx.compose.foundation.layout.Row(
-            androidx.compose.ui.Modifier.fillMaxWidth().padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
+            androidx.compose.ui.Modifier.fillMaxWidth()
+                .toggleable(value = autoSave, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = onToggle)
+                .padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.weight(1f)) {
                 androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_title), style = androidx.compose.material3.MaterialTheme.typography.bodyLarge)
                 androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_hint), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = { on -> if (premium) scope.launch { store.setBankAutoSave(on) } else paywallOpen = true })
+            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
         }
     }
 }

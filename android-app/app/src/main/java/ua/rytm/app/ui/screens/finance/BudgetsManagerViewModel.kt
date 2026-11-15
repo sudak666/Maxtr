@@ -42,6 +42,9 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
         private set
     var subcategories by mutableStateOf<Map<String, List<String>>>(emptyMap())
         private set
+    /** This financial month's expenses in UAH per category, and per `subBudgetKey` for subcategories. */
+    var spent by mutableStateOf<Map<String, Double>>(emptyMap())
+        private set
     @get:StringRes
     var errorMessageRes by mutableStateOf<Int?>(null)
         private set
@@ -55,6 +58,18 @@ class BudgetsManagerViewModel(private val repository: FinanceRepository, private
         repository.budgets.onEach { budgets = it }.launchIn(viewModelScope)
         repository.subcategoriesByKey.onEach { subcategories = it }.launchIn(viewModelScope)
         repository.categoryIcons.onEach { categoryIcons = it }.launchIn(viewModelScope)
+        combine(repository.transactions, repository.wallets, repository.currencyRates) { txs, wallets, rates ->
+            val month = ua.rytm.app.data.FinancialMonth.of(java.time.LocalDate.now())
+            val out = HashMap<String, Double>()
+            txs.forStats(wallets).asSequence()
+                .filter { it.type == TxType.EXPENSE && ua.rytm.app.data.FinancialMonth.contains(month, it.date) }
+                .forEach { tx ->
+                    val uah = repository.convertCurrency(tx.amount, tx.currency, "UAH", rates)
+                    out.merge(tx.category, uah, Double::plus)
+                    tx.subcategory?.let { sub -> out.merge(ua.rytm.app.data.subBudgetKey(tx.category, sub), uah, Double::plus) }
+                }
+            out as Map<String, Double>
+        }.onEach { spent = it }.launchIn(viewModelScope)
     }
 
     fun toggleEdit(category: String) {

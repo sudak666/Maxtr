@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import ua.rytm.app.ui.icons.Add
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -101,6 +102,7 @@ fun BudgetsManagerSheet(
                     onLimitChange = { viewModel.updateBudget(category, it) },
                     subcategories = viewModel.subcategories[ua.rytm.app.data.subKey(TxType.EXPENSE.name, category)].orEmpty(),
                     subLimits = viewModel.budgets,
+                    spent = viewModel.spent[category] ?: 0.0,
                     onSubLimitChange = { sub, amount -> viewModel.updateBudget(ua.rytm.app.data.subBudgetKey(category, sub), amount) },
                 )
             }
@@ -116,8 +118,8 @@ fun BudgetsManagerSheet(
 }
 
 @Composable
-private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit, subcategories: List<String>, subLimits: Map<String, Double>, onSubLimitChange: (String, Double) -> Unit) {
-    val summary = if (limit > 0) stringResource(R.string.budgets_summary, formatMoney(limit)) else stringResource(R.string.budgets_unlimited)
+private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit, subcategories: List<String>, subLimits: Map<String, Double>, spent: Double, onSubLimitChange: (String, Double) -> Unit) {
+    val summary = if (limit > 0) stringResource(R.string.budgets_spent_of, formatMoney(spent), formatMoney(limit)) else stringResource(R.string.budgets_unlimited)
 
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
@@ -130,6 +132,22 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
             Column(Modifier.weight(1f)) {
                 Text(localizedDomainText(category), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (limit > 0) {
+                    // Filled share of this month's limit: amber from 80 %, red once over.
+                    val share = (spent / limit).toFloat()
+                    val barColor = when {
+                        isOverBudget(spent, limit) -> MaterialTheme.colorScheme.error
+                        share >= 0.8f -> ua.rytm.app.ui.theme.RytmSemantic.warning
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { share.coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(6.dp),
+                        color = barColor,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        drawStopIndicator = {},
+                    )
+                }
             }
             Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }

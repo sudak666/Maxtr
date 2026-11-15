@@ -469,7 +469,7 @@ fun FinanceScreen(
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
                     item(key = "collapse-list-button") {
-                        androidx.compose.material3.OutlinedButton(
+                        ua.rytm.app.ui.components.RytmOutlinedButton(
                             onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },
                             modifier = Modifier.fillMaxWidth(),
                             // Was Pill -- DebtScreen's functionally identical
@@ -490,7 +490,11 @@ fun FinanceScreen(
 
     if (filtersOpen) HistoryFiltersSheet(viewModel) { filtersOpen = false }
     if (viewModel.form.sheetVisible) {
-        TransactionFormSheet(viewModel)
+        // Delete from the edit sheet too: swipe alone was hard to find and
+        // impossible without a path gesture.
+        TransactionFormSheet(viewModel, onDelete = {
+            viewModel.editingTransaction()?.let { tx -> viewModel.form.close(); requestDelete(tx) }
+        })
     }
     if (toolsSheetOpen) {
         ToolsSheet(

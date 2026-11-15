@@ -132,7 +132,7 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
                     Icon(RytmIcons.LockClock, contentDescription = null)
                     Text(stringResource(R.string.pin_lock_now))
                 }
-                OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = { removeConfirmationVisible = true },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(RytmRadii.Row),

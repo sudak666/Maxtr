@@ -74,6 +74,19 @@ private val DarkColors = darkColorScheme(
     // Not white: white on #EF4444 measures 3.76:1, below AA for the bold
     // labels/icons actually drawn on it. Near-black gets 4.53:1.
     onError = LightText,
+    // Pinned container/inverse roles (were M3 baseline: pink offline banner,
+    // lavender snackbars). Tertiary container = the amber "heads-up" tone.
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
+    secondaryContainer = DarkPrimaryContainer,
+    onSecondaryContainer = DarkOnPrimaryContainer,
+    tertiaryContainer = DarkWarnContainer,
+    onTertiaryContainer = OrangeDark2,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer,
+    inverseSurface = DarkText,
+    inverseOnSurface = DarkBg,
+    inversePrimary = Purple3,
 )
 
 private val LightColors = lightColorScheme(
@@ -107,6 +120,17 @@ private val LightColors = lightColorScheme(
     outlineVariant = LightBorder2,
     error = RedLight2,
     onError = LightBg1,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    secondaryContainer = LightPrimaryContainer,
+    onSecondaryContainer = LightOnPrimaryContainer,
+    tertiaryContainer = LightWarnContainer,
+    onTertiaryContainer = AmberText,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer,
+    inverseSurface = LightInverseSurface,
+    inverseOnSurface = LightBg,
+    inversePrimary = PurpleLinkDark,
 )
 
 /**

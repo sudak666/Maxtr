@@ -353,6 +353,9 @@ class FinanceViewModel(
     val activeFilterCount: Int get() = (if (typeFilter != TxTypeFilter.ALL) 1 else 0) + (if (categoryFilter != null) 1 else 0) + historyFilter.activeCount
     fun toggleListExpanded() { listExpanded = !listExpanded }
 
+    /** The transaction open in the edit sheet, if any. */
+    fun editingTransaction(): Transaction? = form.editingTxId?.let { id -> transactions.firstOrNull { it.id == id } }
+
     fun deleteTransaction(id: String, animationDelayMs: Long = 0L, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             runCatching {

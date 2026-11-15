@@ -116,3 +116,18 @@ val AvatarTintGreen = Color(0xFF9FE0C4)
 val AvatarTintPurple = Color(0xFFD7C2FB)
 val AvatarTintSky = Color(0xFFAECBFA)
 val AvatarTintPink = Color(0xFFF8BBD0)
+
+// Container / inverse roles, pinned so nothing falls back to M3's baseline
+// pinks and lavenders (banners, snackbars, selected-item pills). Each on-pair
+// is checked >= 4.5:1 in ThemeContrastTest.
+val DarkPrimaryContainer = Color(0xFF3B2A63)
+val DarkOnPrimaryContainer = Color(0xFFE4DAFE)
+val DarkWarnContainer = Color(0xFF3D3424)
+val DarkErrorContainer = Color(0xFF4A2326)
+val DarkOnErrorContainer = Color(0xFFFFDAD6)
+val LightPrimaryContainer = Color(0xFFEDE5FD)
+val LightOnPrimaryContainer = Color(0xFF3B1786)
+val LightWarnContainer = Color(0xFFFDF0D5)
+val LightErrorContainer = Color(0xFFFDE3E1)
+val LightOnErrorContainer = Color(0xFF7F1D1D)
+val LightInverseSurface = Color(0xFF2F2E33)

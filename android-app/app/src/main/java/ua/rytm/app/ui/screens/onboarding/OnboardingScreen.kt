@@ -112,7 +112,7 @@ fun OnboardingScreen(onAddFirstExpense: (() -> Unit)? = null, onComplete: () -> 
             Spacer(Modifier.height(if (compactHeight) 8.dp else 20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 if (page > 0) {
-                    OutlinedButton(
+                    ua.rytm.app.ui.components.RytmOutlinedButton(
                         onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } },
                         modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                         shape = RoundedCornerShape(RytmRadii.Row),

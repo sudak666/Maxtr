@@ -67,6 +67,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import ua.rytm.app.ui.components.SwipeOpenThreshold
 import ua.rytm.app.ui.components.SwipeRevealWidth
 import androidx.compose.ui.text.font.FontWeight
@@ -224,7 +227,7 @@ fun DebtScreen(
                 }
                 if (newestEntries.size > 3) {
                     item(key = "collapse-list-button") {
-                        OutlinedButton(
+                        ua.rytm.app.ui.components.RytmOutlinedButton(
                             onClick = { if (viewModel.historyExpanded) collapseHistory() else viewModel.toggleHistoryPanel() },
                             // Was `padding(end = 178.dp)` — an eyeballed offset
                             // to dodge the FAB horizontally, leaving ~110dp for
@@ -287,7 +290,10 @@ fun DebtScreen(
 @Composable
 private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+    // «Нова позика» sits outside the scrolling chips: as the last chip it
+    // scrolled out of view once there were three or more debts.
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+    LazyRow(state = fadeState, modifier = Modifier.weight(1f).fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         items(viewModel.debts, key = { it.id }) { debt ->
             val index = viewModel.debts.indexOf(debt)
             val active = debt.id == viewModel.currentDebt?.id
@@ -305,7 +311,8 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                 Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
             }
         }
-        if (canEdit) item {
+    }
+        if (canEdit) {
             var addOpen by rememberSaveable { mutableStateOf(false) }
             Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
                 Row(Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -338,7 +345,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                                 supportingText = if (totalInvalid) ({ Text(stringResource(R.string.debt_start_required)) }) else null,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 label = { Text(stringResource(if (direction == "owed") R.string.debt_total_owed else R.string.debt_total_owe)) },
-                                suffix = { Text("UAH") },
+                                suffix = { Text("₴") },
                             )
                         }
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -350,7 +357,7 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
                             if (totalValue != null) { viewModel.addDebt(name, fallbackName, direction, totalValue); addOpen = false }
                         }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
                     },
-                    dismissButton = { OutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
+                    dismissButton = { ua.rytm.app.ui.components.RytmOutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
                 )
             }
         }
@@ -419,7 +426,7 @@ private fun HeroBalance(cd: Debt) {
                 val context = androidx.compose.ui.platform.LocalContext.current
                 val message = stringResource(R.string.debt_remind_message, formatMoney(cd.currentBalance()), currencySymbol(cd.currency))
                 val chooserTitle = stringResource(R.string.debt_remind)
-                androidx.compose.material3.OutlinedButton(
+                ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = {
                         val send = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain").putExtra(android.content.Intent.EXTRA_TEXT, message)
                         context.startActivity(android.content.Intent.createChooser(send, chooserTitle))
@@ -613,8 +620,13 @@ internal fun DebtEntrySwipeContainer(canEdit: Boolean, onDelete: () -> Unit, pen
             dismissState.reset()
         }
     }
+    val deleteLabel = stringResource(R.string.action_delete)
     SwipeToDismissBox(
         state = dismissState,
+        // Same delete for TalkBack/Switch Access, which can't swipe (WCAG 2.5.1).
+        modifier = Modifier.semantics {
+            if (canEdit) customActions = listOf(CustomAccessibilityAction(deleteLabel) { onDelete(); true })
+        },
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = canEdit,
         backgroundContent = {
@@ -758,7 +770,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                     Text(stringResource(R.string.debt_also_finance), style = MaterialTheme.typography.bodyLarge)
                     Text(stringResource(if (cd.owedToMe) R.string.debt_also_finance_hint_owed else R.string.debt_also_finance_hint_owe), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                androidx.compose.material3.Switch(checked = alsoInFinance, onCheckedChange = null)
+                androidx.compose.material3.Switch(checked = alsoInFinance, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
                 // Neither button set an explicit shape, so both fell back
@@ -772,7 +784,7 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 // screenshot). Arrangement.End alone packs children flush;
                 // needs an explicit gap, same 8dp used elsewhere in this
                 // app's button rows.
-                OutlinedButton(onClick = viewModel::closeNewEntrySheet, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
+                ua.rytm.app.ui.components.RytmOutlinedButton(onClick = viewModel::closeNewEntrySheet, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) }
                 Button(
                     onClick = {
                         submitted = true

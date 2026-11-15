@@ -209,7 +209,7 @@ fun ProfileAppearanceCard(
                     placeholder = { Text(stringResource(R.string.profile_nickname)) },
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.End)) {
-                    OutlinedButton(
+                    ua.rytm.app.ui.components.RytmOutlinedButton(
                         onClick = { draft = appearance.nickname; editing = false },
                         enabled = !busy,
                         shape = RoundedCornerShape(RytmRadii.Row),
