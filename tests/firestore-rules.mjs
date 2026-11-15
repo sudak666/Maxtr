@@ -165,6 +165,9 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(adminDb, `push_tokens/${uidA}`), { profileState: { default: { sentDaily: '2026-07-10' } } }, { merge: true });
 });
 await check('client token refresh still succeeds after admin-written fields exist', setDoc(doc(asA, `push_tokens/${uidA}`), { token: 'b'.repeat(150), updatedAt: Date.now() }, { merge: true }), 'allow');
+await check('a device can add its own entry to the tokens map', setDoc(doc(asA, `push_tokens/${uidA}`), { tokens: { w_1: { token: 'c'.repeat(150), updatedAt: Date.now() } }, updatedAt: Date.now() }, { merge: true }), 'allow');
+await check('a device can clear the legacy token (null)', setDoc(doc(asA, `push_tokens/${uidA}`), { token: null, updatedAt: Date.now() }, { merge: true }), 'allow');
+await check('more than 10 device entries rejected', setDoc(doc(asA, `push_tokens/${uidA}`), { tokens: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`d${i}`, { token: 'x' }])), updatedAt: Date.now() }, { merge: true }), 'deny');
 
 // 10. deleteDoc() must not be blocked by the create/update field validation
 // (request.resource.data is null on delete — a rule that references it in

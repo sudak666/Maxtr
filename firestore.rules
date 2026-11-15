@@ -295,7 +295,10 @@ service cloud.firestore {
       allow create, update: if request.auth != null && request.auth.uid == uid
         // Room for the sweep's own fields (profileState, legacy sent*), not a dumping ground.
         && request.resource.data.keys().size() < 12
-        && (!('token' in request.resource.data) || (
+        // One entry per device (sweep sends to each); a handful is plenty.
+        && (!('tokens' in request.resource.data) || (request.resource.data.tokens is map && request.resource.data.tokens.size() <= 10))
+        // null = legacy single token cleared by its own device.
+        && (!('token' in request.resource.data) || request.resource.data.token == null || (
           request.resource.data.token is string &&
           request.resource.data.token.size() > 0 &&
           request.resource.data.token.size() < 4096
