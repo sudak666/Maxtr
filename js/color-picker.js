@@ -89,7 +89,7 @@ const openProfileAvatarPicker = function(id){
 function renderProfileAvatarPickerGrid(){
   const box=document.getElementById('profile-avatar-pick-grid'); if(!box) return;
   const p=AppState.profilesMeta.list.find(x=>x.id===AppState.avatarPickTargetProfileId);
-  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" data-action="select-profile-avatar" data-avatar-id="${a.id}">${window.Icon(a.icon)}</div>`).join('');
+  box.innerHTML=BUILTIN_AVATARS.map(a=>`<div class="avatar-opt${p&&p.avatar==='builtin:'+a.id?' sel':''}" style="background:${a.gradient}" data-action="select-profile-avatar" data-avatar-id="${escapeHtml(a.id)}">${window.Icon(a.icon)}</div>`).join('');
   setupAccessibleClickableDivs(box);
 }
 
@@ -307,18 +307,18 @@ export function renderProfilesUI(){
     // tagged so it's clear this data isn't solely this account's own.
     const sharedBadge=isShared?`<span style="font-weight:800;font-size:13px;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
     row.innerHTML=`
-      <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${p.id}">${avatarContent}</div>
+      <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${escapeHtml(p.id)}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>
       ${sharedBadge}
       ${isActive
         ? `<span style="font-weight:800;font-size:13px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto">${tr('profiles_active_badge')}</span>`
-        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="switch-profile" data-id="${p.id}" ${isShared?`data-owner-uid="${p.ownerUid}"`:''}>${tr('profiles_switch_btn')}</button>`}
+        : `<button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="switch-profile" data-id="${escapeHtml(p.id)}" ${isShared?`data-owner-uid="${escapeHtml(p.ownerUid)}"`:''}>${tr('profiles_switch_btn')}</button>`}
       <div class="profile-row-actions">
-        ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${p.id}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
-        <button class="mgr-del" data-action="rename-profile" data-id="${p.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+        ${!isShared ? `<button class="mgr-del" data-action="open-shared-members-manager" data-id="${escapeHtml(p.id)}" aria-label="${tr('profiles_members_btn')}">${window.Icon('people')}</button>` : ''}
+        <button class="mgr-del" data-action="rename-profile" data-id="${escapeHtml(p.id)}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
         ${isShared
-          ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${p.id}" data-owner-uid="${p.ownerUid}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
-          : `<button class="mgr-del" data-action="delete-profile" data-id="${p.id}">${tr('common_delete')}</button>`}
+          ? `<button class="mgr-del" data-action="leave-shared-profile" data-id="${escapeHtml(p.id)}" data-owner-uid="${escapeHtml(p.ownerUid)}" aria-label="${tr('profiles_leave_btn')}">${window.Icon('logout')}</button>`
+          : `<button class="mgr-del" data-action="delete-profile" data-id="${escapeHtml(p.id)}">${tr('common_delete')}</button>`}
       </div>
     `;
     box.appendChild(row);

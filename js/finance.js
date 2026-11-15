@@ -125,8 +125,8 @@ function renderFinTagChips(){
   group.style.display='flex';
   box.innerHTML=AppState.tags.map(t=>{
     const on=AppState.selectedTagIds.includes(t.id);
-    const style=on?`border-color:${t.color};background:${hexA(t.color,.18)};color:${t.color}`:'';
-    return `<div class="filter-chip${on?' active':''}" style="${style}" data-action="toggle-fin-tag" data-id="${t.id}">${escapeHtml(t.name)}</div>`;
+    const c=safeColor(t.color); const style=on?`border-color:${c};background:${hexA(c,.18)};color:${c}`:'';
+    return `<div class="filter-chip${on?' active':''}" style="${style}" data-action="toggle-fin-tag" data-id="${escapeHtml(t.id)}">${escapeHtml(t.name)}</div>`;
   }).join('');
   setupAccessibleClickableDivs(box);
 }
@@ -445,9 +445,9 @@ function renderTagsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="tag" data-id="${t.id}"></button>
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-tag" data-id="${t.id}" data-field="name">
-      <button class="mgr-del" data-action="delete-tag" data-id="${t.id}">${tr('common_delete')}</button>`;
+      <button type="button" class="mgr-color" style="background:${safeColor(t.color)}" data-action="open-color-picker" data-kind="tag" data-id="${escapeHtml(t.id)}"></button>
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-tag" data-id="${escapeHtml(t.id)}" data-field="name">
+      <button class="mgr-del" data-action="delete-tag" data-id="${escapeHtml(t.id)}">${tr('common_delete')}</button>`;
     box.appendChild(row);
   });
 }
@@ -529,22 +529,22 @@ function renderAutoRulesList(){
           <span class="cat-row-name">${summary}</span>
           <span class="cat-row-sub">${typeLabel}</span>
         </div>
-        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-rule-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-auto-rule" data-id="${r.id}">${tr('common_delete')}</button>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-rule-edit" data-id="${escapeHtml(r.id)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-auto-rule" data-id="${escapeHtml(r.id)}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div class="mgr-field"><span class="mgr-field-label">${tr('recurring_type')}</span>
-          <select data-action="update-auto-rule" data-id="${r.id}" data-field="type">
+          <select data-action="update-auto-rule" data-id="${escapeHtml(r.id)}" data-field="type">
             <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
             <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
           </select>
         </div>
         <div class="mgr-field"><span class="mgr-field-label">${tr('rules_keyword')}</span>
-          <input type="text" class="mgr-name" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" data-action="update-auto-rule" data-id="${r.id}" data-field="keyword">
+          <input type="text" class="mgr-name" value="${escapeHtml(r.keyword||'')}" placeholder="${tr('rules_keyword_placeholder')}" data-action="update-auto-rule" data-id="${escapeHtml(r.id)}" data-field="keyword">
         </div>
         <div class="mgr-field"><span class="mgr-field-label">${tr('finance_category')}</span>
-          <select data-action="update-auto-rule" data-id="${r.id}" data-field="category">
+          <select data-action="update-auto-rule" data-id="${escapeHtml(r.id)}" data-field="category">
             ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
           </select>
         </div>

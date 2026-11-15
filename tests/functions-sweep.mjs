@@ -490,6 +490,7 @@ await test('sweepToken: a shared-profile entry reads its data from the owner\'s 
     // Deliberately nothing at users/{memberUid}/max_tracker/finance@sharedP —
     // a member never has real data under their own uid for a profile
     // someone else owns. The real data lives here instead:
+    [`users/${ownerUid}/max_tracker/shared_members@sharedP`, { members: [ownerUid, memberUid] }],
     [`users/${ownerUid}/max_tracker/finance@sharedP`, {
       notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
       data: [], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {}, // nothing logged today -> reminder needed
@@ -516,6 +517,7 @@ await test('sweepToken: a shared-profile budget-exceeded push reads spending fro
       notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
       data: [{ date: '2026-07-15', type: 'expense', amount: 1, currency: 'UAH' }], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
     }],
+    [`users/${ownerUid}/max_tracker/shared_members@sharedP2`, { members: [ownerUid, memberUid] }],
     [`users/${ownerUid}/max_tracker/finance@sharedP2`, {
       notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC', budgetAlerts: true },
       data: [], wallets: [], budgets: { Продукти: 100 }, categories: { expense: ['Продукти'] }, recurring: [], currencyRates: {},
@@ -537,6 +539,32 @@ await test('sweepToken: a shared-profile budget-exceeded push reads spending fro
   assert.equal(sent.length, 1);
   assert.equal(sent[0].type, 'budget');
   assert.match(sent[0].body, /Продукти/);
+});
+
+await test('sweepToken: a shared entry for a profile the holder is NOT a member of is ignored (no cross-account pushes)', async () => {
+  const attackerUid = 'attacker1';
+  const victimUid = 'victim1';
+  const docs = new Map([
+    [`push_tokens/${attackerUid}`, undefined],
+    [`users/${attackerUid}/max_tracker/profiles_meta`, { list: [{ id: 'default' }, { id: 'vp', kind: 'shared', ownerUid: victimUid }] }],
+    [`users/${attackerUid}/max_tracker/finance`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC' },
+      data: [{ date: '2026-07-15', type: 'expense', amount: 1, currency: 'UAH' }], wallets: [], budgets: {}, categories: {}, recurring: [], currencyRates: {},
+    }],
+    [`users/${victimUid}/max_tracker/shared_members@vp`, { members: [victimUid, 'someoneElse'] }],
+    [`users/${victimUid}/max_tracker/finance@vp`, {
+      notifSettings: { enabled: true, time: '00:00', timeZone: 'UTC', budgetAlerts: true },
+      data: [], wallets: [], budgets: { Ліки: 100 }, categories: { expense: ['Ліки'] }, recurring: [], currencyRates: {},
+    }],
+    [`users/${victimUid}/max_tracker/finance@vp/transactions`, [
+      { date: '2026-07-10', type: 'expense', category: 'Ліки', amount: 150, currency: 'UAH' },
+    ]],
+  ]);
+  const db = fakeDb(docs);
+  const tokenDoc = fakeTokenDoc(attackerUid, { token: 'tokAttacker' });
+  const sent = [];
+  await sweepToken(db, async (token, title, body, type) => { sent.push({ token, title, body, type }); return { ok: true, invalid: false }; }, tokenDoc, NOW);
+  assert.equal(sent.length, 0, 'nothing from the victim profile may reach a non-member');
 });
 
 // Real report this pair of tests was added for: an account with two

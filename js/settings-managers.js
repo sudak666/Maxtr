@@ -151,23 +151,23 @@ function renderShiftTypesList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="shiftType" data-id="${t.id}"></button>
+        <button type="button" class="mgr-color" style="background:${escapeHtml(t.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="shiftType" data-id="${escapeHtml(t.id)}"></button>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${escapeHtml(t.name)}</span>
           <span class="cat-row-sub">${summary}</span>
         </div>
-        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-shift-type-edit" data-id="${t.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-shift-type" data-id="${t.id}">${tr('common_delete')}</button>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-shift-type-edit" data-id="${escapeHtml(t.id)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-shift-type" data-id="${escapeHtml(t.id)}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
-        <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-shift-type" data-id="${t.id}" data-field="name">
+        <input type="text" class="mgr-name" value="${escapeHtml(t.name)}" placeholder="${tr('common_name')}" data-action="update-shift-type" data-id="${escapeHtml(t.id)}" data-field="name">
         <div style="display:flex;gap:8px">
-          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${t.amount||0}" data-action="update-shift-type" data-id="${t.id}" data-field="amount"></div>
-          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${t.hours||0}" data-action="update-shift-type" data-id="${t.id}" data-field="hours"></div>
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_pay')}</span><input type="number" class="mgr-num" step="0.01" value="${escapeHtml(t.amount||0)}" data-action="update-shift-type" data-id="${escapeHtml(t.id)}" data-field="amount"></div>
+          <div class="mgr-field"><span class="mgr-field-label">${tr('shifts_type_hours')}</span><input type="number" class="mgr-num" step="0.5" value="${escapeHtml(t.hours||0)}" data-action="update-shift-type" data-id="${escapeHtml(t.id)}" data-field="hours"></div>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:700">
-          <input type="checkbox" class="rchk" ${t.isOff?'checked':''} data-action="update-shift-type" data-id="${t.id}" data-field="isOff"> ${tr('shifts_type_off_label')}
+          <input type="checkbox" class="rchk" ${t.isOff?'checked':''} data-action="update-shift-type" data-id="${escapeHtml(t.id)}" data-field="isOff"> ${tr('shifts_type_off_label')}
         </label>
       </div>`:''}`;
     box.appendChild(row);
@@ -228,22 +228,22 @@ function renderWalletsList(){
     const row=document.createElement('div');
     row.className='mgr-row';
     row.innerHTML=`
-      <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="wallet" data-id="${w.id}"></button>
-      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" data-action="update-wallet" data-id="${w.id}" data-field="name">
-      <select style="flex:0 0 82px" data-action="update-wallet" data-id="${w.id}" data-field="currency">
-        ${CURRENCY_LIST.map(c=>`<option value="${c}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
+      <button type="button" class="mgr-color" style="background:${escapeHtml(w.color||'#8b5cf6')}" data-action="open-color-picker" data-kind="wallet" data-id="${escapeHtml(w.id)}"></button>
+      <input type="text" class="mgr-name-inline" value="${escapeHtml(w.name)}" placeholder="${tr('common_name')}" data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="name">
+      <select style="flex:0 0 82px" data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="currency">
+        ${CURRENCY_LIST.map(c=>`<option value="${escapeHtml(c)}" ${(w.currency||'UAH')===c?'selected':''}>${c}</option>`).join('')}
       </select>
-      <button class="mgr-del" data-action="delete-wallet" data-id="${w.id}">${tr('common_delete')}</button>
+      <button class="mgr-del" data-action="delete-wallet" data-id="${escapeHtml(w.id)}">${tr('common_delete')}</button>
       <div class="wallet-accounting">
         <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_opening_balance')}</span>
-          <input type="number" class="mgr-num" step="0.01" placeholder="0" value="${w.openingBalance||''}" data-action="update-wallet" data-id="${w.id}" data-field="openingBalance"></label>
+          <input type="number" class="mgr-num" step="0.01" placeholder="0" value="${escapeHtml(w.openingBalance||'')}" data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="openingBalance"></label>
         <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
-          <select data-action="update-wallet" data-id="${w.id}" data-field="kind">
-            ${['cash','card','deposit','credit'].map(k=>`<option value="${k}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
+          <select data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="kind">
+            ${['cash','card','deposit','credit'].map(k=>`<option value="${escapeHtml(k)}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
           </select></label>
         ${walletKindHint(w.kind)}
-        <label class="wallet-switch"><input type="checkbox" ${w.inCapital!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inCapital"> ${tr('wallet_in_capital')}</label>
-        <label class="wallet-switch"><input type="checkbox" ${w.inStats!==false?'checked':''} data-action="update-wallet" data-id="${w.id}" data-field="inStats"> ${tr('wallet_in_stats')}</label>
+        <label class="wallet-switch"><input type="checkbox" ${w.inCapital!==false?'checked':''} data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="inCapital"> ${tr('wallet_in_capital')}</label>
+        <label class="wallet-switch"><input type="checkbox" ${w.inStats!==false?'checked':''} data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="inStats"> ${tr('wallet_in_stats')}</label>
       </div>`;
     box.appendChild(row);
     row.querySelectorAll('select').forEach(enhanceSelect);
@@ -273,9 +273,9 @@ const openWalletCreate = function(){
     <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_opening_balance')}</span>
       <input type="number" class="mgr-num" id="wallet-create-opening" step="0.01" placeholder="0"></label>
     <label class="mgr-field"><span class="mgr-field-label">${tr('debt_currency')}</span>
-      <select id="wallet-create-currency">${CURRENCY_LIST.map(c=>`<option value="${c}" ${c==='UAH'?'selected':''}>${c}</option>`).join('')}</select></label>
+      <select id="wallet-create-currency">${CURRENCY_LIST.map(c=>`<option value="${escapeHtml(c)}" ${c==='UAH'?'selected':''}>${c}</option>`).join('')}</select></label>
     <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
-      <select id="wallet-create-kind" data-action="wallet-create-field">${['cash','card','deposit','credit'].map(k=>`<option value="${k}" ${k==='card'?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}</select></label>
+      <select id="wallet-create-kind" data-action="wallet-create-field">${['cash','card','deposit','credit'].map(k=>`<option value="${escapeHtml(k)}" ${k==='card'?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}</select></label>
     <div id="wallet-create-hint"></div>`;
   box.querySelectorAll('select').forEach(enhanceSelect);
   syncWalletCreate();
@@ -456,7 +456,7 @@ function renderRatesList(){
         <span class="rate-row-code">${code}</span>
         <span class="rate-row-sub">${tr('rates_per_unit')} ${code}</span>
       </span>
-      <input type="number" class="rate-row-input" min="0" step="0.01" value="${rate}" data-action="update-currency-rate" data-code="${code}">`;
+      <input type="number" class="rate-row-input" min="0" step="0.01" value="${escapeHtml(rate)}" data-action="update-currency-rate" data-code="${code}">`;
     box.appendChild(row);
   });
 }
@@ -621,7 +621,7 @@ export function renderFxWidget(){
 export function populateFxConverterSelects(){
   const from=/** @type {HTMLSelectElement | null} */ (document.getElementById('fx-conv-from')), to=/** @type {HTMLSelectElement | null} */ (document.getElementById('fx-conv-to'));
   if(!from || !to || from.options.length) return;
-  const optHtml=CURRENCY_LIST.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const optHtml=CURRENCY_LIST.map(c=>`<option value="${escapeHtml(c)}">${c}</option>`).join('');
   from.innerHTML=optHtml; to.innerHTML=optHtml;
   from.value='USD'; to.value='UAH';
   enhanceSelect(from); enhanceSelect(to);
@@ -937,12 +937,12 @@ function renderBudgetsManagerList(){
       ${open?`
       <div class="mgr-field" style="padding-top:6px;border-top:1px dashed var(--border)">
         <span class="mgr-field-label">${tr('budgets_limit_label')}</span>
-        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${val||''}" data-action="update-budget" data-cat="${escapeHtml(name)}">
+        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${escapeHtml(val||'')}" data-action="update-budget" data-cat="${escapeHtml(name)}">
       </div>
       ${(AppState.subcategories[subKey('expense',name)]||[]).map(sub=>{ const key=`${name} › ${sub}`; return `
       <div class="mgr-field">
         <span class="mgr-field-label">${escapeHtml(sub)}</span>
-        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${AppState.budgets[key]||''}" data-action="update-budget" data-cat="${escapeHtml(key)}">
+        <input type="number" class="mgr-num budget-row-input" style="width:100%" min="0" step="0.01" placeholder="0" value="${escapeHtml(AppState.budgets[key]||'')}" data-action="update-budget" data-cat="${escapeHtml(key)}">
       </div>`; }).join('')}`:''}
     `;
     box.appendChild(row);
@@ -1026,46 +1026,46 @@ function renderRecurringList(){
           <span class="cat-row-name">${summary}</span>
           <span class="cat-row-sub">${freqLabel} · ${nextDateFmt}${paused?' · '+tr('recurring_paused_label'):''}</span>
         </div>
-        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-recurring-edit" data-id="${r.id}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
-        <button class="mgr-del" data-action="delete-recurring" data-id="${r.id}">${tr('common_delete')}</button>
+        <button type="button" class="mgr-edit${open?' active':''}" data-action="toggle-recurring-edit" data-id="${escapeHtml(r.id)}" aria-label="${tr('common_edit')}">${window.Icon(open?'xmark':'pencil')}</button>
+        <button class="mgr-del" data-action="delete-recurring" data-id="${escapeHtml(r.id)}">${tr('common_delete')}</button>
       </div>
       ${open?`
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px;border-top:1px dashed var(--border)">
         <div style="display:flex;gap:8px">
           <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_type')}</span>
-            <select data-action="update-recurring" data-id="${r.id}" data-field="type">
+            <select data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="type">
               <option value="income" ${r.type==='income'?'selected':''}>${tr('cat_income')}</option>
               <option value="expense" ${r.type==='expense'?'selected':''}>${tr('cat_expense')}</option>
             </select>
           </div>
           <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_amount')}</span>
-            <input type="number" class="mgr-num" min="0.01" step="0.01" value="${r.amount||''}" data-action="update-recurring" data-id="${r.id}" data-field="amount">
+            <input type="number" class="mgr-num" min="0.01" step="0.01" value="${escapeHtml(r.amount||'')}" data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="amount">
           </div>
         </div>
         <div class="mgr-field"><span class="mgr-field-label">${tr('finance_category')}</span>
-          <select data-action="update-recurring" data-id="${r.id}" data-field="category">
+          <select data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="category">
             ${catList.map(c=>`<option value="${escapeHtml(c)}" ${r.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
           </select>
         </div>
         <div class="mgr-field"><span class="mgr-field-label">${tr('finance_wallet')}</span>
-          <select data-action="update-recurring" data-id="${r.id}" data-field="wallet">
-            ${AppState.wallets.map(w=>`<option value="${w.id}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
+          <select data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="wallet">
+            ${AppState.wallets.map(w=>`<option value="${escapeHtml(w.id)}" ${r.wallet===w.id?'selected':''}>${escapeHtml(w.name)}</option>`).join('')}
           </select>
         </div>
         <div style="display:flex;gap:8px">
           <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_frequency')}</span>
-            <select data-action="update-recurring" data-id="${r.id}" data-field="frequency">
+            <select data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="frequency">
               <option value="daily" ${r.frequency==='daily'?'selected':''}>${tr('recurring_daily')}</option>
               <option value="weekly" ${r.frequency==='weekly'?'selected':''}>${tr('recurring_weekly')}</option>
               <option value="monthly" ${(!r.frequency||r.frequency==='monthly')?'selected':''}>${tr('recurring_monthly')}</option>
             </select>
           </div>
           <div class="mgr-field" style="flex:1"><span class="mgr-field-label">${tr('recurring_next_date')}</span>
-            <input type="date" value="${r.nextDate||''}" data-action="update-recurring" data-id="${r.id}" data-field="nextDate">
+            <input type="date" value="${escapeHtml(r.nextDate||'')}" data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="nextDate">
           </div>
         </div>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0">
-          <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} data-action="update-recurring" data-id="${r.id}" data-field="active">
+          <input type="checkbox" class="rchk" ${r.active!==false?'checked':''} data-action="update-recurring" data-id="${escapeHtml(r.id)}" data-field="active">
           <span class="mgr-field-label" style="text-transform:none">${tr('recurring_active')}</span>
         </label>
       </div>`:''}`;

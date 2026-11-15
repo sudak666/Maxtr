@@ -358,7 +358,11 @@ export const CURRENCY_LIST=['UAH',...Object.keys(SEED_RATES)];
 export function roundRate(rate){ const f=rate<1?1e6:100; return Math.round(rate*f)/f; }
 
 /** @param {string} code */
-export function currencySymbol(code){ return (CURRENCY_META[code]||{}).symbol || code || '₴'; }
+export function currencySymbol(code){
+  // Falls back to the raw code, which comes from synced data and ends up in innerHTML.
+  const sym=(CURRENCY_META[code]||{}).symbol || code || '₴';
+  return String(sym).replace(/[&<>"']/g,'');
+}
 
 /**
  * @param {number} amount

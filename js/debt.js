@@ -490,15 +490,15 @@ export function renderDebt(){
     const editing=AppState.debtEntryEditId===entry.id;
     row.className='debt-row'+(hasDiscrepancy?' discrepancy':'');
     const fieldsHtml = editing ? `
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" data-action="update-debt-entry" data-id="${entry.id}" data-field="amount"></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${entry.balance??''}" data-action="update-debt-entry" data-id="${entry.id}" data-field="balance"></div>
-      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" data-action="update-debt-entry" data-id="${entry.id}" data-field="date"></div>
-      <button class="debt-row-edit debt-row-edit-active" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><input type="text" value="${escapeHtml(entry.amount??'')}" data-action="update-debt-entry" data-id="${escapeHtml(entry.id)}" data-field="amount"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><input type="number" step="0.01" value="${escapeHtml(entry.balance??'')}" data-action="update-debt-entry" data-id="${escapeHtml(entry.id)}" data-field="balance"></div>
+      <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><input type="text" value="${escapeHtml(entry.date??'')}" data-action="update-debt-entry" data-id="${escapeHtml(entry.id)}" data-field="date"></div>
+      <button class="debt-row-edit debt-row-edit-active" data-action="toggle-debt-entry-edit" data-id="${escapeHtml(entry.id)}" aria-label="${tr('a11y_confirm')}">${window.Icon('check')}</button>
     ` : `
       <div class="debt-field"><span class="debt-field-label">${tr('debt_amount')}</span><div class="debt-field-view debt-amount-val">${escapeHtml(entry.amount??'')}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('debt_stat_balance')}</span><div class="debt-field-view debt-amount-val">${money((entry.balance??0))}</div></div>
       <div class="debt-field"><span class="debt-field-label">${tr('finance_date')}</span><div class="debt-field-view">${entry.date?escapeHtml(entry.date):'—'}</div></div>
-      <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${entry.id}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
+      <button class="debt-row-edit" data-action="toggle-debt-entry-edit" data-id="${escapeHtml(entry.id)}" aria-label="${tr('common_edit')}">${window.Icon('pencil')}</button>
     `;
     row.dataset.entryId=String(entry.id);
     row.innerHTML=`
@@ -506,7 +506,7 @@ export function renderDebt(){
         ${fieldsHtml}
         ${hasDiscrepancy?`<div class="debt-hint">${tr('debt_expected')} ${money(expected)} ${cur} — ${tr('debt_discrepancy')} ${money((entry.balance-expected))} ${cur}</div>`:''}
       </div>
-      <button class="debt-row-swipe-delete" data-action="delete-debt-entry" data-id="${entry.id}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
+      <button class="debt-row-swipe-delete" data-action="delete-debt-entry" data-id="${escapeHtml(entry.id)}" aria-label="${tr('common_delete')}">${window.Icon('trash')}</button>
     `;
     setupDebtRowSwipe(row);
     // Newest entry first: cd.entries stays in chronological (push) order,

@@ -11,7 +11,7 @@ import { fbLoadNow, renderProfilesUI } from './color-picker.js';
 import { lsKey } from './firebase-sync.js';
 import { renderProfileUI } from './goals-profile.js';
 import { renderNotifUI } from './notifications.js';
-import { showToast, uiConfirm } from './ui-widgets.js';
+import { escapeHtml, showToast, uiConfirm } from './ui-widgets.js';
 
 /** @typedef {{id: string, profileId: string, createdAt: number, reason: string, txCount: number}} BackupInfo */
 
@@ -112,7 +112,7 @@ async function renderBackupsList(){
         <div class="settings-row-title">${formatBackupDate(b.createdAt)}</div>
         <div class="settings-row-sub">${reasonLabel(b.reason)} · ${txCountLabel(b.txCount)}</div>
       </div>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="restore-backup" data-id="${b.id}">${tr('backups_restore')}</button>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:13px;flex:0 0 auto" data-action="restore-backup" data-id="${escapeHtml(b.id)}">${tr('backups_restore')}</button>
     `;
     box.appendChild(row);
   });

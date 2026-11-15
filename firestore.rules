@@ -245,7 +245,7 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.profileId is string
-        && request.resource.data.profileId.size() > 0 && request.resource.data.profileId.size() < 60
+        && request.resource.data.profileId.matches('^[A-Za-z0-9_]{1,59}$')
         && nullableString(request.resource.data, 'profileName', 60)
         && request.resource.data.createdAt is number
         && request.resource.data.expiresAt is number
