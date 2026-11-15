@@ -104,6 +104,8 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: NoCredentialException) {
                 publishFormMessage(R.string.auth_error_google_unavailable)
+            } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
+                // The user closed the account picker: not an error.
             } catch (e: GetCredentialException) {
                 publishFormMessage(R.string.auth_error_google_unavailable)
             } catch (e: GoogleIdTokenParsingException) {
@@ -211,6 +213,12 @@ class AuthViewModel : ViewModel() {
             app.profileSyncCoordinator.stopRealtimeSync()
             auth.currentUser?.uid?.let { app.pushRepository.releaseOnSignOut(it) }
             auth.signOut()
+            // Credential Manager's guide: forget the chosen account so the
+            // next sign-in shows the picker instead of reusing it silently.
+            runCatching {
+                androidx.credentials.CredentialManager.create(app)
+                    .clearCredentialState(androidx.credentials.ClearCredentialStateRequest())
+            }.onFailure { if (it is CancellationException) throw it }
         }
     }
 

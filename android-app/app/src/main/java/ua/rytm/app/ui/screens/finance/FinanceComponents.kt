@@ -197,6 +197,14 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     // horizontally as it changes.
                     style = MaterialTheme.typography.displayMedium.tabularNums(),
                     fontWeight = FontWeight.Black,
+                    // One line that shrinks to fit: with the non-breaking group
+                    // separator a long balance at a large font scale could only
+                    // break in the middle of the number.
+                    maxLines = 1,
+                    autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(
+                        minFontSize = 18.sp,
+                        maxFontSize = MaterialTheme.typography.displayMedium.fontSize,
+                    ),
                     // The balance opens «Капітал»: how it changed and where the money sits.
                     // Rounded tap area, padded and pulled back into line: the
                     // bare clickable flashed a sharp grey rectangle.
@@ -788,7 +796,7 @@ internal fun TransactionRow(
                     TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(amountText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = amountColor)
+                    Text(amountText, style = MaterialTheme.typography.bodyMedium.tabularNums(), fontWeight = FontWeight.Bold, color = amountColor)
                     balanceAfter?.let { b ->
                         Text(
                             maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}"),
