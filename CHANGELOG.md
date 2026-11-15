@@ -7,6 +7,13 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Audit wave 4: backend debt (2026-11-15, PR below)** — from `docs/audits/AUDIT_2026-11-full.md`.
+  - BE-05: removed the 1st-gen `deleteBackupsOnAccountDelete` trigger (blocked Node 24; the `account` callable already deletes backups) and moved functions to `nodejs24` (`firebase.json`, `functions/package.json` engines). Gap, disclosed in CLAUDE.md: an account deleted by hand in the Console keeps its backups.
+  - BE-06: `backups` callable refuses any `create` within 20 s of an existing backup (was `manual` only; `pre_reset`/`pre_import` were unlimited and each reads the whole history) and gets `maxInstances: 5`.
+  - BE-08: Gemini list `gemini-3.5-flash-lite → 3.5-flash → 3.8-flash` (2.5-flash retired 2026-10-20, 3.7-flash retires 2027-01-28); a remembered model that starts answering 404 is forgotten and the list retried. Refunding the daily slot on a failed call was tried and reverted: `tests/functions-insights.mjs` pins "a failed model call still counts" (protects the bill) on purpose.
+  - BE-07: `privacy.html` now discloses server backups (≤ 5 weeks), push tokens, the PWA error log, the NBU/PrivatBank/CoinGecko rate requests, Play purchase checks (incl. the purchase-token hash kept after deletion) and Crashlytics' installation ID; dated 15 Nov 2026. **Owner: update Play Console → Data safety to match.**
+  - BE-13: CI runs `npm audit --omit=dev --audit-level=high` for `functions/`; `.github/dependabot.yml` (grouped weekly npm root/functions/Gradle, monthly Actions); CLAUDE.md's "Android has no CI" and "3 jobs" corrected. `firebase-admin` 14.5.0 → 14.5.1, `npm audit fix` (6 moderate left, unreachable).
+
 - **2.9.2 (vc59) AAB built (2026-11-15, #793)** — owner asked for a build after audit waves 2–3 (#790 Android part: data extraction rules, `onNewToken` guard; #792: delete via TalkBack/edit sheet, budget progress, contrast/theme roles, switches, PIN landscape, copy). Bumped to 2.9.2 / vc59. `bundleRelease` → Desktop `Rytm-2.9.2-vc59.aab` (39.3 MB), signed by the upload key (SHA-256 `7C:A2:AF:88…`), manifest carries `2.9.2`, package `ua.rytm.app`. Not uploaded to Play — the owner does that. Next version code: 60.
 
 - **Audit wave 3: Android UX (2026-11-15, #792)** — from `docs/audits/AUDIT_2026-11-full.md`.

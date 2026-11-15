@@ -1,0 +1,23 @@
+# Weekly update PRs, grouped so one PR per ecosystem per week, not one per
+# package. Review and merge like any other PR (Android ones need a local
+# build + QA run first, see CLAUDE.md).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    groups: { web: { patterns: ["*"] } }
+    open-pull-requests-limit: 2
+  - package-ecosystem: npm
+    directory: /functions
+    schedule: { interval: weekly }
+    groups: { functions: { patterns: ["*"] } }
+    open-pull-requests-limit: 2
+  - package-ecosystem: gradle
+    directory: /android-app
+    schedule: { interval: weekly }
+    groups: { android: { patterns: ["*"] } }
+    open-pull-requests-limit: 2
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
