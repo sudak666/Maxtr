@@ -805,4 +805,8 @@
     <string name="tx_details_tags">Теги</string>
     <string name="tx_details_author">Додав(-ла)</string>
     <string name="settings_language">Мова застосунку</string>
+    <string name="wallet_order_title">Порядок гаманців</string>
+    <string name="wallet_order_body">Перетягніть гаманець за ручку. У такому порядку вони стоять на головному екрані.</string>
+    <string name="wallet_order_move_first">Перемістити «%1$s» першим</string>
+    <string name="wallet_order_open">Змінити порядок</string>
 </resources>

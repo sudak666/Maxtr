@@ -86,6 +86,26 @@ class WalletsManagerViewModel(
         mutateAndSync { repository.updateWallet(wallet) }
     }
 
+    /**
+     * Rewrites the wallets in the order of [ids]. The order lives only in the
+     * array (Room rowid order, Firestore `wallets` array), which the PWA reads
+     * the same way. Wallets missing from [ids] (added elsewhere meanwhile) keep
+     * their place at the end.
+     */
+    fun reorder(ids: List<String>) {
+        mutateAndSync {
+            val current = repository.walletSnapshot()
+            val byId = current.associateBy { it.id }
+            val ordered = ids.distinct().mapNotNull { byId[it] }
+            val result = ordered + current.filter { it.id !in ids }
+            if (result.map { it.id } != current.map { it.id }) repository.replaceWallets(result)
+        }
+    }
+
+    fun moveFirst(id: String) {
+        reorder(listOf(id) + wallets.map { it.id }.filter { it != id })
+    }
+
     fun requestDelete(id: String) {
         viewModelScope.launch {
             if (wallets.size <= 1) {

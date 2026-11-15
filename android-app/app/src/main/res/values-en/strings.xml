@@ -795,4 +795,8 @@
     <string name="tx_details_tags">Tags</string>
     <string name="tx_details_author">Added by</string>
     <string name="settings_language">App language</string>
+    <string name="wallet_order_title">Wallet order</string>
+    <string name="wallet_order_body">Drag a wallet by its handle. The main screen shows them in this order.</string>
+    <string name="wallet_order_move_first">Move “%1$s” to the front</string>
+    <string name="wallet_order_open">Change order</string>
 </resources>

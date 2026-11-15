@@ -58,6 +58,7 @@ import ua.rytm.app.ui.components.RytmDestructiveConfirm
 import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Add
+import ua.rytm.app.ui.icons.GripVertical
 import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.Delete
 import ua.rytm.app.ui.icons.ExpandLess
@@ -86,6 +87,7 @@ fun WalletsManagerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollState = rememberScrollState()
     var createOpen by rememberSaveable { mutableStateOf(false) }
+    var orderOpen by rememberSaveable { mutableStateOf(false) }
     var revealNewWallet by remember { mutableStateOf(false) }
 
     // A new wallet lands at the end of the list, which may be off screen.
@@ -99,6 +101,12 @@ fun WalletsManagerSheet(
     RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().verticalScroll(scrollState).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             RytmSheetTitle(stringResource(R.string.wallets_title), subtitle = stringResource(R.string.wallets_body))
+            if (viewModel.wallets.size > 1) {
+                androidx.compose.material3.TextButton(onClick = { orderOpen = true }) {
+                    Icon(RytmIcons.GripVertical, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.wallet_order_open), modifier = Modifier.padding(start = RytmSpacing.sm))
+                }
+            }
 
 
             if (viewModel.wallets.isEmpty()) {
@@ -121,6 +129,10 @@ fun WalletsManagerSheet(
                 Text(stringResource(R.string.wallet_add))
             }
         }
+    }
+
+    if (orderOpen) {
+        WalletOrderSheet(repository, syncRepository, recurringSyncRepository, uid, profileId, focusId = null, onDismiss = { orderOpen = false }, viewModel = viewModel)
     }
 
     if (createOpen) {

@@ -7,6 +7,11 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Wallet order (2026-11-15)** — owner: new wallets land at the end of the main-screen strip, but they are the ones in use, so finding a balance meant a long sideways scroll.
+  - Android: long press on a wallet chip (editors only, 2+ wallets) opens `WalletOrderSheet` — «Перемістити «X» першим» for the pressed wallet plus drag handles (drag starts at once on the handle; the rest of the row scrolls the sheet). Also reachable via «Змінити порядок» in the wallets manager. `WalletsManagerViewModel.reorder()/moveFirst()` rewrite Room via `replaceWallets` and push `saveWalletsSnapshot`.
+  - No schema change: the order is the `wallets` array order (Room rowid order), which the PWA already renders as is.
+  - Verified: `assembleDebug assembleQa testDebugUnitTest lintDebug` locally; on the emulator (signed-in QA) long press opens the sheet, «першим» and a handle drag both reorder the main-screen strip. The very first `input swipe` right after the sheet opened did not register (later swipes and stepped motion events did) — likely the sheet still settling; worth a glance on the phone.
+
 - **Owner removes members, viewer reads operations, type scale (2026-11-15, #822)** — remaining audit items the owner delegated ("робимо як правильно").
   - BE-02: the owner can remove a member of a shared profile (Android `ProfilesRepository.removeMember` + trash button with confirm in the members dialog; PWA `removeSharedMember` + `remove-shared-member` action). The write drops the uid from `members`/`roles` and stamps `removedAt.<uid>`. **Rules gap found on the way:** a removed member could rejoin within 24 h with the invite they had already redeemed; the join branch now also requires that invite's `createdAt` to be later than `removedAt[uid]`. Rules tests: removal allowed, removed member can't read, can't rejoin with the old invite.
   - UX-14: a viewer (read-only member) can tap an operation and read it all in `TransactionDetailsDialog` (amount, category › subcategory, wallet, date, comment, tags, author); rows get `canOpen` separate from `canEdit`.
