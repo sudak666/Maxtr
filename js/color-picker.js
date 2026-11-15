@@ -11,7 +11,7 @@ import { processAutoFillShifts, renderCalendar, renderFinanceChart, renderIncome
 import { DEFAULT_CATEGORIES, DEFAULT_SALARY_GOAL, DEFAULT_SHIFT_TYPES, DEFAULT_WALLETS, LEGACY_CATEGORIES, LEGACY_SHIFT_TYPES, LEGACY_WALLETS, PALETTE, applyWidgetVisibility, compareTransactionsNewest, getDoc, localDateStr, normalizeWallets, renderPremiumUI, sanitizeWidgetOrder, setDoc, updateDoc, walletCurrency } from './core.js';
 import { renderDebt } from './debt.js';
 import { updateTag } from './finance.js';
-import { batchWriteTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
+import { batchWriteTransactions, createMissingTransactions, leaveSharedProfile, listSharedMembers, loadActiveProfileRole, loadTransactionsFromSubcollection, lsKey, redeemSharedInvite, saveActiveProfileId, saveProfilesMeta, setMemberRole, shareCurrentProfile, userDoc } from './firebase-sync.js';
 import { BUILTIN_AVATARS, renderProfileUI } from './goals-profile.js';
 import { renderNotifUI, saveNotifSettings } from './notifications.js';
 import { setCacheItem } from './privacy-cache.js';
@@ -116,7 +116,7 @@ const deleteProfile = async function(id){
   if(ownProfiles.length<=1){ showToast(tr('profiles_delete_last_blocked'),'warning'); return; }
   if(!(await uiConfirm(tr('profiles_delete_confirm'),{title:tr('profiles_delete_title'),okText:tr('common_delete'),danger:true}))) return;
   AppState.profilesMeta.list=AppState.profilesMeta.list.filter(p=>p.id!==id || p.kind==='shared');
-  await saveProfilesMeta();
+  await saveProfilesMeta([id]);
   renderProfilesUI();
 };
 
@@ -575,11 +575,22 @@ export async function fbLoadNow(){
     }
     saveDebtLocal();
     const seeded=seedConfigFromDocs(sData, fData);
+    // Baseline for fbSaveNow's "what changed" diff: what this client holds
+    // right after loading, not the raw docs. Loading normalizes (debt
+    // currentDebtId, notifSettings, defaults), and diffing against the raw
+    // doc made the first save rewrite those fields over Android's values.
+    // A fresh seed is a real change, so it keeps the raw baseline.
+    // Stringified now: the payloads are live AppState references, and the
+    // recurring/auto-fill steps below are real changes that must still save.
+    const loaded=(seeded||migratedNow) ? null : syncedPayloads();
+    const loadedFields=loaded ? {shifts:fieldSnapshot(loaded.shifts), finance:fieldSnapshot(loaded.finance), debt:fieldSnapshot(loaded.debt)} : null;
     const backfilled=backfillCategories();
     saveConfigLocal();
     const recurAdded=await processRecurring();
     const autoFillAdded=processAutoFillShifts();
-    syncedFields={shifts:fieldSnapshot(sData), finance:fieldSnapshot(fData), debt:fieldSnapshot(dS.exists()?dS.data():null)};
+    syncedFields=loadedFields
+      ? loadedFields
+      : {shifts:fieldSnapshot(sData), finance:fieldSnapshot(fData), debt:fieldSnapshot(dS.exists()?dS.data():null)};
     AppState.lastKnownUpdatedAt={
       shifts:  sS.exists()?(sS.data().updatedAt||0):0,
       finance: fS.exists()?(fS.data().updatedAt||0):0,
@@ -613,7 +624,19 @@ export async function fbLoadNow(){
 export function scheduleSave(){
   fbSetStatus('loading',tr('sync_autosave'));
   clearTimeout(AppState.fbTimer ?? undefined);
-  AppState.fbTimer=setTimeout(fbSaveNow,1800);
+  AppState.fbTimer=setTimeout(()=>{ AppState.fbTimer=null; fbSaveNow(); },1800);
+}
+
+/**
+ * Runs a debounced save right away. Closing the tab, or the reload after a
+ * service-worker update, used to drop the last 1.8 s of edits.
+ * @returns {Promise<void>}
+ */
+export function flushPendingSave(){
+  if(AppState.fbTimer==null) return Promise.resolve();
+  clearTimeout(AppState.fbTimer);
+  AppState.fbTimer=null;
+  return fbSaveNow();
 }
 
 /** @returns {void} */
@@ -652,8 +675,7 @@ async function processRecurring(){
         // occurrence doc (same id on every client) doesn't flip language.
         comment:(r.comment?r.comment+' · ':'')+'повторювана'
       };
-      if(!AppState.transactions.some(x=>String(x.id)===t.id)) AppState.transactions.unshift(t);
-      newTx.push(t);
+      if(!AppState.transactions.some(x=>String(x.id)===t.id)){ AppState.transactions.unshift(t); newTx.push(t); }
       r.nextDate=nextRecurringDate(r.nextDate, r.frequency||'monthly', r.day);
       added++; guard++;
     }
@@ -661,7 +683,7 @@ async function processRecurring(){
   if(added){
     const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
     saveRecurringLocal();
-    await batchWriteTransactions(newTx);
+    if(newTx.length) await createMissingTransactions(newTx);
   }
   return added;
 }
@@ -680,6 +702,9 @@ export function saveConfigLocal(){
 // had run, when this was still ordinary top-level code in this file).
 /** @returns {void} */
 export function __init_color_picker__(){
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushPendingSave(); });
+window.addEventListener('pagehide', ()=>{ flushPendingSave(); });
+/** @type {any} */ (window).__rytmFlushSave=flushPendingSave;
 // Phase 4 of the window.*/inline-onclick removal audit item (see CLAUDE.md):
 // this file's own 6 dynamic onclick sites (color swatches, avatar picker,
 // profile row buttons) plus static ones in index.html (add-profile,

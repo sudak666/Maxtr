@@ -12,7 +12,7 @@ import { openColorPicker, saveConfigLocal, saveDebtLocal, saveLocal, saveRecurri
 import { CURRENCY_LIST, MAIN_CURRENCIES, PALETTE, SEED_RATES, roundRate, applyWidgetOrder, applyWidgetVisibility, categoryColor, categoryIcon, convertCurrency, currencySymbol, localDateStr, shiftType, subKey, toBase, walletById } from './core.js';
 import { maybeRefreshCryptoTop } from './dashboard-widgets.js';
 import { fillCats, refreshWalletSelects } from './finance.js';
-import { batchWriteTransactions, lsKey } from './firebase-sync.js';
+import { lsKey, updateTransactionsFields } from './firebase-sync.js';
 import { clearSensitiveLocalCacheForAccount, clearSensitiveLocalCacheForUser, isSensitiveLocalCacheEnabled, setCacheItem, setSensitiveLocalCacheEnabled } from './privacy-cache.js';
 import { csSync, enhanceDateInput, enhanceSelect, escapeHtml, initSheetDrag, safeColor, showToast, syncClickableA11yState, uiConfirm, uiPrompt } from './ui-widgets.js';
 // Vendored (not an npm import) so this resolves identically whether
@@ -829,13 +829,14 @@ const renameCategory = function(idx,value){
   AppState.transactions.forEach(t=>{ if(t.type===AppState.catMgrType && t.category===oldName){ t.category=newName; affected.push(t); } });
   AppState.recurring.forEach(r=>{ if(r.type===AppState.catMgrType && r.category===oldName) r.category=newName; });
   if(AppState.budgets[oldName]!==undefined){ AppState.budgets[newName]=AppState.budgets[oldName]; delete AppState.budgets[oldName]; }
+  moveSubLimits(oldName, newName);
   const oldKey=subKey(AppState.catMgrType,oldName);
   if(AppState.subcategories[oldKey]!==undefined){ AppState.subcategories[subKey(AppState.catMgrType,newName)]=AppState.subcategories[oldKey]; delete AppState.subcategories[oldKey]; }
   if(AppState.categoryIcons[oldName]!==undefined){ AppState.categoryIcons[newName]=AppState.categoryIcons[oldName]; delete AppState.categoryIcons[oldName]; }
   saveConfigLocal(); saveRecurringLocal();
   const tk=lsKey('tx'); if(tk) setCacheItem(tk,JSON.stringify(AppState.transactions));
   scheduleSave();
-  if(affected.length) batchWriteTransactions(affected).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
+  if(affected.length) updateTransactionsFields(affected.map(t=>({id:t.id, fields:{category:t.category}}))).catch(e=>{ console.error(e); showToast(tr('sync_autosave_error'),'xmark'); });
   renderCategoriesList(); fillCats(AppState.currentFinanceType); renderFinance();
 };
 
@@ -850,6 +851,21 @@ const addCategory = async function(){
   renderCategoriesList(); fillCats(AppState.currentFinanceType);
 };
 
+/**
+ * Subcategory limits live in the same budgets map as "Category › Sub"
+ * (shared with Android, which moves/deletes them the same way).
+ * @param {string} oldName
+ * @param {string | null} newName null deletes them
+ */
+function moveSubLimits(oldName, newName){
+  const prefix=`${oldName} › `;
+  Object.keys(AppState.budgets).forEach(k=>{
+    if(!k.startsWith(prefix)) return;
+    if(newName!=null) AppState.budgets[`${newName} › ${k.slice(prefix.length)}`]=AppState.budgets[k];
+    delete AppState.budgets[k];
+  });
+}
+
 /** @param {number} idx */
 const deleteCategory = async function(idx){
   const list=AppState.categories[AppState.catMgrType]; if(!list||list[idx]===undefined) return;
@@ -857,6 +873,7 @@ const deleteCategory = async function(idx){
   const removed=list[idx];
   list.splice(idx,1);
   delete AppState.budgets[removed];
+  moveSubLimits(removed, null);
   delete AppState.subcategories[subKey(AppState.catMgrType,removed)];
   delete AppState.categoryIcons[removed];
   AppState.expandedCatIdx=null;
