@@ -7,7 +7,7 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
-- **Audit wave 2: PWA must not damage Android data (2026-11-15, PR below)** — from `docs/audits/AUDIT_2026-11-full.md`.
+- **Audit wave 2: PWA must not damage Android data (2026-11-15, #790)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - PWA-03: enabling push in the PWA asks before taking over `push_tokens/{uid}` from another device (one token per account); disabling deletes the doc only if it still holds this browser's token (`mx_pushToken_<uid>`), same as Android already did. Proper per-device token map is still open.
   - PWA-04: transaction edits write only the form's fields (`saveTransactionEdit`, `updateDoc`, cleared field → null); category rename / tag delete update only `category` / `tags` (`updateTransactionsFields`, deleted docs skipped). `tests/e2e-crud.mjs` now plants `monobankId` on the doc and asserts the edit keeps it.
   - PWA-05: `fbSaveNow`'s diff baseline is the state right after load (normalized), not the raw docs, so the first save no longer rewrites `currentDebtId`/`notifSettings`/defaults over Android's values. A fresh seed or legacy tx migration keeps the raw baseline (those are real changes).
@@ -16,7 +16,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
   - PWA-08: `saveProfilesMeta(removedIds)` re-reads the server list and keeps entries only it has (e.g. a profile added on Android), unless this save removes them.
   - PWA-16: a pending debounced save is flushed on `visibilitychange:hidden`/`pagehide` and before the service-worker update reload (`window.__rytmFlushSave`, max 3 s).
   - AND-02: `data_extraction_rules.xml` excludes everything from cloud backup and device-to-device transfer. AND-03: `onNewToken`'s write is caught and bounded (30 s).
-  - `sw.js` → `rytm-v207`. Verified: build/typecheck/lint, all 37 local CI tests, Android `assembleDebug lintDebug testDebugUnitTest`.
+  - `sw.js` → `rytm-v207`. Verified: build/typecheck/lint, all 37 local CI tests, Android `assembleDebug lintDebug testDebugUnitTest`; CI all green.
+  - Deployed hosting from a clean `origin/main` worktree (no functions/rules changes); live page loads with a clean console. Android part ships with the next AAB.
 
 - **Audit wave 1: security (2026-11-15, #788)** — from `docs/audits/AUDIT_2026-11-full.md`.
   - BE-01: `sweepToken` (`functions/lib/sweep.js`) now keeps a `profiles_meta` entry `{kind:'shared', ownerUid}` only if the owner's `shared_members@{id}` lists the token holder; ids must match `SAFE_ID` before going into a path. New test: a non-member gets no pushes (fails on the old code).
