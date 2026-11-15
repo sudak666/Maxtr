@@ -131,7 +131,7 @@ const PRIVAT_RATES_URL = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange
 // caps what a flood of anonymous calls could cost.
 exports.privatRates = onRequest({ cors: true, maxInstances: 2 }, async (req, res) => {
   try {
-    const upstream = await fetch(PRIVAT_RATES_URL);
+    const upstream = await fetch(PRIVAT_RATES_URL, { signal: AbortSignal.timeout(5000) });
     if (!upstream.ok) {
       res.status(502).json({ error: `PrivatBank HTTP ${upstream.status}` });
       return;

@@ -173,6 +173,15 @@ await test('idsToPrune keeps 7 newest + newest per week for 4 older weeks', () =
   assert.ok(kept.every((e) => now - e.meta.createdAt <= 35 * DAY));
 });
 
+await test('idsToPrune keeps recent daily backups even after a burst of manual ones', () => {
+  const DAY = 24 * 3600 * 1000;
+  const now = 100 * DAY;
+  const entries = [{ id: 'daily1', meta: { createdAt: now - DAY, reason: 'daily' } }];
+  for (let i = 0; i < 10; i++) entries.push({ id: `m${i}`, meta: { createdAt: now - i * 60000, reason: 'pre_import' } });
+  const pruned = new Set(backup.idsToPrune(entries, now));
+  assert.ok(!pruned.has('daily1'), "yesterday's daily copy survives 10 newer pre_import ones");
+});
+
 await test('backupAccount covers own profiles, skips shared refs, drops old orphans', async () => {
   const DAY = 24 * 3600 * 1000;
   const db = fakeDb({

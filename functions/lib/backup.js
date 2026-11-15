@@ -26,6 +26,7 @@ const CHUNK_BYTES = 900 * 1024;
 const BATCH_OPS = 400;
 const KEEP_RECENT = 7;
 const KEEP_WEEKLY = 4;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * 24 * 3600 * 1000;
 const WEEKLY_MAX_AGE_MS = 5 * WEEK_MS;
 const ORPHAN_MAX_AGE_MS = 30 * 24 * 3600 * 1000;
@@ -136,6 +137,17 @@ async function deleteBackup(db, uid, id) {
 function idsToPrune(entries, now) {
   const sorted = [...entries].sort((a, b) => b.meta.createdAt - a.meta.createdAt);
   const keep = new Set(sorted.slice(0, KEEP_RECENT).map((e) => e.id));
+  // Also the newest daily backup of each of the last KEEP_RECENT days: a
+  // burst of manual/pre_import backups used to push every daily one out of
+  // the KEEP_RECENT slots, so the last good state could be lost.
+  const days = new Set();
+  for (const e of sorted) {
+    if ((e.meta.reason || 'daily') !== 'daily' || now - e.meta.createdAt > KEEP_RECENT * DAY_MS) continue;
+    const day = Math.floor(e.meta.createdAt / DAY_MS);
+    if (days.has(day)) continue;
+    days.add(day);
+    keep.add(e.id);
+  }
   const weeks = new Set();
   for (const e of sorted.slice(KEEP_RECENT)) {
     if (now - e.meta.createdAt > WEEKLY_MAX_AGE_MS) continue;
