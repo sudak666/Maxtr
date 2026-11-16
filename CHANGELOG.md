@@ -7,6 +7,11 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **PWA: chip rows scroll with the mouse (2026-11-16, #833)** — owner (screenshot of the wallet strip on a laptop): "як у PWA гортати гаманці?". The horizontal chip rows hide their scrollbar, so with a mouse only Shift+wheel worked.
+  - `setupHorizontalScrollRows()` (`js/ui-widgets.js`, delegated, for `.wallet-chip-row`, `.chip-stat-row`, `.settings-group-row`, `.fin-cat-chips`): a vertical wheel over an overflowing row scrolls it sideways, and the page takes the wheel back at the row's end. A mouse drag scrolls the row and swallows the click that ends it. Touch and pen are untouched.
+  - CSS: a scroll-driven mask (`animation-timeline: scroll(self inline)` + `@property`, behind `@supports`) fades only the edge that still hides chips, and rows show a grab cursor on fine pointers. `sw.js` → `rytm-v213`.
+  - Verified in a local preview with a 12-chip test row: the wheel moved the row 300px with the page staying put, a drag scrolled it without firing a click, a plain click still fired, and both edges faded. Hosting deployed after merge.
+
 - **2.9.5 (vc62) AAB built (2026-11-16)** — owner asked for a build with #831 (wallet order from the main screen). `bundleRelease` → Desktop `Rytm-2.9.5-vc62.aab` (39.4 MB), upload-key SHA-256 `7C:A2:AF:88…`, manifest `2.9.5`, package `ua.rytm.app`, `baseline.prof` inside. Not uploaded — owner does that. Next version code: 63.
 
 - **Wallet order (2026-11-15, #831)** — owner: new wallets land at the end of the main-screen strip, but they are the ones in use, so finding a balance meant a long sideways scroll.
