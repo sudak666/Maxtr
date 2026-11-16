@@ -7,7 +7,9 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
-- **Wallet order (2026-11-15)** — owner: new wallets land at the end of the main-screen strip, but they are the ones in use, so finding a balance meant a long sideways scroll.
+- **2.9.5 (vc62) AAB built (2026-11-16)** — owner asked for a build with #831 (wallet order from the main screen). `bundleRelease` → Desktop `Rytm-2.9.5-vc62.aab` (39.4 MB), upload-key SHA-256 `7C:A2:AF:88…`, manifest `2.9.5`, package `ua.rytm.app`, `baseline.prof` inside. Not uploaded — owner does that. Next version code: 63.
+
+- **Wallet order (2026-11-15, #831)** — owner: new wallets land at the end of the main-screen strip, but they are the ones in use, so finding a balance meant a long sideways scroll.
   - Android: long press on a wallet chip (editors only, 2+ wallets) opens `WalletOrderSheet` — «Перемістити «X» першим» for the pressed wallet plus drag handles (drag starts at once on the handle; the rest of the row scrolls the sheet). Also reachable via «Змінити порядок» in the wallets manager. `WalletsManagerViewModel.reorder()/moveFirst()` rewrite Room via `replaceWallets` and push `saveWalletsSnapshot`.
   - No schema change: the order is the `wallets` array order (Room rowid order), which the PWA already renders as is.
   - Verified: `assembleDebug assembleQa testDebugUnitTest lintDebug` locally; on the emulator (signed-in QA) long press opens the sheet, «першим» and a handle drag both reorder the main-screen strip. The very first `input swipe` right after the sheet opened did not register (later swipes and stepped motion events did) — likely the sheet still settling; worth a glance on the phone.
