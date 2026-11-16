@@ -671,6 +671,57 @@ export function initSheetDrag(card, onDismiss){
   }
 }
 
+// Horizontal chip rows (wallets, stat chips, settings groups, category
+// chips) hide their scrollbar, so on a laptop with a mouse they could only
+// be scrolled with Shift+wheel. This turns a plain vertical wheel over an
+// overflowing row into horizontal scrolling (the page keeps the wheel once
+// the row hits its end) and lets a mouse drag the row; a drag swallows the
+// click that ends it so a chip under the pointer isn't activated. Touch
+// and pen keep their native swipe. Delegated on document because the rows
+// are re-rendered via innerHTML.
+const HSCROLL_ROWS='.wallet-chip-row,.chip-stat-row,.settings-group-row,.fin-cat-chips';
+/** @returns {void} */
+function setupHorizontalScrollRows(){
+  document.addEventListener('wheel', e=>{
+    if(e.ctrlKey || e.shiftKey || Math.abs(e.deltaX)>=Math.abs(e.deltaY)) return;
+    const row=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest(HSCROLL_ROWS));
+    if(!row) return;
+    const max=row.scrollWidth-row.clientWidth;
+    if(max<=1) return;
+    const dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?row.clientWidth:1);
+    if((dy<0 && row.scrollLeft<=0) || (dy>0 && row.scrollLeft>=max-1)) return;
+    e.preventDefault();
+    row.scrollLeft+=dy;
+  }, {passive:false});
+
+  /** @type {{row: HTMLElement, x: number, left: number, moved: boolean} | null} */
+  let drag=null;
+  document.addEventListener('pointerdown', e=>{
+    if(e.pointerType!=='mouse' || e.button!==0) return;
+    const row=/** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest(HSCROLL_ROWS));
+    if(!row || row.scrollWidth-row.clientWidth<=1) return;
+    drag={row, x:e.clientX, left:row.scrollLeft, moved:false};
+  });
+  document.addEventListener('pointermove', e=>{
+    if(!drag) return;
+    const dx=e.clientX-drag.x;
+    if(!drag.moved && Math.abs(dx)<6) return;
+    if(!drag.moved){ drag.moved=true; drag.row.classList.add('hs-dragging'); }
+    drag.row.scrollLeft=drag.left-dx;
+  });
+  const endDrag=()=>{
+    if(!drag) return;
+    const d=drag; drag=null;
+    if(!d.moved) return;
+    d.row.classList.remove('hs-dragging');
+    const swallow=/** @param {MouseEvent} ev */ ev=>{ ev.stopPropagation(); ev.preventDefault(); };
+    window.addEventListener('click', swallow, {capture:true, once:true});
+    setTimeout(()=>window.removeEventListener('click', swallow, true), 0);
+  };
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+}
+
 // Top-level statements that DO something immediately (as opposed to a
 // plain declaration) - deferred into this function and called from
 // app.js only after every module in the import graph has finished
@@ -679,6 +730,7 @@ export function initSheetDrag(card, onDismiss){
 // of bug that broke 'auth' being read before core.js's declaration of it
 // had run, when this was still ordinary top-level code in this file).
 export function __init_ui_widgets__(){
+setupHorizontalScrollRows();
 // Phase 12 of the window.*/inline-onclick removal audit item (see
 // CLAUDE.md): this file's own remaining onclick/oninput sites — the
 // settings search input and the 5 .settings-group-chip buttons, all in
