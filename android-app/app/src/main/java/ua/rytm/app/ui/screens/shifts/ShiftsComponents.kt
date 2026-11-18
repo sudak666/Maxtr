@@ -136,7 +136,7 @@ import kotlinx.coroutines.launch
 // (.salary-bar-fill) rather than the theme's purple — same treatment
 // FinanceScreen's HeroBalanceCard got in step 38.
 @Composable
-internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Boolean, onEditGoal: () -> Unit) {
+internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Boolean, stats: ShiftsViewModel.MonthStats, onEditGoal: () -> Unit) {
     val shape = MaterialTheme.shapes.large
     Box(
         modifier = Modifier
@@ -160,6 +160,19 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
             if (!onlyAhead && ahead > 0.0) {
                 Text(maskedAmount(stringResource(R.string.shifts_hero_ahead, formatMoney(ahead))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            // Hours, shifts and days off used to be three separate chips below
+            // the calendar; one line here keeps them next to the money.
+            Text(
+                stringResource(
+                    R.string.shifts_hero_stats,
+                    stats.hours.toInt().toString(),
+                    pluralStringResource(R.plurals.shifts_count_plural, stats.shiftsCount, stats.shiftsCount),
+                    pluralStringResource(R.plurals.shifts_off_plural, stats.offCount, stats.offCount),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = RytmSpacing.xs),
+            )
             val goalSafe = goal.coerceAtLeast(1.0)
             // Bar is clamped to full width; the label shows the real share so
             // overachieving (e.g. 163%) isn't hidden behind a flat "100%".
@@ -200,17 +213,6 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
     }
 }
 
-// Matches the PWA's .chip-stat/.chip-stat-icon: a pill with a small circular
-// purple-gradient icon badge, not a plain Card — same default gradient every
-// chip-stat-icon gets in index.html regardless of what it's showing.
-@Composable
-internal fun ChipStats(stats: ShiftsViewModel.MonthStats) {
-    RytmStatChipRow {
-        item { RytmStatChip(RytmIcons.Schedule, stats.hours.toInt().toString(), stringResource(R.string.shifts_hours_short)) }
-        item { RytmStatChip(RytmIcons.EventAvailable, stats.shiftsCount.toString(), stringResource(R.string.shifts_count)) }
-        item { RytmStatChip(RytmIcons.BeachAccess, stats.offCount.toString(), stringResource(R.string.shifts_days_off)) }
-    }
-}
 
 @Composable
 internal fun ShiftSelectionRow(type: ShiftType, checked: Boolean, onToggle: () -> Unit) {
@@ -366,44 +368,6 @@ internal fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
     }
 }
 
-@Composable
-internal fun QuickFillLauncher(onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(RytmRadii.Card),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = RytmSpacing.lg, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(RytmIcons.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(22.dp))
-            }
-            Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
-                Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
-                Text(
-                    stringResource(R.string.shifts_quick_fill_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            // Was a filled primaryContainer circle around the chevron —
-            // every other "this row opens something" chevron in the app
-            // (SettingsRow, etc.) is a bare icon with no colored badge; this
-            // one card was the sole exception, and next to the bolt icon's
-            // own solid purple-gradient badge it read as two competing
-            // purple blobs in one row (reported live via screenshot). Bare
-            // icon matches the app's actual established convention.
-            Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-        }
-    }
-}
 
 // Full editor opens in a modal sheet so expanding it never pushes the calendar
 // far down the screen or causes a large in-place layout jump.
@@ -631,10 +595,11 @@ internal fun PayRateHintBanner(onSet: () -> Unit) {
 }
 
 @Composable
-internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((String) -> Unit)?) {
+internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: ((String) -> Unit)?, onQuickFill: (() -> Unit)? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-        LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+        LazyRow(state = fadeState, modifier = Modifier.weight(1f).fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
             items(types, key = { it.id }) { type ->
                 val accent = Color(type.colorHex)
                 val selected = type.id == brushTypeId
@@ -667,6 +632,21 @@ internal fun LegendRow(types: List<ShiftType>, brushTypeId: String?, onSelect: (
                     )
                 }
             }
+        }
+        if (onQuickFill != null) {
+            val quickFillLabel = stringResource(R.string.shifts_quick_fill)
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable(onClickLabel = quickFillLabel, role = Role.Button, onClick = onQuickFill)
+                    .semantics { contentDescription = quickFillLabel },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(RytmIcons.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(22.dp))
+            }
+        }
         }
         // P5 #9: the idle "pick a type above" tip permanently took two lines.
         // Show it only until the brush has been used once on this device.

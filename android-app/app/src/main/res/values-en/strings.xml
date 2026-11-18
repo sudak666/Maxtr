@@ -798,4 +798,14 @@
     <string name="wallet_order_body">Drag a wallet by its handle. The main screen shows them in this order.</string>
     <string name="wallet_order_move_first">Move “%1$s” to the front</string>
     <string name="wallet_order_open">Change order</string>
+    <string name="shifts_today_action">Today\'s shift</string>
+    <string name="shifts_hero_stats">%1$s h · %2$s · %3$s</string>
+    <plurals name="shifts_count_plural">
+        <item quantity="one">%d shift</item>
+        <item quantity="other">%d shifts</item>
+    </plurals>
+    <plurals name="shifts_off_plural">
+        <item quantity="one">%d day off</item>
+        <item quantity="other">%d days off</item>
+    </plurals>
 </resources>

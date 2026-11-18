@@ -166,9 +166,16 @@ fun DebtScreen(
         scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
     }
 
-    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(if (cd?.owedToMe == true) R.string.debt_repayment else R.string.debt_payment), enabled = cd != null && canEdit) {
-        viewModel.openNewEntrySheet()
+    // The bar's "+" is a payment on the open loan, or a new loan when there
+    // is none yet; «Нова позика» beside the chips only shows once loans exist.
+    var newDebtOpen by rememberSaveable { mutableStateOf(false) }
+    ua.rytm.app.ui.components.ProvidePrimaryAction(
+        stringResource(if (cd == null) R.string.debt_new_default else if (cd.owedToMe) R.string.debt_repayment else R.string.debt_payment),
+        enabled = canEdit && !viewModel.loading,
+    ) {
+        if (cd != null) viewModel.openNewEntrySheet() else newDebtOpen = true
     }
+    if (canEdit && newDebtOpen) NewDebtDialog(viewModel) { newDebtOpen = false }
     Scaffold(
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         floatingActionButton = {
@@ -205,7 +212,8 @@ fun DebtScreen(
             item { RealtimeStateBanner() }
             if (viewModel.loading) item { ScreenLoadingState() }
             if (viewModel.loadFailed) item { ScreenLoadErrorState() }
-            item { DebtChipsRow(viewModel, canEdit) }
+            item { ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_debt)) }
+            if (viewModel.debts.isNotEmpty()) item { DebtChipsRow(viewModel, canEdit) { newDebtOpen = true } }
             if (viewModel.debts.size > 1) item { DebtTotals(viewModel.debts) }
 
             if (!viewModel.loading && !viewModel.loadFailed && cd == null) {
@@ -288,7 +296,7 @@ fun DebtScreen(
 }
 
 @Composable
-private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
+private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean, onNewDebt: () -> Unit) {
     val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
     // «Нова позика» sits outside the scrolling chips: as the last chip it
     // scrolled out of view once there were three or more debts.
@@ -297,71 +305,75 @@ private fun DebtChipsRow(viewModel: DebtViewModel, canEdit: Boolean) {
         items(viewModel.debts, key = { it.id }) { debt ->
             val index = viewModel.debts.indexOf(debt)
             val active = debt.id == viewModel.currentDebt?.id
+            // The loan's own color is a dot now; the selected chip takes the
+            // app's accent container instead of a full saturated fill, which
+            // shouted over the graphite screen (owner's screenshot 2026-11-18).
             Card(
                 onClick = { viewModel.switchDebt(debt.id) },
                 colors = androidx.compose.material3.CardDefaults.cardColors(
-                    containerColor = if (active) Color(DEBT_COLORS[index % DEBT_COLORS.size]) else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    // Fixed white on these mid-tone accents measured as low as
-                    // 2.15:1; the on-color is computed from the chip's own
-                    // luminance instead.
-                    contentColor = if (active) onColorFor(Color(DEBT_COLORS[index % DEBT_COLORS.size])) else MaterialTheme.colorScheme.onSurface,
+                    containerColor = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                 ),
                 shape = RoundedCornerShape(RytmRadii.Pill),
             ) {
-                Text(localizedDomainText(debt.name), modifier = Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
+                Row(Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).background(Color(DEBT_COLORS[index % DEBT_COLORS.size]), CircleShape))
+                    Text(localizedDomainText(debt.name), modifier = Modifier.padding(start = RytmSpacing.sm), fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }
         if (canEdit) {
-            var addOpen by rememberSaveable { mutableStateOf(false) }
-            Card(onClick = { addOpen = true }, shape = RoundedCornerShape(RytmRadii.Pill)) {
+            Card(onClick = onNewDebt, shape = RoundedCornerShape(RytmRadii.Pill)) {
                 Row(Modifier.padding(horizontal = RytmSpacing.lg, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier)
                     Text(stringResource(R.string.debt_new_default), fontWeight = FontWeight.SemiBold)
                 }
             }
-            if (addOpen) {
-                var name by rememberSaveable { mutableStateOf("") }
-                var direction by rememberSaveable { mutableStateOf("owe") }
-                // The amount is asked up front: without it a first payment
-                // had nothing to count down from and went below zero.
-                var total by rememberSaveable { mutableStateOf("") }
-                var totalTried by rememberSaveable { mutableStateOf(false) }
-                val totalValue = ua.rytm.app.ui.screens.finance.parseMoneyInput(total)?.takeIf { it > 0 }
-                AlertDialog(
-                    onDismissRequest = { addOpen = false },
-                    title = { Text(stringResource(R.string.debt_new_default)) },
-                    text = {
-                        val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
-                        Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                            OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
-                            DebtDirectionChips(direction) { direction = it }
-                            val totalInvalid = totalTried && totalValue == null
-                            OutlinedTextField(
-                                value = total,
-                                onValueChange = { total = it },
-                                singleLine = true,
-                                isError = totalInvalid,
-                                supportingText = if (totalInvalid) ({ Text(stringResource(R.string.debt_start_required)) }) else null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                label = { Text(stringResource(if (direction == "owed") R.string.debt_total_owed else R.string.debt_total_owe)) },
-                                suffix = { Text("₴") },
-                            )
-                        }
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
-                    },
-                    confirmButton = {
-                        val fallbackName = stringResource(R.string.debt_new_default)
-                        Button(onClick = {
-                            totalTried = true
-                            if (totalValue != null) { viewModel.addDebt(name, fallbackName, direction, totalValue); addOpen = false }
-                        }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
-                    },
-                    dismissButton = { ua.rytm.app.ui.components.RytmOutlinedButton(onClick = { addOpen = false }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
-                )
-            }
         }
     }
+}
+
+@Composable
+private fun NewDebtDialog(viewModel: DebtViewModel, onDismiss: () -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var direction by rememberSaveable { mutableStateOf("owe") }
+    // The amount is asked up front: without it a first payment
+    // had nothing to count down from and went below zero.
+    var total by rememberSaveable { mutableStateOf("") }
+    var totalTried by rememberSaveable { mutableStateOf(false) }
+    val totalValue = ua.rytm.app.ui.screens.finance.parseMoneyInput(total)?.takeIf { it > 0 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.debt_new_default)) },
+        text = {
+            val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, label = { Text(stringResource(R.string.field_name)) }, modifier = Modifier.focusRequester(focusRequester))
+                DebtDirectionChips(direction) { direction = it }
+                val totalInvalid = totalTried && totalValue == null
+                OutlinedTextField(
+                    value = total,
+                    onValueChange = { total = it },
+                    singleLine = true,
+                    isError = totalInvalid,
+                    supportingText = if (totalInvalid) ({ Text(stringResource(R.string.debt_start_required)) }) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    label = { Text(stringResource(if (direction == "owed") R.string.debt_total_owed else R.string.debt_total_owe)) },
+                    suffix = { Text("₴") },
+                )
+            }
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        },
+        confirmButton = {
+            val fallbackName = stringResource(R.string.debt_new_default)
+            Button(onClick = {
+                totalTried = true
+                if (totalValue != null) { viewModel.addDebt(name, fallbackName, direction, totalValue); onDismiss() }
+            }, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_add)) }
+        },
+        dismissButton = { ua.rytm.app.ui.components.RytmOutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(RytmRadii.Row)) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 @Composable

@@ -182,6 +182,10 @@ fun ShiftsScreen() {
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost) },
     ) { padding ->
+    // The bar's "+" here marks today: the most common edit on this tab.
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.shifts_today_action), enabled = canEdit) {
+        viewModel.openDayModal(java.time.LocalDate.now().toString())
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(
@@ -193,15 +197,22 @@ fun ShiftsScreen() {
         verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
     ) {
         item { RealtimeStateBanner() }
+        item { ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_shifts)) }
         if (viewModel.loading) item { ScreenLoadingState() }
         if (viewModel.loadFailed) item { ScreenLoadErrorState() }
-        item { HeroMetric(stats.earnedToDate, stats.earned - stats.earnedToDate, salaryGoal, canEdit) { editingGoal = true } }
+        item { HeroMetric(stats.earnedToDate, stats.earned - stats.earnedToDate, salaryGoal, canEdit, stats) { editingGoal = true } }
         // The calendar is what this tab is opened for — it used to sit below
         // the stats, forecast and six-month chart, i.e. off-screen on a phone.
         item { MonthNav(viewModel) }
         item {
             val brushHaptics = rememberRytmHaptics()
-            LegendRow(viewModel.shiftTypes, brushTypeId = if (canEdit) viewModel.brushTypeId else null, onSelect = if (canEdit) { id -> brushHaptics.tick(); viewModel.selectBrush(id) } else null)
+            LegendRow(
+                viewModel.shiftTypes,
+                brushTypeId = if (canEdit) viewModel.brushTypeId else null,
+                onSelect = if (canEdit) { id -> brushHaptics.tick(); viewModel.selectBrush(id) } else null,
+                // Quick fill moved here from its own full-width card (2026-11-18).
+                onQuickFill = if (canEdit) viewModel::toggleQuickFillExpanded else null,
+            )
         }
         if (!viewModel.loading && !viewModel.loadFailed && canEdit && stats.shiftsCount + stats.offCount == 0 && viewModel.brushTypeId == null) {
             item { CalendarEmptyBanner(onQuickFill = { if (!viewModel.quickFillExpanded) viewModel.toggleQuickFillExpanded() }) }
@@ -218,8 +229,6 @@ fun ShiftsScreen() {
                 CalendarGrid(viewModel, canEdit)
             }
         }
-        if (canEdit) item { QuickFillLauncher(onClick = viewModel::toggleQuickFillExpanded) }
-        item { ChipStats(stats) }
         item { ForecastCard(viewModel.currentForecast, viewModel.nextForecast, salaryGoal, viewModel.typicalShiftPay) }
         viewModel.spendingInsight?.let { insight -> item { SpendingInsightCard(insight) } }
         item { IncomeChartSection(viewModel.sixMonthEarnings) }

@@ -54,7 +54,7 @@ fun Debt.nextDueDate(today: java.time.LocalDate = java.time.LocalDate.now()): St
 fun Debt.currentBalance(): Double = entries.lastOrNull()?.balance ?: startAmount
 
 // Mirrors CLAUDE.md's DEBT_COLORS (js/core.js) chip-color rotation.
-val DEBT_COLORS = listOf(0xFF8B5CF6, 0xFF10B981, 0xFF3B82F6, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4)
+val DEBT_COLORS = listOf(0xFF1A8BA4, 0xFF10B981, 0xFF3B82F6, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4)
 
 /**
  * When every payment's balance was auto-filled from [oldStart] (start minus
