@@ -5,6 +5,6 @@
          to flash dark on every cold start under the light theme. -->
     <style name="Theme.Rytm" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowBackground">#f4f3f1</item>
+        <item name="android:windowBackground">#f2f3f3</item>
     </style>
 </resources>

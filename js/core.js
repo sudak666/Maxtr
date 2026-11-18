@@ -191,7 +191,7 @@ export function applyWidgetOrder(){
 
 export const DEBT_COLORS = ['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ec4899','#06b6d4'];
 
-export const PALETTE = ['#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
+export const PALETTE = ['#1a8ba4','#8b5cf6','#3b82f6','#10b981','#f59e0b','#ec4899','#06b6d4','#ef4444','#a78bfa'];
 
 /** @param {string} name */
 export function categoryColor(name){
@@ -292,7 +292,7 @@ export const DEFAULT_SHIFT_TYPES = [
 ];
 
 export const DEFAULT_WALLETS = [
-  {id:'w_card',name:'Картка', color:'#8b5cf6',icon:'card',currency:'UAH'},
+  {id:'w_card',name:'Картка', color:'#1a8ba4',icon:'card',currency:'UAH'},
   {id:'w_cash',name:'Готівка',color:'#f59e0b',icon:'banknote',currency:'UAH'},
 ];
 

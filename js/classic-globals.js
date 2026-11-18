@@ -239,7 +239,7 @@
 
   // ── THEME ──
   var THEME_ICON={dark:'moon',light:'sun'};
-  var THEME_COLOR={dark:'#1c1c1f',light:'#f2f2f7'};
+  var THEME_COLOR={dark:'#17191a',light:'#f2f3f3'};
   function applyTheme(theme){
     if(!THEME_ICON[theme]) theme='dark';
     document.documentElement.setAttribute('data-theme', theme);

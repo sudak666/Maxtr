@@ -14,14 +14,12 @@ import androidx.compose.runtime.Composable
 // See ANDROID_MIGRATION.md §4.
 
 private val DarkColors = darkColorScheme(
-    primary = PurpleDark,
-    // White on #8B5CF6 is 4.23:1 — AA for the >=14sp bold labels this pair is
-    // actually used for (WCAG large-text threshold), and deliberately not
-    // "fixed" by darkening `primary`: that would push primary-tinted text on
-    // the dark background the other way (3.66:1 -> 2.55:1).
-    onPrimary = DarkTextStrong,
-    secondary = PurpleDark2,
-    tertiary = Purple3,
+    // Light petrol fill with dark ink (M3 dark convention): 5.7:1 for labels
+    // on buttons, and the fill still reads as an icon tint on cards (4.4:1).
+    primary = Petrol,
+    onPrimary = OnPetrol,
+    secondary = PetrolLinkDark,
+    tertiary = PetrolDeep,
     background = DarkBg,
     onBackground = DarkText,
     surface = DarkBg1,
@@ -39,7 +37,7 @@ private val DarkColors = darkColorScheme(
     // equality and hit surfaceVariant first, so every ModalBottomSheet (default
     // container = surfaceContainerLow) got the muted onSurfaceVariant as its
     // content color — grey sheet titles/values like disabled text.
-    surfaceContainerLow = Color(0xFF2C2B31),
+    surfaceContainerLow = Color(0xFF262829),
     surfaceContainer = DarkBg2,
     surfaceContainerHigh = DarkBg3,
     // Same as LightColors: no M3 baseline defaults leaking a purple tint.
@@ -86,14 +84,14 @@ private val DarkColors = darkColorScheme(
     onErrorContainer = DarkOnErrorContainer,
     inverseSurface = DarkText,
     inverseOnSurface = DarkBg,
-    inversePrimary = Purple3,
+    inversePrimary = PetrolDeep,
 )
 
 private val LightColors = lightColorScheme(
-    primary = PurpleLight2,
+    primary = PetrolDeep,
     onPrimary = LightBg1,
-    secondary = Purple3,
-    tertiary = PurpleDark,
+    secondary = PetrolDeep,
+    tertiary = Petrol,
     background = LightBg,
     onBackground = LightText,
     surface = LightBg1,
@@ -104,7 +102,7 @@ private val LightColors = lightColorScheme(
     // equality and hit surfaceVariant first, so every ModalBottomSheet (default
     // container = surfaceContainerLow) got the muted onSurfaceVariant as its
     // content color — grey sheet titles/values like disabled text.
-    surfaceContainerLow = Color(0xFFECECEB),
+    surfaceContainerLow = Color(0xFFE9EBEB),
     surfaceContainer = LightBg2,
     surfaceContainerHigh = LightBg3,
     // Pinned: left unset, M3's baseline purple-tinted defaults (#E6E0E9 highest,
@@ -130,7 +128,7 @@ private val LightColors = lightColorScheme(
     onErrorContainer = LightOnErrorContainer,
     inverseSurface = LightInverseSurface,
     inverseOnSurface = LightBg,
-    inversePrimary = PurpleLinkDark,
+    inversePrimary = PetrolLinkDark,
 )
 
 /**

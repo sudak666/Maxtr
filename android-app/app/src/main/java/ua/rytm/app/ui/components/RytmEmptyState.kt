@@ -30,7 +30,7 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 
 /**
- * The one empty state for the whole app — icon inside a radial brand glow,
+ * The one empty state for the whole app — icon inside a quiet tonal circle,
  * a title, a body line, and (where there is a next step) a real CTA.
  *
  * Ports the PWA's `emptyStateHtml()` treatment. Before this the app had four
@@ -46,7 +46,7 @@ fun RytmEmptyState(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
-    val glow = MaterialTheme.colorScheme.primary
+    val tint = ua.rytm.app.ui.theme.RytmSemantic.link
     Column(
         modifier = modifier.fillMaxWidth().padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,7 +56,7 @@ fun RytmEmptyState(
             Modifier
                 .size(96.dp)
                 .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(glow.copy(alpha = 0.18f), Color.Transparent)))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 // Decorative: the title/body right below carry the meaning.
                 .semantics { },
             contentAlignment = Alignment.Center,
@@ -64,7 +64,7 @@ fun RytmEmptyState(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = glow,
+                tint = tint,
                 modifier = Modifier.size(40.dp),
             )
         }

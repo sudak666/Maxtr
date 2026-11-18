@@ -240,9 +240,7 @@ private fun GoalRow(
         }
         Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))) {
             Box(
-                Modifier.fillMaxWidth(progress.toFloat()).height(8.dp).background(
-                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.PurpleLight2)),
-                ),
+                Modifier.fillMaxWidth(progress.toFloat()).height(8.dp).background(MaterialTheme.colorScheme.primary),
             )
         }
 

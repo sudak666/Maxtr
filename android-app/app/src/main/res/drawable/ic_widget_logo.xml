@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget header mark: the launcher icon (purple tile + Rytm calendar/trend
+<!-- Widget header mark: the launcher icon (graphite tile + Rytm calendar/trend
      glyph), zoomed so the glyph fills the small tile like the app icon does. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#7C3AED" />
+            <solid android:color="#1F2122" />
             <corners android:radius="26dp" />
         </shape>
     </item>

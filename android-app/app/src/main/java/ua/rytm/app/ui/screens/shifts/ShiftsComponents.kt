@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -144,7 +145,10 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
             // (P5 #6): grey-on-grey with a hairline read as muddy in light.
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
     ) {
-        Column(Modifier.padding(RytmSpacing.xl)) {
+        // The goal line is a 48dp touch target; the bottom padding is
+        // trimmed by the same amount it adds, so the card doesn't end in an
+        // empty band (audit 2026-11-18).
+        Column(Modifier.padding(start = RytmSpacing.xl, end = RytmSpacing.xl, top = RytmSpacing.xl, bottom = if (canEdit) RytmSpacing.xs else RytmSpacing.xl)) {
             // The big number is only what is already worked (audit A-04: it
             // used to add the shifts still ahead, while the forecast card on
             // the same screen called a smaller sum «зароблено»). A month with
@@ -176,7 +180,7 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
                         .fillMaxWidth(pct.toFloat())
                         .fillMaxSize()
                         .clip(RoundedCornerShape(RytmRadii.Pill))
-                        .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
+                        .background(ua.rytm.app.ui.theme.GreenDark),
                 )
             }
             // The goal text itself opens the editor; a pencil beside it was removed at the owner's request.
@@ -186,8 +190,11 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
-                    .padding(top = RytmSpacing.xs)
-                    .then(if (canEdit) Modifier.clickable(onClickLabel = editGoalLabel, role = androidx.compose.ui.semantics.Role.Button, onClick = onEditGoal).heightIn(min = RytmDimens.TouchTarget) else Modifier),
+                    .then(
+                        if (canEdit) Modifier.clickable(onClickLabel = editGoalLabel, role = androidx.compose.ui.semantics.Role.Button, onClick = onEditGoal)
+                            .heightIn(min = RytmDimens.TouchTarget).wrapContentHeight(Alignment.CenterVertically)
+                        else Modifier.padding(top = RytmSpacing.xs),
+                    ),
             )
         }
     }
@@ -373,12 +380,10 @@ internal fun QuickFillLauncher(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(44.dp).clip(CircleShape).background(
-                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
-                ),
+                Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(RytmIcons.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(RytmIcons.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(22.dp))
             }
             Column(Modifier.padding(start = RytmSpacing.md).weight(1f)) {
                 Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
@@ -426,11 +431,9 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(40.dp).clip(CircleShape).background(
-                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
-                ),
+                Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
-            ) { Icon(RytmIcons.Bolt, contentDescription = null, tint = Color.White, modifier = Modifier.size(21.dp)) }
+            ) { Icon(RytmIcons.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(21.dp)) }
             Column(Modifier.padding(start = 10.dp).weight(1f)) {
                 Text(stringResource(R.string.shifts_quick_fill), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
                 Text(
@@ -601,8 +604,8 @@ internal fun CalendarEmptyBanner(onQuickFill: () -> Unit) {
         Row(Modifier.padding(start = RytmSpacing.lg, end = RytmSpacing.xs, top = RytmSpacing.sm, bottom = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Icon(RytmIcons.Bolt, contentDescription = null, tint = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.size(20.dp))
             Column(Modifier.weight(1f).padding(horizontal = RytmSpacing.md)) {
+                // No second line: "tap a day" repeated the brush tip right above.
                 Text(stringResource(R.string.shifts_empty_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                Text(stringResource(R.string.shifts_empty_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             ua.rytm.app.ui.components.RytmTextButton(onClick = onQuickFill) { Text(stringResource(R.string.shifts_quick_fill_short)) }
         }
@@ -901,15 +904,9 @@ internal fun DayCell(
             // instead of a fixed circle — the chip now always fully
             // contains the number regardless of digit count.
             if (isToday) {
-                // Real WCAG check (not eyeballed): `primary` (#8B5CF6) bold
-                // 13sp text on this cell's surfaceVariant background (dark
-                // theme, #2C2B30) computes to only ~3.32:1 — below the 4.5:1
-                // AA floor for normal-size text (13sp bold doesn't clear the
-                // large-text exemption). Light theme's primary already
-                // passes at ~4.82:1. `secondary` (PurpleDark2, #A78BFA) is
-                // already the dark scheme's own lighter accent and computes
-                // to ~5.16:1 against the same background — used here for
-                // dark theme specifically instead of introducing a new color.
+                // 13sp bold isn't large text, so the marker needs 4.5:1 on
+                // this cell: dark theme uses `secondary` (the petrol link
+                // tone, 6:1+ on the cell), light theme `primary` (6:1+).
                 val markerColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                 Box(
                     Modifier

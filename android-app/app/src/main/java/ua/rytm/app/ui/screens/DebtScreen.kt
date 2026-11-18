@@ -190,8 +190,8 @@ fun DebtScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = Color.White)
-                    Text(stringResource(R.string.action_collapse_list), color = Color.White, fontWeight = FontWeight.Bold)
+                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                    Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -469,7 +469,7 @@ private fun ProgressBarSection(cd: Debt) {
                     .fillMaxWidth(pct.toFloat())
                     .fillMaxSize()
                     .clip(RoundedCornerShape(RytmRadii.Pill))
-                    .background(Brush.horizontalGradient(listOf(ua.rytm.app.ui.theme.GreenDark, ua.rytm.app.ui.theme.GreenDark2))),
+                    .background(ua.rytm.app.ui.theme.GreenDark),
             )
         }
     }

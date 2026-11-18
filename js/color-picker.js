@@ -321,7 +321,7 @@ export function renderProfilesUI(){
     // own cosmetic copy in its own profilesMeta (see redeemSharedInvite())
     // — editable the same way as any other profile, just additionally
     // tagged so it's clear this data isn't solely this account's own.
-    const sharedBadge=isShared?`<span style="font-weight:800;font-size:13px;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
+    const sharedBadge=isShared?`<span style="font-weight:800;font-size:13px;color:var(--accent2);text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap" data-i18n="profiles_shared_badge">Спільний</span>`:'';
     row.innerHTML=`
       <div class="profile-row-avatar" style="background:${avatarBg};color:#fff;cursor:pointer" data-action="open-profile-avatar-picker" data-id="${escapeHtml(p.id)}">${avatarContent}</div>
       <div class="mgr-name-inline">${escapeHtml(p.name)}</div>

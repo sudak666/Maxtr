@@ -573,7 +573,7 @@ const updateRatesOnline = async function(silent){
 };
 
 /** @type {Record<string, string>} */
-const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--purple)', PLN:'var(--orange)'};
+const FX_WIDGET_COLORS={USD:'var(--green)', EUR:'var(--blue)', GBP:'var(--accent)', PLN:'var(--orange)'};
 
 // This app's 3rd Preact-rendered widget, after js/debt.js's payoff-forecast
 // chart and js/analytics-csv.js's expense donut chart (see CLAUDE.md's
@@ -1039,7 +1039,7 @@ function renderRecurringList(){
     row.style.cssText='flex-direction:column;align-items:stretch;gap:10px';
     row.innerHTML=`
       <div class="cat-row">
-        <div class="icon-badge icon-badge-sm" style="--badge-color:var(--purple)">${window.Icon('repeat')}</div>
+        <div class="icon-badge icon-badge-sm" style="--badge-color:var(--accent)">${window.Icon('repeat')}</div>
         <div class="cat-row-body" style="cursor:default">
           <span class="cat-row-name">${summary}</span>
           <span class="cat-row-sub">${freqLabel} · ${nextDateFmt}${paused?' · '+tr('recurring_paused_label'):''}</span>

@@ -49,7 +49,7 @@ fun RoundCheckbox(
             Icon(
                 RytmIcons.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = ua.rytm.app.ui.theme.onColorFor(accent),
                 modifier = Modifier.size(size * 0.64f),
             )
         }

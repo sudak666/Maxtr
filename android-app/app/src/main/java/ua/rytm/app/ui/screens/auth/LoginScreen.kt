@@ -77,7 +77,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.rytm.app.BuildConfig
 import ua.rytm.app.R
-import ua.rytm.app.ui.theme.Purple3
 import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.material3.SnackbarHost
@@ -97,15 +96,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
     val submit = { viewModel.submitEmail(email, password) }
 
     Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).drawBehind {
-            drawRect(
-                Brush.radialGradient(
-                    colors = listOf(PurpleDark.copy(alpha = .14f), Color.Transparent),
-                    center = Offset(size.width / 2f, 0f),
-                    radius = 560.dp.toPx(),
-                ),
-            )
-        },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
         val submitBringIntoView = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
         val scope = rememberCoroutineScope()
@@ -117,11 +108,10 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(
                     modifier = Modifier.size(68.dp)
-                        .shadow(18.dp, RoundedCornerShape(RytmRadii.Chart), ambientColor = PurpleDark.copy(.35f), spotColor = PurpleDark.copy(.35f))
-                        .clip(RoundedCornerShape(RytmRadii.Chart)).background(Brush.linearGradient(listOf(PurpleDark, Purple3))),
+                        .clip(RoundedCornerShape(RytmRadii.Chart)).background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("R", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                    Text("R", color = MaterialTheme.colorScheme.onPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
                 }
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
                 Text(
@@ -153,7 +143,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         enabled = !viewModel.isSigningIn,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         shape = RoundedCornerShape(RytmRadii.Pill),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_google_g),
@@ -231,7 +221,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         enabled = !viewModel.isSigningIn,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).bringIntoViewRequester(submitBringIntoView),
                         shape = RoundedCornerShape(RytmRadii.Pill),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                     ) {
                         // Pressing sign-in used to look like nothing happened:
                         // the button only went `enabled = false`.
@@ -239,7 +229,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                             )
                             Spacer(Modifier.width(10.dp))
                         }

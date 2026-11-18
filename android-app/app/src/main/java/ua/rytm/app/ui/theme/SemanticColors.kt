@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.luminance
  * Theme-aware semantic colors (income / expense / positive / negative).
  *
  * MaterialTheme's own roles carry no income-vs-expense meaning — `tertiary`
- * is the brand purple — so money values used to reach straight into
+ * is the brand accent — so money values used to reach straight into
  * [GreenDark2]/[RedDark2]. Those are the *dark-theme* tones: on a white
  * surface `#34D399` measures 1.92:1 and `#F87171` 2.77:1, i.e. a transaction
  * amount (the single most important number on the Finance screen) was
@@ -34,11 +34,11 @@ object RytmSemantic {
         @Composable @ReadOnlyComposable get() = if (isDark) RedDarkText else RedText
 
     /**
-     * Purple text on a surface (links, text buttons, "now" labels).
-     * Dark #B39DFB 5.12:1 on cards; light #7C3AED 5.70:1 on white.
+     * Accent text on a surface (links, text buttons, "now" labels).
+     * Dark #5CC8DE 6.3:1 on cards; light #0E6A80 6.2:1 on white.
      */
     val link: Color
-        @Composable @ReadOnlyComposable get() = if (isDark) PurpleLinkDark else MaterialTheme.colorScheme.primary
+        @Composable @ReadOnlyComposable get() = if (isDark) PetrolLinkDark else MaterialTheme.colorScheme.primary
 
     /**
      * A heads-up that is not an error (a balance going below zero after this

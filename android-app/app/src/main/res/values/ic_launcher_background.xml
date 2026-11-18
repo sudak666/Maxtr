@@ -1,6 +1,6 @@
 <resources>
-    <!-- Exact background purple of the PWA's own icon-512.png (#7C3AED =
-         PurpleLight2 in ui/theme/Color.kt), so the launcher icon, the TWA
-         listing artwork and the web app all read as one brand. -->
-    <color name="ic_launcher_background">#7C3AED</color>
+    <!-- Graphite tile (DarkBg1 in ui/theme/Color.kt) behind the white card;
+         matches the PWA icons so the launcher, the store listing and the web
+         app read as one brand (rebrand 2026-11-18). -->
+    <color name="ic_launcher_background">#1F2122</color>
 </resources>

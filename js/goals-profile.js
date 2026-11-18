@@ -143,7 +143,7 @@ export function renderGoals(){
     const target=g.targetAmount||0;
     const pct=target>0?Math.min(100,Math.round(saved/target*100)):0;
     const done=target>0 && saved>=target;
-    const color=done?'var(--green2)':'var(--purple2)';
+    const color=done?'var(--green2)':'var(--accent2)';
     const row=document.createElement('div');
     row.style.marginBottom='14px';
     row.innerHTML=`
