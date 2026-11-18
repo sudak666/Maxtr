@@ -13,8 +13,8 @@ import ua.rytm.app.ui.theme.DarkBorder
 import ua.rytm.app.ui.theme.DarkBorder2
 import ua.rytm.app.ui.theme.DarkText
 import ua.rytm.app.ui.theme.DarkTextStrong
-import ua.rytm.app.ui.theme.Purple3
-import ua.rytm.app.ui.theme.PurpleDark
+import ua.rytm.app.ui.theme.PetrolLinkDark
+import ua.rytm.app.ui.theme.Petrol
 
 class PwaSourceParityTest {
     private val html by lazy { repoFile("index.html").readText() }
@@ -24,7 +24,7 @@ class PwaSourceParityTest {
             "bg" to DarkBg, "bg1" to DarkBg1, "bg2" to DarkBg2, "bg3" to DarkBg3,
             "border" to DarkBorder, "border2" to DarkBorder2,
             "text" to DarkText, "text-strong" to DarkTextStrong,
-            "purple" to PurpleDark, "purple3" to Purple3,
+            "accent" to Petrol, "accent2" to PetrolLinkDark,
         ).forEach { (token, color) ->
             val expected = "--$token:#${color.hex()};"
             assertTrue("PWA token --$token drifted; expected $expected", html.contains(expected, ignoreCase = true))
@@ -39,7 +39,7 @@ class PwaSourceParityTest {
             ".tab-content.tab-in{animation:tabContentIn .18s ease-out both}",
             ".chart-bar{width:100%;border-radius:6px 6px 2px 2px;transition:height .5s ease",
             ".analytics-donut.donut-anim{animation:donutIn .6s",
-            "outline:2px solid var(--purple2);outline-offset:3px;box-shadow:0 0 0 4px rgba(139,92,246,.22)",
+            "outline:2px solid var(--accent2);outline-offset:3px;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.22)",
         ).forEach { contract -> assertTrue("Missing PWA contract: $contract", html.contains(contract)) }
     }
 

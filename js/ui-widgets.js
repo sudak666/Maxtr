@@ -767,16 +767,16 @@ document.addEventListener('input', e=>{
   if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) __closeDlg(null); });
   if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); __closeDlg(inp.value);} if(e.key==='Escape'){__closeDlg(null);} });
 })();
-const TINT_PURPLE=()=>'linear-gradient(135deg,var(--purple),var(--purple3))';
+const TINT_ACCENT=()=>'var(--accent)';
 const finTypeSeg=document.getElementById('fin-type-seg');
 if(finTypeSeg) initSegThumb(finTypeSeg, {tint:btn=>
   btn.classList.contains('inc') ? 'rgba(16,185,129,.28)' :
   btn.classList.contains('exp') ? 'rgba(239,68,68,.26)' :
   btn.classList.contains('trn') ? 'rgba(59,130,246,.26)' : ''});
 const authTabs=/** @type {HTMLElement | null} */ (document.querySelector('.auth-tabs'));
-if(authTabs) initSegThumb(authTabs, {tint:TINT_PURPLE});
+if(authTabs) initSegThumb(authTabs, {tint:TINT_ACCENT});
 const finChartToggle=/** @type {HTMLElement | null} */ (document.querySelector('.fin-chart-toggle'));
-if(finChartToggle) initSegThumb(finChartToggle, {tint:TINT_PURPLE});
+if(finChartToggle) initSegThumb(finChartToggle, {tint:TINT_ACCENT});
 }
 
 /**

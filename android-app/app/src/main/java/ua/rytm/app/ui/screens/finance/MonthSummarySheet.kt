@@ -262,16 +262,14 @@ private fun MonthStories(summary: MonthSummary) {
                 Modifier
                     .fillMaxWidth()
                     .heightIn(min = 150.dp)
-                    .background(
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)),
-                        RoundedCornerShape(RytmRadii.Card),
-                    )
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(RytmRadii.Card))
                     .padding(RytmSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm, Alignment.CenterVertically),
             ) {
-                Text(st.label, style = MaterialTheme.typography.titleSmall, color = Color.White.copy(alpha = 0.85f))
-                Text(st.value, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                st.caption?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                val ink = MaterialTheme.colorScheme.onPrimaryContainer
+                Text(st.label, style = MaterialTheme.typography.titleSmall, color = ink.copy(alpha = 0.85f))
+                Text(st.value, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                st.caption?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = ink.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

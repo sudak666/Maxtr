@@ -130,7 +130,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import ua.rytm.app.ui.icons.Close
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.SwapHoriz
-import ua.rytm.app.ui.icons.Event
 import ua.rytm.app.ui.icons.WarningAmber
 import ua.rytm.app.ui.icons.ChevronRight
 import ua.rytm.app.ui.icons.TrendingDown
@@ -181,7 +180,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
                         Box {
                             androidx.compose.material3.IconButton(onClick = { vm.cashForecastOpen = true }) {
-                                Icon(RytmIcons.Event, contentDescription = stringResource(R.string.cash_forecast_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(RytmIcons.TrendingUp, contentDescription = stringResource(R.string.cash_forecast_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             if (forecast.shortfallDate != null) Box(
                                 Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(8.dp)

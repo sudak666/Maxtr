@@ -1,6 +1,12 @@
 package ua.rytm.app.navigation
 
 import ua.rytm.app.ui.theme.RytmSpacing
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Column
+import ua.rytm.app.ui.theme.RytmRadii
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.navigationBars
@@ -83,6 +89,8 @@ import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -279,8 +287,7 @@ fun RytmNavHost() {
 
 /**
  * Side navigation for medium/expanded widths (tablets, unfolded foldables,
- * landscape phones over 600dp). Keeps the per-tab gradient badge treatment of
- * the floating capsule so the two read as the same product.
+ * landscape phones over 600dp). Same accent pill as the floating capsule.
  */
 @Composable
 private fun RytmNavigationRail(navController: androidx.navigation.NavHostController) {
@@ -291,7 +298,6 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
     // overflowed and clipped "Налаштування" (P5 #3). There only the selected
     // item keeps its label and the badges shrink, as in the bottom capsule.
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
-    val badge = if (compactHeight) 40.dp else RytmDimens.TabIcon
     NavigationRail(
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.safeDrawingPadding(),
@@ -309,47 +315,49 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                     }
                 },
                 icon = {
-                    Box(
-                        Modifier
-                            .size(badge)
-                            .clip(CircleShape)
-                            .background(
-                                if (selected) Brush.linearGradient(destination.activeGradient)
-                                else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            destination.icon,
-                            // Named only while the label is hidden, so TalkBack never reads it twice.
-                            contentDescription = if (compactHeight && !selected) stringResource(destination.labelRes) else null,
-                            tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(RytmDimens.TabGlyph),
-                        )
-                    }
+                    Icon(
+                        destination.icon,
+                        // Named only while the label is hidden, so TalkBack never reads it twice.
+                        contentDescription = if (compactHeight && !selected) stringResource(destination.labelRes) else null,
+                        modifier = Modifier.size(RytmDimens.TabGlyph),
+                    )
                 },
                 label = { Text(stringResource(destination.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 alwaysShowLabel = !compactHeight,
-                // The gradient circle above is the selection indicator; M3's own
-                // pill would draw a second one around it.
-                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent),
+                // M3's own sliding indicator in the same accent pill the
+                // bottom capsule uses, so both read as one product.
+                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
         }
     }
 }
 
-// Matches the PWA's .tabs: a detached rounded pill inset from the screen
-// edges (14dp on all sides, matching index.html's `left/right/bottom:14px`)
-// with a shadow, not an edge-to-edge Material3 NavigationBar. Each tab's
-// icon sits in its own circular badge that only picks up a per-tab color
-// gradient (RytmDestination.activeGradient) while selected — mirrors the
-// PWA's .tab-btn.tab-c-*.active .tab-icon-wrap overrides.
+// The floating capsule (matches the PWA's .tabs: inset 14dp from the edges,
+// not an edge-to-edge NavigationBar) with the screen's "+" beside it.
+//
+// Audit 2026-11-18: the selected tab used to expand into icon+label, which
+// pushed every other icon sideways on each switch (taps landed on the wrong
+// tab), and each tab had its own color (green/purple/orange/slate). Now
+// every tab owns an equal, fixed slot; one accent-tinted pill slides between
+// the slots, and the selected tab's label fades in under its icon. The
+// capsule only changes width when the "+" appears or leaves, and then all
+// four slots scale together.
 @Composable
 private fun RytmBottomBar(navController: androidx.navigation.NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val shape = RoundedCornerShape(RytmDimens.BottomNavRadius)
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
+    // At ~2x font a label no longer fits a quarter of the capsule; there every
+    // tab is icon-only and TalkBack still gets the name.
+    val hugeFont = LocalDensity.current.fontScale > 1.5f
+    val showLabels = !compactHeight && !hugeFont
 
     Box(
         modifier
@@ -365,71 +373,78 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 vertical = if (compactHeight) 6.dp else RytmDimens.BottomNavBottom,
             ),
     ) {
-        // In light theme, elevation reads via the drop shadow below (a white
-        // pill on a light lavender page). In dark theme a black shadow on an
-        // already near-black background is invisible — Material3's own
-        // answer to that is tonal elevation instead of shadow (a lighter
-        // surface, not a darker shadow), which this bar wasn't using: plain
-        // colorScheme.surface (#242327) barely separates from
-        // colorScheme.background (#1C1C1F) behind it, so the "floating pill"
-        // read as flush with the page (reported live). surfaceContainerHigh
-        // (#38373D) is enough lighter to actually look raised.
+        // Dark theme raises the capsule tonally (a black shadow is invisible
+        // on a near-black page); light theme keeps a white capsule + shadow.
         val barColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
+        val selectedIndex = RytmDestination.entries.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
-                .clip(shape)
-                .background(barColor)
-                .padding(horizontal = 10.dp, vertical = if (compactHeight) 4.dp else 8.dp),
-            // Deliberately NOT `weight(1f)` on each child: an equal 1/5 share
-            // still clips the selected tab's label even though it's now the
-            // only one rendering text (reported live — "Налаштув" clipped
-            // with no ellipsis, worse than before). SpaceEvenly sizes every
-            // tab to its own content (icon-only tabs stay compact, the one
-            // tab currently showing icon+label gets exactly the room its
-            // text needs) and spreads the leftover space as gaps — the
-            // actual fix, not another magic-number width tweak.
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            RytmDestination.entries.forEach { destination ->
-                val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
-                RytmTabButton(
-                    destination = destination,
-                    selected = selected,
-                    compact = compactHeight,
-                    modifier = Modifier,
-                    onClick = {
-                        navController.navigate(destination.route) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
+            BoxWithConstraints(
+                modifier = Modifier
+                    .weight(1f)
+                    .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
+                    .clip(shape)
+                    .background(barColor)
+                    .padding(horizontal = 6.dp, vertical = if (compactHeight) 4.dp else 7.dp),
+            ) {
+                val slot = maxWidth / RytmDestination.entries.size
+                val pillWidth = (slot - 12.dp).coerceIn(44.dp, 64.dp)
+                val pillHeight = if (compactHeight) 36.dp else TabPillHeight
+                if (selectedIndex >= 0) {
+                    val pillX by animateDpAsState(
+                        targetValue = slot * selectedIndex + (slot - pillWidth) / 2,
+                        animationSpec = motionAwareSpec(spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow)),
+                        label = "tabPill",
+                    )
+                    Box(
+                        Modifier
+                            .offset(x = pillX)
+                            .size(pillWidth, pillHeight)
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(RytmRadii.Pill)),
+                    )
+                }
+                Row(Modifier.fillMaxWidth()) {
+                    RytmDestination.entries.forEachIndexed { index, destination ->
+                        RytmTabSlot(
+                            destination = destination,
+                            selected = index == selectedIndex,
+                            pillHeight = pillHeight,
+                            showLabel = showLabels,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                        )
+                    }
+                }
             }
-        }
-        // The screen's "+" sits next to the capsule instead of floating over
-        // the content (it covered the history amounts) — design pass 2.
-        androidx.compose.animation.AnimatedVisibility(
-            visible = plus != null,
-            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandHorizontally(),
-            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkHorizontally(),
-        ) {
-            Row {
-                Spacer(Modifier.width(10.dp))
-                // Keep showing the last action during the exit animation.
-                val last = remember { androidx.compose.runtime.mutableStateOf(plus) }
-                if (plus != null) last.value = plus
-                last.value?.let { PrimaryPlusButton(it, size = if (compactHeight) 52.dp else 60.dp) }
+            // The screen's "+" sits next to the capsule instead of floating over
+            // the content (it covered the history amounts) — design pass 2.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = plus != null,
+                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandHorizontally(),
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkHorizontally(),
+            ) {
+                Row {
+                    Spacer(Modifier.width(10.dp))
+                    // Keep showing the last action during the exit animation.
+                    val last = remember { androidx.compose.runtime.mutableStateOf(plus) }
+                    if (plus != null) last.value = plus
+                    last.value?.let { PrimaryPlusButton(it, size = if (compactHeight) 52.dp else 60.dp) }
+                }
             }
-        }
         }
     }
 }
 
+private val TabPillHeight = 32.dp
+
+// One flat accent circle: the gradient + accent-colored glow it had was the
+// last "generated UI" tell on the main screens (audit 2026-11-18).
 @Composable
 private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, size: androidx.compose.ui.unit.Dp) {
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -438,9 +453,9 @@ private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, s
         Modifier
             .size(size)
             .pressScale(press)
-            .shadow(10.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            .shadow(6.dp, CircleShape)
             .clip(CircleShape)
-            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)))
+            .background(MaterialTheme.colorScheme.primary)
             .clickable(interactionSource = press, indication = androidx.compose.material3.ripple(), role = Role.Button, onClickLabel = action.label) {
                 // LongPress: the lighter constants are barely felt on the A51 (see FinanceScreen).
                 haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -449,29 +464,25 @@ private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, s
             .semantics { contentDescription = action.label },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(RytmIcons.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+        Icon(RytmIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(28.dp))
     }
 }
 
-// DoRytm-style pill: icon + label share a capsule that only shows text for
-// the selected tab, its fill and press-scale animated with a single spring
-// each. Replaces the previous pop/ripple/gradient-badge combo, which drove
-// three parallel Animatable coroutines per tab (replaying on every tap,
-// even re-taps of the already-active tab) across all five tabs at once —
-// reported live as the nav feeling laggy, worst right when switching tabs
-// also recomposes a whole new screen underneath. motionAwareSpec still
-// collapses everything to a snap under reduced-motion, same as before.
+// One fixed slot of the capsule. The sliding pill behind it is drawn by
+// RytmBottomBar; the slot only tints its icon and fades its label in, so
+// nothing here changes size when the selection moves.
 @Composable
-private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compact: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    // At ~2x font the one visible label grew wide enough to squeeze the
-    // other tabs' icons to a few pixels (P5, 200% check). There every tab is
-    // icon-only; the selected one keeps its fill and TalkBack name.
-    val hugeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.5f
-    val accent = destination.activeGradient.first()
-    val backgroundColor by animateColorAsState(
-        targetValue = if (selected) accent.copy(alpha = 0.16f) else Color.Transparent,
+private fun RytmTabSlot(destination: RytmDestination, selected: Boolean, pillHeight: androidx.compose.ui.unit.Dp, showLabel: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val label = stringResource(destination.labelRes)
+    val iconColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = motionAwareSpec(tween(durationMillis = 220)),
-        label = "tabBg",
+        label = "tabIcon",
+    )
+    val labelAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = motionAwareSpec(tween(durationMillis = 220)),
+        label = "tabLabel",
     )
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -480,46 +491,27 @@ private fun RytmTabButton(destination: RytmDestination, selected: Boolean, compa
         animationSpec = motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)),
         label = "tabPressedScale",
     )
-
-    Row(
+    Column(
         modifier = modifier
-            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-            .graphicsLayer {
-                scaleX = pressedScale
-                scaleY = pressedScale
-            }
-            .animateContentSize(motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)))
-            .clip(RoundedCornerShape(percent = 50))
-            .background(backgroundColor)
+            .defaultMinSize(minHeight = 48.dp)
             .selectable(selected = selected, role = Role.Tab, interactionSource = interactionSource, indication = null, onClick = onClick)
-            .padding(horizontal = if (selected) 14.dp else 12.dp, vertical = if (compact) 8.dp else 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .semantics { contentDescription = label },
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            destination.icon,
-            // Only the selected tab renders its label Text, so the others were
-            // unnamed for TalkBack (found in a live audit via uiautomator: just
-            // one of four tabs had any text/description). Describe the icon
-            // exactly when there's no visible label — never both, which read
-            // the name twice.
-            contentDescription = if (selected && !hugeFont) null else stringResource(destination.labelRes),
-            tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(if (compact) 20.dp else RytmDimens.TabGlyph),
-        )
-        // Label only renders for the selected tab (Instagram/X/TikTok
-        // pattern) — at most one label competes for width at any time,
-        // so a long Ukrainian word like "Налаштування" always gets the
-        // full row width instead of a fixed per-item share and can never
-        // truncate, no matter how translations or font scale change later.
-        if (selected && !hugeFont) {
-            Spacer(Modifier.width(RytmSpacing.sm))
-            Text(
-                stringResource(destination.labelRes),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
+        Box(Modifier.height(pillHeight).graphicsLayer { scaleX = pressedScale; scaleY = pressedScale }, contentAlignment = Alignment.Center) {
+            Icon(destination.icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(RytmDimens.TabGlyph))
+        }
+        if (showLabel) {
+            // Always laid out (alpha only), so the icon row never shifts
+            // vertically when a label appears. Shrinks (not clips) when the
+            // quarter is too narrow: «Налаштування» at a large system font.
+            ua.rytm.app.ui.components.FitText(
+                label,
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                minSize = 10.sp,
+                modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp).graphicsLayer { alpha = labelAlpha }.clearAndSetSemantics { },
             )
         }
     }

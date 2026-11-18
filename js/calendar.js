@@ -322,8 +322,8 @@ export function renderIncomeChart(){
     wrap.className='chart-bar-wrap';
     const earn=vals[i];
     wrap.innerHTML=`
-      <div class="chart-bar" style="height:${pct}%;background:${isCur?'var(--purple)':'rgba(139,92,246,.35)'}" data-tip="${money(earn)} ₴"></div>
-      <div class="chart-bar-label" style="${isCur?'color:var(--purple2);font-weight:800':''}">${label}</div>`;
+      <div class="chart-bar" style="height:${pct}%;background:${isCur?'var(--accent)':'rgba(var(--accent-rgb),.35)'}" data-tip="${money(earn)} ₴"></div>
+      <div class="chart-bar-label" style="${isCur?'color:var(--accent2);font-weight:800':''}">${label}</div>`;
     container.appendChild(wrap);
   });
 }
@@ -443,20 +443,20 @@ export function renderFinanceChart(){
     // top) the small visible dot, not before — otherwise the visible dot
     // itself intercepts pointer events with no handler attached, and only
     // taps landing in the ring around it (never the dot itself) would work.
-    return `<circle class="fin-chart-point" cx="${p.x}" cy="${p.y}" r="${isForecast?3.5:4}" fill="${isForecast?'var(--bg1)':'var(--purple2)'}" stroke="var(--purple2)" stroke-width="2"></circle>
+    return `<circle class="fin-chart-point" cx="${p.x}" cy="${p.y}" r="${isForecast?3.5:4}" fill="${isForecast?'var(--bg1)':'var(--accent2)'}" stroke="var(--accent2)" stroke-width="2"></circle>
       <circle class="fin-chart-point-hit" cx="${p.x}" cy="${p.y}" r="10" data-tip="${escapeHtml(tip)}" data-x-pct="${(p.x/W*100).toFixed(2)}" data-y-pct="${(p.y/H*100).toFixed(2)}"></circle>`;
   }).join('');
 
   svg.innerHTML=`
     <defs>
       <linearGradient id="fin-chart-grad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${hexA('#8b5cf6',.35)}"/>
-        <stop offset="100%" stop-color="${hexA('#8b5cf6',0)}"/>
+        <stop offset="0%" stop-color="${hexA('#2f97ae',.35)}"/>
+        <stop offset="100%" stop-color="${hexA('#2f97ae',0)}"/>
       </linearGradient>
     </defs>
     <path d="${areaPath}" fill="url(#fin-chart-grad)" stroke="none"></path>
-    <path d="${realPath}" fill="none" stroke="var(--purple2)" stroke-width="2.5" stroke-linecap="round"></path>
-    <path d="${forecastPath}" fill="none" stroke="var(--purple2)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5,5" opacity=".7"></path>
+    <path d="${realPath}" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"></path>
+    <path d="${forecastPath}" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5,5" opacity=".7"></path>
     ${circles}`;
   svg.querySelectorAll('.fin-chart-point-hit').forEach(c=>{
     /** @type {SVGElement} */ (c).onclick=(e)=>{ e.stopPropagation(); showFinChartTooltip(/** @type {SVGElement} */ (c)); };

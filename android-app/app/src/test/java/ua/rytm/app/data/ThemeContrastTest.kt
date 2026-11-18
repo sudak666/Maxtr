@@ -26,8 +26,15 @@ import ua.rytm.app.ui.theme.LightOnPrimaryContainer
 import ua.rytm.app.ui.theme.LightPrimaryContainer
 import ua.rytm.app.ui.theme.LightWarnContainer
 import ua.rytm.app.ui.theme.OrangeDark2
-import ua.rytm.app.ui.theme.Purple3
-import ua.rytm.app.ui.theme.PurpleLinkDark
+import ua.rytm.app.ui.theme.PetrolDeep
+import ua.rytm.app.ui.theme.Petrol
+import ua.rytm.app.ui.theme.OnPetrol
+import ua.rytm.app.ui.theme.GreenDark2
+import ua.rytm.app.ui.theme.GreenText
+import ua.rytm.app.ui.theme.RedDarkText
+import ua.rytm.app.ui.theme.RedText
+import ua.rytm.app.ui.theme.LightBg3
+import ua.rytm.app.ui.theme.PetrolLinkDark
 import ua.rytm.app.ui.theme.DarkBg3
 import ua.rytm.app.ui.theme.DarkBg2
 
@@ -54,24 +61,47 @@ class ThemeContrastTest {
             OrangeDark2 to DarkWarnContainer,
             DarkOnErrorContainer to DarkErrorContainer,
             DarkBg to DarkText, // inverse surface (snackbar)
-            Purple3 to DarkText, // inversePrimary (snackbar action)
+            PetrolDeep to DarkText, // inversePrimary (snackbar action)
             LightOnPrimaryContainer to LightPrimaryContainer,
             AmberText to LightWarnContainer,
             LightOnErrorContainer to LightErrorContainer,
             LightBg to LightInverseSurface,
-            PurpleLinkDark to LightInverseSurface,
+            PetrolLinkDark to LightInverseSurface,
         ).forEach { (foreground, background) ->
             val ratio = contrast(foreground, background)
             assertTrue("Contrast $ratio for $foreground on $background", ratio >= 4.5)
         }
     }
 
-    // Outlined/text buttons use RytmSemantic.link in dark theme, not primary
-    // (#8B5CF6 measured 2.78:1 on cards).
+    // Outlined/text buttons use RytmSemantic.link in dark theme, not primary.
     @Test fun darkLinkTextMeetsWcagAaOnCardsAndSheets() {
         listOf(DarkBg1, DarkBg2, DarkBg3).forEach { bg ->
-            val ratio = contrast(PurpleLinkDark, bg)
+            val ratio = contrast(PetrolLinkDark, bg)
             assertTrue("Contrast $ratio for link on $bg", ratio >= 4.5)
+        }
+    }
+
+    // The accent fill carries labels ("+", button text) and is itself used as
+    // an icon tint on cards: AA for its ink, 3:1 (non-text) as a tint.
+    @Test fun accentFillAndInkMeetWcag() {
+        assertTrue(contrast(OnPetrol, Petrol) >= 4.5)
+        assertTrue(contrast(Color.White, PetrolDeep) >= 4.5)
+        listOf(DarkBg, DarkBg1, DarkBg2, DarkBg3).forEach { bg ->
+            assertTrue("Accent tint on $bg", contrast(Petrol, bg) >= 3.0)
+        }
+        listOf(LightBg, LightBg1, LightBg3).forEach { bg ->
+            assertTrue("Accent on $bg", contrast(PetrolDeep, bg) >= 4.5)
+        }
+    }
+
+    @Test fun moneyTextMeetsWcagAaOnEveryCard() {
+        listOf(DarkBg1, DarkBg2, DarkBg3).forEach { bg ->
+            assertTrue("Income on $bg", contrast(GreenDark2, bg) >= 4.5)
+            assertTrue("Expense on $bg", contrast(RedDarkText, bg) >= 4.5)
+        }
+        listOf(LightBg, LightBg1, LightBg3).forEach { bg ->
+            assertTrue("Income on $bg", contrast(GreenText, bg) >= 4.5)
+            assertTrue("Expense on $bg", contrast(RedText, bg) >= 4.5)
         }
     }
 

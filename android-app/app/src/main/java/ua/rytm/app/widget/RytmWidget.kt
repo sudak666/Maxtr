@@ -110,17 +110,18 @@ class RytmWidgetReceiver : GlanceAppWidgetReceiver() {
 }
 
 // Brand palette (matches the app's dark theme / light theme surfaces).
-private val Bg = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF242327))
-// Same neutral surfaces as the app theme (LightBg/DarkBg2), not a lavender tint.
-private val Tile = ColorProvider(day = Color(0xFFF4F3F1), night = Color(0xFF2C2B30))
-private val OnBg = ColorProvider(day = Color(0xFF1C1C1E), night = Color(0xFFE9E8EA))
+private val Bg = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF1F2122))
+// Same neutral surfaces as the app theme (LightBg/DarkBg2).
+private val Tile = ColorProvider(day = Color(0xFFF2F3F3), night = Color(0xFF27292A))
+private val OnBg = ColorProvider(day = Color(0xFF1A1C1D), night = Color(0xFFE8EAEA))
 // Smallest text on the widget: 12sp is the readable floor on a launcher (11sp
 // became illegible on the A51 at a large system font).
 private val WidgetCaptionSize = 12.sp
-private val Muted = ColorProvider(day = Color(0xFF626269), night = Color(0xFF98979E))
-private val Accent = ColorProvider(day = Color(0xFF7C3AED), night = Color(0xFF8B5CF6))
-private val Track = ColorProvider(day = Color(0xFFE2E0DD), night = Color(0xFF38373D))
-private val Good = ColorProvider(day = Color(0xFF059669), night = Color(0xFF10B981))
+private val Muted = ColorProvider(day = Color(0xFF5E6264), night = Color(0xFFA6AAAB))
+// White "+" sits on it: 6.2:1 day, 4.0:1 night (an icon needs 3:1).
+private val Accent = ColorProvider(day = Color(0xFF0E6A80), night = Color(0xFF1A8BA4))
+private val Track = ColorProvider(day = Color(0xFFDFE2E2), night = Color(0xFF333536))
+private val Good = ColorProvider(day = Color(0xFF15803D), night = Color(0xFF2BB673))
 private val White = ColorProvider(Color.White)
 
 private const val MASK = "••••••"

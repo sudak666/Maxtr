@@ -106,7 +106,7 @@ class FinanceRepository(private val db: RytmDatabase) {
         if (db.walletDao().count() == 0) {
             db.walletDao().insertAll(
                 listOf(
-                    WalletEntity("w_card", "Картка", 0xFF8B5CF6, "UAH", "card"),
+                    WalletEntity("w_card", "Картка", 0xFF1A8BA4, "UAH", "card"),
                     WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
                 ),
             )
@@ -146,7 +146,7 @@ class FinanceRepository(private val db: RytmDatabase) {
     suspend fun seedFreshProfileDefaults() {
         db.walletDao().insertAll(
             listOf(
-                WalletEntity("w_card", "Картка", 0xFF8B5CF6, "UAH", "card"),
+                WalletEntity("w_card", "Картка", 0xFF1A8BA4, "UAH", "card"),
                 WalletEntity("w_cash", "Готівка", 0xFFF59E0B, "UAH", "banknote"),
             ),
         )

@@ -6,9 +6,9 @@
     <!-- Real Rytm mark, traced 1:1 from the PWA's own icon-512.png (calendar
          card with a pink header and a rising trend line) and rescaled by 0.88
          around the 54,54 center so the card's rounded corners stay inside the
-         adaptive-icon 66dp safe circle. Colors are the PWA icon's exact
-         values: white card, #EC4899 header/end dot, #7C3AED trend line
-         (identical to the background layer's purple). -->
+         adaptive-icon 66dp safe circle. Colors (2026-11-18 graphite + petrol
+         rebrand): white card, petrol #1A8BA4 header and end dot, deep petrol
+         #0E6A80 trend line, on the graphite background layer. -->
 
     <!-- Calendar hangers (behind the card) -->
     <path
@@ -23,14 +23,14 @@
         android:fillColor="#FFFFFF"
         android:pathData="M36.17,34.32 H71.64 A7.42,7.42 0 0 1 79.06,41.74 V69.78 A7.42,7.42 0 0 1 71.64,77.2 H36.17 A7.42,7.42 0 0 1 28.75,69.78 V41.74 A7.42,7.42 0 0 1 36.17,34.32 Z" />
 
-    <!-- Pink header strip -->
+    <!-- Header strip -->
     <path
-        android:fillColor="#EC4899"
+        android:fillColor="#1A8BA4"
         android:pathData="M36.17,34.32 H71.64 A7.42,7.42 0 0 1 79.06,41.74 V45.74 H28.75 V41.74 A7.42,7.42 0 0 1 36.17,34.32 Z" />
 
     <!-- Trend line -->
     <path
-        android:strokeColor="#7C3AED"
+        android:strokeColor="#0E6A80"
         android:strokeWidth="2.41"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
@@ -38,15 +38,15 @@
 
     <!-- Vertex dots -->
     <path
-        android:fillColor="#7C3AED"
+        android:fillColor="#0E6A80"
         android:pathData="M33.03,69.5 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
     <path
-        android:fillColor="#7C3AED"
+        android:fillColor="#0E6A80"
         android:pathData="M43.05,62.72 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
     <path
-        android:fillColor="#7C3AED"
+        android:fillColor="#0E6A80"
         android:pathData="M59.57,56.97 a2.04,2.04 0 1 0 4.08,0 a2.04,2.04 0 1 0 -4.08,0 Z" />
     <path
-        android:fillColor="#EC4899"
+        android:fillColor="#1A8BA4"
         android:pathData="M70.06,50.57 a2.41,2.41 0 1 0 4.82,0 a2.41,2.41 0 1 0 -4.82,0 Z" />
 </vector>

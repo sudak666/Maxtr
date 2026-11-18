@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.GreenDark
 import ua.rytm.app.ui.theme.BitcoinOrange
 import ua.rytm.app.ui.theme.EthereumBlue
@@ -75,7 +74,7 @@ fun FinanceDashboardWidget(key: String, app: RytmApplication) {
             val tips = stringArrayResource(R.array.finance_tips)
             val day = System.currentTimeMillis() / 86_400_000L
             Row(Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.xs), verticalAlignment = Alignment.Top) {
-                Icon(RytmIcons.TipsAndUpdates, stringResource(R.string.widget_tip), tint = BlueDark, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                Icon(RytmIcons.TipsAndUpdates, stringResource(R.string.widget_tip), tint = ua.rytm.app.ui.theme.RytmSemantic.link, modifier = Modifier.padding(top = 2.dp).size(16.dp))
                 Text(
                     tips[(day % tips.size).toInt()],
                     style = MaterialTheme.typography.bodySmall,

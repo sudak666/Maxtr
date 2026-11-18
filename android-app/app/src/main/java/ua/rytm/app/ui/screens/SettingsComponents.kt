@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -96,16 +97,9 @@ import ua.rytm.app.ui.screens.finance.WidgetsManagerSheet
 import ua.rytm.app.ui.screens.pin.PinSettingsSheet
 import ua.rytm.app.ui.screens.pin.PinViewModel
 import ua.rytm.app.ui.screens.shifts.ShiftTypesManagerSheet
-import ua.rytm.app.ui.theme.Cyan
-import ua.rytm.app.ui.theme.Slate
-import ua.rytm.app.ui.theme.Teal
-import ua.rytm.app.ui.theme.BlueDark
 import ua.rytm.app.ui.theme.GreenDark
-import ua.rytm.app.ui.theme.Gray
-import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RytmSemantic
 import ua.rytm.app.ui.theme.OrangeDark
-import ua.rytm.app.ui.theme.Pink
 import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.LocalSnackbarHost
@@ -279,13 +273,18 @@ internal fun SettingsCardSegment(position: SegmentPosition, content: @Composable
 // color, with the icon drawn in that full color — not a generic outline icon.
 @Composable
 internal fun SettingsIconBadge(icon: ImageVector, color: Color) {
+    // Unspecified = the default brand badge: accent glyph on a neutral disc.
+    // Explicit colors stay for the few rows that mean something on their own
+    // (destructive red, a bank's own mark).
+    val tint = if (color.isSpecified) color else ua.rytm.app.ui.theme.RytmSemantic.link
+    val disc = if (color.isSpecified) color.copy(alpha = 0.16f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
     Box(
         Modifier
             .size(RytmDimens.IconBadge)
-            .background(color.copy(alpha = 0.16f), CircleShape),
+            .background(disc, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(RytmDimens.IconBadgeIcon))
     }
 }
 
@@ -310,13 +309,16 @@ internal fun SettingsIconBadge(icon: ImageVector, color: Color) {
  * pattern applied to this one oversized group, not a removal of the whole
  * per-group-color idea — the small groups keep their own colors.
  */
+// Redesign 2026-11-18: one badge style for every group (accent glyph on a
+// neutral disc). Five group colors read as decoration once the brand became
+// a single restrained accent; the section headers already say where you are.
 internal object SettingsGroupColors {
-    val Account = Cyan
-    val Security = Slate
-    val Notifications = PurpleDark
-    val Appearance = Teal
-    val About = BlueDark
-    val Neutral = Gray
+    val Account = Color.Unspecified
+    val Security = Color.Unspecified
+    val Notifications = Color.Unspecified
+    val Appearance = Color.Unspecified
+    val About = Color.Unspecified
+    val Neutral = Color.Unspecified
 }
 
 

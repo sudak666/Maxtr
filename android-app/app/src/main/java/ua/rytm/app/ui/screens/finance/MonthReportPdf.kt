@@ -60,13 +60,13 @@ fun writeMonthReportPdf(context: Context, report: MonthReport, walletName: (Stri
     fun label(v: String) = builtInTextResource(v)?.let(context::getString) ?: v
     val pageW = 595; val pageH = 842; val margin = 40f
     val doc = PdfDocument()
-    val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 10f; color = 0xFF1C1C1F.toInt() }
-    val muted = Paint(text).apply { color = 0xFF626269.toInt() }
+    val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 10f; color = 0xFF1A1C1D.toInt() }
+    val muted = Paint(text).apply { color = 0xFF5E6264.toInt() }
     val bold = Paint(text).apply { typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD) }
     val h1 = Paint(bold).apply { textSize = 18f }
     val h2 = Paint(bold).apply { textSize = 12f }
-    val accent = 0xFF7C3AED.toInt()
-    val income = Paint(text).apply { color = 0xFF059669.toInt() }
+    val accent = 0xFF0E6A80.toInt()
+    val income = Paint(text).apply { color = 0xFF15803D.toInt() }
     val line = Paint().apply { color = 0x1F000000; strokeWidth = 0.7f }
     val monthTitle = report.month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, java.util.Locale.getDefault())
         .replaceFirstChar { it.titlecase() } + " " + report.month.year

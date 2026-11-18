@@ -87,9 +87,9 @@ fun PinSettingsSheet(viewModel: PinViewModel, onDismiss: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
-                Modifier.size(56.dp).background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, ua.rytm.app.ui.theme.Purple3)), CircleShape),
+                Modifier.size(56.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { Icon(RytmIcons.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp)) }
+            ) { Icon(RytmIcons.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(28.dp)) }
             RytmSheetTitle(stringResource(R.string.pin_settings_title), centered = true)
 
             if (hasPin == true) {

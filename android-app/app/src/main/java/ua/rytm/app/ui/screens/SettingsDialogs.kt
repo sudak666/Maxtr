@@ -203,10 +203,10 @@ fun PremiumDialogContent(
         onDismissRequest = onDismiss,
         icon = {
             Box(
-                modifier = Modifier.size(52.dp).clip(CircleShape).background(Brush.linearGradient(listOf(OrangeDark, Pink))),
+                modifier = Modifier.size(52.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(RytmIcons.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(RytmIcons.Star, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(28.dp))
             }
         },
         title = { Text(stringResource(R.string.settings_premium_title), fontWeight = FontWeight.Bold) },

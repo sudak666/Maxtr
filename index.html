@@ -11,7 +11,7 @@
      FAB) silently never shows on iPhone. -->
 <script src="./js/touch-active-fix.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#1c1c1f">
+<meta name="theme-color" content="#17191a">
 <meta name="color-scheme" content="dark light">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,25 +37,32 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 :root{
-  --bg:#1c1c1f;
-  --bg1:#242327;
-  --bg2:#2c2b30;
-  --bg3:#38373d;
-  --border:#403f45;
-  --border2:#525158;
-  --text:#e9e8ea;
+  --bg:#17191a;
+  --bg1:#1f2122;
+  --bg2:#27292a;
+  --bg3:#333536;
+  --border:#3d3f40;
+  --border2:#4e5152;
+  --text:#e8eaea;
   --text-strong:#ffffff;
-  --muted:#96959c;
+  --muted:#94989a;
   /* Was #68676e — measured ~2.5-3.0:1 against --bg1/--bg2, well under the
      4.5:1 WCAG AA floor for normal text. Lightened to comfortably clear
      4.5:1 against both surfaces (verified via the standard relative-
      luminance/contrast-ratio formula, not just eyeballed). */
-  --muted2:#98979e;
-  --purple:#8b5cf6;
-  --purple2:#a78bfa;
-  --purple3:#6d28d9;
-  --green:#10b981;
-  --green2:#34d399;
+  --muted2:#979b9c;
+  /* Brand: petrol on graphite (2026-11-18, same values as the Android
+     theme). Dark fill is a light petrol with dark ink on it (5.7:1);
+     --accent2 is the text/link tone; --on-accent is the ink for labels
+     drawn on an --accent fill. Greens moved off emerald so income never
+     reads as the accent. */
+  --accent:#3aa7bf;
+  --accent2:#5cc8de;
+  --accent3:#2f97ae;
+  --on-accent:#062a32;
+  --accent-rgb:58,167,191;
+  --green:#2bb673;
+  --green2:#6edb8f;
   --red:#ef4444;
   --red2:#f87171;
   --blue:#3b82f6;
@@ -86,8 +93,8 @@
      shadow" feel, closer to Phantom's diffused ambient elevation. */
   --shadow-color:0,0,0;
   --shadow-modal:0 30px 90px rgba(var(--shadow-color),.45);
-  --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 16px 36px -18px rgba(139,92,246,.2);
-  --donut-glow:rgba(139,92,246,.28);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.03) inset, 0 16px 36px -18px rgba(var(--shadow-color),.35);
+  --donut-glow:rgba(0,0,0,0);
   /* Batch 1 of the light-theme shadow retune (see CLAUDE.md's design-review
      roadmap): plain black/neutral elevation shadows only — same offset/blur
      as before, alpha scaled down for light theme using the same ~0.33 ratio
@@ -107,22 +114,15 @@
      uses color-mix() to blend it with transparent at runtime instead of a
      fixed rgba() token the way the other shadows above do. */
   --chip-shadow-mix:45%;
-  /* Batch 2 of the light-theme shadow retune: purple-tinted glow shadows.
-     Unlike batch 1's plain black shadows (which look muddy on white), a
-     saturated color glow doesn't have that problem — it looks *louder* on
-     white instead, since white doesn't recede the way near-black does. A
-     milder alpha reduction (~0.55-0.6 ratio, vs. batch 1's ~0.33) is enough;
-     the RGB stays fixed at the literal --purple value in both themes, since
-     these shadows sit under elements that are that exact purple themselves
-     (lock-logo, FAB, accent buttons) — only the intensity needs taming, not
-     the hue itself. */
-  --shadow-lock-logo:0 10px 30px rgba(139,92,246,.35);
-  --shadow-empty-icon:0 8px 20px rgba(139,92,246,.25);
-  --shadow-accent-btn:0 4px 12px rgba(139,92,246,.22);
-  --shadow-accent-btn-hover:0 6px 18px rgba(139,92,246,.3);
-  --shadow-fab:0 14px 30px -6px rgba(139,92,246,.32);
-  --ring-today:0 0 0 1px rgba(139,92,246,.2);
-  --tab-glow-shadow-alpha:.32;
+  /* Accent-colored glows removed in the 2026-11-18 rebrand (a glow in the
+     brand color was a generated-UI tell); these are plain elevation now. */
+  --shadow-lock-logo:0 10px 30px rgba(var(--shadow-color),.3);
+  --shadow-empty-icon:none;
+  --shadow-accent-btn:none;
+  --shadow-accent-btn-hover:0 6px 18px rgba(var(--shadow-color),.25);
+  --shadow-fab:0 14px 30px -6px rgba(var(--shadow-color),.45);
+  --ring-today:0 0 0 1px rgba(var(--accent-rgb),.3);
+  --tab-glow-shadow-alpha:0;
   /* Trimmed from .42 (audit-followup session): the ripple is a *transient*
      tap-feedback layer stacking on top of the active tab's own persistent
      glow (--tab-glow-shadow-alpha, left alone — that's the steady-state
@@ -141,32 +141,37 @@
      (.mgr-row, .wallet-chip, etc.) are unchanged — this is additive, not a
      replacement of --bg1/--bg2/--bg3. */
   --surface-hero:linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 130%);
-  --stroke-hero:linear-gradient(135deg, rgba(139,92,246,.35), rgba(139,92,246,0) 60%);
+  --stroke-hero:linear-gradient(transparent, transparent);
 }
 
 [data-theme="light"]{
-  --bg:#f4f3f1;
+  --bg:#f2f3f3;
   --bg1:#ffffff;
-  --bg2:#ececea;
-  --bg3:#e2e0dd;
-  --border:#e4e4e9;
-  --border2:#d1d1d6;
-  --text:#1c1c1e;
-  --text-strong:#0b0b0d;
-  --muted:#6b6b70;
+  --bg2:#eaecec;
+  --bg3:#dfe2e2;
+  --border:#e1e4e4;
+  --border2:#cdd1d2;
+  --text:#1a1c1d;
+  --text-strong:#0a0b0c;
+  --muted:#676b6d;
   /* Was #75757b — measured ~4.1:1 against --bg1/--bg2, under the 4.5:1
      WCAG AA floor for normal text. Darkened to comfortably clear 4.5:1. */
-  --muted2:#626269;
-  --purple2:#7c3aed;
+  --muted2:#5e6264;
+  --accent:#0e6a80;
+  --accent2:#0e6a80;
+  --accent3:#0b5a6d;
+  --on-accent:#ffffff;
+  --accent-rgb:14,106,128;
   --blue2:#2563eb;
-  --green2:#059669;
+  --green:#15803d;
+  --green2:#12703a;
   --red2:#dc2626;
   --orange2:#c2760a;
   --overlay:rgba(0,0,0,.45);
   --shadow-color:20,15,10;
   --shadow-modal:0 26px 64px -12px rgba(var(--shadow-color),.15);
-  --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 16px 32px -18px rgba(124,58,237,.13);
-  --donut-glow:rgba(124,58,237,.16);
+  --shadow-raised:0 1px 0 rgba(255,255,255,.6) inset, 0 16px 32px -18px rgba(var(--shadow-color),.12);
+  --donut-glow:rgba(0,0,0,0);
   --shadow-onboard-icon:0 14px 34px rgba(var(--shadow-color),.08);
   --shadow-auth-card:0 24px 60px -24px rgba(var(--shadow-color),.13);
   --shadow-nav:0 10px 30px rgba(var(--shadow-color),.09);
@@ -176,18 +181,18 @@
   --shadow-drag:0 8px 24px rgba(var(--shadow-color),.13);
   --shadow-toast:0 8px 24px rgba(var(--shadow-color),.16);
   --chip-shadow-mix:28%;
-  --shadow-lock-logo:0 10px 30px rgba(139,92,246,.2);
-  --shadow-empty-icon:0 8px 20px rgba(139,92,246,.15);
-  --shadow-accent-btn:0 4px 12px rgba(139,92,246,.14);
-  --shadow-accent-btn-hover:0 6px 18px rgba(139,92,246,.2);
-  --shadow-fab:0 14px 30px -6px rgba(139,92,246,.2);
-  --ring-today:0 0 0 1px rgba(139,92,246,.14);
-  --tab-glow-shadow-alpha:.18;
+  --shadow-lock-logo:0 10px 30px rgba(var(--shadow-color),.12);
+  --shadow-empty-icon:none;
+  --shadow-accent-btn:none;
+  --shadow-accent-btn-hover:0 6px 18px rgba(var(--shadow-color),.1);
+  --shadow-fab:0 14px 30px -6px rgba(var(--shadow-color),.22);
+  --ring-today:0 0 0 1px rgba(var(--accent-rgb),.25);
+  --tab-glow-shadow-alpha:0;
   --tab-glow-ripple-alpha:.19;
-  --stroke-hero:linear-gradient(135deg, rgba(124,58,237,.22), rgba(124,58,237,0) 60%);
+  --stroke-hero:linear-gradient(transparent, transparent);
 }
 [data-theme="light"] .b-day{color:#1d4ed8}
-[data-theme="light"] .b-day19{color:#047857}
+[data-theme="light"] .b-day19{color:#12703a}
 [data-theme="light"] .b-night{color:#6d28d9}
 [data-theme="light"] .b-nh1{color:#be185d}
 [data-theme="light"] .b-nh2{color:#0e7490}
@@ -212,12 +217,12 @@ button,input,select,textarea{font-family:inherit}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg1)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-::-webkit-scrollbar-thumb:hover{background:var(--purple)}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 
 /* ── LOCK SCREEN ── */
 .lock-screen{
   position:fixed;inset:0;z-index:5000;
-  background:radial-gradient(560px circle at 50% 0%, rgba(139,92,246,.14), transparent 65%), var(--bg);
+  background:var(--bg);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
   transition:opacity .3s ease,transform .3s ease;
@@ -256,7 +261,7 @@ button,input,select,textarea{font-family:inherit}
   animation:lockScreenForceReveal .01s 4s both;
 }
 @keyframes lockScreenForceReveal{ from{display:none} to{display:block} }
-.lock-checking-spinner{display:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--border2);border-top-color:var(--purple);animation:spin .8s linear infinite}
+.lock-checking-spinner{display:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--border2);border-top-color:var(--accent);animation:spin .8s linear infinite}
 .lock-screen.lock-screen-checking .lock-checking-spinner{display:block}
 @media(prefers-reduced-motion:reduce){.lock-checking-spinner{animation:none}}
 
@@ -275,9 +280,9 @@ button,input,select,textarea{font-family:inherit}
 .onboard-desc{font-size:15px;color:var(--muted);max-width:320px;line-height:1.55;margin-bottom:26px}
 .onboard-dots{display:flex;gap:7px;margin-bottom:26px}
 .onboard-dot{width:7px;height:7px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);transition:all .2s}
-.onboard-dot.active{width:20px;border-radius:4px;background:var(--purple);border-color:var(--purple)}
+.onboard-dot.active{width:20px;border-radius:4px;background:var(--accent);border-color:var(--accent)}
 .onboard-actions{width:100%;max-width:320px}
-.lock-logo{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:var(--shadow-lock-logo), 0 0 0 1px rgba(255,255,255,.08) inset}
+.lock-logo{width:68px;height:68px;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--on-accent);box-shadow:var(--shadow-lock-logo), 0 0 0 1px rgba(255,255,255,.08) inset}
 .lock-title{font-size:20px;font-weight:800;color:var(--text-strong);letter-spacing:-.02em}
 .lock-tagline{font-size:13.5px;color:var(--muted);font-weight:600;text-align:center;max-width:260px;line-height:1.5;margin-top:-2px}
 .lock-sub{font-size:14px;color:var(--muted);font-weight:600;min-height:18px;text-align:center}
@@ -295,7 +300,7 @@ button,input,select,textarea{font-family:inherit}
 #pin-screen .auth-card{border:none}
 .auth-tabs{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border)}
 .auth-tab{flex:1;padding:9px 10px;border:none;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
-.auth-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
+.auth-tab.active{background:var(--accent);color:var(--on-accent)}
 .auth-error{font-size:13px;font-weight:600;color:var(--red2);text-align:center;min-height:16px}
 .auth-hint{font-size:13px;font-weight:600;color:var(--orange2);text-align:center;background:color-mix(in srgb,var(--orange2) 14%,transparent);border-radius:12px;padding:10px 12px;margin-bottom:10px}
 .auth-sep{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:700;text-transform:uppercase}
@@ -323,19 +328,17 @@ button,input,select,textarea{font-family:inherit}
    input's current value length. */
 .pin-dots{display:flex;justify-content:center;gap:14px;margin:12px 0 4px}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all .15s}
-.pin-dot.filled{background:var(--purple2);border-color:var(--purple2)}
+.pin-dot.filled{background:var(--accent2);border-color:var(--accent2)}
 .auth-google{justify-content:center;width:100%}
 .auth-google .ico{width:16px;height:16px}
-.auth-link{background:none;border:none;color:var(--purple2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;align-self:center}
+.auth-link{background:none;border:none;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;align-self:center}
 .auth-link:hover{text-decoration:underline}
 
 /* ── LAYOUT ── */
 .app{
   max-width:1200px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom));
-  background:radial-gradient(480px circle at 50% 0%, rgba(139,92,246,.06), transparent 60%);
-  background-repeat:no-repeat;
 }
-[data-theme="light"] .app{background:radial-gradient(480px circle at 50% 0%, rgba(124,58,237,.035), transparent 60%)}
+[data-theme="light"] .app{background:radial-gradient(480px circle at 50% 0%, rgba(var(--accent-rgb),.035), transparent 60%)}
 
 /* ── TOP NAV ── */
 .topbar{
@@ -354,7 +357,7 @@ button,input,select,textarea{font-family:inherit}
 .ptr-spinner{
   width:30px;height:30px;border-radius:50%;
   background:var(--bg1);border:1px solid var(--border2);box-shadow:var(--shadow-drag,0 4px 14px rgba(0,0,0,.25));
-  display:flex;align-items:center;justify-content:center;color:var(--purple2);
+  display:flex;align-items:center;justify-content:center;color:var(--accent2);
   transition:transform .1s linear;
 }
 .ptr-spinner .ico{width:16px;height:16px;margin-right:0}
@@ -362,7 +365,7 @@ button,input,select,textarea{font-family:inherit}
 @keyframes ptrSpin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.ptr-indicator.ptr-settling{transition:none}.ptr-indicator.ptr-loading .ptr-spinner{animation:none}}
 .topbar-brand{display:flex;align-items:center;gap:10px}
-.topbar-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;cursor:pointer}
+.topbar-logo{width:34px;height:34px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:var(--on-accent);flex-shrink:0;overflow:hidden;cursor:pointer}
 .topbar-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .topbar-title{font-size:16px;font-weight:800;color:var(--text-strong);letter-spacing:-0.02em}
 .topbar-sub{font-size:13px;color:var(--muted);font-weight:500}
@@ -378,9 +381,9 @@ button,input,select,textarea{font-family:inherit}
 .btn:active{transform:scale(.97)}
 .btn-ghost{background:var(--bg2);color:var(--muted);border-color:var(--border)}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
-.btn-ghost.is-active{background:rgba(139,92,246,.16);color:var(--purple2);border-color:var(--purple)}
-.lang-opt.active{background:rgba(139,92,246,.15);color:var(--purple2);border-color:var(--purple)}
-.btn-primary{background:var(--purple);color:#fff;border-color:transparent}
+.btn-ghost.is-active{background:rgba(var(--accent-rgb),.16);color:var(--accent2);border-color:var(--accent)}
+.lang-opt.active{background:rgba(var(--accent-rgb),.15);color:var(--accent2);border-color:var(--accent)}
+.btn-primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
 /* Springy tap feedback shared by the FAB, primary buttons and list icon
    badges — same idea as the bottom nav's tab-pop, just white-based so it
    reads well on any of these elements' own background color. */
@@ -406,13 +409,13 @@ button,input,select,textarea{font-family:inherit}
 @media (prefers-reduced-motion:reduce){
   #btn-refresh.spinning .ico{animation:none}
 }
-.btn-primary:hover{background:var(--purple3)}
+.btn-primary:hover{background:var(--accent3)}
 .btn-danger{background:rgba(239,68,68,.1);color:var(--red2);border-color:rgba(239,68,68,.25)}
 .btn-danger:hover{background:var(--red);color:#fff}
 .btn-success{background:rgba(16,185,129,.12);color:var(--green2);border-color:rgba(16,185,129,.3)}
 .btn-success:hover{background:var(--green);color:#fff}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.filter-chip:focus-visible,.settings-row:focus-visible,.day-cell:focus-visible,.quick-action:focus-visible,.tx-item:focus-visible,.settings-group-chip:focus-visible,.start-step:focus-visible{
-  outline:2px solid var(--purple2);outline-offset:3px;box-shadow:0 0 0 4px rgba(139,92,246,.22)
+  outline:2px solid var(--accent2);outline-offset:3px;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.22)
 }
 
 /* ── TABS ── */
@@ -439,7 +442,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   -webkit-tap-highlight-color:transparent;
 }
 .tab-btn:active{transform:scale(.88)}
-.tab-icon-wrap{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .2s,color .2s,box-shadow .2s;--tab-glow:139,92,246}
+.tab-icon-wrap{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .2s,color .2s,box-shadow .2s;--tab-glow:var(--accent-rgb)}
 .tab-icon-wrap::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none}
 .tab-btn .ico{width:23px;height:23px;margin-right:0;position:relative;z-index:1}
 .tab-btn.active{color:var(--text-strong)}
@@ -465,10 +468,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .tab-btn:active{transform:none}
   .tab-icon-wrap.tab-pop,.tab-icon-wrap.tab-pop::after,.tab-btn.active span:last-child{animation:none}
 }
-.tab-btn.active .tab-icon-wrap{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,var(--tab-glow-shadow-alpha));--tab-glow:139,92,246}
-.tab-btn.tab-c-finance.active .tab-icon-wrap{background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 4px 14px rgba(16,185,129,var(--tab-glow-shadow-alpha));--tab-glow:16,185,129}
-.tab-btn.tab-c-debt.active .tab-icon-wrap{background:linear-gradient(135deg,var(--orange),#b45309);box-shadow:0 4px 14px rgba(245,158,11,var(--tab-glow-shadow-alpha));--tab-glow:245,158,11}
-.tab-btn.tab-c-settings.active .tab-icon-wrap{background:linear-gradient(135deg,#64748b,#334155);box-shadow:0 4px 14px rgba(100,116,139,var(--tab-glow-shadow-alpha));--tab-glow:100,116,139}
+.tab-btn.active .tab-icon-wrap{background:rgba(var(--accent-rgb),.18);color:var(--accent2);--tab-glow:var(--accent-rgb)}
 
 /* ── TAB SWITCH CROSSFADE ── */
 /* .tab-in is toggled by switchTab() (remove + forced reflow + re-add,
@@ -480,7 +480,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── PAGE HEADER ── */
 .page-head{margin-bottom:20px}
-.page-label{font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--purple2);margin-bottom:4px}
+.page-label{font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:4px}
 .page-title{font-size:24px;font-weight:900;color:var(--text-strong);letter-spacing:-.03em}
 
 /* ── STATS GRID ── */
@@ -498,8 +498,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
    "primary" action is distinguished only by its icon color/gradient, not
    by filling the whole tile, so Операція/Інструменти/Бюджети/Цілі read as
    one consistent row instead of one loud tile plus three quiet ones. */
-.quick-action-icon{width:26px;height:26px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:var(--purple2);background:transparent;border:0;box-shadow:none;transition:transform .15s}
-.quick-action-primary .quick-action-icon{color:var(--purple2);background:transparent;border:0;box-shadow:none}
+.quick-action-icon{width:26px;height:26px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:var(--accent2);background:transparent;border:0;box-shadow:none;transition:transform .15s}
+.quick-action-primary .quick-action-icon{color:var(--accent2);background:transparent;border:0;box-shadow:none}
 .quick-action-primary.finance-action-primary .quick-action-icon{background:transparent;box-shadow:none}
 .quick-action-icon .ico{width:26px;height:26px;margin-right:0}
 .quick-action:active{transform:scale(.97)}
@@ -514,11 +514,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ── SOLID COLORED ICON BADGE (category/wallet/tag identity) ── */
 /* Phantom-style tonal identity badge: callers set the --badge-color custom
-   property (falls back to --purple) instead of a solid `background`, and
+   property (falls back to --accent) instead of a solid `background`, and
    this derives both a soft tinted fill and a full-strength icon color from
    it via color-mix() — same "tonal circle" treatment as .chip-stat-icon/
    .quick-action-icon, unified across every category/wallet/tag badge. */
-.icon-badge{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;--badge-color:var(--purple);background:color-mix(in srgb,var(--badge-color) 16%,transparent);color:var(--badge-color)}
+.icon-badge{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;--badge-color:var(--accent);background:color-mix(in srgb,var(--badge-color) 16%,transparent);color:var(--badge-color)}
 .icon-badge .ico{width:17px;height:17px;margin-right:0}
 .icon-badge.icon-badge-sm{width:26px;height:26px}
 .icon-badge.icon-badge-sm .ico{width:13px;height:13px}
@@ -572,9 +572,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .settings-group-row{display:flex;gap:8px;overflow-x:auto;padding:0 2px 14px;margin-top:-6px;scrollbar-width:none}
 .settings-group-row::-webkit-scrollbar{display:none}
 .settings-group-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--bg1);color:var(--muted);border-radius:999px;padding:15px 17px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
-.settings-group-chip.active{background:rgba(139,92,246,.16);border-color:var(--purple);color:var(--purple2)}
-.contextual-tip{display:none;align-items:flex-start;gap:10px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:18px;padding:12px 14px;margin-bottom:14px}
-.contextual-tip-icon{width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.settings-group-chip.active{background:rgba(var(--accent-rgb),.16);border-color:var(--accent);color:var(--accent2)}
+.contextual-tip{display:none;align-items:flex-start;gap:10px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.3);border-radius:18px;padding:12px 14px;margin-bottom:14px}
+.contextual-tip-icon{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .contextual-tip-icon .ico{width:14px;height:14px;margin:0}
 .contextual-tip-text{flex:1;font-size:13.5px;line-height:1.4;color:var(--text);font-weight:600;padding-top:4px}
 .contextual-tip-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;flex-shrink:0;display:flex}
@@ -584,7 +584,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .widget-reorder-btn .ico{width:11px;height:11px;margin:0;transform:rotate(180deg)}
 .widget-reorder-btn.widget-reorder-down .ico{transform:none}
 .widget-reorder-btn:disabled{opacity:.3;cursor:default}
-.widget-reorder-btn:not(:disabled):hover{border-color:var(--purple2);color:var(--purple2)}
+.widget-reorder-btn:not(:disabled):hover{border-color:var(--accent2);color:var(--accent2)}
 .stat-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .stat-val{font-family:inherit;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--text-strong);line-height:1}
 .stat-sub{font-size:13px;color:var(--muted);margin-top:4px;font-weight:400}
@@ -612,7 +612,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
    (js/debt.js) builds the inline SVG and toggles visibility. */
 .debt-forecast{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:16px 16px 14px;margin-bottom:18px}
 .debt-forecast-head{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
-.debt-forecast-head .ico{width:15px;height:15px;margin:0;color:var(--purple2)}
+.debt-forecast-head .ico{width:15px;height:15px;margin:0;color:var(--accent2)}
 .debt-burndown{width:100%;height:88px}
 .debt-burndown svg{display:block;width:100%;height:100%;overflow:visible}
 .debt-forecast-text{margin-top:12px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.5}
@@ -620,7 +620,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .debt-forecast-done{color:var(--green2)}
 .chip-stat{display:flex;align-items:center;gap:9px;flex:0 0 auto;background:var(--bg1);border:1px solid transparent;box-shadow:0 4px 14px -6px rgba(var(--shadow-color),.28);border-radius:999px;padding:9px 16px 9px 9px;white-space:nowrap;transition:transform .12s}
 .chip-stat:active{transform:scale(.97)}
-.chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--purple2);flex-shrink:0;background:color-mix(in srgb,var(--purple) 16%,transparent)}
+.chip-stat-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent2);flex-shrink:0;background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .chip-stat-icon .ico{width:13px;height:13px;margin-right:0}
 .chip-stat-val{font-size:14px;font-weight:800;color:var(--text-strong);font-family:inherit;font-variant-numeric:tabular-nums}
 .chip-stat-lbl{font-size:13px;font-weight:500;color:var(--muted)}
@@ -704,9 +704,9 @@ body.profile-readonly .salary-goal-edit{display:none}
 .goal-manager-head{align-items:center}
 .goal-manager-actions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
 .goal-manager-progress-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:13px;font-weight:700}
-.goal-manager-progress-meta strong{color:var(--purple2);font-size:14px}
-.goal-manager-progress{height:8px;border-radius:99px;overflow:hidden;background:rgba(139,92,246,.10)}
-.goal-manager-progress>div{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--purple),var(--purple2));transition:width .6s ease}
+.goal-manager-progress-meta strong{color:var(--accent2);font-size:14px}
+.goal-manager-progress{height:8px;border-radius:99px;overflow:hidden;background:rgba(var(--accent-rgb),.10)}
+.goal-manager-progress>div{height:100%;border-radius:inherit;background:var(--accent);transition:width .6s ease}
 
 /* ── ANALYTICS DONUT (conic-gradient, no chart library) ── */
 @keyframes donutIn{from{opacity:0;transform:scale(.85) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
@@ -739,7 +739,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 .fx-converter-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(104px,.72fr);gap:8px;align-items:stretch}
 .fx-converter-row input,.fx-converter-row select,.fx-converter-output{width:100%;min-width:0;min-height:56px;margin:0}
 .fx-converter-output{display:flex;align-items:center;padding:12px 14px;border:1px solid var(--border2);border-radius:16px;background:var(--bg2);color:var(--text-strong);font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fx-converter-swap{align-self:center;width:48px;height:48px;padding:0!important;border-radius:50%!important;background:rgba(139,92,246,.16)!important;color:var(--purple2)!important}
+.fx-converter-swap{align-self:center;width:48px;height:48px;padding:0!important;border-radius:50%!important;background:rgba(var(--accent-rgb),.16)!important;color:var(--accent2)!important}
 
 /* ── TOOLS PANEL ── */
 .tools-panel{
@@ -762,7 +762,7 @@ body.profile-readonly .salary-goal-edit{display:none}
   padding:8px 12px;border-radius:14px;font-size:13px;font-weight:600;outline:none;
   cursor:pointer;font-family:inherit;
 }
-.tool-select:focus{border-color:var(--purple)}
+.tool-select:focus{border-color:var(--accent)}
 
 /* ── CALENDAR WRAPPER ── */
 .cal-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:26px;padding:20px;margin-bottom:24px}
@@ -775,7 +775,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 .cal-hint{font-size:13px;color:var(--muted);font-weight:500}
 .leg-brush{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .leg-brush.active{border-color:var(--leg-color);background:color-mix(in srgb,var(--leg-color) 18%,transparent);font-weight:700}
-.leg-hint{flex-basis:100%;font-size:13px;color:var(--muted)}.leg-hint.active{color:var(--purple2)}
+.leg-hint{flex-basis:100%;font-size:13px;color:var(--muted)}.leg-hint.active{color:var(--accent2)}
 /* "Open the web version on a computer" means nothing when you already are on one. */
 @media (hover:hover) and (pointer:fine){.settings-web-row{display:none!important}.settings-web-row+.settings-row{border-top:none}}
 .fin-cat-chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}.fin-cat-chips .filter-chip{flex-shrink:0}
@@ -796,11 +796,11 @@ body.profile-readonly .salary-goal-edit{display:none}
   min-height:80px;padding:5px;cursor:pointer;display:flex;flex-direction:column;
   gap:3px;transition:all .15s;user-select:none;overflow:hidden;position:relative;
 }
-.day-cell:hover{border-color:var(--purple2);background:var(--bg3);transform:scale(1.02)}
+.day-cell:hover{border-color:var(--accent2);background:var(--bg3);transform:scale(1.02)}
 .day-cell:active{transform:scale(.98)}
 .day-cell.empty{background:transparent;border:none;cursor:default;min-height:auto;pointer-events:none}
 .day-cell.today .day-num{display:inline-flex;align-items:center;gap:4px;color:inherit;font-weight:700}
-.day-cell.today .day-num::after{content:"";width:12px;height:3px;border-radius:999px;background:var(--purple2);flex:0 0 auto}
+.day-cell.today .day-num::after{content:"";width:12px;height:3px;border-radius:999px;background:var(--accent2);flex:0 0 auto}
 .day-cell.weekend-cell{background:rgba(239,68,68,.03)}
 .day-cell.outside-month{background:transparent;border-color:var(--border2);box-shadow:none}
 .day-cell.outside-month .day-num{color:var(--muted2)}
@@ -829,7 +829,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 }
 .b-day  {background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.5);color:#93c5fd}
 .b-day19{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#6ee7b7}
-.b-night{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.5);color:#c4b5fd}
+.b-night{background:rgba(var(--accent-rgb),.2);border:1px solid rgba(var(--accent-rgb),.5);color:#c4b5fd}
 .b-nh1  {background:rgba(236,72,153,.2);border:1px solid rgba(236,72,153,.5);color:#f9a8d4}
 .b-nh2  {background:rgba(6,182,212,.2); border:1px solid rgba(6,182,212,.5); color:#67e8f9}
 .b-vac  {background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);color:#fde68a}
@@ -849,25 +849,25 @@ body.profile-readonly .salary-goal-edit{display:none}
    emoji or external artwork, per the no-illustration-artwork convention
    this deliberately stays inside rather than breaks. */
 .empty-state-illustration{position:relative;width:112px;height:112px;display:flex;align-items:center;justify-content:center;margin-bottom:2px}
-.empty-state-illustration::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle, rgba(139,92,246,.16), rgba(139,92,246,0) 70%)}
-.empty-state-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:var(--shadow-empty-icon);position:relative;z-index:1}
+.empty-state-illustration::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--bg2)}
+.empty-state-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--accent);color:var(--on-accent);box-shadow:var(--shadow-empty-icon);position:relative;z-index:1}
 .empty-state-icon .ico{width:30px;height:30px;margin:0}
-.es-spark{position:absolute;border-radius:50%;opacity:.5}
-.es-spark-1{width:8px;height:8px;top:4px;right:14px;background:var(--purple2);animation:esSparkFloat 3.2s ease-in-out infinite}
-.es-spark-2{width:5px;height:5px;bottom:10px;left:6px;background:var(--purple);animation:esSparkFloat 2.6s ease-in-out infinite .4s}
-.es-spark-3{width:6px;height:6px;bottom:20px;right:2px;background:var(--purple3);animation:esSparkFloat 3.6s ease-in-out infinite .8s}
+.es-spark{display:none}
+.es-spark-1{width:8px;height:8px;top:4px;right:14px;background:var(--accent2);animation:esSparkFloat 3.2s ease-in-out infinite}
+.es-spark-2{width:5px;height:5px;bottom:10px;left:6px;background:var(--accent);animation:esSparkFloat 2.6s ease-in-out infinite .4s}
+.es-spark-3{width:6px;height:6px;bottom:20px;right:2px;background:var(--accent3);animation:esSparkFloat 3.6s ease-in-out infinite .8s}
 @keyframes esSparkFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-6px);opacity:.9}}
 @keyframes emptyStatePop{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.empty-state{animation:none}.es-spark{animation:none}}
 .empty-state-title{font-size:15px;font-weight:800;color:var(--text-strong)}
 .empty-state-desc{font-size:13.5px;line-height:1.45;max-width:320px}
 .empty-state .btn{margin-top:2px}
-.start-guide{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(59,130,246,.08));border:1px solid rgba(139,92,246,.35);border-radius:24px;padding:16px;margin-bottom:16px}
+.start-guide{background:linear-gradient(135deg,rgba(var(--accent-rgb),.18),rgba(59,130,246,.08));border:1px solid rgba(var(--accent-rgb),.35);border-radius:24px;padding:16px;margin-bottom:16px}
 .start-guide-title{font-size:15px;font-weight:900;color:var(--text-strong);letter-spacing:-.02em}
 .start-guide-desc{font-size:13px;line-height:1.45;color:var(--muted);font-weight:600;margin:3px 0 12px}
 .start-guide-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
 .start-step{display:flex;align-items:center;gap:10px;background:var(--bg1);border:1px solid var(--border);border-radius:16px;padding:10px;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
-.start-step-index{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--purple);color:#fff;font-size:13px;font-weight:900;flex-shrink:0}
+.start-step-index{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:900;flex-shrink:0}
 .start-step-index .ico{width:13px;height:13px;margin:0}
 .start-step.done .start-step-index{background:var(--green)}
 .start-step-title{display:block;font-size:13.5px;font-weight:800;color:var(--text-strong)}
@@ -882,7 +882,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 /* ── Finance dashboard chart (line/area, with forecast) ── */
 .fin-chart-toggle{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:999px;border:1px solid var(--border);margin-bottom:14px}
 .fin-chart-toggle-btn{flex:1;padding:9px 8px;border:none;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;color:var(--muted);background:transparent;transition:all .2s;font-family:inherit}
-.fin-chart-toggle-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff}
+.fin-chart-toggle-btn.active{background:var(--accent);color:var(--on-accent)}
 .fin-chart-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
 .fin-chart-total{font-family:inherit;font-variant-numeric:tabular-nums;font-size:24px;font-weight:800;color:var(--text-strong)}
 .fin-chart-trend{font-size:13.5px;font-weight:800;padding:3px 9px;border-radius:999px;display:flex;align-items:center;gap:3px}
@@ -896,7 +896,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 .fin-chart-tooltip{position:absolute;transform:translate(-50%,-100%);background:var(--bg3);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:700;padding:5px 10px;border-radius:9px;white-space:nowrap;pointer-events:none;z-index:10;margin-top:-10px}
 .fin-chart-labels{display:flex;justify-content:space-between;margin-top:6px}
 .fin-chart-labels span{font-size:13px;font-weight:700;color:var(--muted2);flex:1;text-align:center}
-.fin-chart-labels span.forecast{color:var(--purple2)}
+.fin-chart-labels span.forecast{color:var(--accent2)}
 
 /* ── FINANCE ── */
 .fin-form{background:var(--bg1);border:1px solid var(--border);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
@@ -938,7 +938,7 @@ body.profile-readonly .salary-goal-edit{display:none}
   padding:9px 12px;border-radius:14px;font-size:14px;font-weight:600;
   outline:none;width:100%;font-family:inherit;transition:border-color .15s;
 }
-.fg select:focus,.fg input:focus{border-color:var(--purple)}
+.fg select:focus,.fg input:focus{border-color:var(--accent)}
 /* Masks characters visually without a real type="password" input — Chrome
    ignores autocomplete="off" on password fields by design, so a PIN/token
    entry using type="password" still triggers "Save password?" prompts even
@@ -951,7 +951,7 @@ body.profile-readonly .salary-goal-edit{display:none}
   width:64px;height:64px;border-radius:50%;flex-shrink:0;cursor:pointer;overflow:hidden;
   background:var(--bg3);border:1px solid var(--border2);
   display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:800;color:var(--purple2);
+  font-size:24px;font-weight:800;color:var(--accent2);
 }
 .profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile-avatar .ico,.topbar-logo .ico{margin-right:0}
@@ -982,7 +982,7 @@ body.profile-readonly .salary-goal-edit{display:none}
 }
 .icon-opt .ico{margin-right:0;width:25px;height:25px}
 .icon-opt:active{transform:scale(.94)}
-.icon-opt.sel{border-color:var(--purple2);background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;box-shadow:0 8px 18px rgba(139,92,246,.24)}
+.icon-opt.sel{border-color:var(--accent2);background:var(--accent);color:var(--on-accent);box-shadow:0 8px 18px rgba(var(--accent-rgb),.24)}
 
 /* Hide the ugly native number-input spin buttons everywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
@@ -998,7 +998,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
   padding:9px 12px;border-radius:14px;font-size:14px;font-weight:600;
   cursor:pointer;font-family:inherit;transition:border-color .15s;text-align:left;
 }
-.cs.open .cs-trigger{border-color:var(--purple)}
+.cs.open .cs-trigger{border-color:var(--accent)}
 .cs-trigger .cs-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cs-trigger .cs-caret{width:16px;height:16px;flex-shrink:0;transition:transform .18s;color:var(--muted)}
 .cs.open .cs-trigger .cs-caret{transform:rotate(180deg)}
@@ -1019,8 +1019,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .cs.open .cs-panel{display:block}
 .cs-opt{padding:9px 12px;border-radius:12px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cs-opt:hover,.cs-opt:focus-visible{background:var(--bg3)}
-.cs-opt:focus-visible{outline:2px solid var(--purple);outline-offset:-2px}
-.cs-opt.sel{background:rgba(139,92,246,.16);color:var(--purple2)}
+.cs-opt:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cs-opt.sel{background:rgba(var(--accent-rgb),.16);color:var(--accent2)}
 /* smaller variant for the compact toolbar / calendar-nav selects */
 .cs.cs-sm{display:inline-block;min-width:108px;vertical-align:middle}
 .cs.cs-sm .cs-trigger{padding:8px 12px;border-radius:14px;font-weight:700}
@@ -1050,14 +1050,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .dp-day{display:flex;align-items:center;justify-content:center;height:32px;border-radius:50%;font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer}
 .dp-day:hover{background:var(--bg3)}
 .dp-day.dp-out{color:var(--muted2);opacity:.4;cursor:default;pointer-events:none}
-.dp-day.dp-today-mark{color:var(--purple2);font-weight:800}
-.dp-day.dp-sel{background:var(--purple);color:#fff}
+.dp-day.dp-today-mark{color:var(--accent2);font-weight:800}
+.dp-day.dp-sel{background:var(--accent);color:var(--on-accent)}
 .dp-today-btn{width:100%;margin-top:10px;padding:8px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
-.dp-today-btn:hover{border-color:var(--purple);color:var(--purple2)}
+.dp-today-btn:hover{border-color:var(--accent);color:var(--accent2)}
 
 .add-btn{
   padding:12px;border-radius:999px;border:none;font-size:14px;font-weight:800;cursor:pointer;
-  background:linear-gradient(135deg,var(--purple),var(--purple3));color:#fff;
+  background:var(--accent);color:var(--on-accent);
   font-family:inherit;transition:all .15s;box-shadow:var(--shadow-accent-btn);
 }
 .add-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-accent-btn-hover)}
@@ -1077,8 +1077,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance
 .fin-fab{
   position:fixed;right:20px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:150;
   height:56px;border-radius:28px;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:#fff;
-  background:linear-gradient(135deg,var(--purple),var(--purple3));
+  display:flex;align-items:center;justify-content:center;color:var(--on-accent);
+  background:var(--accent);
   box-shadow:var(--shadow-fab);white-space:nowrap;
   padding:0 20px 0 16px;
   transition:transform .15s,padding .25s ease;
@@ -1114,7 +1114,7 @@ body.profile-readonly [data-action="open-new-debt-entry-modal"]{display:none}
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 /* Quiet tonal chips, no outline (design pass 2, same as Android RytmFilterChip). */
 .filter-chip{padding:15px 16px;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid transparent;background:var(--bg2);color:var(--muted);transition:all .15s}
-.filter-chip.active{border-color:transparent;background:rgba(139,92,246,.22);color:var(--text-strong)}
+.filter-chip.active{border-color:transparent;background:rgba(var(--accent-rgb),.22);color:var(--text-strong)}
 .quick-amount-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .quick-amount-chip{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
 .quick-amount-chip:hover{border-color:var(--green);color:var(--green2);background:rgba(16,185,129,.1)}
@@ -1327,7 +1327,7 @@ body.amounts-hidden #fx-converter-result{
 .wallet-tag{display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:700;padding:2px 8px;border-radius:999px;max-width:100%;overflow:hidden;flex-shrink:0}
 .wallet-tag .ico{width:.9em;height:.9em;flex-shrink:0}
 .wallet-tag-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.wt-main{background:rgba(139,92,246,.12);color:var(--purple2);border:1px solid rgba(139,92,246,.2)}
+.wt-main{background:rgba(var(--accent-rgb),.12);color:var(--accent2);border:1px solid rgba(var(--accent-rgb),.2)}
 .wt-pumb{background:rgba(239,68,68,.12);color:#ff7b6b;border:1px solid rgba(239,68,68,.2)}
 .wt-cash{background:rgba(245,158,11,.12);color:var(--orange2);border:1px solid rgba(245,158,11,.2)}
 
@@ -1338,9 +1338,9 @@ body.amounts-hidden #fx-converter-result{
 .debt-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .debt-chip{padding:15px 20px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;border:1.5px solid var(--chip-color,var(--border2));background:var(--bg1);color:var(--muted);transition:all .15s;font-family:inherit}
 .debt-chip.active{
-  background:linear-gradient(135deg, var(--chip-color,var(--purple)), color-mix(in srgb, var(--chip-color,var(--purple)) 65%, black));
-  border-color:var(--chip-color,var(--purple));color:#fff;
-  box-shadow:0 4px 14px color-mix(in srgb, var(--chip-color,var(--purple)) var(--chip-shadow-mix), transparent);
+  background:var(--chip-color,var(--accent));
+  border-color:var(--chip-color,var(--accent));color:#fff;
+  box-shadow:0 4px 14px color-mix(in srgb, var(--chip-color,var(--accent)) var(--chip-shadow-mix), transparent);
 }
 .debt-chip-add{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-style:dashed;border-radius:50%}
 .debt-chip-add .ico{margin-right:0;width:16px;height:16px}
@@ -1386,7 +1386,7 @@ body.amounts-hidden #fx-converter-result{
 .debt-field-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
 .debt-row-inner input,.debt-row-inner select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:13px;font-weight:700;padding:6px 10px;border-radius:12px;width:100%;font-family:inherit;outline:none;transition:border-color .15s;cursor:default}
 .debt-row-inner select{cursor:pointer}
-.debt-row-inner input:focus,.debt-row-inner select:focus{border-color:var(--purple)}
+.debt-row-inner input:focus,.debt-row-inner select:focus{border-color:var(--accent)}
 /* Same touch-"stuck :hover" reasoning as .tx-item's identical rule above. */
 @media(hover:hover) and (pointer:fine){
   .debt-row:hover .debt-row-inner{width:calc(100% - 60px)}
@@ -1412,8 +1412,8 @@ body.amounts-hidden #fx-converter-result{
 .debt-hint{flex-basis:100%;font-size:13px;color:var(--red2);font-weight:700;margin-top:-2px}
 .debt-row-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:15px;border-radius:50%;display:inline-flex;align-self:flex-end;flex:0 0 auto;transition:all .15s}
 .debt-row-edit .ico{margin-right:0;width:18px;height:18px}
-.debt-row-edit:hover{background:rgba(139,92,246,.12);color:var(--purple)}
-.debt-row-edit-active{background:rgba(139,92,246,.15);color:var(--purple)}
+.debt-row-edit:hover{background:rgba(var(--accent-rgb),.12);color:var(--accent)}
+.debt-row-edit-active{background:rgba(var(--accent-rgb),.15);color:var(--accent)}
 .debt-field-view{background:transparent;border:1px solid transparent;color:var(--text-strong);font-size:13px;font-weight:700;padding:6px 0;width:100%}
 
 /* ── MODAL (centered, fully rounded) ── */
@@ -1477,7 +1477,7 @@ body.amounts-hidden #fx-converter-result{
   .modal-card{animation:none!important}
 }
 .modal-header{text-align:center;margin-bottom:18px}
-.modal-icon{width:30px;height:30px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--purple2)}
+.modal-icon{width:30px;height:30px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--accent2)}
 .modal-icon .ico{width:30px;height:30px;margin-right:0}
 .modal-date{font-size:16px;font-weight:800;color:var(--text-strong)}
 .modal-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -1486,7 +1486,7 @@ body.amounts-hidden #fx-converter-result{
   border:1px solid var(--border);border-radius:18px;background:var(--bg2);
   cursor:pointer;user-select:none;transition:all .15s;position:relative;overflow:hidden;
 }
-.chk-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--row-color,var(--purple))}
+.chk-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--row-color,var(--accent))}
 .chk-row:hover{border-color:var(--border2);background:var(--bg3)}
 .chk-row input[type=checkbox]{
   appearance:none;-webkit-appearance:none;
@@ -1495,7 +1495,7 @@ body.amounts-hidden #fx-converter-result{
   position:relative;transition:all .15s;
 }
 .chk-row input[type=checkbox]:checked{
-  background:var(--row-color,var(--purple));border-color:var(--row-color,var(--purple));
+  background:var(--row-color,var(--accent));border-color:var(--row-color,var(--accent));
 }
 .chk-row input[type=checkbox]:checked::after{
   content:'';position:absolute;left:50%;top:46%;width:5px;height:9px;
@@ -1504,15 +1504,15 @@ body.amounts-hidden #fx-converter-result{
 }
 .chk-label{display:flex;flex-direction:column;gap:2px}
 .chk-name{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--text-strong)}
-.chk-name .ico{color:var(--row-color,var(--purple))}
+.chk-name .ico{color:var(--row-color,var(--accent))}
 .chk-desc{font-size:13px;color:var(--muted);font-weight:500}
 .conflict-box{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red2);font-size:13px;padding:9px 12px;border-radius:999px;margin-bottom:12px;display:none;text-align:center;font-weight:600}
 .conflict-box.show{display:flex}
 .modal-actions{display:flex;gap:8px}
 .modal-cancel{flex:1;padding:12px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .modal-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
-.modal-save{flex:2;padding:12px;border-radius:999px;border:none;background:var(--purple);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:var(--shadow-accent-btn)}
-.modal-save:hover{background:var(--purple3)}
+.modal-save{flex:2;padding:12px;border-radius:999px;border:none;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:var(--shadow-accent-btn)}
+.modal-save:hover{background:var(--accent3)}
 .modal-save:disabled{opacity:.4;cursor:not-allowed}
 
 /* ── CUSTOM DIALOG ── */
@@ -1521,13 +1521,13 @@ body.amounts-hidden #fx-converter-result{
 .dlg-title{font-size:16px;font-weight:800;color:var(--text-strong);margin-bottom:6px}
 .dlg-msg{font-size:14.5px;color:var(--muted);font-weight:500;line-height:1.5;margin-bottom:16px}
 .dlg-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text-strong);padding:11px 14px;border-radius:16px;font-size:15px;font-weight:600;outline:none;font-family:inherit;margin-bottom:16px;transition:border-color .15s}
-.dlg-input:focus{border-color:var(--purple)}
+.dlg-input:focus{border-color:var(--accent)}
 .dlg-actions{display:flex;gap:10px}
 .dlg-btn{flex:1;padding:12px;border-radius:999px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid transparent}
 .dlg-cancel{background:transparent;border-color:var(--border2);color:var(--muted)}
 .dlg-cancel:hover{border-color:var(--muted);color:var(--text-strong)}
-.dlg-ok{background:var(--purple);color:#fff;box-shadow:var(--shadow-accent-btn)}
-.dlg-ok:hover{background:var(--purple3)}
+.dlg-ok{background:var(--accent);color:var(--on-accent);box-shadow:var(--shadow-accent-btn)}
+.dlg-ok:hover{background:var(--accent3)}
 .dlg-ok.danger{background:var(--red);box-shadow:0 4px 12px rgba(239,68,68,.3)}
 .dlg-ok.danger:hover{background:#dc2626}
 
@@ -1535,7 +1535,7 @@ body.amounts-hidden #fx-converter-result{
 .mgr-list{display:flex;flex-direction:column;gap:8px}
 .mgr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px;background:var(--bg2);border:1px solid transparent;box-shadow:0 3px 12px -8px rgba(var(--shadow-color),.4);border-radius:var(--radius-row)}
 .mgr-row input[type=text],.mgr-row input[type=number],.mgr-row select{background:var(--bg1);border:1px solid var(--border2);color:var(--text-strong);font-size:14px;font-weight:600;padding:7px 10px;border-radius:12px;font-family:inherit;outline:none;transition:border-color .15s;min-width:0;cursor:pointer}
-.mgr-row input:focus{border-color:var(--purple)}
+.mgr-row input:focus{border-color:var(--accent)}
 .mgr-name{flex:1 1 100%}
 .mgr-name-inline{flex:1 1 auto;min-width:0}
 /* Was `flex:1 1 90px;width:90px` — every real usage nests this inside
@@ -1576,8 +1576,8 @@ body.amounts-hidden #fx-converter-result{
    same idea as the profile nickname's edit lock. */
 .mgr-edit{background:none;border:none;color:var(--muted2);cursor:pointer;padding:16px;border-radius:50%;display:inline-flex;transition:all .15s;flex:0 0 auto}
 .mgr-edit .ico{margin-right:0;width:19px;height:19px}
-.mgr-edit:hover{background:rgba(139,92,246,.12);color:var(--purple2)}
-.mgr-edit.active{background:rgba(139,92,246,.15);color:var(--purple2)}
+.mgr-edit:hover{background:rgba(var(--accent-rgb),.12);color:var(--accent2)}
+.mgr-edit.active{background:rgba(var(--accent-rgb),.15);color:var(--accent2)}
 .mgr-empty{text-align:center;color:var(--muted);font-size:14px;font-weight:600;padding:20px}
 
 /* ── SUBCATEGORY CHIPS (inside the categories manager) ── */
@@ -1594,7 +1594,7 @@ body.amounts-hidden #fx-converter-result{
   padding:8px 10px;border-radius:12px;font-size:14px;font-weight:700;outline:none;
   font-family:inherit;transition:border-color .15s;
 }
-.rate-row-input:focus{border-color:var(--purple)}
+.rate-row-input:focus{border-color:var(--accent)}
 .budget-row-name{flex:1 1 auto;min-width:0;font-size:14px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .budget-row-input{flex:0 0 96px;width:96px;text-align:right}
 .cat-row-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
@@ -1611,7 +1611,7 @@ body.amounts-hidden #fx-converter-result{
 .drag-handle{background:none;border:none;color:var(--muted2);cursor:grab;padding:6px;border-radius:50%;display:inline-flex;flex:0 0 auto;touch-action:none;transition:all .15s}
 .drag-handle:hover{background:var(--bg3);color:var(--text)}
 .mgr-row.dragging{opacity:.6;box-shadow:var(--shadow-drag);cursor:grabbing;z-index:5}
-.subcat-toggle:hover{border-color:var(--purple2);color:var(--purple2)}
+.subcat-toggle:hover{border-color:var(--accent2);color:var(--accent2)}
 .subcat-total{font-size:13px;color:var(--muted);font-weight:600;margin-left:auto;white-space:nowrap}
 .subchip{display:inline-flex;align-items:center;gap:5px;padding:5px 6px 5px 12px;border-radius:999px;font-size:13px;font-weight:700;background:var(--bg1);border:1px solid var(--border2);color:var(--text)}
 .subchip button{background:none;border:none;color:var(--muted2);cursor:pointer;padding:3px;border-radius:50%;display:inline-flex;line-height:1;position:relative}
@@ -1640,10 +1640,10 @@ body.amounts-hidden #fx-converter-result{
   border:2px solid var(--border2);background:var(--bg1);
   position:relative;transition:all .15s;margin:0;
 }
-.rchk:checked{background:var(--purple);border-color:var(--purple)}
+.rchk:checked{background:var(--accent);border-color:var(--accent)}
 .rchk:checked::after{
   content:'';position:absolute;left:50%;top:46%;width:4px;height:7px;
-  border:solid #fff;border-width:0 2px 2px 0;
+  border:solid var(--on-accent);border-width:0 2px 2px 0;
   transform:translate(-50%,-50%) rotate(45deg);
 }
 
@@ -1740,7 +1740,7 @@ body.amounts-hidden #fx-converter-result{
       <button type="button" class="auth-link" id="auth-reset" data-action="reset-password" data-i18n="auth_forgot">Забули пароль?</button>
     </div>
     <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:2px">
-      <span data-i18n="auth_terms_pre">Реєструючись, ти погоджуєшся з</span> <a href="terms.html" data-legal-doc="terms" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умовами використання</a> <span data-i18n="auth_terms_and">і</span> <a href="privacy.html" data-legal-doc="privacy" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політикою конфіденційності</a>
+      <span data-i18n="auth_terms_pre">Реєструючись, ти погоджуєшся з</span> <a href="terms.html" data-legal-doc="terms" target="_blank" style="color:var(--accent2)" data-i18n="settings_terms">Умовами використання</a> <span data-i18n="auth_terms_and">і</span> <a href="privacy.html" data-legal-doc="privacy" target="_blank" style="color:var(--accent2)" data-i18n="settings_privacy">Політикою конфіденційності</a>
     </div>
   </div>
 </div>
@@ -1797,7 +1797,7 @@ body.amounts-hidden #fx-converter-result{
   <div class="modal-card">
    <div class="modal-card-body" style="text-align:center">
     <div class="sheet-grabber"></div>
-    <div class="onboard-icon" id="ic-bio-onboard" style="margin:0 auto 18px;background:linear-gradient(135deg,#8b5cf6,#ec4899)"></div>
+    <div class="onboard-icon" id="ic-bio-onboard" style="margin:0 auto 18px;background:var(--accent);color:var(--on-accent)"></div>
     <div class="modal-date" data-i18n="bio_onboard_title">Швидкий вхід за відбитком чи обличчям</div>
     <div style="font-size:14px;color:var(--muted);font-weight:600;margin-top:8px" data-i18n="bio_onboard_desc">Наступного разу заходь у Rytm за 1 секунду — без пароля.</div>
     <div class="modal-actions" style="margin-top:18px;flex-direction:column;gap:8px">
@@ -1832,7 +1832,7 @@ body.amounts-hidden #fx-converter-result{
     <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px" id="pin-remove-btn" data-action="remove-pin" data-i18n="pin_remove">Прибрати PIN</button>
     <div class="chk-desc" style="text-align:center;margin-top:12px" data-i18n="pin_disclaimer">PIN зберігається лише на цьому пристрої й не заміняє вхід в акаунт.</div>
     <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">
-      <a href="terms.html" data-legal-doc="terms" target="_blank" style="color:var(--purple2)" data-i18n="settings_terms">Умови використання</a> · <a href="privacy.html" data-legal-doc="privacy" target="_blank" style="color:var(--purple2)" data-i18n="settings_privacy">Політика конфіденційності</a>
+      <a href="terms.html" data-legal-doc="terms" target="_blank" style="color:var(--accent2)" data-i18n="settings_terms">Умови використання</a> · <a href="privacy.html" data-legal-doc="privacy" target="_blank" style="color:var(--accent2)" data-i18n="settings_privacy">Політика конфіденційності</a>
     </div>
     <div class="modal-actions" style="margin-top:12px">
       <button class="modal-save" style="flex:1" data-close-modal data-i18n="common_done">Готово</button>
@@ -2262,7 +2262,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section settings-section" data-settings-group="finance">
       <div class="chart-title"><span id="ic-settings-finance"></span><span data-i18n="settings_finance">Фінанси</span></div>
       <div class="settings-row" data-action="open-wallets-manager">
-        <span id="ic-set-wallets" class="icon-badge" style="--badge-color:#8b5cf6"></span>
+        <span id="ic-set-wallets" class="icon-badge" style="--badge-color:var(--accent)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_wallets">Гаманці</div>
           <div class="settings-row-sub" data-i18n="settings_wallets_sub">Картки, готівка та інші рахунки</div>
@@ -2355,7 +2355,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section settings-section" data-settings-group="security">
       <div class="chart-title"><span id="ic-settings-notif"></span><span data-i18n="settings_notifications">Сповіщення</span></div>
       <div class="settings-row" style="cursor:default">
-        <span id="ic-notif-push" class="icon-badge" style="--badge-color:var(--purple)"></span>
+        <span id="ic-notif-push" class="icon-badge" style="--badge-color:var(--accent)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_notif_push_title">Push-сповіщення</div>
           <div class="settings-row-sub" data-i18n="settings_notif_push_hint">Приходять навіть коли застосунок закрито.</div>
@@ -2404,7 +2404,7 @@ body.amounts-hidden #fx-converter-result{
         </label>
       </div>
       <div class="settings-row" style="cursor:default">
-        <span id="ic-notif-debt" class="icon-badge" style="--badge-color:var(--purple)"></span>
+        <span id="ic-notif-debt" class="icon-badge" style="--badge-color:var(--accent)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_notif_debt_title">Наближається термін боргу</div>
           <div class="settings-row-sub" data-i18n="settings_notif_debt_hint">Попередимо за день до дати, до якої треба віддати борг.</div>
@@ -2415,7 +2415,7 @@ body.amounts-hidden #fx-converter-result{
         </label>
       </div>
       <div class="settings-row" style="cursor:default">
-        <span id="ic-notif-weekly" class="icon-badge" style="--badge-color:var(--purple)"></span>
+        <span id="ic-notif-weekly" class="icon-badge" style="--badge-color:var(--accent)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_notif_weekly_title">Тиждень родини</div>
           <div class="settings-row-sub" data-i18n="settings_notif_weekly_hint">Неділя, 19:00: хто скільки витратив за тиждень у спільному профілі й хто кому винен, щоб порівну. Лише push.</div>
@@ -2482,7 +2482,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="chart-section settings-section" data-settings-group="app">
       <div class="chart-title"><span id="ic-settings-about"></span><span data-i18n="settings_about">Про застосунок</span></div>
       <a href="https://maxtr-c238f.web.app" target="_blank" class="settings-row settings-web-row" style="text-decoration:none;color:inherit">
-        <span id="ic-set-web" class="icon-badge" style="--badge-color:var(--purple)"></span>
+        <span id="ic-set-web" class="icon-badge" style="--badge-color:var(--accent)"></span>
         <div class="settings-row-text">
           <div class="settings-row-title" data-i18n="settings_web">Веб-версія</div>
           <div class="settings-row-sub" data-i18n="settings_web_sub">Відкрий maxtr-c238f.web.app на комп’ютері — усі зміни синхронізуються з телефоном</div>
@@ -2944,7 +2944,7 @@ body.amounts-hidden #fx-converter-result{
     <div class="modal-header"><div class="modal-date" id="cat-action-title">Категорія</div></div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-edit"><span id="ic-cat-act-edit" class="icon-badge icon-badge-sm" style="--badge-color:var(--blue)"></span><span data-i18n="cat_act_edit">Редагувати</span></button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-show-tx"><span id="ic-cat-act-show" class="icon-badge icon-badge-sm" style="--badge-color:var(--purple)"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-show-tx"><span id="ic-cat-act-show" class="icon-badge icon-badge-sm" style="--badge-color:var(--accent)"></span><span data-i18n="cat_act_show_tx">Показати транзакції</span></button>
       <button class="btn btn-danger" style="width:100%;justify-content:flex-start;gap:10px" data-action="cat-action-delete"><span id="ic-cat-act-del" class="icon-badge icon-badge-sm" style="--badge-color:var(--red)"></span><span data-i18n="cat_act_delete">Видалити категорію</span></button>
     </div>
     <div class="modal-actions" style="margin-top:12px">

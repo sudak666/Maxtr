@@ -3,6 +3,6 @@
          background differs; Compose owns all real theming. -->
     <style name="Theme.Rytm" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowBackground">#1c1c1f</item>
+        <item name="android:windowBackground">#17191a</item>
     </style>
 </resources>

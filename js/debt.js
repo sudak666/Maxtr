@@ -247,7 +247,7 @@ function renderDebtDueChip(cd){
   else if(diffDays===0) suffix=tr('debt_due_today');
   else suffix=tr('debt_due_in_days').replace('{n}',String(diffDays));
   val.textContent=`${formatDueDate(nextDue)} · ${suffix}`;
-  if(icon) icon.style.background = diffDays<=3 ? 'var(--red)' : 'var(--purple)';
+  if(icon) icon.style.background = diffDays<=3 ? 'var(--red)' : 'var(--accent)';
 }
 
 // A "savings goal"-style payoff progress bar for the current debt, the same
@@ -271,7 +271,7 @@ function renderDebtProgress(cd,paid){
   const done=pct>=100;
   text.textContent=pct+'%';
   fill.style.width=pct+'%';
-  fill.style.background=done?'linear-gradient(90deg,var(--green),var(--green2))':'linear-gradient(90deg,var(--purple),var(--purple2))';
+  fill.style.background=done?'var(--green)':'var(--accent)';
 }
 
 // Payoff forecast for the current debt: a balance-burndown mini chart plus
@@ -301,13 +301,13 @@ function DebtBurndownChart({ W, H, areaPts, linePts, lastX, lastY, title }){
   return h('svg', { viewBox:`0 0 ${W} ${H}`, preserveAspectRatio:'none', role:'img', 'aria-label':title },
     h('defs', null,
       h('linearGradient', { id:'debtBurnFill', x1:'0', y1:'0', x2:'0', y2:'1' },
-        h('stop', { offset:'0%', 'stop-color':'rgba(139,92,246,.34)' }),
-        h('stop', { offset:'100%', 'stop-color':'rgba(139,92,246,0)' })
+        h('stop', { offset:'0%', 'stop-color':'rgba(var(--accent-rgb),.34)' }),
+        h('stop', { offset:'100%', 'stop-color':'rgba(var(--accent-rgb),0)' })
       )
     ),
     h('polygon', { points:areaPts, fill:'url(#debtBurnFill)' }),
-    h('polyline', { points:linePts, fill:'none', stroke:'var(--purple2)', 'stroke-width':'2', 'stroke-linejoin':'round', 'stroke-linecap':'round', 'vector-effect':'non-scaling-stroke' }),
-    h('circle', { cx:lastX.toFixed(1), cy:lastY.toFixed(1), r:'3.5', fill:'var(--purple2)' })
+    h('polyline', { points:linePts, fill:'none', stroke:'var(--accent2)', 'stroke-width':'2', 'stroke-linejoin':'round', 'stroke-linecap':'round', 'vector-effect':'non-scaling-stroke' }),
+    h('circle', { cx:lastX.toFixed(1), cy:lastY.toFixed(1), r:'3.5', fill:'var(--accent2)' })
   );
 }
 
