@@ -30,6 +30,7 @@ import ua.rytm.app.ui.icons.Description
 import ua.rytm.app.ui.icons.PrivacyTip
 import ua.rytm.app.ui.icons.Public
 import ua.rytm.app.ui.icons.RytmIcons
+import ua.rytm.app.ui.icons.AutoAwesome
 import ua.rytm.app.ui.icons.CalendarMonth
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -171,18 +172,16 @@ internal fun SettingsRowScope.BankSuggestionsRow() {
         if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         val onToggle: (Boolean) -> Unit = { on -> if (premium) scope.launch { store.setBankAutoSave(on) } else paywallOpen = true }
-        androidx.compose.foundation.layout.Row(
-            androidx.compose.ui.Modifier.fillMaxWidth()
-                .toggleable(value = autoSave, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = onToggle)
-                .padding(horizontal = ua.rytm.app.ui.theme.RytmSpacing.lg, vertical = ua.rytm.app.ui.theme.RytmSpacing.sm),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.weight(1f)) {
-                androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_title), style = androidx.compose.material3.MaterialTheme.typography.bodyLarge)
-                androidx.compose.material3.Text(stringResource(R.string.bank_auto_save_hint), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            androidx.compose.material3.Switch(checked = autoSave, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
-        }
+        // Same row shape as its neighbours: icon badge, aligned text.
+        SettingsToggleRow(
+            icon = RytmIcons.AutoAwesome,
+            badgeColor = SettingsGroupColors.Notifications,
+            title = stringResource(R.string.bank_auto_save_title),
+            subtitle = stringResource(R.string.bank_auto_save_hint),
+            checked = autoSave,
+            enabled = true,
+            onCheckedChange = onToggle,
+        )
     }
 }
 

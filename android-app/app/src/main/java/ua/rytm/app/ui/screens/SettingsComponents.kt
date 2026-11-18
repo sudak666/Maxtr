@@ -461,26 +461,9 @@ internal fun SettingsRowScope.SettingsToggleRow(
             checked = checked,
             onCheckedChange = null,
             enabled = enabled,
-            colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary,
-                    checkedBorderColor = MaterialTheme.colorScheme.primary,
-                    // Was colorScheme.outline (#E4E4E9 in light) on
-                    // surfaceContainerHigh (#E2E0DD) — two near-identical pale
-                    // grays with ~1:1 contrast, so the thumb visually
-                    // vanished into the track (reported live, screenshot:
-                    // toggling push notifications off left the switch reading
-                    // as blank). onSurfaceVariant is the same muted-gray
-                    // family but dark enough to actually separate from the
-                    // track in both themes.
-                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                    disabledCheckedThumbColor = Color.White.copy(alpha = 0.72f),
-                    disabledCheckedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
-                    disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.58f),
-                    disabledUncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.58f),
-            ),
+            // One switch style app-wide (was white thumb here, dark thumb
+            // everywhere else). White on the dark-theme petrol track is 2.8:1.
+            colors = ua.rytm.app.ui.theme.rytmSwitchColors(),
         )
     }
 }
