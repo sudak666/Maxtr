@@ -7,6 +7,9 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **2.9.6 (vc63) AAB built (2026-11-18)** — owner asked for a build with #834 (petrol-on-graphite rebrand, fixed-slot bottom nav). `bundleRelease` → Desktop `Rytm-2.9.6-vc63.aab` (39.4 MB), upload-key SHA-256 `7C:A2:AF:88…`, manifest `2.9.6`, package `ua.rytm.app`, `baseline.prof` inside. Not uploaded — owner uploads in Play Console; the store icon/screenshots still show the old purple and need replacing there too.
+- **#834 merged and Hosting deployed (2026-11-18)** — squash `94b4f645`, CI 5/5 green; `firebase deploy --only hosting` from a clean `origin/main` worktree. Live check: `maxtr-c238f.web.app` serves theme-color `#17191a`, dist SW `rytm-dist-200add6aaded`. No Functions/rules changes.
+
 - **Rebrand: petrol on graphite + fixed-slot bottom nav (2026-11-18, #834)** — owner asked for a design audit with the Impeccable skill (installed, v4.8.2), then picked the "graphite + petrol" direction from a palette comparison page and said "зробимо красиво, від і до".
   - Audit (emulator, QA 2.9.4, dark, font 1.0/1.3): 14/20. P1: bottom-nav icons moved on every tab switch (the selected tab grew a side label; two test taps missed) and each tab had its own color. P2: leftover accent gradients/glows, empty band under the Shifts hero, duplicate "tap a day" hint, inconsistent primary-action placement. The `impeccable audit-storage` save failed (the bundled binary has no such command); report lives in this entry and the PR.
   - Palette: Tailwind violet-500 out. Graphite neutrals, one petrol accent (dark fill `#3AA7BF` + ink `#062A32`, text `#5CC8DE`; light `#0E6A80` + white), income green moved to hue ~142. Contrast pairs asserted in `ThemeContrastTest` (new accent + money tests). Durable rules promoted to CLAUDE.md → UI conventions.
