@@ -7,6 +7,7 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **#837 merged + Hosting deployed (2026-11-18)** — owner: "Перевір і мерджи". All 5 CI jobs green after the lint fix; squash-merged as `c591bce0`. Hosting redeployed from a clean `origin/main` worktree (`js/core.js` DEBT_COLORS + `sw.js` `rytm-v215` changed); release complete. Local branch and deploy worktree removed.
 - **2.9.7 (vc64) AAB built (2026-11-18, #837)** — owner: "Мерджи і збери AAB". First CI run of #837 failed `lintDebug` (`UnusedBoxWithConstraintsScope`: the nav capsule kept a `BoxWithConstraints` after the pill was removed) → plain `Box`, local `lintDebug` clean. Version bump rides in the same PR. `bundleRelease` from the branch → Desktop `Rytm-2.9.7-vc64.aab` (39.4 MB), upload-key SHA-256 `7C:A2:AF:88…`, manifest `2.9.7`, package `ua.rytm.app`, `baseline.prof` inside. Not uploaded — owner uploads in Play Console.
 
 - **Monobank-style bottom nav, animated tab icons, Shifts/Debt cleanup (2026-11-18, #837)** — owner sent two monobank screen recordings ("може теж так зробити?"), then "роби все що обговорювали" and mid-way "без пилюлі ... просто сама іконка стає іншого кольору".
