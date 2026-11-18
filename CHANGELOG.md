@@ -7,6 +7,8 @@ Working log, newest first. Older months are archived per month in `docs/changelo
 - [2026-08](docs/changelog/2026-08.md)
 - [2026-07](docs/changelog/2026-07.md)
 
+- **Flaky pull-to-refresh test fixed (2026-11-18)** — the `smoke` job failed on the `main` push of #835 (version bump only; the same test passed on #834 and on #835's PR run): `PULL TO REFRESH TEST FAILED: test setup problem ... scrollY=33`. The Finance tab's height depends on network-fed widgets (the crypto card hides until CoinGecko answers), so when that fetch failed the page was ~30px taller than the 844px viewport and the "pull while scrolled down" scenario couldn't scroll. The test now sets `body.minHeight` before that step; app code unchanged. Passes locally.
+
 - **2.9.6 (vc63) AAB built (2026-11-18)** — owner asked for a build with #834 (petrol-on-graphite rebrand, fixed-slot bottom nav). `bundleRelease` → Desktop `Rytm-2.9.6-vc63.aab` (39.4 MB), upload-key SHA-256 `7C:A2:AF:88…`, manifest `2.9.6`, package `ua.rytm.app`, `baseline.prof` inside. Not uploaded — owner uploads in Play Console; the store icon/screenshots still show the old purple and need replacing there too.
 - **#834 merged and Hosting deployed (2026-11-18)** — squash `94b4f645`, CI 5/5 green; `firebase deploy --only hosting` from a clean `origin/main` worktree. Live check: `maxtr-c238f.web.app` serves theme-color `#17191a`, dist SW `rytm-dist-200add6aaded`. No Functions/rules changes.
 
