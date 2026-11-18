@@ -165,6 +165,11 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var pendingResetProfile by rememberSaveable { mutableStateOf(false) }
     var settingsSearch by rememberSaveable { mutableStateOf("") }
     var settingsGroup by remember { mutableStateOf("all") }
+    // The bar's "+" stays on every tab (fixed-width capsule, 2026-11-18);
+    // here it is the app's most common action: a new operation in Finance.
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.transaction_new_title), enabled = canEdit) {
+        app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION
+    }
     val settingsViewModel: SettingsViewModel = viewModel()
     val csvImportPreview = settingsViewModel.csvImportPreview
     val csvBusy = settingsViewModel.csvBusy

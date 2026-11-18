@@ -1,9 +1,6 @@
 package ua.rytm.app.navigation
 
 import ua.rytm.app.ui.theme.RytmSpacing
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import ua.rytm.app.ui.theme.RytmRadii
@@ -89,6 +86,7 @@ import ua.rytm.app.ui.motionAwareSpec
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -287,7 +285,7 @@ fun RytmNavHost() {
 
 /**
  * Side navigation for medium/expanded widths (tablets, unfolded foldables,
- * landscape phones over 600dp). Same accent pill as the floating capsule.
+ * landscape phones over 600dp). Same accent-glyph selection as the floating capsule.
  */
 @Composable
 private fun RytmNavigationRail(navController: androidx.navigation.NavHostController) {
@@ -315,22 +313,21 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
                     }
                 },
                 icon = {
-                    Icon(
-                        destination.icon,
+                    val railLabel = stringResource(destination.labelRes)
+                    AnimatedTabIcon(
+                        destination, selected,
+                        if (selected) RytmSemantic.link else MaterialTheme.colorScheme.onSurfaceVariant,
+                        RytmDimens.TabGlyph,
                         // Named only while the label is hidden, so TalkBack never reads it twice.
-                        contentDescription = if (compactHeight && !selected) stringResource(destination.labelRes) else null,
-                        modifier = Modifier.size(RytmDimens.TabGlyph),
+                        modifier = if (compactHeight && !selected) Modifier.semantics { contentDescription = railLabel } else Modifier,
                     )
                 },
                 label = { Text(stringResource(destination.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 alwaysShowLabel = !compactHeight,
-                // M3's own sliding indicator in the same accent pill the
-                // bottom capsule uses, so both read as one product.
+                // Same as the bottom capsule: accent glyph and label, no pill.
                 colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = Color.Transparent,
+                    selectedTextColor = RytmSemantic.link,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
@@ -344,10 +341,10 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
 // Audit 2026-11-18: the selected tab used to expand into icon+label, which
 // pushed every other icon sideways on each switch (taps landed on the wrong
 // tab), and each tab had its own color (green/purple/orange/slate). Now
-// every tab owns an equal, fixed slot; one accent-tinted pill slides between
-// the slots, and the selected tab's label fades in under its icon. The
-// capsule only changes width when the "+" appears or leaves, and then all
-// four slots scale together.
+// every tab owns an equal, fixed slot with its label always shown; the
+// selected one turns accent-colored and its glyph plays a short
+// part-animation (AnimatedTabIcons.kt), monobank-style, with no pill. Every tab has a "+", so the
+// capsule keeps one width and nothing ever shifts.
 @Composable
 private fun RytmBottomBar(navController: androidx.navigation.NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -379,30 +376,15 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
         val selectedIndex = RytmDestination.entries.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            BoxWithConstraints(
+            Box(
                 modifier = Modifier
                     .weight(1f)
                     .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                     .clip(shape)
                     .background(barColor)
-                    .padding(horizontal = 6.dp, vertical = if (compactHeight) 4.dp else 7.dp),
+                    .padding(horizontal = 8.dp, vertical = if (compactHeight) 4.dp else 7.dp),
             ) {
-                val slot = maxWidth / RytmDestination.entries.size
-                val pillWidth = (slot - 12.dp).coerceIn(44.dp, 64.dp)
                 val pillHeight = if (compactHeight) 36.dp else TabPillHeight
-                if (selectedIndex >= 0) {
-                    val pillX by animateDpAsState(
-                        targetValue = slot * selectedIndex + (slot - pillWidth) / 2,
-                        animationSpec = motionAwareSpec(spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow)),
-                        label = "tabPill",
-                    )
-                    Box(
-                        Modifier
-                            .offset(x = pillX)
-                            .size(pillWidth, pillHeight)
-                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(RytmRadii.Pill)),
-                    )
-                }
                 Row(Modifier.fillMaxWidth()) {
                     RytmDestination.entries.forEachIndexed { index, destination ->
                         RytmTabSlot(
@@ -410,7 +392,11 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                             selected = index == selectedIndex,
                             pillHeight = pillHeight,
                             showLabel = showLabels,
-                            modifier = Modifier.weight(1f),
+                            // «Налаштування» is the one long label (~89dp bold at
+                            // 12sp); its slot gets 1.3 shares so it fits without
+                            // touching «Позики». Weights never change, so no
+                            // icon moves between tabs.
+                            modifier = Modifier.weight(if (destination == RytmDestination.Settings) 1.3f else 1f),
                             onClick = {
                                 navController.navigate(destination.route) {
                                     popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -424,24 +410,30 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
             }
             // The screen's "+" sits next to the capsule instead of floating over
             // the content (it covered the history amounts) — design pass 2.
-            androidx.compose.animation.AnimatedVisibility(
-                visible = plus != null,
-                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandHorizontally(),
-                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkHorizontally(),
-            ) {
-                Row {
-                    Spacer(Modifier.width(10.dp))
-                    // Keep showing the last action during the exit animation.
-                    val last = remember { androidx.compose.runtime.mutableStateOf(plus) }
-                    if (plus != null) last.value = plus
-                    last.value?.let { PrimaryPlusButton(it, size = if (compactHeight) 52.dp else 60.dp) }
-                }
-            }
+            // Every tab provides one now, so the capsule never changes width
+            // and no icon ever shifts; a read-only profile gets a disabled
+            // "+" in the same place (2026-11-18).
+            Spacer(Modifier.width(10.dp))
+            val plusSize = if (compactHeight) 52.dp else 60.dp
+            if (plus != null) PrimaryPlusButton(plus, size = plusSize) else DisabledPlusButton(size = plusSize)
         }
     }
 }
 
 private val TabPillHeight = 32.dp
+
+@Composable
+private fun DisabledPlusButton(size: androidx.compose.ui.unit.Dp) {
+    Box(
+        Modifier
+            .size(size)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+            .semantics { disabled() },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(RytmIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f), modifier = Modifier.size(28.dp))
+    }
+}
 
 // One flat accent circle: the gradient + accent-colored glow it had was the
 // last "generated UI" tell on the main screens (audit 2026-11-18).
@@ -475,12 +467,14 @@ private fun PrimaryPlusButton(action: ua.rytm.app.ui.components.PrimaryAction, s
 private fun RytmTabSlot(destination: RytmDestination, selected: Boolean, pillHeight: androidx.compose.ui.unit.Dp, showLabel: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val label = stringResource(destination.labelRes)
     val iconColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        // No indicator pill (owner, 2026-11-18, "як у моно"): the selected tab
+        // is its accent-colored glyph and label, plus the glyph's animation.
+        targetValue = if (selected) RytmSemantic.link else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = motionAwareSpec(tween(durationMillis = 220)),
         label = "tabIcon",
     )
-    val labelAlpha by animateFloatAsState(
-        targetValue = if (selected) 1f else 0f,
+    val labelColor by animateColorAsState(
+        targetValue = if (selected) RytmSemantic.link else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = motionAwareSpec(tween(durationMillis = 220)),
         label = "tabLabel",
     )
@@ -499,19 +493,23 @@ private fun RytmTabSlot(destination: RytmDestination, selected: Boolean, pillHei
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.height(pillHeight).graphicsLayer { scaleX = pressedScale; scaleY = pressedScale }, contentAlignment = Alignment.Center) {
-            Icon(destination.icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(RytmDimens.TabGlyph))
+            AnimatedTabIcon(destination, selected, iconColor, RytmDimens.TabGlyph)
         }
         if (showLabel) {
-            // Always laid out (alpha only), so the icon row never shifts
-            // vertically when a label appears. Shrinks (not clips) when the
-            // quarter is too narrow: «Налаштування» at a large system font.
+            // Every tab keeps its label (monobank-style, owner 2026-11-18):
+            // nothing appears or moves on a switch, only color changes. Shrinks
+            // rather than clips when a quarter is narrow («Налаштування»).
+            // 12sp (Material's nav-label size). At a large system font a label
+            // shrinks inside its own slot rather than run into a neighbour.
             ua.rytm.app.ui.components.FitText(
                 label,
-                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                minSize = 10.sp,
-                modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp).graphicsLayer { alpha = labelAlpha }.clearAndSetSemantics { },
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.sp),
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = labelColor,
+                minSize = 9.sp,
+                modifier = Modifier
+                    .padding(top = 2.dp, start = 2.dp, end = 2.dp)
+                    .clearAndSetSemantics { },
             )
         }
     }

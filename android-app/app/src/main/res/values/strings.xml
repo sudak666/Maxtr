@@ -808,4 +808,18 @@
     <string name="wallet_order_body">Перетягніть гаманець за ручку. У такому порядку вони стоять на головному екрані.</string>
     <string name="wallet_order_move_first">Перемістити «%1$s» першим</string>
     <string name="wallet_order_open">Змінити порядок</string>
+    <string name="shifts_today_action">Зміна на сьогодні</string>
+    <string name="shifts_hero_stats">%1$s год · %2$s · %3$s</string>
+    <plurals name="shifts_count_plural">
+        <item quantity="one">%d зміна</item>
+        <item quantity="few">%d зміни</item>
+        <item quantity="many">%d змін</item>
+        <item quantity="other">%d зміни</item>
+    </plurals>
+    <plurals name="shifts_off_plural">
+        <item quantity="one">%d вихідний</item>
+        <item quantity="few">%d вихідних</item>
+        <item quantity="many">%d вихідних</item>
+        <item quantity="other">%d вихідних</item>
+    </plurals>
 </resources>
