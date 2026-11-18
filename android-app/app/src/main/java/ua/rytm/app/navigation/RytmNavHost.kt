@@ -1,9 +1,6 @@
 package ua.rytm.app.navigation
 
 import ua.rytm.app.ui.theme.RytmSpacing
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import ua.rytm.app.ui.theme.RytmRadii
@@ -379,7 +376,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
         val selectedIndex = RytmDestination.entries.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            BoxWithConstraints(
+            Box(
                 modifier = Modifier
                     .weight(1f)
                     .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
