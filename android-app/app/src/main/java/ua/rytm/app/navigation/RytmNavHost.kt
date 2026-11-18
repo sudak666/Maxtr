@@ -389,7 +389,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                     .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                     .clip(shape)
                     .background(barColor)
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = RytmSpacing.xs),
                 contentAlignment = Alignment.Center,
             ) {
                 val pillHeight = if (compactHeight) 36.dp else TabPillHeight

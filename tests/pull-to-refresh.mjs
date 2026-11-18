@@ -178,7 +178,9 @@ async function main() {
     // fails the page was only ~30px taller than the viewport and this setup
     // step failed (CI 2026-11-18). Guarantee room to scroll instead.
     await page.evaluate(() => { document.body.style.minHeight = '2400px'; });
-    await page.evaluate(() => window.scrollTo(0, 200));
+    // html has scroll-behavior:smooth; a plain scrollTo was still animating
+    // (scrollY=33) when read 100ms later. Jump instantly.
+    await page.evaluate(() => window.scrollTo({ top: 200, behavior: 'instant' }));
     await page.waitForTimeout(100);
     const scrollYAfterScroll = await page.evaluate(() => window.scrollY);
     if (scrollYAfterScroll < 50) throw new Error(`test setup problem: expected the page to actually scroll down before this check, scrollY=${scrollYAfterScroll} (page may not be tall enough at this viewport)`);
