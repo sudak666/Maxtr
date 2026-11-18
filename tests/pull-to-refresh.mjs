@@ -173,6 +173,11 @@ async function main() {
     // false positive here regardless of whether this scenario's pull did
     // anything.
     await page.evaluate(() => document.getElementById('toast')?.classList.remove('show'));
+    // The Finance tab's height depends on network-fed widgets (the crypto
+    // card hides until CoinGecko answers), so on a run where that fetch
+    // fails the page was only ~30px taller than the viewport and this setup
+    // step failed (CI 2026-11-18). Guarantee room to scroll instead.
+    await page.evaluate(() => { document.body.style.minHeight = '2400px'; });
     await page.evaluate(() => window.scrollTo(0, 200));
     await page.waitForTimeout(100);
     const scrollYAfterScroll = await page.evaluate(() => window.scrollY);
