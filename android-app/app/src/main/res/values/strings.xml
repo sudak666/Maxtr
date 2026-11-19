@@ -40,7 +40,6 @@
     <string name="wallet_delete_title">Видалити гаманець</string>
     <string name="wallet_delete_body">Видалити цей гаманець?</string>
     <string name="wallet_last_required">Має лишитися хоча б один гаманець</string>
-    <string name="wallet_in_use">Гаманець використовується в операціях</string>
     <string name="wallet_color">Колір гаманця</string>
     <string name="common_save_retry">Не вдалося зберегти зміни. Спробуй ще раз.</string>
     <string name="tx_income">Дохід</string><string name="tx_expense">Витрата</string><string name="tx_type">Тип</string><string name="tx_category">Категорія</string>
@@ -115,7 +114,7 @@
     <string name="validation_date_required">Обери дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Обери гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові гаманці</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_summary">%1$s ₴/міс</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_reorder">Перетягнути, щоб змінити порядок</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -147,9 +146,6 @@
     <string name="shifts_goal_progress">%1$d%% від цілі %2$s ₴</string>
     <string name="shifts_goal_edit_title">Ціль заробітку</string>
     <string name="shifts_goal_edit_label">Сума, ₴</string>
-    <string name="shifts_hours_short">год</string>
-    <string name="shifts_count">Змін</string>
-    <string name="shifts_days_off">Вихідних</string>
     <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
     <string name="shifts_quick_fill">Швидке заповнення</string>
     <string name="shifts_quick_fill_hint">Заповни місяць за твоїм шаблоном</string>
@@ -168,7 +164,6 @@
     <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
     <string name="shifts_anchor_date">Перший робочий день циклу</string>
     <string name="shifts_empty_title">Ще немає змін цього місяця</string>
-    <string name="shifts_empty_body">Додай зміни вручну, натиснувши на день, або скористайся швидким заповненням.</string>
     <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
     <string name="action_next">Далі</string>
     <string name="onboarding_page_status">Сторінка %1$d з %2$d</string>

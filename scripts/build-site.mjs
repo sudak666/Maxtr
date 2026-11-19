@@ -36,6 +36,7 @@ const EXCLUDE_TOP = new Set([
   'firebase.json', 'firestore.rules', 'node_modules', 'functions',
   'docs', 'scripts', 'tests', 'android-app', '_config.yml', 'dist',
   'package.json', 'package-lock.json', 'vite.config.js',
+  'eslint.config.js', 'tsconfig.json', 'tsconfig.strict.json', 'types',
   '.git', '.github', '.gitignore', '.claude',
 ]);
 const EXCLUDE_MD = /\.md$/i;
