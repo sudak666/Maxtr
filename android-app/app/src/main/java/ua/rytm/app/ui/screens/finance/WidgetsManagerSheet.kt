@@ -3,12 +3,12 @@ import ua.rytm.app.ui.theme.RytmSpacing
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.rytm.app.ui.components.rememberRytmHaptics
 import ua.rytm.app.ui.components.RytmModalBottomSheet
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.navigationBarsPadding
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import ua.rytm.app.ui.theme.RytmRadii
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -165,25 +165,31 @@ fun WidgetsManagerSheet(settingsStore: SettingsStore, syncRepository: WidgetSett
                                     )
                                 },
                         )
-                        Box(Modifier.size(34.dp).background(item.color.copy(alpha = .16f), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
-                        }
                         val enabled = item.key in config.enabled
                         val haptics = rememberRytmHaptics()
-                        // The label toggles too — a tap on the row text did nothing before.
-                        Column(Modifier.weight(1f).clickable(role = androidx.compose.ui.semantics.Role.Switch) { haptics.toggle(!enabled); update { settingsStore.setWidgetEnabled(item.key, !enabled) } }.padding(horizontal = RytmSpacing.md)) {
-                            Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
-                            Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        // Busy is deliberately not reflected here: it is shared across the
+                        // sheet, and disabling every row while one syncs read as flicker.
+                        // The whole row (icon, text, switch) is one rounded tap target, so
+                        // the press highlight is no longer a grey box behind the text only.
+                        Row(
+                            Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(RytmRadii.Control))
+                                .toggleable(value = enabled, role = androidx.compose.ui.semantics.Role.Switch) { on ->
+                                    haptics.toggle(on); update { settingsStore.setWidgetEnabled(item.key, on) }
+                                }
+                                .padding(vertical = RytmSpacing.xs, horizontal = RytmSpacing.xs),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(Modifier.size(34.dp).background(item.color.copy(alpha = .16f), CircleShape), contentAlignment = Alignment.Center) {
+                                Icon(item.icon, null, tint = item.color, modifier = Modifier.size(18.dp))
+                            }
+                            Column(Modifier.weight(1f).padding(horizontal = RytmSpacing.md)) {
+                                Text(stringResource(item.title), fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(item.subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Switch(checked = enabled, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                         }
-                        // Deliberately NOT `enabled = !busy`: busy is shared across the
-                        // whole sheet (guards against overlapping update() calls), but
-                        // reflecting it here disabled every row's Switch — including
-                        // ones the user didn't touch — for the duration of the *other*
-                        // row's background sync, which read as all 3 switches
-                        // flickering every time any one of them was tapped.
-                        val widgetTitle = stringResource(item.title)
-                        // TalkBack read these as a bare "switch, off" with no name.
-                        Switch(modifier = Modifier.semantics { contentDescription = widgetTitle }, checked = item.key in config.enabled, onCheckedChange = { on -> haptics.toggle(on); update { settingsStore.setWidgetEnabled(item.key, on) } }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                     }
                 }
             }

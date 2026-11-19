@@ -42,7 +42,6 @@ object RytmDimens {
     val IconBadge = 34.dp
     val IconBadgeIcon = 17.dp
     val QuickActionIcon = 21.dp
-    val BottomNavRadius = 26.dp
     val TabIcon = 48.dp
     val TabGlyph = 23.dp
     val SwipeReveal = 60.dp

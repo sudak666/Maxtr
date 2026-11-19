@@ -23,6 +23,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.clickable
@@ -89,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -349,7 +351,9 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
 private fun RytmBottomBar(navController: androidx.navigation.NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
-    val shape = RoundedCornerShape(RytmDimens.BottomNavRadius)
+    // Full pill (owner, 2026-11-18: "як у моно, більше схоже на кружечок"):
+    // the ends are half-circles matching the round "+" beside it.
+    val shape = RoundedCornerShape(percent = 50)
     val compactHeight = LocalConfiguration.current.screenHeightDp < 480
     // At ~2x font a label no longer fits a quarter of the capsule; there every
     // tab is icon-only and TalkBack still gets the name.
@@ -376,35 +380,62 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
         val selectedIndex = RytmDestination.entries.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // Capsule and "+" share one height, so their tops and bottoms line up.
+            val barHeight = if (compactHeight) 52.dp else 64.dp
             Box(
                 modifier = Modifier
                     .weight(1f)
+                    .height(barHeight)
                     .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.25f))
                     .clip(shape)
                     .background(barColor)
-                    .padding(horizontal = 8.dp, vertical = if (compactHeight) 4.dp else 7.dp),
+                    .padding(horizontal = RytmSpacing.xs),
+                contentAlignment = Alignment.Center,
             ) {
                 val pillHeight = if (compactHeight) 36.dp else TabPillHeight
-                Row(Modifier.fillMaxWidth()) {
-                    RytmDestination.entries.forEachIndexed { index, destination ->
-                        RytmTabSlot(
-                            destination = destination,
-                            selected = index == selectedIndex,
-                            pillHeight = pillHeight,
-                            showLabel = showLabels,
-                            // «Налаштування» is the one long label (~89dp bold at
-                            // 12sp); its slot gets 1.3 shares so it fits without
-                            // touching «Позики». Weights never change, so no
-                            // icon moves between tabs.
-                            modifier = Modifier.weight(if (destination == RytmDestination.Settings) 1.3f else 1f),
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                        )
+                // Even spacing: every gap (capsule edge to first label, label to
+                // label, last label to edge) is the same width, so the bar reads
+                // symmetric in any language. Widths come from the bold label, so
+                // selecting a tab never moves anything. When the labels do not
+                // fit (large font) the gap stays at 6dp and every slot shrinks by
+                // the same factor, so all labels shrink alike instead of one
+                // being cut off.
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val measurer = rememberTextMeasurer()
+                    val density = LocalDensity.current
+                    val labels = RytmDestination.entries.map { stringResource(it.labelRes) }
+                    val labelStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.sp, fontWeight = FontWeight.Bold)
+                    val contentWidths = remember(labels, labelStyle, density, showLabels) {
+                        labels.map { label ->
+                            if (!showLabels) RytmDimens.TabGlyph
+                            // +4dp: the label's own 2dp side padding.
+                            else with(density) { measurer.measure(label, labelStyle, maxLines = 1, softWrap = false).size.width.toDp() } + 4.dp
+                        }
+                    }
+                    val total = contentWidths.fold(0.dp) { acc, w -> acc + w }
+                    val gap = maxOf((maxWidth - total) / (contentWidths.size + 1), 6.dp)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        // Each slot is its content plus one gap (half on each side),
+                        // so a half-gap at both ends completes the even rhythm.
+                        Spacer(Modifier.width(gap / 2))
+                        RytmDestination.entries.forEachIndexed { index, destination ->
+                            RytmTabSlot(
+                                destination = destination,
+                                selected = index == selectedIndex,
+                                pillHeight = pillHeight,
+                                showLabel = showLabels,
+                                // Weights equal the widths whenever everything fits.
+                                modifier = Modifier.weight((contentWidths[index] + gap).value),
+                                onClick = {
+                                    navController.navigate(destination.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                            )
+                        }
+                        Spacer(Modifier.width(gap / 2))
                     }
                 }
             }
@@ -414,7 +445,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
             // and no icon ever shifts; a read-only profile gets a disabled
             // "+" in the same place (2026-11-18).
             Spacer(Modifier.width(10.dp))
-            val plusSize = if (compactHeight) 52.dp else 60.dp
+            val plusSize = barHeight
             if (plus != null) PrimaryPlusButton(plus, size = plusSize) else DisabledPlusButton(size = plusSize)
         }
     }

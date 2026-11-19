@@ -162,7 +162,7 @@ fun ShiftTypesManagerContent(viewModel: ShiftTypesManagerViewModel, showTitle: B
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(stringResource(R.string.shift_day_off), modifier = Modifier.weight(1f))
-                    androidx.compose.material3.Switch(checked = isOff, onCheckedChange = null)
+                    androidx.compose.material3.Switch(checked = isOff, onCheckedChange = null, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
                 }
                 if (!isOff) {
                     androidx.compose.material3.OutlinedTextField(payText, { payText = it }, singleLine = true, isError = pay == null, label = { Text(stringResource(R.string.shift_pay)) },
