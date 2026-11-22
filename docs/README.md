@@ -8,6 +8,7 @@ Reference material for people and agents working on Rytm. Nothing here is shippe
 | `audits/` | Audit reports and their status tables: `AUDIT_2026-10.md`, `AUDIT_2026-11.md`, `AUDIT_2026-11-first-run.md`, `DESIGN_AUDIT_2026-08-24.md`. |
 | `android/` | Android screen specs (`FINANCE_SCREEN_SPEC.md`, `SHIFTS_SCREEN_SPEC.md`) and `QA_MATRIX.md`. Code comments cite them by file name. |
 | `history/` | Plans that are done and kept for their reasoning (`MIGRATION_PLAN_transactions.md`). |
+| `store/` | Google Play listing assets: store icon, feature graphic, phone screenshots and the script that renders the graphics. See its README. |
 | `icons/` | Offline icon libraries for drawing new glyphs: `lucide/` (stroke, native 24×24) and `material-symbols/` (filled). Each has its own README. |
 
 The live state of the project lives at the top of [`../ANDROID_MIGRATION.md`](../ANDROID_MIGRATION.md) (session checkpoint) and in [`../CLAUDE.md`](../CLAUDE.md).
