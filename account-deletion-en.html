@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a0812">
+<meta name="theme-color" content="#17191a">
 <meta name="color-scheme" content="dark light">
 <title>Account Deletion — Rytm</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%238b5cf6'/><text y='.74em' x='26' font-size='58' font-family='Arial' font-weight='900' fill='white'>X</text></svg>">
+<link rel="icon" type="image/png" href="icon-192-rounded.png">
 <style>
 :root{
-  --bg:#08060f; --bg1:#0f0c1a; --bg2:#161225; --border:#2a2245;
-  --text:#ede9f8; --text-strong:#ffffff; --muted:#9a90b8; --purple:#8b5cf6; --purple2:#a78bfa;
+  --bg:#17191a; --bg1:#1f2122; --bg2:#27292a; --border:#3d3f40;
+  --text:#e8eaea; --text-strong:#ffffff; --muted:#a6aaab; --accent:#3aa7bf; --accent2:#5cc8de; --on-accent:#062a32;
 }
 @media(prefers-color-scheme:light){
-  :root{ --bg:#f2f2f7; --bg1:#ffffff; --bg2:#f2f2f7; --border:#e4e4e9; --text:#1c1c1e; --text-strong:#0b0b0d; --muted:#6b6b70; --purple2:#7c3aed; }
+  :root{ --bg:#f2f3f3; --bg1:#ffffff; --bg2:#eaecec; --border:#e1e4e4; --text:#1a1c1d; --text-strong:#0a0b0c; --muted:#5e6264; --accent:#0e6a80; --accent2:#0e6a80; --on-accent:#ffffff; }
 }
 *{box-sizing:border-box}
 body{
@@ -23,7 +23,7 @@ body{
 }
 .wrap{max-width:720px;margin:0 auto;padding:32px 20px}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0}
+.logo{width:36px;height:36px;border-radius:10px;display:block;flex-shrink:0}
 .brand{font-weight:800;color:var(--text-strong);font-size:15px}
 h1{font-size:26px;font-weight:900;color:var(--text-strong);letter-spacing:-.02em;margin:0 0 6px}
 .updated{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:32px}
@@ -31,21 +31,21 @@ h2{font-size:17px;font-weight:800;color:var(--text-strong);margin:32px 0 10px;le
 p,li{font-size:14.5px;color:var(--text)}
 ul{padding-left:20px;margin:8px 0}
 li{margin-bottom:6px}
-a{color:var(--purple2)}
+a{color:var(--accent2)}
 .card{background:var(--bg1);border:1px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:16px}
 .step{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
 .step:last-child{margin-bottom:0}
-.step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--purple);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
 .step-text{font-size:14.5px;padding-top:2px}
-.btn{display:inline-block;margin-top:8px;padding:12px 22px;border-radius:14px;background:var(--purple);color:#fff;font-weight:700;font-size:14px;text-decoration:none}
-.back{display:inline-block;margin-top:36px;font-size:13px;font-weight:700;color:var(--purple2);text-decoration:none}
+.btn{display:inline-block;margin-top:8px;padding:12px 22px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px;text-decoration:none}
+.back{display:inline-block;margin-top:36px;font-size:13px;font-weight:700;color:var(--accent2);text-decoration:none}
 .back:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="logo">X</div>
+    <img class="logo" src="icon-192-rounded.png" alt="" width="36" height="36">
     <div class="brand">Rytm</div>
   </div>
 
