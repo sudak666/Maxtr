@@ -47,6 +47,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.colorResource
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
@@ -106,12 +108,16 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // The launcher mark on its own graphite tile, same as the home-screen
+                // icon. The foreground vector is 108dp with the card ~46% wide, so
+                // 90dp inside a clipped 68dp tile shows the card at ~62%, like the
+                // Play store icon (docs/store/render.mjs).
                 Box(
                     modifier = Modifier.size(68.dp)
-                        .clip(RoundedCornerShape(RytmRadii.Chart)).background(MaterialTheme.colorScheme.primary),
+                        .clip(RoundedCornerShape(RytmRadii.Chart)).background(colorResource(R.color.ic_launcher_background)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("R", color = MaterialTheme.colorScheme.onPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                    Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(90.dp))
                 }
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.4).sp)
                 Text(
