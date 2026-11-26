@@ -51,34 +51,6 @@ import ua.rytm.app.ui.theme.RytmDimens
 import ua.rytm.app.ui.theme.RytmRadii
 import ua.rytm.app.ui.theme.RytmSpacing
 
-/** The form's category field: one row that opens [CategoryPickerSheet]. */
-@Composable
-fun CategoryField(vm: FinanceViewModel, onOpen: () -> Unit) {
-    val category = vm.form.category ?: return
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(RytmRadii.Input))
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.tx_category), onClick = onOpen)
-            .padding(vertical = RytmSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
-    ) {
-        CategoryIconBadge(category, vm.categoryIcons[category], size = 40.dp)
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.tx_category), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            val sub = vm.form.subcategory
-            Text(
-                localizedDomainText(category) + (sub?.let { " › " + localizedDomainText(it) } ?: ""),
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Icon(RytmIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
 /**
  * Category, then (when it has any) its subcategory, in one sheet: a category
  * without subcategories is picked with one tap; one with subcategories opens

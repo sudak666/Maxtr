@@ -89,6 +89,7 @@
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
+    <string name="category_all">All categories</string>
     <string name="receipt_scan">Scan receipt</string>
     <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
     <string name="transaction_wallet_expense">Pay from</string><string name="transaction_wallet_source">Transfer from</string><string name="transaction_wallet_target">Transfer to</string>
