@@ -255,16 +255,14 @@ const CAT_ICON_KEYWORDS = [
   [/зарплат|аванс|дохід/i, 'briefcase'],
   [/переказ/i, 'swap'],
   [/цигарк|сигарет/i, 'cigarette'],
+  [/коміс|збір|еквайр/i, 'doc'],
+  [/^(син|доньк|дит|діт)/i, 'person'],
 ];
 
-// 'umbrella' deliberately excluded from the hash pool below — it's used
-// elsewhere for vacation/day-off (setIcon('ic-vacation','umbrella')), which
-// reads fine there, but as a blind fallback for an arbitrary category name
-// (e.g. a bank fee category hashing onto it) it looks nonsensical with no
-// thematic connection. (Still selectable manually via the icon picker,
-// which offers the full window.ICON_NAMES set — this exclusion only
-// applies to this last-resort automatic guess.)
-const CAT_ICON_FALLBACK_POOL = ['tag','person','star','flag','bell','globe','camera','box','gift'];
+// No keyword matched: one neutral tag for every unknown name. A hashed pick
+// from a pool used to hand out unrelated glyphs (a camera for «Комісії»),
+// which read as a bug. The user can still pick any icon in the picker.
+const CAT_ICON_FALLBACK = 'tag';
 
 /** @param {string} name */
 export function categoryIcon(name){
@@ -272,9 +270,7 @@ export function categoryIcon(name){
   if(CAT_ICON[name]) return CAT_ICON[name];
   const s=String(name||'');
   for(const [re,icon] of CAT_ICON_KEYWORDS){ if(re.test(s)) return icon; }
-  let h=0;
-  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
-  return CAT_ICON_FALLBACK_POOL[h%CAT_ICON_FALLBACK_POOL.length];
+  return CAT_ICON_FALLBACK;
 }
 
 // `code` is the compact 1-2 char glyph shown as a colored token on each

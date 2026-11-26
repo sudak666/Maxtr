@@ -285,14 +285,14 @@ private fun WalletKindChips(selected: String, onSelect: (String) -> Unit) {
                 onClick = { onSelect(kind) },
                 label = {
                     Text(
-                        stringResource(when (kind) { "cash" -> R.string.wallet_kind_cash; "deposit" -> R.string.wallet_kind_deposit; "credit" -> R.string.wallet_kind_credit; else -> R.string.wallet_kind_card }),
+                        stringResource(when (kind) { "cash" -> R.string.wallet_kind_cash; "deposit" -> R.string.wallet_kind_deposit; "credit" -> R.string.wallet_kind_credit; "receivable" -> R.string.wallet_kind_receivable; else -> R.string.wallet_kind_card }),
                         maxLines = 1,
                     )
                 },
             )
         }
     }
-    if (selected == "deposit" || selected == "credit") {
+    if (selected in NON_SPENDABLE_WALLET_KINDS) {
         Text(stringResource(R.string.wallet_kind_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

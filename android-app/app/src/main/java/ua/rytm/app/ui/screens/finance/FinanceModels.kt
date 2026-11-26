@@ -29,7 +29,7 @@ data class Wallet(
     // a future Android version) actually uses. Default matches addWallet()'s
     // PWA default (js/settings-managers.js).
     val icon: String = "card",
-    /** cash, card, deposit or credit. */
+    /** cash, card, deposit, credit or receivable (money someone owes you). */
     val kind: String = "card",
     /** What the wallet held before its first entry. */
     val openingBalance: Double = 0.0,
@@ -39,7 +39,16 @@ data class Wallet(
     val inStats: Boolean = true,
 )
 
-val WALLET_KINDS = listOf("cash", "card", "deposit", "credit")
+val WALLET_KINDS = listOf("cash", "card", "deposit", "credit", "receivable")
+
+/**
+ * Kinds that stay in the capital but are not money to spend today: a deposit is
+ * set aside, a credit line is not yours, and money owed to you has not come back yet.
+ */
+val NON_SPENDABLE_WALLET_KINDS = setOf("deposit", "credit", "receivable")
+
+/** Money for everyday spending: feeds the daily allowance and the cash forecast. */
+val Wallet.isSpendable: Boolean get() = inCapital && kind !in NON_SPENDABLE_WALLET_KINDS
 
 /** Entries that count in statistics. */
 fun List<Transaction>.forStats(wallets: List<Wallet>): List<Transaction> {
@@ -139,3 +148,20 @@ val CURRENCY_LIST = listOf("UAH") + ua.rytm.app.data.SEED_RATES.keys
 
 /** A jump from Analytics to the history: a type, a category and the period's dates. */
 data class HistoryJump(val type: TxType, val category: String, val from: String?, val to: String?)
+
+/**
+ * The rows a collapsed history shows: at least [minRows], extended to finish the
+ * last day shown while that stays within [maxRows]. A day too long to finish is
+ * dropped instead when at least three earlier rows remain; otherwise the list
+ * keeps [minRows]. [list] is newest first, grouped by date.
+ */
+fun collapsedHistory(list: List<Transaction>, minRows: Int, maxRows: Int): List<Transaction> {
+    if (list.size <= minRows) return list
+    val lastDay = list[minRows - 1].date
+    var end = minRows
+    while (end < list.size && list[end].date == lastDay) end++
+    if (end <= maxRows) return list.take(end)
+    var start = minRows
+    while (start > 0 && list[start - 1].date == lastDay) start--
+    return list.take(if (start >= 3) start else minRows)
+}

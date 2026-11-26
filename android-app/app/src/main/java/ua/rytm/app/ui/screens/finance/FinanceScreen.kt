@@ -142,6 +142,8 @@ import ua.rytm.app.ui.icons.ExpandLess
 // what's deliberately still a no-op or a seed, not real synced data).
 
 private const val TX_LIST_COLLAPSED_COUNT = 5 // mirrors js/analytics-csv.js's TX_LIST_COLLAPSED_COUNT
+/** A collapsed list may grow to this many rows to finish the last day it shows. */
+private const val TX_LIST_COLLAPSED_MAX = 10
 
 @Composable
 fun FinanceScreen(
@@ -357,11 +359,10 @@ fun FinanceScreen(
         // Read only when the setting is on, so the running sum is never computed otherwise.
         val balancesAfter = if (showBalanceAfter) viewModel.balancesAfter else emptyMap()
         val tagsById = remember(viewModel.tags) { viewModel.tags.associateBy { it.id } }
-        val visible = if (viewModel.listExpanded || filtered.size <= TX_LIST_COLLAPSED_COUNT) {
-            filtered
-        } else {
-            filtered.take(TX_LIST_COLLAPSED_COUNT)
-        }
+        // Collapsed, the list ends on a day boundary where it can: a day cut in
+        // the middle showed a header total that the visible rows did not add up to.
+        val collapsed = remember(filtered) { collapsedHistory(filtered, TX_LIST_COLLAPSED_COUNT, TX_LIST_COLLAPSED_MAX) }
+        val visible = if (viewModel.listExpanded) filtered else collapsed
         // Each day header shows the whole day's net, not just the rows shown while collapsed.
         val dayNets = remember(filtered, pendingDeleteId) { viewModel.dayNetsUah(filtered.filter { it.id != pendingDeleteId }) }
 
@@ -493,7 +494,7 @@ fun FinanceScreen(
                         }
                     }
                 }
-                if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
+                if (collapsed.size < filtered.size) {
                     item(key = "collapse-list-button") {
                         ua.rytm.app.ui.components.RytmOutlinedButton(
                             onClick = { if (viewModel.listExpanded) collapseTransactions() else viewModel.toggleListExpanded() },

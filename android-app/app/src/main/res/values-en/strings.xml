@@ -26,6 +26,7 @@
     <string name="wallet_kind_card">Card</string>
     <string name="wallet_kind_deposit">Deposit</string>
     <string name="wallet_kind_credit">Credit</string>
+    <string name="wallet_kind_receivable">Owed to me</string>
     <string name="wallet_in_capital">Count in total balance</string>
     <string name="wallet_in_capital_hint">When off, this balance is left out of the total.</string>
     <string name="wallet_in_stats">Count in statistics and budgets</string>
@@ -616,7 +617,7 @@
     <string name="settings_monobank_subtitle">Import card and jar transactions automatically</string>
     <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">Premium is active, everything below is unlocked.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB, plus CSV or Excel tables from other banks.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
-    <string name="wallet_kind_hint">This account is left out of the daily allowance.</string>
+    <string name="wallet_kind_hint">This account counts in your capital but not in the daily allowance or the forecast.</string>
     <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
     <string name="cash_forecast_now">On your accounts now</string>
     <string name="cash_forecast_now_hint">Without deposits and credit cards</string>

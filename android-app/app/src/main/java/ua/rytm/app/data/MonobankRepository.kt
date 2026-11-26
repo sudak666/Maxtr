@@ -25,7 +25,31 @@ import java.util.UUID
 import kotlin.math.abs
 
 /** [balance] is the bank's own-money balance from client-info (credit limit taken off); it is not stored. */
-data class MonobankAccount(val id: String, val kind: String, val label: String, val currency: String, val balance: Double? = null)
+data class MonobankAccount(val id: String, val kind: String, val label: String, val currency: String, val balance: Double? = null, val type: String = "")
+
+/**
+ * Wallet names for Monobank cards. A bare masked number («Monobank 444111******5129»)
+ * made five cards look the same in every list; the card type and the last four
+ * digits are what a person recognises.
+ */
+object MonobankNames {
+    private val TYPES = mapOf(
+        "black" to "Чорна", "white" to "Біла", "platinum" to "Platinum", "iron" to "Iron",
+        "fop" to "ФОП", "yellow" to "Дитяча", "eAid" to "єПідтримка", "madeInUkraine" to "Made in UA",
+    )
+
+    fun walletName(account: MonobankAccount): String {
+        if (account.kind == "jar") return "Monobank ${account.label}"
+        val type = TYPES[account.type] ?: "Картка"
+        val last4 = Regex("\\d{4}$").find(account.label)?.value
+        val currency = if (account.currency == "UAH") "" else " ${account.currency}"
+        return if (last4 != null) "Mono $type$currency ••$last4" else "Mono $type$currency"
+    }
+
+    /** The name [MonobankRepository.connect] gave before card types: only such a wallet is renamed. */
+    fun isLegacyDefault(walletName: String, account: MonobankAccount): Boolean =
+        account.kind != "jar" && account.label.contains('*') && walletName == "Monobank ${account.label}"
+}
 data class MonobankConnection(
     val token: String,
     val clientName: String,
@@ -91,7 +115,7 @@ class MonobankRepository(
         val wallets = accounts.mapIndexed { index, account ->
             WalletEntity(
                 id = UUID.randomUUID().toString(),
-                name = "Monobank ${account.label}",
+                name = MonobankNames.walletName(account),
                 colorHex = palette[(existing.size + index) % palette.size],
                 currency = account.currency,
                 icon = if (account.kind == "jar") "target" else "card",
@@ -133,8 +157,9 @@ class MonobankRepository(
         val fromSec = connection.lastSyncAt ?: nowSec - MAX_WINDOW_SEC
         // Balances first: the bank allows client-info once a minute, and the
         // statements below wait their own minute anyway.
-        val bankBalances = runCatching { buildAccounts(request("client-info", emptyMap(), connection.token) as JSONObject) }
-            .getOrNull()?.associate { it.id to it.balance }.orEmpty()
+        val bankAccounts = runCatching { buildAccounts(request("client-info", emptyMap(), connection.token) as JSONObject) }
+            .getOrNull().orEmpty()
+        val bankBalances = bankAccounts.associate { it.id to it.balance }
         val knownIds = MonobankMerge.knownIds(db.transactionDao().getAllMonobankIds())
         val rules = db.autoRuleDao().getAllOnce()
         val currencies = db.walletDao().getAllOnce().associate { it.id to it.currency }
@@ -172,8 +197,9 @@ class MonobankRepository(
             db.transactionDao().insertAll(changed)
         }
         val reconciled = reconcileOpeningBalances(connection.mapping, bankBalances)
+        val renamed = renameLegacyWallets(connection.mapping, bankAccounts)
         val updated = connection.copy(lastSyncAt = nowSec)
-        save(uid, profileId, updated, if (reconciled) db.walletDao().getAllOnce() else null)
+        save(uid, profileId, updated, if (reconciled || renamed) db.walletDao().getAllOnce() else null)
         return updated to imported.size
     }
 
@@ -184,6 +210,20 @@ class MonobankRepository(
      * equals what the bank reports now. Pending holds are already in the
      * bank's figure and land in the history on a later sync.
      */
+    /** Wallets still carrying the old masked-number default get the card-type name; a name the user chose stays. */
+    private suspend fun renameLegacyWallets(mapping: Map<String, String>, bankAccounts: List<MonobankAccount>): Boolean {
+        var changed = false
+        bankAccounts.forEach { account ->
+            val walletId = mapping[account.id] ?: return@forEach
+            val wallet = db.walletDao().getAllOnce().firstOrNull { it.id == walletId } ?: return@forEach
+            if (MonobankNames.isLegacyDefault(wallet.name, account)) {
+                db.walletDao().update(wallet.copy(name = MonobankNames.walletName(account)))
+                changed = true
+            }
+        }
+        return changed
+    }
+
     private suspend fun reconcileOpeningBalances(mapping: Map<String, String>, bankBalances: Map<String, Double?>): Boolean {
         if (bankBalances.isEmpty()) return false
         val transactions = db.transactionDao().getAllOnce().map { it.toDomain() }
@@ -275,7 +315,7 @@ class MonobankRepository(
             val label = pans?.optString(0).orEmpty().ifBlank { item.optString("type").takeIf(String::isNotBlank)?.let { "Monobank $it" } ?: "Monobank" }
             // Amounts come in kopecks; "balance" includes the credit limit.
             val own = (item.optLong("balance") - item.optLong("creditLimit")) / 100.0
-            result += MonobankAccount(item.getString("id"), "account", label, currency(item.optInt("currencyCode")), own)
+            result += MonobankAccount(item.getString("id"), "account", label, currency(item.optInt("currencyCode")), own, item.optString("type"))
         }
         val jars = info.optJSONArray("jars") ?: JSONArray()
         for (i in 0 until jars.length()) {

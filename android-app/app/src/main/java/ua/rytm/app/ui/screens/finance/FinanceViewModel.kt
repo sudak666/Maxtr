@@ -804,8 +804,8 @@ class FinanceViewModel(
 
     /** Total balance across all wallets, converted to UAH — mirrors renderFinance()'s `bal`. */
     val totalBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
-    /** Money for everyday spending: a deposit is set aside and a credit line is not yours, so neither feeds the daily allowance. */
-    val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.inCapital && it.kind != "deposit" && it.kind != "credit" }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
+    /** Money for everyday spending: a deposit is set aside, a credit line is not yours and a debt owed to you has not come back, so none feeds the daily allowance. */
+    val spendableBalanceUah: Double by derivedStateOf { wallets.filter { it.isSpendable }.sumOf { w -> toUah(walletBalance(w.id), w.currency) } }
 
 
     val cashForecast: CashForecast by derivedStateOf {
