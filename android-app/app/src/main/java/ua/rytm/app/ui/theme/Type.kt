@@ -86,7 +86,9 @@ val Typography = Typography(
     bodyLarge = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto),
     bodyMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 15.sp, lineHeight = 21.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto),
     bodySmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 19.sp, letterSpacing = 0.15.sp, hyphens = Hyphens.Auto), // --text-sm
-    labelLarge = TextStyle(fontFamily = Inter, fontWeight = WeightStrong, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto),
+    // SemiBold, not Bold (design audit 2026-11-26): chips, buttons and day
+    // headers all use labelLarge, and at 700 every label shouted equally.
+    labelLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.1.sp, hyphens = Hyphens.Auto),
     labelMedium = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.2.sp, hyphens = Hyphens.Auto), // --text-xs
     labelSmall = TextStyle(fontFamily = Inter, fontWeight = WeightBody, fontSize = 13.sp, lineHeight = 17.sp, letterSpacing = 0.2.sp, hyphens = Hyphens.Auto), // --text-2xs
 )

@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import ua.rytm.app.ui.theme.tabularNums
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalConfiguration
@@ -156,34 +157,7 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
             }
         }
 
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AnalyticsTotalCard(
-                label = stringResource(R.string.analytics_income_label),
-                amount = vm.totalIncome,
-                color = ua.rytm.app.ui.theme.RytmSemantic.income,
-                icon = RytmIcons.TrendingUp,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
-            AnalyticsTotalCard(
-                label = stringResource(R.string.analytics_expense_label),
-                amount = vm.totalExpense,
-                color = MaterialTheme.colorScheme.onSurface,
-                icon = RytmIcons.TrendingDown,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
-        }
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AnalyticsTotalCard(
-                label = stringResource(R.string.analytics_difference), amount = vm.difference,
-                color = if (vm.difference >= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense,
-                icon = RytmIcons.CompareArrows, modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
-            AnalyticsRateCard(
-                label = stringResource(R.string.analytics_savings_rate), value = vm.savingsRate,
-                color = if (vm.savingsRate >= 0) ua.rytm.app.ui.theme.RytmSemantic.income else ua.rytm.app.ui.theme.RytmSemantic.expense,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
-        }
+        AnalyticsSummary(vm.totalIncome, vm.totalExpense, vm.difference, vm.savingsRate)
 
         val expenseChange = vm.expenseChangePercent
         val categoryGrowth = vm.topExpenseGrowth
@@ -227,45 +201,38 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
     }
 }
 
+/**
+ * The period in three lines, one surface (design audit 2026-11-26): four
+ * tinted cards said the same thing twice («Різниця» and «Заощаджено») and
+ * coded each value with a colour, an icon badge and a tile; the donut below
+ * already repeats the expense total.
+ */
 @Composable
-private fun AnalyticsTotalCard(label: String, amount: Double, color: Color, icon: ImageVector, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input),
-        // P5: neutral tile like the rest of the app; color only in the value
-        // and icon badge (the tinted wash + border coded the same fact 3×).
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+private fun AnalyticsSummary(income: Double, expense: Double, difference: Double, savingsRate: Int) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input))
+            .padding(horizontal = RytmSpacing.lg, vertical = RytmSpacing.md)
+            .semantics(mergeDescendants = true) {},
+        verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
     ) {
-        Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-                }
-                ua.rytm.app.ui.components.FitText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        @Composable
+        fun Line(label: String, value: String, color: Color) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(value, style = MaterialTheme.typography.titleSmall.tabularNums(), fontWeight = FontWeight.SemiBold, color = color, maxLines = 1)
             }
-            Text(
-                maskedAmount(stringResource(R.string.finance_amount_uah, formatMoney(amount))),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                color = color,
-                maxLines = 1,
-            )
         }
-    }
-}
-
-@Composable
-private fun AnalyticsRateCard(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Input), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
-        Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.size(26.dp).background(color.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(RytmIcons.TrackChanges, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-                }
-                ua.rytm.app.ui.components.FitText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Text("$value%".replace('-', '−'), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
-        }
+        @Composable fun uah(v: Double) = maskedAmount(stringResource(R.string.finance_amount_uah, formatMoney(kotlin.math.abs(v))))
+        Line(stringResource(R.string.analytics_income_label), "+" + uah(income), ua.rytm.app.ui.theme.RytmSemantic.income)
+        Line(stringResource(R.string.analytics_expense_label), "−" + uah(expense), MaterialTheme.colorScheme.onSurface)
+        val negative = difference < 0
+        Line(
+            stringResource(R.string.analytics_savings_rate),
+            (if (negative) "−" else "") + uah(difference) + " · " + "$savingsRate%".replace('-', '−'),
+            if (negative) ua.rytm.app.ui.theme.RytmSemantic.expense else ua.rytm.app.ui.theme.RytmSemantic.income,
+        )
     }
 }
 
@@ -372,7 +339,6 @@ private fun donutSegment(center: Offset, outerR: Float, innerR: Float, startDeg:
 private fun CategoryBar(category: String, amount: Double, total: Double, label: String = localizedDomainText(category), onClick: (() -> Unit)? = null) {
     val pct = if (total > 0) (amount / total * 100).toInt() else 0
     val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
-    val color = categoryColor(category)
     Column(
         Modifier.fillMaxWidth()
             .then(if (onClick != null) Modifier.clip(androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)).clickable(onClick = onClick) else Modifier)
@@ -393,7 +359,8 @@ private fun CategoryBar(category: String, amount: Double, total: Double, label: 
             )
         }
         Box(Modifier.fillMaxWidth().padding(top = 5.dp).height(3.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
-            Box(Modifier.fillMaxWidth(progress).height(3.dp).background(color, CircleShape))
+            // Neutral fill: the icon badge already carries the category colour.
+            Box(Modifier.fillMaxWidth(progress).height(3.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f), CircleShape))
         }
     }
 }
