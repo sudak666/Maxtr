@@ -53,8 +53,16 @@ import ua.rytm.app.ui.theme.RytmSpacing
 fun FiltersButton(activeCount: Int, onClick: () -> Unit) {
     val label = stringResource(R.string.filters_title)
     BadgedBox(badge = { if (activeCount > 0) Badge { Text(activeCount.toString()) } }) {
-        FilledTonalIconButton(onClick = onClick, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
-            Icon(RytmIcons.Tune, contentDescription = label)
+        // Tinted only while a filter is on: an always-tinted button outshouted the
+        // search field and said nothing about the list.
+        if (activeCount > 0) {
+            FilledTonalIconButton(onClick = onClick, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+                Icon(RytmIcons.Tune, contentDescription = label)
+            }
+        } else {
+            androidx.compose.material3.IconButton(onClick = onClick, modifier = Modifier.heightIn(min = RytmDimens.TouchTarget)) {
+                Icon(RytmIcons.Tune, contentDescription = label, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }

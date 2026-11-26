@@ -22,6 +22,7 @@ import ua.rytm.app.ui.theme.OrangeDark
 import ua.rytm.app.ui.theme.Pink
 import ua.rytm.app.ui.theme.PurpleDark
 import ua.rytm.app.ui.theme.RedDark
+import ua.rytm.app.ui.icons.Receipt
 import ua.rytm.app.ui.icons.Laptop
 import ua.rytm.app.ui.icons.Favorite
 import ua.rytm.app.ui.icons.Build
@@ -231,12 +232,13 @@ private val CAT_ICON_KEYWORDS: List<Pair<Regex, ImageVector>> = listOf(
         Regex("зарплат|аванс|дохід", RegexOption.IGNORE_CASE) to RytmIcons.Work,
         Regex("переказ", RegexOption.IGNORE_CASE) to RytmIcons.SwapHoriz,
         Regex("цигарк|сигарет", RegexOption.IGNORE_CASE) to RytmIcons.SmokingRooms,
+        Regex("коміс|збір|еквайр", RegexOption.IGNORE_CASE) to RytmIcons.Receipt,
+        Regex("^(син|доньк|дит|діт)", RegexOption.IGNORE_CASE) to RytmIcons.Person,
     )
 
-// Mirrors js/core.js's CAT_ICON_FALLBACK_POOL — 'umbrella' excluded there
-// for the same reason (no thematic connection as a blind guess); this app
-// has no umbrella-equivalent glyph in play anyway, so nothing to exclude.
-private val CAT_ICON_FALLBACK_POOL: List<ImageVector> = listOf(RytmIcons.Sell, RytmIcons.Person, RytmIcons.Star, RytmIcons.Flag, RytmIcons.Notifications, RytmIcons.Public, RytmIcons.PhotoCamera, RytmIcons.Bento, RytmIcons.CardGiftcard)
+// No keyword matched: one neutral tag for every unknown name (js/core.js's
+// CAT_ICON_FALLBACK). A hashed pick from a pool used to hand out unrelated
+// glyphs (a camera for «Комісії»), which read as a bug.
 
 // `iconOverride`, when non-null, is AppState.categoryIcons[name] (this
 // step's own manual per-category override, set via CategoryIconPickerSheet)
@@ -253,9 +255,7 @@ fun categoryIcon(category: String, iconOverride: String? = null): ImageVector {
     CAT_ICON[category]?.let { return it }
     val keywords = CAT_ICON_KEYWORDS
     for ((regex, icon) in keywords) if (regex.containsMatchIn(category)) return icon
-    val pool = CAT_ICON_FALLBACK_POOL
-    val h = category.hashCode().let { if (it < 0) -it else it }
-    return pool[h % pool.size]
+    return RytmIcons.Sell
 }
 
 @Composable

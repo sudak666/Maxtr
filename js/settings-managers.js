@@ -226,7 +226,7 @@ function walletInUse(id){ return AppState.transactions.some(t=>t.wallet===id||t.
 
 /** @param {string} [kind] */
 function walletKindHint(kind){
-  return kind==='deposit'||kind==='credit' ? `<div class="wallet-hint">${tr('wallet_kind_hint')}</div>` : '';
+  return kind==='deposit'||kind==='credit'||kind==='receivable' ? `<div class="wallet-hint">${tr('wallet_kind_hint')}</div>` : '';
 }
 
 function renderWalletsList(){
@@ -248,7 +248,7 @@ function renderWalletsList(){
           <input type="number" class="mgr-num" step="0.01" placeholder="0" value="${escapeHtml(w.openingBalance||'')}" data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="openingBalance"></label>
         <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
           <select data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="kind">
-            ${['cash','card','deposit','credit'].map(k=>`<option value="${escapeHtml(k)}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
+            ${['cash','card','deposit','credit','receivable'].map(k=>`<option value="${escapeHtml(k)}" ${(w.kind||'card')===k?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}
           </select></label>
         ${walletKindHint(w.kind)}
         <label class="wallet-switch"><input type="checkbox" ${w.inCapital!==false?'checked':''} data-action="update-wallet" data-id="${escapeHtml(w.id)}" data-field="inCapital"> ${tr('wallet_in_capital')}</label>
@@ -284,7 +284,7 @@ const openWalletCreate = function(){
     <label class="mgr-field"><span class="mgr-field-label">${tr('debt_currency')}</span>
       <select id="wallet-create-currency">${CURRENCY_LIST.map(c=>`<option value="${escapeHtml(c)}" ${c==='UAH'?'selected':''}>${c}</option>`).join('')}</select></label>
     <label class="mgr-field"><span class="mgr-field-label">${tr('wallet_kind')}</span>
-      <select id="wallet-create-kind" data-action="wallet-create-field">${['cash','card','deposit','credit'].map(k=>`<option value="${escapeHtml(k)}" ${k==='card'?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}</select></label>
+      <select id="wallet-create-kind" data-action="wallet-create-field">${['cash','card','deposit','credit','receivable'].map(k=>`<option value="${escapeHtml(k)}" ${k==='card'?'selected':''}>${tr('wallet_kind_'+k)}</option>`).join('')}</select></label>
     <div id="wallet-create-hint"></div>`;
   box.querySelectorAll('select').forEach(enhanceSelect);
   syncWalletCreate();

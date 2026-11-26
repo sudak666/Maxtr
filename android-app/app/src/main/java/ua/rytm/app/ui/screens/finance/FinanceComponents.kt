@@ -97,6 +97,7 @@ import ua.rytm.app.ui.components.swipeReleaseAction
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -189,7 +190,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     ua.rytm.app.ui.screens.ProfileEntryAvatar()
                 }
                 Text(
-                    text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
+                    text = heroAmountText(maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah))))),
                     // Tabular figures: proportional digits make the balance jitter
                     // horizontally as it changes.
                     style = MaterialTheme.typography.displayLarge.tabularNums(),
@@ -878,3 +879,17 @@ internal fun TransactionDetailsDialog(tx: Transaction, walletName: String?, tagN
         confirmButton = { ua.rytm.app.ui.components.RytmTextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
     )
 }
+
+/**
+ * The hero balance with a lighter, smaller currency sign: at Black weight the
+ * two strokes of «₴» merge into one blot, and the sign should not outweigh the digits.
+ */
+internal fun heroAmountText(text: String): androidx.compose.ui.text.AnnotatedString =
+    androidx.compose.ui.text.buildAnnotatedString {
+        append(text)
+        var from = text.indexOf('₴')
+        while (from >= 0) {
+            addStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Medium, fontSize = 0.72.em), from, from + 1)
+            from = text.indexOf('₴', from + 1)
+        }
+    }
