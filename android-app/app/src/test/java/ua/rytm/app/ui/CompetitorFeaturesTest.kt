@@ -24,6 +24,11 @@ class CompetitorFeaturesTest {
         assertNull(MerchantBrands.match(null))
         // "коло" inside another word must not match.
         assertNull(MerchantBrands.match("околиця"))
+        assertEquals("ДТЕК", MerchantBrands.match("DTEK KYIVSKI ELEKTROMEREZHI")?.name)
+        assertEquals("Аврора", MerchantBrands.match("Аврора, Львів")?.name)
+        // Ordinary words stay ordinary: whole-word keywords only.
+        assertNull(MerchantBrands.match("простора кімната"))
+        assertNull(MerchantBrands.match("авроральний"))
     }
 
     @Test fun smartSearchTurnsWordsIntoFilters() {
