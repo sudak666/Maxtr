@@ -29,6 +29,8 @@ class CompetitorFeaturesTest {
         // Ordinary words stay ordinary: whole-word keywords only.
         assertNull(MerchantBrands.match("простора кімната"))
         assertNull(MerchantBrands.match("авроральний"))
+        assertEquals("Claude", MerchantBrands.match("ANTHROPIC CLAUDE SUBSCRIPTION")?.name)
+        assertEquals("ChatGPT", MerchantBrands.match("OPENAI *CHATGPT SUBSCR")?.name)
     }
 
     @Test fun smartSearchTurnsWordsIntoFilters() {

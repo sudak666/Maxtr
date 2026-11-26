@@ -33,26 +33,33 @@ import androidx.compose.ui.unit.sp
  * logo black. Wordmark brands keep only their mark, cropped to its measured
  * bounds (Kyivstar star, Rozetka smile, WOG «W», Nova Poshta sign). ATB is its
  * red «АТБ» in Inter Black on white, as on its signs: the Commons «ATB Logo»
- * (an orange sail) was not recognisable to the owner. Shown only to name where
+ * (an orange sail) was not recognisable to the owner. Added the same day at
+ * the owner's request (brands he pays often): Vodafone logo 2017 (the red
+ * disc), ChatGPT logo (the app tile), Claude AI symbol, Fora logo (the green
+ * «фора» plate) — all Commons — and Prom, whose public-domain mark (uk.wikipedia
+ * Prom_logo.png, only 216×80) was redrawn as a vector square frame with the
+ * sampled #4E4D9F→#7D2391 gradient. Коло: its «КОЛО» wordmark cropped from the
+ * official Google Play app icon (screenshot sent by the owner), on its #4CB040.
+ * Shown only to name where
  * a payment went; every other brand keeps its monogram in the brand colour.
  */
 object MerchantBrands {
     /** [logo]: a bundled logo tile (res/drawable-nodpi/merchant_*.png); null = the monogram. */
-    data class Brand(val name: String, val monogram: String, val color: Long, val keywords: List<String>, val logo: Int? = null)
+    data class Brand(val name: String, val monogram: String, val color: Long, val keywords: List<String>, val logo: Int? = null, val logoFullBleed: Boolean = false)
 
     val all = listOf(
         Brand("АТБ", "АТБ", 0xFFE30613, listOf("атб", "atb"), logo = ua.rytm.app.R.drawable.merchant_atb),
         Brand("Сільпо", "С", 0xFFFF6A13, listOf("сільпо", "silpo"), logo = ua.rytm.app.R.drawable.merchant_silpo),
         Brand("Novus", "N", 0xFF00A651, listOf("novus", "новус"), logo = ua.rytm.app.R.drawable.merchant_novus),
-        Brand("Фора", "Ф", 0xFFE4002B, listOf("фора", "fora")),
+        Brand("Фора", "Ф", 0xFFE4002B, listOf("фора", "fora"), logo = ua.rytm.app.R.drawable.merchant_fora, logoFullBleed = true),
         Brand("Varus", "V", 0xFF009639, listOf("varus", "варус")),
         Brand("Metro", "M", 0xFF003D7C, listOf("metro cash", "метро кеш", "metro ")),
         Brand("Auchan", "A", 0xFFE2001A, listOf("auchan", "ашан")),
-        Brand("Коло", "К", 0xFF2E7D32, listOf("kolo ", "коло ", "kolo kiyev")),
+        Brand("Коло", "К", 0xFF4CB040, listOf("kolo ", "коло ", "kolo kiyev"), logo = ua.rytm.app.R.drawable.merchant_kolo, logoFullBleed = true),
         Brand("Велмарт", "В", 0xFF0072BC, listOf("velmart", "велмарт")),
         Brand("Таврія В", "ТВ", 0xFFD71920, listOf("tavria", "таврія")),
         Brand("Епіцентр", "Е", 0xFFF39200, listOf("epicentr", "епіцентр")),
-        Brand("Rozetka", "R", 0xFF00A046, listOf("rozetka", "розетка"), logo = ua.rytm.app.R.drawable.merchant_rozetka),
+        Brand("Rozetka", "R", 0xFF00A046, listOf("rozetka", "розетка"), logo = ua.rytm.app.R.drawable.merchant_rozetka, logoFullBleed = true),
         Brand("Comfy", "C", 0xFFE5007E, listOf("comfy", "комфі")),
         Brand("Фокстрот", "Ф", 0xFFFF5800, listOf("foxtrot", "фокстрот")),
         Brand("Glovo", "G", 0xFFFFC244, listOf("glovo", "глово"), logo = ua.rytm.app.R.drawable.merchant_glovo),
@@ -71,15 +78,15 @@ object MerchantBrands {
         Brand("SOCAR", "S", 0xFF0057B8, listOf("socar")),
         Brand("UPG", "U", 0xFFFDB913, listOf("upg")),
         Brand("Київстар", "КС", 0xFF0090D7, listOf("kyivstar", "київстар"), logo = ua.rytm.app.R.drawable.merchant_kyivstar),
-        Brand("Vodafone", "V", 0xFFE60000, listOf("vodafone", "водафон")),
-        Brand("lifecell", "L", 0xFFFFD100, listOf("lifecell", "лайфсел"), logo = ua.rytm.app.R.drawable.merchant_lifecell),
+        Brand("Vodafone", "V", 0xFFE60000, listOf("vodafone", "водафон"), logo = ua.rytm.app.R.drawable.merchant_vodafone, logoFullBleed = true),
+        Brand("lifecell", "L", 0xFFFFD100, listOf("lifecell", "лайфсел"), logo = ua.rytm.app.R.drawable.merchant_lifecell, logoFullBleed = true),
         Brand("Netflix", "N", 0xFFE50914, listOf("netflix"), logo = ua.rytm.app.R.drawable.merchant_netflix),
         Brand("Spotify", "S", 0xFF1DB954, listOf("spotify"), logo = ua.rytm.app.R.drawable.merchant_spotify),
         Brand("YouTube", "YT", 0xFFFF0000, listOf("youtube"), logo = ua.rytm.app.R.drawable.merchant_youtube),
         Brand("Google", "G", 0xFF4285F4, listOf("google"), logo = ua.rytm.app.R.drawable.merchant_google),
         Brand("Apple", "A", 0xFF9AA0A6, listOf("apple.com", "itunes", "apple "), logo = ua.rytm.app.R.drawable.merchant_apple),
         Brand("Steam", "S", 0xFF66C0F4, listOf("steam")),
-        Brand("Prom", "P", 0xFF7B2CBF, listOf("prom.ua", "prom ")),
+        Brand("Prom", "P", 0xFF7B2CBF, listOf("prom.ua", "prom "), logo = ua.rytm.app.R.drawable.merchant_prom),
         Brand("EVA", "EVA", 0xFFE6007E, listOf("eva ", "єва")),
         Brand("Watsons", "W", 0xFF00A39C, listOf("watsons", "ватсонс")),
         Brand("Аптека АНЦ", "АНЦ", 0xFF0072BC, listOf("анц", "anc ")),
@@ -112,7 +119,8 @@ object MerchantBrands {
         Brand("Укрзалізниця", "УЗ", 0xFF0057B8, listOf("uz.gov", "ukrzaliznytsia", "укрзалізниця")),
         Brand("Київ Цифровий", "КЦ", 0xFF00A0E3, listOf("kyiv digital", "київ цифровий")),
         Brand("Megogo", "MG", 0xFF0E1A2B, listOf("megogo", "мегого")),
-        Brand("ChatGPT", "AI", 0xFF10A37F, listOf("openai", "chatgpt")),
+        Brand("ChatGPT", "AI", 0xFF10A37F, listOf("openai", "chatgpt"), logo = ua.rytm.app.R.drawable.merchant_chatgpt, logoFullBleed = true),
+        Brand("Claude", "C", 0xFFD97757, listOf("anthropic", "claude.ai", "claude "), logo = ua.rytm.app.R.drawable.merchant_claude),
         Brand("ДТЕК", "Д", 0xFFFFC72C, listOf("dtek", "дтек")),
         Brand("Нафтогаз", "НГ", 0xFF0057B8, listOf("naftogaz", "нафтогаз")),
         Brand("Укртелеком", "УТ", 0xFF0072BC, listOf("ukrtelecom", "укртелеком")),
@@ -136,8 +144,9 @@ fun MerchantBadge(brand: MerchantBrands.Brand, size: Dp = 40.dp, modifier: Modif
             androidx.compose.ui.res.painterResource(logo),
             contentDescription = null,
             modifier = modifier.size(size).clip(CircleShape).then(
-                // Light rows are white too: a hairline keeps the disc a disc.
-                if (ua.rytm.app.ui.theme.RytmSemantic.isDark) Modifier
+                // Light rows are white too: a hairline keeps a white disc a disc.
+                // A tile coloured to its edge (Vodafone, Fora…) needs none.
+                if (ua.rytm.app.ui.theme.RytmSemantic.isDark || brand.logoFullBleed) Modifier
                 else Modifier.border(1.dp, androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant, CircleShape),
             ),
         )
