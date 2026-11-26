@@ -463,7 +463,13 @@ private fun ProgressBarSection(cd: Debt) {
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("${(pct * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            // Start and paid sums live here now, not in two chips that pushed
+            // the rest of the row off screen (design audit 2026-11-26).
+            Text(
+                maskedAmount(stringResource(R.string.debt_progress_of, formatMoney(paid), "${formatMoney(target)} ${currencySymbol(cd.currency)}", (pct * 100).toInt())),
+                style = MaterialTheme.typography.labelSmall.tabularNums(),
+                fontWeight = FontWeight.Bold,
+            )
         }
         Box(
             Modifier
@@ -493,8 +499,8 @@ private fun ProgressBarSection(cd: Debt) {
 private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     RytmStatChipRow {
-        item { RytmStatChip(RytmIcons.AccountBalanceWallet, maskedAmount("${formatMoney(cd.startAmount)} ${currencySymbol(cd.currency)}"), stringResource(R.string.debt_start_amount)) }
-        item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
+        // With a start amount the progress bar above already says «paid X of Y».
+        if (cd.startAmount <= 0) item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
         item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
         if (due != null) item { RytmStatChip(RytmIcons.Event, due, stringResource(R.string.debt_due_date)) }
     }

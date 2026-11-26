@@ -90,6 +90,7 @@ private sealed interface TabGlyph {
     companion object {
         fun of(destination: RytmDestination): TabGlyph = when (destination) {
             RytmDestination.Finance -> Wallet
+            RytmDestination.Analytics -> Chart
             RytmDestination.Shifts -> Calendar
             RytmDestination.Debt -> Receipt
             RytmDestination.Settings -> Gear
@@ -146,6 +147,20 @@ private sealed interface TabGlyph {
                     val fraction = if (selected) easeOut(window(p, 0.2f + i * 0.17f, 0.5f + i * 0.17f)) else 1f
                     drawPartial(line, fraction, tint)
                 }
+            }
+        }
+    }
+
+    /** Lucide `chart-column`: the three bars grow up from the axis one after another. */
+    object Chart : TabGlyph {
+        private val axis = path("M3 3v16a2 2 0 0 0 2 2h16")
+        // Each bar's path starts at the axis, so drawing part of it grows it upward.
+        private val bars = listOf(path("M8 17v-3"), path("M13 17V5"), path("M18 17V9"))
+        override fun draw(scope: DrawScope, p: Float, selected: Boolean, tint: Color) = with(scope) {
+            drawPath(axis, tint, style = GlyphStroke)
+            bars.forEachIndexed { i, bar ->
+                val fraction = if (selected) easeOutBack(window(p, 0.1f + i * 0.15f, 0.55f + i * 0.15f)).coerceAtLeast(0.05f) else 1f
+                drawPartial(bar, fraction.coerceAtMost(1f), tint)
             }
         }
     }

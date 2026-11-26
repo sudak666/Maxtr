@@ -91,16 +91,39 @@ import ua.rytm.app.ui.icons.TrendingUp
 // breakdown + period filter), FX rates, currency converter, 6-month chart —
 // see ToolsViewModel's own doc comment for exactly which data each reuses.
 @OptIn(ExperimentalMaterial3Api::class)
+/** «Валюти» (was «Інструменти»): exchange rates and the converter. Analytics has its own tab now. */
 @Composable
 fun ToolsSheet(
     repository: FinanceRepository,
     onDismiss: () -> Unit,
-    onOpenMonthSummary: (() -> Unit)? = null,
-    /** «До операцій» from a category's statistics: type, category and the period's date range. */
-    onShowTransactions: ((TxType, String, String?, String?) -> Unit)? = null,
     viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(repository)),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
+        ) {
+            RytmSheetTitle(stringResource(R.string.tools_title))
+            FxRatesSection(viewModel)
+            ConverterSection(viewModel)
+        }
+    }
+}
+
+/**
+ * The Analytics tab (design audit 2026-11-26: it used to be the top of the
+ * «Інструменти» sheet, reachable only through a wrench tile). Month summary,
+ * the period's totals and categories, and the six-month chart.
+ */
+@Composable
+fun AnalyticsScreen(onOpenFinance: () -> Unit) {
+    val app = ua.rytm.app.ui.rytmApp()
+    val canEdit = ua.rytm.app.ui.LocalCanEditProfile.current
+    val viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(app.financeRepository))
+    ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.transaction_new_title), enabled = canEdit) {
+        app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION
+    }
     var detail by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<Pair<String, String>?>(null) }
     detail?.let { (typeName, category) ->
         CategoryStatsSheet(
@@ -108,39 +131,34 @@ fun ToolsSheet(
             type = TxType.valueOf(typeName),
             category = category,
             onDismiss = { detail = null },
-            onShowTransactions = onShowTransactions?.let { show ->
-                {
-                    val (from, to) = viewModel.periodRange()
-                    detail = null
-                    show(TxType.valueOf(typeName), category, from, to)
-                }
+            onShowTransactions = {
+                val (from, to) = viewModel.periodRange()
+                detail = null
+                app.pendingHistoryJump.value = HistoryJump(TxType.valueOf(typeName), category, from, to)
+                onOpenFinance()
             },
         )
     }
-
-    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().imePadding().padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
-            verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(start = RytmSpacing.lg, end = RytmSpacing.lg, top = RytmSpacing.lg, bottom = ua.rytm.app.ui.theme.RytmDimens.BottomContentClearance),
+        verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
+    ) {
+        ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_analytics))
+        ua.rytm.app.ui.components.RytmOutlinedButton(
+            // Opens on Finance, where the month summary sheet lives.
+            onClick = { app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_MONTH_SUMMARY },
+            modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
         ) {
-            RytmSheetTitle(stringResource(R.string.tools_title))
-            onOpenMonthSummary?.let { open ->
-                ua.rytm.app.ui.components.RytmOutlinedButton(
-                    onClick = open,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
-                ) {
-                    androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null)
-                    androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
-                    Text(stringResource(R.string.month_summary_tool))
-                }
-            }
-
-            AnalyticsSection(viewModel) { type, category -> detail = type.name to category }
-            FxRatesSection(viewModel)
-            ConverterSection(viewModel)
-            SixMonthChartSection(viewModel)
+            androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null)
+            androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
+            Text(stringResource(R.string.month_summary_tool))
         }
+        AnalyticsSection(viewModel) { type, category -> detail = type.name to category }
+        SixMonthChartSection(viewModel)
     }
 }
 

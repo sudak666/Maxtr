@@ -823,10 +823,13 @@ internal fun DayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Design audit 2026-11-26: a filled tile under every one of ~35 days made
+    // the grid heavy. Only days with a shift keep a quiet fill; empty days
+    // are flat, and the shift tokens carry the month.
     val bg = when {
         isOutsideMonth -> Color.Transparent
         assigned.isNotEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh
-                else -> MaterialTheme.colorScheme.surfaceVariant
+        else -> Color.Transparent
     }
     // Neutral, not the expense red: a weekend is not an error or a cost.
     val weekendAccent = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
