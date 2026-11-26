@@ -23,18 +23,18 @@ import androidx.compose.ui.unit.sp
  * the merchant's own monogram in its brand color instead of the generic
  * category icon, so a long history scans by eye.
  *
- * Logos (owner's call, 2026-11-26): the 16 most common brands carry their real
+ * Logos (owner's call, 2026-11-26): the 16 most common brands carry a real
  * mark, bundled (offline, nothing about the user's spending leaves the phone),
- * rendered once onto a white 160px tile from Wikimedia Commons files — ATB
- * Logo, Silpo
- * outline logo, Novus Ukraina logo, ROZETKA-Logo-L3-B-RGB, Glovo Logo, Bolt
- * Technology Logo 2019, Nova Poshta 2022 logo, McDonald's Golden Arches, WOG
- * Logo, Kyivstar logo, Lifecell-logo-2025-blue-on-yellow, Netflix 2016 N logo,
- * Spotify icon, YouTube full-color icon (2017), Google "G" logo, Apple logo
- * black. Wordmark brands keep only their mark, cropped to its measured bounds
- * (ATB sail, Kyivstar star, Rozetka smile,
- * WOG «W», Nova Poshta sign). Shown only to name where a payment went; every
- * other brand keeps its monogram in the brand colour.
+ * rendered once onto a white 160px tile. 15 come from Wikimedia Commons files —
+ * Silpo outline logo, Novus Ukraina logo, ROZETKA-Logo-L3-B-RGB, Glovo Logo,
+ * Bolt Technology Logo 2019, Nova Poshta 2022 logo, McDonald's Golden Arches,
+ * WOG Logo, Kyivstar logo, Lifecell-logo-2025-blue-on-yellow, Netflix 2016 N
+ * logo, Spotify icon, YouTube full-color icon (2017), Google "G" logo, Apple
+ * logo black. Wordmark brands keep only their mark, cropped to its measured
+ * bounds (Kyivstar star, Rozetka smile, WOG «W», Nova Poshta sign). ATB is its
+ * red «АТБ» in Inter Black on white, as on its signs: the Commons «ATB Logo»
+ * (an orange sail) was not recognisable to the owner. Shown only to name where
+ * a payment went; every other brand keeps its monogram in the brand colour.
  */
 object MerchantBrands {
     /** [logo]: a bundled logo tile (res/drawable-nodpi/merchant_*.png); null = the monogram. */
