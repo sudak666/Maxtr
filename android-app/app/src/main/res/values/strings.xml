@@ -119,7 +119,7 @@
     <string name="validation_date_required">Обери дату</string><string name="validation_invalid_date">Некоректний формат дати</string><string name="validation_wallet_required">Обери гаманець</string>
     <string name="validation_comment_too_long">Коментар занадто довгий</string><string name="validation_category_too_long">Назва категорії або підкатегорії занадто довга</string><string name="validation_same_wallets">Однакові гаманці</string>
     <string name="transaction_save_failed">Не вдалося зберегти операцію</string>
-    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію. Залиш порожнім або 0 — без бюджету.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
+    <string name="budgets_title">Бюджети</string><string name="budgets_body">Місячний ліміт витрат на категорію.</string><string name="budgets_empty">Немає категорій витрат</string><string name="budgets_spent_of">%1$s з %2$s ₴</string><string name="budgets_unlimited">Без ліміту</string><string name="budgets_monthly_limit">Ліміт на місяць (₴)</string><string name="budgets_save_failed">Не вдалося зберегти бюджет. Спробуй ще раз.</string>
     <string name="widgets_title">Віджети</string><string name="widgets_body">Увімкни, вимкни й переставляй блоки на вкладці «Фінанси».</string>
     <string name="widget_goals">Цілі</string><string name="widget_goals_subtitle">Прогрес накопичення на гаманцях</string><string name="widget_tip">Порада дня</string><string name="widget_tip_subtitle">Коротка фінансова порада, що змінюється щодня</string><string name="widget_crypto">Топ криптовалюти</string><string name="widget_crypto_subtitle">Курс і графік за 7 днів (BTC, ETH)</string>
     <string name="action_reorder">Перетягнути, щоб змінити порядок</string><string name="widgets_sync_failed">Не вдалося синхронізувати налаштування віджетів</string>
@@ -630,20 +630,22 @@
     <string name="wallet_kind_hint">Цей рахунок входить у капітал, але не в суму «на день» і прогноз.</string>
     <string name="cash_forecast_main">Прогноз на %1$s: %2$s ₴</string>
     <string name="cash_forecast_now">Зараз на рахунках</string>
-    <string name="cash_forecast_now_hint">Без депозитів і кредиток</string>
+    <string name="cash_forecast_now_hint">Без депозитів, кредиток і боргів тобі</string>
     <string name="cash_forecast_in">Регулярні надходження</string>
     <string name="cash_forecast_out">Регулярні платежі</string>
     <string name="cash_forecast_habit">Звичні витрати</string>
     <string name="cash_forecast_habit_hint">%1$s ₴ на день × %2$d дн.</string>
     <string name="cash_forecast_end">На %1$s</string>
     <string name="cash_forecast_lowest">Найбільша нестача: %1$s ₴, %2$s</string>
-    <string name="cash_forecast_habit_title">Звідки звичні витрати</string>
-    <string name="cash_forecast_habit_explain">Середнє за останні %1$d дн. Не враховано %2$d найдорожчих дн. (разові покупки) і регулярні платежі: вони вже є вище.</string>
-    <string name="cash_forecast_habit_top">Найбільше за ці дні: %1$s</string>
+    <string name="cash_forecast_habit_title">Звичні витрати</string>
+    <string name="cash_forecast_habit_explain">Середнє за %1$d дн. без %2$d найдорожчих днів (разові покупки) і без регулярних платежів.</string>
+    <string name="cash_forecast_habit_top">Найбільше: %1$s</string>
     <string name="cash_forecast_shifts_title">Зміни</string>
-    <string name="cash_forecast_shifts_paid">За зміни до кінця місяця ще ≈ %1$s ₴. Окремо не додано: ці гроші приходять зарплатою, а вона вже є серед регулярних надходжень.</string>
-    <string name="cash_forecast_shifts">За зміни до кінця місяця ще ≈ %1$s ₴. У прогноз не додано: оплата змін приходить зарплатою. Додай зарплату як регулярний дохід, і вона тут врахується.</string>
-    <string name="cash_forecast_after_hint">Залишок уже з урахуванням звичних витрат до цього дня.</string>
+    <string name="cash_forecast_shifts_paid">За зміни ще ≈ %1$s ₴. Вони прийдуть із зарплатою, тож уже враховані.</string>
+    <string name="cash_forecast_shifts">За зміни ще ≈ %1$s ₴. Щоб їх врахувати, додай зарплату як регулярний дохід.</string>
+    <string name="cash_forecast_after_hint">Залишок по днях — уже після звичних витрат.</string>
+    <string name="cash_forecast_how">Як це рахується</string>
+    <string name="budgets_limit_hint">Порожньо або 0 — без ліміту</string>
     <string name="cash_forecast_title">Прогноз грошей</string>
     <string name="cash_forecast_subtitle">до %1$s</string>
     <string name="cash_forecast_enough">Вистачає до кінця місяця</string>
@@ -652,7 +654,7 @@
     <string name="cash_forecast_events">По днях</string>
     <string name="cash_forecast_no_events">Регулярних платежів до кінця місяця немає.</string>
     <string name="cash_forecast_after">залишок %1$s ₴</string>
-    <string name="cash_forecast_note">Кінець місяця задано в налаштуваннях.</string>
+    <string name="cash_forecast_note">Кінець місяця можна змінити в налаштуваннях.</string>
     <string name="recurring_first_date">Перший платіж</string>
     <string name="recurring_comment">Назва (необов’язково)</string>
     <string name="recurring_create_hint">Якщо дата вже минула, перший платіж буде в наступну таку дату: заднім числом нічого не додається.</string>
