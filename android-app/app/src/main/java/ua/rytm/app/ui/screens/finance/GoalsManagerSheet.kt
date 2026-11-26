@@ -123,14 +123,13 @@ fun GoalsManagerSheet(
                 )
             }
 
-            Button(
+            // The same quiet «+ Додати» as Budgets: a full-width accent bar
+            // outshouted the goals themselves.
+            ua.rytm.app.ui.components.RytmTextButton(
                 onClick = { createOpen = true },
-                modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.wallets.isNotEmpty() && !viewModel.isSaving,
-                shape = RoundedCornerShape(RytmRadii.Row),
-                contentPadding = ButtonDefaults.ContentPadding,
             ) {
-                Icon(RytmIcons.Add, contentDescription = null)
+                Icon(RytmIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
                 Text(stringResource(R.string.goals_add))
             }
@@ -241,6 +240,14 @@ private fun GoalRow(
         Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))) {
             Box(
                 Modifier.fillMaxWidth(progress.toFloat()).height(8.dp).background(MaterialTheme.colorScheme.primary),
+            )
+        }
+        // What is left, not only a bar: «0 / 50 000» alone says little about the next step.
+        if (wallet != null && target > 0 && !done) {
+            Text(
+                stringResource(R.string.goals_left, ua.rytm.app.ui.maskedAmount(formatMoney(target - savedClamped)), currencySymbol(wallet.currency)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 

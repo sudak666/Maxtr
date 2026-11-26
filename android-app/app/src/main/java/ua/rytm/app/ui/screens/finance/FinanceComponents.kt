@@ -95,6 +95,7 @@ import ua.rytm.app.ui.components.SwipeRevealWidth
 import ua.rytm.app.ui.components.SwipeReleaseAction
 import ua.rytm.app.ui.components.swipeReleaseAction
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.em
@@ -102,6 +103,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -218,28 +220,25 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                 Spacer(Modifier.height(RytmSpacing.sm))
                 // Sums past ~9 digits ("+123 456 789,25 ₴") fill half the row and
                 // ran into «Витрати»; such months stack like large text does.
+                // Pace (Copilot's "spent vs. last month at this date") as a short
+                // note under «Витрати», not a full sentence with an eighth sum.
+                val paceNote = vm.monthPaceUah?.let { (now, before) ->
+                    paceVsLastMonth(now, before)?.let { pct -> stringResource(R.string.finance_pace_vs_last_month, pct) }
+                }
                 val longSums = maxOf(formatMoney(vm.monthIncomeUah).length, formatMoney(vm.monthExpenseUah).length) > 11
                 if (largeText || longSums) {
                     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                         HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true)
-                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false)
+                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, note = paceNote)
                     }
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.lg)) {
                         HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
+                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f), note = paceNote)
                     }
                 }
                 // Pace (Copilot's "spent vs. last month at this date"): one quiet
                 // factual line, no colour — it is context, not a warning.
-                vm.monthPaceUah?.let { (_, before) ->
-                    Text(
-                        text = maskedAmount(stringResource(R.string.finance_pace_last_month, stringResource(R.string.finance_amount_uah, formatMoney(before)))),
-                        style = MaterialTheme.typography.labelMedium.tabularNums(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = RytmSpacing.sm),
-                    )
-                }
                 if (vm.isMultiCurrency) {
                     Text(
                         text = stringResource(R.string.finance_conversion_note),
@@ -252,9 +251,19 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
         }
 
         val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+        // Edge to edge: the row reaches the screen sides and its padding lines the
+        // first chip up with the page, so a scrolled chip slides under the screen
+        // edge instead of being cut 16dp inside it (read as «ТУМБ»).
         LazyRow(
             state = fadeState,
-            modifier = Modifier.fillMaxWidth().fadingEdges(fadeState),
+            modifier = Modifier
+                .layout { measurable, constraints ->
+                    val bleed = HERO_SCREEN_PADDING.roundToPx()
+                    val placeable = measurable.measure(constraints.copy(minWidth = constraints.maxWidth + 2 * bleed, maxWidth = constraints.maxWidth + 2 * bleed))
+                    layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+                }
+                .fadingEdges(fadeState),
+            contentPadding = PaddingValues(horizontal = HERO_SCREEN_PADDING),
             horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
         ) {
             items(vm.wallets, key = { it.id }) { wallet ->
@@ -308,7 +317,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
 }
 
 @Composable
-private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
+private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier, note: String? = null) {
     val valueColor = if (positive) RytmSemantic.income else MaterialTheme.colorScheme.onSurface
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -318,7 +327,18 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
             fontWeight = FontWeight.Bold,
             color = valueColor,
         )
+        note?.let { Text(it, style = MaterialTheme.typography.labelSmall.tabularNums(), color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
+}
+
+/** Padding of the Finance list; the wallet row bleeds through it. */
+private val HERO_SCREEN_PADDING = 16.dp
+
+/** «−28 %» / «+5 %» spent against last month at this date; null without a base. */
+internal fun paceVsLastMonth(now: Double, before: Double): String? {
+    if (before < 1.0) return null
+    val pct = Math.round((now - before) / before * 100)
+    return (if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct) + " %"
 }
 
 @Composable
@@ -465,11 +485,11 @@ internal fun SearchField(vm: FinanceViewModel) {
         value = vm.search,
         onValueChange = vm::onSearchChange,
         prefix = stringResource(R.string.finance_search_prefix),
+        // One plain hint first, then examples of what can be typed. «за категорією»
+        // and the like read as «only by category» when caught mid-rotation.
         hints = listOf(
-            stringResource(R.string.finance_search_what_comment),
-            stringResource(R.string.finance_search_what_category),
-            stringResource(R.string.finance_search_what_tag),
-            stringResource(R.string.finance_search_what_wallet),
+            stringResource(R.string.finance_search_what_all),
+            stringResource(R.string.finance_search_what_merchant),
             // SmartSearch examples, so people find out they can type these.
             stringResource(R.string.finance_search_what_month),
             stringResource(R.string.finance_search_what_amount),
@@ -599,6 +619,8 @@ internal fun TransactionRow(
     balanceAfter: Double? = null,
     /** Segment shape inside the day group; null = a standalone rounded row. */
     shape: androidx.compose.ui.graphics.Shape? = null,
+    /** Off while the history is filtered to one wallet: every row would repeat it. */
+    showWallet: Boolean = true,
 ) {
     val rowShape = shape ?: MaterialTheme.shapes.large
     val scope = rememberCoroutineScope()
@@ -791,8 +813,10 @@ internal fun TransactionRow(
                     }
                     Text(catLine, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     // The date lives in the day header above.
+                    // The wallet is left out when the title already names it
+                    // («Комісії · Поповнення ПУМБ» over «ПУМБ») or the list shows one wallet.
                     val secondLine = listOfNotNull(
-                        walletLabel.takeIf { tx.type != TxType.TRANSFER },
+                        walletLabel?.takeIf { tx.type != TxType.TRANSFER && showWallet && !catLine.contains(it, ignoreCase = true) },
                         tx.comment?.takeIf { it.isNotBlank() },
                     ).joinToString(" · ")
                     if (secondLine.isNotEmpty()) {
@@ -823,11 +847,16 @@ internal fun TransactionRow(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(amountText, style = MaterialTheme.typography.bodyMedium.tabularNums(), fontWeight = FontWeight.Bold, color = amountColor)
                     balanceAfter?.let { b ->
+                        // Quieter than the amount so it never reads as a second sum
+                        // (a converted amount, say); TalkBack says what it is.
+                        val balanceText = maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}")
+                        val balanceLabel = stringResource(R.string.transaction_balance_after, balanceText)
                         Text(
-                            maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}"),
+                            balanceText,
                             style = MaterialTheme.typography.labelSmall.tabularNums(),
-                            color = if (b < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (b < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                             maxLines = 1,
+                            modifier = Modifier.semantics { contentDescription = balanceLabel },
                         )
                     }
                 }

@@ -479,23 +479,11 @@ private fun ConverterSection(vm: ToolsViewModel) {
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
-            Card(
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Control),
-                // Was a 1dp onSurfaceVariant border (full body-text
-                // brightness) on a plain `surface` background -- flagged
-                // live as reading too sharp/bold, same category as the
-                // outline-token softening and calendar-gridline removal
-                // done in the same pass. Switched to the app's established
-                // borderless tonal-fill treatment (Categories rows,
-                // quick-action cards) instead of just dimming the stroke,
-                // for real consistency rather than a softer version of the
-                // same "outlined field" language.
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            ) {
-                Box(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = RytmSpacing.lg), contentAlignment = Alignment.CenterStart) {
-                    Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
+            // The result is an answer, not a field: a label and a large number,
+            // no filled box (a grey box read as a disabled input).
+            Column(Modifier.weight(1f).heightIn(min = 56.dp).padding(start = RytmSpacing.xs), verticalArrangement = Arrangement.Center) {
+                Text(stringResource(R.string.converter_result), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.headlineSmall.tabularNums(), fontWeight = FontWeight.Bold, maxLines = 1)
             }
             CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(0.72f))
         }

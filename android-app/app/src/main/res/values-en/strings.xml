@@ -70,7 +70,7 @@
     <string name="profile_avatar_preset">Avatar preset</string>
     <string name="goals_title">Goals</string><string name="goals_description">Track savings for the things that matter</string><string name="goals_empty">No goals</string><string name="goals_add">Add goal</string>
     <string name="goals_delete_title">Delete goal</string><string name="goals_delete_body">Delete this goal?</string>
-    <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_summary_done">%1$s / %2$s %3$s · Reached</string>
+    <string name="goals_summary">%1$s / %2$s %3$s</string><string name="goals_left">%1$s %2$s to go</string><string name="goals_summary_done">%1$s / %2$s %3$s · Reached</string>
     <string name="goals_choose_wallet">Choose a wallet</string><string name="goals_default_name">Goal</string>
     <string name="goals_target_amount">Target amount</string><string name="goals_target_date">Date (e.g. December 2026)</string>
     <string name="wallet_label">Wallet</string>
@@ -87,12 +87,12 @@
     <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
     <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$d%%</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
-    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
+    <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_result">You get</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
     <string name="category_all">All categories</string>
     <string name="debt_progress_of">%1$s of %2$s · %3$d%%</string>
-    <string name="finance_pace_last_month">Spent by this date last month: %1$s</string>
+    <string name="finance_pace_vs_last_month">%1$s vs last month</string>
     <string name="nav_analytics">Analytics</string>
     <string name="receipt_scan">Scan receipt</string>
     <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
@@ -471,7 +471,7 @@
     <string name="backups_failed">Failed. Check your connection</string>
     <string name="backups_rate_limited">Wait a moment before the next backup</string>
     <string name="backups_shared_unavailable">Backups of a shared profile are made by its owner</string>
-    <string name="finance_search_prefix">Search</string><string name="finance_search_what_comment">by comment</string><string name="finance_search_what_category">by category</string><string name="finance_search_what_tag">by tag</string><string name="finance_search_what_wallet">by wallet</string>
+    <string name="finance_search_prefix">Search</string>
     <string name="settings_search_what_wallets">wallets</string><string name="settings_search_what_categories">categories</string><string name="settings_search_what_notifications">notifications</string><string name="settings_search_what_pin">PIN</string><string name="settings_search_what_theme">theme</string>
     <string name="finance_day_yesterday">Yesterday</string>
     <string name="shifts_brush_hint">Tip: pick a shift type above to fill days with one tap</string>
@@ -574,7 +574,7 @@
     <string name="story_saved">Left over</string>
     <string name="story_overspent">Overspent</string>
     <string name="story_count">Transactions this month: %1$d</string>
-    <string name="finance_search_what_month">“cafe october”</string>
+    <string name="finance_search_what_all">operations</string><string name="finance_search_what_merchant">“Silpo”</string><string name="finance_search_what_month">“cafe october”</string>
     <string name="finance_search_what_amount">“over 500”</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
     <string name="analytics_spending_same">Spending is about the same as the previous period</string>
@@ -687,7 +687,7 @@
     <string name="amount_op_divide">Divide by</string>
     <string name="filters_title">Filters</string>
     <string name="filters_type">Type</string>
-    <string name="filters_wallet">Account</string>
+    <string name="filters_wallet">Account</string><string name="filters_wallet_savings">Savings</string><string name="filters_wallet_debts">Debts and credit</string>
     <string name="filters_category">Category</string>
     <string name="filters_category_more">%1$d more</string>
     <string name="filters_category_less">Show less</string>
@@ -708,7 +708,7 @@
     <string name="capital_no_history">Not enough entries for a chart yet.</string>
     <string name="capital_by_wallet">Where the money is</string>
     <string name="capital_by_currency">Currencies</string>
-    <string name="capital_note">Past days use today’s rates. Accounts below zero (a credit card) are left out of the shares.</string>
+    <string name="capital_note_rates">Past days use today’s rates.</string><string name="capital_note_negative">Accounts below zero (a credit card) are left out of the shares.</string><string name="capital_spendable">Of it, to spend: %1$s ₴</string>
     <string name="capital_chart_description">Net worth chart, from %1$s to %2$s hryvnias</string>
     <string name="category_stats_no_compare">nothing to compare with</string>
     <string name="category_stats_vs_previous">%1$s%% vs the previous period (%2$s)</string>

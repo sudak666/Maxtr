@@ -25,3 +25,12 @@ class BudgetPaceTest {
         assertEquals(BudgetPace.AHEAD, budgetPace(1000.0, 1000.0, 1.0))
     }
 }
+
+class PaceVsLastMonthTest {
+    @Test
+    fun `pace note is a short signed percent`() {
+        assertEquals("−28 %", ua.rytm.app.ui.screens.finance.paceVsLastMonth(50_800.60, 70_658.87))
+        assertEquals("+10 %", ua.rytm.app.ui.screens.finance.paceVsLastMonth(110.0, 100.0))
+        assertEquals(null, ua.rytm.app.ui.screens.finance.paceVsLastMonth(100.0, 0.0))
+    }
+}
