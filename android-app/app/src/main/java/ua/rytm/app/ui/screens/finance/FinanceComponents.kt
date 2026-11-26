@@ -154,17 +154,13 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
     // cards and the wallet chips inside one gradient card with a purple glow
     // (5 levels at once; a shadow on a dark surface only muddies it). Now a
     // flat tonal surface with a hairline, and the rest sits below it.
-    val shape = MaterialTheme.shapes.large
+    // Design audit 2026-11-26: the balance sits on the page itself, no card —
+    // the monobank/Revolut pattern. Seven stacked grey surfaces came before
+    // the first operation; the balance is the one thing that needs no box.
     val largeText = LocalDensity.current.fontScale >= 1.2f
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                // P5: one borderless tonal surface, the same level as history
-                // rows. The hairline + grey-on-grey read as muddy in light.
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape),
-        ) {
-            Column(Modifier.padding(horizontal = RytmDimens.HeroHorizontal, vertical = RytmDimens.HeroVertical)) {
+        Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(vertical = RytmSpacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(if (vm.isMultiCurrency) R.string.finance_estimated_balance else R.string.finance_total_balance),
@@ -195,7 +191,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     text = maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
                     // Tabular figures: proportional digits make the balance jitter
                     // horizontally as it changes.
-                    style = MaterialTheme.typography.displayMedium.tabularNums(),
+                    style = MaterialTheme.typography.displayLarge.tabularNums(),
                     fontWeight = FontWeight.Black,
                     // One line that shrinks to fit: with the non-breaking group
                     // separator a long balance at a large font scale could only
@@ -203,7 +199,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     maxLines = 1,
                     autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(
                         minFontSize = 18.sp,
-                        maxFontSize = MaterialTheme.typography.displayMedium.fontSize,
+                        maxFontSize = MaterialTheme.typography.displayLarge.fontSize,
                     ),
                     // The balance opens «Капітал»: how it changed and where the money sits.
                     // Rounded tap area, padded and pulled back into line: the
@@ -217,7 +213,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
 
                 // P5: income/expense live inside the hero as one quiet row
                 // instead of two more bordered cards competing with the balance.
-                HorizontalDivider(Modifier.padding(vertical = RytmSpacing.md), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Spacer(Modifier.height(RytmSpacing.sm))
                 // Sums past ~9 digits ("+123 456 789,25 ₴") fill half the row and
                 // ran into «Витрати»; such months stack like large text does.
                 val longSums = maxOf(formatMoney(vm.monthIncomeUah).length, formatMoney(vm.monthExpenseUah).length) > 11
@@ -360,71 +356,70 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
         QuickAction(stringResource(R.string.goals_title), RytmIcons.Flag, primary = false, onClick = onGoals),
     ).filterIndexed { index, _ -> canEdit || index == 0 }
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    val columnCount = if (largeText) 1 else 3
 
-    Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-        actions.chunked(columnCount).forEach { rowActions ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                rowActions.forEach { action ->
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val pressed by interactionSource.collectIsPressedAsState()
-                    val scale by animateFloatAsState(
-                        targetValue = if (pressed) RytmInteraction.ButtonPressedScale else 1f,
-                        animationSpec = motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)),
-                        label = "quick-action-press",
-                    )
-                    Card(
-                        onClick = action.onClick,
-                        modifier = Modifier.weight(1f).height(RytmDimens.QuickActionMinHeight).graphicsLayer { scaleX = scale; scaleY = scale },
-                        shape = RoundedCornerShape(RytmRadii.Row),
-                        // A hairline border here (fixed to onSurfaceVariant
-                        // for contrast, then reported live as reading too
-                        // harsh/stark next to the rest of the screen) was
-                        // fighting the wrong problem: this app's established
-                        // way to separate a card from the page isn't a
-                        // stroke at all -- it's a soft tonal fill, the same
-                        // surfaceContainerLow DebtScreen's InfoPanel already
-                        // uses with no border whatsoever. Matches here too,
-                        // and sidesteps the outline-contrast question
-                        // entirely by not drawing an outline.
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
-                        interactionSource = interactionSource,
-                    ) {
-                        // Three across: icon over label, so "Інструменти" never truncates
-                        // at 360dp; one per row at large font scale keeps icon + label inline.
-                        val tile: @Composable () -> Unit = {
-                            Icon(
-                                action.icon,
-                                contentDescription = null,
-                                tint = if (action.primary) RytmSemantic.income else MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(RytmDimens.QuickActionIcon),
-                            )
-                            Text(
-                                action.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (columnCount == 1) {
-                            Row(
-                                Modifier.fillMaxSize().padding(horizontal = RytmSpacing.lg),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
-                            ) { tile() }
-                        } else {
-                            Column(
-                                Modifier.fillMaxSize().padding(horizontal = RytmSpacing.sm),
-                                verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) { tile() }
-                        }
-                    }
+    // Design audit 2026-11-26: three 60dp grey tiles were the heaviest band on
+    // the screen after the balance. Round tonal buttons with the label under
+    // them (the bank-app action row) keep the same three targets with a
+    // fraction of the grey area. At a large font scale the label would not
+    // fit a third of the width, so each action takes its own line instead.
+    @Composable
+    fun ActionCircle(action: QuickAction, size: androidx.compose.ui.unit.Dp) {
+        Box(
+            Modifier.size(size).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(action.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(RytmDimens.QuickActionIcon))
+        }
+    }
+
+    if (largeText) {
+        Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+            actions.forEach { action ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(RytmRadii.Row))
+                        .clickable(role = Role.Button, onClick = action.onClick)
+                        .padding(vertical = RytmSpacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md),
+                ) {
+                    ActionCircle(action, RytmDimens.TouchTarget)
+                    Text(action.label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium)
                 }
-                repeat(columnCount - rowActions.size) { Spacer(Modifier.weight(1f)) }
             }
+        }
+    } else {
+        Row(Modifier.fillMaxWidth()) {
+            actions.forEach { action ->
+                val interactionSource = remember { MutableInteractionSource() }
+                val pressed by interactionSource.collectIsPressedAsState()
+                val scale by animateFloatAsState(
+                    targetValue = if (pressed) RytmInteraction.IconPressedScale else 1f,
+                    animationSpec = motionAwareSpec(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)),
+                    label = "quick-action-press",
+                )
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(RytmRadii.Row))
+                        .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = action.onClick)
+                        .padding(vertical = RytmSpacing.xs),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Box(Modifier.graphicsLayer { scaleX = scale; scaleY = scale }) { ActionCircle(action, RytmDimens.QuickActionCircle) }
+                    Text(
+                        action.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            // A viewer sees only «Інструменти»: keep it at a third of the width, not centred alone.
+            repeat(3 - actions.size) { Spacer(Modifier.weight(1f)) }
         }
     }
 }
@@ -590,7 +585,10 @@ internal fun TransactionRow(
     onSwipeOpenChange: (Boolean) -> Unit = {},
     /** Wallet balance after this operation, shown small under the amount; null = off. */
     balanceAfter: Double? = null,
+    /** Segment shape inside the day group; null = a standalone rounded row. */
+    shape: androidx.compose.ui.graphics.Shape? = null,
 ) {
+    val rowShape = shape ?: MaterialTheme.shapes.large
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -625,7 +623,7 @@ internal fun TransactionRow(
             // swiped: drawing a full-size red layer (plus a rounded clip) under
             // EVERY row was pure GPU overdraw — the expanded 443-row history
             // was RenderThread-bound on a Galaxy A51 (Perfetto, live).
-            .then(if (offsetPx < 0f) Modifier.clip(MaterialTheme.shapes.large) else Modifier)
+            .then(if (offsetPx < 0f) Modifier.clip(rowShape) else Modifier)
             .onSizeChanged { rowWidthPx = it.width },
     ) {
         // The covering Card below is sized from rowWidthPx, which starts at
@@ -697,7 +695,6 @@ internal fun TransactionRow(
         // applied while pressed so the ripple keeps its rounded corners.
         // fillMaxWidth() while not swiped also skips the width derived from
         // onSizeChanged (a second layout pass for every newly composed row).
-        val shape = MaterialTheme.shapes.large
         val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
         // The ripple outlives the press: it appears a moment after a quick
         // tap is already released and then fades out. Clipping only while
@@ -716,8 +713,8 @@ internal fun TransactionRow(
         Box(
             modifier = Modifier
                 .then(if (offsetPx < 0f) Modifier.width(cardWidthDp) else Modifier.fillMaxWidth())
-                .then(if (rippleClip) Modifier.clip(shape) else Modifier)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
+                .then(if (rippleClip) Modifier.clip(rowShape) else Modifier)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, rowShape)
                 .clickable(
                     enabled = canOpen,
                     interactionSource = interaction,
@@ -825,6 +822,17 @@ internal fun TransactionRow(
             }
         }
     }
+}
+
+/** Seam between the rows of one day group. */
+internal val GroupedRowGap = 2.dp
+private val GroupedInnerRadius = 6.dp
+
+/** Outer corners round on the group's first and last row, small ones on the seams. */
+internal fun groupedRowShape(index: Int, count: Int): RoundedCornerShape {
+    val top = if (index == 0) RytmRadii.Card else GroupedInnerRadius
+    val bottom = if (index == count - 1) RytmRadii.Card else GroupedInnerRadius
+    return RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
 }
 
 /** How long a row keeps its rounded clip after a press ends, so the fading ripple stays inside the card. */

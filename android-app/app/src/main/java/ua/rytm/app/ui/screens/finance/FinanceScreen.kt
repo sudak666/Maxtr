@@ -443,33 +443,46 @@ fun FinanceScreen(
                 val days = visible.groupBy { it.date }
                 days.forEach { (date, dayTxs) ->
                     val shown = dayTxs.filter { it.id != pendingDeleteId }
-                    // contentType lets Compose reuse a header node for a header, a row for a row.
+                    // Design audit 2026-11-26: a day is one segmented group (outer
+                    // corners round, 2dp seams between rows, Android 16's grouped
+                    // list) instead of a separate card per row — so the whole day
+                    // is one LazyColumn item; rows keep their state via key(tx.id).
                     item(key = "day-$date", contentType = "day") {
                         AnimatedVisibility(visible = shown.isNotEmpty(), exit = fadeOut(tween(180)) + shrinkVertically(tween(220))) {
-                            DayHeader(date, dayNets[date] ?: 0.0)
+                            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                                DayHeader(date, dayNets[date] ?: 0.0)
+                                Column(verticalArrangement = Arrangement.spacedBy(GroupedRowGap)) {
+                                    dayTxs.forEach { tx ->
+                                        androidx.compose.runtime.key(tx.id) {
+                                            // Shape follows the rows still shown, so the new first/last
+                                            // row rounds as soon as a neighbour starts leaving.
+                                            val index = shown.indexOfFirst { it.id == tx.id }
+                                            AnimatedVisibility(
+                                                visible = pendingDeleteId != tx.id,
+                                                exit = fadeOut(tween(180)) + shrinkVertically(tween(220)),
+                                            ) {
+                                                TransactionRow(
+                                                    tx = tx,
+                                                    // One wallet: naming it on every row says nothing.
+                                                    walletName = { id -> if (walletsById.size < 2) null else id?.let(walletsById::get)?.name },
+                                                    tagLookup = tagsById::get,
+                                                    iconOverride = viewModel.categoryIcons[tx.category],
+                                                    canEdit = canEdit && pendingDeleteId == null,
+                                                    resetGeneration = swipeResetGeneration,
+                                                    onDelete = { requestDelete(tx) },
+                                                    canOpen = pendingDeleteId == null,
+                                                    onClick = { if (canEdit) viewModel.openEditTransactionSheet(tx) else viewingTx = tx },
+                                                    onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
+                                                    balanceAfter = if (showBalanceAfter) balancesAfter[tx.id] else null,
+                                                    shape = groupedRowShape(index.coerceAtLeast(0), shown.size.coerceAtLeast(1)),
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                items(dayTxs, key = { it.id }, contentType = { "tx" }) { tx ->
-                    AnimatedVisibility(
-                        visible = pendingDeleteId != tx.id,
-                        exit = fadeOut(tween(180)) + shrinkVertically(tween(220)),
-                    ) {
-                        TransactionRow(
-                            tx = tx,
-                            // One wallet: naming it on every row says nothing.
-                            walletName = { id -> if (walletsById.size < 2) null else id?.let(walletsById::get)?.name },
-                            tagLookup = tagsById::get,
-                            iconOverride = viewModel.categoryIcons[tx.category],
-                            canEdit = canEdit && pendingDeleteId == null,
-                            resetGeneration = swipeResetGeneration,
-                            onDelete = { requestDelete(tx) },
-                            canOpen = pendingDeleteId == null,
-                            onClick = { if (canEdit) viewModel.openEditTransactionSheet(tx) else viewingTx = tx },
-                            onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
-                            balanceAfter = if (showBalanceAfter) balancesAfter[tx.id] else null,
-                        )
-                    }
-                }
                 }
                 if (filtered.size > TX_LIST_COLLAPSED_COUNT) {
                     item(key = "collapse-list-button") {
