@@ -1,6 +1,7 @@
 package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -8,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
@@ -19,16 +21,27 @@ import androidx.compose.ui.unit.sp
  * Known Ukrainian merchants, recognised from a transaction's comment (bank
  * pushes put the merchant there: "KOLO KIYEV UA", "Сільпо"). A row then shows
  * the merchant's own monogram in its brand color instead of the generic
- * category icon, so a long history scans by eye. Deliberately monograms, not
- * the companies' logos: no third-party artwork is bundled and it works offline.
+ * category icon, so a long history scans by eye.
+ *
+ * Logos (owner's call, 2026-11-26): the 15 most common brands carry their real
+ * mark, bundled (offline, nothing about the user's spending leaves the phone),
+ * rendered once onto a white 160px tile from Wikimedia Commons files — Silpo
+ * outline logo, Novus Ukraina logo, ROZETKA-Logo-L3-B-RGB, Glovo Logo, Bolt
+ * Technology Logo 2019, Nova Poshta 2022 logo, McDonald's Golden Arches, WOG
+ * Logo, Kyivstar logo, Lifecell-logo-2025-blue-on-yellow, Netflix 2016 N logo,
+ * Spotify icon, YouTube full-color icon (2017), Google "G" logo, Apple logo
+ * black. Wordmark brands keep only their mark (Kyivstar star, Rozetka smile,
+ * WOG «W», Nova Poshta sign). Shown only to name where a payment went; every
+ * other brand keeps its monogram in the brand colour.
  */
 object MerchantBrands {
-    data class Brand(val name: String, val monogram: String, val color: Long, val keywords: List<String>)
+    /** [logo]: a bundled logo tile (res/drawable-nodpi/merchant_*.png); null = the monogram. */
+    data class Brand(val name: String, val monogram: String, val color: Long, val keywords: List<String>, val logo: Int? = null)
 
     val all = listOf(
         Brand("АТБ", "АТБ", 0xFFE30613, listOf("атб", "atb")),
-        Brand("Сільпо", "С", 0xFFFF6A13, listOf("сільпо", "silpo")),
-        Brand("Novus", "N", 0xFF00A651, listOf("novus", "новус")),
+        Brand("Сільпо", "С", 0xFFFF6A13, listOf("сільпо", "silpo"), logo = ua.rytm.app.R.drawable.merchant_silpo),
+        Brand("Novus", "N", 0xFF00A651, listOf("novus", "новус"), logo = ua.rytm.app.R.drawable.merchant_novus),
         Brand("Фора", "Ф", 0xFFE4002B, listOf("фора", "fora")),
         Brand("Varus", "V", 0xFF009639, listOf("varus", "варус")),
         Brand("Metro", "M", 0xFF003D7C, listOf("metro cash", "метро кеш", "metro ")),
@@ -37,32 +50,32 @@ object MerchantBrands {
         Brand("Велмарт", "В", 0xFF0072BC, listOf("velmart", "велмарт")),
         Brand("Таврія В", "ТВ", 0xFFD71920, listOf("tavria", "таврія")),
         Brand("Епіцентр", "Е", 0xFFF39200, listOf("epicentr", "епіцентр")),
-        Brand("Rozetka", "R", 0xFF00A046, listOf("rozetka", "розетка")),
+        Brand("Rozetka", "R", 0xFF00A046, listOf("rozetka", "розетка"), logo = ua.rytm.app.R.drawable.merchant_rozetka),
         Brand("Comfy", "C", 0xFFE5007E, listOf("comfy", "комфі")),
         Brand("Фокстрот", "Ф", 0xFFFF5800, listOf("foxtrot", "фокстрот")),
-        Brand("Glovo", "G", 0xFFFFC244, listOf("glovo", "глово")),
-        Brand("Bolt", "B", 0xFF34D186, listOf("bolt")),
+        Brand("Glovo", "G", 0xFFFFC244, listOf("glovo", "глово"), logo = ua.rytm.app.R.drawable.merchant_glovo),
+        Brand("Bolt", "B", 0xFF34D186, listOf("bolt"), logo = ua.rytm.app.R.drawable.merchant_bolt),
         Brand("Uklon", "U", 0xFF2F54EB, listOf("uklon", "уклон")),
         Brand("Uber", "U", 0xFF8A8A8A, listOf("uber")),
-        Brand("Нова пошта", "НП", 0xFFDA291C, listOf("nova poshta", "нова пошта", "novaposhta", "nova pay")),
+        Brand("Нова пошта", "НП", 0xFFDA291C, listOf("nova poshta", "нова пошта", "novaposhta", "nova pay"), logo = ua.rytm.app.R.drawable.merchant_novaposhta),
         Brand("Укрпошта", "УП", 0xFFFFC72C, listOf("ukrposhta", "укрпошта")),
-        Brand("McDonald's", "M", 0xFFFFBC0D, listOf("mcdonald", "макдональдс", "макдональц")),
+        Brand("McDonald's", "M", 0xFFFFBC0D, listOf("mcdonald", "макдональдс", "макдональц"), logo = ua.rytm.app.R.drawable.merchant_mcdonalds),
         Brand("KFC", "KFC", 0xFFE4002B, listOf("kfc")),
         Brand("Пузата хата", "ПХ", 0xFF8B5A2B, listOf("puzata", "пузата")),
         Brand("Aroma Kava", "AK", 0xFF6F4E37, listOf("aroma kava", "арома кава")),
         Brand("Львівські круасани", "ЛК", 0xFFC8102E, listOf("круасани", "kruasany")),
-        Brand("WOG", "W", 0xFF00843D, listOf("wog")),
+        Brand("WOG", "W", 0xFF00843D, listOf("wog"), logo = ua.rytm.app.R.drawable.merchant_wog),
         Brand("OKKO", "O", 0xFFE30613, listOf("okko", "окко")),
         Brand("SOCAR", "S", 0xFF0057B8, listOf("socar")),
         Brand("UPG", "U", 0xFFFDB913, listOf("upg")),
-        Brand("Київстар", "КС", 0xFF0090D7, listOf("kyivstar", "київстар")),
+        Brand("Київстар", "КС", 0xFF0090D7, listOf("kyivstar", "київстар"), logo = ua.rytm.app.R.drawable.merchant_kyivstar),
         Brand("Vodafone", "V", 0xFFE60000, listOf("vodafone", "водафон")),
-        Brand("lifecell", "L", 0xFFFFD100, listOf("lifecell", "лайфсел")),
-        Brand("Netflix", "N", 0xFFE50914, listOf("netflix")),
-        Brand("Spotify", "S", 0xFF1DB954, listOf("spotify")),
-        Brand("YouTube", "YT", 0xFFFF0000, listOf("youtube")),
-        Brand("Google", "G", 0xFF4285F4, listOf("google")),
-        Brand("Apple", "A", 0xFF9AA0A6, listOf("apple.com", "itunes", "apple ")),
+        Brand("lifecell", "L", 0xFFFFD100, listOf("lifecell", "лайфсел"), logo = ua.rytm.app.R.drawable.merchant_lifecell),
+        Brand("Netflix", "N", 0xFFE50914, listOf("netflix"), logo = ua.rytm.app.R.drawable.merchant_netflix),
+        Brand("Spotify", "S", 0xFF1DB954, listOf("spotify"), logo = ua.rytm.app.R.drawable.merchant_spotify),
+        Brand("YouTube", "YT", 0xFFFF0000, listOf("youtube"), logo = ua.rytm.app.R.drawable.merchant_youtube),
+        Brand("Google", "G", 0xFF4285F4, listOf("google"), logo = ua.rytm.app.R.drawable.merchant_google),
+        Brand("Apple", "A", 0xFF9AA0A6, listOf("apple.com", "itunes", "apple "), logo = ua.rytm.app.R.drawable.merchant_apple),
         Brand("Steam", "S", 0xFF66C0F4, listOf("steam")),
         Brand("Prom", "P", 0xFF7B2CBF, listOf("prom.ua", "prom ")),
         Brand("EVA", "EVA", 0xFFE6007E, listOf("eva ", "єва")),
@@ -114,6 +127,20 @@ object MerchantBrands {
 /** Monogram disc for a known merchant, same footprint and tint style as CategoryIconBadge. */
 @Composable
 fun MerchantBadge(brand: MerchantBrands.Brand, size: Dp = 40.dp, modifier: Modifier = Modifier) {
+    brand.logo?.let { logo ->
+        // The tile is white already; the circle clip makes it the same disc
+        // as every other row badge.
+        androidx.compose.foundation.Image(
+            androidx.compose.ui.res.painterResource(logo),
+            contentDescription = null,
+            modifier = modifier.size(size).clip(CircleShape).then(
+                // Light rows are white too: a hairline keeps the disc a disc.
+                if (ua.rytm.app.ui.theme.RytmSemantic.isDark) Modifier
+                else Modifier.border(1.dp, androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant, CircleShape),
+            ),
+        )
+        return
+    }
     val color = Color(brand.color)
     // Yellow/light brand colors would vanish as text on the light theme.
     // …and very dark ones (Aroma Kava brown) would vanish on the dark theme.
