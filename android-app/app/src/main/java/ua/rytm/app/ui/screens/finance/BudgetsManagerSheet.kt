@@ -133,12 +133,13 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                 Text(localizedDomainText(category), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (limit > 0) {
-                    // Filled share of this month's limit: amber from 80 %, red once over.
+                    // Filled share of this month's limit, coloured by pace (see budgetPace).
                     val share = (spent / limit).toFloat()
-                    val barColor = when {
-                        isOverBudget(spent, limit) -> MaterialTheme.colorScheme.error
-                        share >= 0.8f -> ua.rytm.app.ui.theme.RytmSemantic.warning
-                        else -> MaterialTheme.colorScheme.primary
+                    val elapsed = remember { budgetMonthElapsed(java.time.LocalDate.now()) }
+                    val barColor = when (budgetPace(spent, limit, elapsed)) {
+                        BudgetPace.OVER -> MaterialTheme.colorScheme.error
+                        BudgetPace.AHEAD -> ua.rytm.app.ui.theme.RytmSemantic.warning
+                        BudgetPace.ON_TRACK -> MaterialTheme.colorScheme.primary
                     }
                     androidx.compose.material3.LinearProgressIndicator(
                         progress = { share.coerceIn(0f, 1f) },
@@ -169,6 +170,8 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                     onToggleEdit()
                 }),
                 label = { Text(stringResource(R.string.budgets_monthly_limit)) },
+                // The «blank or 0» rule belongs where the limit is typed, not under the list title.
+                supportingText = { Text(stringResource(R.string.budgets_limit_hint)) },
                 // Used to override unfocusedBorderColor to onSurfaceVariant
                 // here (default `outline` was invisible in light theme at
                 // the time). Now that Theme.kt's `outline` itself is a real,

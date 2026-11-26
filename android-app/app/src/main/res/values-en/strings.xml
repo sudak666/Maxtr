@@ -113,7 +113,7 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
-    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category. Leave blank or 0 for no budget.</string><string name="budgets_empty">No expense categories</string><string name="budgets_spent_of">%1$s of %2$s ₴</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category.</string><string name="budgets_empty">No expense categories</string><string name="budgets_spent_of">%1$s of %2$s ₴</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
     <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
     <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
     <string name="action_reorder">Drag to reorder</string><string name="widgets_sync_failed">Could not sync widget settings</string>
@@ -620,20 +620,22 @@
     <string name="wallet_kind_hint">This account counts in your capital but not in the daily allowance or the forecast.</string>
     <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
     <string name="cash_forecast_now">On your accounts now</string>
-    <string name="cash_forecast_now_hint">Without deposits and credit cards</string>
+    <string name="cash_forecast_now_hint">Without deposits, credit cards and money owed to you</string>
     <string name="cash_forecast_in">Recurring income</string>
     <string name="cash_forecast_out">Recurring payments</string>
     <string name="cash_forecast_habit">Usual spending</string>
     <string name="cash_forecast_habit_hint">%1$s ₴ a day × %2$d days</string>
     <string name="cash_forecast_end">On %1$s</string>
     <string name="cash_forecast_lowest">Biggest gap: %1$s ₴, %2$s</string>
-    <string name="cash_forecast_habit_title">Where usual spending comes from</string>
-    <string name="cash_forecast_habit_explain">Average over the last %1$d days. The %2$d priciest days (one-off buys) and recurring payments are left out: those are above already.</string>
-    <string name="cash_forecast_habit_top">Most of it: %1$s</string>
+    <string name="cash_forecast_habit_title">Usual spending</string>
+    <string name="cash_forecast_habit_explain">Average over %1$d days, without the %2$d priciest days (one-off buys) and recurring payments.</string>
+    <string name="cash_forecast_habit_top">Most: %1$s</string>
     <string name="cash_forecast_shifts_title">Shifts</string>
-    <string name="cash_forecast_shifts_paid">Shifts until month end bring ≈ %1$s ₴ more. Not added separately: that money arrives as your salary, which is already in recurring income.</string>
-    <string name="cash_forecast_shifts">Shifts until month end bring ≈ %1$s ₴ more. Not in the forecast: shift pay arrives as your salary. Add the salary as recurring income and it counts here.</string>
-    <string name="cash_forecast_after_hint">The balance already includes usual spending up to that day.</string>
+    <string name="cash_forecast_shifts_paid">Shifts bring ≈ %1$s ₴ more. It arrives with your salary, so it is already counted.</string>
+    <string name="cash_forecast_shifts">Shifts bring ≈ %1$s ₴ more. Add your salary as recurring income to count it.</string>
+    <string name="cash_forecast_after_hint">Daily balances are after usual spending.</string>
+    <string name="cash_forecast_how">How it is calculated</string>
+    <string name="budgets_limit_hint">Blank or 0 — no limit</string>
     <string name="cash_forecast_title">Money forecast</string>
     <string name="cash_forecast_subtitle">through %1$s</string>
     <string name="cash_forecast_enough">Enough until month end</string>
@@ -642,7 +644,7 @@
     <string name="cash_forecast_events">Day by day</string>
     <string name="cash_forecast_no_events">No recurring payments until month end.</string>
     <string name="cash_forecast_after">%1$s ₴ left</string>
-    <string name="cash_forecast_note">Month end comes from Settings.</string>
+    <string name="cash_forecast_note">You can change the month end in Settings.</string>
     <string name="recurring_first_date">First payment</string>
     <string name="recurring_comment">Name (optional)</string>
     <string name="recurring_create_hint">If the date has passed, the first payment moves to the next such date: nothing is added back-dated.</string>

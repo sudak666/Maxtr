@@ -1,5 +1,9 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -104,11 +108,37 @@ private fun CapitalChart(series: List<CapitalHistory.Point>) {
     val min = values.min()
     val max = values.max()
     val description = stringResource(R.string.capital_chart_description, formatMoney(min), formatMoney(max))
+    // Touch or drag across the chart to read one day; tap the same day again to let go.
+    var selected by remember(series) { mutableStateOf<Int?>(null) }
+    fun indexAt(px: Float, width: Int) = ((px / width.coerceAtLeast(1)) * (values.size - 1)).roundToInt().coerceIn(0, values.size - 1)
+    val f = DateTimeFormatter.ofPattern("dd.MM.yy")
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(maskedAmount(formatMoney(max)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val pick = selected
+            if (pick != null) {
+                Text(
+                    series[pick].date.format(f) + "  " + maskedAmount(formatMoney(values[pick]) + " ₴"),
+                    style = MaterialTheme.typography.labelLarge.tabularNums(),
+                    fontWeight = FontWeight.Bold,
+                )
+            } else {
+                Text(maskedAmount(formatMoney(max)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        Canvas(Modifier.fillMaxWidth().height(160.dp).semantics { contentDescription = description }) {
+        Canvas(
+            Modifier.fillMaxWidth().height(160.dp).semantics { contentDescription = description }
+                .pointerInput(series) {
+                    detectTapGestures { o -> indexAt(o.x, size.width).let { i -> selected = if (selected == i) null else i } }
+                }
+                .pointerInput(series) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { o -> selected = indexAt(o.x, size.width) },
+                    ) { change, _ ->
+                        change.consume()
+                        selected = indexAt(change.position.x, size.width)
+                    }
+                },
+        ) {
             val span = (max - min).takeIf { it > 0.005 } ?: 1.0
             fun y(v: Double) = (size.height * (1 - (v - min) / span)).toFloat()
             fun x(i: Int) = size.width * i / (values.size - 1)
@@ -124,12 +154,16 @@ private fun CapitalChart(series: List<CapitalHistory.Point>) {
             }
             drawPath(fill, Brush.verticalGradient(listOf(line.copy(alpha = 0.22f), line.copy(alpha = 0f))))
             drawPath(path, line, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+            selected?.let { i ->
+                val px = x(i)
+                drawLine(grid, androidx.compose.ui.geometry.Offset(px, 0f), androidx.compose.ui.geometry.Offset(px, size.height), strokeWidth = 1.dp.toPx())
+                drawCircle(line, radius = 5.dp.toPx(), center = androidx.compose.ui.geometry.Offset(px, y(values[i])))
+            }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(maskedAmount(formatMoney(min)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            val f = DateTimeFormatter.ofPattern("dd.MM.yy")
             Text(series.first().date.format(f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(series.last().date.format(f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
