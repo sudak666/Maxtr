@@ -23,14 +23,16 @@ import androidx.compose.ui.unit.sp
  * the merchant's own monogram in its brand color instead of the generic
  * category icon, so a long history scans by eye.
  *
- * Logos (owner's call, 2026-11-26): the 15 most common brands carry their real
+ * Logos (owner's call, 2026-11-26): the 16 most common brands carry their real
  * mark, bundled (offline, nothing about the user's spending leaves the phone),
- * rendered once onto a white 160px tile from Wikimedia Commons files — Silpo
+ * rendered once onto a white 160px tile from Wikimedia Commons files — ATB
+ * Logo, Silpo
  * outline logo, Novus Ukraina logo, ROZETKA-Logo-L3-B-RGB, Glovo Logo, Bolt
  * Technology Logo 2019, Nova Poshta 2022 logo, McDonald's Golden Arches, WOG
  * Logo, Kyivstar logo, Lifecell-logo-2025-blue-on-yellow, Netflix 2016 N logo,
  * Spotify icon, YouTube full-color icon (2017), Google "G" logo, Apple logo
- * black. Wordmark brands keep only their mark (Kyivstar star, Rozetka smile,
+ * black. Wordmark brands keep only their mark, cropped to its measured bounds
+ * (ATB sail, Kyivstar star, Rozetka smile,
  * WOG «W», Nova Poshta sign). Shown only to name where a payment went; every
  * other brand keeps its monogram in the brand colour.
  */
@@ -39,7 +41,7 @@ object MerchantBrands {
     data class Brand(val name: String, val monogram: String, val color: Long, val keywords: List<String>, val logo: Int? = null)
 
     val all = listOf(
-        Brand("АТБ", "АТБ", 0xFFE30613, listOf("атб", "atb")),
+        Brand("АТБ", "АТБ", 0xFFE30613, listOf("атб", "atb"), logo = ua.rytm.app.R.drawable.merchant_atb),
         Brand("Сільпо", "С", 0xFFFF6A13, listOf("сільпо", "silpo"), logo = ua.rytm.app.R.drawable.merchant_silpo),
         Brand("Novus", "N", 0xFF00A651, listOf("novus", "новус"), logo = ua.rytm.app.R.drawable.merchant_novus),
         Brand("Фора", "Ф", 0xFFE4002B, listOf("фора", "fora")),
