@@ -231,6 +231,15 @@ fun RytmNavHost() {
             composable(RytmDestination.Finance.route) {
                 Box(Modifier.fillMaxSize().profileSwipeToOpen()) { FinanceScreen() }
             }
+            composable(RytmDestination.Analytics.route) {
+                ua.rytm.app.ui.screens.finance.AnalyticsScreen(onOpenFinance = {
+                    navController.navigate(RytmDestination.Finance.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                })
+            }
             composable(RytmDestination.Shifts.route) { ShiftsScreen() }
             composable(RytmDestination.Debt.route) { DebtScreen() }
             composable(RytmDestination.Settings.route) { SettingsScreen() }
@@ -303,7 +312,7 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
         modifier = Modifier.safeDrawingPadding(),
         header = { plus?.let { PrimaryPlusButton(it, size = if (compactHeight) 48.dp else 56.dp) } },
     ) {
-        RytmDestination.entries.forEach { destination ->
+        RytmDestination.bar.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
             NavigationRailItem(
                 selected = selected,
@@ -378,7 +387,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         // on a near-black page); light theme keeps a white capsule + shadow.
         val barColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
-        val selectedIndex = RytmDestination.entries.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
+        val selectedIndex = RytmDestination.bar.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // Capsule and "+" share one height, so their tops and bottoms line up.
             val barHeight = if (compactHeight) 52.dp else 64.dp
@@ -403,7 +412,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                 BoxWithConstraints(Modifier.fillMaxWidth()) {
                     val measurer = rememberTextMeasurer()
                     val density = LocalDensity.current
-                    val labels = RytmDestination.entries.map { stringResource(it.labelRes) }
+                    val labels = RytmDestination.bar.map { stringResource(it.labelRes) }
                     val labelStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.sp, fontWeight = FontWeight.Bold)
                     val contentWidths = remember(labels, labelStyle, density, showLabels) {
                         labels.map { label ->
@@ -418,7 +427,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
                         // Each slot is its content plus one gap (half on each side),
                         // so a half-gap at both ends completes the even rhythm.
                         Spacer(Modifier.width(gap / 2))
-                        RytmDestination.entries.forEachIndexed { index, destination ->
+                        RytmDestination.bar.forEachIndexed { index, destination ->
                             RytmTabSlot(
                                 destination = destination,
                                 selected = index == selectedIndex,

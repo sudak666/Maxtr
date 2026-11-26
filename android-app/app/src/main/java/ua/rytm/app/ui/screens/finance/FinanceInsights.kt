@@ -29,6 +29,23 @@ object FinanceInsights {
     }
 
     /**
+     * Expenses of this financial month up to [today] and of the previous one
+     * over the same number of days, in UAH — the home screen's pace line.
+     * Null when the previous month has nothing to compare with.
+     */
+    fun monthPaceUah(transactions: List<Transaction>, today: java.time.LocalDate, toUah: (Double, String) -> Double): Pair<Double, Double>? {
+        val month = ua.rytm.app.data.FinancialMonth.of(today)
+        val days = ua.rytm.app.data.FinancialMonth.dayNumber(today)
+        val previous = month.minusMonths(1)
+        val previousCutoff = ua.rytm.app.data.FinancialMonth.cutoff(previous, days).toString()
+        val todayIso = today.toString()
+        val expenses = transactions.filter { it.type == TxType.EXPENSE }
+        val now = expenses.filter { ua.rytm.app.data.FinancialMonth.contains(month, it.date) && it.date <= todayIso }.sumOf { toUah(it.amount, it.currency) }
+        val before = expenses.filter { ua.rytm.app.data.FinancialMonth.contains(previous, it.date) && it.date <= previousCutoff }.sumOf { toUah(it.amount, it.currency) }
+        return if (before > 0) now to before else null
+    }
+
+    /**
      * Recurring payments still due between [today] and the month's end, in UAH,
      * plus the shift earnings still expected ([shiftsEarnings]).
      */

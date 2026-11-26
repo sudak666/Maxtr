@@ -819,6 +819,9 @@ class FinanceViewModel(
 
     val monthExpenseUah: Double by derivedStateOf { FinanceInsights.monthTotalUah(transactions.forStats(wallets), TxType.EXPENSE, currentMonth, ::toUah) }
 
+    /** This month's spending so far vs. last month at the same point; null with no last month to compare. */
+    val monthPaceUah: Pair<Double, Double>? by derivedStateOf { FinanceInsights.monthPaceUah(transactions.forStats(wallets), today, ::toUah) }
+
     val isSearchOrFilterActive: Boolean
         get() = search.isNotBlank() || typeFilter != TxTypeFilter.ALL || categoryFilter != null || historyFilter.activeCount > 0
 

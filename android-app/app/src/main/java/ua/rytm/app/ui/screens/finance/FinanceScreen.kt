@@ -180,6 +180,15 @@ fun FinanceScreen(
             }
         }
     }
+    // «До операцій» from the Analytics tab: no edit right needed to look.
+    val historyJump by app.pendingHistoryJump.collectAsStateWithLifecycle()
+    LaunchedEffect(historyJump, viewModel.loading) {
+        val jump = historyJump ?: return@LaunchedEffect
+        if (viewModel.loading) return@LaunchedEffect
+        app.pendingHistoryJump.value = null
+        viewModel.applyFilters(if (jump.type == TxType.INCOME) TxTypeFilter.INCOME else TxTypeFilter.EXPENSE, jump.category, HistoryFilter(from = jump.from, to = jump.to))
+        if (jump.from == null) viewModel.onPeriodFilterChange(PeriodFilter.ALL)
+    }
     viewModel.salaryAllocation?.let { plan ->
         SalaryAllocationSheet(plan, viewModel.wallets, onApply = viewModel::applySalaryAllocation, onDismiss = { viewModel.salaryAllocation = null })
     }
@@ -523,16 +532,7 @@ fun FinanceScreen(
         })
     }
     if (toolsSheetOpen) {
-        ToolsSheet(
-            repository = app.financeRepository,
-            onDismiss = { toolsSheetOpen = false },
-            onOpenMonthSummary = { toolsSheetOpen = false; viewModel.openMonthSummary() },
-            onShowTransactions = { type, category, from, to ->
-                toolsSheetOpen = false
-                viewModel.applyFilters(if (type == TxType.INCOME) TxTypeFilter.INCOME else TxTypeFilter.EXPENSE, category, HistoryFilter(from = from, to = to))
-                if (from == null) viewModel.onPeriodFilterChange(PeriodFilter.ALL)
-            },
-        )
+        ToolsSheet(repository = app.financeRepository, onDismiss = { toolsSheetOpen = false })
     }
     if (budgetsSheetOpen && accountUid != null) {
         BudgetsManagerSheet(repository = app.financeRepository, syncRepository = app.budgetsSyncRepository, uid = activeProfileOwnerUid ?: accountUid, profileId = activeProfileId, onDismiss = { budgetsSheetOpen = false })

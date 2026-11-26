@@ -86,7 +86,7 @@
     <string name="frequency_daily">Щодня</string><string name="frequency_weekly">Щотижня</string><string name="frequency_monthly">Щомісяця</string><string name="frequency_label">Частота</string>
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · на паузі</string>
     <string name="recurring_next_date">Наступного разу</string><string name="recurring_active">Активна</string>
-    <string name="tools_title">Інструменти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
+    <string name="tools_title">Валюти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
     <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_balance_label">Баланс</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">%1$s ₴ середнє</string><string name="analytics_maximum_uah">%1$s ₴ максимум</string>
     <string name="analytics_difference">Різниця</string><string name="analytics_savings_rate">Заощаджено</string>
     <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
@@ -96,6 +96,9 @@
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
     <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
     <string name="category_all">Усі категорії</string>
+    <string name="debt_progress_of">%1$s з %2$s · %3$d%%</string>
+    <string name="finance_pace_last_month">Минулого місяця на цю дату витрачено %1$s</string>
+    <string name="nav_analytics">Аналітика</string>
     <string name="receipt_scan">Сканувати чек</string>
     <string name="transaction_edit_title">Редагування операції</string><string name="transaction_new_title">Нова операція</string>
     <string name="transaction_wallet_expense">Звідки списати</string><string name="transaction_wallet_source">Звідки переказати</string><string name="transaction_wallet_target">Куди переказати</string>

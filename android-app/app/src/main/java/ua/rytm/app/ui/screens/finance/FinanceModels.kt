@@ -136,3 +136,6 @@ data class HistoryFilter(
 // 1:1 with js/core.js's PALETTE/CURRENCY_LIST constants.
 val PALETTE = listOf(0xFF1A8BA4, 0xFF8B5CF6, 0xFF3B82F6, 0xFF10B981, 0xFFF59E0B, 0xFFEC4899, 0xFF06B6D4, 0xFFEF4444, 0xFFA78BFA)
 val CURRENCY_LIST = listOf("UAH") + ua.rytm.app.data.SEED_RATES.keys
+
+/** A jump from Analytics to the history: a type, a category and the period's dates. */
+data class HistoryJump(val type: TxType, val category: String, val from: String?, val to: String?)

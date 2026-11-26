@@ -138,6 +138,7 @@ import ua.rytm.app.ui.icons.AccountBalanceWallet
 import ua.rytm.app.ui.icons.Add
 import ua.rytm.app.ui.icons.Build
 import ua.rytm.app.ui.icons.Clear
+import ua.rytm.app.ui.icons.CurrencyExchange
 import ua.rytm.app.ui.icons.Delete
 import ua.rytm.app.ui.icons.ExpandLess
 import ua.rytm.app.ui.icons.Flag
@@ -227,6 +228,16 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                         HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
                         HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f))
                     }
+                }
+                // Pace (Copilot's "spent vs. last month at this date"): one quiet
+                // factual line, no colour — it is context, not a warning.
+                vm.monthPaceUah?.let { (_, before) ->
+                    Text(
+                        text = maskedAmount(stringResource(R.string.finance_pace_last_month, stringResource(R.string.finance_amount_uah, formatMoney(before)))),
+                        style = MaterialTheme.typography.labelMedium.tabularNums(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = RytmSpacing.sm),
+                    )
                 }
                 if (vm.isMultiCurrency) {
                     Text(
@@ -351,7 +362,7 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
     // "+ Операція" is not repeated here: the FAB (and the empty state's CTA)
     // already own that action on this screen.
     val actions = listOf(
-        QuickAction(stringResource(R.string.tools_title), RytmIcons.Build, primary = false, onClick = onTools),
+        QuickAction(stringResource(R.string.tools_title), RytmIcons.CurrencyExchange, primary = false, onClick = onTools),
         QuickAction(stringResource(R.string.budgets_title), RytmIcons.PieChart, primary = false, onClick = onBudgets),
         QuickAction(stringResource(R.string.goals_title), RytmIcons.Flag, primary = false, onClick = onGoals),
     ).filterIndexed { index, _ -> canEdit || index == 0 }
