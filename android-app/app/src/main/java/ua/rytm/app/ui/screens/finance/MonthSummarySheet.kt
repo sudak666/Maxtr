@@ -121,7 +121,7 @@ fun MonthSummarySheet(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatTile(stringResource(R.string.analytics_income_label), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
-                StatTile(stringResource(R.string.analytics_expense_label), uah(summary.expense), RytmSemantic.expense, Modifier.weight(1f))
+                StatTile(stringResource(R.string.analytics_expense_label), uah(summary.expense), MaterialTheme.colorScheme.onSurface, Modifier.weight(1f))
             }
             val net = summary.net
             Text(

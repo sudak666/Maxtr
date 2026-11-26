@@ -495,7 +495,7 @@ private fun TypeSegmentedRow(vm: FinanceViewModel) {
     val largeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f
     val options = listOf(
         TransactionTypeOption(TxType.INCOME, stringResource(R.string.tx_income), RytmIcons.ArrowUpward, RytmSemantic.income),
-        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, RytmSemantic.expense),
+        TransactionTypeOption(TxType.EXPENSE, stringResource(R.string.tx_expense), RytmIcons.ArrowDownward, MaterialTheme.colorScheme.onSurface),
         TransactionTypeOption(TxType.TRANSFER, stringResource(R.string.tx_transfer), RytmIcons.SwapHoriz, if (isDark) BlueDark2 else BlueLight2),
     )
     // A segmented control (design pass 2026-10-20): one quiet track, only the

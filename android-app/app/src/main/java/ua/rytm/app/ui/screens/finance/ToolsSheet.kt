@@ -167,7 +167,7 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
             AnalyticsTotalCard(
                 label = stringResource(R.string.analytics_expense_label),
                 amount = vm.totalExpense,
-                color = ua.rytm.app.ui.theme.RytmSemantic.expense,
+                color = MaterialTheme.colorScheme.onSurface,
                 icon = RytmIcons.TrendingDown,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
