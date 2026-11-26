@@ -484,6 +484,7 @@ fun FinanceScreen(
                                                     onClick = { if (canEdit) viewModel.openEditTransactionSheet(tx) else viewingTx = tx },
                                                     onSwipeOpenChange = { open -> if (open) swipedRows.add(tx.id) else swipedRows.remove(tx.id) },
                                                     balanceAfter = if (showBalanceAfter) balancesAfter[tx.id] else null,
+                                                    showWallet = viewModel.historyFilter.walletId == null,
                                                     shape = groupedRowShape(index.coerceAtLeast(0), shown.size.coerceAtLeast(1)),
                                                 )
                                             }

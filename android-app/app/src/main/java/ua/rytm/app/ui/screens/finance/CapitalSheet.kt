@@ -67,10 +67,19 @@ fun CapitalSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
         ) {
             RytmSheetTitle(stringResource(R.string.capital_title), subtitle = stringResource(R.string.capital_subtitle))
             Text(
-                maskedAmount("${formatMoney(vm.totalBalanceUah)} ₴"),
+                heroAmountText(maskedAmount("${formatMoney(vm.totalBalanceUah)} ₴")),
                 style = MaterialTheme.typography.displaySmall.tabularNums(),
                 fontWeight = FontWeight.Black,
             )
+            // Capital is not the money to spend: say how much of it is, so the
+            // number here and the forecast's «Зараз на рахунках» never look at odds.
+            if (kotlin.math.abs(vm.totalBalanceUah - vm.spendableBalanceUah) >= 0.5) {
+                Text(
+                    stringResource(R.string.capital_spendable, maskedAmount(formatMoney(vm.spendableBalanceUah))),
+                    style = MaterialTheme.typography.bodyMedium.tabularNums(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                 listOf(30L to R.string.capital_30d, 90L to R.string.capital_90d, 365L to R.string.capital_year, null to R.string.period_all).forEach { (value, label) ->
                     RytmFilterChip(selected = days == value, onClick = { days = value }, label = { Text(stringResource(label)) })
@@ -95,7 +104,10 @@ fun CapitalSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
             }
             ShareCard(stringResource(R.string.capital_by_wallet), vm.capitalByWallet) { localizedDomainText(it) }
             if (vm.capitalByCurrency.size > 1) ShareCard(stringResource(R.string.capital_by_currency), vm.capitalByCurrency) { it }
-            Text(stringResource(R.string.capital_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Footnotes only when they apply: today's rate matters with foreign
+            // currency, the missing share only with a wallet below zero.
+            if (vm.isMultiCurrency) Text(stringResource(R.string.capital_note_rates), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (vm.wallets.any { it.inCapital && vm.walletBalance(it.id) < 0 }) Text(stringResource(R.string.capital_note_negative), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

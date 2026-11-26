@@ -1,5 +1,9 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -109,10 +113,38 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                     }
                 }
 
-                if (vm.wallets.size > 1) Section(stringResource(R.string.filters_wallet)) {
-                    RytmFilterChip(selected = walletId == null, onClick = { walletId = null }, label = { Text(stringResource(R.string.filter_all)) })
-                    vm.wallets.forEach { w ->
-                        RytmFilterChip(selected = walletId == w.id, onClick = { walletId = w.id }, label = { Text(localizedDomainText(w.name)) })
+                if (vm.wallets.size > 1) {
+                    // Money to spend first; savings and debts under their own small
+                    // headings, so a card is not hunted for among loans. Each chip
+                    // carries the wallet's colour dot, as on the Finance screen.
+                    val groups = vm.wallets.groupBy { w ->
+                        when (w.kind) {
+                            "deposit" -> R.string.filters_wallet_savings
+                            "credit", "receivable" -> R.string.filters_wallet_debts
+                            else -> 0
+                        }
+                    }
+                    @Composable
+                    fun WalletChipOption(w: Wallet) = RytmFilterChip(
+                        selected = walletId == w.id,
+                        onClick = { walletId = w.id },
+                        leadingIcon = { Box(Modifier.size(8.dp).background(Color(w.colorHex), CircleShape)) },
+                        label = { Text(localizedDomainText(w.name)) },
+                    )
+                    Section(stringResource(R.string.filters_wallet)) {
+                        RytmFilterChip(selected = walletId == null, onClick = { walletId = null }, label = { Text(stringResource(R.string.filter_all)) })
+                        groups[0].orEmpty().forEach { WalletChipOption(it) }
+                    }
+                    listOf(R.string.filters_wallet_savings, R.string.filters_wallet_debts).forEach { group ->
+                        val list = groups[group].orEmpty()
+                        if (list.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+                                Text(stringResource(group), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                                    list.forEach { WalletChipOption(it) }
+                                }
+                            }
+                        }
                     }
                 }
 
