@@ -38,7 +38,9 @@ import androidx.compose.ui.unit.sp
  * disc), ChatGPT logo (the app tile), Claude AI symbol, Fora logo (the green
  * «фора» plate) — all Commons — and Prom, whose public-domain mark (uk.wikipedia
  * Prom_logo.png, only 216×80) was redrawn as a vector square frame with the
- * sampled #4E4D9F→#7D2391 gradient. Shown only to name where
+ * sampled #4E4D9F→#7D2391 gradient. Коло: its «КОЛО» wordmark cropped from the
+ * official Google Play app icon (screenshot sent by the owner), on its #4CB040.
+ * Shown only to name where
  * a payment went; every other brand keeps its monogram in the brand colour.
  */
 object MerchantBrands {
@@ -53,7 +55,7 @@ object MerchantBrands {
         Brand("Varus", "V", 0xFF009639, listOf("varus", "варус")),
         Brand("Metro", "M", 0xFF003D7C, listOf("metro cash", "метро кеш", "metro ")),
         Brand("Auchan", "A", 0xFFE2001A, listOf("auchan", "ашан")),
-        Brand("Коло", "К", 0xFF2E7D32, listOf("kolo ", "коло ", "kolo kiyev")),
+        Brand("Коло", "К", 0xFF4CB040, listOf("kolo ", "коло ", "kolo kiyev"), logo = ua.rytm.app.R.drawable.merchant_kolo, logoFullBleed = true),
         Brand("Велмарт", "В", 0xFF0072BC, listOf("velmart", "велмарт")),
         Brand("Таврія В", "ТВ", 0xFFD71920, listOf("tavria", "таврія")),
         Brand("Епіцентр", "Е", 0xFFF39200, listOf("epicentr", "епіцентр")),
