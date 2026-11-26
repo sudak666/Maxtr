@@ -297,7 +297,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
 
 @Composable
 private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier) {
-    val valueColor = if (positive) RytmSemantic.income else RytmSemantic.expense
+    val valueColor = if (positive) RytmSemantic.income else MaterialTheme.colorScheme.onSurface
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
@@ -805,7 +805,7 @@ internal fun TransactionRow(
                 Spacer(Modifier.width(RytmSpacing.sm))
                 val (amountText, amountColor) = when (tx.type) {
                     TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.income
-                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.expense
+                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurface
                     TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Column(horizontalAlignment = Alignment.End) {

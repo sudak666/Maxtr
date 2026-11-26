@@ -112,7 +112,7 @@ fun StatementMappingSheet(
                         Text(
                             maskedAmount((if (row.amount > 0) "+" else "−") + formatMoney(kotlin.math.abs(row.amount))),
                             style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold,
-                            color = if (row.amount > 0) RytmSemantic.income else RytmSemantic.expense,
+                            color = if (row.amount > 0) RytmSemantic.income else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
