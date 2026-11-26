@@ -95,6 +95,7 @@
     <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_other">Інше</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
     <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
+    <string name="category_all">Усі категорії</string>
     <string name="receipt_scan">Сканувати чек</string>
     <string name="transaction_edit_title">Редагування операції</string><string name="transaction_new_title">Нова операція</string>
     <string name="transaction_wallet_expense">Звідки списати</string><string name="transaction_wallet_source">Звідки переказати</string><string name="transaction_wallet_target">Куди переказати</string>

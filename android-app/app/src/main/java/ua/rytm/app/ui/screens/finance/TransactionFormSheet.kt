@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import ua.rytm.app.ui.icons.ChevronRight
+import ua.rytm.app.ui.theme.tabularNums
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -184,93 +187,177 @@ fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
 
             TypeSegmentedRow(vm)
 
-            if (vm.form.type != TxType.TRANSFER) {
-                // One secondary action, not two filled Buttons competing with
-                // (and sitting above) the form's real primary action. Source
-                // choice moved into a small sheet, the platform-canonical shape.
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    ua.rytm.app.ui.components.RytmOutlinedButton(
-                        onClick = { scanSourceOpen = true },
-                        enabled = !ocrBusy,
-                        modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
-                        shape = RoundedCornerShape(RytmRadii.Row),
-                    ) {
-                        if (!largeFont) {
-                            Icon(RytmIcons.DocumentScanner, contentDescription = null)
-                            Spacer(Modifier.width(RytmSpacing.sm))
-                        }
-                        ua.rytm.app.ui.components.FitText(stringResource(R.string.receipt_scan_short), style = MaterialTheme.typography.labelLarge)
-                    }
-                    // A new transaction only: one line or voice re-fills the whole form.
-                    if (vm.form.editingTxId == null) {
-                        ua.rytm.app.ui.components.RytmOutlinedButton(
-                            onClick = { vm.quickEntryOpen = true },
-                            modifier = Modifier.weight(1f).heightIn(min = RytmDimens.TouchTarget),
-                            shape = RoundedCornerShape(RytmRadii.Row),
-                        ) {
-                            if (!largeFont) {
-                                Icon(RytmIcons.Mic, contentDescription = null)
-                                Spacer(Modifier.width(RytmSpacing.sm))
-                            }
-                            ua.rytm.app.ui.components.FitText(stringResource(R.string.quick_entry_button), style = MaterialTheme.typography.labelLarge)
-                        }
-                    }
+            // Design audit 2026-11-26: the sum is the one thing typed every
+            // time, so it comes first and big (it was a 16sp outlined field
+            // under the wallet). Receipt and voice moved next to it as two
+            // round icon buttons instead of a full row of outlined buttons.
+            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+                val amountInvalid = vm.form.errorField == TxFormField.AMOUNT
+                // A new entry starts in the amount field with the keyboard up —
+                // the first thing typed is always the sum.
+                val amountFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+                LaunchedEffect(Unit) {
+                    if (vm.form.editingTxId == null && vm.form.amountText.isEmpty()) runCatching { amountFocus.requestFocus() }
                 }
-                if (scanSourceOpen) {
-                    // Cancel used to live in AlertDialog's own confirmButton
-                    // slot — M3 right-aligns that in its own padded footer,
-                    // which read as disconnected from the Camera/Gallery
-                    // options above it (reported live, screenshot: a big gap
-                    // with Cancel floating alone at the bottom-right). This
-                    // is a source picker, not a message+confirm dialog, so
-                    // Cancel now joins the same option list as a third,
-                    // visually muted row instead — one cohesive block, no
-                    // dead space. confirmButton stays required by the API
-                    // but renders nothing.
-                    AlertDialog(
-                        onDismissRequest = { scanSourceOpen = false },
-                        title = { Text(stringResource(R.string.receipt_scan)) },
-                        text = {
+                // A TextFieldValue so an operator button leaves the cursor at
+                // the end: with a plain String it stayed put, and «2 × 70»
+                // came out as «270 ×».
+                var amountField by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))) }
+                if (amountField.text != vm.form.amountText) {
+                    amountField = androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
+                }
+                val amountLabel = stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))
+                Text(amountLabel, style = MaterialTheme.typography.labelMedium, color = if (amountInvalid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                    val amountStyle = MaterialTheme.typography.displayMedium.tabularNums().copy(color = MaterialTheme.colorScheme.onSurface)
+                    val calcResult = amountCalcResult(vm.form.amountText, vm.formWalletCurrency)
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = amountField,
+                        onValueChange = { v ->
+                            vm.form.onAmountChange(v.text)
+                            amountField = if (v.text == vm.form.amountText) v
+                            else androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
+                        },
+                        textStyle = amountStyle,
+                        singleLine = true,
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(amountFocus)
+                            .onFocusChanged { amountFocused = it.isFocused }
+                            .semantics { contentDescription = amountLabel },
+                        decorationBox = { inner ->
                             Column {
-                                ua.rytm.app.ui.components.RytmTextButton(
-                                    onClick = {
-                                        scanSourceOpen = false
-                                        val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
-                                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
-                                        cameraUri = uri
-                                        cameraLauncher.launch(uri)
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Icon(RytmIcons.CameraAlt, contentDescription = null)
-                                    Spacer(Modifier.width(RytmSpacing.sm))
-                                    Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
+                                // The currency is in the label above («Сума (₴)»).
+                                Box {
+                                    if (amountField.text.isEmpty()) Text("0${decimalSeparator}00", style = amountStyle, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    inner()
                                 }
-                                ua.rytm.app.ui.components.RytmTextButton(
-                                    onClick = { scanSourceOpen = false; galleryLauncher.launch("image/*") },
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Icon(RytmIcons.PhotoLibrary, contentDescription = null)
-                                    Spacer(Modifier.width(RytmSpacing.sm))
-                                    Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
-                                }
-                                HorizontalDivider(Modifier.padding(vertical = RytmSpacing.xs))
-                                ua.rytm.app.ui.components.RytmTextButton(
-                                    onClick = { scanSourceOpen = false },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    ),
-                                ) {
-                                    Text(stringResource(R.string.action_cancel), modifier = Modifier.weight(1f))
-                                }
+                                // The result of «2 × 70» stays on the field: a line under it hid behind the keyboard.
+                                calcResult?.let { Text(it, style = MaterialTheme.typography.titleMedium, color = RytmSemantic.link) }
+                                Spacer(Modifier.height(RytmSpacing.xs))
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(if (amountFocused || amountInvalid) 2.dp else 1.dp)
+                                        .background(
+                                            when {
+                                                amountInvalid -> MaterialTheme.colorScheme.error
+                                                amountFocused -> MaterialTheme.colorScheme.primary
+                                                else -> MaterialTheme.colorScheme.outlineVariant
+                                            },
+                                        ),
+                                )
                             }
                         },
-                        confirmButton = {},
                     )
+                    if (vm.form.type != TxType.TRANSFER) {
+                        AmountSideButton(RytmIcons.DocumentScanner, stringResource(R.string.receipt_scan), enabled = !ocrBusy) { scanSourceOpen = true }
+                        // A new transaction only: one line or voice re-fills the whole form.
+                        if (vm.form.editingTxId == null) AmountSideButton(RytmIcons.Mic, stringResource(R.string.quick_entry_button)) { vm.quickEntryOpen = true }
+                    }
+                }
+                val supporting: String? = vm.form.errorRes.takeIf { amountInvalid }?.let { stringResource(it) }
+                    ?: vm.form.amountText.takeIf { AmountExpression.isExpression(it) && AmountExpression.evaluate(it) == null }?.let { stringResource(R.string.amount_calc_invalid) }
+                    ?: vm.formShiftCost?.let { shifts -> shiftCostText(shifts) }
+                    ?: vm.formSalaryMatch?.let { (expected, diff) ->
+                        stringResource(
+                            R.string.salary_match_hint,
+                            ua.rytm.app.ui.maskedAmount("${formatMoney(expected)} ₴"),
+                            ua.rytm.app.ui.maskedAmount((if (diff >= 0) "+" else "−") + formatMoney(kotlin.math.abs(diff)) + " ₴"),
+                        )
+                    }
+                supporting?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = if (amountInvalid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (ocrBusy) Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) { CircularProgressIndicator(Modifier.size(20.dp)); Text(stringResource(R.string.receipt_scanning)) }
                 ocrMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                LazyRow(Modifier.padding(top = RytmSpacing.xs), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                    items(listOf(50.0, 100.0, 200.0, 500.0)) { amount ->
+                        AssistChip(onClick = { vm.form.setAmount(amount) }, label = { Text(amount.toLong().toString()) })
+                    }
+                }
+            }
+
+            if (scanSourceOpen) {
+                // Cancel joins the option list as a muted third row: in
+                // AlertDialog's own confirm slot it floated alone, far below.
+                AlertDialog(
+                    onDismissRequest = { scanSourceOpen = false },
+                    title = { Text(stringResource(R.string.receipt_scan)) },
+                    text = {
+                        Column {
+                            ua.rytm.app.ui.components.RytmTextButton(
+                                onClick = {
+                                    scanSourceOpen = false
+                                    val dir = File(context.cacheDir, "receipts").apply { mkdirs() }
+                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", File(dir, "receipt-${System.currentTimeMillis()}.jpg"))
+                                    cameraUri = uri
+                                    cameraLauncher.launch(uri)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(RytmIcons.CameraAlt, contentDescription = null)
+                                Spacer(Modifier.width(RytmSpacing.sm))
+                                Text(stringResource(R.string.receipt_camera), modifier = Modifier.weight(1f))
+                            }
+                            ua.rytm.app.ui.components.RytmTextButton(
+                                onClick = { scanSourceOpen = false; galleryLauncher.launch("image/*") },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(RytmIcons.PhotoLibrary, contentDescription = null)
+                                Spacer(Modifier.width(RytmSpacing.sm))
+                                Text(stringResource(R.string.receipt_gallery), modifier = Modifier.weight(1f))
+                            }
+                            HorizontalDivider(Modifier.padding(vertical = RytmSpacing.xs))
+                            ua.rytm.app.ui.components.RytmTextButton(
+                                onClick = { scanSourceOpen = false },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            ) {
+                                Text(stringResource(R.string.action_cancel), modifier = Modifier.weight(1f))
+                            }
+                        }
+                    },
+                    confirmButton = {},
+                )
+            }
+
+            if (vm.form.type != TxType.TRANSFER) {
+                val categories = vm.categoriesByType[vm.form.type].orEmpty()
+                if (categories.isNotEmpty()) {
+                    // One control for the category, not chips plus a row that
+                    // repeated the same choice. The chosen category always
+                    // leads (with its subcategory), then the frequent ones,
+                    // then «Усі категорії» for the full picker.
+                    val selected = vm.form.category ?: categories.first()
+                    // A new account has no history yet: without chips the default category went unnoticed.
+                    val frequent = vm.formFrequentCategories.takeIf { it.size >= 2 } ?: categories.take(6)
+                    val chips = listOf(selected) + frequent.filter { it != selected }
+                    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
+                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+                        items(chips, key = { it }) { cat ->
+                            val sub = vm.form.subcategory.takeIf { cat == selected }
+                            ua.rytm.app.ui.components.RytmFilterChip(
+                                selected = cat == selected,
+                                onClick = { if (cat == selected) categoryPickerOpen = true else vm.form.onCategoryChange(cat) },
+                                label = { Text(localizedDomainText(cat) + (sub?.let { " › " + localizedDomainText(it) } ?: "")) },
+                                leadingIcon = if (cat == selected) ({ CategoryIconBadge(cat, vm.categoryIcons[cat], size = 22.dp) }) else null,
+                            )
+                        }
+                        item(key = "all-categories") {
+                            AssistChip(
+                                onClick = { categoryPickerOpen = true },
+                                label = { Text(stringResource(R.string.category_all)) },
+                                trailingIcon = { Icon(RytmIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            )
+                        }
+                    }
+                }
             }
 
             val walletLabel = when (vm.form.type) {
@@ -307,81 +394,8 @@ fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                val amountInvalid = vm.form.errorField == TxFormField.AMOUNT
-                // A new entry starts in the amount field with the keyboard up —
-                // the first thing typed is always the sum.
-                val amountFocus = remember { androidx.compose.ui.focus.FocusRequester() }
-                LaunchedEffect(Unit) {
-                    if (vm.form.editingTxId == null && vm.form.amountText.isEmpty()) runCatching { amountFocus.requestFocus() }
-                }
-                // A TextFieldValue so an operator button leaves the cursor at
-                // the end: with a plain String it stayed put, and «2 × 70»
-                // came out as «270 ×».
-                var amountField by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))) }
-                if (amountField.text != vm.form.amountText) {
-                    amountField = androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
-                }
-                OutlinedTextField(
-                    value = amountField,
-                    onValueChange = { v ->
-                        vm.form.onAmountChange(v.text)
-                        amountField = if (v.text == vm.form.amountText) v
-                        else androidx.compose.ui.text.input.TextFieldValue(vm.form.amountText, androidx.compose.ui.text.TextRange(vm.form.amountText.length))
-                    },
-                    label = { Text(stringResource(R.string.transaction_amount_currency, currencySymbol(vm.formWalletCurrency))) },
-                    placeholder = { Text("0${decimalSeparator}00") },
-                    // The result sits inside the field: under it, it hid behind
-                    // the pinned operator row and the keyboard.
-                    suffix = amountCalcResult(vm.form.amountText, vm.formWalletCurrency)?.let { result ->
-                        { Text(result, color = ua.rytm.app.ui.theme.RytmSemantic.link, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    // The error used to be one generic line at the bottom of
-                    // the form, with no field highlighted at all.
-                    isError = amountInvalid,
-                    supportingText = vm.form.errorRes.takeIf { amountInvalid }?.let { { Text(stringResource(it)) } }
-                        ?: vm.form.amountText.takeIf { AmountExpression.isExpression(it) && AmountExpression.evaluate(it) == null }?.let { { Text(stringResource(R.string.amount_calc_invalid)) } }
-                        ?: vm.formShiftCost?.let { shifts -> { Text(shiftCostText(shifts)) } }
-                        ?: vm.formSalaryMatch?.let { (expected, diff) ->
-                            {
-                                Text(
-                                    stringResource(
-                                        R.string.salary_match_hint,
-                                        ua.rytm.app.ui.maskedAmount("${formatMoney(expected)} ₴"),
-                                        ua.rytm.app.ui.maskedAmount((if (diff >= 0) "+" else "−") + formatMoney(kotlin.math.abs(diff)) + " ₴"),
-                                    ),
-                                )
-                            }
-                        },
-                    modifier = Modifier.fillMaxWidth().focusRequester(amountFocus).onFocusChanged { amountFocused = it.isFocused },
-                    singleLine = true,
-                )
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    items(listOf(50.0, 100.0, 200.0, 500.0)) { amount ->
-                        AssistChip(onClick = { vm.form.setAmount(amount) }, label = { Text(amount.toLong().toString()) })
-                    }
-                }
-            }
-
             if (vm.form.type != TxType.TRANSFER) {
                 val categories = vm.categoriesByType[vm.form.type].orEmpty()
-                // A new account has no history yet: without chips the default category went unnoticed.
-                val frequent = vm.formFrequentCategories.takeIf { it.size >= 2 } ?: categories.take(6)
-                if (frequent.size >= 2) {
-                    val fadeState = androidx.compose.foundation.lazy.rememberLazyListState()
-                    LazyRow(state = fadeState, modifier = Modifier.fadingEdges(fadeState), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                        items(frequent, key = { it }) { cat ->
-                            ua.rytm.app.ui.components.RytmFilterChip(
-                                selected = (vm.form.category ?: categories.firstOrNull()) == cat,
-                                onClick = { vm.form.onCategoryChange(cat) },
-                                label = { Text(ua.rytm.app.ui.localizedDomainText(cat)) },
-                            )
-                        }
-                    }
-                }
-                if (categories.isNotEmpty()) CategoryField(vm) { categoryPickerOpen = true }
                 if (showMore && vm.form.canSplit && categories.size >= 2) SplitPartsEditor(vm, categories)
             }
 
@@ -703,4 +717,18 @@ private fun shiftCostText(shifts: Double): String {
         rounded == Math.floor(rounded) -> androidx.compose.ui.res.pluralStringResource(R.plurals.transaction_shift_cost_whole, rounded.toInt(), rounded.toInt())
         else -> stringResource(R.string.transaction_shift_cost, java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(rounded))
     }
+}
+
+/** Round tonal icon button beside the amount (receipt, voice). */
+@Composable
+private fun AmountSideButton(icon: ImageVector, description: String, enabled: Boolean = true, onClick: () -> Unit) {
+    androidx.compose.material3.FilledTonalIconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(RytmDimens.TouchTarget),
+        colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.primary,
+        ),
+    ) { Icon(icon, contentDescription = description) }
 }
