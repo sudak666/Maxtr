@@ -25,7 +25,13 @@ fun RytmFilterChip(
     FilterChip(
         selected = selected,
         onClick = onClick,
-        label = label,
+        // Unselected chips at Medium: a row of bold grey labels read as all
+        // equally important; only the chosen one carries weight.
+        label = {
+            androidx.compose.material3.ProvideTextStyle(
+                MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Medium),
+            ) { label() }
+        },
         modifier = modifier,
         leadingIcon = leadingIcon,
         enabled = enabled,
