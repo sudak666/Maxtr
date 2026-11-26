@@ -104,9 +104,9 @@ internal fun BankPreview() = PreviewCard {
 
 @Composable
 internal fun ShiftsPreview() = PreviewCard {
-    val day = Color(0xFF3B82F6)
+    val day = Color(0xFFF59E0B)
     val night = Color(0xFF8B5CF6)
-    val off = Color(0xFFF59E0B)
+    val off = Color(0xFF94A3B8)
     val week = listOf(
         R.string.onboarding_demo_day to day, R.string.onboarding_demo_day to day, R.string.onboarding_demo_night to night,
         R.string.onboarding_demo_night to night, R.string.onboarding_demo_off to off, R.string.onboarding_demo_off to off,

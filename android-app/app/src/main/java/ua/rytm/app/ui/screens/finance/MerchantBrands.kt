@@ -73,6 +73,34 @@ object MerchantBrands {
         Brand("Космо", "К", 0xFFE6007E, listOf("kosmo", "космо")),
         Brand("Multiplex", "MX", 0xFF6A1B9A, listOf("multiplex", "мультиплекс")),
         Brand("Планета Кіно", "ПК", 0xFF1E88E5, listOf("planeta kino", "планета кіно")),
+        // 2026-11-26: electronics, clothes, marketplaces, food delivery,
+        // transport, subscriptions and utilities that were missing. Words that
+        // are also ordinary Ukrainian («простор», «аврора», «цитрус») match
+        // only as a whole word (trailing space), never as a prefix.
+        Brand("Аврора", "А", 0xFFE4002B, listOf("avrora", "аврора ")),
+        Brand("Allo", "A", 0xFFE30613, listOf("allo.ua", "allo ")),
+        Brand("Citrus", "C", 0xFFFF7A00, listOf("citrus", "цитрус ")),
+        Brand("Moyo", "M", 0xFF00A651, listOf("moyo", "мойо")),
+        Brand("Brocard", "B", 0xFF1A1A1A, listOf("brocard", "брокард")),
+        Brand("Prostor", "P", 0xFF00A0E3, listOf("prostor", "простор ")),
+        Brand("Intertop", "I", 0xFF1A1A1A, listOf("intertop", "інтертоп")),
+        Brand("Sinsay", "S", 0xFF1A1A1A, listOf("sinsay")),
+        Brand("JYSK", "J", 0xFF0A3B7C, listOf("jysk")),
+        Brand("Kasta", "K", 0xFF000000, listOf("kasta")),
+        Brand("MAKEUP", "MU", 0xFFE6007E, listOf("makeup.com", "makeup ")),
+        Brand("OLX", "OLX", 0xFF23E5DB, listOf("olx")),
+        Brand("Temu", "T", 0xFFFB7701, listOf("temu")),
+        Brand("AliExpress", "AE", 0xFFE62E04, listOf("aliexpress")),
+        Brand("Domino's", "D", 0xFF006491, listOf("domino")),
+        Brand("Челентано", "Ч", 0xFFE30613, listOf("celentano", "челентано")),
+        Brand("Sushi Master", "SM", 0xFFE30613, listOf("sushi master", "суші майстер")),
+        Brand("Укрзалізниця", "УЗ", 0xFF0057B8, listOf("uz.gov", "ukrzaliznytsia", "укрзалізниця")),
+        Brand("Київ Цифровий", "КЦ", 0xFF00A0E3, listOf("kyiv digital", "київ цифровий")),
+        Brand("Megogo", "MG", 0xFF0E1A2B, listOf("megogo", "мегого")),
+        Brand("ChatGPT", "AI", 0xFF10A37F, listOf("openai", "chatgpt")),
+        Brand("ДТЕК", "Д", 0xFFFFC72C, listOf("dtek", "дтек")),
+        Brand("Нафтогаз", "НГ", 0xFF0057B8, listOf("naftogaz", "нафтогаз")),
+        Brand("Укртелеком", "УТ", 0xFF0072BC, listOf("ukrtelecom", "укртелеком")),
     )
 
     /** The brand named in [comment], or null. Whole-word-ish: keywords match after padding with spaces. */

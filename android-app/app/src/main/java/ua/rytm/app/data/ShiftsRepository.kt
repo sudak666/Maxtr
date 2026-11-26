@@ -20,10 +20,13 @@ fun ShiftType.toEntity() = ShiftTypeEntity(id, name, short, code, colorHex, amou
 fun AutoFillScheduleEntity.toDomain() = AutoFillSchedule(enabled, typeId, pattern, anchorDate)
 fun AutoFillSchedule.toEntity() = AutoFillScheduleEntity(id = 0, enabled = enabled, typeId = typeId, pattern = pattern, anchorDate = anchorDate)
 
+// Design audit 2026-11-26: day = amber (sun), night = violet, day off = neutral
+// slate. The old day blue sat next to the petrol accent and read as one hue.
+// Only new profiles are seeded with these; existing types keep their colours.
 internal fun defaultShiftTypeEntities() = listOf(
-    ShiftTypeEntity("st_day", "Денна зміна", "День", "Д", 0xFF3B82F6, 0.0, 8.0, false),
+    ShiftTypeEntity("st_day", "Денна зміна", "День", "Д", 0xFFF59E0B, 0.0, 8.0, false),
     ShiftTypeEntity("st_night", "Нічна зміна", "Ніч", "Н", 0xFF8B5CF6, 0.0, 12.0, false),
-    ShiftTypeEntity("st_off", "Вихідний", "Вих", "В", 0xFFF59E0B, 0.0, 0.0, true),
+    ShiftTypeEntity("st_off", "Вихідний", "Вих", "В", 0xFF94A3B8, 0.0, 0.0, true),
 )
 
 class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyncRepository) {
