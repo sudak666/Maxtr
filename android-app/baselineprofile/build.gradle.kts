@@ -4,7 +4,10 @@ plugins {
 
 android {
     namespace = "ua.rytm.app.baselineprofile"
-    compileSdk = 37
+    // Compose 1.13 (BOM 2026.11.01) requires API 37.1 to compile against.
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         minSdk = 26
