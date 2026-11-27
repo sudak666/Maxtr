@@ -850,4 +850,9 @@
     <string name="story_expense_count">Витрат за місяць: %1$d</string>
     <plurals name="finance_found"><item quantity="one">Знайдено %1$d операцію</item><item quantity="few">Знайдено %1$d операції</item><item quantity="many">Знайдено %1$d операцій</item><item quantity="other">Знайдено %1$d операції</item></plurals>
     <plurals name="story_no_spend_run"><item quantity="one">Найдовша серія — %1$d день</item><item quantity="few">Найдовша серія — %1$d дні</item><item quantity="many">Найдовша серія — %1$d днів</item><item quantity="other">Найдовша серія — %1$d дня</item></plurals>
+    <string name="premium_grant">Подарований доступ</string>
+    <string name="premium_renews">Поновиться %1$s</string>
+    <string name="premium_until">Діє до %1$s</string>
+    <string name="premium_plan_yearly">Річний план</string>
+    <string name="premium_plan_monthly">Місячний план</string>
 </resources>

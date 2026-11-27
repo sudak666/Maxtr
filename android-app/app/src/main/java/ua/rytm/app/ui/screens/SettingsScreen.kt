@@ -248,7 +248,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
     var monobankSheetOpen by rememberSaveable { mutableStateOf(false) }
     var paywallOpen by rememberSaveable { mutableStateOf(false) }
     if (paywallOpen) PremiumDialog(onDismiss = { paywallOpen = false })
-    val premiumActive = app.premiumRepository.isPremium.collectAsState().value
+    val premiumStatus = app.premiumRepository.status.collectAsState().value
     val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) settingsViewModel.readImport(uri)
     }
@@ -421,7 +421,7 @@ fun SettingsScreen(authViewModel: AuthViewModel = viewModel()) {
                             icon = RytmIcons.Star,
                             badgeColor = SettingsGroupColors.Account,
                             title = stringResource(R.string.settings_premium),
-                            subtitle = stringResource(if (premiumActive) R.string.premium_plan_active else R.string.settings_free_plan),
+                            subtitle = premiumSubtitle(premiumStatus),
                             onClick = { paywallOpen = true },
                         )
                     }

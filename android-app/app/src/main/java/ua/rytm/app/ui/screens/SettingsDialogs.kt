@@ -167,10 +167,50 @@ fun CsvImportPreviewDialog(preview: CsvImportPreview, busy: Boolean, canImport: 
     )
 }
 
+/**
+ * The plan in a few words: «Безкоштовний план», «Поновиться 27 грудня», «Діє
+ * до 27 грудня» once renewal is off, «Подарований доступ», or «Усе відкрито»
+ * in a debug build. A date in another year carries the year.
+ */
+@Composable
+fun premiumSubtitle(status: ua.rytm.app.data.PremiumStatus): String {
+    if (!status.active) return stringResource(R.string.settings_free_plan)
+    if (status.ungated) return stringResource(R.string.premium_plan_active)
+    val until = status.expiresAt?.let { premiumDate(it) }
+    return when {
+        status.source == "grant" -> stringResource(R.string.premium_grant)
+        until != null && status.autoRenewing -> stringResource(R.string.premium_renews, until)
+        until != null -> stringResource(R.string.premium_until, until)
+        else -> stringResource(R.string.premium_plan_active)
+    }
+}
+
+@Composable
+private fun premiumDate(millis: Long): String {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val date = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+    val pattern = if (date.year == java.time.LocalDate.now().year) "d MMMM" else "d MMMM yyyy"
+    return date.format(java.time.format.DateTimeFormatter.ofPattern(pattern, locale))
+}
+
+/** The plan's name before [premiumSubtitle]: «Річний план · Поновиться 27 грудня». */
+@Composable
+private fun premiumStatusLine(status: ua.rytm.app.data.PremiumStatus): String? {
+    if (status.ungated) return null
+    val plan = when (status.basePlan) {
+        "yearly" -> stringResource(R.string.premium_plan_yearly)
+        "monthly" -> stringResource(R.string.premium_plan_monthly)
+        else -> null
+    }
+    val subtitle = premiumSubtitle(status)
+    return listOfNotNull(plan, subtitle).joinToString(" · ")
+}
+
 @Composable
 fun PremiumDialog(onDismiss: () -> Unit) {
     val premium = ua.rytm.app.ui.rytmApp().premiumRepository
     val owned by premium.isPremium.collectAsState()
+    val status by premium.status.collectAsState()
     val offers by premium.offers.collectAsState()
     val offersState by premium.offersState.collectAsState()
     val purchaseError by premium.purchaseError.collectAsState()
@@ -179,6 +219,8 @@ fun PremiumDialog(onDismiss: () -> Unit) {
     LaunchedEffect(Unit) { premium.clearPurchaseError(); runCatching { premium.loadOffers() } }
     PremiumDialogContent(
         owned = owned,
+        statusLine = if (owned) premiumStatusLine(status) else null,
+        canManage = status.manageable,
         plans = offers.map { it.toUi() },
         offersState = offersState,
         purchaseError = purchaseError,
@@ -192,6 +234,8 @@ fun PremiumDialog(onDismiss: () -> Unit) {
 @Composable
 fun PremiumDialogContent(
     owned: Boolean,
+    statusLine: String? = null,
+    canManage: Boolean = owned,
     plans: List<ua.rytm.app.data.PremiumPlanUi>,
     offersState: ua.rytm.app.data.OffersState,
     purchaseError: Int?,
@@ -214,6 +258,8 @@ fun PremiumDialogContent(
             // Scrolls: at 200 % font the last perks were cut off with no way to reach them.
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                 Text(stringResource(if (owned) R.string.premium_active else R.string.premium_body))
+                // «Річний план · поновиться 27 грудня»: what a subscriber looks for first.
+                statusLine?.let { Text(it, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary) }
                 PremiumPerkRow(RytmIcons.CheckCircle, GreenDark, stringResource(R.string.premium_sync_title), stringResource(R.string.premium_sync_body))
                 PremiumPerkRow(RytmIcons.TrendingUp, GreenDark, stringResource(R.string.premium_import_title), stringResource(R.string.premium_import_body))
                 PremiumPerkRow(RytmIcons.CloudDone, GreenDark, stringResource(R.string.premium_auto_title), stringResource(R.string.premium_auto_body))
@@ -261,7 +307,8 @@ fun PremiumDialogContent(
                 val legalDocsEn = androidx.compose.ui.res.booleanResource(R.bool.legal_docs_en)
                 fun open(url: String) { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } }
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (owned) {
+                    // Only a Play subscription has anything to manage in Play.
+                    if (owned && canManage) {
                         ua.rytm.app.ui.components.RytmTextButton(onClick = { open("https://play.google.com/store/account/subscriptions?sku=rytm_premium&package=" + context.packageName) }) {
                             Text(stringResource(R.string.premium_manage))
                         }

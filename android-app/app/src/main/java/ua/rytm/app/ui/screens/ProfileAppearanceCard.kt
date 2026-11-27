@@ -74,8 +74,7 @@ import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Bolt
 import ua.rytm.app.ui.icons.DarkMode
 import ua.rytm.app.ui.icons.Diamond
-import ua.rytm.app.ui.icons.ExpandLess
-import ua.rytm.app.ui.icons.ExpandMore
+import ua.rytm.app.ui.icons.Edit
 import ua.rytm.app.ui.icons.Favorite
 import ua.rytm.app.ui.icons.LightMode
 import ua.rytm.app.ui.icons.Person
@@ -166,14 +165,16 @@ fun ProfileAppearanceCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(RytmRadii.Card),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
         Column(Modifier.padding(RytmSpacing.lg), verticalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
                 if (showAvatar) {
                     ProfileAvatar(appearance, draft.ifBlank { email }, avatarDescription, Modifier.clip(CircleShape).clickable(enabled = !busy, role = androidx.compose.ui.semantics.Role.Button) { avatarDialog = true })
                 }
-                // Same as the manager lists: the row opens editing, a quiet chevron hints at it.
+                // The row opens editing, a pencil says so. It was a chevron ⌄, which
+                // beside a name and an e-mail reads as an account switcher (outside
+                // review 2026-11-27) — switching lives on the «Профілі» tile.
                 Row(
                     Modifier
                         .weight(1f)
@@ -196,7 +197,7 @@ fun ProfileAppearanceCard(
                         )
                         Text(email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Icon(if (editing) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(RytmIcons.Edit, contentDescription = null, tint = if (editing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             if (editing) {

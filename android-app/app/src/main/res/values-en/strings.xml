@@ -836,4 +836,9 @@
     <string name="story_expense_count">Expenses this month: %1$d</string>
     <plurals name="finance_found"><item quantity="one">Found %1$d operation</item><item quantity="other">Found %1$d operations</item></plurals>
     <plurals name="story_no_spend_run"><item quantity="one">Longest streak: %1$d day</item><item quantity="other">Longest streak: %1$d days</item></plurals>
+    <string name="premium_grant">Complimentary access</string>
+    <string name="premium_renews">Renews %1$s</string>
+    <string name="premium_until">Active until %1$s</string>
+    <string name="premium_plan_yearly">Yearly plan</string>
+    <string name="premium_plan_monthly">Monthly plan</string>
 </resources>

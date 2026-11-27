@@ -43,6 +43,19 @@ data class PremiumOffer(val details: ProductDetails, val offerToken: String, val
 }
 
 /** What the Premium dialog shows of one Play plan; plain data so the dialog can be rendered in tests. */
+/** See [PremiumRepository.status]. [ungated]: debug and QA builds, where everything is open. */
+data class PremiumStatus(
+    val active: Boolean,
+    val ungated: Boolean = false,
+    val source: String? = null,
+    val autoRenewing: Boolean = false,
+    val basePlan: String? = null,
+    val expiresAt: Long? = null,
+) {
+    /** A Play subscription the user can manage in Play (a grant or a debug build has nothing there). */
+    val manageable: Boolean get() = active && !ungated && source == "play"
+}
+
 data class PremiumPlanUi(val basePlan: String, val price: String, val hasTrial: Boolean, val recurringMicros: Long)
 
 fun PremiumOffer.toUi() = PremiumPlanUi(basePlan, price, hasTrial, recurringMicros)
@@ -83,6 +96,23 @@ class PremiumRepository(context: Context, private val settings: SettingsStore, p
     val isPremium: StateFlow<Boolean> = combine(owned, settings.premiumCache) { live, cache ->
         !gated || (live ?: cache?.let { it.uid == FirebaseAuth.getInstance().currentUser?.uid && System.currentTimeMillis() < it.validUntil } ?: false)
     }.stateIn(scope, SharingStarted.Eagerly, !gated)
+
+    /**
+     * What the profile panel and the Premium dialog say about the plan: «Поновиться
+     * 27 грудня», «Діє до …» once renewal is off, «Подарований доступ» for a
+     * grant (outside review 2026-11-27: the tile only said «Усе відкрито»).
+     */
+    val status: StateFlow<PremiumStatus> = combine(isPremium, settings.premiumCache) { active, cache ->
+        val own = cache?.takeIf { it.uid == FirebaseAuth.getInstance().currentUser?.uid }
+        PremiumStatus(
+            active = active,
+            ungated = !gated,
+            source = own?.source,
+            autoRenewing = own?.autoRenewing == true,
+            basePlan = own?.basePlan,
+            expiresAt = own?.expiresAt,
+        )
+    }.stateIn(scope, SharingStarted.Eagerly, PremiumStatus(active = !gated, ungated = !gated))
 
     private val client: BillingClient = BillingClient.newBuilder(context.applicationContext)
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
@@ -129,25 +159,45 @@ class PremiumRepository(context: Context, private val settings: SettingsStore, p
         // belongs to another Rytm account (the server refuses it), and that
         // must not stop this account's own answer (a grant, its own purchase).
         var verified: ServerAnswer? = null
+        var verifiedPurchase: Purchase? = null
         for (purchase in active) {
             val answer = runCatching { callServer(mapOf("action" to "verify", "purchaseToken" to purchase.purchaseToken)) }.getOrNull()
             if (answer?.premium == true && !purchase.isAcknowledged) {
                 client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build())
             }
-            if (answer?.premium == true) verified = answer
+            if (answer?.premium == true) { verified = answer; verifiedPurchase = purchase }
         }
         // Offline or the server failed: keep the last answer (owned stays null → cache).
         val answer = verified ?: runCatching { callServer(mapOf("action" to "status")) }.getOrNull() ?: return
         if (FirebaseAuth.getInstance().currentUser?.uid != uid) return
         owned.value = answer.premium
-        settings.setPremiumCache(if (answer.premium) ua.rytm.app.data.local.PremiumCache(uid, answer.expiresAt ?: (System.currentTimeMillis() + GRANT_OFFLINE_MS)) else null)
+        // A purchase on this device's Play account says whether it renews; one
+        // bought on another phone is known only to the server, so it shows its end.
+        val source = if (verified != null) "play" else answer.source ?: if (answer.expiresAt != null) "play" else "grant"
+        settings.setPremiumCache(
+            if (answer.premium) ua.rytm.app.data.local.PremiumCache(
+                uid = uid,
+                validUntil = answer.expiresAt ?: (System.currentTimeMillis() + GRANT_OFFLINE_MS),
+                source = source,
+                autoRenewing = verifiedPurchase?.isAutoRenewing ?: answer.autoRenewing,
+                basePlan = answer.basePlan,
+                expiresAt = answer.expiresAt,
+            ) else null,
+        )
     }
 
-    private class ServerAnswer(val premium: Boolean, val expiresAt: Long?)
+    private class ServerAnswer(val premium: Boolean, val expiresAt: Long?, val source: String?, val basePlan: String?, val autoRenewing: Boolean)
 
     private suspend fun callServer(data: Map<String, Any>): ServerAnswer {
         val result = FirebaseFunctions.getInstance().getHttpsCallable("premium").call(data).await().getData() as? Map<*, *>
-        return ServerAnswer(result?.get("premium") == true, (result?.get("expiresAt") as? Number)?.toLong())
+        return ServerAnswer(
+            result?.get("premium") == true,
+            (result?.get("expiresAt") as? Number)?.toLong(),
+            result?.get("source") as? String,
+            result?.get("basePlan") as? String,
+            // verify answers with Play's state; status says it outright.
+            result?.get("autoRenewing") == true || result?.get("state") == "SUBSCRIPTION_STATE_ACTIVE",
+        )
     }
 
     suspend fun loadOffers() {
