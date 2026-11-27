@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
@@ -156,7 +157,7 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
             // as planned instead.
             val onlyAhead = earned <= 0.0 && ahead > 0.0
             Text(stringResource(if (onlyAhead) R.string.shifts_planned_month else R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount(stringResource(R.string.money_uah, formatMoney(if (onlyAhead) ahead else earned))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            Text(ua.rytm.app.ui.screens.finance.heroAmountText(maskedAmount(stringResource(R.string.money_uah, formatMoney(if (onlyAhead) ahead else earned)))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             if (!onlyAhead && ahead > 0.0) {
                 Text(maskedAmount(stringResource(R.string.shifts_hero_ahead, formatMoney(ahead))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -321,6 +322,19 @@ internal fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             val maxVal = (months.maxOfOrNull { it.earned } ?: 0.0).coerceAtLeast(1.0)
             val curYm = YearMonth.now()
             val purple = MaterialTheme.colorScheme.primary
+            // Heights alone gave no sums (outside review, 2026-11-27): the
+            // chosen month's sum sits above the bars, the current one first;
+            // a tap on another bar shows its own.
+            var selected by remember(months) { mutableStateOf(months.indexOfFirst { it.yearMonth == curYm }.takeIf { it >= 0 } ?: months.lastIndex) }
+            months.getOrNull(selected)?.let { m ->
+                Text(
+                    m.yearMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) } + " · " +
+                        maskedAmount(stringResource(R.string.money_uah, formatMoney(m.earned))),
+                    style = MaterialTheme.typography.titleSmall.tabularNums(),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = RytmSpacing.sm).clearAndSetSemantics {},
+                )
+            }
             // The chart was invisible to TalkBack: a bare Row of colored
             // Boxes with no semantics at all. One spoken summary carries the
             // same information the sighted reading does.
@@ -331,12 +345,15 @@ internal fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
             val chartSummary = stringResource(R.string.shifts_income_chart) + ": " + monthAmounts.joinToString(", ")
             Row(
                 Modifier.fillMaxWidth().height(80.dp)
-                    .semantics(mergeDescendants = true) { contentDescription = chartSummary },
+                    .semantics(mergeDescendants = true) { contentDescription = chartSummary }
+                    .pointerInput(months) {
+                        detectTapGestures { o -> if (months.isNotEmpty()) selected = (o.x / size.width * months.size).toInt().coerceIn(0, months.lastIndex) }
+                    },
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Bottom,
             ) {
-                months.forEach { m ->
-                    val isCur = m.yearMonth == curYm
+                months.forEachIndexed { i, m ->
+                    val isCur = i == selected
                     val heightFraction = ((m.earned / maxVal).coerceIn(0.0, 1.0).toFloat().coerceAtLeast(0.02f) * progress)
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
                         Box(
@@ -352,8 +369,8 @@ internal fun IncomeChartSection(months: List<ShiftsViewModel.MonthEarning>) {
                 Modifier.fillMaxWidth().padding(top = 3.dp).clearAndSetSemantics {},
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                months.forEach { m ->
-                    val isCur = m.yearMonth == curYm
+                months.forEachIndexed { i, m ->
+                    val isCur = i == selected
                     ua.rytm.app.ui.components.FitText(
                         m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale).trimEnd('.'),
                         modifier = Modifier.weight(1f),
@@ -420,11 +437,9 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                 Modifier.fillMaxWidth().padding(horizontal = RytmSpacing.sm, vertical = RytmSpacing.md),
                 verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
             ) {
-                Text(
-                    stringResource(R.string.shifts_fill_current_month),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                )
+                // One template, two uses: fill the month on screen now, and/or
+                // let autofill continue it day by day. The cycle's first day
+                // matters only for patterns with days off.
                 LabeledDropdown(
                     label = stringResource(R.string.shift_type),
                     options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
@@ -437,6 +452,16 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     selected = vm.templatePattern,
                     onSelect = vm::onTemplatePatternChanged,
                 )
+                ReducedMotionVisibility(visible = vm.templatePattern != "every") {
+                    DatePickerField(
+                        value = vm.templateAnchorDate,
+                        onValueChange = vm::onTemplateAnchorDateChanged,
+                        label = stringResource(R.string.shifts_anchor_date),
+                        modifier = Modifier.fillMaxWidth(),
+                        allowEmpty = false,
+                    )
+                }
+                val monthName = vm.visibleMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, LocalConfiguration.current.locales[0])
                 androidx.compose.material3.Button(
                     onClick = {
                         vm.applyTemplate()
@@ -445,14 +470,29 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(RytmRadii.Row),
                 ) {
-                    Text(stringResource(R.string.action_apply))
+                    Text(stringResource(R.string.shifts_fill_month, monthName))
                 }
-                // FlowRow, not Row -- at large font scale or on a narrow
-                // screen these two labels' combined width can exceed the
-                // row's, and a plain Row with SpaceBetween has no fallback
-                // (crams them together or clips instead of wrapping).
-                // Matches SettingsScreen's own FlowRow precedent for the
-                // same class of overflow.
+
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(RytmRadii.Control))
+                        .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = RytmSpacing.md, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
+                        Text(stringResource(R.string.shifts_autofill_future), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.shifts_autofill_body),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    val autofillTitle = stringResource(R.string.shifts_autofill_future)
+                    val autofillHaptics = rememberRytmHaptics()
+                    Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = { on -> autofillHaptics.toggle(on); vm.setAutoFillEnabled(on) }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
+                }
+
+                // FlowRow, not Row: at large font scale the two labels can
+                // exceed the row's width and need to wrap.
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -469,8 +509,7 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         Text(stringResource(R.string.shifts_clear_month))
                     }
                 }
-                // This button sits right next to "Shift types" in an equal-weight
-                // Row: a mis-tap used to wipe the whole month instantly, with no
+                // A mis-tap used to wipe the whole month instantly, with no
                 // confirmation and no undo.
                 if (clearMonthConfirmVisible) {
                     RytmDestructiveConfirm(
@@ -482,50 +521,6 @@ internal fun QuickFillPanel(vm: ShiftsViewModel, onOpenShiftTypes: () -> Unit) {
                         },
                         onDismiss = { clearMonthConfirmVisible = false },
                     )
-                }
-
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(RytmRadii.Control))
-                        .background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = RytmSpacing.md, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f).padding(end = RytmSpacing.md)) {
-                        Text(stringResource(R.string.shifts_autofill_future), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Text(
-                            stringResource(R.string.shifts_autofill_body),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    val autofillTitle = stringResource(R.string.shifts_autofill_future)
-                    val autofillHaptics = rememberRytmHaptics()
-                    Switch(modifier = Modifier.semantics { contentDescription = autofillTitle }, checked = vm.autoFillSchedule.enabled, onCheckedChange = { on -> autofillHaptics.toggle(on); vm.setAutoFillEnabled(on) }, colors = ua.rytm.app.ui.theme.rytmSwitchColors())
-                }
-                ReducedMotionVisibility(visible = vm.autoFillSchedule.enabled) {
-                    Column(Modifier.fillMaxWidth().padding(top = RytmSpacing.xs), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        LabeledDropdown(
-                            label = stringResource(R.string.shift_type),
-                            options = vm.shiftTypes.filter { !it.isOff }.map { it.id to it.name },
-                            selected = vm.autoFillDraftTypeId,
-                            onSelect = vm::setAutoFillDraftType,
-                        )
-                        LabeledDropdown(
-                            label = stringResource(R.string.shift_pattern),
-                            options = localizedPatternOptions(),
-                            selected = vm.autoFillDraftPattern,
-                            onSelect = vm::onAutoFillDraftPatternChanged,
-                        )
-                        DatePickerField(
-                            value = vm.autoFillDraftAnchorDate,
-                            onValueChange = vm::onAutoFillDraftAnchorDateChanged,
-                            label = stringResource(R.string.shifts_anchor_date),
-                            modifier = Modifier.fillMaxWidth(),
-                            allowEmpty = false,
-                        )
-                        androidx.compose.material3.Button(onClick = vm::saveAutoFillConfig, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(RytmRadii.Row)) {
-                            Text(stringResource(R.string.action_save))
-                        }
-                    }
                 }
             }
         }

@@ -200,7 +200,8 @@ private fun ShiftTypeRow(
     onIsOffChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val summary = if (type.isOff) stringResource(R.string.shift_day_off) else stringResource(R.string.shift_type_summary, ua.rytm.app.ui.screens.finance.formatMoney(type.amount), ua.rytm.app.ui.screens.finance.formatMoney(type.hours))
+    // «Вихідний / Вихідний» repeated the name; say what the type means instead.
+    val summary = if (type.isOff) stringResource(R.string.shift_type_unpaid) else stringResource(R.string.shift_type_summary, ua.rytm.app.ui.screens.finance.formatMoney(type.amount), ua.rytm.app.ui.screens.finance.formatMoney(type.hours))
 
     Surface(
         modifier = Modifier.fillMaxWidth(),

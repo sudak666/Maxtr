@@ -45,10 +45,25 @@ class CalendarLayoutTest {
     }
 
     @Test fun allQuickFillPatternsMatchPwaCycles() {
-        assertEquals((1..10).toList(), daysForShiftPattern(10, "every"))
-        assertEquals(listOf(1, 3, 5, 7, 9), daysForShiftPattern(10, "alt"))
-        assertEquals(listOf(1, 2, 5, 6, 9, 10), daysForShiftPattern(10, "2_2"))
-        assertEquals(listOf(1, 2, 3, 7, 8, 9), daysForShiftPattern(10, "3_3"))
+        val feb = java.time.YearMonth.of(2026, 2) // 28 days
+        assertEquals((1..28).toList(), daysForShiftPattern(feb, "every"))
+        assertEquals((1..28 step 2).toList(), daysForShiftPattern(feb, "alt"))
+        assertEquals(listOf(1, 2, 5, 6, 9, 10), daysForShiftPattern(feb, "2_2").take(6))
+        assertEquals(listOf(1, 2, 3, 7, 8, 9), daysForShiftPattern(feb, "3_3").take(6))
+    }
+
+    @org.junit.Test
+    fun `month fill follows the cycle's first day, also backwards`() {
+        val nov = java.time.YearMonth.of(2026, 11)
+        // 2/2 whose first working day was 3 Nov: 1–2 Nov are the off days before it.
+        assertEquals(listOf(3, 4, 7, 8, 11, 12), daysForShiftPattern(nov, "2_2", java.time.LocalDate.of(2026, 11, 3)).take(6))
+        // Anchored months earlier, as the autofill does: 10 Jul 2026 + k·4 days.
+        val fromJuly = daysForShiftPattern(nov, "2_2", java.time.LocalDate.of(2026, 7, 10))
+        val julyStart = java.time.LocalDate.of(2026, 7, 10)
+        fromJuly.forEach { d -> assertEquals(true, java.time.temporal.ChronoUnit.DAYS.between(julyStart, nov.atDay(d)) % 4 < 2) }
+        // An anchor after the month still lines up (cycle continued backwards).
+        // 1 Dec is a working day, so 27–28 Nov, 23–24 Nov … 3–4 Nov are too.
+        assertEquals(listOf(3, 4, 7, 8), daysForShiftPattern(nov, "2_2", java.time.LocalDate.of(2026, 12, 1)).take(4))
     }
 
     @Test fun monthWithoutAssignmentsStillProducesEveryCalendarDay() {
