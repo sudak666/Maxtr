@@ -667,6 +667,9 @@
     <string name="debt_total_owe">How much you owe</string>
     <string name="debt_total_owed">How much you are owed</string>
     <string name="debt_start_required">Enter the loan amount</string>
+    <string name="debt_auto_from_balance">Worked out from the balance</string>
+    <string name="debt_auto_from_payment">Worked out from the payment</string>
+    <string name="debt_due_on">by %1$s</string>
     <string name="debt_start_hint">What is left is counted from this amount</string>
     <string name="shifts_planned_month">Planned for the month</string>
     <string name="shifts_hero_ahead">plus %1$s ₴ on the schedule</string>

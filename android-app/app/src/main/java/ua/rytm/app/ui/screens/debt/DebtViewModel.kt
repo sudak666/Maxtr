@@ -167,6 +167,13 @@ class DebtViewModel(
         return autoDebtBalance(base, amountText)
     }
 
+    /** The other direction: a balance read off a statement gives the payment. */
+    fun autoFillAmount(balanceText: String, startText: String? = null): String {
+        val cd = currentDebt ?: return ""
+        val base = if (startText != null) ua.rytm.app.ui.screens.finance.parseMoneyInput(startText) ?: return "" else cd.currentBalance()
+        return autoDebtAmount(base, balanceText)
+    }
+
     /**
      * A loan with no amount and no payments yet has nothing to count down
      * from: a first payment went straight below zero. The entry sheet then

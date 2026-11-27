@@ -502,7 +502,13 @@ private fun ChipStatsRow(cd: Debt) {
         // With a start amount the progress bar above already says «paid X of Y».
         if (cd.startAmount <= 0) item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
         item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
-        if (due != null) item { RytmStatChip(RytmIcons.Event, due, stringResource(R.string.debt_due_date)) }
+        // The date itself under the days: with «Щомісяця» the stored date
+        // (10.11) is past while the chip counts to the next one (10.12),
+        // which read as a wrong count (outside review, 2026-11-27).
+        if (due != null) item {
+            val next = runCatching { java.time.LocalDate.parse(cd.nextDueDate()) }.getOrNull()
+            RytmStatChip(RytmIcons.Event, due, next?.let { stringResource(R.string.debt_due_on, ua.rytm.app.ui.components.formatDayMonth(it)) } ?: stringResource(R.string.debt_due_date))
+        }
     }
 }
 
@@ -564,8 +570,11 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     )
                     DueReminderRow()
                 }
+                // Set apart from the form above: a destructive action, confirmed in a dialog.
+                androidx.compose.material3.HorizontalDivider(Modifier.padding(top = RytmSpacing.lg, bottom = RytmSpacing.sm), color = MaterialTheme.colorScheme.outlineVariant)
                 ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
-                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
+                    Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = RytmSpacing.sm))
                 }
             }
         }
@@ -712,6 +721,11 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var amount by rememberSaveable { mutableStateOf("") }
     var balance by rememberSaveable { mutableStateOf("") }
+    // Either sum can be typed; the other follows it until the user types
+    // that one too (outside review, 2026-11-27: the balance followed the
+    // payment, but a balance read off a statement left the payment empty).
+    var amountAuto by rememberSaveable { mutableStateOf(false) }
+    var balanceAuto by rememberSaveable { mutableStateOf(false) }
     var date by rememberSaveable { mutableStateOf(todayLabel()) }
     // Only for a loan saved without its amount (older data): asked here, saved with the payment.
     val askStart = viewModel.needsStartAmount(cd)
@@ -737,9 +751,9 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
                 OutlinedTextField(
                     value = start,
                     onValueChange = { new ->
-                        val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount, start)
                         start = new
-                        if (stillAutoFilled) balance = viewModel.autoFillBalance(amount, new)
+                        if (amountAuto) amount = viewModel.autoFillAmount(balance, new)
+                        else if (balanceAuto || balance.isEmpty()) { balance = viewModel.autoFillBalance(amount, new); balanceAuto = balance.isNotEmpty() }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -753,29 +767,36 @@ private fun NewEntrySheet(viewModel: DebtViewModel, cd: Debt) {
             OutlinedTextField(
                 value = amount,
                 onValueChange = { new ->
-                    // Real bug found while testing: comparing against autoFillBalance(amount)
-                    // AFTER reassigning amount==new made the "did the user manually edit
-                    // balance away from auto-fill" check compare the new value to itself,
-                    // so auto-fill silently froze after the very first keystroke. Capture
-                    // whether balance was still following auto-fill BEFORE updating amount.
-                    val stillAutoFilled = balance.isEmpty() || balance == viewModel.autoFillBalance(amount, startArg)
                     amount = new
-                    if (stillAutoFilled) balance = viewModel.autoFillBalance(new, startArg)
+                    amountAuto = false
+                    if (balanceAuto || balance.isEmpty()) { balance = viewModel.autoFillBalance(new, startArg); balanceAuto = balance.isNotEmpty() }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = amountInvalid,
-                supportingText = if (amountInvalid) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                supportingText = when {
+                    amountInvalid -> ({ Text(stringResource(R.string.validation_invalid_amount)) })
+                    amountAuto && amount.isNotEmpty() -> ({ Text(stringResource(R.string.debt_auto_from_balance)) })
+                    else -> null
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                 label = { Text(stringResource(if (cd.owedToMe) R.string.debt_repayment_amount else R.string.debt_payment_amount)) },
             )
             OutlinedTextField(
                 value = balance,
-                onValueChange = { balance = it },
+                onValueChange = { new ->
+                    balance = new
+                    balanceAuto = false
+                    if (amountAuto || amount.isEmpty()) { amount = viewModel.autoFillAmount(new, startArg); amountAuto = amount.isNotEmpty() }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = balanceInvalid,
-                supportingText = if (balanceInvalid) ({ Text(stringResource(R.string.validation_invalid_amount)) }) else null,
+                supportingText = when {
+                    balanceInvalid -> ({ Text(stringResource(R.string.validation_invalid_amount)) })
+                    balanceAuto && balance.isNotEmpty() -> ({ Text(stringResource(R.string.debt_auto_from_payment)) })
+                    else -> null
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                 label = { Text(stringResource(R.string.debt_new_balance)) },
             )

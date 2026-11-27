@@ -24,3 +24,10 @@ fun autoDebtBalance(currentBalance: Double, amount: String): String {
     val parsed = parsePlainDebtAmount(amount) ?: return ""
     return formatDebtNumber(currentBalance - parsed)
 }
+
+/** The payment a new balance implies; empty unless the balance went down. */
+fun autoDebtAmount(currentBalance: Double, balance: String): String {
+    val parsed = parsePlainDebtAmount(balance) ?: return ""
+    val paid = currentBalance - parsed
+    return if (paid > 0) formatDebtNumber(paid) else ""
+}

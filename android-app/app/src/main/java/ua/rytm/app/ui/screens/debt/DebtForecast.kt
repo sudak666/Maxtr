@@ -91,9 +91,16 @@ fun DebtForecastCard(debt: Debt) {
                 modifier = Modifier.fillMaxWidth().height(84.dp).padding(top = RytmSpacing.md)
                     .semantics { contentDescription = burndownSummary },
             )
+            // The chart's end says what the text below says: one date at one
+            // pace, or the same year range when the two paces disagree
+            // («лют 2060» over «≈ 2055–2060» read as a contradiction).
             val finishLabel = pace?.typicalGapDays?.takeIf { left > 0 }?.let { gap ->
                 val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
-                java.time.LocalDate.now().plusDays(gap * left).format(java.time.format.DateTimeFormatter.ofPattern("LLL yyyy", locale))
+                val today = java.time.LocalDate.now()
+                val typicalEnd = DebtPaceCalc.finishDate(currentBalance, avgDown, gap, today)
+                val recentEnd = DebtPaceCalc.finishDate(currentBalance, pace.recentPayment, gap, today)
+                if (typicalEnd.year == recentEnd.year) typicalEnd.format(java.time.format.DateTimeFormatter.ofPattern("LLL yyyy", locale))
+                else "${minOf(typicalEnd.year, recentEnd.year)}–${maxOf(typicalEnd.year, recentEnd.year)}"
             }
             val axis = MaterialTheme.typography.labelSmall
             val axisColor = MaterialTheme.colorScheme.onSurfaceVariant
