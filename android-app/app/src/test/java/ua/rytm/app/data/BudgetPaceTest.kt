@@ -28,10 +28,29 @@ class BudgetPaceTest {
 
 class PaceVsLastMonthTest {
     @Test
-    fun `pace note is a short signed percent`() {
-        assertEquals("−28 %", ua.rytm.app.ui.screens.finance.paceVsLastMonth(50_800.60, 70_658.87))
-        assertEquals("+10 %", ua.rytm.app.ui.screens.finance.paceVsLastMonth(110.0, 100.0))
+    fun `pace is a whole signed percent`() {
+        assertEquals(-28, ua.rytm.app.ui.screens.finance.paceVsLastMonth(50_800.60, 70_658.87))
+        assertEquals(10, ua.rytm.app.ui.screens.finance.paceVsLastMonth(110.0, 100.0))
         assertEquals(null, ua.rytm.app.ui.screens.finance.paceVsLastMonth(100.0, 0.0))
+    }
+
+    // Outside review 2026-11-27: «27 %» on Finance, «27%» in Analytics.
+    @Test
+    fun `percent has a no-break space in Ukrainian and none in English`() {
+        assertEquals("27 %", ua.rytm.app.ui.screens.finance.formatPercent(27, java.util.Locale.forLanguageTag("uk")))
+        assertEquals("<1 %", ua.rytm.app.ui.screens.finance.formatPercent("<1", java.util.Locale.forLanguageTag("uk")))
+        assertEquals("27%", ua.rytm.app.ui.screens.finance.formatPercent(27, java.util.Locale.ENGLISH))
+    }
+
+    // Two oranges and two greens in one donut; each slice now gets a colour of its own.
+    @Test
+    fun `donut colours never repeat within six slices`() {
+        val names = (1..40).map { "Категорія $it" }
+        // Any six names, even ones whose own colours collide.
+        names.windowed(6).forEach { six ->
+            val colors = ua.rytm.app.ui.screens.finance.distinctCategoryColors(six)
+            assertEquals(six.size, colors.values.toSet().size)
+        }
     }
 }
 

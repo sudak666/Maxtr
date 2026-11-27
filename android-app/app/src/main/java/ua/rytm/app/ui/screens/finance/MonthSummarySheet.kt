@@ -31,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.pluralStringResource
+import ua.rytm.app.ui.theme.tabularNums
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -123,6 +125,18 @@ fun MonthSummarySheet(
                 StatTile(stringResource(R.string.analytics_income_label), uah(summary.income), RytmSemantic.income, Modifier.weight(1f))
                 StatTile(stringResource(R.string.analytics_expense_label), uah(summary.expense), MaterialTheme.colorScheme.onSurface, Modifier.weight(1f))
             }
+            // The month-over-month change, in the words Finance and Analytics use.
+            summary.expenseChangePercent?.let { pct ->
+                Text(
+                    spendingVsMonthText(pct, summary.month.minusMonths(1), partial = summary.partial),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = when {
+                        pct <= -SAME_PACE_BAND -> RytmSemantic.income
+                        pct >= SAME_PACE_BAND -> RytmSemantic.expense
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
             val net = summary.net
             Text(
                 stringResource(if (net >= 0) R.string.month_summary_saved else R.string.month_summary_overspent, uah(kotlin.math.abs(net))),
@@ -130,7 +144,6 @@ fun MonthSummarySheet(
                 fontWeight = FontWeight.Bold,
                 color = if (net >= 0) RytmSemantic.income else RytmSemantic.expense,
             )
-            // The month-over-month change lives on the first story card now.
             if (summary.topCategories.isNotEmpty()) {
                 Text(stringResource(R.string.month_summary_top), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 summary.topCategories.forEach { c ->
@@ -141,7 +154,7 @@ fun MonthSummarySheet(
                             if (c.previousAmount > 0) {
                                 val diff = Math.round((c.amount - c.previousAmount) / c.previousAmount * 100).toInt()
                                 Text(
-                                    stringResource(R.string.month_summary_vs_previous, (if (diff >= 0) "+" else "−") + kotlin.math.abs(diff)),
+                                    stringResource(R.string.month_summary_vs_previous, formatPercent((if (diff >= 0) "+" else "−") + kotlin.math.abs(diff))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -150,13 +163,7 @@ fun MonthSummarySheet(
                     }
                 }
             }
-            summary.biggestExpense?.let { t ->
-                Text(
-                    stringResource(R.string.month_summary_biggest, t.comment?.takeIf { it.isNotBlank() } ?: localizedDomainText(t.category), maskedAmount("${formatMoney(t.amount)} ${currencySymbol(t.currency)}")),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            // The biggest purchase has its own story card above; repeating it here doubled it.
             if (!summary.isEmpty && onSharePdf != null) {
                 ua.rytm.app.ui.components.RytmOutlinedButton(
                     onClick = onSharePdf,
@@ -218,42 +225,50 @@ private fun StatTile(label: String, value: String, color: Color, modifier: Modif
     Card(modifier, shape = RoundedCornerShape(RytmRadii.Row), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Column(Modifier.padding(14.dp)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
+            Text(value, style = MaterialTheme.typography.titleMedium.tabularNums(), fontWeight = FontWeight.Bold, color = color, maxLines = 1)
         }
     }
 }
 
 /**
- * The month as 3–4 swipeable "story" cards, one big fact each (Spotify
- * Wrapped / Revolut style), above the detailed figures. Expressive on purpose:
- * the brand gradient is used here and nowhere else in the app.
+ * The month as swipeable "story" cards, one big fact each (Spotify Wrapped /
+ * Revolut style), above the detailed figures.
+ *
+ * Outside review 2026-11-27: the cards used to retell the sheet below them —
+ * spent, top category, overspend — so the sheet said everything twice. Now
+ * they carry what the tables can't: days without spending, the priciest
+ * weekday, the average purchase and the biggest one.
  */
 @Composable
 private fun MonthStories(summary: MonthSummary) {
     data class Story(val label: String, val value: String, val caption: String?)
-    // "за вересень": Ukrainian months are lowercase mid-sentence; English keeps the capital.
-    val month = monthName(summary.month).let { if (LocalConfiguration.current.locales[0].language == "en") it else it.lowercase() }
+    val locale = LocalConfiguration.current.locales[0]
     val stories = buildList {
-        add(Story(
-            stringResource(R.string.story_spent, month), uah(summary.expense),
-            summary.expenseChangePercent?.let { pct -> stringResource(if (pct >= 0) R.string.month_summary_spent_more else R.string.month_summary_spent_less, kotlin.math.abs(pct)) },
+        if (summary.days > 0) add(Story(
+            stringResource(R.string.story_no_spend_days),
+            stringResource(R.string.story_no_spend_value, summary.noSpendDays, summary.days),
+            if (summary.longestNoSpendRun >= 2) pluralStringResource(R.plurals.story_no_spend_run, summary.longestNoSpendRun, summary.longestNoSpendRun) else null,
         ))
-        summary.topCategories.firstOrNull()?.let { c ->
-            val share = if (summary.expense > 0) Math.round(c.amount / summary.expense * 100).toInt() else 0
-            add(Story(stringResource(R.string.story_top_category), localizedDomainText(c.category), stringResource(R.string.story_top_share, uah(c.amount), share)))
+        summary.priciestWeekday?.let { day ->
+            add(Story(
+                stringResource(R.string.story_priciest_weekday),
+                day.getDisplayName(TextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) },
+                stringResource(R.string.story_priciest_weekday_avg, uah(summary.priciestWeekdayAverage)),
+            ))
         }
+        if (summary.expenseCount > 0) add(Story(
+            stringResource(R.string.story_average_purchase),
+            uah(summary.averageExpense),
+            stringResource(R.string.story_expense_count, summary.expenseCount),
+        ))
         summary.biggestExpense?.let { t ->
             add(Story(
                 stringResource(R.string.story_biggest), maskedAmount("${formatMoney(t.amount)} ${currencySymbol(t.currency)}"),
                 t.comment?.takeIf { it.isNotBlank() } ?: localizedDomainText(t.category),
             ))
         }
-        val net = summary.net
-        add(Story(
-            stringResource(if (net >= 0) R.string.story_saved else R.string.story_overspent), uah(kotlin.math.abs(net)),
-            stringResource(R.string.story_count, summary.transactionCount),
-        ))
     }
+    if (stories.isEmpty()) return
     val pager = androidx.compose.foundation.pager.rememberPagerState { stories.size }
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
         androidx.compose.foundation.pager.HorizontalPager(state = pager, pageSpacing = RytmSpacing.sm) { page ->
@@ -268,7 +283,9 @@ private fun MonthStories(summary: MonthSummary) {
             ) {
                 val ink = MaterialTheme.colorScheme.onPrimaryContainer
                 Text(st.label, style = MaterialTheme.typography.titleSmall, color = ink.copy(alpha = 0.85f))
-                Text(st.value, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                // Tabular figures: with proportional ones the narrow «1» left the
+                // group space in «1 043,78» looking like no space at all.
+                Text(st.value, style = MaterialTheme.typography.displaySmall.tabularNums(), fontWeight = FontWeight.Black, color = ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 st.caption?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = ink.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
             }
         }

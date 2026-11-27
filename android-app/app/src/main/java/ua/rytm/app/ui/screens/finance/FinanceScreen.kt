@@ -26,6 +26,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -258,6 +259,12 @@ fun FinanceScreen(
     var goalsSheetOpen by rememberSaveable { mutableStateOf(false) }
     var walletOrderFocus by rememberSaveable { mutableStateOf<String?>(null) }
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    // Search lives behind the magnifier in the history header; a search
+    // restored with the screen keeps its field open.
+    var searchOpen by rememberSaveable { mutableStateOf(viewModel.search.isNotBlank()) }
+    // A search started elsewhere (a tapped #tag) opens the field, so the list
+    // never filters by a search the user can't see.
+    LaunchedEffect(viewModel.search.isNotBlank()) { if (viewModel.search.isNotBlank()) searchOpen = true }
     val listState = rememberLazyListState()
     // The floating "Згорнути список" FAB exists so a user who scrolled deep
     // into a long expanded list can collapse it without scrolling all the
@@ -332,7 +339,6 @@ fun FinanceScreen(
         },
     ) { innerPadding ->
         val filtered = viewModel.filteredTransactions
-        val displayedCount = filtered.count { it.id != pendingDeleteId }
         val walletsById = remember(viewModel.wallets) { viewModel.wallets.associateBy { it.id } }
         // Read only when the setting is on, so the running sum is never computed otherwise.
         val balancesAfter = if (showBalanceAfter) viewModel.balancesAfter else emptyMap()
@@ -383,14 +389,27 @@ fun FinanceScreen(
                     SubscriptionSuggestionsCard(viewModel.subscriptionCandidates, viewModel::acceptSubscription, viewModel::dismissSubscription)
                 }
             }
-            item { HistoryHeader(viewModel, resultCount = displayedCount) }
             // Nothing to search yet: on an empty account these pushed the first action below the fold.
             val hasHistory = filtered.isNotEmpty() || viewModel.isSearchOrFilterActive
-            if (hasHistory) item {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                    Box(Modifier.weight(1f)) { SearchField(viewModel) }
-                    FiltersButton(viewModel.activeFilterCount) { filtersOpen = true }
-                }
+            item {
+                HistoryHeader(
+                    searchOpen = searchOpen,
+                    showTools = hasHistory,
+                    activeFilterCount = viewModel.activeFilterCount,
+                    onToggleSearch = {
+                        // Closing the field clears it: a hidden search still
+                        // filtering the list would read as lost operations.
+                        if (searchOpen) viewModel.onSearchChange("")
+                        searchOpen = !searchOpen
+                    },
+                    onOpenFilters = { filtersOpen = true },
+                )
+            }
+            if (hasHistory && searchOpen) item(key = "search") {
+                val focus = remember { androidx.compose.ui.focus.FocusRequester() }
+                // Opened by a tap: the keyboard comes up at once, as in a bank app.
+                LaunchedEffect(Unit) { if (viewModel.search.isEmpty()) runCatching { focus.requestFocus() } }
+                SearchField(viewModel, Modifier.focusRequester(focus))
             }
             if (hasHistory) item { FilterRow(viewModel) }
             viewModel.categoryFilter?.let { cat ->
@@ -410,7 +429,7 @@ fun FinanceScreen(
             if (viewModel.isSearchOrFilterActive && filtered.isNotEmpty()) item(key = "filtered-totals") {
                 val shownTxs = filtered.filter { it.id != pendingDeleteId }
                 val (spent, earned) = remember(shownTxs) { viewModel.totalsUah(shownTxs) }
-                FilteredTotals(spent, earned)
+                FilteredTotals(shownTxs.size, spent, earned)
             }
 
             if (!viewModel.loading && !viewModel.loadFailed && filtered.isEmpty()) {

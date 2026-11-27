@@ -94,6 +94,24 @@ private val categoryPalette = listOf(PurpleDark, GreenDark, BlueDark, OrangeDark
 fun categoryColor(category: String): Color =
     categoryPalette[(category.hashCode().let { if (it < 0) -it else it }) % categoryPalette.size]
 
+/**
+ * Each category's own colour, or the first free palette colour when a bigger
+ * category above it already took it, so no two slices of one chart look alike
+ * (outside review 2026-11-27: two oranges and two greens in one donut). Seven
+ * colours, so a donut of six slices never repeats.
+ */
+fun distinctCategoryColors(categories: List<String>): Map<String, Color> {
+    val used = mutableSetOf<Color>()
+    val out = LinkedHashMap<String, Color>()
+    categories.forEach { c ->
+        val own = categoryColor(c)
+        val color = if (own in used) categoryPalette.firstOrNull { it !in used } ?: own else own
+        used += color
+        out[c] = color
+    }
+    return out
+}
+
 // Every name in js/classic-globals.js's window.ICON_NAMES (the exact set
 // openCategoryIconPicker() offers on the PWA), each hand-mapped to its
 // closest Material Icons Extended equivalent — confirmed by reading that
@@ -259,8 +277,7 @@ fun categoryIcon(category: String, iconOverride: String? = null): ImageVector {
 }
 
 @Composable
-fun CategoryIconBadge(category: String, iconOverride: String? = null, size: Dp = 40.dp, modifier: Modifier = Modifier) {
-    val color = categoryColor(category)
+fun CategoryIconBadge(category: String, iconOverride: String? = null, size: Dp = 40.dp, modifier: Modifier = Modifier, color: Color = categoryColor(category)) {
     Box(
         modifier.size(size).background(color.copy(alpha = 0.18f), CircleShape),
         contentAlignment = Alignment.Center,

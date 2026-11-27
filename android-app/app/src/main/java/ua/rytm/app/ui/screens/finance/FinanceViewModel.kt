@@ -128,7 +128,8 @@ class FinanceViewModel(
     private var monthSummarySeen by mutableStateOf<String?>(null)
 
     /** Today, as observable state so cached month totals roll over at midnight. */
-    private var today by mutableStateOf(LocalDate.now())
+    var today by mutableStateOf(LocalDate.now())
+        private set
     private val currentMonth: YearMonth get() = ua.rytm.app.data.FinancialMonth.of(today)
     private val monthDay: Int get() = ua.rytm.app.data.FinancialMonth.dayNumber(today)
 
@@ -807,7 +808,7 @@ class FinanceViewModel(
 
 
     val cashForecast: CashForecast by derivedStateOf {
-        CashForecast.forProfile(wallets, transactions, recurring, today, ua.rytm.app.data.FinancialMonth.lastDay(currentMonth), ::toUah)
+        CashForecast.forProfile(wallets, transactions, recurring, today, CashForecast.horizonEnd(today), ::toUah)
     }
 
     val isMultiCurrency: Boolean by derivedStateOf { wallets.map { it.currency }.distinct().size > 1 }

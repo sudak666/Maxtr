@@ -8,6 +8,9 @@ import kotlin.math.abs
 /** A planned recurring payment or income. [amountUah] is negative for an expense. */
 data class CashEvent(val date: LocalDate, val label: String, val amountUah: Double, val balanceAfter: Double)
 
+/** One day of the path: the balance at its end, after usual spending and that day's [events]. */
+data class ForecastDay(val date: LocalDate, val balance: Double, val events: List<CashEvent> = emptyList())
+
 /**
  * Usual unplanned spending, as the sheet explains it: [perDay] is the average
  * over [windowDays] days with the [droppedDays] biggest days left out;
@@ -44,8 +47,42 @@ data class CashForecast(
     val shortfallDate: LocalDate?,
     val shortfall: Double,
     val lowestDate: LocalDate?,
+    /** Every day from today to [end], so the screen can draw the path and pick the days that matter. */
+    val path: List<ForecastDay> = emptyList(),
 ) {
     val dailySpend: Double? get() = habit?.perDay
+
+    /**
+     * The days worth a row: planned events, the day the money runs out, the
+     * deepest day and the day it is back above zero (outside review,
+     * 2026-11-27: the list held only the salary, while the gap it explained
+     * happened on two days not in it).
+     */
+    val keyDays: List<ForecastDay>
+        get() {
+            val c = crossings
+            return path.filter { it.events.isNotEmpty() || it.date == shortfallDate || it.date == lowestDate || it.date in c }
+        }
+
+    /**
+     * Every day the balance crosses zero: true going below, false coming back.
+     * A month-long horizon can dip twice (before one salary and the next).
+     */
+    val crossings: Map<LocalDate, Boolean>
+        get() {
+            val out = LinkedHashMap<LocalDate, Boolean>()
+            var previous = startBalance
+            path.forEach { d ->
+                if (previous >= 0 && d.balance < 0) out[d.date] = true
+                else if (previous < 0 && d.balance >= 0) out[d.date] = false
+                previous = d.balance
+            }
+            return out
+        }
+
+    /** The first day back at or above zero after [shortfallDate]; null without a gap or a way back. */
+    val recoveredDate: LocalDate?
+        get() = shortfallDate?.let { gap -> path.firstOrNull { it.date.isAfter(gap) && it.balance >= 0 }?.date }
 
     companion object {
         private const val WINDOW_DAYS = 60L
@@ -53,6 +90,20 @@ data class CashForecast(
         private const val GUARD = 62
         private const val TOP_CATEGORIES = 3
         private const val RECURRING_MARK = "повторювана"
+        /** Fewer days left than this and the forecast reaches to the next month's end. */
+        private const val MIN_HORIZON_DAYS = 14L
+
+        /**
+         * The last day of the forecast: this financial month's end, or the next
+         * one's once fewer than two weeks are left. On the 27th a month-end
+         * forecast covered three days and could not say what comes after the
+         * salary (Copilot and Monarch look a month ahead for the same reason).
+         */
+        fun horizonEnd(today: LocalDate): LocalDate {
+            val month = ua.rytm.app.data.FinancialMonth.of(today)
+            val end = ua.rytm.app.data.FinancialMonth.lastDay(month)
+            return if (ChronoUnit.DAYS.between(today, end) < MIN_HORIZON_DAYS) ua.rytm.app.data.FinancialMonth.lastDay(month.plusMonths(1)) else end
+        }
 
         /**
          * The forecast for spendable wallets (in capital, not deposit,
@@ -100,6 +151,7 @@ data class CashForecast(
 
             val daily = habit?.perDay ?: 0.0
             val events = mutableListOf<CashEvent>()
+            val path = mutableListOf<ForecastDay>()
             var balance = balanceUah
             var lowest = 0.0
             var lowestDate: LocalDate? = null
@@ -108,10 +160,12 @@ data class CashForecast(
             while (!day.isAfter(end)) {
                 // Today's spending is already in the balance, or still unknown.
                 if (day != today) balance -= daily
-                planned[day].orEmpty().forEach { (date, label, amount) ->
+                val dayEvents = planned[day].orEmpty().map { (date, label, amount) ->
                     balance += amount
-                    events += CashEvent(date, label, amount, balance)
+                    CashEvent(date, label, amount, balance)
                 }
+                events += dayEvents
+                path += ForecastDay(day, balance, dayEvents)
                 if (balance < 0 && shortfallDate == null) shortfallDate = day
                 if (balance < lowest) { lowest = balance; lowestDate = day }
                 day = day.plusDays(1)
@@ -130,6 +184,7 @@ data class CashForecast(
                 shortfallDate = shortfallDate,
                 shortfall = -lowest,
                 lowestDate = lowestDate,
+                path = path,
             )
         }
 

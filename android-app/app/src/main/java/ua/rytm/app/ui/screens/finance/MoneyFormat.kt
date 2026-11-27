@@ -1,6 +1,10 @@
 package ua.rytm.app.ui.screens.finance
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
 import java.text.NumberFormat
+import java.time.YearMonth
+import java.time.format.TextStyle
 import java.util.Locale
 
 // Presentation follows the active app locale. Persisted amounts and currency
@@ -47,4 +51,29 @@ fun currencySymbol(code: String): String = when (code) {
     "EUR" -> "€"
     "GBP" -> "£"
     else -> code
+}
+
+/**
+ * «27 %» in Ukrainian — a no-break space before the sign, as the standard
+ * asks and as the Finance pace note already did — «27%» in English. One
+ * helper, so the app stops mixing «27 %» and «27%» (outside review, 2026-11-27).
+ */
+fun formatPercent(value: Int, locale: Locale = Locale.getDefault()): String = formatPercent(value.toString(), locale)
+
+fun formatPercent(value: String, locale: Locale = Locale.getDefault()): String =
+    if (locale.language == "en") "$value%" else "$value\u00A0%"
+
+/** «жовтня» / «October»: the month in «ніж за ці дні жовтня». java.time's format form is the genitive in Ukrainian. */
+@Composable
+fun monthGenitive(month: YearMonth): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return month.month.getDisplayName(TextStyle.FULL, locale)
+}
+
+/** «листопад» / «November»: the month in «Витрати за листопад», lowercase mid-sentence in Ukrainian. */
+@Composable
+fun monthForLabel(month: YearMonth): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val name = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
+    return if (locale.language == "en") name else name.lowercase(locale)
 }

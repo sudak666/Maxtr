@@ -37,6 +37,25 @@ class MonthSummaryTest {
         assertEquals(4, s.transactionCount)
     }
 
+    // The story cards' own facts (outside review 2026-11-27: they used to retell the sheet).
+    @Test fun storyFacts() {
+        FinancialMonth.startDay = 1
+        val txs = listOf(
+            tx("1", TxType.EXPENSE, 100.0, "2026-09-01"), // Tue
+            tx("2", TxType.EXPENSE, 300.0, "2026-09-04"), // Fri
+            tx("3", TxType.EXPENSE, 200.0, "2026-09-04"),
+            tx("4", TxType.EXPENSE, 400.0, "2026-09-10"), // Thu
+        )
+        val s = MonthSummary.compute(txs, YearMonth.of(2026, 9), upToDay = 10, toUah = toUah)
+        assertEquals(10, s.days)
+        assertEquals(7, s.noSpendDays)
+        assertEquals(5, s.longestNoSpendRun) // 5–9 Sep
+        assertEquals(java.time.DayOfWeek.FRIDAY, s.priciestWeekday)
+        assertEquals(500.0, s.priciestWeekdayAverage, 0.01)
+        assertEquals(4, s.expenseCount)
+        assertEquals(250.0, s.averageExpense, 0.01)
+    }
+
     @Test fun emptyMonth() {
         val s = MonthSummary.compute(emptyList(), YearMonth.of(2026, 9), toUah = toUah)
         assertTrue(s.isEmpty)

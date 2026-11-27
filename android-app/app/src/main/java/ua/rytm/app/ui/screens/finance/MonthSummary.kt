@@ -1,7 +1,9 @@
 package ua.rytm.app.ui.screens.finance
 
 import ua.rytm.app.data.FinancialMonth
+import java.time.DayOfWeek
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 /** A month in money, compared with the month before (the "Wrapped"-style recap). */
 data class MonthSummary(
@@ -15,7 +17,19 @@ data class MonthSummary(
     val transactionCount: Int,
     /** The month is still running (its previous month was cut to the same days). */
     val partial: Boolean = false,
+    /** Days of the month counted so far (all of them for a finished month). */
+    val days: Int = 0,
+    /** Of [days], those with no expense at all, and the longest run of them. */
+    val noSpendDays: Int = 0,
+    val longestNoSpendRun: Int = 0,
+    /** The weekday with the highest average spending per such day, and that average. */
+    val priciestWeekday: DayOfWeek? = null,
+    val priciestWeekdayAverage: Double = 0.0,
+    val expenseCount: Int = 0,
 ) {
+    /** The average expense, «середній чек». */
+    val averageExpense: Double get() = if (expenseCount > 0) expense / expenseCount else 0.0
+
     val net: Double get() = income - expense
 
     val topCategories: List<CategoryShare> get() = allCategories.take(3)
@@ -43,6 +57,22 @@ data class MonthSummary(
             val all = expenses.groupBy { it.category }
                 .map { (cat, l) -> CategoryShare(cat, l.sumOf(toUah), previousByCategory[cat] ?: 0.0) }
                 .sortedByDescending { it.amount }
+            // Day by day over the days counted so far: the story cards' facts
+            // (days without spending, the priciest weekday) that the tables
+            // below the cards do not already show.
+            val first = FinancialMonth.firstDay(month)
+            val last = upToDay?.let { FinancialMonth.cutoff(month, it) } ?: FinancialMonth.lastDay(month)
+            val dayCount = (ChronoUnit.DAYS.between(first, last) + 1).toInt().coerceAtLeast(0)
+            val byDay = expenses.groupBy { it.date.take(10) }.mapValues { (_, l) -> l.sumOf(toUah) }
+            val dates = (0 until dayCount).map { first.plusDays(it.toLong()) }
+            val spent = dates.map { byDay[it.toString()] ?: 0.0 }
+            var run = 0
+            var longest = 0
+            spent.forEach { v -> if (v <= 0.0) { run++; longest = maxOf(longest, run) } else run = 0 }
+            val weekday = dates.indices.groupBy({ dates[it].dayOfWeek }, { spent[it] })
+                .mapValues { (_, l) -> l.average() }
+                .filterValues { it > 0 }
+                .maxByOrNull { it.value }
             return MonthSummary(
                 month = month,
                 income = current.filter { it.type == TxType.INCOME }.sumOf(toUah),
@@ -52,6 +82,12 @@ data class MonthSummary(
                 biggestExpense = expenses.maxByOrNull(toUah),
                 transactionCount = current.size,
                 partial = upToDay != null,
+                days = dayCount,
+                noSpendDays = spent.count { it <= 0.0 },
+                longestNoSpendRun = longest,
+                priciestWeekday = weekday?.key,
+                priciestWeekdayAverage = weekday?.value ?: 0.0,
+                expenseCount = expenses.size,
             )
         }
     }

@@ -147,6 +147,9 @@ import ua.rytm.app.ui.icons.ExpandLess
 import ua.rytm.app.ui.icons.Flag
 import ua.rytm.app.ui.icons.PieChart
 import ua.rytm.app.ui.icons.Search
+import ua.rytm.app.ui.icons.Payments
+import ua.rytm.app.ui.icons.AccountBalance
+import ua.rytm.app.ui.icons.CreditCard
 import ua.rytm.app.ui.theme.tabularNums
 
 // Building blocks of FinanceScreen, split out so the screen file holds only the screen itself.
@@ -178,27 +181,27 @@ internal fun HeroBalanceCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
-                    // The forecast lives behind one quiet button (owner,
+                    // The forecast lives behind one quiet control (owner,
                     // 2026-11-03: the orange «Можливий мінус» line under the
-                    // balance read as an alarm every time the app opened). A
-                    // small dot says the sheet has a shortfall to look at.
+                    // balance read as an alarm every time the app opened).
+                    // Outside review 2026-11-27: a bare chart glyph beside the
+                    // Analytics tab read as a second way to Analytics, so it
+                    // carries its name now; a dot in the warning colour (it was
+                    // the accent, the colour of everything else) says the
+                    // forecast has a gap to look at.
                     val forecast = vm.cashForecast
                     if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
-                        Box {
-                            androidx.compose.material3.IconButton(onClick = onOpenForecast) {
-                                Icon(RytmIcons.TrendingUp, contentDescription = stringResource(R.string.cash_forecast_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            if (forecast.shortfallDate != null) Box(
-                                Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(8.dp)
-                                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape),
-                            )
-                        }
-                        Spacer(Modifier.width(RytmSpacing.xs))
+                        ForecastEntry(hasGap = forecast.shortfallDate != null, onClick = onOpenForecast)
+                        Spacer(Modifier.width(RytmSpacing.sm))
                     }
                     ua.rytm.app.ui.screens.ProfileEntryAvatar()
                 }
                 Text(
-                    text = heroAmountText(maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah))))),
+                    text = heroAmountText(
+                        maskedAmount(stringResource(if (vm.isMultiCurrency) R.string.finance_amount_uah_estimated else R.string.finance_amount_uah, formatMoney(ua.rytm.app.ui.rememberAnimatedAmount(vm.totalBalanceUah)))),
+                        muted = MaterialTheme.colorScheme.onSurfaceVariant,
+                        smallKopecks = true,
+                    ),
                     // Tabular figures: proportional digits make the balance jitter
                     // horizontally as it changes.
                     style = MaterialTheme.typography.displayLarge.tabularNums(),
@@ -228,23 +231,29 @@ internal fun HeroBalanceCard(
                 // ran into «Витрати»; such months stack like large text does.
                 // Pace (Copilot's "spent vs. last month at this date") as a short
                 // note under «Витрати», not a full sentence with an eighth sum.
-                val paceNote = vm.monthPaceUah?.let { (now, before) ->
-                    paceVsLastMonth(now, before)?.let { pct -> stringResource(R.string.finance_pace_vs_last_month, pct) }
+                // Outside review 2026-11-27: «−51 250 ₴» over «−27 %» read as two
+                // losses; the note says it in words and is green when spending
+                // is down. The labels name the month: the balance above is all
+                // time, the two sums are this month only.
+                val previousMonth = ua.rytm.app.data.FinancialMonth.of(vm.today).minusMonths(1)
+                val paceNote: Pair<String, Color>? = vm.monthPaceUah?.let { (now, before) ->
+                    paceVsLastMonth(now, before)?.let { pct -> paceNoteText(pct, previousMonth) }
                 }
+                val monthLabel = monthForLabel(ua.rytm.app.data.FinancialMonth.of(vm.today))
+                val incomeLabel = stringResource(R.string.finance_month_income, monthLabel)
+                val expenseLabel = stringResource(R.string.finance_month_expense, monthLabel)
                 val longSums = maxOf(formatMoney(vm.monthIncomeUah).length, formatMoney(vm.monthExpenseUah).length) > 11
                 if (largeText || longSums) {
                     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                        HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true)
-                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, note = paceNote)
+                        HeroInlineStat(incomeLabel, vm.monthIncomeUah, positive = true)
+                        HeroInlineStat(expenseLabel, vm.monthExpenseUah, positive = false, note = paceNote)
                     }
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.lg)) {
-                        HeroInlineStat(stringResource(R.string.finance_month_income), vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
-                        HeroInlineStat(stringResource(R.string.finance_month_expense), vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f), note = paceNote)
+                        HeroInlineStat(incomeLabel, vm.monthIncomeUah, positive = true, modifier = Modifier.weight(1f))
+                        HeroInlineStat(expenseLabel, vm.monthExpenseUah, positive = false, modifier = Modifier.weight(1f), note = paceNote)
                     }
                 }
-                // Pace (Copilot's "spent vs. last month at this date"): one quiet
-                // factual line, no colour — it is context, not a warning.
                 if (vm.isMultiCurrency) {
                     Text(
                         text = stringResource(R.string.finance_conversion_note),
@@ -323,7 +332,7 @@ internal fun HeroBalanceCard(
 }
 
 @Composable
-private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier, note: String? = null) {
+private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modifier: Modifier = Modifier, note: Pair<String, Color>? = null) {
     val valueColor = if (positive) RytmSemantic.income else MaterialTheme.colorScheme.onSurface
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -333,18 +342,78 @@ private fun HeroInlineStat(label: String, value: Double, positive: Boolean, modi
             fontWeight = FontWeight.Bold,
             color = valueColor,
         )
-        note?.let { Text(it, style = MaterialTheme.typography.labelSmall.tabularNums(), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        note?.let { (text, color) -> Text(text, style = MaterialTheme.typography.labelSmall.tabularNums(), color = color) }
     }
 }
 
 /** Padding of the Finance list; the wallet row bleeds through it. */
 private val HERO_SCREEN_PADDING = 16.dp
 
-/** «−28 %» / «+5 %» spent against last month at this date; null without a base. */
-internal fun paceVsLastMonth(now: Double, before: Double): String? {
+/** Spent against last month at this date in whole percent (−28, +5); null without a base. */
+internal fun paceVsLastMonth(now: Double, before: Double): Int? {
     if (before < 1.0) return null
-    val pct = Math.round((now - before) / before * 100)
-    return (if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct) + " %"
+    return Math.round((now - before) / before * 100).toInt()
+}
+
+/**
+ * «на 27 % менше, ніж за ці дні жовтня»: the same words as Analytics and the
+ * month summary, green when spending is down, the expense colour when up, and
+ * plain within ±5 % (the band Analytics calls «на рівні»).
+ */
+@Composable
+private fun paceNoteText(pct: Int, previous: java.time.YearMonth): Pair<String, Color> {
+    val month = monthGenitive(previous)
+    return when {
+        pct <= -SAME_PACE_BAND -> stringResource(R.string.finance_pace_less, formatPercent(-pct), month) to RytmSemantic.income
+        pct >= SAME_PACE_BAND -> stringResource(R.string.finance_pace_more, formatPercent(pct), month) to RytmSemantic.expense
+        else -> stringResource(R.string.finance_pace_same, month) to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+}
+
+/** A change under this many percent reads as «на рівні» everywhere (the PWA's band too). */
+internal const val SAME_PACE_BAND = 5
+
+/**
+ * The forecast's entry beside the avatar: a small tonal pill with its name,
+ * so it can't be taken for a way to Analytics, and a warning dot with a gap.
+ */
+@Composable
+private fun ForecastEntry(hasGap: Boolean, onClick: () -> Unit) {
+    val label = stringResource(R.string.cash_forecast_entry)
+    val description = if (hasGap) stringResource(R.string.cash_forecast_entry_gap) else stringResource(R.string.cash_forecast_title)
+    Box {
+        Row(
+            Modifier
+                .heightIn(min = RytmDimens.TouchTarget)
+                .clip(RoundedCornerShape(RytmRadii.Pill))
+                .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+                .semantics { contentDescription = description },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                Modifier
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(RytmRadii.Pill))
+                    .padding(horizontal = RytmSpacing.md, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(RytmIcons.TrendingUp, contentDescription = null, tint = if (hasGap) RytmSemantic.warning else MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            }
+        }
+        if (hasGap) Box(
+            Modifier.align(Alignment.TopEnd).padding(top = RytmSpacing.xs).size(9.dp)
+                .background(RytmSemantic.warning, CircleShape),
+        )
+    }
+}
+
+/** A wallet's kind as a glyph: a dot in red (PUMB's colour) read as an error status. */
+internal fun walletKindIcon(kind: String): ImageVector = when (kind) {
+    "cash" -> RytmIcons.Payments
+    "deposit" -> RytmIcons.AccountBalance
+    "receivable" -> RytmIcons.AccountBalanceWallet
+    else -> RytmIcons.CreditCard
 }
 
 @Composable
@@ -368,9 +437,10 @@ internal fun WalletChip(wallet: Wallet, balance: Double, selected: Boolean = fal
             ),
     ) {
         Row(Modifier.padding(horizontal = RytmSpacing.md, vertical = RytmSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
-            // Solid color dot for the wallet, matching .wallet-chip-dot.
-            Box(Modifier.size(8.dp).background(Color(wallet.colorHex), CircleShape))
-            Spacer(Modifier.width(RytmSpacing.sm))
+            // The wallet's kind in its colour (outside review 2026-11-27: a bare
+            // red dot beside «ПУМБ» read as an error status, not a colour tag).
+            Icon(walletKindIcon(wallet.kind), contentDescription = null, tint = Color(wallet.colorHex), modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
             Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.width(RytmSpacing.sm))
             Text(
@@ -462,17 +532,34 @@ internal fun QuickActionsRow(canEdit: Boolean, onTools: () -> Unit, onBudgets: (
     }
 }
 
+/**
+ * «Історія операцій» with search behind a magnifier and the filters beside it
+ * (outside review 2026-11-27: title, a full-width search field and a chip row
+ * left room for two and a half operations; monobank's statement does the
+ * same). The record count is gone from here — database trivia while looking
+ * at the balance; a search or filter says how much it found instead.
+ */
 @Composable
-internal fun HistoryHeader(vm: FinanceViewModel, resultCount: Int) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Text(pluralStringResource(R.plurals.finance_records, resultCount, resultCount), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+internal fun HistoryHeader(searchOpen: Boolean, showTools: Boolean, activeFilterCount: Int, onToggleSearch: () -> Unit, onOpenFilters: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.finance_history), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        if (showTools) {
+            androidx.compose.material3.IconButton(onClick = onToggleSearch, modifier = Modifier.size(RytmDimens.TouchTarget)) {
+                Icon(
+                    if (searchOpen) RytmIcons.Close else RytmIcons.Search,
+                    contentDescription = stringResource(if (searchOpen) R.string.finance_search_close else R.string.finance_search_open),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            FiltersButton(activeFilterCount, onOpenFilters)
+        }
     }
 }
 
 @Composable
-internal fun FilteredTotals(spent: Double, earned: Double) {
+internal fun FilteredTotals(count: Int, spent: Double, earned: Double) {
     val parts = listOfNotNull(
+        pluralStringResource(R.plurals.finance_found, count, count),
         if (spent > 0) stringResource(R.string.finance_filtered_spent, maskedAmount(formatMoney(spent))) else null,
         if (earned > 0) stringResource(R.string.finance_filtered_earned, maskedAmount(formatMoney(earned))) else null,
     )
@@ -486,8 +573,9 @@ internal fun FilteredTotals(spent: Double, earned: Double) {
 }
 
 @Composable
-internal fun SearchField(vm: FinanceViewModel) {
+internal fun SearchField(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     ua.rytm.app.ui.components.RytmSearchField(
+        modifier = modifier,
         value = vm.search,
         onValueChange = vm::onSearchChange,
         prefix = stringResource(R.string.finance_search_prefix),
@@ -857,8 +945,10 @@ internal fun TransactionRow(
                         // (a converted amount, say); TalkBack says what it is.
                         val balanceText = maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}")
                         val balanceLabel = stringResource(R.string.transaction_balance_after, balanceText)
+                        // «зал. 209,90 ₴»: a bare second sum under «+200 ₴» read as
+                        // the same amount twice (outside review, 2026-11-27).
                         Text(
-                            balanceText,
+                            stringResource(R.string.transaction_balance_after_short, balanceText),
                             style = MaterialTheme.typography.labelSmall.tabularNums(),
                             color = if (b < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                             maxLines = 1,
@@ -915,16 +1005,27 @@ internal fun TransactionDetailsDialog(tx: Transaction, walletName: String?, tagN
     )
 }
 
+/** The decimal separator and two digits at the end of an amount: «,90» in «2 409,90 ₴». */
+private val KOPECKS = Regex("""[,.]\d{2}(?=\D*$)""")
+
 /**
  * The hero balance with a lighter, smaller currency sign: at Black weight the
- * two strokes of «₴» merge into one blot, and the sign should not outweigh the digits.
+ * two strokes of «₴» merge into one blot, and the sign should not outweigh the
+ * digits. [muted] tints the sign (and kopecks); [smallKopecks] shrinks them too.
  */
-internal fun heroAmountText(text: String): androidx.compose.ui.text.AnnotatedString =
+internal fun heroAmountText(text: String, muted: Color = Color.Unspecified, smallKopecks: Boolean = false): androidx.compose.ui.text.AnnotatedString =
     androidx.compose.ui.text.buildAnnotatedString {
         append(text)
         var from = text.indexOf('₴')
         while (from >= 0) {
-            addStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Medium, fontSize = 0.72.em), from, from + 1)
+            addStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Medium, fontSize = 0.72.em, color = muted), from, from + 1)
             from = text.indexOf('₴', from + 1)
+        }
+        // Kopecks smaller and quieter, so the whole hryvnias read first (the
+        // Revolut/monobank balance; outside review, 2026-11-27).
+        if (smallKopecks) {
+            KOPECKS.find(text)?.let { m ->
+                addStyle(androidx.compose.ui.text.SpanStyle(fontSize = 0.72.em, color = muted), m.range.first, m.range.last + 1)
+            }
         }
     }

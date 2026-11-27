@@ -25,7 +25,7 @@ data class WidgetSnapshot(
     val week: List<WeekDay> = emptyList(),
     /** Newest first, capped — the tall layout shows as many as fit. */
     val recent: List<RecentTx> = emptyList(),
-    /** The same month-end forecast as Finance (CashForecast.forProfile); null with no wallets or nothing to forecast. */
+    /** The same forecast (month end, or next month end late in the month) as Finance (CashForecast.forProfile); null with no wallets or nothing to forecast. */
     val forecast: ua.rytm.app.ui.screens.finance.CashForecast? = null,
 ) {
     data class NextShift(val date: LocalDate, val name: String, val code: String, val colorHex: Long)
@@ -86,7 +86,7 @@ data class WidgetSnapshot(
                 }
             val toUah: (Double, String) -> Double = { a, c -> convertCurrencyAmount(a, c, "UAH", rates) }
             val cash = ua.rytm.app.ui.screens.finance.CashForecast.forProfile(
-                wallets, transactions, recurring, today, ua.rytm.app.data.FinancialMonth.lastDay(ua.rytm.app.data.FinancialMonth.of(today)), toUah,
+                wallets, transactions, recurring, today, ua.rytm.app.ui.screens.finance.CashForecast.horizonEnd(today), toUah,
             ).takeIf { wallets.isNotEmpty() && (it.habit != null || it.events.isNotEmpty()) }
             return WidgetSnapshot(true, masked, balance, next, forecast, salaryGoal, week, recent, cash)
         }

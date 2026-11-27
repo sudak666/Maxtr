@@ -48,6 +48,46 @@ class CashForecastTest {
         assertEquals(7_000.0, f.endBalance, 0.01)
     }
 
+    // Outside review 2026-11-27: «По днях» held only the salary while the
+    // gap happened on two days not in the list.
+    @Test fun keyDaysHoldTheGapTheDeepestDayAndTheWayBack() {
+        val f = CashForecast.compute(
+            409.90, listOf(rent(15_000.0, "2026-11-30", TxType.INCOME)), { "UAH" },
+            LocalDate.parse("2026-11-27"), LocalDate.parse("2026-11-30"), SpendingHabit(796.31, 60, 6), uah,
+        )
+        assertEquals(listOf("2026-11-28", "2026-11-29", "2026-11-30"), f.keyDays.map { it.date.toString() })
+        assertEquals(-386.41, f.keyDays[0].balance, 0.01)
+        assertEquals(-1_182.72, f.keyDays[1].balance, 0.01)
+        assertEquals(LocalDate.parse("2026-11-30"), f.recoveredDate)
+        assertEquals(13_020.97, f.endBalance, 0.01)
+        assertEquals(4, f.path.size)
+    }
+
+    // A month-long horizon dips twice: before this salary and before the next.
+    @Test fun everyZeroCrossingIsMarked() {
+        val f = CashForecast.compute(
+            409.90, listOf(rent(15_000.0, "2026-11-30", TxType.INCOME)), { "UAH" },
+            LocalDate.parse("2026-11-27"), LocalDate.parse("2026-12-31"), SpendingHabit(796.31, 60, 6), uah,
+        )
+        assertEquals(listOf(true, false, true, false), f.crossings.values.toList())
+        assertEquals(LocalDate.parse("2026-11-28"), f.crossings.keys.first())
+    }
+
+    @Test fun noGapNoMarkedDays() {
+        val f = forecast(10_000.0, emptyList(), 100.0)
+        assertTrue(f.keyDays.isEmpty())
+        assertNull(f.recoveredDate)
+    }
+
+    // On the 27th a month-end forecast covered three days.
+    @Test fun horizonReachesNextMonthLate() {
+        FinancialMonth.startDay = 1
+        assertEquals(LocalDate.parse("2026-11-30"), CashForecast.horizonEnd(LocalDate.parse("2026-11-10")))
+        assertEquals(LocalDate.parse("2026-11-30"), CashForecast.horizonEnd(LocalDate.parse("2026-11-16")))
+        assertEquals(LocalDate.parse("2026-12-31"), CashForecast.horizonEnd(LocalDate.parse("2026-11-17")))
+        assertEquals(LocalDate.parse("2026-12-31"), CashForecast.horizonEnd(LocalDate.parse("2026-11-27")))
+    }
+
     @Test fun todayIsPlannedButNotChargedDailySpend() {
         val f = forecast(1_000.0, listOf(rent(100.0, "2026-11-10")), 50.0)
         assertEquals(900.0, f.events[0].balanceAfter, 0.01)

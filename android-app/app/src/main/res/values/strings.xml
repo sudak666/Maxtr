@@ -90,15 +90,13 @@
     <string name="tools_title">Валюти</string><string name="period_month">Цей місяць</string><string name="period_previous">Минулий місяць</string><string name="period_three_months">3 місяці</string><string name="period_all">Весь час</string>
     <string name="analytics_title">Аналітика витрат і доходів</string><string name="analytics_income_label">Дохід</string><string name="analytics_expense_label">Витрати</string><string name="analytics_average_uah">Середнє за місяць: %1$s ₴</string><string name="analytics_maximum_uah">Найбільше: %1$s ₴</string>
     <string name="analytics_difference">Різниця</string><string name="analytics_overspent">Перевитрата</string><string name="analytics_savings_rate">Заощаджено</string>
-    <string name="analytics_spending_less">Витрати на %1$d%% менші, ніж у попередньому періоді</string><string name="analytics_spending_more">Витрати на %1$d%% більші, ніж у попередньому періоді</string>
-    <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$s ₴ (+%3$d%%)</string>
+    <string name="analytics_top_growth">Найбільше зросли витрати «%1$s»: +%2$s ₴ (+%3$s)</string>
     <string name="analytics_expense_categories">Витрати за категоріями</string><string name="analytics_income_categories">Доходи за категоріями</string><string name="analytics_empty">Немає даних за цей період</string>
     <string name="rates_empty">Немає даних про курси</string><string name="converter_title">Конвертер валют</string><string name="converter_result">Отримаєте</string><string name="converter_swap">Поміняти місцями</string><string name="analytics_other">Інше</string><string name="analytics_six_months">Динаміка за 6 місяців</string>
     <string name="receipt_found">Дані чека розпізнано — перевір перед збереженням</string><string name="receipt_not_found">Суму й дату не знайдено</string><string name="receipt_failed">Не вдалося розпізнати чек</string>
     <string name="receipt_camera">Камера</string><string name="receipt_gallery">Галерея</string><string name="receipt_scanning">Розпізнавання чека…</string>
     <string name="category_all">Усі категорії</string>
-    <string name="debt_progress_of">%1$s з %2$s · %3$d%%</string>
-    <string name="finance_pace_vs_last_month">%1$s до минулого місяця</string>
+    <string name="debt_progress_of">%1$s з %2$s · %3$d\u00A0%%</string>
     <string name="nav_analytics">Аналітика</string>
     <string name="receipt_scan">Сканувати чек</string>
     <string name="transaction_edit_title">Редагування операції</string><string name="transaction_new_title">Нова операція</string>
@@ -126,8 +124,8 @@
     <string name="crypto_loading">Оновлюємо курси…</string><string name="crypto_error">Не вдалося завантажити курси криптовалют</string>
     <string name="action_collapse">Згорнути</string><string name="shifts_show_month">Показати весь місяць</string><string name="action_collapse_list">Згорнути список</string><string name="action_view_all">Переглянути всі</string>
     <string name="finance_estimated_balance">Орієнтовний баланс</string><string name="finance_total_balance">Загальний баланс</string><string name="finance_conversion_note">Сума перерахована в гривню за поточними курсами гаманців.</string>
-    <string name="finance_month_income">Дохід</string><string name="finance_month_expense">Витрати</string><string name="finance_history">Історія операцій</string>
-    <plurals name="finance_records"><item quantity="one">%1$d запис</item><item quantity="few">%1$d записи</item><item quantity="many">%1$d записів</item><item quantity="other">%1$d запису</item></plurals>
+    <string name="finance_month_income">Дохід за %1$s</string><string name="finance_month_expense">Витрати за %1$s</string><string name="finance_history">Історія операцій</string>
+    <plurals name="finance_records"><item quantity="one">%1$d операція</item><item quantity="few">%1$d операції</item><item quantity="many">%1$d операцій</item><item quantity="other">%1$d операції</item></plurals>
     <string name="finance_clear_search">Очистити пошук</string><string name="filter_all">Усі</string><string name="finance_category_clear">%1$s · Скинути ✕</string>
     <string name="finance_empty_search_title">Нічого не знайдено</string><string name="finance_empty_title">Операцій ще немає</string><string name="finance_empty_search_body">Зміни фільтр або пошуковий запит, щоб побачити операції.</string><string name="finance_empty_body">Почни з суми, яка в тебе є зараз. Потім записуй доходи й витрати.</string>
     <string name="finance_empty_cta">Вказати поточний баланс</string>
@@ -148,7 +146,7 @@
     <string name="money_uah">%1$s ₴</string>
     <string name="shifts_choose">Обери зміни</string>
     <string name="shifts_earned_month">Зароблено за місяць</string>
-    <string name="shifts_goal_progress">%1$d%% від цілі %2$s ₴</string>
+    <string name="shifts_goal_progress">%1$d\u00A0%% від цілі %2$s ₴</string>
     <string name="shifts_goal_edit_title">Ціль заробітку</string>
     <string name="shifts_goal_edit_label">Сума, ₴</string>
     <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
@@ -303,7 +301,6 @@
     <string name="profile_role_change_failed">Не вдалося змінити роль</string>
     <string name="settings_title">Налаштування</string>
     <string name="settings_clear_search">Очистити пошук</string>
-    
     <string name="settings_group_all">Усі</string>
     <string name="settings_account">Акаунт</string>
     <string name="settings_finance">Фінанси</string>
@@ -453,7 +450,7 @@
     <string name="widget_signed_out">Увійди у Rytm</string>
     <string name="widget_today">Сьогодні</string>
     <string name="widget_tomorrow">Завтра</string>
-    <string name="widget_goal_pct">%1$d%% цілі</string>
+    <string name="widget_goal_pct">%1$d\u00A0%% цілі</string>
     <string name="widget_week">Найближчі 7 днів</string>
     <string name="widget_recent">Останні операції</string>
     <string name="settings_backups_title">Резервні копії</string>
@@ -493,8 +490,8 @@
     </plurals>
     <string name="auth_email_placeholder">you@example.com</string>
     <string name="shifts_insight_title">Підсумок за 90 днів</string>
-    <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d%% більше</string>
-    <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d%% менше</string>
+    <string name="shifts_insight_more">У дні змін ти витрачаєш на %1$d\u00A0%% більше</string>
+    <string name="shifts_insight_less">У дні змін ти витрачаєш на %1$d\u00A0%% менше</string>
     <string name="shifts_insight_detail">≈ %1$s ₴ на день у зміну проти %2$s ₴ у вихідний</string>
     <string name="finance_contributions_title">Хто скільки цього місяця</string>
     <string name="finance_contributions_me">%1$s (ти)</string>
@@ -546,11 +543,9 @@
     <string name="month_summary_empty">За цей місяць операцій немає.</string>
     <string name="month_summary_saved">Залишилось +%1$s</string>
     <string name="month_summary_overspent">Витрачено більше, ніж заробили: −%1$s</string>
-    <string name="month_summary_spent_more">Витрати на %1$d%% більші, ніж місяцем раніше</string>
-    <string name="month_summary_spent_less">Витрати на %1$d%% менші, ніж місяцем раніше</string>
+    
     <string name="month_summary_top">Найбільші категорії</string>
-    <string name="month_summary_vs_previous">%1$s%% до попереднього</string>
-    <string name="month_summary_biggest">Найбільша витрата: %1$s, %2$s</string>
+    <string name="month_summary_vs_previous">%1$s до попереднього</string>
     <string name="month_summary_notification_body">Витрати %1$s · дохід %2$s. Торкнись, щоб подивитись.</string>
     <string name="month_summary_notification_hidden">Торкнись, щоб подивитись, куди пішли гроші.</string>
     <string name="month_summary_tool">Підсумок місяця</string>
@@ -578,17 +573,12 @@
     <string name="notifications_weekly_title">Тиждень родини</string>
     <string name="notifications_weekly_subtitle">Неділя, 19:00: хто скільки витратив за тиждень у спільному профілі й хто кому винен, щоб порівну</string>
     <string name="categories_empty">Тут поки немає категорій. Додай першу нижче.</string>
-    <string name="story_spent">Витрачено за %1$s</string>
-    <string name="story_top_category">Найбільше пішло на</string>
-    <string name="story_top_share">%1$s · %2$d%% усіх витрат</string>
+    
     <string name="story_biggest">Найбільша покупка</string>
-    <string name="story_saved">Залишилось</string>
-    <string name="story_overspent">Перевитрата</string>
-    <string name="story_count">Операцій за місяць: %1$d</string>
+    
     <string name="finance_search_what_all">операції</string><string name="finance_search_what_merchant">«Сільпо»</string><string name="finance_search_what_month">«кафе жовтень»</string>
     <string name="finance_search_what_amount">«більше 500»</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
-    <string name="analytics_spending_same">Витрати на рівні попереднього періоду</string>
     <string name="month_summary_prev">Попередній місяць</string>
     <string name="month_summary_next">Наступний місяць</string>
     <string name="widget_forecast_month">Прогноз · %1$s</string>
@@ -637,7 +627,6 @@
     <string name="cash_forecast_habit">Звичні витрати</string>
     <string name="cash_forecast_habit_hint">%1$s ₴ на день × %2$d дн.</string>
     <string name="cash_forecast_end">На %1$s</string>
-    <string name="cash_forecast_lowest">Найбільша нестача: %1$s ₴, %2$s</string>
     <string name="cash_forecast_habit_title">Звичні витрати</string>
     <string name="cash_forecast_habit_explain">Середнє за %1$d дн. без %2$d найдорожчих днів (разові покупки) і без регулярних платежів.</string>
     <string name="cash_forecast_habit_top">Найбільше: %1$s</string>
@@ -649,13 +638,13 @@
     <string name="budgets_limit_hint">Порожньо або 0 — без ліміту</string>
     <string name="cash_forecast_title">Прогноз грошей</string>
     <string name="cash_forecast_subtitle">Залишок на %1$s</string>
-    <string name="cash_forecast_enough">Вистачає до кінця місяця</string>
-    <string name="cash_forecast_gap">≈ %1$s гроші закінчаться</string>
+    <string name="cash_forecast_enough">Вистачить до %1$s</string>
+    <string name="cash_forecast_gap">Гроші закінчаться ≈ %1$s</string>
     <string name="cash_forecast_no_history">Замало історії для звичних витрат, тому враховано лише регулярні платежі.</string>
     <string name="cash_forecast_events">По днях</string>
-    <string name="cash_forecast_no_events">Регулярних платежів до кінця місяця немає.</string>
+    <string name="cash_forecast_no_events">До %1$s немає ні регулярних платежів, ні мінуса.</string>
     <string name="cash_forecast_after">залишок %1$s ₴</string>
-    <string name="cash_forecast_note">Кінець місяця можна змінити в налаштуваннях.</string>
+    <string name="cash_forecast_note">Прогноз сягає кінця фінансового місяця, а коли до нього менше двох тижнів — кінця наступного. Початок місяця можна змінити в налаштуваннях.</string>
     <string name="recurring_first_date">Перший платіж</string>
     <string name="recurring_comment">Назва (необов’язково)</string>
     <string name="recurring_create_hint">Якщо дата вже минула, перший платіж буде в наступну таку дату: заднім числом нічого не додається.</string>
@@ -727,7 +716,7 @@
     <string name="capital_note_rates">Минулі дні перераховано за сьогоднішнім курсом.</string><string name="capital_note_negative">Рахунки з мінусом (кредитка) у частках не показано.</string><string name="capital_spendable">З них на витрати: %1$s ₴</string>
     <string name="capital_chart_description">Графік капіталу, від %1$s до %2$s гривень</string>
     <string name="category_stats_no_compare">немає з чим порівняти</string>
-    <string name="category_stats_vs_previous">%1$s %% до попереднього періоду (%2$s)</string>
+    <string name="category_stats_vs_previous">%1$s до попереднього періоду (%2$s)</string>
     <string name="category_stats_by_sub">За підкатегоріями</string>
     <string name="category_stats_show_tx">До операцій</string>
     <string name="onboarding_start">Почати</string>
@@ -777,7 +766,7 @@
     <string name="shifts_pay_hint_title">Вкажи оплату за зміну</string>
     <string name="shifts_pay_hint_body">Тоді Rytm порахує заробіток</string>
     <string name="shifts_pay_hint_action">Вказати</string>
-    <string name="premium_saving">%1$s · вигода %2$d%%</string>
+    <string name="premium_saving">%1$s · вигода %2$d\u00A0%%</string>
     <string name="premium_terms_note">Підписка продовжується сама. Скасувати можна будь-коли в Google Play — до кінця пробного періоду гроші не списуються.</string>
     <string name="premium_manage">Керувати підпискою</string>
     <string name="onboarding_bank_title">Банк записує сам</string>
@@ -828,4 +817,37 @@
         <item quantity="many">%d вихідних</item>
         <item quantity="other">%d вихідних</item>
     </plurals>
+    <string name="cash_forecast_short_label">Попереду нестача</string>
+    <string name="cash_forecast_short_head">Не вистачить ≈ %1$s ₴</string>
+    <string name="cash_forecast_gap_deepest">Гроші закінчаться ≈ %1$s, найглибший мінус — %2$s</string>
+    <string name="cash_forecast_day_gap">гроші закінчуються</string>
+    <string name="cash_forecast_day_lowest">найменший залишок</string>
+    <string name="cash_forecast_day_back">знову в плюсі</string>
+    <string name="cash_forecast_chart_desc">Залишок по днях з %1$s по %2$s</string>
+    <string name="cash_forecast_entry">Прогноз</string>
+    <string name="cash_forecast_entry_gap">Прогноз грошей: попереду нестача</string>
+    <string name="finance_pace_less">на %1$s менше, ніж за ці дні %2$s</string>
+    <string name="finance_pace_more">на %1$s більше, ніж за ці дні %2$s</string>
+    <string name="finance_pace_same">як за ці дні %1$s</string>
+    <string name="finance_search_open">Шукати операції</string>
+    <string name="finance_search_close">Закрити пошук</string>
+    <string name="transaction_balance_after_short">зал. %1$s</string>
+    <string name="month_summary_tool_short">Підсумок</string>
+    <string name="spending_less_days">Витрати на %1$s менші, ніж за ці дні %2$s</string>
+    <string name="spending_more_days">Витрати на %1$s більші, ніж за ці дні %2$s</string>
+    <string name="spending_same_days">Витрати на рівні тих самих днів %1$s</string>
+    <string name="spending_less_month">Витрати на %1$s менші, ніж за %2$s</string>
+    <string name="spending_more_month">Витрати на %1$s більші, ніж за %2$s</string>
+    <string name="spending_same_month">Витрати на рівні %1$s</string>
+    <string name="spending_less_3m">Витрати на %1$s менші, ніж за попередні 3 місяці</string>
+    <string name="spending_more_3m">Витрати на %1$s більші, ніж за попередні 3 місяці</string>
+    <string name="spending_same_3m">Витрати на рівні попередніх 3 місяців</string>
+    <string name="story_no_spend_days">Днів без витрат</string>
+    <string name="story_no_spend_value">%1$d з %2$d</string>
+    <string name="story_priciest_weekday">Найдорожчий день тижня</string>
+    <string name="story_priciest_weekday_avg">У середньому %1$s за день</string>
+    <string name="story_average_purchase">Середня покупка</string>
+    <string name="story_expense_count">Витрат за місяць: %1$d</string>
+    <plurals name="finance_found"><item quantity="one">Знайдено %1$d операцію</item><item quantity="few">Знайдено %1$d операції</item><item quantity="many">Знайдено %1$d операцій</item><item quantity="other">Знайдено %1$d операції</item></plurals>
+    <plurals name="story_no_spend_run"><item quantity="one">Найдовша серія — %1$d день</item><item quantity="few">Найдовша серія — %1$d дні</item><item quantity="many">Найдовша серія — %1$d днів</item><item quantity="other">Найдовша серія — %1$d дня</item></plurals>
 </resources>

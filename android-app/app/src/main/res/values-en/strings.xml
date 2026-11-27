@@ -84,15 +84,13 @@
     <string name="tools_title">Currencies</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
     <string name="analytics_title">Expense and income analytics</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">Monthly average: %1$s ₴</string><string name="analytics_maximum_uah">Highest: %1$s ₴</string>
     <string name="analytics_difference">Difference</string><string name="analytics_overspent">Overspent</string><string name="analytics_savings_rate">Savings rate</string>
-    <string name="analytics_spending_less">Spending is %1$d%% lower than in the previous period</string><string name="analytics_spending_more">Spending is %1$d%% higher than in the previous period</string>
-    <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$s ₴ (+%3$d%%)</string>
+    <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$s ₴ (+%3$s)</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_result">You get</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
     <string name="receipt_camera">Camera</string><string name="receipt_gallery">Gallery</string><string name="receipt_scanning">Recognizing receipt…</string>
     <string name="category_all">All categories</string>
     <string name="debt_progress_of">%1$s of %2$s · %3$d%%</string>
-    <string name="finance_pace_vs_last_month">%1$s vs last month</string>
     <string name="nav_analytics">Analytics</string>
     <string name="receipt_scan">Scan receipt</string>
     <string name="transaction_edit_title">Edit transaction</string><string name="transaction_new_title">New transaction</string>
@@ -120,8 +118,8 @@
     <string name="crypto_loading">Updating rates…</string><string name="crypto_error">Could not load cryptocurrency rates</string>
     <string name="action_collapse">Collapse</string><string name="shifts_show_month">Show whole month</string><string name="action_collapse_list">Collapse list</string><string name="action_view_all">View all</string>
     <string name="finance_estimated_balance">Estimated balance</string><string name="finance_total_balance">Total balance</string><string name="finance_conversion_note">The amount is converted to hryvnia using current wallet rates.</string>
-    <string name="finance_month_income">Income</string><string name="finance_month_expense">Expenses</string><string name="finance_history">Transaction history</string>
-    <plurals name="finance_records"><item quantity="one">%1$d record</item><item quantity="other">%1$d records</item></plurals>
+    <string name="finance_month_income">Income in %1$s</string><string name="finance_month_expense">Spent in %1$s</string><string name="finance_history">Transaction history</string>
+    <plurals name="finance_records"><item quantity="one">%1$d operation</item><item quantity="other">%1$d operations</item></plurals>
     <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Start with what you have now, then log income and expenses.</string>
     <string name="finance_empty_cta">Set current balance</string>
@@ -297,7 +295,6 @@
     <string name="profile_role_change_failed">Could not change the role</string>
     <string name="settings_title">Settings</string>
     <string name="settings_clear_search">Clear search</string>
-    
     <string name="settings_group_all">All</string>
     <string name="settings_account">Account</string>
     <string name="settings_finance">Finance</string>
@@ -536,11 +533,9 @@
     <string name="month_summary_empty">No transactions this month.</string>
     <string name="month_summary_saved">Left over +%1$s</string>
     <string name="month_summary_overspent">Spent more than earned: −%1$s</string>
-    <string name="month_summary_spent_more">Spending %1$d%% higher than the month before</string>
-    <string name="month_summary_spent_less">Spending %1$d%% lower than the month before</string>
+    
     <string name="month_summary_top">Top categories</string>
-    <string name="month_summary_vs_previous">%1$s%% vs previous</string>
-    <string name="month_summary_biggest">Biggest expense: %1$s, %2$s</string>
+    <string name="month_summary_vs_previous">%1$s vs previous</string>
     <string name="month_summary_notification_body">Spent %1$s · earned %2$s. Tap to see more.</string>
     <string name="month_summary_notification_hidden">Tap to see where the money went.</string>
     <string name="month_summary_tool">Month recap</string>
@@ -568,17 +563,12 @@
     <string name="notifications_weekly_title">Family week</string>
     <string name="notifications_weekly_subtitle">Sunday, 19:00: who spent what this week in a shared profile, and who owes whom to make it even</string>
     <string name="categories_empty">No categories here yet. Add the first one below.</string>
-    <string name="story_spent">Spent in %1$s</string>
-    <string name="story_top_category">Most went to</string>
-    <string name="story_top_share">%1$s · %2$d%% of all spending</string>
+    
     <string name="story_biggest">Biggest purchase</string>
-    <string name="story_saved">Left over</string>
-    <string name="story_overspent">Overspent</string>
-    <string name="story_count">Transactions this month: %1$d</string>
+    
     <string name="finance_search_what_all">operations</string><string name="finance_search_what_merchant">“Silpo”</string><string name="finance_search_what_month">“cafe october”</string>
     <string name="finance_search_what_amount">“over 500”</string>
     <string name="settings_version">Rytm %1$s (%2$d)</string>
-    <string name="analytics_spending_same">Spending is about the same as the previous period</string>
     <string name="month_summary_prev">Previous month</string>
     <string name="month_summary_next">Next month</string>
     <string name="widget_forecast_month">Forecast · %1$s</string>
@@ -627,7 +617,6 @@
     <string name="cash_forecast_habit">Usual spending</string>
     <string name="cash_forecast_habit_hint">%1$s ₴ a day × %2$d days</string>
     <string name="cash_forecast_end">On %1$s</string>
-    <string name="cash_forecast_lowest">Biggest gap: %1$s ₴, %2$s</string>
     <string name="cash_forecast_habit_title">Usual spending</string>
     <string name="cash_forecast_habit_explain">Average over %1$d days, without the %2$d priciest days (one-off buys) and recurring payments.</string>
     <string name="cash_forecast_habit_top">Most: %1$s</string>
@@ -639,13 +628,13 @@
     <string name="budgets_limit_hint">Blank or 0 — no limit</string>
     <string name="cash_forecast_title">Money forecast</string>
     <string name="cash_forecast_subtitle">Left on %1$s</string>
-    <string name="cash_forecast_enough">Enough until month end</string>
+    <string name="cash_forecast_enough">Enough until %1$s</string>
     <string name="cash_forecast_gap">Money runs out ≈ %1$s</string>
     <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
     <string name="cash_forecast_events">Day by day</string>
-    <string name="cash_forecast_no_events">No recurring payments until month end.</string>
+    <string name="cash_forecast_no_events">No recurring payments and no shortfall until %1$s.</string>
     <string name="cash_forecast_after">%1$s ₴ left</string>
-    <string name="cash_forecast_note">You can change the month end in Settings.</string>
+    <string name="cash_forecast_note">The forecast runs to the end of the financial month, or to the end of the next one when fewer than two weeks are left. You can change the month start in Settings.</string>
     <string name="recurring_first_date">First payment</string>
     <string name="recurring_comment">Name (optional)</string>
     <string name="recurring_create_hint">If the date has passed, the first payment moves to the next such date: nothing is added back-dated.</string>
@@ -715,7 +704,7 @@
     <string name="capital_note_rates">Past days use today’s rates.</string><string name="capital_note_negative">Accounts below zero (a credit card) are left out of the shares.</string><string name="capital_spendable">Of it, to spend: %1$s ₴</string>
     <string name="capital_chart_description">Net worth chart, from %1$s to %2$s hryvnias</string>
     <string name="category_stats_no_compare">nothing to compare with</string>
-    <string name="category_stats_vs_previous">%1$s%% vs the previous period (%2$s)</string>
+    <string name="category_stats_vs_previous">%1$s vs the previous period (%2$s)</string>
     <string name="category_stats_by_sub">By subcategory</string>
     <string name="category_stats_show_tx">Show transactions</string>
     <string name="onboarding_start">Get started</string>
@@ -814,4 +803,37 @@
         <item quantity="one">%d day off</item>
         <item quantity="other">%d days off</item>
     </plurals>
+    <string name="cash_forecast_short_label">A shortfall ahead</string>
+    <string name="cash_forecast_short_head">Short by ≈ %1$s ₴</string>
+    <string name="cash_forecast_gap_deepest">Money runs out ≈ %1$s, lowest on %2$s</string>
+    <string name="cash_forecast_day_gap">money runs out</string>
+    <string name="cash_forecast_day_lowest">lowest point</string>
+    <string name="cash_forecast_day_back">back above zero</string>
+    <string name="cash_forecast_chart_desc">Balance by day from %1$s to %2$s</string>
+    <string name="cash_forecast_entry">Forecast</string>
+    <string name="cash_forecast_entry_gap">Cash forecast: a shortfall ahead</string>
+    <string name="finance_pace_less">%1$s less than the same days of %2$s</string>
+    <string name="finance_pace_more">%1$s more than the same days of %2$s</string>
+    <string name="finance_pace_same">Same as the same days of %1$s</string>
+    <string name="finance_search_open">Search operations</string>
+    <string name="finance_search_close">Close search</string>
+    <string name="transaction_balance_after_short">bal. %1$s</string>
+    <string name="month_summary_tool_short">Summary</string>
+    <string name="spending_less_days">Spending is %1$s lower than the same days of %2$s</string>
+    <string name="spending_more_days">Spending is %1$s higher than the same days of %2$s</string>
+    <string name="spending_same_days">Spending in line with the same days of %1$s</string>
+    <string name="spending_less_month">Spending is %1$s lower than in %2$s</string>
+    <string name="spending_more_month">Spending is %1$s higher than in %2$s</string>
+    <string name="spending_same_month">Spending in line with %1$s</string>
+    <string name="spending_less_3m">Spending is %1$s lower than the previous 3 months</string>
+    <string name="spending_more_3m">Spending is %1$s higher than the previous 3 months</string>
+    <string name="spending_same_3m">Spending in line with the previous 3 months</string>
+    <string name="story_no_spend_days">Days without spending</string>
+    <string name="story_no_spend_value">%1$d of %2$d</string>
+    <string name="story_priciest_weekday">Priciest weekday</string>
+    <string name="story_priciest_weekday_avg">%1$s a day on average</string>
+    <string name="story_average_purchase">Average purchase</string>
+    <string name="story_expense_count">Expenses this month: %1$d</string>
+    <plurals name="finance_found"><item quantity="one">Found %1$d operation</item><item quantity="other">Found %1$d operations</item></plurals>
+    <plurals name="story_no_spend_run"><item quantity="one">Longest streak: %1$d day</item><item quantity="other">Longest streak: %1$d days</item></plurals>
 </resources>

@@ -54,6 +54,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
@@ -148,17 +151,20 @@ fun AnalyticsScreen(financeViewModel: FinanceViewModel, onOpenFinance: () -> Uni
             .padding(start = RytmSpacing.lg, end = RytmSpacing.lg, top = RytmSpacing.lg, bottom = ua.rytm.app.ui.theme.RytmDimens.BottomContentClearance),
         verticalArrangement = Arrangement.spacedBy(RytmSpacing.lg),
     ) {
-        ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_analytics))
-        ua.rytm.app.ui.components.RytmOutlinedButton(
-            // Opens right here: it used to switch to Finance first, so a tap
-            // on Analytics landed the user on another tab.
-            onClick = { financeViewModel.openMonthSummary() },
-            modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
-        ) {
-            androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null)
-            androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
-            Text(stringResource(R.string.month_summary_tool))
+        // The month summary is a compact tonal pill beside the title (outside
+        // review 2026-11-27: a full-width outlined button above the period
+        // chips competed with them for the first look). Opens right here.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_analytics), Modifier.weight(1f))
+            androidx.compose.material3.FilledTonalButton(
+                onClick = { financeViewModel.openMonthSummary() },
+                modifier = Modifier.heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget).padding(top = RytmSpacing.sm),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = RytmSpacing.md),
+            ) {
+                androidx.compose.material3.Icon(ua.rytm.app.ui.icons.RytmIcons.PieChart, contentDescription = null, modifier = Modifier.size(18.dp))
+                androidx.compose.foundation.layout.Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.month_summary_tool_short))
+            }
         }
         AnalyticsSection(viewModel) { type, category -> detail = type.name to category }
         SixMonthChartSection(viewModel)
@@ -190,17 +196,18 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
                 Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     expenseChange?.let {
                         // Same ±5% band as the PWA: a 3% swing is noise, not a trend.
+                        val text = spendingChangeText(it, vm.period)
                         when {
-                            it <= -5 -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingDown, ua.rytm.app.ui.theme.RytmSemantic.income, stringResource(R.string.analytics_spending_less, -it))
-                            it >= 5 -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingUp, ua.rytm.app.ui.theme.RytmSemantic.expense, stringResource(R.string.analytics_spending_more, it))
-                            else -> InsightLine(null, MaterialTheme.colorScheme.onSurfaceVariant, stringResource(R.string.analytics_spending_same))
+                            it <= -SAME_PACE_BAND -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingDown, ua.rytm.app.ui.theme.RytmSemantic.income, text)
+                            it >= SAME_PACE_BAND -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingUp, ua.rytm.app.ui.theme.RytmSemantic.expense, text)
+                            else -> InsightLine(null, MaterialTheme.colorScheme.onSurfaceVariant, text)
                         }
                     }
                     categoryGrowth?.let { growth ->
                         InsightLine(
                             ua.rytm.app.ui.icons.RytmIcons.TrendingUp,
                             ua.rytm.app.ui.theme.RytmSemantic.expense,
-                            stringResource(R.string.analytics_top_growth, localizedDomainText(growth.category), maskedAmount(formatMoney(growth.increase)), growth.percent),
+                            stringResource(R.string.analytics_top_growth, localizedDomainText(growth.category), maskedAmount(formatMoney(growth.increase)), formatPercent(growth.percent)),
                         )
                     }
                 }
@@ -208,20 +215,24 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
         }
 
         val expenseByCategory = vm.expenseByCategory
+        // The donut's slices pick colours no other slice has; the rows below
+        // use the same ones, so a slice and its row match at a glance.
+        val sliceColors = remember(expenseByCategory) { distinctCategoryColors(donutTop(expenseByCategory).map { it.first }) }
         if (expenseByCategory.isNotEmpty()) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                ExpenseDonut(expenseByCategory, vm.totalExpense)
+                ExpenseDonut(expenseByCategory, vm.totalExpense, sliceColors)
             }
         }
 
         if (expenseByCategory.isNotEmpty()) {
             Text(stringResource(R.string.analytics_expense_categories), style = MaterialTheme.typography.labelLarge)
-            Column { expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense) { onCategory(TxType.EXPENSE, cat) } } }
+            Column { expenseByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalExpense, color = sliceColors[cat] ?: categoryColor(cat)) { onCategory(TxType.EXPENSE, cat) } } }
         }
         val incomeByCategory = vm.incomeByCategory
         if (incomeByCategory.isNotEmpty()) {
+            val incomeColors = remember(incomeByCategory) { distinctCategoryColors(incomeByCategory.map { it.first }) }
             Text(stringResource(R.string.analytics_income_categories), style = MaterialTheme.typography.labelLarge)
-            Column { incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome) { onCategory(TxType.INCOME, cat) } } }
+            Column { incomeByCategory.forEach { (cat, amt) -> CategoryBar(cat, amt, vm.totalIncome, color = incomeColors.getValue(cat)) { onCategory(TxType.INCOME, cat) } } }
         }
         if (expenseByCategory.isEmpty() && incomeByCategory.isEmpty()) {
             Text(stringResource(R.string.analytics_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -260,22 +271,31 @@ private fun AnalyticsSummary(income: Double, expense: Double, difference: Double
         if (difference < 0) {
             Line(stringResource(R.string.analytics_overspent), "−" + uah(difference), ua.rytm.app.ui.theme.RytmSemantic.expense)
         } else {
-            Line(stringResource(R.string.analytics_savings_rate), uah(difference) + " · " + "$savingsRate%", ua.rytm.app.ui.theme.RytmSemantic.income)
+            Line(stringResource(R.string.analytics_savings_rate), uah(difference) + " · " + formatPercent(savingsRate), ua.rytm.app.ui.theme.RytmSemantic.income)
         }
     }
 }
 
+/** The donut's own slices: up to six categories, or the top five and the rest as «Інше». */
+internal fun donutTop(byCategory: List<Pair<String, Double>>): List<Pair<String, Double>> =
+    if (byCategory.size <= 6) byCategory else byCategory.take(5)
+
 // Mirrors the PWA's conic-gradient donut (analytics-donut) - a Compose
-// Canvas arc-sweep per category, colored via categoryColor() (the same
-// deterministic per-category color used for transaction-list icon badges).
+// Canvas arc-sweep per category. Slices take [colors] (distinct within the
+// chart, shared with the rows below); «Інше» is a neutral grey so it never
+// passes for a category. A tap on a slice puts its name and sum in the
+// middle and dims the rest (the Revolut/Wallet donut); a second tap, or a
+// tap in the middle, goes back to the total.
 @Composable
-private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) {
+private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double, colors: Map<String, Color>) {
     val progress = motionProgress(byCategory, 600)
     val otherLabel = stringResource(R.string.analytics_other)
-    val chartEntries = remember(byCategory, otherLabel) {
-        if (byCategory.size <= 6) byCategory
-        else byCategory.take(5) + (otherLabel to byCategory.drop(5).sumOf { it.second })
-    }
+    val otherColor = MaterialTheme.colorScheme.outline
+    data class Slice(val label: String, val amount: Double, val color: Color)
+    val top = donutTop(byCategory)
+    val slices = top.map { (cat, amt) -> Slice(localizedDomainText(cat), amt, colors[cat] ?: categoryColor(cat)) } +
+        (if (byCategory.size > top.size) listOf(Slice(otherLabel, byCategory.drop(top.size).sumOf { it.second }, otherColor)) else emptyList())
+    var selected by androidx.compose.runtime.saveable.rememberSaveable(byCategory) { androidx.compose.runtime.mutableIntStateOf(-1) }
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
     Box(
         Modifier.size(184.dp).graphicsLayer {
@@ -288,10 +308,27 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
     ) {
         // Canvas charts carry no semantics of their own — spoken summary added.
         val donutSummary = stringResource(R.string.analytics_title) + ": " +
-            chartEntries.joinToString(", ") { (cat, amt) ->
-                cat + " " + formatMoney(amt) + " (" + sharePercent(amt, total) + "%)"
-            }
-        Canvas(Modifier.size(184.dp).semantics { contentDescription = donutSummary }) {
+            slices.joinToString(", ") { sl -> sl.label + " " + formatMoney(sl.amount) + " (" + formatPercent(sharePercent(sl.amount, total)) + ")" }
+        Canvas(
+            Modifier
+                .size(184.dp)
+                .semantics { contentDescription = donutSummary }
+                .pointerInput(slices.size, total) {
+                    detectTapGestures { tap ->
+                        val dx = tap.x - size.width / 2f
+                        val dy = tap.y - size.height / 2f
+                        val r = kotlin.math.sqrt(dx * dx + dy * dy)
+                        val outerR = size.width / 2f
+                        val innerR = outerR - 20.dp.toPx()
+                        if (r < innerR - 16.dp.toPx() || total <= 0) { selected = -1; return@detectTapGestures }
+                        // Angle from 12 o'clock, clockwise, like the slices are drawn.
+                        val deg = ((Math.toDegrees(kotlin.math.atan2(dy, dx).toDouble()) + 90 + 360) % 360)
+                        var acc = 0.0
+                        val hit = slices.indexOfFirst { sl -> acc += sl.amount / total * 360; deg < acc }
+                        selected = if (hit == selected) -1 else hit
+                    }
+                },
+        ) {
             // Segments are ring pieces with softly rounded corners and an even gap
             // (owner, 2026-11-06): full round caps read as pills, and short slices
             // turned into dots.
@@ -299,31 +336,45 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
             val outerR = size.minDimension / 2
             val innerR = outerR - ring
             val gapDeg = Math.toDegrees((3.dp.toPx() / (outerR - ring / 2)).toDouble()).toFloat()
-            if (chartEntries.isEmpty()) {
+            if (slices.isEmpty()) {
                 drawCircle(trackColor, radius = outerR - ring / 2, style = Stroke(width = ring))
                 return@Canvas
             }
             var startAngle = -90f
-            val single = chartEntries.size == 1
-            chartEntries.forEach { (cat, amt) ->
-                val sweep = (amt / total * 360).toFloat()
+            val single = slices.size == 1
+            slices.forEachIndexed { i, sl ->
+                val color = if (selected >= 0 && i != selected) sl.color.copy(alpha = 0.3f) else sl.color
+                val sweep = (sl.amount / total * 360).toFloat()
                 val drawn = (if (single) 360f else (sweep - gapDeg).coerceAtLeast(0.8f)) * progress
                 if (single && drawn >= 359.9f) {
                     // A 360° arcTo starts and ends on one point, and Android draws
                     // nothing: one category at 100 % left the chart blank.
-                    drawCircle(categoryColor(cat), radius = outerR - ring / 2, style = Stroke(width = ring))
+                    drawCircle(color, radius = outerR - ring / 2, style = Stroke(width = ring))
                 } else if (drawn > 0f) {
                     drawPath(
                         donutSegment(center, outerR, innerR, if (single) startAngle else startAngle + gapDeg / 2, drawn, 5.dp.toPx(), rounded = !single),
-                        categoryColor(cat),
+                        color,
                     )
                 }
                 startAngle += sweep
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.analytics_expense_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(heroAmountText(maskedAmount(formatMoney(total) + " ₴")), style = MaterialTheme.typography.titleMedium.tabularNums(), fontWeight = FontWeight.Black)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 28.dp)) {
+            val sl = slices.getOrNull(selected)
+            Text(
+                sl?.label ?: stringResource(R.string.analytics_expense_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = sl?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                heroAmountText(maskedAmount(formatMoney(sl?.amount ?: total) + " ₴")),
+                style = MaterialTheme.typography.titleMedium.tabularNums(),
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+            )
+            if (sl != null) Text(formatPercent(sharePercent(sl.amount, total)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -365,7 +416,7 @@ private fun donutSegment(center: Offset, outerR: Float, innerR: Float, startDeg:
 }
 
 @Composable
-private fun CategoryBar(category: String, amount: Double, total: Double, label: String = localizedDomainText(category), onClick: (() -> Unit)? = null) {
+private fun CategoryBar(category: String, amount: Double, total: Double, label: String = localizedDomainText(category), color: Color = categoryColor(category), onClick: (() -> Unit)? = null) {
     val pct = sharePercent(amount, total)
     val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
     Column(
@@ -374,7 +425,7 @@ private fun CategoryBar(category: String, amount: Double, total: Double, label: 
             .padding(vertical = 6.dp),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            CategoryIconBadge(category = category, size = 30.dp)
+            CategoryIconBadge(category = category, size = 30.dp, color = color)
             Text(
                 label,
                 modifier = Modifier.padding(start = RytmSpacing.sm).weight(1f),
@@ -382,14 +433,19 @@ private fun CategoryBar(category: String, amount: Double, total: Double, label: 
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                maskedAmount(formatMoney(amount)) + " · $pct%",
+                maskedAmount(formatMoney(amount)) + " · " + formatPercent(pct),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Box(Modifier.fillMaxWidth().padding(top = 5.dp).height(3.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
-            // Neutral fill: the icon badge already carries the category colour.
-            Box(Modifier.fillMaxWidth(progress).height(3.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f), CircleShape))
+        // Outside review 2026-11-27: a 3dp grey bar across the whole row read
+        // as a divider between rows. Now 4dp in the slice's colour, starting
+        // under the name, on a faint track.
+        Box(
+            Modifier.fillMaxWidth().padding(start = 30.dp + RytmSpacing.sm, top = 6.dp).height(4.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
+        ) {
+            Box(Modifier.fillMaxWidth(progress).height(4.dp).background(color.copy(alpha = 0.85f), CircleShape))
         }
     }
 }
@@ -414,7 +470,7 @@ private fun CategoryStatsSheet(vm: ToolsViewModel, type: TxType, category: Strin
                 prev == null || prev <= 0 -> stringResource(R.string.category_stats_no_compare)
                 else -> {
                     val pct = Math.round((d.total - prev) / prev * 100).toInt()
-                    stringResource(R.string.category_stats_vs_previous, (if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct), maskedAmount(formatMoney(prev) + " ₴"))
+                    stringResource(R.string.category_stats_vs_previous, formatPercent((if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct)), maskedAmount(formatMoney(prev) + " ₴"))
                 }
             }
             Text(
@@ -609,6 +665,50 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
             Text(maskedAmount(stringResource(R.string.analytics_maximum_uah, formatMoney(maxVal))), style = MaterialTheme.typography.labelSmall)
         }
     }
+    }
+}
+
+/**
+ * «Витрати на 27 % менші, ніж за ці дні жовтня»: one wording for the change
+ * against the previous period, shared by Analytics and the month summary (the
+ * home screen says the same in a shorter form). Outside review, 2026-11-27:
+ * the same fact read «ніж у попередньому періоді» on one screen and «ніж
+ * місяцем раніше» on another, and neither said it compared the same days.
+ */
+@Composable
+internal fun spendingVsMonthText(pct: Int, previous: java.time.YearMonth, partial: Boolean): String {
+    val amount = formatPercent(kotlin.math.abs(pct))
+    return if (partial) {
+        val month = monthGenitive(previous)
+        when {
+            pct <= -SAME_PACE_BAND -> stringResource(R.string.spending_less_days, amount, month)
+            pct >= SAME_PACE_BAND -> stringResource(R.string.spending_more_days, amount, month)
+            else -> stringResource(R.string.spending_same_days, month)
+        }
+    } else {
+        when {
+            pct <= -SAME_PACE_BAND -> stringResource(R.string.spending_less_month, amount, monthForLabel(previous))
+            pct >= SAME_PACE_BAND -> stringResource(R.string.spending_more_month, amount, monthForLabel(previous))
+            else -> stringResource(R.string.spending_same_month, monthGenitive(previous))
+        }
+    }
+}
+
+/** [spendingVsMonthText] for the chosen Analytics period. */
+@Composable
+private fun spendingChangeText(pct: Int, period: AnalyticsPeriod): String {
+    val now = ua.rytm.app.data.FinancialMonth.of(java.time.LocalDate.now())
+    return when (period) {
+        AnalyticsPeriod.MONTH -> spendingVsMonthText(pct, now.minusMonths(1), partial = true)
+        AnalyticsPeriod.PREV -> spendingVsMonthText(pct, now.minusMonths(2), partial = false)
+        AnalyticsPeriod.M3, AnalyticsPeriod.ALL -> {
+            val amount = formatPercent(kotlin.math.abs(pct))
+            when {
+                pct <= -SAME_PACE_BAND -> stringResource(R.string.spending_less_3m, amount)
+                pct >= SAME_PACE_BAND -> stringResource(R.string.spending_more_3m, amount)
+                else -> stringResource(R.string.spending_same_3m)
+            }
+        }
     }
 }
 
