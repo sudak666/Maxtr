@@ -34,3 +34,26 @@ class PaceVsLastMonthTest {
         assertEquals(null, ua.rytm.app.ui.screens.finance.paceVsLastMonth(100.0, 0.0))
     }
 }
+
+class AnalyticsShareTest {
+    @org.junit.Test
+    fun `shares are rounded and a small one is not zero`() {
+        org.junit.Assert.assertEquals("3", ua.rytm.app.ui.screens.finance.sharePercent(1517.0, 50800.6))
+        org.junit.Assert.assertEquals("10", ua.rytm.app.ui.screens.finance.sharePercent(4806.92, 49806.92))
+        org.junit.Assert.assertEquals("1", ua.rytm.app.ui.screens.finance.sharePercent(318.31, 50800.6))
+        org.junit.Assert.assertEquals("<1", ua.rytm.app.ui.screens.finance.sharePercent(122.5, 50800.6))
+        org.junit.Assert.assertEquals("0", ua.rytm.app.ui.screens.finance.sharePercent(0.0, 50800.6))
+    }
+
+    @org.junit.Test
+    fun `growth is ranked by hryvnias, not percent`() {
+        val g = ua.rytm.app.ui.screens.finance.topCategoryGrowth(
+            current = mapOf("Підписки" to 310.0, "Житло" to 15440.0, "Їжа" to 900.0),
+            previous = mapOf("Підписки" to 50.0, "Житло" to 12440.0, "Їжа" to 1000.0),
+        )!!
+        org.junit.Assert.assertEquals("Житло", g.category)
+        org.junit.Assert.assertEquals(3000.0, g.increase, 0.001)
+        org.junit.Assert.assertEquals(24, g.percent)
+        org.junit.Assert.assertNull(ua.rytm.app.ui.screens.finance.topCategoryGrowth(mapOf("A" to 1002.0), mapOf("A" to 1000.0)))
+    }
+}

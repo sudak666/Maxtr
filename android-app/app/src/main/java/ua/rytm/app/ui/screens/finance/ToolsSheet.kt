@@ -117,13 +117,14 @@ fun ToolsSheet(
  * the period's totals and categories, and the six-month chart.
  */
 @Composable
-fun AnalyticsScreen(onOpenFinance: () -> Unit) {
+fun AnalyticsScreen(financeViewModel: FinanceViewModel, onOpenFinance: () -> Unit) {
     val app = ua.rytm.app.ui.rytmApp()
     val canEdit = ua.rytm.app.ui.LocalCanEditProfile.current
     val viewModel: ToolsViewModel = viewModel(factory = ToolsViewModel.factory(app.financeRepository))
     ua.rytm.app.ui.components.ProvidePrimaryAction(stringResource(R.string.transaction_new_title), enabled = canEdit) {
         app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_NEW_TRANSACTION
     }
+    MonthSummaryHost(financeViewModel)
     var detail by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<Pair<String, String>?>(null) }
     detail?.let { (typeName, category) ->
         CategoryStatsSheet(
@@ -148,8 +149,9 @@ fun AnalyticsScreen(onOpenFinance: () -> Unit) {
     ) {
         ua.rytm.app.ui.components.RytmScreenTitle(stringResource(R.string.nav_analytics))
         ua.rytm.app.ui.components.RytmOutlinedButton(
-            // Opens on Finance, where the month summary sheet lives.
-            onClick = { app.pendingLaunchAction.value = ua.rytm.app.MainActivity.ACTION_MONTH_SUMMARY },
+            // Opens right here: it used to switch to Finance first, so a tap
+            // on Analytics landed the user on another tab.
+            onClick = { financeViewModel.openMonthSummary() },
             modifier = Modifier.fillMaxWidth().heightIn(min = ua.rytm.app.ui.theme.RytmDimens.TouchTarget),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(ua.rytm.app.ui.theme.RytmRadii.Row),
         ) {
@@ -181,17 +183,24 @@ private fun AnalyticsSection(vm: ToolsViewModel, onCategory: (TxType, String) ->
         val categoryGrowth = vm.topExpenseGrowth
         if (expenseChange != null || categoryGrowth != null) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = androidx.compose.foundation.shape.RoundedCornerShape(RytmRadii.Row)) {
-                Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // One insight per line, each led by its own trend glyph: two
+                // whole sentences in green and red read as one block (outside
+                // review, 2026-11-27). The colour sits on the glyph, the text stays plain.
+                Column(Modifier.fillMaxWidth().padding(RytmSpacing.md), verticalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
                     expenseChange?.let {
                         // Same ±5% band as the PWA: a 3% swing is noise, not a trend.
                         when {
-                            it <= -5 -> Text(stringResource(R.string.analytics_spending_less, -it), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.income, fontWeight = FontWeight.SemiBold)
-                            it >= 5 -> Text(stringResource(R.string.analytics_spending_more, it), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
-                            else -> Text(stringResource(R.string.analytics_spending_same), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                            it <= -5 -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingDown, ua.rytm.app.ui.theme.RytmSemantic.income, stringResource(R.string.analytics_spending_less, -it))
+                            it >= 5 -> InsightLine(ua.rytm.app.ui.icons.RytmIcons.TrendingUp, ua.rytm.app.ui.theme.RytmSemantic.expense, stringResource(R.string.analytics_spending_more, it))
+                            else -> InsightLine(null, MaterialTheme.colorScheme.onSurfaceVariant, stringResource(R.string.analytics_spending_same))
                         }
                     }
-                    categoryGrowth?.let { (category, percent) ->
-                        Text(stringResource(R.string.analytics_top_growth, localizedDomainText(category), percent), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.expense, fontWeight = FontWeight.SemiBold)
+                    categoryGrowth?.let { growth ->
+                        InsightLine(
+                            ua.rytm.app.ui.icons.RytmIcons.TrendingUp,
+                            ua.rytm.app.ui.theme.RytmSemantic.expense,
+                            stringResource(R.string.analytics_top_growth, localizedDomainText(growth.category), maskedAmount(formatMoney(growth.increase)), growth.percent),
+                        )
                     }
                 }
             }
@@ -245,12 +254,13 @@ private fun AnalyticsSummary(income: Double, expense: Double, difference: Double
         @Composable fun uah(v: Double) = maskedAmount(stringResource(R.string.finance_amount_uah, formatMoney(kotlin.math.abs(v))))
         Line(stringResource(R.string.analytics_income_label), "+" + uah(income), ua.rytm.app.ui.theme.RytmSemantic.income)
         Line(stringResource(R.string.analytics_expense_label), "−" + uah(expense), MaterialTheme.colorScheme.onSurface)
-        val negative = difference < 0
-        Line(
-            stringResource(R.string.analytics_savings_rate),
-            (if (negative) "−" else "") + uah(difference) + " · " + "$savingsRate%".replace('-', '−'),
-            if (negative) ua.rytm.app.ui.theme.RytmSemantic.expense else ua.rytm.app.ui.theme.RytmSemantic.income,
-        )
+        // «Заощаджено −993 ₴» is a contradiction: a month that spent more
+        // than it earned is named for what it is, without a negative rate.
+        if (difference < 0) {
+            Line(stringResource(R.string.analytics_overspent), "−" + uah(difference), ua.rytm.app.ui.theme.RytmSemantic.expense)
+        } else {
+            Line(stringResource(R.string.analytics_savings_rate), uah(difference) + " · " + "$savingsRate%", ua.rytm.app.ui.theme.RytmSemantic.income)
+        }
     }
 }
 
@@ -278,7 +288,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
         // Canvas charts carry no semantics of their own — spoken summary added.
         val donutSummary = stringResource(R.string.analytics_title) + ": " +
             chartEntries.joinToString(", ") { (cat, amt) ->
-                cat + " " + formatMoney(amt) + " (" + (amt / total * 100).toInt() + "%)"
+                cat + " " + formatMoney(amt) + " (" + sharePercent(amt, total) + "%)"
             }
         Canvas(Modifier.size(184.dp).semantics { contentDescription = donutSummary }) {
             // Segments are ring pieces with softly rounded corners and an even gap
@@ -312,7 +322,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double) 
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.analytics_expense_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount(formatMoney(total)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text(heroAmountText(maskedAmount(formatMoney(total) + " ₴")), style = MaterialTheme.typography.titleMedium.tabularNums(), fontWeight = FontWeight.Black)
         }
     }
 }
@@ -355,7 +365,7 @@ private fun donutSegment(center: Offset, outerR: Float, innerR: Float, startDeg:
 
 @Composable
 private fun CategoryBar(category: String, amount: Double, total: Double, label: String = localizedDomainText(category), onClick: (() -> Unit)? = null) {
-    val pct = if (total > 0) (amount / total * 100).toInt() else 0
+    val pct = sharePercent(amount, total)
     val progress = if (total > 0) (amount / total).coerceIn(0.0, 1.0).toFloat() else 0f
     Column(
         Modifier.fillMaxWidth()
@@ -519,7 +529,7 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         Text(stringResource(R.string.analytics_six_months), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         val months = vm.sixMonthTotals
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("balance" to R.string.analytics_balance_label, "income" to R.string.analytics_income_label, "expense" to R.string.analytics_expense_label).forEach { (key, labelRes) ->
+            listOf("balance" to R.string.analytics_difference, "income" to R.string.analytics_income_label, "expense" to R.string.analytics_expense_label).forEach { (key, labelRes) ->
                 ua.rytm.app.ui.components.RytmFilterChip(
                     selected = metric == key,
                     onClick = { metric = key },
@@ -540,6 +550,7 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         val span = (maxVal - minVal).takeIf { it > 0 } ?: 1.0
         val lineColor = MaterialTheme.colorScheme.primary
         val pointFill = MaterialTheme.colorScheme.surface
+        val zeroColor = MaterialTheme.colorScheme.outline
         val progress = motionProgress(months, 500)
         val chartLocale = LocalConfiguration.current.locales[0]
         val lineSummary = stringResource(R.string.analytics_six_months) + ": " + months.mapIndexed { i, m ->
@@ -554,6 +565,18 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
                 val targetY = size.height - ((value - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
                 val y = size.height - (size.height - targetY) * progress
                 Offset(x, y)
+            }
+            // Zero line when the months cross it: the fill alone made a
+            // month with a deficit look like a small positive one.
+            if (minVal < 0 && maxVal > 0) {
+                val zeroY = size.height - ((0 - minVal) / span).toFloat() * (size.height - 12.dp.toPx()) - 6.dp.toPx()
+                drawLine(
+                    zeroColor,
+                    Offset(0f, zeroY),
+                    Offset(size.width, zeroY),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx())),
+                )
             }
             if (points.isNotEmpty()) {
                 val line = Path().apply { moveTo(points.first().x, points.first().y) }
@@ -586,4 +609,26 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
         }
     }
     }
+}
+
+@Composable
+private fun InsightLine(icon: androidx.compose.ui.graphics.vector.ImageVector?, tint: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (icon != null) {
+            androidx.compose.material3.Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+            androidx.compose.foundation.layout.Spacer(Modifier.width(RytmSpacing.sm))
+        }
+        Text(text, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+/**
+ * A category's share of the total as shown: rounded, not cut (1 517 of
+ * 50 800 is 2,99 %, it showed «2%»), and «<1» for a real but small share
+ * instead of a «0%» that reads as nothing spent.
+ */
+internal fun sharePercent(amount: Double, total: Double): String {
+    if (total <= 0 || amount <= 0) return "0"
+    val pct = amount / total * 100
+    return if (pct < 0.5) "<1" else Math.round(pct).toString()
 }
