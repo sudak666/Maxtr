@@ -30,7 +30,10 @@ ksp {
 
 android {
     namespace = "ua.rytm.app"
-    compileSdk = 37
+    // Compose 1.13 (BOM 2026.11.01) requires API 37.1 to compile against.
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         applicationId = "ua.rytm.app"
@@ -197,7 +200,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("org.robolectric:robolectric:4.18.1")
     testImplementation("io.mockk:mockk:1.14.12")
     testImplementation("androidx.test:core:1.7.0")
     testImplementation(libs.androidx.room.testing)
