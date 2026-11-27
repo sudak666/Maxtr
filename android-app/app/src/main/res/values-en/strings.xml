@@ -637,7 +637,7 @@
     <string name="cash_forecast_how">How it is calculated</string>
     <string name="budgets_limit_hint">Blank or 0 — no limit</string>
     <string name="cash_forecast_title">Money forecast</string>
-    <string name="cash_forecast_subtitle">through %1$s</string>
+    <string name="cash_forecast_subtitle">Left on %1$s</string>
     <string name="cash_forecast_enough">Enough until month end</string>
     <string name="cash_forecast_gap">Money runs out ≈ %1$s</string>
     <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
@@ -700,7 +700,7 @@
     <string name="filters_reset">Reset</string>
     <string name="filters_apply">Apply</string>
     <string name="capital_title">Net worth</string>
-    <string name="capital_subtitle">All accounts counted in net worth, in hryvnias</string>
+    <string name="capital_subtitle">All net-worth accounts, in hryvnias</string>
     <string name="capital_30d">30 days</string>
     <string name="capital_90d">3 months</string>
     <string name="capital_year">Year</string>

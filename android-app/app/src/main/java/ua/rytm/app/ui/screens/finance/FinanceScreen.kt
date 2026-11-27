@@ -150,6 +150,8 @@ fun FinanceScreen(
     viewModel: FinanceViewModel = viewModel(
         factory = FinanceViewModel.factory(ua.rytm.app.ui.rytmApp()),
     ),
+    onOpenCapital: () -> Unit = {},
+    onOpenForecast: () -> Unit = {},
 ) {
     val canEdit = LocalCanEditProfile.current
     val app = ua.rytm.app.ui.rytmApp()
@@ -202,10 +204,6 @@ fun FinanceScreen(
                 viewModel.openNewTransactionSheet(type = TxType.EXPENSE)
             }
         })
-    }
-    if (viewModel.capitalOpen) CapitalSheet(viewModel) { viewModel.capitalOpen = false }
-    if (viewModel.cashForecastOpen) {
-        CashForecastSheet(viewModel.cashForecast, viewModel.monthOutlook.shiftsEarnings, onDismiss = { viewModel.cashForecastOpen = false })
     }
     if (viewModel.monthSummaryOpen) {
         val reportContext = androidx.compose.ui.platform.LocalContext.current
@@ -381,7 +379,7 @@ fun FinanceScreen(
             if (viewModel.loading) item { ScreenLoadingState() }
             if (viewModel.loadFailed) item { ScreenLoadErrorState() }
             item {
-                HeroBalanceCard(viewModel, onWalletClick = { id ->
+                HeroBalanceCard(viewModel, onOpenCapital = onOpenCapital, onOpenForecast = onOpenForecast, onWalletClick = { id ->
                     viewModel.toggleWalletFilter(id)
                     // Selecting brings the filtered history into view; clearing stays put.
                     if (viewModel.historyFilter.walletId == id) scope.launch { listState.animateScrollToItem(historyHeaderIndex) }

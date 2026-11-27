@@ -152,7 +152,13 @@ import ua.rytm.app.ui.theme.tabularNums
 // Building blocks of FinanceScreen, split out so the screen file holds only the screen itself.
 
 @Composable
-internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Unit = {}, onWalletLongClick: ((String) -> Unit)? = null) {
+internal fun HeroBalanceCard(
+    vm: FinanceViewModel,
+    onOpenCapital: () -> Unit,
+    onOpenForecast: () -> Unit,
+    onWalletClick: (String) -> Unit = {},
+    onWalletLongClick: ((String) -> Unit)? = null,
+) {
     // Design pass 2026-10-20: the hero holds one number and one line. It used
     // to stack balance, month net, outlook, contributions, two tinted stat
     // cards and the wallet chips inside one gradient card with a purple glow
@@ -179,7 +185,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     val forecast = vm.cashForecast
                     if (vm.wallets.isNotEmpty() && (forecast.habit != null || forecast.events.isNotEmpty())) {
                         Box {
-                            androidx.compose.material3.IconButton(onClick = { vm.cashForecastOpen = true }) {
+                            androidx.compose.material3.IconButton(onClick = onOpenForecast) {
                                 Icon(RytmIcons.TrendingUp, contentDescription = stringResource(R.string.cash_forecast_title), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             if (forecast.shortfallDate != null) Box(
@@ -211,7 +217,7 @@ internal fun HeroBalanceCard(vm: FinanceViewModel, onWalletClick: (String) -> Un
                     modifier = Modifier
                         .offset(x = -RytmSpacing.sm)
                         .clip(RoundedCornerShape(RytmRadii.Input))
-                        .clickable(onClickLabel = stringResource(R.string.capital_title)) { vm.capitalOpen = true }
+                        .clickable(onClickLabel = stringResource(R.string.capital_title), onClick = onOpenCapital)
                         .padding(horizontal = RytmSpacing.sm),
                 )
 

@@ -14,6 +14,14 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.lifecycle.compose.dropUnlessResumed
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import ua.rytm.app.ui.screens.finance.FinanceViewModel
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -91,7 +99,6 @@ import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.navigation.NavDestination.Companion.hierarchy
 import kotlinx.coroutines.launch
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import ua.rytm.app.ui.screens.profileSwipeToOpen
@@ -123,9 +130,14 @@ fun RytmNavHost() {
     // opens the new-transaction sheet and consumes the action.
     val launchAction by app.pendingLaunchAction.collectAsStateWithLifecycle()
     LaunchedEffect(launchAction) {
-        if (launchAction in ua.rytm.app.MainActivity.FINANCE_ACTIONS &&
-            navController.currentDestination?.route != RytmDestination.Finance.route
-        ) {
+        val route = navController.currentDestination?.route
+        if (launchAction in ua.rytm.app.MainActivity.FINANCE_ACTIONS && route != RytmDestination.Finance.route) {
+            // From Capital or the forecast just step back: navigating to the
+            // tab would restore its saved stack, detail screen included.
+            if (RytmDestination.Finance.owns(route)) {
+                navController.popBackStack(RytmDestination.Finance.route, inclusive = false)
+                return@LaunchedEffect
+            }
             navController.navigate(RytmDestination.Finance.route) {
                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                 launchSingleTop = true
@@ -143,7 +155,12 @@ fun RytmNavHost() {
     val realtimeState by app.profileSyncCoordinator.realtimeState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val reducedMotion = LocalReducedMotion.current
+    val currentEntry by navController.currentBackStackEntryAsState()
+    // Capital and the forecast are full screens with their own «Назад»: the
+    // tab capsule and its "+" step aside there, as in banking apps.
+    val onDetail = isDetailRoute(currentEntry?.destination?.route)
     val contentOffsetPx = with(LocalDensity.current) { 4.dp.roundToPx() }
+    val detailDriftPx = with(LocalDensity.current) { 30.dp.roundToPx() }
     var refreshing by remember { mutableStateOf(false) }
     fun refresh() {
         val uid = accountUid ?: return
@@ -228,8 +245,45 @@ fun RytmNavHost() {
             },
             popExitTransition = { ExitTransition.None },
         ) {
-            composable(RytmDestination.Finance.route) {
-                Box(Modifier.fillMaxSize().profileSwipeToOpen()) { FinanceScreen() }
+            composable(
+                RytmDestination.Finance.route,
+                // Into and back from its detail screens: the shared X axis
+                // (outgoing drifts left and fades, incoming comes from the right).
+                exitTransition = {
+                    if (isDetailRoute(targetState.destination.route)) detailExit(reducedMotion, forward = true, detailDriftPx) else ExitTransition.None
+                },
+                popEnterTransition = {
+                    if (isDetailRoute(initialState.destination.route)) detailEnter(reducedMotion, forward = false, detailDriftPx)
+                    else if (reducedMotion) EnterTransition.None
+                    else fadeIn(tween(180)) + slideInVertically(tween(180)) { contentOffsetPx }
+                },
+            ) {
+                Box(Modifier.fillMaxSize().profileSwipeToOpen()) {
+                    FinanceScreen(
+                        onOpenCapital = { navController.navigate(FinanceRoutes.CAPITAL) { launchSingleTop = true } },
+                        onOpenForecast = { navController.navigate(FinanceRoutes.FORECAST) { launchSingleTop = true } },
+                    )
+                }
+            }
+            composable(
+                FinanceRoutes.CAPITAL,
+                enterTransition = { detailEnter(reducedMotion, forward = true, detailDriftPx) },
+                popExitTransition = { detailExit(reducedMotion, forward = false, detailDriftPx) },
+            ) { entry ->
+                val vm = financeViewModel(navController, entry)
+                ua.rytm.app.ui.screens.finance.CapitalScreen(vm, onBack = dropUnlessResumed { navController.popBackStack() })
+            }
+            composable(
+                FinanceRoutes.FORECAST,
+                enterTransition = { detailEnter(reducedMotion, forward = true, detailDriftPx) },
+                popExitTransition = { detailExit(reducedMotion, forward = false, detailDriftPx) },
+            ) { entry ->
+                val vm = financeViewModel(navController, entry)
+                ua.rytm.app.ui.screens.finance.CashForecastScreen(
+                    vm.cashForecast,
+                    vm.monthOutlook.shiftsEarnings,
+                    onBack = dropUnlessResumed { navController.popBackStack() },
+                )
             }
             composable(RytmDestination.Analytics.route) {
                 ua.rytm.app.ui.screens.finance.AnalyticsScreen(onOpenFinance = {
@@ -261,9 +315,18 @@ fun RytmNavHost() {
         // gap (proving the modifier chain itself works), then dialed back
         // to +32dp and re-confirmed via the same pixel scan and a live
         // screenshot before landing on this value.
-        Modifier.align(Alignment.BottomCenter).padding(bottom = RytmDimens.BottomContentClearance + 32.dp),
+        Modifier.align(Alignment.BottomCenter).then(
+            if (onDetail) Modifier.navigationBarsPadding().padding(bottom = RytmSpacing.lg)
+            else Modifier.padding(bottom = RytmDimens.BottomContentClearance + 32.dp),
+        ),
     )
-    if (!mediumWidth) {
+    androidx.compose.animation.AnimatedVisibility(
+        visible = !mediumWidth && !onDetail,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = if (reducedMotion) EnterTransition.None else fadeIn(tween(200)) + androidx.compose.animation.slideInVertically(tween(200)) { it / 2 },
+        exit = if (reducedMotion) ExitTransition.None else androidx.compose.animation.fadeOut(tween(150)) + androidx.compose.animation.slideOutVertically(tween(150)) { it / 2 },
+    ) {
+    Box(Modifier.fillMaxWidth()) {
         // Scrim under the floating capsule: list rows were visible, sharp,
         // in the gap between the capsule and the gesture bar.
         val scrimColor = MaterialTheme.colorScheme.background
@@ -278,6 +341,7 @@ fun RytmNavHost() {
             navController = navController,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+    }
     }
     ua.rytm.app.ui.screens.ProfileOverlay(
         onOpenSettings = {
@@ -313,14 +377,20 @@ private fun RytmNavigationRail(navController: androidx.navigation.NavHostControl
         header = { plus?.let { PrimaryPlusButton(it, size = if (compactHeight) 48.dp else 56.dp) } },
     ) {
         RytmDestination.bar.forEach { destination ->
-            val selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true
+            val selected = destination.owns(currentDestination?.route)
             NavigationRailItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    // The selected tab again from one of its detail screens: back to the tab.
+                    val route = currentDestination?.route
+                    if (route != destination.route && destination.owns(route)) {
+                        navController.popBackStack(destination.route, inclusive = false)
+                    } else {
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = {
@@ -387,7 +457,7 @@ private fun RytmBottomBar(navController: androidx.navigation.NavHostController, 
         // on a near-black page); light theme keeps a white capsule + shadow.
         val barColor = if (RytmSemantic.isDark) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
         val plus = ua.rytm.app.ui.components.LocalPrimaryAction.current?.action
-        val selectedIndex = RytmDestination.bar.indexOfFirst { d -> currentDestination?.hierarchy?.any { it.route == d.route } == true }
+        val selectedIndex = RytmDestination.bar.indexOfFirst { d -> d.owns(currentDestination?.route) }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // Capsule and "+" share one height, so their tops and bottoms line up.
             val barHeight = if (compactHeight) 52.dp else 64.dp
@@ -553,4 +623,26 @@ private fun RytmTabSlot(destination: RytmDestination, selected: Boolean, pillHei
             )
         }
     }
+}
+
+/** Shared X axis (M3 motion): a short drift plus a fade, not a full-width slide. */
+private const val DETAIL_MOTION_MS = 300
+
+private fun detailEnter(reducedMotion: Boolean, forward: Boolean, driftPx: Int): EnterTransition =
+    if (reducedMotion) EnterTransition.None
+    else fadeIn(tween(DETAIL_MOTION_MS)) + slideInHorizontally(tween(DETAIL_MOTION_MS)) { if (forward) driftPx else -driftPx }
+
+private fun detailExit(reducedMotion: Boolean, forward: Boolean, driftPx: Int): ExitTransition =
+    if (reducedMotion) ExitTransition.None
+    else fadeOut(tween(DETAIL_MOTION_MS)) + slideOutHorizontally(tween(DETAIL_MOTION_MS)) { if (forward) -driftPx else driftPx }
+
+/**
+ * The Finance tab's own ViewModel, so a detail screen shows the same loaded
+ * data instead of loading a second copy. The Finance entry is always below
+ * its detail screens on the back stack.
+ */
+@androidx.compose.runtime.Composable
+private fun financeViewModel(navController: androidx.navigation.NavHostController, entry: NavBackStackEntry): FinanceViewModel {
+    val parent = remember(entry) { navController.getBackStackEntry(RytmDestination.Finance.route) }
+    return viewModel(parent, factory = FinanceViewModel.factory(ua.rytm.app.ui.rytmApp()))
 }
