@@ -110,17 +110,12 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
             return kotlin.math.round(((totalExpense - previous) / previous) * 100).toInt()
         }
 
-    val topExpenseGrowth: Pair<String, Int>?
+    val topExpenseGrowth: CategoryGrowth?
         get() {
             val previous = previousPeriodTransactions() ?: return null
             val currentByCategory = periodTransactions().filter { it.type == TxType.EXPENSE }.groupBy { it.category }.mapValues { it.value.sumOf { it.inBase() } }
             val previousByCategory = previous.filter { it.type == TxType.EXPENSE }.groupBy { it.category }.mapValues { it.value.sumOf { it.inBase() } }
-            return currentByCategory.mapNotNull { (category, amount) ->
-                val previousAmount = previousByCategory[category] ?: return@mapNotNull null
-                if (previousAmount <= 0 || amount <= previousAmount) return@mapNotNull null
-                category to Math.round((amount - previousAmount) / previousAmount * 100).toInt() // rounded like the month summary (1346 vs 1347 seen live)
-            }.filter { it.second >= 5 } // same ±5% band as the total: «зросли … +0%» showed for a 985,62 vs 985,00 month
-                .maxByOrNull { it.second }
+            return topCategoryGrowth(currentByCategory, previousByCategory)
         }
 
     /** One category in the chosen period: its total, the previous period's, and the split by subcategory (null = none). */
@@ -197,3 +192,21 @@ class ToolsViewModel(private val repository: FinanceRepository) : ViewModel() {
     val availableCurrencies: List<String>
         get() = (listOf("UAH") + currencyRates.keys + SEED_RATES.keys).distinct()
 }
+
+/** The category whose spending grew the most: [increase] in hryvnias, [percent] against the previous period. */
+data class CategoryGrowth(val category: String, val increase: Double, val percent: Int)
+
+/**
+ * Ranked by the hryvnias added, not by the percent: by percent a 50 ₴
+ * subscription that became 310 ₴ (+521 %) beat rent that grew by 3 000 ₴
+ * (outside review, 2026-11-27). Same ±5 % floor as the total, so a
+ * 985,62 vs 985,00 month never says «зросли +0%».
+ */
+internal fun topCategoryGrowth(current: Map<String, Double>, previous: Map<String, Double>): CategoryGrowth? =
+    current.mapNotNull { (category, amount) ->
+        val before = previous[category] ?: return@mapNotNull null
+        if (before <= 0 || amount <= before) return@mapNotNull null
+        // Rounded like the month summary (1346 vs 1347 seen live).
+        val percent = Math.round((amount - before) / before * 100).toInt()
+        if (percent < 5) null else CategoryGrowth(category, amount - before, percent)
+    }.maxByOrNull { it.increase }

@@ -285,8 +285,8 @@ fun RytmNavHost() {
                     onBack = dropUnlessResumed { navController.popBackStack() },
                 )
             }
-            composable(RytmDestination.Analytics.route) {
-                ua.rytm.app.ui.screens.finance.AnalyticsScreen(onOpenFinance = {
+            composable(RytmDestination.Analytics.route) { entry ->
+                ua.rytm.app.ui.screens.finance.AnalyticsScreen(financeViewModel(navController, entry), onOpenFinance = {
                     navController.navigate(RytmDestination.Finance.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
@@ -637,9 +637,9 @@ private fun detailExit(reducedMotion: Boolean, forward: Boolean, driftPx: Int): 
     else fadeOut(tween(DETAIL_MOTION_MS)) + slideOutHorizontally(tween(DETAIL_MOTION_MS)) { if (forward) -driftPx else driftPx }
 
 /**
- * The Finance tab's own ViewModel, so a detail screen shows the same loaded
- * data instead of loading a second copy. The Finance entry is always below
- * its detail screens on the back stack.
+ * The Finance tab's own ViewModel, so a detail screen (and Analytics' month
+ * summary) shows the same loaded data instead of loading a second copy.
+ * Finance is the start destination, so its entry is always on the back stack.
  */
 @androidx.compose.runtime.Composable
 private fun financeViewModel(navController: androidx.navigation.NavHostController, entry: NavBackStackEntry): FinanceViewModel {

@@ -155,8 +155,6 @@ fun FinanceScreen(
 ) {
     val canEdit = LocalCanEditProfile.current
     val app = ua.rytm.app.ui.rytmApp()
-    var pdfPaywallOpen by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    if (pdfPaywallOpen) ua.rytm.app.ui.screens.PremiumDialog(onDismiss = { pdfPaywallOpen = false })
     val launchAction by app.pendingLaunchAction.collectAsStateWithLifecycle()
     LaunchedEffect(launchAction, canEdit, viewModel.loading) {
         // canEdit starts false until the role loads; on a cold start (tap on a
@@ -205,25 +203,7 @@ fun FinanceScreen(
             }
         })
     }
-    if (viewModel.monthSummaryOpen) {
-        val reportContext = androidx.compose.ui.platform.LocalContext.current
-        val shareTitle = androidx.compose.ui.res.stringResource(ua.rytm.app.R.string.month_report_share)
-        MonthSummarySheet(
-            viewModel.shownMonthSummary,
-            onDismiss = { viewModel.monthSummaryOpen = false },
-            onPrevMonth = { viewModel.shiftSummaryMonth(-1) },
-            onNextMonth = if (viewModel.canShowNextSummaryMonth) ({ viewModel.shiftSummaryMonth(1) }) else null,
-            ai = viewModel.aiInsight,
-            aiKey = { lang -> viewModel.aiKey(viewModel.shownMonthSummary, lang) },
-            onAskAi = if (viewModel.aiInsightsAvailable) ({ lang, label -> viewModel.askAiInsight(viewModel.shownMonthSummary, lang, label) }) else null,
-            onSharePdf = onSharePdf@{
-                if (!app.premiumRepository.isPremium.value) { pdfPaywallOpen = true; return@onSharePdf }
-                runCatching {
-                    shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.shownMonthSummary.month), viewModel::walletDisplayName, shareTitle)
-                }.onFailure { viewModel.reportExportFailed() }
-            },
-        )
-    }
+    MonthSummaryHost(viewModel)
     if (viewModel.quickEntryOpen) {
         QuickEntryDialog(
             wallets = viewModel.wallets,
@@ -557,6 +537,37 @@ fun FinanceScreen(
             uid = activeProfileOwnerUid ?: accountUid,
             profileId = activeProfileId,
             onDismiss = { goalsSheetOpen = false },
+        )
+    }
+}
+
+/**
+ * The month summary sheet with its PDF paywall, for whichever tab opens it:
+ * Finance (widget, recap notification) and Analytics' own button, which used
+ * to switch the user over to Finance first (2026-11-27).
+ */
+@Composable
+internal fun MonthSummaryHost(viewModel: FinanceViewModel) {
+    val app = ua.rytm.app.ui.rytmApp()
+    var pdfPaywallOpen by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    if (pdfPaywallOpen) ua.rytm.app.ui.screens.PremiumDialog(onDismiss = { pdfPaywallOpen = false })
+    if (viewModel.monthSummaryOpen) {
+        val reportContext = androidx.compose.ui.platform.LocalContext.current
+        val shareTitle = androidx.compose.ui.res.stringResource(ua.rytm.app.R.string.month_report_share)
+        MonthSummarySheet(
+            viewModel.shownMonthSummary,
+            onDismiss = { viewModel.monthSummaryOpen = false },
+            onPrevMonth = { viewModel.shiftSummaryMonth(-1) },
+            onNextMonth = if (viewModel.canShowNextSummaryMonth) ({ viewModel.shiftSummaryMonth(1) }) else null,
+            ai = viewModel.aiInsight,
+            aiKey = { lang -> viewModel.aiKey(viewModel.shownMonthSummary, lang) },
+            onAskAi = if (viewModel.aiInsightsAvailable) ({ lang, label -> viewModel.askAiInsight(viewModel.shownMonthSummary, lang, label) }) else null,
+            onSharePdf = onSharePdf@{
+                if (!app.premiumRepository.isPremium.value) { pdfPaywallOpen = true; return@onSharePdf }
+                runCatching {
+                    shareMonthReportPdf(reportContext, viewModel.monthReport(viewModel.shownMonthSummary.month), viewModel::walletDisplayName, shareTitle)
+                }.onFailure { viewModel.reportExportFailed() }
+            },
         )
     }
 }
