@@ -647,7 +647,7 @@
     <string name="cash_forecast_how">Як це рахується</string>
     <string name="budgets_limit_hint">Порожньо або 0 — без ліміту</string>
     <string name="cash_forecast_title">Прогноз грошей</string>
-    <string name="cash_forecast_subtitle">до %1$s</string>
+    <string name="cash_forecast_subtitle">Залишок на %1$s</string>
     <string name="cash_forecast_enough">Вистачає до кінця місяця</string>
     <string name="cash_forecast_gap">≈ %1$s гроші закінчаться</string>
     <string name="cash_forecast_no_history">Замало історії для звичних витрат, тому враховано лише регулярні платежі.</string>
@@ -712,7 +712,7 @@
     <string name="filters_reset">Скинути</string>
     <string name="filters_apply">Застосувати</string>
     <string name="capital_title">Капітал</string>
-    <string name="capital_subtitle">Усі рахунки, що входять у капітал, у гривнях</string>
+    <string name="capital_subtitle">Усі рахунки капіталу, у гривнях</string>
     <string name="capital_30d">30 днів</string>
     <string name="capital_90d">3 місяці</string>
     <string name="capital_year">Рік</string>

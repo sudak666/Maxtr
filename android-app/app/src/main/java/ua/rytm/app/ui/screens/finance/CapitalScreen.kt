@@ -10,18 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,9 +34,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.rytm.app.R
+import ua.rytm.app.ui.components.RytmDetailScaffold
 import ua.rytm.app.ui.components.RytmFilterChip
-import ua.rytm.app.ui.components.RytmModalBottomSheet
-import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.maskedAmount
 import ua.rytm.app.ui.theme.RytmRadii
@@ -54,61 +48,59 @@ import java.time.format.DateTimeFormatter
  * «Капітал», opened from the balance: how capital moved over a period, where
  * it sits now and in which currencies. The change is a sum in hryvnias; a
  * percent is added only when it means something (CapitalHistory.percentChange).
+ * A screen of its own since 2026-11-27: the chart is scrubbed by dragging,
+ * which fought a bottom sheet's own drag-to-dismiss.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CapitalSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
+fun CapitalScreen(vm: FinanceViewModel, onBack: () -> Unit) {
     var days by rememberSaveable { mutableStateOf<Long?>(30L) }
     val series = remember(days, vm.totalBalanceUah) { vm.capitalSeries(days) }
-    RytmModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(
-            Modifier.fillMaxWidth().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
-            verticalArrangement = Arrangement.spacedBy(RytmSpacing.md),
-        ) {
-            RytmSheetTitle(stringResource(R.string.capital_title), subtitle = stringResource(R.string.capital_subtitle))
+    RytmDetailScaffold(title = stringResource(R.string.capital_title), onBack = onBack) {
+        Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+            Text(stringResource(R.string.capital_subtitle), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 heroAmountText(maskedAmount("${formatMoney(vm.totalBalanceUah)} ₴")),
                 style = MaterialTheme.typography.displaySmall.tabularNums(),
                 fontWeight = FontWeight.Black,
             )
-            // Capital is not the money to spend: say how much of it is, so the
-            // number here and the forecast's «Зараз на рахунках» never look at odds.
-            if (kotlin.math.abs(vm.totalBalanceUah - vm.spendableBalanceUah) >= 0.5) {
-                Text(
-                    stringResource(R.string.capital_spendable, maskedAmount(formatMoney(vm.spendableBalanceUah))),
-                    style = MaterialTheme.typography.bodyMedium.tabularNums(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
-                listOf(30L to R.string.capital_30d, 90L to R.string.capital_90d, 365L to R.string.capital_year, null to R.string.period_all).forEach { (value, label) ->
-                    RytmFilterChip(selected = days == value, onClick = { days = value }, label = { Text(stringResource(label)) })
-                }
-            }
-            if (series.size >= 2) {
-                val first = series.first().uah
-                val last = series.last().uah
-                val delta = last - first
-                val pct = CapitalHistory.percentChange(first, last)
-                val sign = if (delta >= 0) "+" else "−"
-                val deltaText = maskedAmount("$sign${formatMoney(kotlin.math.abs(delta))} ₴") +
-                    (pct?.let { " (" + (if (it >= 0) "+" else "−") + java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(kotlin.math.abs(it)) + " %)" } ?: "")
-                Text(
-                    stringResource(R.string.capital_change, deltaText, series.first().date.format(DateTimeFormatter.ofPattern("dd.MM.yy"))),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = RytmSemantic.signed(delta),
-                )
-                CapitalChart(series)
-            } else {
-                Text(stringResource(R.string.capital_no_history), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            ShareCard(stringResource(R.string.capital_by_wallet), vm.capitalByWallet) { localizedDomainText(it) }
-            if (vm.capitalByCurrency.size > 1) ShareCard(stringResource(R.string.capital_by_currency), vm.capitalByCurrency) { it }
-            // Footnotes only when they apply: today's rate matters with foreign
-            // currency, the missing share only with a wallet below zero.
-            if (vm.isMultiCurrency) Text(stringResource(R.string.capital_note_rates), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (vm.wallets.any { it.inCapital && vm.walletBalance(it.id) < 0 }) Text(stringResource(R.string.capital_note_negative), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        // Capital is not the money to spend: say how much of it is, so the
+        // number here and the forecast's «Зараз на рахунках» never look at odds.
+        if (kotlin.math.abs(vm.totalBalanceUah - vm.spendableBalanceUah) >= 0.5) {
+            Text(
+                stringResource(R.string.capital_spendable, maskedAmount(formatMoney(vm.spendableBalanceUah))),
+                style = MaterialTheme.typography.bodyMedium.tabularNums(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm)) {
+            listOf(30L to R.string.capital_30d, 90L to R.string.capital_90d, 365L to R.string.capital_year, null to R.string.period_all).forEach { (value, label) ->
+                RytmFilterChip(selected = days == value, onClick = { days = value }, label = { Text(stringResource(label)) })
+            }
+        }
+        if (series.size >= 2) {
+            val first = series.first().uah
+            val last = series.last().uah
+            val delta = last - first
+            val pct = CapitalHistory.percentChange(first, last)
+            val sign = if (delta >= 0) "+" else "−"
+            val deltaText = maskedAmount("$sign${formatMoney(kotlin.math.abs(delta))} ₴") +
+                (pct?.let { " (" + (if (it >= 0) "+" else "−") + java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(kotlin.math.abs(it)) + " %)" } ?: "")
+            Text(
+                stringResource(R.string.capital_change, deltaText, series.first().date.format(DateTimeFormatter.ofPattern("dd.MM.yy"))),
+                style = MaterialTheme.typography.bodyMedium,
+                color = RytmSemantic.signed(delta),
+            )
+            CapitalChart(series)
+        } else {
+            Text(stringResource(R.string.capital_no_history), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        ShareCard(stringResource(R.string.capital_by_wallet), vm.capitalByWallet) { localizedDomainText(it) }
+        if (vm.capitalByCurrency.size > 1) ShareCard(stringResource(R.string.capital_by_currency), vm.capitalByCurrency) { it }
+        // Footnotes only when they apply: today's rate matters with foreign
+        // currency, the missing share only with a wallet below zero.
+        if (vm.isMultiCurrency) Text(stringResource(R.string.capital_note_rates), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (vm.wallets.any { it.inCapital && vm.walletBalance(it.id) < 0 }) Text(stringResource(R.string.capital_note_negative), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

@@ -138,12 +138,6 @@ class FinanceViewModel(
     }
     var monthSummaryOpen by mutableStateOf(false)
 
-    /** Month shown in the recap sheet: last month in a month's first week
-     * (matches the recap card), the month so far after that; the sheet's
-     * arrows move it. */
-    var cashForecastOpen by mutableStateOf(false)
-    var capitalOpen by mutableStateOf(false)
-
     /** Capital at the end of each day of the last [days] days (null = since the first entry). */
     fun capitalSeries(days: Long?): List<CapitalHistory.Point> {
         val first = transactions.minOfOrNull { it.date }?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: today
@@ -160,6 +154,10 @@ class FinanceViewModel(
     val capitalByCurrency: List<CapitalHistory.Share> by derivedStateOf {
         CapitalHistory.shares(wallets.filter { it.inCapital }.map { w -> w.currency to toUah(walletBalance(w.id), w.currency) })
     }
+
+    /** Month shown in the recap sheet: last month in a month's first week
+     * (matches the recap card), the month so far after that; the sheet's
+     * arrows move it. */
     var summaryMonth by mutableStateOf(YearMonth.now())
         private set
     val shownMonthSummary: MonthSummary by derivedStateOf {

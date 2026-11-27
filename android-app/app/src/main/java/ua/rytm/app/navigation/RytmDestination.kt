@@ -31,3 +31,20 @@ enum class RytmDestination(
         val bar: List<RytmDestination> = entries.filter { it.inBar }
     }
 }
+
+/**
+ * Screens one level below a tab. Their routes start with the parent tab's
+ * route, so the rail keeps the parent selected and the bottom capsule knows
+ * to step aside (a detail screen has its own «Назад» and no tab "+").
+ */
+object FinanceRoutes {
+    const val CAPITAL = "finance/capital"
+    const val FORECAST = "finance/forecast"
+}
+
+/** True for a route below a tab, e.g. "finance/capital". */
+fun isDetailRoute(route: String?): Boolean = route != null && '/' in route
+
+/** True when [route] is [destination] itself or a screen below it. */
+fun RytmDestination.owns(route: String?): Boolean =
+    route == this.route || route?.startsWith(this.route + "/") == true
