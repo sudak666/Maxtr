@@ -74,10 +74,10 @@ class SettingsStore(private val context: Context) {
 
     /** The last server "yes": whose it was and until when it may stand offline. */
     val premiumCache: Flow<PremiumCache?> = context.settingsDataStore.data.map { prefs ->
-        prefs[premiumCacheKey]?.split('|')?.takeIf { it.size == 2 }?.let { (uid, until) -> until.toLongOrNull()?.let { PremiumCache(uid, it) } }
+        prefs[premiumCacheKey]?.let(PremiumCache::parse)
     }
     suspend fun setPremiumCache(cache: PremiumCache?) {
-        context.settingsDataStore.edit { if (cache == null) it.remove(premiumCacheKey) else it[premiumCacheKey] = "${cache.uid}|${cache.validUntil}" }
+        context.settingsDataStore.edit { if (cache == null) it.remove(premiumCacheKey) else it[premiumCacheKey] = cache.encode() }
     }
 
     /** Device-only: familiar bank operations save without a tap, with an undo. */
@@ -230,4 +230,36 @@ val FINANCE_WIDGET_KEYS = listOf("goals", "dailyTip", "cryptoTop")
 data class FinanceWidgetsConfig(val enabled: Set<String>, val order: List<String>)
 data class CryptoCache(val json: String, val at: Long)
 
-data class PremiumCache(val uid: String, val validUntil: Long)
+/**
+ * The last server answer about Premium. [validUntil] gates offline starts;
+ * the rest only describes the plan for the profile panel and the dialog:
+ * [source] «play» or «grant», whether Play will renew it, its base plan and
+ * the subscription's own end ([expiresAt], null for a grant).
+ */
+data class PremiumCache(
+    val uid: String,
+    val validUntil: Long,
+    val source: String? = null,
+    val autoRenewing: Boolean = false,
+    val basePlan: String? = null,
+    val expiresAt: Long? = null,
+) {
+    fun encode(): String = listOf(uid, validUntil, source.orEmpty(), autoRenewing, basePlan.orEmpty(), expiresAt?.toString().orEmpty()).joinToString("|")
+
+    companion object {
+        /** Reads both the old «uid|until» form and the full one. */
+        fun parse(raw: String): PremiumCache? {
+            val p = raw.split('|')
+            if (p.size < 2) return null
+            val until = p[1].toLongOrNull() ?: return null
+            return PremiumCache(
+                uid = p[0],
+                validUntil = until,
+                source = p.getOrNull(2)?.ifBlank { null },
+                autoRenewing = p.getOrNull(3) == "true",
+                basePlan = p.getOrNull(4)?.ifBlank { null },
+                expiresAt = p.getOrNull(5)?.toLongOrNull(),
+            )
+        }
+    }
+}

@@ -55,6 +55,12 @@ assert.throws(() => evaluateSubscription(sub({ lineItems: [{ productId: 'other',
 assert.deepEqual(entitlementFor(undefined, 'Owner@Mail.com', ['owner@mail.com'], now), { premium: true, source: 'grant', expiresAt: null });
 assert.equal(entitlementFor(undefined, 'x@mail.com', ['owner@mail.com'], now).premium, false);
 assert.equal(entitlementFor({ premium: true, expiresAt: now + 1 }, undefined, [], now).premium, true);
+assert.deepEqual(
+  entitlementFor({ premium: true, expiresAt: now + 1, basePlan: 'yearly', state: 'SUBSCRIPTION_STATE_ACTIVE' }, undefined, [], now),
+  { premium: true, source: 'play', expiresAt: now + 1, basePlan: 'yearly', autoRenewing: true },
+  'the plan and renewal travel with a Play entitlement',
+);
+assert.equal(entitlementFor({ premium: true, expiresAt: now + 1, state: 'SUBSCRIPTION_STATE_CANCELED' }, undefined, [], now).autoRenewing, false);
 assert.equal(entitlementFor({ premium: true, expiresAt: now - 1 }, undefined, [], now).premium, false, 'stored answer expires by itself');
 
 // verifyPurchase: claim, store, refuse another account

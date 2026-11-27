@@ -174,7 +174,7 @@ private fun CryptoRow(quote: CryptoQuote) {
             Text(quote.symbol.first().toString(), color = onColorFor(coinColor), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
         }
         Text(quote.symbol, Modifier.padding(start = RytmSpacing.sm), fontWeight = FontWeight.SemiBold)
-        Text("${if (positive) "+" else ""}$changeText%", Modifier.padding(start = RytmSpacing.sm).weight(1f), color = trend, style = MaterialTheme.typography.bodySmall)
+        Text(formatPercent("${if (positive) "+" else ""}$changeText"), Modifier.padding(start = RytmSpacing.sm).weight(1f), color = trend, style = MaterialTheme.typography.bodySmall)
         Sparkline(quote.spark, trend, Modifier.size(60.dp, 24.dp))
         Text(priceText, Modifier.padding(start = 10.dp), fontWeight = FontWeight.Bold)
     }

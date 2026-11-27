@@ -61,7 +61,13 @@ function evaluateSubscription(sub, uid, now) {
 function entitlementFor(doc, email, grantEmails, now) {
   if (email && grantEmails.includes(email.toLowerCase())) return { premium: true, source: 'grant', expiresAt: null };
   if (doc && doc.premium === true && typeof doc.expiresAt === 'number' && doc.expiresAt > now) {
-    return { premium: true, source: 'play', expiresAt: doc.expiresAt };
+    // The plan and whether Play renews it, for the app's «Поновиться 27 грудня»
+    // (as of the last verify: a cancel shows once that device checks again).
+    return {
+      premium: true, source: 'play', expiresAt: doc.expiresAt,
+      basePlan: typeof doc.basePlan === 'string' ? doc.basePlan : null,
+      autoRenewing: doc.state === 'SUBSCRIPTION_STATE_ACTIVE',
+    };
   }
   return { premium: false, source: null, expiresAt: doc && typeof doc.expiresAt === 'number' ? doc.expiresAt : null };
 }

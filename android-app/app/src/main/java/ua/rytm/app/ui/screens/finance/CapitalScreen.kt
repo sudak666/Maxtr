@@ -188,7 +188,7 @@ private fun ShareCard(title: String, shares: List<CapitalHistory.Share>, label: 
                 Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(label(s.label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                        Text(maskedAmount("${formatMoney(s.uah)} ₴") + "  " + Math.round(s.fraction * 100) + " %", style = MaterialTheme.typography.bodyMedium.tabularNums())
+                        Text(maskedAmount("${formatMoney(s.uah)} ₴") + "  " + formatPercent(Math.round(s.fraction * 100).toInt()), style = MaterialTheme.typography.bodyMedium.tabularNums())
                     }
                     LinearProgressIndicator(progress = { s.fraction.toFloat() }, modifier = Modifier.fillMaxWidth(), strokeCap = StrokeCap.Round, drawStopIndicator = {})
                 }

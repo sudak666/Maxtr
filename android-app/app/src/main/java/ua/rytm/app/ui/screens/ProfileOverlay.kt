@@ -186,7 +186,7 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
     val profileSwitched = stringResource(R.string.settings_profile_switched)
     var openSheet by rememberSaveable { mutableStateOf<SettingsSheet?>(null) }
     var premiumOpen by rememberSaveable { mutableStateOf(false) }
-    val premiumActive = ua.rytm.app.ui.rytmApp().premiumRepository.isPremium.collectAsState().value
+    val premiumStatus = ua.rytm.app.ui.rytmApp().premiumRepository.status.collectAsState().value
 
     SettingsManagerSheets(
         open = openSheet,
@@ -204,17 +204,23 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
         Modifier.fillMaxSize().onGloballyPositioned { overlayOrigin = it.positionInRoot() },
     ) {
         val widthPx = constraints.maxWidth.toFloat()
-        // No panel surface of its own: the cards float over the dimmed screen.
+        // Outside review 2026-11-27: the cards used to float over the screen
+        // dimmed to 94 %, so the balance showed through — under the very
+        // «Приховувати суми» switch — and read as two layers stacked by
+        // mistake. Now the panel is an opaque page that slides in (monobank,
+        // Revolut and Wise open the profile as a page of its own); the screen
+        // it uncovers only dims while the page is on its way.
         Box(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = state.progress.value }
-                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f)),
+                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f)),
         )
         Column(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { translationX = (1f - state.progress.value) * widthPx }
+                .background(MaterialTheme.colorScheme.background)
                 .pointerInput(widthPx) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
@@ -232,6 +238,8 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = RytmSpacing.lg),
         ) {
+            // Top start, as the platform puts a page's way back (Google's own
+            // account card does too); a swipe right anywhere and Back also close it.
             IconButton(onClick = ::close) { Icon(RytmIcons.Close, stringResource(R.string.action_close)) }
             Spacer(Modifier.height(PanelAvatarSize + 32.dp))
             ProfileAppearanceCard(
@@ -246,15 +254,15 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
             )
             Spacer(Modifier.height(RytmSpacing.md))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-                ProfileTile(RytmIcons.Groups, R.string.profiles_title, R.string.settings_profiles_subtitle, Modifier.weight(1f)) { openSheet = SettingsSheet.Profiles }
-                ProfileTile(RytmIcons.Lock, R.string.pin_settings_title, R.string.settings_pin_subtitle, Modifier.weight(1f)) { openSheet = SettingsSheet.Pin }
+                ProfileTile(RytmIcons.Groups, stringResource(R.string.profiles_title), stringResource(R.string.settings_profiles_subtitle), Modifier.weight(1f)) { openSheet = SettingsSheet.Profiles }
+                ProfileTile(RytmIcons.Lock, stringResource(R.string.pin_settings_title), stringResource(R.string.settings_pin_subtitle), Modifier.weight(1f)) { openSheet = SettingsSheet.Pin }
             }
             Spacer(Modifier.height(RytmSpacing.md))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
-                ProfileTile(RytmIcons.CloudDone, R.string.settings_backups_title, R.string.settings_backups_subtitle, Modifier.weight(1f)) {
+                ProfileTile(RytmIcons.CloudDone, stringResource(R.string.settings_backups_title), stringResource(R.string.settings_backups_subtitle), Modifier.weight(1f)) {
                     if (session.ownerUid != null) onMessage(backupsUnavailable) else openSheet = SettingsSheet.Backups
                 }
-                ProfileTile(RytmIcons.Star, R.string.settings_premium, if (premiumActive) R.string.premium_plan_active else R.string.settings_free_plan, Modifier.weight(1f)) { premiumOpen = true }
+                ProfileTile(RytmIcons.Star, stringResource(R.string.settings_premium), premiumSubtitle(premiumStatus), Modifier.weight(1f)) { premiumOpen = true }
             }
             Spacer(Modifier.height(RytmSpacing.md))
             SettingsGroupCard {
@@ -305,17 +313,19 @@ fun ProfileOverlay(onOpenSettings: () -> Unit, onMessage: (String) -> Unit) {
 }
 
 @Composable
-private fun ProfileTile(icon: ImageVector, title: Int, subtitle: Int, modifier: Modifier, onClick: () -> Unit) {
+private fun ProfileTile(icon: ImageVector, title: String, subtitle: String, modifier: Modifier, onClick: () -> Unit) {
+    // The same surface as the settings card under the tiles: in the dark
+    // theme the tiles were a step darker than the card below them.
     Column(
         modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
             .padding(RytmSpacing.lg),
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(RytmSpacing.md))
-        Text(stringResource(title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(stringResource(subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
