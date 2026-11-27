@@ -58,8 +58,9 @@ class ShiftsRepository(private val db: RytmDatabase, private val sync: ShiftsSyn
     // Quick-fill's "Застосувати" — mirrors js/calendar.js's applyTemplate():
     // wipe the given month, then write `typeId` on every day the pattern's
     // on/off cycle covers.
-    suspend fun applyTemplate(uid: String, profileId: String, monthPrefix: String, daysInMonth: Int, typeId: String, pattern: String) {
-        val entities = daysForShiftPattern(daysInMonth, pattern)
+    suspend fun applyTemplate(uid: String, profileId: String, month: java.time.YearMonth, typeId: String, pattern: String, anchor: LocalDate) {
+        val monthPrefix = month.toString() // "yyyy-MM"
+        val entities = daysForShiftPattern(month, pattern, anchor)
             .map { d -> ShiftDayEntity("$monthPrefix-" + d.toString().padStart(2, '0'), typeId) }
         mutateDays(uid, profileId) { db.shiftDayDao().applyTemplate(monthPrefix, entities) }
     }

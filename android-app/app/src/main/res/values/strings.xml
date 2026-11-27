@@ -154,7 +154,7 @@
     <string name="shifts_income_chart">Динаміка заробітку — 6 місяців</string>
     <string name="shifts_quick_fill">Швидке заповнення</string>
     <string name="shifts_quick_fill_hint">Заповни місяць за твоїм шаблоном</string>
-    <string name="shifts_fill_current_month">Заповнити поточний місяць</string>
+    <string name="shifts_fill_month">Заповнити %1$s</string>
     <string name="shifts_autofill_future">Автоматично надалі</string>
     <string name="shift_type">Тип зміни</string>
     <string name="shift_pattern">Періодичність</string>
@@ -166,7 +166,7 @@
     <string name="shifts_weekend_a11y">вихідний</string><string name="shifts_other_month_a11y">день сусіднього місяця</string>
     <string name="shifts_edit_day_a11y">редагувати зміни дня</string>
     <string name="shifts_clear_month_confirm">Усі призначені зміни цього місяця буде видалено. Дію не можна скасувати.</string>
-    <string name="shifts_autofill_body">Коли настає новий день, потрібна зміна підставляється сама — без ручного заповнення місяця.</string>
+    <string name="shifts_autofill_body">Нові дні заповнюються за цим шаблоном самі.</string>
     <string name="shifts_anchor_date">Перший робочий день циклу</string>
     <string name="shifts_empty_title">Ще немає змін цього місяця</string>
     <string name="weekday_mon">ПН</string><string name="weekday_tue">ВТ</string><string name="weekday_wed">СР</string><string name="weekday_thu">ЧТ</string><string name="weekday_fri">ПТ</string><string name="weekday_sat">СБ</string><string name="weekday_sun">НД</string>
@@ -197,6 +197,7 @@
     <string name="shift_type_delete_title">Видалити тип зміни</string>
     <string name="shift_type_delete_body">Видалити цей тип зміни? Він буде знятий з усіх днів календаря.</string>
     <string name="shift_day_off">Вихідний</string>
+    <string name="shift_type_unpaid">Без оплати</string>
     <string name="shift_type_summary">%1$s ₴ · %2$s год</string>
     <string name="shift_pay">Оплата</string>
     <string name="shift_hours">Години</string>
@@ -480,7 +481,7 @@
     <string name="finance_search_prefix">Шукати</string>
     <string name="settings_search_what_wallets">гаманці</string><string name="settings_search_what_categories">категорії</string><string name="settings_search_what_notifications">сповіщення</string><string name="settings_search_what_pin">PIN-код</string><string name="settings_search_what_theme">тему</string>
     <string name="finance_day_yesterday">Вчора</string>
-    <string name="shifts_brush_hint">Порада: обери тип зміни вище, щоб проставляти дні одним дотиком</string>
+    <string name="shifts_brush_hint">Обери тип і торкайся днів у календарі</string>
     <string name="shifts_brush_active_hint">Режим пензлика: дотик до дня додає або прибирає цю зміну. Торкнись типу ще раз, щоб вийти</string>
     <string name="transaction_shift_cost">≈ %1$s зміни роботи</string>
     <string name="transaction_shift_cost_tiny">Менше 0,1 зміни роботи</string>

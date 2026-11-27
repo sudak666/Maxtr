@@ -21,10 +21,21 @@ fun monthCalendarCells(month: YearMonth): List<CalendarCell> {
     }
 }
 
-fun daysForShiftPattern(daysInMonth: Int, pattern: String): List<Int> {
+/**
+ * Days of [month] that are working days of [pattern] counted from [anchor],
+ * the first working day of the cycle. Filling a month and the autofill now
+ * share that anchor: the month fill used to start every cycle on the 1st, so
+ * a 2/2 filled by hand and the same 2/2 filled by autofill disagreed. Days
+ * before the anchor continue the cycle backwards.
+ */
+fun daysForShiftPattern(month: java.time.YearMonth, pattern: String, anchor: java.time.LocalDate = month.atDay(1)): List<Int> {
     val (on, off) = SHIFT_PATTERN_CYCLES[pattern] ?: SHIFT_PATTERN_CYCLES.getValue("every")
     val period = on + off
-    return (1..daysInMonth).filter { day -> period > 0 && ((day - 1) % period) < on }
+    if (period <= 0) return emptyList()
+    return (1..month.lengthOfMonth()).filter { day ->
+        val diff = java.time.temporal.ChronoUnit.DAYS.between(anchor, month.atDay(day))
+        Math.floorMod(diff, period.toLong()) < on
+    }
 }
 
 fun toggleShiftSelection(selection: Set<String>, id: String): Set<String> =

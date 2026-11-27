@@ -70,26 +70,21 @@ class ShiftsViewModel(
     var dayModalSelection by mutableStateOf<Set<String>>(emptySet())
         private set
 
-    // Quick-fill panel — collapsed by default (mirrors #tools-panel-body's
-    // inline `style="display:none"`), plus its own template selections.
+    // Quick-fill panel — collapsed by default.
     var quickFillExpanded by mutableStateOf(false)
-        private set
-    var templateTypeId by mutableStateOf<String?>(null)
-        private set
-    var templatePattern by mutableStateOf("every")
         private set
 
     var autoFillSchedule by mutableStateOf(AutoFillSchedule())
         private set
-    // Draft config fields for the autofill sub-panel — only committed to the
-    // repository (and re-processed) on "Зберегти", mirroring
-    // saveAutoFillConfig() reading the <select>/<input> DOM values rather
-    // than writing on every keystroke.
-    var autoFillDraftTypeId by mutableStateOf<String?>(null)
+    // One template for both quick-fill actions (outside review, 2026-11-27):
+    // filling the month and the autofill used to be two copies of the same
+    // form, and the month fill ignored the cycle's first day. It starts from
+    // the saved schedule; while autofill is on, every change is saved to it.
+    var templateTypeId by mutableStateOf<String?>(null)
         private set
-    var autoFillDraftPattern by mutableStateOf("every")
+    var templatePattern by mutableStateOf("every")
         private set
-    var autoFillDraftAnchorDate by mutableStateOf("")
+    var templateAnchorDate by mutableStateOf(LocalDate.now().withDayOfMonth(1).toString())
         private set
     @get:StringRes
     var errorMessageRes by mutableStateOf<Int?>(null)
@@ -114,14 +109,13 @@ class ShiftsViewModel(
             markLoaded()
             val firstNonOff = types.firstOrNull { !it.isOff }?.id
             if (templateTypeId == null || types.none { it.id == templateTypeId }) templateTypeId = firstNonOff
-            if (autoFillDraftTypeId == null || types.none { it.id == autoFillDraftTypeId }) autoFillDraftTypeId = firstNonOff
         }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.shiftsByDate.onEach { shiftsByDate = it; shiftsLoaded = true; markLoaded() }.catch { markLoadFailed() }.launchIn(viewModelScope)
         repository.autoFillSchedule.onEach { schedule ->
             autoFillSchedule = schedule
-            autoFillDraftPattern = schedule.pattern
-            autoFillDraftAnchorDate = schedule.anchorDate.ifBlank { LocalDate.now().toString() }
-            if (schedule.typeId.isNotBlank()) autoFillDraftTypeId = schedule.typeId
+            templatePattern = schedule.pattern
+            if (schedule.anchorDate.isNotBlank()) templateAnchorDate = schedule.anchorDate
+            if (schedule.typeId.isNotBlank()) templateTypeId = schedule.typeId
         }.launchIn(viewModelScope)
     }
 
@@ -170,13 +164,20 @@ class ShiftsViewModel(
     }
 
     fun toggleQuickFillExpanded() { quickFillExpanded = !quickFillExpanded }
-    fun setTemplateType(id: String) { templateTypeId = id }
-    fun onTemplatePatternChanged(pattern: String) { templatePattern = pattern }
+    fun setTemplateType(id: String) { templateTypeId = id; saveTemplateIfAuto() }
+    fun onTemplatePatternChanged(pattern: String) { templatePattern = pattern; saveTemplateIfAuto() }
+    fun onTemplateAnchorDateChanged(date: String) { templateAnchorDate = date; saveTemplateIfAuto() }
 
+    private val templateAnchor: LocalDate
+        get() = runCatching { LocalDate.parse(templateAnchorDate) }.getOrNull() ?: visibleMonth.atDay(1)
+
+    /** Fills the month on screen from the template, replacing what was there. */
     fun applyTemplate() {
         val typeId = templateTypeId ?: return
-        val monthPrefix = visibleMonth.toString() // "yyyy-MM"
-        launchMutation { repository.applyTemplate(uid, profileId, monthPrefix, visibleMonth.lengthOfMonth(), typeId, templatePattern) }
+        val month = visibleMonth
+        val anchor = templateAnchor
+        val pattern = templatePattern
+        launchMutation { repository.applyTemplate(uid, profileId, month, typeId, pattern, anchor) }
     }
 
     fun clearCurrentMonth() {
@@ -184,26 +185,22 @@ class ShiftsViewModel(
         launchMutation { repository.clearMonth(uid, profileId, monthPrefix) }
     }
 
+    /** Turning autofill on saves the template shown above it, so what the user sees is what runs. */
     fun setAutoFillEnabled(enabled: Boolean) {
-        val next = autoFillSchedule.copy(
-            enabled = enabled,
-            typeId = autoFillSchedule.typeId.ifBlank { autoFillDraftTypeId.orEmpty() },
-            anchorDate = autoFillSchedule.anchorDate.ifBlank { LocalDate.now().toString() },
-        )
+        val next = if (enabled) {
+            val typeId = templateTypeId ?: return
+            autoFillSchedule.copy(enabled = true, typeId = typeId, pattern = templatePattern, anchorDate = templateAnchor.toString())
+        } else {
+            autoFillSchedule.copy(enabled = false)
+        }
         launchMutation { repository.setAutoFillSchedule(uid, profileId, next, processDays = enabled) }
     }
 
-    fun setAutoFillDraftType(id: String) { autoFillDraftTypeId = id }
-    fun onAutoFillDraftPatternChanged(pattern: String) { autoFillDraftPattern = pattern }
-    fun onAutoFillDraftAnchorDateChanged(date: String) { autoFillDraftAnchorDate = date }
-
-    fun saveAutoFillConfig() {
-        val typeId = autoFillDraftTypeId ?: return
-        val next = autoFillSchedule.copy(
-            typeId = typeId,
-            pattern = autoFillDraftPattern,
-            anchorDate = autoFillDraftAnchorDate.ifBlank { LocalDate.now().toString() },
-        )
+    private fun saveTemplateIfAuto() {
+        if (!autoFillSchedule.enabled) return
+        val typeId = templateTypeId ?: return
+        val next = autoFillSchedule.copy(typeId = typeId, pattern = templatePattern, anchorDate = templateAnchor.toString())
+        if (next == autoFillSchedule) return
         launchMutation { repository.setAutoFillSchedule(uid, profileId, next, processDays = true) }
     }
 
