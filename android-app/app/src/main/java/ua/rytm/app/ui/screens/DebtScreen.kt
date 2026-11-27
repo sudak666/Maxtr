@@ -570,11 +570,12 @@ private fun InfoPanel(viewModel: DebtViewModel, cd: Debt, canEdit: Boolean) {
                     )
                     DueReminderRow()
                 }
-                // Set apart from the form above: a destructive action, confirmed in a dialog.
-                androidx.compose.material3.HorizontalDivider(Modifier.padding(top = RytmSpacing.lg, bottom = RytmSpacing.sm), color = MaterialTheme.colorScheme.outlineVariant)
+                // Apart from the fields, so it can't be hit while editing them;
+                // red text only, like every other labelled delete (wallets,
+                // categories, «Очистити місяць»). Confirmed in a dialog.
+                androidx.compose.foundation.layout.Spacer(Modifier.height(RytmSpacing.lg))
                 ua.rytm.app.ui.components.RytmTextButton(onClick = viewModel::requestDeleteCurrentDebt) {
-                    Icon(RytmIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = RytmSpacing.sm))
+                    Text(stringResource(R.string.debt_delete_title), color = MaterialTheme.colorScheme.error)
                 }
             }
         }
