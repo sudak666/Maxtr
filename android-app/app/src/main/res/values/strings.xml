@@ -677,6 +677,9 @@
     <string name="debt_total_owe">Скільки ти винен</string>
     <string name="debt_total_owed">Скільки тобі винні</string>
     <string name="debt_start_required">Вкажи суму позики</string>
+    <string name="debt_auto_from_balance">Порахувано із залишку</string>
+    <string name="debt_auto_from_payment">Порахувано з платежу</string>
+    <string name="debt_due_on">до %1$s</string>
     <string name="debt_start_hint">Від цієї суми рахуватиметься залишок</string>
     <string name="shifts_planned_month">Заплановано на місяць</string>
     <string name="shifts_hero_ahead">і ще %1$s ₴ за графіком</string>

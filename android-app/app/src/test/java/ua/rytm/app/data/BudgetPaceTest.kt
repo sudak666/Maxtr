@@ -57,3 +57,13 @@ class AnalyticsShareTest {
         org.junit.Assert.assertNull(ua.rytm.app.ui.screens.finance.topCategoryGrowth(mapOf("A" to 1002.0), mapOf("A" to 1000.0)))
     }
 }
+
+class DebtAutoSumTest {
+    @org.junit.Test
+    fun `a new balance gives the payment and back`() {
+        org.junit.Assert.assertEquals("160", ua.rytm.app.ui.screens.debt.autoDebtAmount(53864.0, "53704"))
+        org.junit.Assert.assertEquals("", ua.rytm.app.ui.screens.debt.autoDebtAmount(53864.0, "54000"))
+        org.junit.Assert.assertEquals("", ua.rytm.app.ui.screens.debt.autoDebtAmount(53864.0, "abc"))
+        org.junit.Assert.assertEquals("53704", ua.rytm.app.ui.screens.debt.autoDebtBalance(53864.0, "160"))
+    }
+}
