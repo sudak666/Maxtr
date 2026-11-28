@@ -184,11 +184,17 @@ fun FinanceScreen(
         }
     }
     // «До операцій» from the Analytics tab: no edit right needed to look.
+    // A search left over from before is cleared (seen on the emulator: an old
+    // «kolo» plus the category «Житло» showed an empty list), and the list
+    // scrolls to the history once it is laid out (effect below listState).
     val historyJump by app.pendingHistoryJump.collectAsStateWithLifecycle()
+    var historyJumps by rememberSaveable { mutableIntStateOf(0) }
     LaunchedEffect(historyJump, viewModel.loading) {
         val jump = historyJump ?: return@LaunchedEffect
         if (viewModel.loading) return@LaunchedEffect
         app.pendingHistoryJump.value = null
+        viewModel.onSearchChange("")
+        historyJumps++
         viewModel.applyFilters(if (jump.type == TxType.INCOME) TxTypeFilter.INCOME else TxTypeFilter.EXPENSE, jump.category, HistoryFilter(from = jump.from, to = jump.to))
         if (jump.from == null) viewModel.onPeriodFilterChange(PeriodFilter.ALL)
     }
@@ -285,6 +291,12 @@ fun FinanceScreen(
     val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0) +
         (if (viewModel.showMonthSummaryCard) 1 else 0) +
         (if (canEdit && viewModel.subscriptionCandidates.isNotEmpty()) 1 else 0)
+
+    LaunchedEffect(historyJumps) {
+        if (historyJumps == 0) return@LaunchedEffect
+        searchOpen = false
+        listState.animateScrollToItem(historyHeaderIndex)
+    }
 
     fun collapseTransactions() {
         if (!viewModel.listExpanded) return
@@ -444,6 +456,13 @@ fun FinanceScreen(
                     hf.maxAmount?.let { androidx.compose.ui.res.stringResource(R.string.filters_to) + " " + formatMoney(it) },
                 )
                 CategoryFilterChip(parts.joinToString(", "), onClear = viewModel::clearWalletAmountFilters)
+            }
+            // A date range set elsewhere («До операцій» from Analytics, the filters
+            // sheet) shows here too: its only chip sat off-screen at the end of
+            // the type row, so the list looked filtered for no visible reason.
+            if (hf.hasRange) item(key = "range-chip") {
+                val range = listOf(hf.from, hf.to).joinToString(" – ") { d -> d?.let(::rangeLabel) ?: "…" }
+                CategoryFilterChip(range, onClear = { viewModel.onPeriodFilterChange(PeriodFilter.ALL) })
             }
             // "#відпустка" or any filter: how much the found operations add up to.
             if (viewModel.isSearchOrFilterActive && filtered.isNotEmpty()) item(key = "filtered-totals") {
@@ -610,3 +629,7 @@ internal fun MonthSummaryHost(viewModel: FinanceViewModel) {
         )
     }
 }
+
+/** «01.11 – 30.11» for the visible period chip. */
+private fun rangeLabel(iso: String): String =
+    runCatching { java.time.LocalDate.parse(iso).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM")) }.getOrDefault(iso)

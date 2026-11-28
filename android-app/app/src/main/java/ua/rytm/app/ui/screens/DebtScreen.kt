@@ -378,9 +378,11 @@ private fun NewDebtDialog(viewModel: DebtViewModel, onDismiss: () -> Unit) {
 
 @Composable
 private fun DebtTotals(debts: List<Debt>) {
-    fun line(totals: Map<String, Double>) = totals.entries.joinToString(" + ") { "${formatMoney(it.value)} ${it.key}" }.ifEmpty { "0" }
+    // Only the sums hide, not the sentence around them.
+    val hidden = maskedAmount("0") != "0"
+    fun line(totals: Map<String, Double>) = totals.entries.joinToString(" + ") { "${if (hidden) "••••" else formatMoney(it.value)} ${it.key}" }.ifEmpty { "0" }
     val text = stringResource(R.string.debt_totals, line(debts.openTotals(false)), line(debts.openTotals(true)))
-    Text(maskedAmount(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -707,7 +709,8 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                 } else {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("${parsePlainDebtAmount(entry.amount)?.let { ua.rytm.app.ui.screens.finance.formatMoney(it) } ?: entry.amount} $currency", fontWeight = FontWeight.SemiBold)
+                            // Masked like the balance under it: a payment's sum showed in hide mode.
+                            Text(maskedAmount(parsePlainDebtAmount(entry.amount)?.let { ua.rytm.app.ui.screens.finance.formatMoney(it) } ?: entry.amount) + " " + currency, fontWeight = FontWeight.SemiBold)
                             Text(stringResource(R.string.debt_balance_value, maskedAmount(formatMoney(entry.balance)), currency) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }

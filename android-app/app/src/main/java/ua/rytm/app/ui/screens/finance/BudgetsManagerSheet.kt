@@ -121,12 +121,14 @@ fun BudgetsManagerSheet(
 private fun BudgetRow(category: String, limit: Double, iconOverride: String?, expanded: Boolean, onToggleEdit: () -> Unit, onLimitChange: (Double) -> Unit, subcategories: List<String>, subLimits: Map<String, Double>, spent: Double, onSubLimitChange: (String, Double) -> Unit) {
     // What is left (or how far over) next to the spent sum, as Spendee and
     // Wallet show it (outside review 2026-11-28); the sums hide with «Приховувати суми».
-    val summary = if (limit > 0) {
-        val spentOf = stringResource(R.string.budgets_spent_of, ua.rytm.app.ui.maskedAmount(formatMoney(spent)), ua.rytm.app.ui.maskedAmount(formatMoney(limit)))
-        val rest = limit - spent
-        spentOf + " · " + if (rest >= 0) stringResource(R.string.budgets_left, ua.rytm.app.ui.maskedAmount(formatMoney(rest)))
+    val summary = if (limit > 0) stringResource(R.string.budgets_spent_of, ua.rytm.app.ui.maskedAmount(formatMoney(spent)), ua.rytm.app.ui.maskedAmount(formatMoney(limit)))
+        else stringResource(R.string.budgets_unlimited)
+    // Its own line under the bar: after «4 504,54 з 5 000 ₴» on one line it
+    // wrapped in the middle («залишилось / 495,46 ₴»), seen on the emulator.
+    val rest = limit - spent
+    val remainder = if (limit <= 0) null
+        else if (rest >= 0) stringResource(R.string.budgets_left, ua.rytm.app.ui.maskedAmount(formatMoney(rest)))
         else stringResource(R.string.budgets_over, ua.rytm.app.ui.maskedAmount(formatMoney(-rest)))
-    } else stringResource(R.string.budgets_unlimited)
 
     androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
@@ -157,6 +159,14 @@ private fun BudgetRow(category: String, limit: Double, iconOverride: String?, ex
                         trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                         drawStopIndicator = {},
                     )
+                    remainder?.let {
+                        Text(
+                            it.replaceFirstChar { c -> c.uppercase() },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (rest < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = RytmSpacing.xs),
+                        )
+                    }
                 }
             }
             Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -922,10 +922,15 @@ internal fun TransactionRow(
                     val secondLine = listOfNotNull(
                         walletLabel?.takeIf { tx.type != TxType.TRANSFER && showWallet && !catLine.contains(it, ignoreCase = true) },
                         // The statement line without gateway, city and country, and
-                        // left out when the title already says it («Мобільний зв'язок ·
-                        // Vodafone» over «RPAY *VODAFONE KYIV»).
+                        // left out when the row already says it in any alphabet: the
+                        // title («Мобільний зв'язок · Vodafone» over «RPAY *VODAFONE
+                        // KYIV»), the merchant badge («КОЛО» over «KOLO») or a tag.
                         tx.comment?.takeIf { it.isNotBlank() }?.let(StatementText::clean)
-                            ?.takeIf { !catLine.contains(it, ignoreCase = true) },
+                            ?.takeIf { c ->
+                                !StatementText.mentions(catLine, c) &&
+                                    !(brand != null && tx.type == TxType.EXPENSE && StatementText.mentions(brand.name, c)) &&
+                                    tx.tags.none { id -> tagLookup(id)?.name?.let { StatementText.mentions(it, c) } == true }
+                            },
                     ).joinToString(" · ")
                     if (secondLine.isNotEmpty()) {
                         Text(secondLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
