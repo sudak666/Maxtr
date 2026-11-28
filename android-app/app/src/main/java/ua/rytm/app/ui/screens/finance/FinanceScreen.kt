@@ -279,7 +279,12 @@ fun FinanceScreen(
         }
     }
     val swipedRows = remember { androidx.compose.runtime.mutableStateSetOf<String>() }
-    val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0)
+    // Banner, hero and quick actions, plus whatever optional item sits above
+    // the history header (it missed the month-summary card and the
+    // subscription suggestions, so the scroll landed one or two items short).
+    val historyHeaderIndex = 3 + (if (viewModel.loading) 1 else 0) + (if (viewModel.loadFailed) 1 else 0) +
+        (if (viewModel.showMonthSummaryCard) 1 else 0) +
+        (if (canEdit && viewModel.subscriptionCandidates.isNotEmpty()) 1 else 0)
 
     fun collapseTransactions() {
         if (!viewModel.listExpanded) return
@@ -401,6 +406,10 @@ fun FinanceScreen(
                         // filtering the list would read as lost operations.
                         if (searchOpen) viewModel.onSearchChange("")
                         searchOpen = !searchOpen
+                        // Opening brings the history to the top, so the field,
+                        // the chips and the first results sit above the keyboard
+                        // instead of the balance (outside review 2026-11-28).
+                        if (searchOpen) scope.launch { listState.animateScrollToItem(historyHeaderIndex) }
                     },
                     onOpenFilters = { filtersOpen = true },
                 )
