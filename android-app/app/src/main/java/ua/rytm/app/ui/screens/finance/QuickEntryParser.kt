@@ -8,7 +8,7 @@ package ua.rytm.app.ui.screens.finance
 object QuickEntryParser {
     data class Result(val amount: Double, val isIncome: Boolean, val walletId: String?, val comment: String)
 
-    private val amountRegex = Regex("""(?<![\p{L}\d])(\d{1,3}(?:[  ]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\d\p{L}])""")
+    private val amountRegex = Regex("""(?<![\p{L}\d])(\d{1,3}(?:[ \u00A0]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?![\d\p{L}])""")
     private val currencyWords = setOf("грн", "₴", "uah", "гривень", "гривні", "гривня")
     private val incomeWords = setOf("зарплата", "зп", "дохід", "аванс", "премія", "отримав", "отримала", "salary", "income")
 
@@ -16,7 +16,7 @@ object QuickEntryParser {
         val line = text.trim()
         if (line.isEmpty()) return null
         val match = amountRegex.find(line) ?: return null
-        val whole = match.groupValues[1].replace(" ", "").replace(" ", "")
+        val whole = match.groupValues[1].replace(" ", "").replace("\u00A0", "")
         val fraction = match.groupValues[2]
         val amount = (if (fraction.isEmpty()) whole else "$whole.$fraction").toDoubleOrNull()?.takeIf { it > 0 } ?: return null
 

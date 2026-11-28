@@ -168,6 +168,22 @@ fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
 
     RytmModalBottomSheet(onDismissRequest = vm.form::close, sheetState = sheetState) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding()) {
+        // The title and «Скасувати» stay put above the scrolling form
+        // (outside review 2026-11-28: scrolled to the date they were cut in
+        // half by the sheet's top edge; monobank pins them the same way).
+        Row(
+            Modifier.fillMaxWidth().padding(start = RytmSpacing.xl, end = RytmSpacing.xl, top = RytmSpacing.sm, bottom = RytmSpacing.xs),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RytmSheetTitle(
+                stringResource(if (vm.form.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
+                modifier = Modifier.weight(1f),
+            )
+            // Always offered: it used to appear only while editing, so a
+            // half-filled new transaction had no visible way back.
+            ua.rytm.app.ui.components.RytmTextButton(onClick = vm.form::close) { Text(stringResource(R.string.action_cancel)) }
+        }
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
@@ -176,15 +192,6 @@ fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
                 .padding(horizontal = RytmSpacing.xl, vertical = RytmSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                RytmSheetTitle(
-                    stringResource(if (vm.form.editingTxId != null) R.string.transaction_edit_title else R.string.transaction_new_title),
-                    modifier = Modifier.weight(1f),
-                )
-                // Always offered: it used to appear only while editing, so a
-                // half-filled new transaction had no visible way back.
-                ua.rytm.app.ui.components.RytmTextButton(onClick = vm.form::close) { Text(stringResource(R.string.action_cancel)) }
-            }
 
             TypeSegmentedRow(vm)
 
@@ -266,8 +273,8 @@ fun TransactionFormSheet(vm: FinanceViewModel, onDelete: (() -> Unit)? = null) {
                     ?: vm.formSalaryMatch?.let { (expected, diff) ->
                         stringResource(
                             R.string.salary_match_hint,
-                            ua.rytm.app.ui.maskedAmount("${formatMoney(expected)} ₴"),
-                            ua.rytm.app.ui.maskedAmount((if (diff >= 0) "+" else "−") + formatMoney(kotlin.math.abs(diff)) + " ₴"),
+                            ua.rytm.app.ui.maskedAmount("${formatMoney(expected)}\u00A0₴"),
+                            ua.rytm.app.ui.maskedAmount((if (diff >= 0) "+" else "−") + formatMoney(kotlin.math.abs(diff)) + "\u00A0₴"),
                         )
                     }
                 supporting?.let {
@@ -551,7 +558,7 @@ private data class TransactionTypeOption(
     val color: Color,
 )
 
-/** "Баланс після: 417,09 ₴" under a wallet field, as a bank statement shows it. */
+/** "Баланс після: 417,09\u00A0₴" under a wallet field, as a bank statement shows it. */
 /**
  * One receipt, several categories: each part becomes its own entry with the
  * same date/wallet/comment/tags; the form's own category keeps the rest.
@@ -586,7 +593,7 @@ private fun SplitPartsEditor(vm: FinanceViewModel, categories: List<String>) {
         vm.form.splitRemainder?.let { rest ->
             val main = ua.rytm.app.ui.localizedDomainText(vm.form.category ?: categories.first())
             Text(
-                stringResource(R.string.split_remainder, main, ua.rytm.app.ui.maskedAmount("${formatMoney(rest)} ${currencySymbol(vm.formWalletCurrency)}")),
+                stringResource(R.string.split_remainder, main, ua.rytm.app.ui.maskedAmount("${formatMoney(rest)}\u00A0${currencySymbol(vm.formWalletCurrency)}")),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (rest > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
             )
@@ -603,7 +610,7 @@ private fun SplitPartsEditor(vm: FinanceViewModel, categories: List<String>) {
 private fun BalanceAfterLine(balance: Double, currency: String) {
     val sign = if (balance < 0) "−" else ""
     Text(
-        text = stringResource(R.string.transaction_balance_after, ua.rytm.app.ui.maskedAmount("$sign${formatMoney(kotlin.math.abs(balance))} ${currencySymbol(currency)}")),
+        text = stringResource(R.string.transaction_balance_after, ua.rytm.app.ui.maskedAmount("$sign${formatMoney(kotlin.math.abs(balance))}\u00A0${currencySymbol(currency)}")),
         style = MaterialTheme.typography.bodySmall,
         color = if (balance < 0) RytmSemantic.warning else MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = RytmSpacing.lg),
@@ -617,7 +624,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = selected?.let { "${localizedDomainText(it.name)} (${it.currency})" } ?: "",
+            value = selected?.let { walletOptionLabel(it.name, it.currency) } ?: "",
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -627,7 +634,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             wallets.forEach { wallet ->
                 DropdownMenuItem(
-                    text = { Text("${localizedDomainText(wallet.name)} (${wallet.currency})") },
+                    text = { Text(walletOptionLabel(wallet.name, wallet.currency)) },
                     onClick = { onSelect(wallet.id); expanded = false },
                 )
             }
@@ -684,7 +691,7 @@ private fun OperatorRow(onOperator: (Char) -> Unit) {
 private fun amountCalcResult(text: String, currency: String): String? {
     if (!AmountExpression.isExpression(text)) return null
     val value = AmountExpression.evaluate(text) ?: return null
-    return stringResource(R.string.amount_calc_result, ua.rytm.app.ui.maskedAmount("${formatMoney(value)} ${currencySymbol(currency)}"))
+    return stringResource(R.string.amount_calc_result, ua.rytm.app.ui.maskedAmount("${formatMoney(value)}\u00A0${currencySymbol(currency)}"))
 }
 
 @Composable

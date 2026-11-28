@@ -82,9 +82,9 @@
     <string name="recurring_summary">%1$s · %2$s · %3$s · %4$s</string><string name="recurring_summary_inactive">%1$s · %2$s · %3$s · %4$s · paused</string>
     <string name="recurring_next_date">Next date</string><string name="recurring_active">Active</string>
     <string name="tools_title">Currencies</string><string name="period_month">This month</string><string name="period_previous">Previous month</string><string name="period_three_months">3 months</string><string name="period_all">All time</string>
-    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">Monthly average: %1$s ₴</string><string name="analytics_maximum_uah">Highest: %1$s ₴</string>
+    <string name="analytics_title">Expense and income analytics</string><string name="analytics_income_label">Income</string><string name="analytics_expense_label">Expenses</string><string name="analytics_average_uah">Monthly average: %1$s\u00A0₴</string><string name="analytics_maximum_uah">Highest: %1$s\u00A0₴</string>
     <string name="analytics_difference">Difference</string><string name="analytics_overspent">Overspent</string><string name="analytics_savings_rate">Savings rate</string>
-    <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$s ₴ (+%3$s)</string>
+    <string name="analytics_top_growth">Largest spending increase — “%1$s”: +%2$s\u00A0₴ (+%3$s)</string>
     <string name="analytics_expense_categories">Expenses by category</string><string name="analytics_income_categories">Income by category</string><string name="analytics_empty">No data for this period</string>
     <string name="rates_empty">No exchange-rate data</string><string name="converter_title">Currency converter</string><string name="converter_result">You get</string><string name="converter_swap">Swap currencies</string><string name="analytics_other">Other</string><string name="analytics_six_months">6-month trend</string>
     <string name="receipt_found">Receipt data recognized — check it before saving</string><string name="receipt_not_found">Amount and date were not found</string><string name="receipt_failed">Could not recognize the receipt</string>
@@ -111,7 +111,7 @@
     <string name="validation_date_required">Choose a date</string><string name="validation_invalid_date">Invalid date format</string><string name="validation_wallet_required">Choose a wallet</string>
     <string name="validation_comment_too_long">Comment is too long</string><string name="validation_category_too_long">Category or subcategory name is too long</string><string name="validation_same_wallets">The accounts are the same</string>
     <string name="transaction_save_failed">Could not save the transaction</string>
-    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category.</string><string name="budgets_empty">No expense categories</string><string name="budgets_spent_of">%1$s of %2$s ₴</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
+    <string name="budgets_title">Budgets</string><string name="budgets_body">Monthly spending limit per category.</string><string name="budgets_empty">No expense categories</string><string name="budgets_spent_of">%1$s of %2$s\u00A0₴</string><string name="budgets_unlimited">No limit</string><string name="budgets_monthly_limit">Monthly limit (UAH)</string><string name="budgets_save_failed">Could not save the budget. Try again.</string>
     <string name="widgets_title">Widgets</string><string name="widgets_body">Enable, disable, and reorder blocks on the Finance tab.</string>
     <string name="widget_goals">Goals</string><string name="widget_goals_subtitle">Wallet savings progress</string><string name="widget_tip">Tip of the day</string><string name="widget_tip_subtitle">A short financial tip that changes daily</string><string name="widget_crypto">Top cryptocurrencies</string><string name="widget_crypto_subtitle">Rate and 7-day chart (BTC, ETH)</string>
     <string name="action_reorder">Drag to reorder</string><string name="widgets_sync_failed">Could not sync widget settings</string>
@@ -120,10 +120,10 @@
     <string name="finance_estimated_balance">Estimated balance</string><string name="finance_total_balance">Total balance</string><string name="finance_conversion_note">The amount is converted to hryvnia using current wallet rates.</string>
     <string name="finance_month_income">Income in %1$s</string><string name="finance_month_expense">Spent in %1$s</string><string name="finance_history">Transaction history</string>
     <plurals name="finance_records"><item quantity="one">%1$d operation</item><item quantity="other">%1$d operations</item></plurals>
-    <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string><string name="finance_category_clear">%1$s · Clear ✕</string>
+    <string name="finance_clear_search">Clear search</string><string name="filter_all">All</string>
     <string name="finance_empty_search_title">Nothing found</string><string name="finance_empty_title">No transactions yet</string><string name="finance_empty_search_body">Change the filter or search query to see transactions.</string><string name="finance_empty_body">Start with what you have now, then log income and expenses.</string>
     <string name="finance_empty_cta">Set current balance</string>
-    <string name="finance_amount_uah">%1$s ₴</string><string name="finance_amount_uah_estimated">≈ %1$s ₴</string><string name="finance_signed_uah">%1$s%2$s ₴</string>
+    <string name="finance_amount_uah">%1$s\u00A0₴</string><string name="finance_amount_uah_estimated">≈ %1$s\u00A0₴</string><string name="finance_signed_uah">%1$s%2$s\u00A0₴</string>
     <string name="categories_title">Categories</string><string name="categories_body">Your own income and expense categories, with subcategories inside.</string><string name="subcategories_title">Subcategories</string><string name="action_rename">Rename</string><string name="action_more">More actions</string><string name="subcategory_label">Subcategory</string><string name="category_name">Category name</string>
     <string name="category_rename_title">Rename category</string><string name="category_delete_title">Delete category</string><string name="category_delete_body">Delete this category? Existing transactions will retain its name.</string>
     <string name="subcategory_delete_title">Delete subcategory</string><string name="subcategory_delete_body">Delete subcategory “%1$s”?</string><string name="category_icon_title">Category icon</string>
@@ -137,10 +137,10 @@
     <string-array name="finance_tips"><item>Save at least 10% of income as soon as you receive it, not from what remains at month-end.</item><item>Wait 24 hours before a large purchase; impulsive desire often passes.</item><item>Build an emergency fund covering 3–6 months of expenses.</item><item>Automate savings: a recurring transfer works better than willpower.</item><item>Review subscriptions and recurring payments once a week.</item><item>Plan irregular expenses in advance with separate categories.</item><item>Compare a discount with your actual need, not the original price.</item></string-array>
     <string name="action_save">Save</string>
     <string name="action_today">Today</string>
-    <string name="money_uah">%1$s ₴</string>
+    <string name="money_uah">%1$s\u00A0₴</string>
     <string name="shifts_choose">Choose shifts</string>
     <string name="shifts_earned_month">Earned this month</string>
-    <string name="shifts_goal_progress">%1$d%% of the %2$s ₴ goal</string>
+    <string name="shifts_goal_progress">%1$d%% of the %2$s\u00A0₴ goal</string>
     <string name="shifts_goal_edit_title">Earnings goal</string>
     <string name="shifts_goal_edit_label">Amount, UAH</string>
     <string name="shifts_income_chart">Income trend — 6 months</string>
@@ -190,7 +190,7 @@
     <string name="shift_type_delete_body">Delete this shift type? It will be removed from every calendar day.</string>
     <string name="shift_day_off">Day off</string>
     <string name="shift_type_unpaid">Unpaid</string>
-    <string name="shift_type_summary">%1$s ₴ · %2$s hr</string>
+    <string name="shift_type_summary">%1$s\u00A0₴ · %2$s hr</string>
     <string name="shift_pay">Pay</string>
     <string name="shift_hours">Hours</string>
     <string name="shift_day_off_unpaid">Day off (unpaid)</string>
@@ -394,7 +394,7 @@
     <string name="biometric_unlock_subtitle">Confirm with your fingerprint or face</string>
     <string name="transaction_delete_failed">Could not delete the transaction</string><string name="transaction_deleted">Deleted</string><string name="action_undo">Undo</string>
     <string name="transaction_auto_category">Category selected automatically: %1$s</string>
-    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: %2$s ₴ / %3$s ₴</string>
+    <string name="transaction_budget_exceeded">Budget “%1$s” exceeded: %2$s\u00A0₴ / %3$s\u00A0₴</string>
     <string name="transaction_updated">Entry updated</string>
     <string name="transaction_transfer_done">Transfer completed</string>
     <string name="transaction_added">Entry added</string>
@@ -427,14 +427,14 @@
     <string name="shifts_no_types">No shift types yet — create the first one.</string>
     <string name="action_copy_code">Copy code</string>
     <string name="forecast_title">Earnings forecast</string>
-    <string name="forecast_month_total">≈ %1$s ₴</string>
+    <string name="forecast_month_total">≈ %1$s\u00A0₴</string>
     <string name="forecast_earned">earned %1$s</string>
     <string name="forecast_planned">planned %1$s</string>
     <string name="forecast_schedule">by schedule %1$s</string>
-    <string name="forecast_goal_reached">Goal of %1$s ₴ will be reached</string>
-    <string name="forecast_goal_short">%1$s ₴ short of the goal</string>
-    <plurals name="forecast_goal_shifts"><item quantity="one">%1$s ₴ short of the goal ≈ %2$d more shift</item><item quantity="other">%1$s ₴ short of the goal ≈ %2$d more shifts</item></plurals>
-    <string name="forecast_next_month">%1$s: ≈ %2$s ₴</string>
+    <string name="forecast_goal_reached">Goal of %1$s\u00A0₴ will be reached</string>
+    <string name="forecast_goal_short">%1$s\u00A0₴ short of the goal</string>
+    <plurals name="forecast_goal_shifts"><item quantity="one">%1$s\u00A0₴ short of the goal ≈ %2$d more shift</item><item quantity="other">%1$s\u00A0₴ short of the goal ≈ %2$d more shifts</item></plurals>
+    <string name="forecast_next_month">%1$s: ≈ %2$s\u00A0₴</string>
     <string name="forecast_empty">Add shifts to the calendar or turn on autofill to see a forecast here.</string>
     <string name="widget_label">Rytm</string>
     <string name="widget_description">Balance, next shift and earnings forecast</string>
@@ -484,7 +484,7 @@
     <string name="shifts_insight_title">90-day insight</string>
     <string name="shifts_insight_more">You spend %1$d%% more on shift days</string>
     <string name="shifts_insight_less">You spend %1$d%% less on shift days</string>
-    <string name="shifts_insight_detail">≈ %1$s ₴ a day on shifts vs %2$s ₴ on days off</string>
+    <string name="shifts_insight_detail">≈ %1$s\u00A0₴ a day on shifts vs %2$s\u00A0₴ on days off</string>
     <string name="finance_contributions_title">Who added what this month</string>
     <string name="finance_contributions_me">%1$s (you)</string>
     <string name="shifts_export_calendar">Export to calendar</string>
@@ -545,7 +545,7 @@
     <string name="salary_allocation_body">Amounts are paced to your goals\' dates — never more than half the pay. Each becomes a transfer to the goal\'s wallet; you can change them.</string>
     <string name="salary_allocation_apply">Move %1$s</string>
     <string name="salary_allocation_skip">Not now</string>
-    <string name="salary_allocated">Moved to goals: %1$s ₴</string>
+    <string name="salary_allocated">Moved to goals: %1$s\u00A0₴</string>
     <string name="receipt_scan_short">Receipt</string>
     <string name="split_add">Split into categories</string>
     <string name="split_add_part">Another category</string>
@@ -609,20 +609,20 @@
     <string name="premium_body">Tracking is free. Premium takes over the manual work.</string><string name="premium_active">Premium is active, everything below is unlocked.</string><string name="premium_sync_title">Monobank sync</string><string name="premium_sync_body">Operations arrive from the bank on their own.</string><string name="premium_import_title">Statement import</string><string name="premium_import_body">monobank and PUMB, plus CSV or Excel tables from other banks.</string><string name="premium_auto_title">Auto-save</string><string name="premium_auto_body">Familiar purchases record themselves.</string><string name="premium_pdf_title">PDF report</string><string name="premium_pdf_body">Your month in one file.</string><string name="premium_unavailable">The subscription is unavailable now. Try again later.</string><string name="premium_monthly">%1$s a month</string><string name="premium_yearly">%1$s a year</string><string name="premium_trial">14 days free, then %1$s</string><string name="premium_required">Statement import is part of Premium</string><string name="premium_plan_active">All unlocked</string>
     <string name="debt_repayment">Repayment</string><string name="debt_new_repayment">New repayment</string><string name="debt_repayment_amount">Repayment amount</string><string name="debt_totals">I owe: %1$s · Owed to me: %2$s</string>
     <string name="wallet_kind_hint">This account counts in your capital but not in the daily allowance or the forecast.</string>
-    <string name="cash_forecast_main">Forecast for %1$s: %2$s ₴</string>
+    <string name="cash_forecast_main">Forecast for %1$s: %2$s\u00A0₴</string>
     <string name="cash_forecast_now">On your accounts now</string>
     <string name="cash_forecast_now_hint">Without deposits, credit cards and money owed to you</string>
     <string name="cash_forecast_in">Recurring income</string>
     <string name="cash_forecast_out">Recurring payments</string>
     <string name="cash_forecast_habit">Usual spending</string>
-    <string name="cash_forecast_habit_hint">%1$s ₴ a day × %2$d days</string>
+    <string name="cash_forecast_habit_hint">%1$s\u00A0₴ a day × %2$d days</string>
     <string name="cash_forecast_end">On %1$s</string>
     <string name="cash_forecast_habit_title">Usual spending</string>
     <string name="cash_forecast_habit_explain">Average over %1$d days, without the %2$d priciest days (one-off buys) and recurring payments.</string>
     <string name="cash_forecast_habit_top">Most: %1$s</string>
     <string name="cash_forecast_shifts_title">Shifts</string>
-    <string name="cash_forecast_shifts_paid">Shifts bring ≈ %1$s ₴ more. It arrives with your salary, so it is already counted.</string>
-    <string name="cash_forecast_shifts">Shifts bring ≈ %1$s ₴ more. Add your salary as recurring income to count it.</string>
+    <string name="cash_forecast_shifts_paid">Shifts bring ≈ %1$s\u00A0₴ more. It arrives with your salary, so it is already counted.</string>
+    <string name="cash_forecast_shifts">Shifts bring ≈ %1$s\u00A0₴ more. Add your salary as recurring income to count it.</string>
     <string name="cash_forecast_after_hint">Daily balances are after usual spending.</string>
     <string name="cash_forecast_how">How it is calculated</string>
     <string name="budgets_limit_hint">Blank or 0 — no limit</string>
@@ -633,7 +633,7 @@
     <string name="cash_forecast_no_history">Too little history for usual spending, so only recurring payments count.</string>
     <string name="cash_forecast_events">Day by day</string>
     <string name="cash_forecast_no_events">No recurring payments and no shortfall until %1$s.</string>
-    <string name="cash_forecast_after">%1$s ₴ left</string>
+    <string name="cash_forecast_after">%1$s\u00A0₴ left</string>
     <string name="cash_forecast_note">The forecast runs to the end of the financial month, or to the end of the next one when fewer than two weeks are left. You can change the month start in Settings.</string>
     <string name="recurring_first_date">First payment</string>
     <string name="recurring_comment">Name (optional)</string>
@@ -661,7 +661,7 @@
     <string name="debt_due_on">by %1$s</string>
     <string name="debt_start_hint">What is left is counted from this amount</string>
     <string name="shifts_planned_month">Planned for the month</string>
-    <string name="shifts_hero_ahead">plus %1$s ₴ on the schedule</string>
+    <string name="shifts_hero_ahead">plus %1$s\u00A0₴ on the schedule</string>
     <string name="debt_start_missing">The loan amount is missing, so what is left is wrong. Enter it in «Loan details» and the payment balances are recounted.</string>
     <string name="categories_add_presets">Add ready-made categories</string>
     <string name="categories_presets_none">You already have the whole ready-made set.</string>
@@ -701,7 +701,7 @@
     <string name="capital_no_history">Not enough entries for a chart yet.</string>
     <string name="capital_by_wallet">Where the money is</string>
     <string name="capital_by_currency">Currencies</string>
-    <string name="capital_note_rates">Past days use today’s rates.</string><string name="capital_note_negative">Accounts below zero (a credit card) are left out of the shares.</string><string name="capital_spendable">Of it, to spend: %1$s ₴</string>
+    <string name="capital_note_rates">Past days use today’s rates.</string><string name="capital_note_negative">Accounts below zero (a credit card) are left out of the shares.</string><string name="capital_spendable">Of it, to spend: %1$s\u00A0₴</string>
     <string name="capital_chart_description">Net worth chart, from %1$s to %2$s hryvnias</string>
     <string name="category_stats_no_compare">nothing to compare with</string>
     <string name="category_stats_vs_previous">%1$s vs the previous period (%2$s)</string>
@@ -735,8 +735,8 @@
     <string name="statement_map_preview">Result</string>
     <plurals name="statement_map_found"><item quantity="one">%1$d operation</item><item quantity="other">%1$d operations</item></plurals>
     <plurals name="statement_map_skipped"><item quantity="one">%1$d row skipped (no date or amount)</item><item quantity="other">%1$d rows skipped (no date or amount)</item></plurals>
-    <string name="finance_filtered_spent">Spent %1$s ₴</string>
-    <string name="finance_filtered_earned">Received %1$s ₴</string>
+    <string name="finance_filtered_spent">Spent %1$s\u00A0₴</string>
+    <string name="finance_filtered_earned">Received %1$s\u00A0₴</string>
     <string name="debt_due_reminder">Remind before the due date</string>
     <string name="debt_due_monthly">Every month</string>
     <string name="debt_due_monthly_hint">Due on day %1$d of every month</string>
@@ -804,7 +804,7 @@
         <item quantity="other">%d days off</item>
     </plurals>
     <string name="cash_forecast_short_label">A shortfall ahead</string>
-    <string name="cash_forecast_short_head">Short by ≈ %1$s ₴</string>
+    <string name="cash_forecast_short_head">Short by ≈ %1$s\u00A0₴</string>
     <string name="cash_forecast_gap_deepest">Money runs out ≈ %1$s, lowest on %2$s</string>
     <string name="cash_forecast_day_gap">money runs out</string>
     <string name="cash_forecast_day_lowest">lowest point</string>
@@ -841,4 +841,6 @@
     <string name="premium_until">Active until %1$s</string>
     <string name="premium_plan_yearly">Yearly plan</string>
     <string name="premium_plan_monthly">Monthly plan</string>
+    <string name="budgets_left">%1$s\u00A0₴ left</string>
+    <string name="budgets_over">%1$s\u00A0₴ over</string>
 </resources>

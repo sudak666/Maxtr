@@ -312,7 +312,7 @@ internal fun HeroBalanceCard(
                             modifier = Modifier.weight(1f),
                         )
                         Text(
-                            maskedAmount("+${formatMoney(c.income)} · −${formatMoney(c.expense)} ₴"),
+                            maskedAmount("+${formatMoney(c.income)} · −${formatMoney(c.expense)}\u00A0₴"),
                             style = MaterialTheme.typography.bodySmall.tabularNums(),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -321,7 +321,7 @@ internal fun HeroBalanceCard(
                 // Who pays whom so this month's expenses are split equally.
                 settleEqually(contributions).forEach { st ->
                     Text(
-                        stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)} ₴")),
+                        stringResource(R.string.finance_settle_line, st.from, st.to, maskedAmount("${formatMoney(st.amount)}\u00A0₴")),
                         style = MaterialTheme.typography.bodySmall,
                         color = ua.rytm.app.ui.theme.RytmSemantic.link,
                     )
@@ -408,6 +408,14 @@ private fun ForecastEntry(hasGap: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * A wallet in a picker: «ПУМБ», «Monobank ••5129», and the currency only when it
+ * is not the hryvnia («Revolut (USD)») — «(UAH)» on every row was noise.
+ */
+@Composable
+internal fun walletOptionLabel(name: String, currency: String): String =
+    localizedDomainText(name) + if (currency == "UAH") "" else " ($currency)"
+
 /** A wallet's kind as a glyph: a dot in red (PUMB's colour) read as an error status. */
 internal fun walletKindIcon(kind: String): ImageVector = when (kind) {
     "cash" -> RytmIcons.Payments
@@ -444,7 +452,7 @@ internal fun WalletChip(wallet: Wallet, balance: Double, selected: Boolean = fal
             Text(localizedDomainText(wallet.name), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.width(RytmSpacing.sm))
             Text(
-                maskedAmount("${formatMoney(balance)} ${currencySymbol(wallet.currency)}"),
+                maskedAmount("${formatMoney(balance)}\u00A0${currencySymbol(wallet.currency)}"),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -676,7 +684,9 @@ internal fun CategoryFilterChip(category: String, onClear: () -> Unit) {
     FilterChip(
         selected = true,
         onClick = onClear,
-        label = { Text(stringResource(R.string.finance_category_clear, localizedDomainText(category))) },
+        // «ПУМБ ✕»: the word «Скинути» beside the ✕ said the same thing twice.
+        label = { Text(localizedDomainText(category)) },
+        trailingIcon = { Icon(RytmIcons.Close, contentDescription = stringResource(R.string.filters_reset), modifier = Modifier.size(FilterChipDefaults.IconSize)) },
         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer),
     )
 }
@@ -911,7 +921,11 @@ internal fun TransactionRow(
                     // («Комісії · Поповнення ПУМБ» over «ПУМБ») or the list shows one wallet.
                     val secondLine = listOfNotNull(
                         walletLabel?.takeIf { tx.type != TxType.TRANSFER && showWallet && !catLine.contains(it, ignoreCase = true) },
-                        tx.comment?.takeIf { it.isNotBlank() },
+                        // The statement line without gateway, city and country, and
+                        // left out when the title already says it («Мобільний зв'язок ·
+                        // Vodafone» over «RPAY *VODAFONE KYIV»).
+                        tx.comment?.takeIf { it.isNotBlank() }?.let(StatementText::clean)
+                            ?.takeIf { !catLine.contains(it, ignoreCase = true) },
                     ).joinToString(" · ")
                     if (secondLine.isNotEmpty()) {
                         Text(secondLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -934,16 +948,16 @@ internal fun TransactionRow(
                 }
                 Spacer(Modifier.width(RytmSpacing.sm))
                 val (amountText, amountColor) = when (tx.type) {
-                    TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to RytmSemantic.income
-                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurface
-                    TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
+                    TxType.INCOME -> maskedAmount("+${formatMoney(tx.amount)}\u00A0${currencySymbol(tx.currency)}") to RytmSemantic.income
+                    TxType.EXPENSE -> maskedAmount("−${formatMoney(tx.amount)}\u00A0${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurface
+                    TxType.TRANSFER -> maskedAmount("${formatMoney(tx.amount)}\u00A0${currencySymbol(tx.currency)}") to MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(amountText, style = MaterialTheme.typography.bodyMedium.tabularNums(), fontWeight = FontWeight.Bold, color = amountColor)
                     balanceAfter?.let { b ->
                         // Quieter than the amount so it never reads as a second sum
                         // (a converted amount, say); TalkBack says what it is.
-                        val balanceText = maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))} ${currencySymbol(tx.currency)}")
+                        val balanceText = maskedAmount("${if (b < 0) "−" else ""}${formatMoney(kotlin.math.abs(b))}\u00A0${currencySymbol(tx.currency)}")
                         val balanceLabel = stringResource(R.string.transaction_balance_after, balanceText)
                         // «зал. 209,90 ₴»: a bare second sum under «+200 ₴» read as
                         // the same amount twice (outside review, 2026-11-27).
@@ -985,7 +999,7 @@ internal fun TransactionDetailsDialog(tx: Transaction, walletName: String?, tagN
     }
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(maskedAmount("$sign${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}"), style = MaterialTheme.typography.titleLarge.tabularNums()) },
+        title = { Text(maskedAmount("$sign${formatMoney(tx.amount)}\u00A0${currencySymbol(tx.currency)}"), style = MaterialTheme.typography.titleLarge.tabularNums()) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                 @Composable fun line(label: Int, value: String?) {

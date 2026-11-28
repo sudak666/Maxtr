@@ -177,7 +177,7 @@ fun RatesManagerSheet(
                                 maxLines = 1,
                             )
                         }
-                        Text("${numberFormat.format(value)} ₴", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("${numberFormat.format(value)}\u00A0₴", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

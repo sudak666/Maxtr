@@ -56,7 +56,7 @@ class MonthSummaryWorker(context: Context, params: WorkerParameters) : Coroutine
         val monthName = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) }
         val hidden = shouldHideAmounts(app.settingsStore.hideAmounts.first(), app.pinStore.hasPin(uid).first())
         val body = if (hidden) app.getString(R.string.month_summary_notification_hidden)
-        else app.getString(R.string.month_summary_notification_body, "${formatMoney(summary.expense, locale)} ₴", "${formatMoney(summary.income, locale)} ₴")
+        else app.getString(R.string.month_summary_notification_body, "${formatMoney(summary.expense, locale)}\u00A0₴", "${formatMoney(summary.income, locale)}\u00A0₴")
         val open = PendingIntent.getActivity(
             app, 7, Intent(app, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)

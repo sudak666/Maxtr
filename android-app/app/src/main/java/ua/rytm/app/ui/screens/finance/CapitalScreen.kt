@@ -59,7 +59,7 @@ fun CapitalScreen(vm: FinanceViewModel, onBack: () -> Unit) {
         Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
             Text(stringResource(R.string.capital_subtitle), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                heroAmountText(maskedAmount("${formatMoney(vm.totalBalanceUah)} ₴")),
+                heroAmountText(maskedAmount("${formatMoney(vm.totalBalanceUah)}\u00A0₴")),
                 style = MaterialTheme.typography.displaySmall.tabularNums(),
                 fontWeight = FontWeight.Black,
             )
@@ -84,7 +84,7 @@ fun CapitalScreen(vm: FinanceViewModel, onBack: () -> Unit) {
             val delta = last - first
             val pct = CapitalHistory.percentChange(first, last)
             val sign = if (delta >= 0) "+" else "−"
-            val deltaText = maskedAmount("$sign${formatMoney(kotlin.math.abs(delta))} ₴") +
+            val deltaText = maskedAmount("$sign${formatMoney(kotlin.math.abs(delta))}\u00A0₴") +
                 (pct?.let { " (" + (if (it >= 0) "+" else "−") + java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(kotlin.math.abs(it)) + " %)" } ?: "")
             Text(
                 stringResource(R.string.capital_change, deltaText, series.first().date.format(DateTimeFormatter.ofPattern("dd.MM.yy"))),
@@ -121,7 +121,7 @@ private fun CapitalChart(series: List<CapitalHistory.Point>) {
             val pick = selected
             if (pick != null) {
                 Text(
-                    series[pick].date.format(f) + "  " + maskedAmount(formatMoney(values[pick]) + " ₴"),
+                    series[pick].date.format(f) + "  " + maskedAmount(formatMoney(values[pick]) + "\u00A0₴"),
                     style = MaterialTheme.typography.labelLarge.tabularNums(),
                     fontWeight = FontWeight.Bold,
                 )
@@ -188,7 +188,8 @@ private fun ShareCard(title: String, shares: List<CapitalHistory.Share>, label: 
                 Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(label(s.label), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                        Text(maskedAmount("${formatMoney(s.uah)} ₴") + "  " + formatPercent(Math.round(s.fraction * 100).toInt()), style = MaterialTheme.typography.bodyMedium.tabularNums())
+                        // «<1 %», not «0 %», for a wallet with a little money in it.
+                        Text(maskedAmount("${formatMoney(s.uah)}\u00A0₴") + "  " + formatPercent(sharePercent(s.fraction, 1.0)), style = MaterialTheme.typography.bodyMedium.tabularNums())
                     }
                     LinearProgressIndicator(progress = { s.fraction.toFloat() }, modifier = Modifier.fillMaxWidth(), strokeCap = StrokeCap.Round, drawStopIndicator = {})
                 }

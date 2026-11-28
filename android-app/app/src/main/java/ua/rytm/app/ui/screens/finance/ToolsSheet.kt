@@ -369,7 +369,7 @@ private fun ExpenseDonut(byCategory: List<Pair<String, Double>>, total: Double, 
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                heroAmountText(maskedAmount(formatMoney(sl?.amount ?: total) + " ₴")),
+                heroAmountText(maskedAmount(formatMoney(sl?.amount ?: total) + "\u00A0₴")),
                 style = MaterialTheme.typography.titleMedium.tabularNums(),
                 fontWeight = FontWeight.Black,
                 maxLines = 1,
@@ -464,13 +464,13 @@ private fun CategoryStatsSheet(vm: ToolsViewModel, type: TxType, category: Strin
                 CategoryIconBadge(category = category, size = 40.dp)
                 RytmSheetTitle(localizedDomainText(category), modifier = Modifier.weight(1f))
             }
-            Text(maskedAmount(formatMoney(d.total) + " ₴"), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
+            Text(maskedAmount(formatMoney(d.total) + "\u00A0₴"), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
             val prev = d.previous
             val changeText = when {
                 prev == null || prev <= 0 -> stringResource(R.string.category_stats_no_compare)
                 else -> {
                     val pct = Math.round((d.total - prev) / prev * 100).toInt()
-                    stringResource(R.string.category_stats_vs_previous, formatPercent((if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct)), maskedAmount(formatMoney(prev) + " ₴"))
+                    stringResource(R.string.category_stats_vs_previous, formatPercent((if (pct > 0) "+" else if (pct < 0) "−" else "") + kotlin.math.abs(pct)), maskedAmount(formatMoney(prev) + "\u00A0₴"))
                 }
             }
             Text(
@@ -550,7 +550,8 @@ private fun ConverterSection(vm: ToolsViewModel) {
             // no filled box (a grey box read as a disabled input).
             Column(Modifier.weight(1f).heightIn(min = 56.dp).padding(start = RytmSpacing.xs), verticalArrangement = Arrangement.Center) {
                 Text(stringResource(R.string.converter_result), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(maskedAmount(formatMoney(vm.converterResult)), style = MaterialTheme.typography.headlineSmall.tabularNums(), fontWeight = FontWeight.Bold, maxLines = 1)
+                // With its sign («45,11 ₴»): the bare number left the currency to the picker beside it.
+                Text(maskedAmount(formatMoney(vm.converterResult) + "\u00A0" + currencySymbol(vm.converterTo)), style = MaterialTheme.typography.headlineSmall.tabularNums(), fontWeight = FontWeight.Bold, maxLines = 1)
             }
             CurrencyDropdown(vm.availableCurrencies, vm.converterTo, vm::onConverterToChange, Modifier.weight(0.72f))
         }
@@ -660,9 +661,12 @@ private fun SixMonthChartSection(vm: ToolsViewModel) {
             val locale = LocalConfiguration.current.locales[0]
             months.forEach { m -> Text(m.yearMonth.month.getDisplayName(TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(maskedAmount(stringResource(R.string.analytics_average_uah, formatMoney(values.average()))), style = MaterialTheme.typography.labelSmall)
-            Text(maskedAmount(stringResource(R.string.analytics_maximum_uah, formatMoney(maxVal))), style = MaterialTheme.typography.labelSmall)
+        // Two cells with a gap: in one SpaceBetween row two long sums ran
+        // into each other («53 473,14 ₴Найбільше:») and off the screen.
+        // Only the sums are masked, not the labels.
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(RytmSpacing.md)) {
+            Text(stringResource(R.string.analytics_average_uah, maskedAmount(formatMoney(values.average()))), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.analytics_maximum_uah, maskedAmount(formatMoney(maxVal))), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
         }
     }
     }

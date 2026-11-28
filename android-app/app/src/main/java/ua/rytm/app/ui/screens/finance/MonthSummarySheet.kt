@@ -61,7 +61,7 @@ private fun monthName(month: YearMonth): String {
 
 @Composable
 // No-break space: "−1 190,93" and "₴" were split across lines (P5).
-private fun uah(amount: Double): String = maskedAmount("${formatMoney(amount)} ₴")
+private fun uah(amount: Double): String = maskedAmount("${formatMoney(amount)}\u00A0₴")
 
 /** Shown on Finance in the first week of a month until opened or closed. */
 @Composable
@@ -263,7 +263,7 @@ private fun MonthStories(summary: MonthSummary) {
         ))
         summary.biggestExpense?.let { t ->
             add(Story(
-                stringResource(R.string.story_biggest), maskedAmount("${formatMoney(t.amount)} ${currencySymbol(t.currency)}"),
+                stringResource(R.string.story_biggest), maskedAmount("${formatMoney(t.amount)}\u00A0${currencySymbol(t.currency)}"),
                 t.comment?.takeIf { it.isNotBlank() } ?: localizedDomainText(t.category),
             ))
         }

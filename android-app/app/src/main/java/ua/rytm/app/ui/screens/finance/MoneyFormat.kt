@@ -58,7 +58,8 @@ fun currencySymbol(code: String): String = when (code) {
  * asks and as the Finance pace note already did — «27%» in English. One
  * helper, so the app stops mixing «27 %» and «27%» (outside review, 2026-11-27).
  */
-fun formatPercent(value: Int, locale: Locale = Locale.getDefault()): String = formatPercent(value.toString(), locale)
+fun formatPercent(value: Int, locale: Locale = Locale.getDefault()): String =
+    formatPercent(NumberFormat.getIntegerInstance(locale).format(value).replace('-', '−'), locale) // «1 340 %», not «1340 %»
 
 fun formatPercent(value: String, locale: Locale = Locale.getDefault()): String =
     if (locale.language == "en") "$value%" else "$value\u00A0%"

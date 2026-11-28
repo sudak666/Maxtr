@@ -51,7 +51,17 @@ fun builtInTextResource(value: String): Int? = when (value) {
 fun localizedDomainText(value: String): String = builtInTextResource(value)?.let { stringResource(it) }
     ?: ua.rytm.app.data.PresetCategories.englishName(value)
         ?.takeIf { androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language == "en" }
-    ?: value
+    ?: compactCardNumber(value)
+
+private val MASKED_CARD = Regex("""\b\d{4,6}\*{4,}(\d{4})\b""")
+
+/**
+ * «Monobank 444111******5129» → «Monobank ••5129»: the masked PAN Monobank sync
+ * names cards with is twice as long as the name and only its last four digits
+ * tell cards apart (outside review 2026-11-28: five such rows filled half the
+ * filters sheet). Display only — the stored name is untouched.
+ */
+fun compactCardNumber(value: String): String = MASKED_CARD.replace(value) { "••" + it.groupValues[1] }
 
 /**
  * Calendar token for a shift type. Built-in types carry Cyrillic codes on the
