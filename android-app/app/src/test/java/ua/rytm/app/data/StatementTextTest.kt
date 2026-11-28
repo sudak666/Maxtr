@@ -14,6 +14,19 @@ class StatementTextTest {
         assertEquals("Avrora Multimarket", StatementText.clean("Avrora Multimarket KIYEV UA"))
     }
 
+    @Test fun dropsReferencesAndForeignCities() {
+        assertEquals("NovaPay", StatementText.clean("NovaPay 380444962757"))
+        assertEquals("Google Play Pass", StatementText.clean("Google Play Pass London GB"))
+    }
+
+    // «Продукти · Коло» over «KOLO» said it twice; the check crosses alphabets.
+    @Test fun mentionsAcrossAlphabets() {
+        assertEquals(true, StatementText.mentions("Продукти · Коло", "KOLO"))
+        assertEquals(true, StatementText.mentions("Мобільний зв'язок · Vodafone", "VODAFONE"))
+        assertEquals(true, StatementText.mentions("Сільпо", "SILPO"))
+        assertEquals(false, StatementText.mentions("Продукти", "KOLO"))
+    }
+
     @Test fun leavesOwnCommentsAlone() {
         assertEquals("Сергій ключі", StatementText.clean("Сергій ключі"))
         assertEquals("UA", StatementText.clean("UA"))
