@@ -359,7 +359,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
     val selected = wallets.firstOrNull { it.id == selectedId }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = selected?.let { "${it.name} (${it.currency})" } ?: "",
+            value = selected?.let { walletOptionLabel(it.name, it.currency) } ?: "",
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -369,7 +369,7 @@ private fun WalletDropdown(label: String, wallets: List<Wallet>, selectedId: Str
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             wallets.forEach { wallet ->
                 DropdownMenuItem(
-                    text = { Text("${localizedDomainText(wallet.name)} (${wallet.currency})") },
+                    text = { Text(walletOptionLabel(wallet.name, wallet.currency)) },
                     onClick = { onSelect(wallet.id); expanded = false },
                 )
             }

@@ -123,7 +123,7 @@ class BankQuickSaveReceiver : BroadcastReceiver() {
         val n = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_rytm)
             .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
-            .setContentTitle(context.getString(R.string.bank_quick_saved, "${formatMoney(tx.amount)} ${currencySymbol(tx.currency)}", label))
+            .setContentTitle(context.getString(R.string.bank_quick_saved, "${formatMoney(tx.amount)}\u00A0${currencySymbol(tx.currency)}", label))
             .setContentText(listOfNotNull(tx.comment, walletName).joinToString(" · "))
             .setOnlyAlertOnce(true)
             .setSilent(true)

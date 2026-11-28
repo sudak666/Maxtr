@@ -428,7 +428,7 @@ private fun HeroBalance(cd: Debt) {
     ) {
         Column(Modifier.padding(RytmSpacing.xl)) {
             Text(stringResource(if (cd.owedToMe) R.string.debt_owed_balance else R.string.debt_current_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(maskedAmount("${formatMoney(cd.currentBalance())} ${currencySymbol(cd.currency)}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
+            Text(maskedAmount("${formatMoney(cd.currentBalance())}\u00A0${currencySymbol(cd.currency)}"), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             if (cd.startAmount <= 0 && cd.entries.isNotEmpty()) {
                 Text(stringResource(R.string.debt_start_missing), style = MaterialTheme.typography.bodySmall, color = ua.rytm.app.ui.theme.RytmSemantic.warning, modifier = Modifier.padding(top = RytmSpacing.xs))
             }
@@ -466,7 +466,7 @@ private fun ProgressBarSection(cd: Debt) {
             // Start and paid sums live here now, not in two chips that pushed
             // the rest of the row off screen (design audit 2026-11-26).
             Text(
-                maskedAmount(stringResource(R.string.debt_progress_of, formatMoney(paid), "${formatMoney(target)} ${currencySymbol(cd.currency)}", (pct * 100).toInt())),
+                stringResource(R.string.debt_progress_of, maskedAmount(formatMoney(paid)), maskedAmount("${formatMoney(target)}\u00A0${currencySymbol(cd.currency)}"), (pct * 100).toInt()),
                 style = MaterialTheme.typography.labelSmall.tabularNums(),
                 fontWeight = FontWeight.Bold,
             )
@@ -500,7 +500,7 @@ private fun ChipStatsRow(cd: Debt) {
     val due = dueChipInfo(cd)
     RytmStatChipRow {
         // With a start amount the progress bar above already says «paid X of Y».
-        if (cd.startAmount <= 0) item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())} ${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
+        if (cd.startAmount <= 0) item { RytmStatChip(RytmIcons.CheckCircle, maskedAmount("${formatMoney(cd.paid())}\u00A0${currencySymbol(cd.currency)}"), stringResource(if (cd.owedToMe) R.string.debt_received else R.string.debt_paid)) }
         item { RytmStatChip(RytmIcons.Receipt, cd.entries.size.toString(), stringResource(R.string.debt_payments)) }
         // The date itself under the days: with «Щомісяця» the stored date
         // (10.11) is past while the chip counts to the next one (10.12),
@@ -708,7 +708,7 @@ private fun DebtEntryContent(viewModel: DebtViewModel, entry: DebtEntry, currenc
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text("${parsePlainDebtAmount(entry.amount)?.let { ua.rytm.app.ui.screens.finance.formatMoney(it) } ?: entry.amount} $currency", fontWeight = FontWeight.SemiBold)
-                            Text(maskedAmount(stringResource(R.string.debt_balance_value, formatMoney(entry.balance), currency)) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.debt_balance_value, maskedAmount(formatMoney(entry.balance)), currency) + " · ${entry.date}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

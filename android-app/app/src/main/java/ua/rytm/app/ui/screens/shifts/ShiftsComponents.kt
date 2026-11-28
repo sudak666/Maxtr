@@ -160,7 +160,7 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
             Text(stringResource(if (onlyAhead) R.string.shifts_planned_month else R.string.shifts_earned_month), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(ua.rytm.app.ui.screens.finance.heroAmountText(maskedAmount(stringResource(R.string.money_uah, formatMoney(if (onlyAhead) ahead else earned)))), style = MaterialTheme.typography.displayMedium.tabularNums(), fontWeight = FontWeight.Black)
             if (!onlyAhead && ahead > 0.0) {
-                Text(maskedAmount(stringResource(R.string.shifts_hero_ahead, formatMoney(ahead))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.shifts_hero_ahead, maskedAmount(formatMoney(ahead))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             // Hours, shifts and days off used to be three separate chips below
             // the calendar; one line here keeps them next to the money.
@@ -201,7 +201,7 @@ internal fun HeroMetric(earned: Double, ahead: Double, goal: Double, canEdit: Bo
             // The goal text itself opens the editor; a pencil beside it was removed at the owner's request.
             val editGoalLabel = stringResource(R.string.shifts_goal_edit_title)
             Text(
-                maskedAmount(stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), formatMoney(goal))),
+                stringResource(R.string.shifts_goal_progress, (rawPct * 100).toInt(), maskedAmount(formatMoney(goal))),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
@@ -295,7 +295,7 @@ internal fun ForecastCard(current: MonthForecast, next: MonthForecast, goal: Dou
             }
             if (next.total > 0) {
                 Text(
-                    maskedAmount(stringResource(R.string.forecast_next_month, monthName(next), formatMoney(next.total))),
+                    stringResource(R.string.forecast_next_month, monthName(next), maskedAmount(formatMoney(next.total))),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

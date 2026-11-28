@@ -73,15 +73,15 @@ private fun PreviewRow(icon: ImageVector, tint: Color, title: String, amount: St
 @Composable
 internal fun FinancePreview() = PreviewCard {
     Text(stringResource(R.string.finance_total_balance), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    Text("${formatMoney(12450.0)} ₴", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+    Text("${formatMoney(12450.0)}\u00A0₴", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(RytmIcons.AccountBalanceWallet, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Text(stringResource(R.string.onboarding_demo_forecast), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(320.0)} ₴", MaterialTheme.colorScheme.onSurface)
-    PreviewRow(RytmIcons.LocalCafe, Color(0xFFF59E0B), localizedDomainText("Кафе"), "−${formatMoney(65.0)} ₴", MaterialTheme.colorScheme.onSurface)
+    PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(320.0)}\u00A0₴", MaterialTheme.colorScheme.onSurface)
+    PreviewRow(RytmIcons.LocalCafe, Color(0xFFF59E0B), localizedDomainText("Кафе"), "−${formatMoney(65.0)}\u00A0₴", MaterialTheme.colorScheme.onSurface)
 }
 
 @Composable
@@ -92,9 +92,9 @@ internal fun BankPreview() = PreviewCard {
         Spacer(Modifier.width(6.dp))
         Text("monobank", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-    Text(stringResource(R.string.onboarding_demo_bank_push, "${formatMoney(245.0)} ₴"), style = MaterialTheme.typography.bodyMedium)
+    Text(stringResource(R.string.onboarding_demo_bank_push, "${formatMoney(245.0)}\u00A0₴"), style = MaterialTheme.typography.bodyMedium)
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(245.0)} ₴", MaterialTheme.colorScheme.onSurface)
+    PreviewRow(RytmIcons.ShoppingCart, Color(0xFF22C55E), localizedDomainText("Продукти"), "−${formatMoney(245.0)}\u00A0₴", MaterialTheme.colorScheme.onSurface)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(RytmIcons.CheckCircle, contentDescription = null, tint = RytmSemantic.income, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
@@ -124,7 +124,7 @@ internal fun ShiftsPreview() = PreviewCard {
         }
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    Text(stringResource(R.string.onboarding_demo_earned, "${formatMoney(18000.0)} ₴"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RytmSemantic.income)
+    Text(stringResource(R.string.onboarding_demo_earned, "${formatMoney(18000.0)}\u00A0₴"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RytmSemantic.income)
 }
 
 @Composable

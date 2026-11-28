@@ -73,7 +73,7 @@ fun CashForecastScreen(forecast: CashForecast, shiftsLeft: Double, onBack: () ->
             if (short) {
                 Text(stringResource(R.string.cash_forecast_short_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    maskedAmount(stringResource(R.string.cash_forecast_short_head, formatMoney(forecast.shortfall))),
+                    stringResource(R.string.cash_forecast_short_head, maskedAmount(formatMoney(forecast.shortfall))),
                     style = MaterialTheme.typography.headlineLarge.tabularNums(),
                     fontWeight = FontWeight.Bold,
                     color = RytmSemantic.warning,
@@ -92,7 +92,7 @@ fun CashForecastScreen(forecast: CashForecast, shiftsLeft: Double, onBack: () ->
             } else {
                 Text(stringResource(R.string.cash_forecast_subtitle, formatDayMonth(forecast.end)), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    maskedAmount(signedMoney(forecast.endBalance) + " ₴"),
+                    maskedAmount(signedMoney(forecast.endBalance) + "\u00A0₴"),
                     style = MaterialTheme.typography.headlineLarge.tabularNums(),
                     fontWeight = FontWeight.Bold,
                     color = if (forecast.endBalance < 0) RytmSemantic.warning else MaterialTheme.colorScheme.onSurface,
@@ -116,7 +116,8 @@ fun CashForecastScreen(forecast: CashForecast, shiftsLeft: Double, onBack: () ->
                     SumLine(
                         stringResource(R.string.cash_forecast_habit),
                         "−" + formatMoney(forecast.unplannedSpend),
-                        stringResource(R.string.cash_forecast_habit_hint, formatMoney(habit.perDay), forecast.unplannedDays),
+                        // Masked too: the daily rate times the days is the sum itself.
+                        stringResource(R.string.cash_forecast_habit_hint, maskedAmount(formatMoney(habit.perDay)), forecast.unplannedDays),
                         color = RytmSemantic.signed(-1.0),
                     )
                 }
@@ -156,7 +157,7 @@ fun CashForecastScreen(forecast: CashForecast, shiftsLeft: Double, onBack: () ->
                         Explain(stringResource(R.string.cash_forecast_habit_explain, habit.windowDays, habit.droppedDays))
                         if (habit.topCategories.isNotEmpty()) {
                             val parts = mutableListOf<String>()
-                            for ((category, sum) in habit.topCategories) parts += localizedDomainText(category) + " " + maskedAmount(formatMoney(sum) + " ₴")
+                            for ((category, sum) in habit.topCategories) parts += localizedDomainText(category) + " " + maskedAmount(formatMoney(sum) + "\u00A0₴")
                             val top = parts.joinToString(" · ")
                             Explain(stringResource(R.string.cash_forecast_habit_top, top))
                         }
@@ -206,7 +207,7 @@ private fun KeyDayRow(day: ForecastDay, forecast: CashForecast) {
         }
         Column(horizontalAlignment = Alignment.End) {
             val sign = if (amount < 0) "−" else "+"
-            Text(maskedAmount("$sign${formatMoney(abs(amount))} ₴"), style = MaterialTheme.typography.bodyMedium.tabularNums(), fontWeight = FontWeight.Bold, color = RytmSemantic.signed(amount))
+            Text(maskedAmount("$sign${formatMoney(abs(amount))}\u00A0₴"), style = MaterialTheme.typography.bodyMedium.tabularNums(), fontWeight = FontWeight.Bold, color = RytmSemantic.signed(amount))
             Text(
                 stringResource(R.string.cash_forecast_after, maskedAmount(formatMoney(day.balance))),
                 style = MaterialTheme.typography.labelSmall.tabularNums(),
@@ -228,6 +229,11 @@ private fun ForecastChart(forecast: CashForecast) {
     val zeroColor = MaterialTheme.colorScheme.outline
     val description = stringResource(R.string.cash_forecast_chart_desc, formatDayMonth(path.first().date), formatDayMonth(path.last().date))
     Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
+        // The highest and (below zero) the lowest balance on the path, so the
+        // line has a scale without a full axis (outside review 2026-11-28).
+        val peak = path.maxOf { it.balance }
+        val low = path.minOf { it.balance }
+        Text(maskedAmount(formatMoney(peak) + "\u00A0₴"), style = MaterialTheme.typography.labelSmall.tabularNums(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Canvas(
             Modifier
                 .fillMaxWidth()
@@ -256,6 +262,7 @@ private fun ForecastChart(forecast: CashForecast) {
                 if (i >= 0) drawCircle(warning, radius = 4.dp.toPx(), center = Offset(x(i), y(values[i])))
             }
         }
+        if (low < 0) Text(maskedAmount("−" + formatMoney(-low) + "\u00A0₴"), style = MaterialTheme.typography.labelSmall.tabularNums(), color = RytmSemantic.warning)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(formatDayMonth(path.first().date), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(formatDayMonth(path.last().date), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -270,7 +277,7 @@ private fun SumLine(label: String, amount: String, hint: String? = null, color: 
             Text(label, style = if (bold) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium, fontWeight = if (bold) FontWeight.Bold else null)
             hint?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
-        Text(maskedAmount("$amount ₴"), style = if (bold) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
+        Text(maskedAmount("$amount\u00A0₴"), style = if (bold) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
     }
 }
 

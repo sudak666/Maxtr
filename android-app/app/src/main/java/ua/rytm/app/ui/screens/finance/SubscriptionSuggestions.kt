@@ -54,7 +54,7 @@ fun SubscriptionSuggestionsCard(
                 val frequency = stringResource(if (c.frequency == "weekly") R.string.frequency_weekly else R.string.frequency_monthly)
                 Column(verticalArrangement = Arrangement.spacedBy(RytmSpacing.xs)) {
                     Text(
-                        "${c.comment} · ${ua.rytm.app.ui.maskedAmount("${formatMoney(c.amount)} ${currencySymbol(c.currency)}")}",
+                        "${c.comment} · ${ua.rytm.app.ui.maskedAmount("${formatMoney(c.amount)}\u00A0${currencySymbol(c.currency)}")}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,

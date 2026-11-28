@@ -323,22 +323,33 @@ fun FinanceScreen(
         containerColor = Color.Transparent, // background comes from MainActivity's Surface (overdraw)
         // The host itself lives in RytmNavHost now — one per app.
         snackbarHost = { if (LocalSnackbarHost.current == null) SnackbarHost(ownHost, Modifier.padding(bottom = RytmDimens.BottomContentClearance)) },
+        // Outside review 2026-11-28: a wide accent pill at the end sat on top
+        // of the amounts while reading down the list. Now a small tonal pill in
+        // the middle, shown only while scrolling back up — the moment someone
+        // is heading for the top (the «scroll to top» pattern) — and never over
+        // the amount column.
+        floatingActionButtonPosition = androidx.compose.material3.FabPosition.Center,
         floatingActionButton = {
-            if (viewModel.listExpanded && !collapseButtonVisible) {
+            val scrollingUp = listState.lastScrolledBackward
+            androidx.compose.animation.AnimatedVisibility(
+                visible = viewModel.listExpanded && !collapseButtonVisible && scrollingUp,
+                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInVertically { it / 2 },
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutVertically { it / 2 },
+            ) {
                 val shape = RoundedCornerShape(RytmRadii.Pill)
                 Row(
                     modifier = Modifier
                         .padding(bottom = RytmDimens.BottomContentClearance)
-                        .shadow(8.dp, shape)
+                        .shadow(6.dp, shape)
                         .clip(shape)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                         .clickable(role = Role.Button, onClick = ::collapseTransactions)
-                        .padding(horizontal = RytmSpacing.xl, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(RytmSpacing.sm),
+                        .padding(horizontal = RytmSpacing.lg, vertical = RytmSpacing.sm),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
-                    Text(stringResource(R.string.action_collapse_list), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                    Icon(RytmIcons.ExpandLess, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.action_collapse_list), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                 }
             }
         },

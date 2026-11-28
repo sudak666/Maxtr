@@ -1,7 +1,6 @@
 package ua.rytm.app.ui.screens.finance
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +45,9 @@ import ua.rytm.app.ui.components.RytmModalBottomSheet
 import ua.rytm.app.ui.components.RytmSheetTitle
 import ua.rytm.app.ui.icons.RytmIcons
 import ua.rytm.app.ui.icons.Search
+import ua.rytm.app.ui.icons.ExpandLess
+import ua.rytm.app.ui.icons.ExpandMore
+import androidx.compose.material3.FilterChipDefaults
 import ua.rytm.app.ui.icons.Tune
 import ua.rytm.app.ui.localizedDomainText
 import ua.rytm.app.ui.theme.RytmDimens
@@ -116,7 +118,7 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                 if (vm.wallets.size > 1) {
                     // Money to spend first; savings and debts under their own small
                     // headings, so a card is not hunted for among loans. Each chip
-                    // carries the wallet's colour dot, as on the Finance screen.
+                    // carries the wallet's kind glyph in its colour, as on the Finance screen.
                     val groups = vm.wallets.groupBy { w ->
                         when (w.kind) {
                             "deposit" -> R.string.filters_wallet_savings
@@ -128,7 +130,8 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                     fun WalletChipOption(w: Wallet) = RytmFilterChip(
                         selected = walletId == w.id,
                         onClick = { walletId = w.id },
-                        leadingIcon = { Box(Modifier.size(8.dp).background(Color(w.colorHex), CircleShape)) },
+                        // The wallet's kind in its colour, as on the Finance chips (a bare dot read as a status).
+                        leadingIcon = { Icon(walletKindIcon(w.kind), contentDescription = null, tint = Color(w.colorHex), modifier = Modifier.size(FilterChipDefaults.IconSize)) },
                         label = { Text(localizedDomainText(w.name)) },
                     )
                     Section(stringResource(R.string.filters_wallet)) {
@@ -178,10 +181,12 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                         shown.forEach { c ->
                             RytmFilterChip(selected = category == c, onClick = { category = c }, label = { Text(localizedDomainText(c)) })
                         }
-                        if (hidden > 0) RytmFilterChip(
-                            selected = false,
+                        // An action, not a category: an outlined chip with a chevron
+                        // (it looked like one more category named «Ще 15»).
+                        if (hidden > 0) androidx.compose.material3.AssistChip(
                             onClick = { expanded = !expanded; query = "" },
                             label = { Text(if (expanded) stringResource(R.string.filters_category_less) else stringResource(R.string.filters_category_more, hidden)) },
+                            trailingIcon = { Icon(if (expanded) RytmIcons.ExpandLess else RytmIcons.ExpandMore, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
                         )
                     }
                 }
@@ -191,6 +196,7 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                     OutlinedTextField(
                         value = minText, onValueChange = { minText = it.filter(AmountExpression::isAllowed) },
                         label = { Text(stringResource(R.string.filters_from)) }, singleLine = true,
+                        suffix = { Text("₴") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = minText.isNotBlank() && parseMoneyInput(minText) == null,
                         modifier = Modifier.weight(1f),
@@ -198,6 +204,7 @@ fun HistoryFiltersSheet(vm: FinanceViewModel, onDismiss: () -> Unit) {
                     OutlinedTextField(
                         value = maxText, onValueChange = { maxText = it.filter(AmountExpression::isAllowed) },
                         label = { Text(stringResource(R.string.filters_to)) }, singleLine = true,
+                        suffix = { Text("₴") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = maxText.isNotBlank() && parseMoneyInput(maxText) == null,
                         modifier = Modifier.weight(1f),
